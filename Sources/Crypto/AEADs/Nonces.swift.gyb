@@ -1,0 +1,57 @@
+//===----------------------------------------------------------------------===//
+//
+// This source file is part of the SwiftCrypto open source project
+//
+// Copyright (c) 2019 Apple Inc. and the SwiftCrypto project authors
+// Licensed under Apache License v2.0
+//
+// See LICENSE.txt for license information
+// See CONTRIBUTORS.txt for the list of SwiftCrypto project authors
+//
+// SPDX-License-Identifier: Apache-2.0
+//
+//===----------------------------------------------------------------------===//
+#if (os(macOS) || os(iOS) || os(watchOS) || os(tvOS)) && CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
+@_exported import CryptoKit
+#else
+import Foundation
+%{
+ciphers = [{"name": "AES.GCM", "recommendedNonceSize": "AES.GCM.defaultNonceByteCount", "nonceValidation": "< AES.GCM.defaultNonceByteCount"},{"name": "ChaChaPoly", "recommendedNonceSize": "ChaChaPoly.nonceByteCount", "nonceValidation": "!= ChaChaPoly.nonceByteCount"}]
+}%
+% for cipher in ciphers:
+%{
+name = cipher["name"]
+nonceSize = cipher["recommendedNonceSize"]
+nonceValidation = cipher["nonceValidation"]
+}%
+
+extension ${name} {
+    public struct Nonce: ContiguousBytes, Sequence {
+        let bytes: Data
+
+        /// Generates a fresh random Nonce. Unless required by a specification to provide a specific Nonce, this is the recommended initializer.
+        public init() {
+            try! self.init(data: SecureBytes(count: ${nonceSize}))
+        }
+
+        public init<D: DataProtocol>(data: D) throws {
+            if data.count ${nonceValidation} {
+                throw CryptoKitError.incorrectParameterSize
+            }
+
+            self.bytes = Data(data)
+        }
+
+        public func withUnsafeBytes<R>(_ body: (UnsafeRawBufferPointer) throws -> R) rethrows -> R {
+            return try self.bytes.withUnsafeBytes(body)
+        }
+
+        public func makeIterator() -> Array<UInt8>.Iterator {
+            self.withUnsafeBytes({ (buffPtr) in
+                return Array(buffPtr).makeIterator()
+            })
+        }
+    }
+}
+% end
+#endif // Linux or !SwiftPM

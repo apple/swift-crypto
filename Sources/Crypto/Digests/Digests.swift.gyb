@@ -1,0 +1,86 @@
+//===----------------------------------------------------------------------===//
+//
+// This source file is part of the SwiftCrypto open source project
+//
+// Copyright (c) 2019 Apple Inc. and the SwiftCrypto project authors
+// Licensed under Apache License v2.0
+//
+// See LICENSE.txt for license information
+// See CONTRIBUTORS.txt for the list of SwiftCrypto project authors
+//
+// SPDX-License-Identifier: Apache-2.0
+//
+//===----------------------------------------------------------------------===//
+#if (os(macOS) || os(iOS) || os(watchOS) || os(tvOS)) && CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
+@_exported import CryptoKit
+#else
+
+%{
+digests_and_length = [{"name": "SHA256", "count": 32},{"name": "SHA384","count":48},{"name":"SHA512", "count": 64},{"name":"SHA1", "count":20, "prefix":"Insecure"},{"name":"MD5", "count":16, "prefix":"Insecure"}]
+}%
+
+% for HF in digests_and_length:
+%{
+    name = HF["name"]
+    byteCount = HF["count"]
+    wordsCount = (byteCount*8)/64 + (0 if ((byteCount*8)%64) == 0 else 1)
+}%
+
+%{
+    if "prefix" in HF.keys():
+        protocol_prefix = "extension " + HF["prefix"] + "{"
+        protocol_suffix = "}"
+    else:
+        protocol_prefix = ""
+        protocol_suffix = ""
+}%
+
+${protocol_prefix}
+@available(iOS 13.0, macOS 10.15, watchOS 6.0, tvOS 13.0, macCatalyst 13.0, *)
+public struct ${name}Digest: DigestPrivate {
+    let bytes: (${(wordsCount-1)*"UInt64, "+"UInt64"})
+    
+    init?(bufferPointer: UnsafeRawBufferPointer) {
+        guard bufferPointer.count == ${byteCount} else {
+            return nil
+        }
+
+        var bytes = (${(wordsCount-1)*"UInt64(0), "+"UInt64(0)"})
+        withUnsafeMutableBytes(of: &bytes) { targetPtr in
+            targetPtr.copyMemory(from: bufferPointer)
+        }
+        self.bytes = bytes
+    }
+    
+    public static var byteCount: Int {
+        return ${byteCount}
+    }
+    
+    public func withUnsafeBytes<R>(_ body: (UnsafeRawBufferPointer) throws -> R) rethrows -> R {
+        return try Swift.withUnsafeBytes(of: bytes) {
+            let boundsCheckedPtr = UnsafeRawBufferPointer(start: $0.baseAddress,
+                                                          count: Self.byteCount)
+            return try body(boundsCheckedPtr)
+        }
+    }
+
+    private func toArray() -> ArraySlice<UInt8> {
+        var array = [UInt8]()
+        array.appendByte(bytes.0)
+        % for index in range(wordsCount-1):
+        array.appendByte(bytes.${index+1})
+        % end
+        return array.prefix(upTo: ${name}Digest.byteCount)
+    }
+    
+    public var description: String {
+        return "\("${name}") digest: \(toArray().hexString)"
+    }
+    
+    public func hash(into hasher: inout Hasher) {
+        self.withUnsafeBytes {hasher.combine(bytes: $0)}
+    }
+}
+${protocol_suffix}
+% end
+#endif // Linux or !SwiftPM

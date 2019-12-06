@@ -1,0 +1,110 @@
+//===----------------------------------------------------------------------===//
+//
+// This source file is part of the SwiftCrypto open source project
+//
+// Copyright (c) 2019 Apple Inc. and the SwiftCrypto project authors
+// Licensed under Apache License v2.0
+//
+// See LICENSE.txt for license information
+// See CONTRIBUTORS.txt for the list of SwiftCrypto project authors
+//
+// SPDX-License-Identifier: Apache-2.0
+//
+//===----------------------------------------------------------------------===//
+#if (os(macOS) || os(iOS) || os(watchOS) || os(tvOS)) && CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
+@_exported import CryptoKit
+#else
+#if (os(macOS) || os(iOS) || os(watchOS) || os(tvOS)) && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
+typealias NISTCurvePublicKeyImpl = CoreCryptoNISTCurvePublicKeyImpl
+typealias NISTCurvePrivateKeyImpl = CoreCryptoNISTCurvePrivateKeyImpl
+#else
+typealias NISTCurvePublicKeyImpl = OpenSSLNISTCurvePublicKeyImpl
+typealias NISTCurvePrivateKeyImpl = OpenSSLNISTCurvePrivateKeyImpl
+#endif
+
+import Foundation
+
+
+%{
+    NIST_CURVES = ["P256", "P384", "P521"]
+    CURVES_FUNC = ["Signing", "KeyAgreement"]
+}%
+
+% for CURVE in NIST_CURVES:
+% for FUNC in CURVES_FUNC:
+
+extension ${CURVE} {
+    public enum ${FUNC} {
+        public struct PublicKey: NISTECPublicKey {
+            var impl: NISTCurvePublicKeyImpl<${CURVE}.CurveDetails>
+
+            public init<D: ContiguousBytes>(rawRepresentation: D) throws {
+                impl = try NISTCurvePublicKeyImpl(rawRepresentation: rawRepresentation)
+            }
+
+            public init<Bytes: ContiguousBytes>(compactRepresentation: Bytes) throws {
+                impl = try NISTCurvePublicKeyImpl(compactRepresentation: compactRepresentation)
+            }
+
+            public init<Bytes: ContiguousBytes>(x963Representation: Bytes) throws {
+                impl = try NISTCurvePublicKeyImpl(x963Representation: x963Representation)
+            }
+
+            init(impl: NISTCurvePublicKeyImpl<${CURVE}.CurveDetails>) {
+                self.impl = impl
+            }
+
+            public var compactRepresentation: Data? { impl.compactRepresentation }
+            public var rawRepresentation: Data { impl.rawRepresentation }
+            public var x963Representation: Data { impl.x963Representation }
+        }
+
+        public struct PrivateKey: NISTECPrivateKey {
+            let impl: NISTCurvePrivateKeyImpl<${CURVE}.CurveDetails>
+
+            public init(compactRepresentable: Bool = true) {
+                impl = NISTCurvePrivateKeyImpl(compactRepresentable: compactRepresentable)
+            }
+
+            public init<Bytes: ContiguousBytes>(x963Representation: Bytes) throws {
+                impl = try NISTCurvePrivateKeyImpl(x963: x963Representation)
+            }
+
+            public init<Bytes: ContiguousBytes>(rawRepresentation: Bytes) throws {
+                impl = try NISTCurvePrivateKeyImpl(data: rawRepresentation)
+            }
+
+            init(impl: NISTCurvePrivateKeyImpl<${CURVE}.CurveDetails>) {
+                self.impl = impl
+            }
+
+            public var publicKey: ${CURVE}.${FUNC}.PublicKey {
+                return PublicKey(impl: impl.publicKey())
+            }
+
+            public var rawRepresentation: Data { impl.rawRepresentation }
+            public var x963Representation: Data { impl.x963Representation }
+        }
+    }
+}
+% end
+% end
+
+
+% for CURVE in NIST_CURVES:
+extension ${CURVE}.KeyAgreement.PrivateKey: DiffieHellmanKeyAgreement {
+    /// Performs a key agreement with provided public key share.
+    ///
+    /// - Parameter publicKeyShare: The public key to perform the ECDH with.
+    /// - Returns: Returns a shared secret
+    /// - Throws: An error occured while computing the shared secret
+    public func sharedSecretFromKeyAgreement(with publicKeyShare: ${CURVE}.KeyAgreement.PublicKey) throws -> SharedSecret {
+        #if (os(macOS) || os(iOS) || os(watchOS) || os(tvOS)) && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
+        return try self.coreCryptoSharedSecretFromKeyAgreement(with: publicKeyShare)
+        #else
+        return try self.openSSLSharedSecretFromKeyAgreement(with: publicKeyShare)
+        #endif
+    }
+}
+% end
+#endif // Linux or !SwiftPM

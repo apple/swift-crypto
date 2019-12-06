@@ -1,0 +1,25 @@
+diff --git a/Sources/CCryptoBoringSSL/crypto/hrss/hrss.c b/Sources/CCryptoBoringSSL/crypto/hrss/hrss.c
+index 93a214e..eee4e58 100644
+--- a/Sources/CCryptoBoringSSL/crypto/hrss/hrss.c
++++ b/Sources/CCryptoBoringSSL/crypto/hrss/hrss.c
+@@ -13,6 +13,7 @@
+  * CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. */
+ 
+ #include <CCryptoBoringSSL_hrss.h>
++#include <inttypes.h>
+ 
+ #include <assert.h>
+ #include <stdio.h>
+diff --git a/Sources/CCryptoBoringSSL/include/CCryptoBoringSSL_bn.h b/Sources/CCryptoBoringSSL/include/CCryptoBoringSSL_bn.h
+index c86c1ef..7013140 100644
+--- a/Sources/CCryptoBoringSSL/include/CCryptoBoringSSL_bn.h
++++ b/Sources/CCryptoBoringSSL/include/CCryptoBoringSSL_bn.h
+@@ -126,7 +126,7 @@
+ #include "CCryptoBoringSSL_base.h"
+ #include "CCryptoBoringSSL_thread.h"
+ 
+-#include <inttypes.h>  // for PRIu64 and friends
++#include <sys/types.h>
+ #include <stdio.h>  // for FILE*
+ 
+ #if defined(__cplusplus)
