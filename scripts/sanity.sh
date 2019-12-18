@@ -21,17 +21,26 @@ function replace_acceptable_years() {
     sed -e 's/2018-2019/YEARS/' -e 's/2019/YEARS/'
 }
 
-printf "=> Checking format... "
+printf "=> Checking format\n"
 FIRST_OUT="$(git status --porcelain)"
-swiftformat . > /dev/null 2>&1
-SECOND_OUT="$(git status --porcelain)"
-if [[ "$FIRST_OUT" != "$SECOND_OUT" ]]; then
-  printf "\033[0;31mformatting issues!\033[0m\n"
-  git --no-pager diff
-  exit 1
-else
+# only checking direcotry named BoringSSL, rest is shared code and we need to preserve original format
+shopt -u dotglob
+find Sources/* Tests/* -name BoringSSL -type d | while IFS= read -r d; do
+  printf "   * checking $d... "
+  out=$(swiftformat "$d" 2>&1)
+  SECOND_OUT="$(git status --porcelain)"
+  if [[ "$out" == *"error"*] && ["$out" != "*No eligible files" ]]; then
+    printf "\033[0;31merror!\033[0m\n"
+    echo $out
+    exit 1
+  fi
+  if [[ "$FIRST_OUT" != "$SECOND_OUT" ]]; then
+    printf "\033[0;31mformatting issues!\033[0m\n"
+    git --no-pager diff
+    exit 1
+  fi
   printf "\033[0;32mokay.\033[0m\n"
-fi
+done
 
 printf "=> Checking #defines..."
 if grep '\.define("CRYPTO_IN_SWIFTPM_FORCE_BUILD_API")' Package.swift | grep -v "//" > /dev/null; then

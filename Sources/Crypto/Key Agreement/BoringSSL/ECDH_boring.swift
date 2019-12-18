@@ -29,6 +29,7 @@ extension P384.KeyAgreement.PrivateKey {
         return SharedSecret(ss: key)
     }
 }
+
 extension P521.KeyAgreement.PrivateKey {
     internal func openSSLSharedSecretFromKeyAgreement(with publicKeyShare: P521.KeyAgreement.PublicKey) throws -> SharedSecret {
         let key = try self.impl.key.keyExchange(publicKey: publicKeyShare.impl.key)
@@ -36,4 +37,3 @@ extension P521.KeyAgreement.PrivateKey {
     }
 }
 #endif // (os(macOS) || os(iOS) || os(watchOS) || os(tvOS)) && CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
-

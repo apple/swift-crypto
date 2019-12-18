@@ -11,9 +11,9 @@
 // SPDX-License-Identifier: Apache-2.0
 //
 //===----------------------------------------------------------------------===//
-import Foundation
 @_implementationOnly import CCryptoBoringSSL
 @_implementationOnly import CCryptoBoringSSLShims
+import Foundation
 
 /// A wrapper around the OpenSSL BIGNUM object that is appropriately lifetime managed,
 /// and that provides better Swift types for this object.
@@ -41,7 +41,8 @@ struct ArbitraryPrecisionInteger {
     }
 }
 
-// MARK:- BackingStorage
+// MARK: - BackingStorage
+
 extension ArbitraryPrecisionInteger {
     final class BackingStorage {
         private var _backing: BIGNUM
@@ -53,7 +54,7 @@ extension ArbitraryPrecisionInteger {
 
         init(copying original: UnsafePointer<BIGNUM>) throws {
             self._backing = BIGNUM()
-            guard nil != CCryptoBoringSSL_BN_copy(&self._backing, original) else {
+            guard CCryptoBoringSSL_BN_copy(&self._backing, original) != nil else {
                 throw CryptoKitError.internalBoringSSLError()
             }
         }
@@ -62,7 +63,7 @@ extension ArbitraryPrecisionInteger {
             self._backing = BIGNUM()
 
             try original.withUnsafeMutableBignumPointer { bnPtr in
-                guard nil != CCryptoBoringSSL_BN_copy(&self._backing, bnPtr) else {
+                guard CCryptoBoringSSL_BN_copy(&self._backing, bnPtr) != nil else {
                     throw CryptoKitError.internalBoringSSLError()
                 }
             }
@@ -84,13 +85,13 @@ extension ArbitraryPrecisionInteger {
     }
 }
 
-// MARK:- Extra initializers
+// MARK: - Extra initializers
+
 extension ArbitraryPrecisionInteger {
     init<Bytes: ContiguousBytes>(bytes: Bytes) throws {
         self._backing = try BackingStorage(bytes: bytes)
     }
 }
-
 
 extension ArbitraryPrecisionInteger.BackingStorage {
     convenience init<Bytes: ContiguousBytes>(bytes: Bytes) throws {
@@ -105,8 +106,8 @@ extension ArbitraryPrecisionInteger.BackingStorage {
     }
 }
 
+// MARK: - Pointer helpers
 
-// MARK:- Pointer helpers
 extension ArbitraryPrecisionInteger {
     func withUnsafeBignumPointer<T>(_ body: (UnsafePointer<BIGNUM>) throws -> T) rethrows -> T {
         return try self._backing.withUnsafeBignumPointer(body)
@@ -122,7 +123,6 @@ extension ArbitraryPrecisionInteger {
     }
 }
 
-
 extension ArbitraryPrecisionInteger.BackingStorage {
     func withUnsafeBignumPointer<T>(_ body: (UnsafePointer<BIGNUM>) throws -> T) rethrows -> T {
         return try body(&self._backing)
@@ -133,13 +133,13 @@ extension ArbitraryPrecisionInteger.BackingStorage {
     }
 }
 
+// MARK: - Other helpers
 
-// MARK:- Other helpers
 extension ArbitraryPrecisionInteger {
     /* private but @usableFromInline */ @usableFromInline static func _compare(lhs: ArbitraryPrecisionInteger, rhs: ArbitraryPrecisionInteger) -> CInt {
         return lhs.withUnsafeBignumPointer { lhsPtr in
             rhs.withUnsafeBignumPointer { rhsPtr in
-                return CCryptoBoringSSL_BN_cmp(lhsPtr, rhsPtr)
+                CCryptoBoringSSL_BN_cmp(lhsPtr, rhsPtr)
             }
         }
     }
@@ -147,7 +147,7 @@ extension ArbitraryPrecisionInteger {
     // This lets us check the sign of an ArbitraryPrecisionInteger.
     /* private but @usableFromInline */ @usableFromInline var _positive: Bool {
         return self.withUnsafeBignumPointer {
-            return CCryptoBoringSSL_BN_is_negative($0) == 0
+            CCryptoBoringSSL_BN_is_negative($0) == 0
         }
     }
 
@@ -202,8 +202,8 @@ extension ArbitraryPrecisionInteger {
     }
 }
 
+// MARK: - Equatable
 
-// MARK:- Equatable
 extension ArbitraryPrecisionInteger: Equatable {
     @inlinable
     static func == (lhs: ArbitraryPrecisionInteger, rhs: ArbitraryPrecisionInteger) -> Bool {
@@ -211,8 +211,8 @@ extension ArbitraryPrecisionInteger: Equatable {
     }
 }
 
+// MARK: - Comparable
 
-// MARK:- Comparable
 extension ArbitraryPrecisionInteger: Comparable {
     @inlinable
     static func < (lhs: ArbitraryPrecisionInteger, rhs: ArbitraryPrecisionInteger) -> Bool {
@@ -235,12 +235,12 @@ extension ArbitraryPrecisionInteger: Comparable {
     }
 }
 
+// MARK: - ExpressibleByIntegerLiteral
 
-// MARK:- ExpressibleByIntegerLiteral
-extension ArbitraryPrecisionInteger: ExpressibleByIntegerLiteral { }
+extension ArbitraryPrecisionInteger: ExpressibleByIntegerLiteral {}
 
+// MARK: - AdditiveArithmetic
 
-// MARK:- AdditiveArithmetic
 extension ArbitraryPrecisionInteger: AdditiveArithmetic {
     @inlinable
     static var zero: ArbitraryPrecisionInteger {
@@ -300,8 +300,8 @@ extension ArbitraryPrecisionInteger: AdditiveArithmetic {
     }
 }
 
+// MARK: - Numeric
 
-// MARK:- Numeric
 extension ArbitraryPrecisionInteger: Numeric {
     @usableFromInline
     typealias Magnitude = Self
@@ -357,8 +357,8 @@ extension ArbitraryPrecisionInteger: Numeric {
     }
 }
 
+// MARK: - SignedNumeric
 
-// MARK:- SignedNumeric
 extension ArbitraryPrecisionInteger: SignedNumeric {
     @usableFromInline
     mutating func negate() {
@@ -370,8 +370,8 @@ extension ArbitraryPrecisionInteger: SignedNumeric {
     }
 }
 
+// MARK: - Serializing
 
-// MARK:- Serializing
 extension Data {
     /// Serializes an ArbitraryPrecisionInteger padded out to a certain minimum size.
     @usableFromInline
@@ -399,8 +399,8 @@ extension Data {
     }
 }
 
+// MARK: - Printing
 
-// MARK:- Printing
 extension ArbitraryPrecisionInteger: CustomDebugStringConvertible {
     @usableFromInline
     var debugDescription: String {
@@ -418,10 +418,10 @@ extension ArbitraryPrecisionInteger: CustomDebugStringConvertible {
             return "ArbitraryPrecisionInteger: (error generating representation)"
         }
 
-        var stringPointer: UnsafePointer<UInt8>? = nil
+        var stringPointer: UnsafePointer<UInt8>?
         var length: Int = 0
 
-        guard 1 == CCryptoBoringSSL_BIO_mem_contents(bio, &stringPointer, &length) else {
+        guard CCryptoBoringSSL_BIO_mem_contents(bio, &stringPointer, &length) == 1 else {
             return "ArbitraryPrecisionInteger: (error generating representation)"
         }
 

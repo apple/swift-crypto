@@ -11,9 +11,8 @@
 // SPDX-License-Identifier: Apache-2.0
 //
 //===----------------------------------------------------------------------===//
-import Foundation
 @_implementationOnly import CCryptoBoringSSL
-
+import Foundation
 
 /// A context for performing mathematical operations on ArbitraryPrecisionIntegers over a finite field.
 ///
@@ -47,8 +46,8 @@ class FiniteFieldArithmeticContext {
     }
 }
 
+// MARK: - Arithmetic operations
 
-// MARK:- Arithmetic operations
 extension FiniteFieldArithmeticContext {
     @usableFromInline
     func square(_ input: ArbitraryPrecisionInteger) throws -> ArbitraryPrecisionInteger {

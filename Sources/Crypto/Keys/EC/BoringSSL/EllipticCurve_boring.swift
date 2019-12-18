@@ -13,8 +13,6 @@
 //===----------------------------------------------------------------------===//
 @_implementationOnly import CCryptoBoringSSL
 
-
-
 /// A wrapper around BoringSSL's EC_GROUP object that handles reference counting and
 /// liveness.
 @usableFromInline
@@ -35,7 +33,8 @@ class BoringSSLEllipticCurveGroup {
     }
 }
 
-// MARK:- Helpers
+// MARK: - Helpers
+
 extension BoringSSLEllipticCurveGroup {
     @usableFromInline
     var coordinateByteCount: Int {
@@ -45,7 +44,7 @@ extension BoringSSLEllipticCurveGroup {
     @usableFromInline
     func makeUnsafeOwnedECKey() throws -> OpaquePointer {
         guard let key = CCryptoBoringSSL_EC_KEY_new(),
-              1 == CCryptoBoringSSL_EC_KEY_set_group(key, self._group) else {
+            CCryptoBoringSSL_EC_KEY_set_group(key, self._group) == 1 else {
             throw CryptoKitError.internalBoringSSLError()
         }
 
@@ -85,7 +84,8 @@ extension BoringSSLEllipticCurveGroup {
     }
 }
 
-// MARK:- CurveName
+// MARK: - CurveName
+
 extension BoringSSLEllipticCurveGroup {
     @usableFromInline
     enum CurveName {
@@ -94,7 +94,6 @@ extension BoringSSLEllipticCurveGroup {
         case p521
     }
 }
-
 
 extension BoringSSLEllipticCurveGroup.CurveName {
     @usableFromInline
