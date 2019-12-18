@@ -30,7 +30,7 @@ extension Curve25519 {
         /// A Private Key for signing
         public struct PrivateKey: ECPrivateKey {
             private var baseKey: Curve25519.Signing.Curve25519PrivateKeyImpl
-            
+
             /// Generates a Curve25519 Signing Key.
             public init() {
                 self.baseKey = Curve25519.Signing.Curve25519PrivateKeyImpl()
@@ -46,7 +46,7 @@ extension Curve25519 {
             public init<D: ContiguousBytes>(rawRepresentation data: D) throws {
                 self.baseKey = try Curve25519.Signing.Curve25519PrivateKeyImpl(rawRepresentation: data)
             }
-            
+
             /// A data representation of the private key
             public var rawRepresentation: Data {
                 return self.baseKey.rawRepresentation

@@ -38,23 +38,23 @@ final class SecureBytesTests: XCTestCase {
     }
 
     func testSimpleCollection() {
-        let base = SecureBytes(0..<100)
+        let base = SecureBytes(0 ..< 100)
         XCTAssertEqual(base.count, 100)
-        XCTAssertEqual(Array(base), Array(0..<100))
+        XCTAssertEqual(Array(base), Array(0 ..< 100))
         XCTAssertEqual(base.first, 0)
         XCTAssertEqual(base.last, 99)
         XCTAssertEqual(base.reduce(Int(0)) { Int($0) + Int($1) }, 4950)
     }
 
     func testSimpleBidirectionalCollection() {
-        let base = SecureBytes(0..<100)
+        let base = SecureBytes(0 ..< 100)
         let reversed = base.reversed()
         XCTAssertEqual(Array(reversed), Array(stride(from: 99, through: 0, by: -1)))
     }
 
     func testSimpleRandomAccessCollection() {
         // Not easy to test this, just try to move the indices around a bit.
-        let base = SecureBytes(0..<100)
+        let base = SecureBytes(0 ..< 100)
         let aMiddleIndex = base.index(base.startIndex, offsetBy: 48)
         let aDifferentMiddleIndex = base.index(aMiddleIndex, offsetBy: 5)
         XCTAssertEqual(base.distance(from: aMiddleIndex, to: aDifferentMiddleIndex), 5)
@@ -93,7 +93,7 @@ final class SecureBytesTests: XCTestCase {
         copy = base
         var aMiddleIndex = copy.index(copy.startIndex, offsetBy: 2)
         var aDifferentMiddleIndex = copy.index(aMiddleIndex, offsetBy: 5)
-        copy.removeSubrange(aMiddleIndex..<aDifferentMiddleIndex)
+        copy.removeSubrange(aMiddleIndex ..< aDifferentMiddleIndex)
         XCTAssertEqual(copy.count, 5)
         XCTAssertEqual(Array(copy), [0, 0, 0, 0, 0])
         XCTAssertEqual(Array(base), baseBytes)
@@ -103,7 +103,7 @@ final class SecureBytesTests: XCTestCase {
         copy = base
         aMiddleIndex = copy.index(copy.startIndex, offsetBy: 2)
         aDifferentMiddleIndex = copy.index(aMiddleIndex, offsetBy: 5)
-        copy.replaceSubrange(aMiddleIndex..<aDifferentMiddleIndex, with: [1, 2, 3, 4, 5])
+        copy.replaceSubrange(aMiddleIndex ..< aDifferentMiddleIndex, with: [1, 2, 3, 4, 5])
         XCTAssertEqual(copy.count, 10)
         XCTAssertEqual(Array(copy), [0, 0, 1, 2, 3, 4, 5, 0, 0, 0])
         XCTAssertEqual(Array(base), baseBytes)
@@ -113,7 +113,7 @@ final class SecureBytesTests: XCTestCase {
         copy = base
         aMiddleIndex = copy.index(copy.startIndex, offsetBy: 2)
         aDifferentMiddleIndex = copy.index(aMiddleIndex, offsetBy: 5)
-        copy.replaceSubrange(aMiddleIndex..<aDifferentMiddleIndex, with: [1, 2, 3, 4, 5, 6, 7])
+        copy.replaceSubrange(aMiddleIndex ..< aDifferentMiddleIndex, with: [1, 2, 3, 4, 5, 6, 7])
         XCTAssertEqual(copy.count, 12)
         XCTAssertEqual(Array(copy), [0, 0, 1, 2, 3, 4, 5, 6, 7, 0, 0, 0])
         XCTAssertEqual(Array(base), baseBytes)
@@ -125,11 +125,11 @@ final class SecureBytesTests: XCTestCase {
         XCTAssertGreaterThanOrEqual(base.backing.capacity, 16)
         XCTAssertEqual(base.count, 12)
 
-        base.append(contentsOf: 0..<16)
+        base.append(contentsOf: 0 ..< 16)
         XCTAssertGreaterThanOrEqual(base.backing.capacity, 32)
         XCTAssertEqual(base.count, 28)
 
-        base.append(contentsOf: 0..<4)
+        base.append(contentsOf: 0 ..< 4)
         XCTAssertGreaterThanOrEqual(base.backing.capacity, 32)
         XCTAssertEqual(base.count, 32)
     }
@@ -158,9 +158,9 @@ final class SecureBytesTests: XCTestCase {
     }
 
     func testScaryInitializer() {
-        let base = SecureBytes(unsafeUninitializedCapacity: 5) { (scaryPointer, initializedCapacity) in
+        let base = SecureBytes(unsafeUninitializedCapacity: 5) { scaryPointer, initializedCapacity in
             XCTAssertEqual(scaryPointer.count, 5)
-            scaryPointer.storeBytes(of: UInt32(0x01020304).bigEndian, as: UInt32.self)
+            scaryPointer.storeBytes(of: UInt32(0x0102_0304).bigEndian, as: UInt32.self)
             initializedCapacity = 4
         }
 
@@ -168,7 +168,7 @@ final class SecureBytesTests: XCTestCase {
         XCTAssertEqual(Array(base), [1, 2, 3, 4])
 
         func testThrowingInitialization() throws {
-            _ = try SecureBytes(unsafeUninitializedCapacity: 5) { (_, _) in
+            _ = try SecureBytes(unsafeUninitializedCapacity: 5) { _, _ in
                 throw CryptoKitError.incorrectKeySize
             }
         }
@@ -195,7 +195,7 @@ final class SecureBytesTests: XCTestCase {
         let copy = base
 
         base.withUnsafeMutableBytes {
-            $0.storeBytes(of: UInt32(0x01020304).bigEndian, toByteOffset: 4, as: UInt32.self)
+            $0.storeBytes(of: UInt32(0x0102_0304).bigEndian, toByteOffset: 4, as: UInt32.self)
         }
 
         XCTAssertEqual(Array(base), [0, 0, 0, 0, 1, 2, 3, 4, 0, 0])
@@ -214,7 +214,7 @@ final class SecureBytesTests: XCTestCase {
     }
 
     func testDataFromSlice() {
-        var base = SecureBytes(0..<10)
+        var base = SecureBytes(0 ..< 10)
         let copy = Data(base.prefix(5))
         XCTAssertEqual(Array(copy), [0, 1, 2, 3, 4])
 

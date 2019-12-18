@@ -3,7 +3,7 @@
 ##
 ## This source file is part of the SwiftCrypto open source project
 ##
-## Copyright (c) 2017-2019 Apple Inc. and the SwiftCrypto project authors
+## Copyright (c) 2019 Apple Inc. and the SwiftCrypto project authors
 ## Licensed under Apache License v2.0
 ##
 ## See LICENSE.txt for license information
@@ -18,21 +18,34 @@ here="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 function replace_acceptable_years() {
     # this needs to replace all acceptable forms with 'YEARS'
-    sed -e 's/2017-201[89]/YEARS/' -e 's/2019/YEARS/'
+    sed -e 's/2018-2019/YEARS/' -e 's/2019/YEARS/'
 }
+
+printf "=> Checking format... "
+FIRST_OUT="$(git status --porcelain)"
+swiftformat . > /dev/null 2>&1
+SECOND_OUT="$(git status --porcelain)"
+if [[ "$FIRST_OUT" != "$SECOND_OUT" ]]; then
+  printf "\033[0;31mformatting issues!\033[0m\n"
+  git --no-pager diff
+  exit 1
+else
+  printf "\033[0;32mokay.\033[0m\n"
+fi
 
 printf "=> Checking #defines..."
 if grep '\.define("CRYPTO_IN_SWIFTPM_FORCE_BUILD_API")' Package.swift | grep -v "//" > /dev/null; then
-    printf "\033[0;31mstill in development mode!\033[0m Comment out CRYPTO_IN_SWIFTPM_FORCE_BUILD_API.\n"
-    exit 1
+  printf "\033[0;31mstill in development mode!\033[0m Comment out CRYPTO_IN_SWIFTPM_FORCE_BUILD_API.\n"
+  exit 1
 else
-    printf "\033[0;32mokay.\033[0m\n"
+  printf "\033[0;32mokay.\033[0m\n"
 fi
 
-printf "=> Checking license headers... "
-tmp=$(mktemp /tmp/.swift-nio-sanity_XXXXXX)
+printf "=> Checking license headers\n"
+tmp=$(mktemp /tmp/.swift-crypto-sanity_XXXXXX)
 
 for language in swift-or-c bash dtrace; do
+  printf "   * $language... "
   declare -a matching_files
   declare -a exceptions
   expections=( )

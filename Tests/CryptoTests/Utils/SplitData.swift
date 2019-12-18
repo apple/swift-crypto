@@ -11,8 +11,8 @@
 // SPDX-License-Identifier: Apache-2.0
 //
 //===----------------------------------------------------------------------===//
-import Foundation
 import Dispatch
+import Foundation
 
 // A testing utility that creates one contiguous and one discontiguous representation of the given Data.
 extension Array where Element == UInt8 {

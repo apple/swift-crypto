@@ -56,7 +56,7 @@ extension SecureBytes {
         let requiredCapacity = self.count + data.count
         if !isKnownUniquelyReferenced(&self.backing) || requiredCapacity > self.backing.capacity {
             let newBacking = Backing.create(capacity: requiredCapacity)
-            newBacking._appendBytes(self.backing, inRange: 0..<self.count)
+            newBacking._appendBytes(self.backing, inRange: 0 ..< self.count)
             self.backing = newBacking
         }
         self.backing._appendBytes(data)
@@ -69,12 +69,13 @@ extension SecureBytes {
         }
 
         let newBacking = Backing.create(capacity: n)
-        newBacking._appendBytes(self.backing, inRange: 0..<self.count)
+        newBacking._appendBytes(self.backing, inRange: 0 ..< self.count)
         self.backing = newBacking
     }
 }
 
 // MARK: - Equatable conformance, constant-time
+
 extension SecureBytes: Equatable {
     public static func == (lhs: SecureBytes, rhs: SecureBytes) -> Bool {
         return safeCompare(lhs, rhs)
@@ -82,6 +83,7 @@ extension SecureBytes: Equatable {
 }
 
 // MARK: - Collection conformance
+
 extension SecureBytes: Collection {
     @usableFromInline
     struct Index {
@@ -124,6 +126,7 @@ extension SecureBytes: Collection {
 }
 
 // MARK: - BidirectionalCollection conformance
+
 extension SecureBytes: BidirectionalCollection {
     @inlinable
     func index(before index: Index) -> Index {
@@ -132,12 +135,15 @@ extension SecureBytes: BidirectionalCollection {
 }
 
 // MARK: - RandomAccessCollection conformance
-extension SecureBytes: RandomAccessCollection { }
+
+extension SecureBytes: RandomAccessCollection {}
 
 // MARK: - MutableCollection conformance
-extension SecureBytes: MutableCollection { }
+
+extension SecureBytes: MutableCollection {}
 
 // MARK: - RangeReplaceableCollection conformance
+
 extension SecureBytes: RangeReplaceableCollection {
     @inlinable
     mutating func replaceSubrange<C: Collection>(_ subrange: Range<Index>, with newElements: C) where C.Element == UInt8 {
@@ -147,8 +153,8 @@ extension SecureBytes: RangeReplaceableCollection {
             // We have to allocate anyway, so let's use a nice straightforward copy.
             let newBacking = Backing.create(capacity: requiredCapacity)
 
-            let lowerSlice = 0..<subrange.lowerBound.offset
-            let upperSlice = subrange.upperBound.offset..<self.count
+            let lowerSlice = 0 ..< subrange.lowerBound.offset
+            let upperSlice = subrange.upperBound.offset ..< self.count
 
             newBacking._appendBytes(self.backing, inRange: lowerSlice)
             newBacking._appendBytes(newElements)
@@ -158,13 +164,14 @@ extension SecureBytes: RangeReplaceableCollection {
             return
         } else {
             // We have room, and a unique pointer. Ask the backing storage to shuffle around.
-            let offsetRange = subrange.lowerBound.offset..<subrange.upperBound.offset
+            let offsetRange = subrange.lowerBound.offset ..< subrange.upperBound.offset
             self.backing.replaceSubrangeFittingWithinCapacity(offsetRange, with: newElements)
         }
     }
 }
 
 // MARK: - ContiguousBytes conformance
+
 extension SecureBytes: ContiguousBytes {
     @inlinable
     func withUnsafeBytes<T>(_ body: (UnsafeRawBufferPointer) throws -> T) rethrows -> T {
@@ -182,6 +189,7 @@ extension SecureBytes: ContiguousBytes {
 }
 
 // MARK: - DataProtocol conformance
+
 extension SecureBytes: DataProtocol {
     @inlinable
     var regions: CollectionOfOne<SecureBytes> {
@@ -190,14 +198,16 @@ extension SecureBytes: DataProtocol {
 }
 
 // MARK: - MutableDataProtocol conformance
-extension SecureBytes: MutableDataProtocol { }
+
+extension SecureBytes: MutableDataProtocol {}
 
 // MARK: - Index conformances
-extension SecureBytes.Index: Hashable { }
+
+extension SecureBytes.Index: Hashable {}
 
 extension SecureBytes.Index: Comparable {
     @usableFromInline
-    static func <(lhs: SecureBytes.Index, rhs: SecureBytes.Index) -> Bool {
+    static func < (lhs: SecureBytes.Index, rhs: SecureBytes.Index) -> Bool {
         return lhs.offset < rhs.offset
     }
 }
@@ -215,6 +225,7 @@ extension SecureBytes.Index: Strideable {
 }
 
 // MARK: - Heap allocated backing storage.
+
 extension SecureBytes {
     @usableFromInline
     internal struct BackingHeader {
@@ -284,12 +295,12 @@ extension SecureBytes {
         @usableFromInline
         subscript(offset offset: Int) -> UInt8 {
             get {
-                //precondition(offset >= 0 && offset < self.count)
-                return self.withUnsafeMutablePointerToElements { return ($0 + offset).pointee }
+                // precondition(offset >= 0 && offset < self.count)
+                return self.withUnsafeMutablePointerToElements { ($0 + offset).pointee }
             }
             set {
-                //precondition(offset >= 0 && offset < self.count)
-                return self.withUnsafeMutablePointerToElements { ($0 + offset).pointee = newValue }
+                // precondition(offset >= 0 && offset < self.count)
+                self.withUnsafeMutablePointerToElements { ($0 + offset).pointee = newValue }
             }
         }
     }
@@ -319,7 +330,7 @@ extension SecureBytes.Backing {
         precondition(self.count - subrange.count + newElements.count <= self.capacity, "Insufficient capacity")
 
         let moveDistance = newElements.count - subrange.count
-        let suffixRange = subrange.upperBound..<self.count
+        let suffixRange = subrange.upperBound ..< self.count
         self._moveBytes(range: suffixRange, by: moveDistance)
         self._copyBytes(newElements, at: subrange.lowerBound)
         self.count += newElements.count - subrange.count
@@ -369,14 +380,14 @@ extension SecureBytes.Backing {
         precondition(range.lowerBound >= 0)
         precondition(range.upperBound <= self.capacity)
 
-        let shiftedRange = (range.lowerBound + delta)..<(range.upperBound + delta)
+        let shiftedRange = (range.lowerBound + delta) ..< (range.upperBound + delta)
         precondition(shiftedRange.lowerBound > 0)
         precondition(shiftedRange.upperBound <= self.capacity)
 
         self._withVeryUnsafeMutableBytes { backingPtr in
             let source = UnsafeRawBufferPointer(rebasing: backingPtr[range])
             let dest = UnsafeMutableRawBufferPointer(rebasing: backingPtr[shiftedRange])
-            dest.copyMemory(from: source)  // copy memory uses memmove under the hood.
+            dest.copyMemory(from: source) // copy memory uses memmove under the hood.
         }
     }
 
@@ -386,7 +397,7 @@ extension SecureBytes.Backing {
         precondition(offset >= 0)
         precondition(offset + bytes.count <= self.capacity)
 
-        let byteRange = offset..<(offset + bytes.count)
+        let byteRange = offset ..< (offset + bytes.count)
 
         self._withVeryUnsafeMutableBytes { backingPtr in
             let dest = UnsafeMutableRawBufferPointer(rebasing: backingPtr[byteRange])
@@ -401,7 +412,7 @@ extension SecureBytes.Backing: ContiguousBytes {
         let count = self.count
 
         return try self.withUnsafeMutablePointerToElements { elementsPtr in
-            return try body(UnsafeRawBufferPointer(start: elementsPtr, count: count))
+            try body(UnsafeRawBufferPointer(start: elementsPtr, count: count))
         }
     }
 
@@ -410,7 +421,7 @@ extension SecureBytes.Backing: ContiguousBytes {
         let count = self.count
 
         return try self.withUnsafeMutablePointerToElements { elementsPtr in
-            return try body(UnsafeMutableRawBufferPointer(start: elementsPtr, count: count))
+            try body(UnsafeMutableRawBufferPointer(start: elementsPtr, count: count))
         }
     }
 
@@ -420,7 +431,7 @@ extension SecureBytes.Backing: ContiguousBytes {
         let capacity = self.capacity
 
         return try self.withUnsafeMutablePointerToElements { elementsPtr in
-            return try body(UnsafeMutableRawBufferPointer(start: elementsPtr, count: capacity))
+            try body(UnsafeMutableRawBufferPointer(start: elementsPtr, count: capacity))
         }
     }
 }
@@ -471,7 +482,7 @@ extension Data {
         // yourself unless you're really sure!
         self = secureBytes.withUnsafeBytes {
             // We make a mutable copy of this pointer here because we know Data won't write through it.
-            return Data(bytesNoCopy: UnsafeMutableRawPointer(mutating: $0.baseAddress!), count: $0.count, deallocator: .custom { (_: UnsafeMutableRawPointer, _: Int) in unmanagedBacking.release() })
+            Data(bytesNoCopy: UnsafeMutableRawPointer(mutating: $0.baseAddress!), count: $0.count, deallocator: .custom { (_: UnsafeMutableRawPointer, _: Int) in unmanagedBacking.release() })
         }
     }
 
@@ -492,7 +503,7 @@ extension Data {
         // yourself unless you're really sure!
         self = base.withUnsafeBytes {
             // Slice the base pointer down to just the range we want.
-            let slicedPointer = UnsafeRawBufferPointer(rebasing: $0[baseOffset..<endOffset])
+            let slicedPointer = UnsafeRawBufferPointer(rebasing: $0[baseOffset ..< endOffset])
 
             // We make a mutable copy of this pointer here because we know Data won't write through it.
             return Data(bytesNoCopy: UnsafeMutableRawPointer(mutating: slicedPointer.baseAddress!), count: slicedPointer.count, deallocator: .custom { (_: UnsafeMutableRawPointer, _: Int) in unmanagedBacking.release() })

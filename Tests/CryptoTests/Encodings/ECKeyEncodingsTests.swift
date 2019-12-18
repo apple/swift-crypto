@@ -29,13 +29,13 @@ class ECKeyEncodingsTests: XCTestCase {
         let p256KeyKA_x963 = p256KeyKA.x963Representation
         XCTAssertNoThrow(try P256.KeyAgreement.PrivateKey(rawRepresentation: p256KeyKA_raw))
         XCTAssertNoThrow(try P256.KeyAgreement.PrivateKey(x963Representation: p256KeyKA_x963))
-        
+
         let p384KeyKA = P384.KeyAgreement.PrivateKey()
         let p384KeyKA_raw = p384KeyKA.rawRepresentation
         let p384KeyKA_x963 = p384KeyKA.x963Representation
         XCTAssertNoThrow(try P384.KeyAgreement.PrivateKey(rawRepresentation: p384KeyKA_raw))
         XCTAssertNoThrow(try P384.KeyAgreement.PrivateKey(x963Representation: p384KeyKA_x963))
-        
+
         let p521KeyKA = P521.KeyAgreement.PrivateKey()
         let p521KeyKA_raw = p521KeyKA.rawRepresentation
         let p521KeyKA_x963 = p521KeyKA.x963Representation
@@ -47,20 +47,20 @@ class ECKeyEncodingsTests: XCTestCase {
         let x25519KeyKA_raw = x25519KeyKA.rawRepresentation
         XCTAssertNoThrow(try Curve25519.KeyAgreement.PrivateKey(rawRepresentation: x25519KeyKA_raw))
     }
-    
+
     func testEncodingsSigningKeyTests() {
         let p256KeyKA = P256.Signing.PrivateKey()
         let p256KeyKA_raw = p256KeyKA.rawRepresentation
         let p256KeyKA_x963 = p256KeyKA.x963Representation
         XCTAssertNoThrow(try P256.Signing.PrivateKey(rawRepresentation: p256KeyKA_raw))
         XCTAssertNoThrow(try P256.Signing.PrivateKey(x963Representation: p256KeyKA_x963))
-        
+
         let p384KeyKA = P384.Signing.PrivateKey()
         let p384KeyKA_raw = p384KeyKA.rawRepresentation
         let p384KeyKA_x963 = p384KeyKA.x963Representation
         XCTAssertNoThrow(try P384.Signing.PrivateKey(rawRepresentation: p384KeyKA_raw))
         XCTAssertNoThrow(try P384.Signing.PrivateKey(x963Representation: p384KeyKA_x963))
-        
+
         let p521KeyKA = P521.Signing.PrivateKey()
         let p521KeyKA_raw = p521KeyKA.rawRepresentation
         let p521KeyKA_x963 = p521KeyKA.x963Representation

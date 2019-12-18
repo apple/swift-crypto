@@ -38,9 +38,9 @@ extension AES.GCM {
         }
 
         public func makeIterator() -> Array<UInt8>.Iterator {
-            self.withUnsafeBytes({ (buffPtr) in
-                return Array(buffPtr).makeIterator()
-            })
+            self.withUnsafeBytes { buffPtr in
+                Array(buffPtr).makeIterator()
+            }
         }
     }
 }
@@ -67,9 +67,9 @@ extension ChaChaPoly {
         }
 
         public func makeIterator() -> Array<UInt8>.Iterator {
-            self.withUnsafeBytes({ (buffPtr) in
-                return Array(buffPtr).makeIterator()
-            })
+            self.withUnsafeBytes { buffPtr in
+                Array(buffPtr).makeIterator()
+            }
         }
     }
 }

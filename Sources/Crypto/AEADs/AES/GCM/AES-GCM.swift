@@ -28,7 +28,7 @@ extension AES {
     public enum GCM: Cipher {
         static let tagByteCount = 16
         static let defaultNonceByteCount = 12
-        
+
         /// Encrypts and authenticates data using AES-GCM.
         ///
         /// - Parameters:
@@ -39,7 +39,7 @@ extension AES {
         /// - Returns: A sealed box returning the authentication tag (seal) and the ciphertext
         /// - Throws: CipherError errors
         public static func seal<Plaintext: DataProtocol, AuthenticatedData: DataProtocol>
-            (_ message: Plaintext, using key: SymmetricKey, nonce: Nonce? = nil, authenticating authenticatedData: AuthenticatedData) throws -> SealedBox {
+        (_ message: Plaintext, using key: SymmetricKey, nonce: Nonce? = nil, authenticating authenticatedData: AuthenticatedData) throws -> SealedBox {
             return try AESGCMImpl.seal(key: key, message: message, nonce: nonce, authenticatedData: authenticatedData)
         }
 
@@ -52,7 +52,7 @@ extension AES {
         /// - Returns: A sealed box returning the authentication tag (seal) and the ciphertext
         /// - Throws: CipherError errors
         public static func seal<Plaintext: DataProtocol>
-            (_ message: Plaintext, using key: SymmetricKey, nonce: Nonce? = nil) throws -> SealedBox {
+        (_ message: Plaintext, using key: SymmetricKey, nonce: Nonce? = nil) throws -> SealedBox {
             return try AESGCMImpl.seal(key: key, message: message, nonce: nonce, authenticatedData: Data?.none)
         }
 
@@ -66,7 +66,7 @@ extension AES {
         /// - Returns: The ciphertext if opening was successful
         /// - Throws: CipherError errors. If the authentication of the sealedbox failed, incorrectTag is thrown.
         public static func open<AuthenticatedData: DataProtocol>
-            (_ sealedBox: SealedBox, using key: SymmetricKey, authenticating authenticatedData: AuthenticatedData) throws -> Data {
+        (_ sealedBox: SealedBox, using key: SymmetricKey, authenticating authenticatedData: AuthenticatedData) throws -> Data {
             return try AESGCMImpl.open(key: key, sealedBox: sealedBox, authenticatedData: authenticatedData)
         }
 
@@ -89,57 +89,58 @@ extension AES.GCM {
     public struct SealedBox: AEADSealedBox {
         private let combinedRepresentation: Data
         private let nonceByteCount: Int
-        
+
         /// The authentication tag
         public var tag: Data {
-            return combinedRepresentation.suffix(AES.GCM.tagByteCount)
+            return self.combinedRepresentation.suffix(AES.GCM.tagByteCount)
         }
+
         /// The ciphertext
         public var ciphertext: Data {
-            return combinedRepresentation.dropFirst(nonceByteCount).dropLast(AES.GCM.tagByteCount)
+            return self.combinedRepresentation.dropFirst(self.nonceByteCount).dropLast(AES.GCM.tagByteCount)
         }
+
         /// The Nonce
         public var nonce: AES.GCM.Nonce {
-            return try! AES.GCM.Nonce(data: combinedRepresentation.prefix(nonceByteCount))
+            return try! AES.GCM.Nonce(data: self.combinedRepresentation.prefix(self.nonceByteCount))
         }
-        
+
         /// The combined representation ( nonce || ciphertext || tag)
         public var combined: Data? {
-            if nonceByteCount == AES.GCM.defaultNonceByteCount {
+            if self.nonceByteCount == AES.GCM.defaultNonceByteCount {
                 return self.combinedRepresentation
             } else {
                 return nil
             }
         }
-        
+
         @usableFromInline
         internal init(combined: Data) {
             self.combinedRepresentation = combined
             self.nonceByteCount = AES.GCM.defaultNonceByteCount
         }
-        
+
         @inlinable
         public init<D: DataProtocol>(combined: D) throws {
             // AES minumum nonce (12 bytes) + AES tag (16 bytes)
             // While we have these values in the internal APIs, we can't use it in inlinable code.
             let aesGCMOverhead = 12 + 16
-            
-            if (combined.count < aesGCMOverhead) {
+
+            if combined.count < aesGCMOverhead {
                 throw CryptoKitError.incorrectParameterSize
             }
-            
+
             self.init(combined: Data(combined))
         }
-        
+
         public init<C: DataProtocol, T: DataProtocol>(nonce: AES.GCM.Nonce, ciphertext: C, tag: T) throws {
             guard tag.count == AES.GCM.tagByteCount else {
                 throw CryptoKitError.incorrectParameterSize
             }
-            
+
             self.combinedRepresentation = nonce.bytes + ciphertext + tag
             self.nonceByteCount = nonce.bytes.count
         }
-        
     }
 }
-#endif  // Linux or !SwiftPM
+#endif // Linux or !SwiftPM

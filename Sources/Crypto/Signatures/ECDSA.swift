@@ -46,7 +46,7 @@ extension P256.Signing {
 
             self.rawRepresentation = Data(rawRepresentation)
         }
-        
+
         internal init(_ dataRepresentation: Data) throws {
             guard dataRepresentation.count == 2 * P256.CurveDetails.coordinateByteCount else {
                 throw CryptoKitError.incorrectParameterSize
@@ -56,7 +56,7 @@ extension P256.Signing {
         }
 
         var composite: (r: Data, s: Data) {
-            let combined = rawRepresentation
+            let combined = self.rawRepresentation
             assert(combined.count % 2 == 0)
             let half = combined.count / 2
             return (combined.prefix(upTo: half), combined.suffix(from: half))
@@ -101,9 +101,9 @@ extension P256.Signing.PrivateKey: DigestSigner {
         return try self.openSSLSignature(for: digest)
         #endif
     }
- }
+}
 
- extension P256.Signing.PrivateKey: Signer {
+extension P256.Signing.PrivateKey: Signer {
     /// Generates an ECDSA signature over the P256 elliptic curve.
     /// SHA256 is used as the hash function.
     ///
@@ -113,7 +113,7 @@ extension P256.Signing.PrivateKey: DigestSigner {
     public func signature<D: DataProtocol>(for data: D) throws -> P256.Signing.ECDSASignature {
         return try self.signature(for: SHA256.hash(data: data))
     }
- }
+}
 
 extension P256.Signing.PublicKey: DigestValidator {
     /// Verifies an ECDSA signature over the P256 elliptic curve.
@@ -129,9 +129,9 @@ extension P256.Signing.PublicKey: DigestValidator {
         return self.openSSLIsValidSignature(signature, for: digest)
         #endif
     }
- }
+}
 
- extension P256.Signing.PublicKey: DataValidator {
+extension P256.Signing.PublicKey: DataValidator {
     /// Verifies an ECDSA signature over the P256 elliptic curve.
     /// SHA256 is used as the hash function.
     ///
@@ -142,7 +142,7 @@ extension P256.Signing.PublicKey: DigestValidator {
     public func isValidSignature<D: DataProtocol>(_ signature: P256.Signing.ECDSASignature, for data: D) -> Bool {
         return self.isValidSignature(signature, for: SHA256.hash(data: data))
     }
- }
+}
 
 /// An ECDSA (Elliptic Curve Digital Signature Algorithm) Signature
 extension P384.Signing {
@@ -161,7 +161,7 @@ extension P384.Signing {
 
             self.rawRepresentation = Data(rawRepresentation)
         }
-        
+
         internal init(_ dataRepresentation: Data) throws {
             guard dataRepresentation.count == 2 * P384.CurveDetails.coordinateByteCount else {
                 throw CryptoKitError.incorrectParameterSize
@@ -171,7 +171,7 @@ extension P384.Signing {
         }
 
         var composite: (r: Data, s: Data) {
-            let combined = rawRepresentation
+            let combined = self.rawRepresentation
             assert(combined.count % 2 == 0)
             let half = combined.count / 2
             return (combined.prefix(upTo: half), combined.suffix(from: half))
@@ -216,9 +216,9 @@ extension P384.Signing.PrivateKey: DigestSigner {
         return try self.openSSLSignature(for: digest)
         #endif
     }
- }
+}
 
- extension P384.Signing.PrivateKey: Signer {
+extension P384.Signing.PrivateKey: Signer {
     /// Generates an ECDSA signature over the P384 elliptic curve.
     /// SHA384 is used as the hash function.
     ///
@@ -228,7 +228,7 @@ extension P384.Signing.PrivateKey: DigestSigner {
     public func signature<D: DataProtocol>(for data: D) throws -> P384.Signing.ECDSASignature {
         return try self.signature(for: SHA384.hash(data: data))
     }
- }
+}
 
 extension P384.Signing.PublicKey: DigestValidator {
     /// Verifies an ECDSA signature over the P384 elliptic curve.
@@ -244,9 +244,9 @@ extension P384.Signing.PublicKey: DigestValidator {
         return self.openSSLIsValidSignature(signature, for: digest)
         #endif
     }
- }
+}
 
- extension P384.Signing.PublicKey: DataValidator {
+extension P384.Signing.PublicKey: DataValidator {
     /// Verifies an ECDSA signature over the P384 elliptic curve.
     /// SHA384 is used as the hash function.
     ///
@@ -257,7 +257,7 @@ extension P384.Signing.PublicKey: DigestValidator {
     public func isValidSignature<D: DataProtocol>(_ signature: P384.Signing.ECDSASignature, for data: D) -> Bool {
         return self.isValidSignature(signature, for: SHA384.hash(data: data))
     }
- }
+}
 
 /// An ECDSA (Elliptic Curve Digital Signature Algorithm) Signature
 extension P521.Signing {
@@ -276,7 +276,7 @@ extension P521.Signing {
 
             self.rawRepresentation = Data(rawRepresentation)
         }
-        
+
         internal init(_ dataRepresentation: Data) throws {
             guard dataRepresentation.count == 2 * P521.CurveDetails.coordinateByteCount else {
                 throw CryptoKitError.incorrectParameterSize
@@ -286,7 +286,7 @@ extension P521.Signing {
         }
 
         var composite: (r: Data, s: Data) {
-            let combined = rawRepresentation
+            let combined = self.rawRepresentation
             assert(combined.count % 2 == 0)
             let half = combined.count / 2
             return (combined.prefix(upTo: half), combined.suffix(from: half))
@@ -331,9 +331,9 @@ extension P521.Signing.PrivateKey: DigestSigner {
         return try self.openSSLSignature(for: digest)
         #endif
     }
- }
+}
 
- extension P521.Signing.PrivateKey: Signer {
+extension P521.Signing.PrivateKey: Signer {
     /// Generates an ECDSA signature over the P521 elliptic curve.
     /// SHA512 is used as the hash function.
     ///
@@ -343,7 +343,7 @@ extension P521.Signing.PrivateKey: DigestSigner {
     public func signature<D: DataProtocol>(for data: D) throws -> P521.Signing.ECDSASignature {
         return try self.signature(for: SHA512.hash(data: data))
     }
- }
+}
 
 extension P521.Signing.PublicKey: DigestValidator {
     /// Verifies an ECDSA signature over the P521 elliptic curve.
@@ -359,9 +359,9 @@ extension P521.Signing.PublicKey: DigestValidator {
         return self.openSSLIsValidSignature(signature, for: digest)
         #endif
     }
- }
+}
 
- extension P521.Signing.PublicKey: DataValidator {
+extension P521.Signing.PublicKey: DataValidator {
     /// Verifies an ECDSA signature over the P521 elliptic curve.
     /// SHA512 is used as the hash function.
     ///
@@ -372,6 +372,6 @@ extension P521.Signing.PublicKey: DigestValidator {
     public func isValidSignature<D: DataProtocol>(_ signature: P521.Signing.ECDSASignature, for data: D) -> Bool {
         return self.isValidSignature(signature, for: SHA512.hash(data: data))
     }
- }
+}
 
 #endif // Linux or !SwiftPM

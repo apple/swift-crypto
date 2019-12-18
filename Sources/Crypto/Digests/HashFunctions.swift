@@ -59,7 +59,7 @@ extension HashFunction {
         hasher.update(bufferPointer: bufferPointer)
         return hasher.finalize()
     }
-    
+
     /// Computes a digest of the data.
     ///
     /// - Parameter data: The data to be hashed
@@ -76,10 +76,10 @@ extension HashFunction {
     /// - Parameter data: The data to update the hash
     @inlinable
     public mutating func update<D: DataProtocol>(data: D) {
-        data.regions.forEach { (regionData) in
-            regionData.withUnsafeBytes({ (dataPtr) in
+        data.regions.forEach { regionData in
+            regionData.withUnsafeBytes { dataPtr in
                 self.update(bufferPointer: dataPtr)
-            })
+            }
         }
     }
 }

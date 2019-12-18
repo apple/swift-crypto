@@ -3,7 +3,7 @@
 ##
 ## This source file is part of the SwiftCrypto open source project
 ##
-## Copyright (c) 2017-2019 Apple Inc. and the SwiftCrypto project authors
+## Copyright (c) 2019 Apple Inc. and the SwiftCrypto project authors
 ## Licensed under Apache License v2.0
 ##
 ## See LICENSE.txt for license information
@@ -19,7 +19,7 @@ contributors=$( cd "$here"/.. && git shortlog -es | cut -f2 | sed 's/^/- /' )
 
 cat > "$here/../CONTRIBUTORS.txt" <<- EOF
 	For the purpose of tracking copyright, this is the list of individuals and
-	organizations who have contributed source code to SwiftCrypto.
+	organizations who have contributed source code to the SwiftCrypto.
 
 	For employees of an organization/company where the copyright of work done
 	by employees of that company is held by the company itself, only the company

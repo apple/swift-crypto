@@ -44,7 +44,7 @@ struct RFCVectorDecoder {
         self.index = index
     }
 
-    mutating func decode<T: Decodable>(_ type: T.Type) throws -> T {
+    mutating func decode<T: Decodable>(_: T.Type) throws -> T {
         return try T(from: self)
     }
 
@@ -55,7 +55,7 @@ struct RFCVectorDecoder {
         // Strip the leading elements.
         lines = lines.drop(while: { !$0.hasPrefix("COUNT") })
 
-        var decoded = Array<[String: String]>()
+        var decoded = [[String: String]]()
 
         // Parse the elements
         while let element = lines.parseElement() {
@@ -130,7 +130,7 @@ extension RFCVectorDecoder {
                 return stringResult as! T
             case is [UInt8].Type:
                 if stringResult.count == 0 {
-                    return Array<UInt8>() as! T
+                    return [UInt8]() as! T
                 } else {
                     return try Array(hexString: stringResult) as! T
                 }
@@ -142,7 +142,7 @@ extension RFCVectorDecoder {
         }
 
         func decodeNil(forKey key: Key) throws -> Bool {
-            return false  // No support for nil today.
+            return false // No support for nil today.
         }
 
         func nestedContainer<NestedKey>(keyedBy type: NestedKey.Type, forKey key: Key) throws -> KeyedDecodingContainer<NestedKey> where NestedKey: CodingKey {
@@ -154,11 +154,11 @@ extension RFCVectorDecoder {
         }
 
         func superDecoder() throws -> Decoder {
-            return decoder
+            return self.decoder
         }
 
         func superDecoder(forKey key: Key) throws -> Decoder {
-            return decoder
+            return self.decoder
         }
     }
 }
@@ -177,7 +177,7 @@ extension RFCVectorDecoder {
         }
 
         var count: Int? {
-            return elements.count
+            return self.elements.count
         }
 
         var isAtEnd: Bool {
@@ -197,7 +197,7 @@ extension RFCVectorDecoder {
         }
 
         func decodeNil() throws -> Bool {
-            return false  // No support for nil today.
+            return false // No support for nil today.
         }
 
         mutating func nestedContainer<NestedKey>(keyedBy type: NestedKey.Type) throws -> KeyedDecodingContainer<NestedKey> where NestedKey: CodingKey {
@@ -211,7 +211,7 @@ extension RFCVectorDecoder {
         }
 
         func superDecoder() throws -> Decoder {
-            return decoder
+            return self.decoder
         }
     }
 }
@@ -228,7 +228,7 @@ extension RFCVectorDecoder {
             fatalError("SingleValueContainer is unsupported")
         }
 
-        func decode<T>(_ type: T.Type) throws -> T where T: Decodable {
+        func decode<T>(_: T.Type) throws -> T where T: Decodable {
             fatalError("SingleValueContainer is unsupported")
         }
 
@@ -270,10 +270,10 @@ extension ArraySlice where Element == Substring {
         // or begin with whitespace (these are used in some cases and we don't want them). This is a brute
         // force comparison, but it's test code, don't worry about it.
         let elements: [(String, String)] = self[..<nextCountIndex].filter { string in
-            return (string.trimmingCharacters(in: .whitespaces).count > 0 &&
-                    !string.hasPrefix("#") &&
-                    !string.hasPrefix("[") &&
-                    !string.first!.isWhitespace)
+            string.trimmingCharacters(in: .whitespaces).count > 0 &&
+                !string.hasPrefix("#") &&
+                !string.hasPrefix("[") &&
+                !string.first!.isWhitespace
         }.map { string in
             let split = string.split(separator: "=", maxSplits: 1, omittingEmptySubsequences: false)
             assert(split.count == 2)

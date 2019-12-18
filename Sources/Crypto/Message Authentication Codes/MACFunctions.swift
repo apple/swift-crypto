@@ -54,7 +54,7 @@ extension MACAlgorithm {
         authenticator.update(bufferPointer: bufferPointer)
         return authenticator.finalize()
     }
-    
+
     /// Verifies a Message Authentication Code. The comparison is done in constant-time.
     ///
     /// - Parameters:

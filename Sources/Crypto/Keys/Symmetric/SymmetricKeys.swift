@@ -35,7 +35,7 @@ public struct SymmetricKeySize {
     public static var bits256: SymmetricKeySize {
         return self.init(bitCount: 256)
     }
-    
+
     /// Symmetric key size with a custom number of bits.
     ///
     /// Params:
@@ -52,7 +52,7 @@ public struct SymmetricKey: ContiguousBytes {
     let sb: SecureBytes
 
     public func withUnsafeBytes<R>(_ body: (UnsafeRawBufferPointer) throws -> R) rethrows -> R {
-        return try sb.withUnsafeBytes(body)
+        return try self.sb.withUnsafeBytes(body)
     }
 
     /// Initializes a key with data
@@ -71,15 +71,15 @@ public struct SymmetricKey: ContiguousBytes {
     public var bitCount: Int {
         return self.byteCount * 8
     }
-    
+
     var byteCount: Int {
-        return self.withUnsafeBytes({ (rbf) in
-            return rbf.count
-        })
+        return self.withUnsafeBytes { rbf in
+            rbf.count
+        }
     }
 
     private init(key: SecureBytes) {
-        sb = key
+        self.sb = key
     }
 }
 
