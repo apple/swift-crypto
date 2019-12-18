@@ -14,8 +14,9 @@
 #if (os(macOS) || os(iOS) || os(watchOS) || os(tvOS)) && CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
 @_exported import CryptoKit
 #else
-@_implementationOnly import CCryptoBoringSSL
 import Foundation
+@_implementationOnly import CCryptoBoringSSL
+
 
 extension Data {
     init<D: DataProtocol, Curve: OpenSSLSupportedNISTCurve>(derSignature derBytes: D, over: Curve.Type = Curve.self) throws {

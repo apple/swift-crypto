@@ -34,7 +34,7 @@ extension Curve25519.Signing {
 
 extension Curve25519.Signing.PublicKey: DataValidator {
     typealias Signature = Data
-
+    
     /// Verifies an EdDSA signature over Curve25519.
     ///
     /// - Parameters:

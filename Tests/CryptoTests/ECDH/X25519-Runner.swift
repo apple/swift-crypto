@@ -51,24 +51,24 @@ struct ECDHTestVector: Codable {
 class X25519Tests: XCTestCase {
     func testSerialization() throws {
         let bobsKey = Curve25519.KeyAgreement.PrivateKey()
-
+        
         let privateKey = Curve25519.KeyAgreement.PrivateKey()
         let keyData = privateKey.rawRepresentation
-
+        
         let recoveredKey = try Curve25519.KeyAgreement.PrivateKey(rawRepresentation: keyData)
-
+        
         let ss1 = try! privateKey.sharedSecretFromKeyAgreement(with: bobsKey.publicKey)
         let ss2 = try! recoveredKey.sharedSecretFromKeyAgreement(with: bobsKey.publicKey)
-
+        
         XCTAssert(ss1 == ss2)
         XCTAssert(recoveredKey.rawRepresentation == keyData)
     }
-
+    
     func testWycheproof() throws {
         wycheproofTest(bundleType: self,
                        jsonName: "x25519_test",
                        testFunction: { (group: ECDHTestGroup) in
-                           try! testGroup(group: group)
+                        try! testGroup(group: group)
         })
     }
 

@@ -11,8 +11,8 @@
 // SPDX-License-Identifier: Apache-2.0
 //
 //===----------------------------------------------------------------------===//
-import Crypto
 import Foundation
+import Crypto
 
 let help = """
 Usage: crypto-shasum [OPTION]... [FILE]...
@@ -69,6 +69,7 @@ enum SupportedHashFunction {
     }
 }
 
+
 extension String {
     init(hexEncoding data: Data) {
         self = data.map { byte in
@@ -87,6 +88,7 @@ extension String {
     }
 }
 
+
 func processInputs(_ handles: [String: FileHandle], algorithm: SupportedHashFunction) {
     for (name, fh) in handles {
         let result = algorithm.hashLoop(from: fh)
@@ -96,7 +98,7 @@ func processInputs(_ handles: [String: FileHandle], algorithm: SupportedHashFunc
 
 func main() {
     var arguments = CommandLine.arguments.dropFirst()
-    var algorithm = SupportedHashFunction.sha256 // Default to sha256
+    var algorithm = SupportedHashFunction.sha256  // Default to sha256
     var files = [String: FileHandle]()
 
     // First get the flags.
@@ -112,7 +114,7 @@ func main() {
             algorithm = newAlgorithm
 
         case "--":
-            break flagsLoop // Everything left is files.
+            break flagsLoop  // Everything left is files.
 
         case "-":
             // Whoops, this is a file. We need to read from stdin. Ignore any further flags, the rest of the arguments are files.
@@ -143,5 +145,6 @@ func main() {
 
     processInputs(files, algorithm: algorithm)
 }
+
 
 main()

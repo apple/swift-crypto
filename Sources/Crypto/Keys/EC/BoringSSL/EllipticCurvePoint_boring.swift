@@ -13,6 +13,7 @@
 //===----------------------------------------------------------------------===//
 @_implementationOnly import CCryptoBoringSSL
 
+
 /// A wrapper around BoringSSL's EC_POINT with some lifetime management.
 @usableFromInline
 class EllipticCurvePoint {
@@ -29,7 +30,7 @@ class EllipticCurvePoint {
 
         try group.withUnsafeGroupPointer { groupPtr in
             try scalar.withUnsafeBignumPointer { bigNumPtr in
-                guard CCryptoBoringSSL_EC_POINT_mul(groupPtr, self._basePoint, bigNumPtr, nil, nil, nil) != 0 else {
+                guard 0 != CCryptoBoringSSL_EC_POINT_mul(groupPtr, self._basePoint, bigNumPtr, nil, nil, nil) else {
                     throw CryptoKitError.internalBoringSSLError()
                 }
             }
@@ -50,8 +51,8 @@ class EllipticCurvePoint {
     }
 }
 
-// MARK: - Helpers
 
+// MARK:- Helpers
 extension EllipticCurvePoint {
     @inlinable
     func withPointPointer<T>(_ body: (OpaquePointer) throws -> T) rethrows -> T {
@@ -59,14 +60,14 @@ extension EllipticCurvePoint {
     }
 
     @usableFromInline
-    func affineCoordinates(group: BoringSSLEllipticCurveGroup) throws -> (x: ArbitraryPrecisionInteger, y: ArbitraryPrecisionInteger) {
+    func affineCoordinates(group: BoringSSLEllipticCurveGroup) throws  -> (x: ArbitraryPrecisionInteger, y: ArbitraryPrecisionInteger) {
         var x = ArbitraryPrecisionInteger()
         var y = ArbitraryPrecisionInteger()
 
         try x.withUnsafeMutableBignumPointer { xPtr in
             try y.withUnsafeMutableBignumPointer { yPtr in
                 try group.withUnsafeGroupPointer { groupPtr in
-                    guard CCryptoBoringSSL_EC_POINT_get_affine_coordinates_GFp(groupPtr, self._basePoint, xPtr, yPtr, nil) != 0 else {
+                    guard 0 != CCryptoBoringSSL_EC_POINT_get_affine_coordinates_GFp(groupPtr, self._basePoint, xPtr, yPtr, nil) else {
                         throw CryptoKitError.internalBoringSSLError()
                     }
                 }

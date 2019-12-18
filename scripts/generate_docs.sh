@@ -44,8 +44,6 @@ if [[ "$(uname -s)" == "Linux" ]]; then
   done
 fi
 
-[[ -d swift-crypto.xcodeproj ]] || swift package generate-xcodeproj
-
 # prep index
 tmp=`mktemp -d`
 module_switcher="$tmp/README.md"
@@ -69,10 +67,10 @@ jazzy_args=(--clean
             --github_url https://github.com/apple/swift-crypto
             --github-file-prefix https://github.com/apple/swift-crypto/tree/$version
             --theme fullwidth
-            --xcodebuild-arguments -scheme,swift-crypto-Package)
+            --swift-build-tool spm)
 
 for module in "${modules[@]}"; do
-  args=("${jazzy_args[@]}"  --output "$tmp/docs/$version/$module" --docset-path "$tmp/docset/$version/$module" --module "$module")
+  args=("${jazzy_args[@]}" --output "$tmp/docs/$version/$module" --docset-path "$tmp/docset/$version/$module" --module "$module")
   if [[ -f "$root_path/.build/sourcekitten/$module.json" ]]; then
     args+=(--sourcekitten-sourcefile "$root_path/.build/sourcekitten/$module.json")
   fi

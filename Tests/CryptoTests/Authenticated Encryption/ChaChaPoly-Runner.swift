@@ -16,7 +16,7 @@ import XCTest
 
 #if (os(macOS) || os(iOS) || os(watchOS) || os(tvOS)) && CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
 import Crypto
-#elseif(os(macOS) || os(iOS) || os(watchOS) || os(tvOS)) && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
+#elseif (os(macOS) || os(iOS) || os(watchOS) || os(tvOS)) && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
 import CryptoKit
 #else
 import Crypto
@@ -41,7 +41,7 @@ class ChaChaPolyTests: XCTestCase {
         let nonce = ChaChaPoly.Nonce()
         XCTAssertEqual(Array(nonce), nonce.withUnsafeBytes { Array($0) })
 
-        let testNonceBytes = Array(UInt8(0) ..< UInt8(12))
+        let testNonceBytes = Array(UInt8(0)..<UInt8(12))
         let (contiguousNonceBytes, discontiguousNonceBytes) = testNonceBytes.asDataProtocols()
         let nonceFromContiguous = try ChaChaPoly.Nonce(data: contiguousNonceBytes)
         let nonceFromDiscontiguous = try ChaChaPoly.Nonce(data: discontiguousNonceBytes)
@@ -148,7 +148,7 @@ class ChaChaPolyTests: XCTestCase {
         wycheproofTest(bundleType: self,
                        jsonName: "chacha20_poly1305_test",
                        testFunction: { (group: AEADTestGroup) in
-                           testGroup(group: group)
+                        testGroup(group: group)
         })
     }
 
@@ -191,14 +191,14 @@ class ChaChaPolyTests: XCTestCase {
 
             XCTAssert(Data(ct) == sb.ciphertext)
 
-            if testVector.result == "valid" {
+            if (testVector.result == "valid") {
                 XCTAssert(Data(tag) == sb.tag)
             }
 
             do {
                 let recovered_pt = try ChaChaPoly.open(ChaChaPoly.SealedBox(nonce: nonce, ciphertext: ct, tag: tag), using: key, authenticating: aad)
 
-                if testVector.result == "valid" || testVector.result == "acceptable" {
+                if (testVector.result == "valid" || testVector.result == "acceptable") {
                     XCTAssert(recovered_pt == msg)
                 } else {
                     XCTAssert(true)

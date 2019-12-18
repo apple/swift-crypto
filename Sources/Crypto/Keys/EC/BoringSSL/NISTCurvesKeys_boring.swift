@@ -14,9 +14,9 @@
 #if (os(macOS) || os(iOS) || os(watchOS) || os(tvOS)) && CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
 @_exported import CryptoKit
 #else
+import Foundation
 @_implementationOnly import CCryptoBoringSSL
 @_implementationOnly import CCryptoBoringSSLShims
-import Foundation
 
 @usableFromInline
 protocol OpenSSLSupportedNISTCurve {
@@ -24,12 +24,14 @@ protocol OpenSSLSupportedNISTCurve {
     static var group: BoringSSLEllipticCurveGroup { get }
 }
 
+
 extension OpenSSLSupportedNISTCurve {
     @inlinable
     static var coordinateByteCount: Int {
         return self.group.coordinateByteCount
     }
 }
+
 
 extension P256 {
     @usableFromInline
@@ -41,6 +43,7 @@ extension P256 {
     }
 }
 
+
 extension P384 {
     @usableFromInline
     struct CurveDetails: OpenSSLSupportedNISTCurve {
@@ -51,6 +54,7 @@ extension P384 {
     }
 }
 
+
 extension P521 {
     @usableFromInline
     struct CurveDetails: OpenSSLSupportedNISTCurve {
@@ -60,6 +64,7 @@ extension P521 {
         }
     }
 }
+
 
 @usableFromInline
 struct OpenSSLNISTCurvePrivateKeyImpl<Curve: OpenSSLSupportedNISTCurve> {
@@ -90,6 +95,7 @@ struct OpenSSLNISTCurvePrivateKeyImpl<Curve: OpenSSLSupportedNISTCurve> {
         return self.key.x963Representation
     }
 }
+
 
 @usableFromInline
 struct OpenSSLNISTCurvePublicKeyImpl<Curve: OpenSSLSupportedNISTCurve> {
@@ -129,6 +135,7 @@ struct OpenSSLNISTCurvePublicKeyImpl<Curve: OpenSSLSupportedNISTCurve> {
     }
 }
 
+
 /// A simple wrapper for an EC_KEY pointer for a private key. This manages the lifetime of that pointer and
 /// allows some helper operations.
 @usableFromInline
@@ -143,14 +150,14 @@ class BoringSSLECPrivateKeyWrapper<Curve: OpenSSLSupportedNISTCurve> {
 
         // If we've been asked to generate a compact representable key, we need to try a few times. This loop shouldn't
         // execute more than 100 times: if it does, we'll crash because something bad is happening.
-        for _ in 0 ..< 100 {
+        for _ in 0..<100 {
             // We generate FIPS compliant keys to match the behaviour of CryptoKit on Apple platforms.
-            guard CCryptoBoringSSL_EC_KEY_generate_key(self.key) != 0 else {
+            guard 0 != CCryptoBoringSSL_EC_KEY_generate_key(self.key) else {
                 throw CryptoKitError.internalBoringSSLError()
             }
 
             // We want to generate FIPS compliant keys. If this isn't, loop around again.
-            if CCryptoBoringSSL_EC_KEY_check_fips(self.key) == 0 {
+            if 0 == CCryptoBoringSSL_EC_KEY_check_fips(self.key) {
                 continue
             }
 
@@ -191,7 +198,7 @@ class BoringSSLECPrivateKeyWrapper<Curve: OpenSSLSupportedNISTCurve> {
 
     func setPrivateKey(_ keyScalar: ArbitraryPrecisionInteger) throws {
         try keyScalar.withUnsafeBignumPointer { bigNum in
-            guard CCryptoBoringSSL_EC_KEY_set_private_key(self.key, bigNum) != 0 else {
+            guard 0 != CCryptoBoringSSL_EC_KEY_set_private_key(self.key, bigNum) else {
                 throw CryptoKitError.internalBoringSSLError()
             }
         }
@@ -202,7 +209,7 @@ class BoringSSLECPrivateKeyWrapper<Curve: OpenSSLSupportedNISTCurve> {
             try y.withUnsafeMutableBignumPointer { yPointer in
                 // This function is missing some const declarations here, which is why we need the bignums inout.
                 // If that gets fixed, we can clean this function up.
-                guard CCryptoBoringSSL_EC_KEY_set_public_key_affine_coordinates(self.key, xPointer, yPointer) != 0 else {
+                guard 0 != CCryptoBoringSSL_EC_KEY_set_public_key_affine_coordinates(self.key, xPointer, yPointer) else {
                     throw CryptoKitError.internalBoringSSLError()
                 }
             }
@@ -211,7 +218,7 @@ class BoringSSLECPrivateKeyWrapper<Curve: OpenSSLSupportedNISTCurve> {
 
     func setPublicKey(point: EllipticCurvePoint) throws {
         try point.withPointPointer { ecPointer in
-            guard CCryptoBoringSSL_EC_KEY_set_public_key(self.key, ecPointer) != 0 else {
+            guard 0 != CCryptoBoringSSL_EC_KEY_set_public_key(self.key, ecPointer) else {
                 throw CryptoKitError.internalBoringSSLError()
             }
         }
@@ -268,7 +275,7 @@ class BoringSSLECPrivateKeyWrapper<Curve: OpenSSLSupportedNISTCurve> {
         let pubKeyPoint = publicKey.publicKeyPoint
         let outputSize = Curve.group.coordinateByteCount
 
-        return try SecureBytes(unsafeUninitializedCapacity: outputSize) { secretPtr, secretSize in
+        return try SecureBytes(unsafeUninitializedCapacity: outputSize) { (secretPtr, secretSize) in
             let rc = pubKeyPoint.withPointPointer { pointPtr in
                 CCryptoBoringSSL_ECDH_compute_key(secretPtr.baseAddress, secretPtr.count, pointPtr, self.key, nil)
             }
@@ -283,7 +290,7 @@ class BoringSSLECPrivateKeyWrapper<Curve: OpenSSLSupportedNISTCurve> {
 
     func sign<D: Digest>(digest: D) throws -> ECDSASignature {
         let optionalRawSignature: UnsafeMutablePointer<ECDSA_SIG>? = digest.withUnsafeBytes { digestPtr in
-            CCryptoBoringSSLShims_ECDSA_do_sign(digestPtr.baseAddress, digestPtr.count, self.key)
+            return CCryptoBoringSSLShims_ECDSA_do_sign(digestPtr.baseAddress, digestPtr.count, self.key)
         }
         guard let rawSignature = optionalRawSignature else {
             throw CryptoKitError.internalBoringSSLError()
@@ -296,6 +303,7 @@ class BoringSSLECPrivateKeyWrapper<Curve: OpenSSLSupportedNISTCurve> {
         CCryptoBoringSSL_EC_KEY_free(self.key)
     }
 }
+
 
 /// A simple wrapper for an EC_KEY pointer for a public key. This manages the lifetime of that pointer and
 /// allows some helper operations.
@@ -420,7 +428,7 @@ class BoringSSLECPublicKeyWrapper<Curve: OpenSSLSupportedNISTCurve> {
             try y.withUnsafeMutableBignumPointer { yPointer in
                 // This function is missing some const declarations here, which is why we need the bignums inout.
                 // If that gets fixed, we can clean this function up.
-                guard CCryptoBoringSSL_EC_KEY_set_public_key_affine_coordinates(self.key, xPointer, yPointer) != 0 else {
+                guard 0 != CCryptoBoringSSL_EC_KEY_set_public_key_affine_coordinates(self.key, xPointer, yPointer) else {
                     throw CryptoKitError.internalBoringSSLError()
                 }
             }
@@ -430,7 +438,7 @@ class BoringSSLECPublicKeyWrapper<Curve: OpenSSLSupportedNISTCurve> {
     func isValidSignature<D: Digest>(_ signature: ECDSASignature, for digest: D) -> Bool {
         let rc: CInt = signature.withUnsafeSignaturePointer { signaturePointer in
             digest.withUnsafeBytes { digestPointer in
-                CCryptoBoringSSLShims_ECDSA_do_verify(digestPointer.baseAddress, digestPointer.count, signaturePointer, self.key)
+                return CCryptoBoringSSLShims_ECDSA_do_verify(digestPointer.baseAddress, digestPointer.count, signaturePointer, self.key)
             }
         }
 
@@ -438,22 +446,23 @@ class BoringSSLECPublicKeyWrapper<Curve: OpenSSLSupportedNISTCurve> {
     }
 }
 
+
 extension ContiguousBytes {
     func readx963PrivateNumbers() throws -> (x: ArbitraryPrecisionInteger, y: ArbitraryPrecisionInteger, k: ArbitraryPrecisionInteger) {
         // The x9.63 private key format is a discriminator byte (0x4) concatenated with the X and Y points
         // of the public key, and the K value of the secret scalar. Let's load that in.
         return try self.withUnsafeBytes { bytesPtr in
             guard bytesPtr.first == 0x04 else {
-                throw CryptoKitError.incorrectKeySize // This is the same error CryptoKit throws on Apple platforms.
+                throw CryptoKitError.incorrectKeySize  // This is the same error CryptoKit throws on Apple platforms.
             }
 
             let stride = (bytesPtr.count - 1) / 3
             var offset = 1
-            let xPointer = UnsafeRawBufferPointer(rebasing: bytesPtr[offset ..< (offset + stride)])
+            let xPointer = UnsafeRawBufferPointer(rebasing: bytesPtr[offset..<(offset + stride)])
             offset += stride
-            let yPointer = UnsafeRawBufferPointer(rebasing: bytesPtr[offset ..< (offset + stride)])
+            let yPointer = UnsafeRawBufferPointer(rebasing: bytesPtr[offset..<(offset + stride)])
             offset += stride
-            let kPointer = UnsafeRawBufferPointer(rebasing: bytesPtr[offset ..< (offset + stride)])
+            let kPointer = UnsafeRawBufferPointer(rebasing: bytesPtr[offset..<(offset + stride)])
 
             let x = try ArbitraryPrecisionInteger(bytes: xPointer)
             let y = try ArbitraryPrecisionInteger(bytes: yPointer)
@@ -469,7 +478,7 @@ extension ContiguousBytes {
         // of the public key. Let's load that in.
         return try self.withUnsafeBytes { bytesPtr in
             guard bytesPtr.first == 0x04 else {
-                throw CryptoKitError.incorrectKeySize // This is the same error CryptoKit throws on Apple platforms.
+                throw CryptoKitError.incorrectKeySize  // This is the same error CryptoKit throws on Apple platforms.
             }
 
             return try readRawPublicNumbers(copyingBytes: UnsafeRawBufferPointer(rebasing: bytesPtr[1...]))
@@ -479,11 +488,11 @@ extension ContiguousBytes {
 
 @usableFromInline
 func readRawPublicNumbers(copyingBytes bytesPtr: UnsafeRawBufferPointer) throws -> (x: ArbitraryPrecisionInteger, y: ArbitraryPrecisionInteger) {
-    let stride = bytesPtr.count / 2
+    let stride = (bytesPtr.count) / 2
     var offset = 0
-    let xPointer = UnsafeRawBufferPointer(rebasing: bytesPtr[offset ..< (offset + stride)])
+    let xPointer = UnsafeRawBufferPointer(rebasing: bytesPtr[offset..<(offset + stride)])
     offset += stride
-    let yPointer = UnsafeRawBufferPointer(rebasing: bytesPtr[offset ..< (offset + stride)])
+    let yPointer = UnsafeRawBufferPointer(rebasing: bytesPtr[offset..<(offset + stride)])
 
     // We cannot handle allocation errors, so we check for fatal error.
     let x = try ArbitraryPrecisionInteger(bytes: xPointer)
@@ -491,6 +500,7 @@ func readRawPublicNumbers(copyingBytes bytesPtr: UnsafeRawBufferPointer) throws 
 
     return (x: x, y: y)
 }
+
 
 /// In a number of places we need to know if an EC key is compact representable. This function implements that check.
 ///

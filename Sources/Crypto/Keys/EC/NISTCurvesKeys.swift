@@ -23,7 +23,7 @@ typealias SupportedCurveDetailsImpl = OpenSSLSupportedNISTCurve
 #endif
 
 protocol ECPublicKey {
-    init<Bytes: ContiguousBytes>(rawRepresentation: Bytes) throws
+    init <Bytes: ContiguousBytes>(rawRepresentation: Bytes) throws
     var rawRepresentation: Data { get }
 }
 
@@ -35,25 +35,25 @@ protocol ECPrivateKey {
 protocol NISTECPublicKey: ECPublicKey {
     init<Bytes: ContiguousBytes>(compactRepresentation: Bytes) throws
     init<Bytes: ContiguousBytes>(x963Representation: Bytes) throws
-
+    
     var compactRepresentation: Data? { get }
     var x963Representation: Data { get }
 }
 
 protocol NISTECPrivateKey: ECPrivateKey where PublicKey: NISTECPublicKey {
-    init<Bytes: ContiguousBytes>(rawRepresentation: Bytes) throws
+    init <Bytes: ContiguousBytes>(rawRepresentation: Bytes) throws
     var rawRepresentation: Data { get }
 }
 
 /// The NIST P-256 Elliptic Curve.
 @available(iOS 13.0, macOS 10.15, watchOS 6.0, tvOS 13.0, macCatalyst 13.0, *)
-public enum P256 {}
+public enum P256 { }
 
 /// The NIST P-384 Elliptic Curve.
 @available(iOS 13.0, macOS 10.15, watchOS 6.0, tvOS 13.0, macCatalyst 13.0, *)
-public enum P384 {}
+public enum P384 { }
 
 /// The NIST P-521 Elliptic Curve.
 @available(iOS 13.0, macOS 10.15, watchOS 6.0, tvOS 13.0, macCatalyst 13.0, *)
-public enum P521 {}
+public enum P521 { }
 #endif // Linux or !SwiftPM

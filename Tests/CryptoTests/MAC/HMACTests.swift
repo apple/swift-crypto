@@ -32,7 +32,7 @@ class HMACTests: XCTestCase {
         let mac = HMAC<SHA256>.authenticationCode(for: someData, using: key)
         XCTAssert(HMAC.isValidAuthenticationCode(mac, authenticating: someData, using: key))
     }
-
+    
     // Test Case 1
     func testCase1VectorForAlgorithm<H: HashFunction>(hashFunction: H.Type) throws -> String {
         switch H.self {
@@ -44,7 +44,7 @@ class HMACTests: XCTestCase {
             throw TestError.unhandled
         }
     }
-
+    
     // Test Case 2
     func testCase2VectorForAlgorithm<H: HashFunction>(hashFunction: H.Type) throws -> String {
         switch H.self {
@@ -56,7 +56,7 @@ class HMACTests: XCTestCase {
             throw TestError.unhandled
         }
     }
-
+    
     // Test Case 3
     func testCase3VectorForAlgorithm<H: HashFunction>(hashFunction: H.Type) throws -> String {
         switch H.self {
@@ -68,7 +68,7 @@ class HMACTests: XCTestCase {
             throw TestError.unhandled
         }
     }
-
+    
     // Test Case 4
     func testCase4VectorForAlgorithm<H: HashFunction>(hashFunction: H.Type) throws -> String {
         switch H.self {
@@ -80,7 +80,7 @@ class HMACTests: XCTestCase {
             throw TestError.unhandled
         }
     }
-
+    
     // Test Case 6
     func testCase6VectorForAlgorithm<H: HashFunction>(hashFunction: H.Type) throws -> String {
         switch H.self {
@@ -92,7 +92,7 @@ class HMACTests: XCTestCase {
             throw TestError.unhandled
         }
     }
-
+    
     // Test Case 7
     func testCase7VectorForAlgorithm<H: HashFunction>(hashFunction: H.Type) throws -> String {
         switch H.self {
@@ -104,72 +104,72 @@ class HMACTests: XCTestCase {
             throw TestError.unhandled
         }
     }
-
+    
     func testHMAC<H: HashFunction>(key: SymmetricKey, data: Data, vectors: (H.Type) throws -> String, for: H.Type) -> Bool {
         return HMAC<H>.isValidAuthenticationCode(try! Data(hexString: vectors(H.self)), authenticating: data, using: key)
     }
-
+    
     func testCase1() throws {
         let keyBytes = try Array(hexString: "0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b")
         let key = SymmetricKey(data: keyBytes)
-
+        
         let data = "Hi There".data(using: .ascii)!
-
-        XCTAssert(self.testHMAC(key: key, data: data, vectors: self.testCase1VectorForAlgorithm, for: SHA256.self))
-        XCTAssert(self.testHMAC(key: key, data: data, vectors: self.testCase1VectorForAlgorithm, for: SHA384.self))
-        XCTAssert(self.testHMAC(key: key, data: data, vectors: self.testCase1VectorForAlgorithm, for: SHA512.self))
+        
+        XCTAssert(testHMAC(key: key, data: data, vectors: testCase1VectorForAlgorithm, for: SHA256.self))
+        XCTAssert(testHMAC(key: key, data: data, vectors: testCase1VectorForAlgorithm, for: SHA384.self))
+        XCTAssert(testHMAC(key: key, data: data, vectors: testCase1VectorForAlgorithm, for: SHA512.self))
     }
-
+    
     func testCase2() throws {
         let keyBytes = try Array(hexString: "4a656665")
         let key = SymmetricKey(data: keyBytes)
-
+        
         let data = try Data(hexString: "7768617420646f2079612077616e7420666f72206e6f7468696e673f")
-
+        
         XCTAssert(testHMAC(key: key, data: data, vectors: testCase2VectorForAlgorithm, for: SHA256.self))
         XCTAssert(testHMAC(key: key, data: data, vectors: testCase2VectorForAlgorithm, for: SHA384.self))
         XCTAssert(testHMAC(key: key, data: data, vectors: testCase2VectorForAlgorithm, for: SHA512.self))
     }
-
+    
     func testCase3() throws {
         let keyBytes = try Array(hexString: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")
         let key = SymmetricKey(data: keyBytes)
-
+        
         let data = try Data(hexString: "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd")
-
+        
         XCTAssert(testHMAC(key: key, data: data, vectors: testCase3VectorForAlgorithm, for: SHA256.self))
         XCTAssert(testHMAC(key: key, data: data, vectors: testCase3VectorForAlgorithm, for: SHA384.self))
         XCTAssert(testHMAC(key: key, data: data, vectors: testCase3VectorForAlgorithm, for: SHA512.self))
     }
-
+    
     func testCase4() throws {
         let keyBytes = try Array(hexString: "0102030405060708090a0b0c0d0e0f10111213141516171819")
         let key = SymmetricKey(data: keyBytes)
-
+        
         let data = try Data(hexString: "cdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcd")
-
+        
         XCTAssert(testHMAC(key: key, data: data, vectors: testCase4VectorForAlgorithm, for: SHA256.self))
         XCTAssert(testHMAC(key: key, data: data, vectors: testCase4VectorForAlgorithm, for: SHA384.self))
         XCTAssert(testHMAC(key: key, data: data, vectors: testCase4VectorForAlgorithm, for: SHA512.self))
     }
-
+    
     func testCase6() throws {
         let keyBytes = try Array(hexString: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")
         let key = SymmetricKey(data: keyBytes)
-
+        
         let data = try Data(hexString: "54657374205573696e67204c6172676572205468616e20426c6f636b2d53697a65204b6579202d2048617368204b6579204669727374")
-
+        
         XCTAssert(testHMAC(key: key, data: data, vectors: testCase6VectorForAlgorithm, for: SHA256.self))
         XCTAssert(testHMAC(key: key, data: data, vectors: testCase6VectorForAlgorithm, for: SHA384.self))
         XCTAssert(testHMAC(key: key, data: data, vectors: testCase6VectorForAlgorithm, for: SHA512.self))
     }
-
+    
     func testCase7() throws {
         let keyBytes = try Array(hexString: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")
         let key = SymmetricKey(data: keyBytes)
-
+        
         let data = try Data(hexString: "5468697320697320612074657374207573696e672061206c6172676572207468616e20626c6f636b2d73697a65206b657920616e642061206c6172676572207468616e20626c6f636b2d73697a6520646174612e20546865206b6579206e6565647320746f20626520686173686564206265666f7265206265696e6720757365642062792074686520484d414320616c676f726974686d2e")
-
+        
         XCTAssert(testHMAC(key: key, data: data, vectors: testCase7VectorForAlgorithm, for: SHA256.self))
         XCTAssert(testHMAC(key: key, data: data, vectors: testCase7VectorForAlgorithm, for: SHA384.self))
         XCTAssert(testHMAC(key: key, data: data, vectors: testCase7VectorForAlgorithm, for: SHA512.self))
@@ -199,18 +199,19 @@ class HMACTests: XCTestCase {
         XCTAssertTrue(authContiguous == discontiguousGoodCode)
         XCTAssertFalse(unrelatedAuthenticationCode == contiguousGoodCode)
         XCTAssertFalse(unrelatedAuthenticationCode == discontiguousGoodCode)
+
     }
 
     func testDiscontiguousSHA256() throws {
-        self.testDiscontiguousHMAC(key: SymmetricKey(size: .bits256), data: Array("some data".utf8), for: SHA256.self)
+        testDiscontiguousHMAC(key: SymmetricKey(size: .bits256), data: Array("some data".utf8), for: SHA256.self)
     }
 
     func testDiscontiguousSHA384() throws {
-        self.testDiscontiguousHMAC(key: SymmetricKey(size: .bits256), data: Array("some data".utf8), for: SHA384.self)
+        testDiscontiguousHMAC(key: SymmetricKey(size: .bits256), data: Array("some data".utf8), for: SHA384.self)
     }
 
     func testDiscontiguousSHA512() throws {
-        self.testDiscontiguousHMAC(key: SymmetricKey(size: .bits256), data: Array("some data".utf8), for: SHA512.self)
+        testDiscontiguousHMAC(key: SymmetricKey(size: .bits256), data: Array("some data".utf8), for: SHA512.self)
     }
 
     func testHMACViaPointer() throws {

@@ -11,9 +11,10 @@
 // SPDX-License-Identifier: Apache-2.0
 //
 //===----------------------------------------------------------------------===//
+import Foundation
 @_implementationOnly import CCryptoBoringSSL
 @_implementationOnly import CCryptoBoringSSLShims
-import Foundation
+
 
 /// A wrapper around BoringSSL's ECDSA_SIG with some lifetime management.
 class ECDSASignature {
@@ -74,8 +75,8 @@ class ECDSASignature {
 
     @usableFromInline
     var components: (r: ArbitraryPrecisionInteger, s: ArbitraryPrecisionInteger) {
-        var rPtr: UnsafePointer<BIGNUM>?
-        var sPtr: UnsafePointer<BIGNUM>?
+        var rPtr: UnsafePointer<BIGNUM>? = nil
+        var sPtr: UnsafePointer<BIGNUM>? = nil
 
         // We force-unwrap here because a valid ECDSA_SIG cannot fail to have both R and S components.
         CCryptoBoringSSL_ECDSA_SIG_get0(self._baseSig, &rPtr, &sPtr)
@@ -84,9 +85,9 @@ class ECDSASignature {
 
     @usableFromInline
     var derBytes: Data {
-        var dataPtr: UnsafeMutablePointer<UInt8>?
+        var dataPtr: UnsafeMutablePointer<UInt8>? = nil
         var length = 0
-        guard CCryptoBoringSSL_ECDSA_SIG_to_bytes(&dataPtr, &length, self._baseSig) == 1 else {
+        guard 1 == CCryptoBoringSSL_ECDSA_SIG_to_bytes(&dataPtr, &length, self._baseSig) else {
             fatalError("Unable to marshal signature to DER")
         }
         defer {

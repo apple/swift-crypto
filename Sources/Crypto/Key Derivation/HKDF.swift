@@ -27,7 +27,7 @@ struct HKDF<H: HashFunction> {
     ///   - outputByteCount: The desired number of output bytes.
     /// - Returns: Returns the derived key.
     static func deriveKey<IKM: DataProtocol, Salt: DataProtocol, Info: DataProtocol>(inputKeyMaterial: IKM, salt: Salt, info: Info, outputByteCount: Int) -> SymmetricKey {
-        return self.expand(PRK: self.extract(salt: salt, ikm: inputKeyMaterial), info: info, L: outputByteCount)
+        return expand(PRK: extract(salt: salt, ikm: inputKeyMaterial), info: info, L: outputByteCount)
     }
 
     static func extract<S: DataProtocol, IKM: DataProtocol>(salt: S, ikm: IKM) -> HashedAuthenticationCode<H> {
@@ -38,16 +38,16 @@ struct HKDF<H: HashFunction> {
         } else {
             key = SymmetricKey(data: salt.regions.first!)
         }
-
+        
         return HMAC<H>.authenticationCode(for: ikm, using: key)
     }
 
     static func expand<Info: DataProtocol>(PRK: HashedAuthenticationCode<H>, info: Info?, L: Int) -> SymmetricKey {
-        let iterations: Int = Int(ceil(Float(L) / Float(H.Digest.byteCount)))
+        let iterations: Int = Int(ceil((Float(L) / Float(H.Digest.byteCount))))
         var output = SecureBytes()
         let key = SymmetricKey(data: Data(PRK.digest))
         var TMinusOne = Data()
-        for i in 1 ... iterations {
+        for i in 1...iterations {
             var hmac = HMAC<H>(key: key)
             hmac.update(data: TMinusOne)
             if let infoData = info {

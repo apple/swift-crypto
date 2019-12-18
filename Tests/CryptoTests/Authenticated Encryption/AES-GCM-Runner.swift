@@ -16,7 +16,7 @@ import XCTest
 
 #if (os(macOS) || os(iOS) || os(watchOS) || os(tvOS)) && CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
 import Crypto
-#elseif(os(macOS) || os(iOS) || os(watchOS) || os(tvOS)) && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
+#elseif (os(macOS) || os(iOS) || os(watchOS) || os(tvOS)) && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
 import CryptoKit
 #else
 import Crypto
@@ -78,7 +78,7 @@ class AESGCMTests: XCTestCase {
         let nonce = AES.GCM.Nonce()
         XCTAssertEqual(Array(nonce), nonce.withUnsafeBytes { Array($0) })
 
-        let testNonceBytes = Array(UInt8(0) ..< UInt8(12))
+        let testNonceBytes = Array(UInt8(0)..<UInt8(12))
         let (contiguousNonceBytes, discontiguousNonceBytes) = testNonceBytes.asDataProtocols()
         let nonceFromContiguous = try AES.GCM.Nonce(data: contiguousNonceBytes)
         let nonceFromDiscontiguous = try AES.GCM.Nonce(data: discontiguousNonceBytes)
@@ -173,66 +173,66 @@ class AESGCMTests: XCTestCase {
         wycheproofTest(bundleType: self,
                        jsonName: "aes_gcm_test",
                        testFunction: { (group: AEADTestGroup) in
-                           for testVector in group.tests {
-                               var msg = Data()
-                               var aad = Data()
-                               var ct: [UInt8] = []
-                               var tag: [UInt8] = []
+                        for testVector in group.tests {
+                            var msg = Data()
+                            var aad = Data()
+                            var ct: [UInt8] = []
+                            var tag: [UInt8] = []
 
-                               do {
-                                   let key = try! SymmetricKey(data: Array(hexString: testVector.key))
-                                   XCTAssertNotNil(key)
+                            do {
+                                let key = try! SymmetricKey(data: Array(hexString: testVector.key))
+                                XCTAssertNotNil(key)
 
-                                   let nonceData = try Array(hexString: testVector.iv)
+                                let nonceData = try Array(hexString: testVector.iv)
+                                
+                                let nonce: AES.GCM.Nonce
+                                do {
+                                    nonce = try AES.GCM.Nonce(data: nonceData)
+                                } catch {
+                                    XCTAssert(nonceData.count < 12)
+                                    continue
+                                }
 
-                                   let nonce: AES.GCM.Nonce
-                                   do {
-                                       nonce = try AES.GCM.Nonce(data: nonceData)
-                                   } catch {
-                                       XCTAssert(nonceData.count < 12)
-                                       continue
-                                   }
+                                if testVector.ct.count > 0 {
+                                    ct = try! Array(hexString: testVector.ct)
+                                }
 
-                                   if testVector.ct.count > 0 {
-                                       ct = try! Array(hexString: testVector.ct)
-                                   }
+                                if testVector.msg.count > 0 {
+                                    msg = try! Data(hexString: testVector.msg)
+                                }
 
-                                   if testVector.msg.count > 0 {
-                                       msg = try! Data(hexString: testVector.msg)
-                                   }
+                                if testVector.aad.count > 0 {
+                                    aad = try! Data(hexString: testVector.aad)
+                                }
 
-                                   if testVector.aad.count > 0 {
-                                       aad = try! Data(hexString: testVector.aad)
-                                   }
+                                if testVector.tag.count > 0 {
+                                    tag = try! Array(hexString: testVector.tag)
+                                }
 
-                                   if testVector.tag.count > 0 {
-                                       tag = try! Array(hexString: testVector.tag)
-                                   }
+                                let sb = try! AES.GCM.seal(msg, using: key, nonce: nonce, authenticating: aad)
 
-                                   let sb = try! AES.GCM.seal(msg, using: key, nonce: nonce, authenticating: aad)
+                                XCTAssert(Data(ct) == sb.ciphertext)
 
-                                   XCTAssert(Data(ct) == sb.ciphertext)
+                                if (testVector.result == "valid") {
+                                    XCTAssert(Data(tag) == sb.tag)
+                                }
 
-                                   if testVector.result == "valid" {
-                                       XCTAssert(Data(tag) == sb.tag)
-                                   }
+                                do {
+                                    let recovered_pt = try AES.GCM.open(AES.GCM.SealedBox(nonce: nonce, ciphertext: ct, tag: tag), using: key, authenticating: aad)
 
-                                   do {
-                                       let recovered_pt = try AES.GCM.open(AES.GCM.SealedBox(nonce: nonce, ciphertext: ct, tag: tag), using: key, authenticating: aad)
-
-                                       if testVector.result == "valid" || testVector.result == "acceptable" {
-                                           XCTAssert(recovered_pt == msg)
-                                       } else {
-                                           XCTAssert(false)
-                                       }
-                                   } catch {
-                                       XCTAssert(testVector.result == "invalid")
-                                   }
-                               } catch {
-                                   XCTAssert(testVector.result == "invalid" || testVector.iv == "")
-                                   return
-                               }
-                           }
+                                    if (testVector.result == "valid" || testVector.result == "acceptable") {
+                                        XCTAssert(recovered_pt == msg)
+                                    } else {
+                                        XCTAssert(false)
+                                    }
+                                } catch {
+                                    XCTAssert(testVector.result == "invalid")
+                                }
+                            } catch {
+                                XCTAssert(testVector.result == "invalid" || testVector.iv == "")
+                                return
+                            }
+                        }
         })
     }
 }

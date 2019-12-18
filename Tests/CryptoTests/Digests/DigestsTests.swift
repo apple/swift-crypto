@@ -15,38 +15,38 @@ import XCTest
 
 #if (os(macOS) || os(iOS) || os(watchOS) || os(tvOS)) && CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
 import Crypto
-#elseif(os(macOS) || os(iOS) || os(watchOS) || os(tvOS)) && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
+#elseif (os(macOS) || os(iOS) || os(watchOS) || os(tvOS)) && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
 import CryptoKit
 #else
 import Crypto
 #endif
 
 enum TestError: Error {
-    case unhandled
+	case unhandled
 }
 
 func nullTestVectorForAlgorithm<H: HashFunction>(hashFunction: H.Type) throws -> String {
     switch H.self {
-    case is Insecure.SHA1.Type: return "da39a3ee5e6b4b0d3255bfef95601890afd80709"
-    case is SHA256.Type: return "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
-    case is SHA384.Type: return "38b060a751ac96384cd9327eb1b1e36a21fdb71114be07434c0cc7bf63f6e1da274edebfe76f65fbd51ad2f14898b95b"
-    case is SHA512.Type: return "cf83e1357eefb8bdf1542850d66d8007d620e4050b5715dc83f4a921d36ce9ce47d0d13c5d85f2b0ff8318d2877eec2f63b931bd47417a81a538327af927da3e"
-    default:
-        XCTFail("Unhandled type: \(H.self)")
-        throw TestError.unhandled
-    }
+	case is Insecure.SHA1.Type: return "da39a3ee5e6b4b0d3255bfef95601890afd80709"
+	case is SHA256.Type: return "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+	case is SHA384.Type: return "38b060a751ac96384cd9327eb1b1e36a21fdb71114be07434c0cc7bf63f6e1da274edebfe76f65fbd51ad2f14898b95b"
+	case is SHA512.Type: return "cf83e1357eefb8bdf1542850d66d8007d620e4050b5715dc83f4a921d36ce9ce47d0d13c5d85f2b0ff8318d2877eec2f63b931bd47417a81a538327af927da3e"
+	default:
+		XCTFail("Unhandled type: \(H.self)")
+		throw TestError.unhandled
+	}
 }
 
 func testVectorForAlgorithm<H: HashFunction>(hashFunction: H.Type) throws -> String {
-    switch H.self {
-    case is Insecure.SHA1.Type: return "a49b2446a02c645bf419f995b67091253a04a259"
-    case is SHA256.Type: return "cf5b16a778af8380036ce59e7b0492370b249b11e8f07a51afac45037afee9d1"
-    case is SHA384.Type: return "09330c33f71147e83d192fc782cd1b4753111b173b3b05d22fa08086e3b0f712fcc7c71a557e2db966c3e9fa91746039"
-    case is SHA512.Type: return "8e959b75dae313da8cf4f72814fc143f8f7779c6eb9f7fa17299aeadb6889018501d289e4900f7e4331b99dec4b5433ac7d329eeb6dd26545e96e55b874be909"
-    default:
-        XCTFail("Unhandled type: \(H.self)")
-        throw TestError.unhandled
-    }
+	switch H.self {
+	case is Insecure.SHA1.Type: return "a49b2446a02c645bf419f995b67091253a04a259"
+	case is SHA256.Type: return "cf5b16a778af8380036ce59e7b0492370b249b11e8f07a51afac45037afee9d1"
+	case is SHA384.Type: return "09330c33f71147e83d192fc782cd1b4753111b173b3b05d22fa08086e3b0f712fcc7c71a557e2db966c3e9fa91746039"
+	case is SHA512.Type: return "8e959b75dae313da8cf4f72814fc143f8f7779c6eb9f7fa17299aeadb6889018501d289e4900f7e4331b99dec4b5433ac7d329eeb6dd26545e96e55b874be909"
+	default:
+		XCTFail("Unhandled type: \(H.self)")
+		throw TestError.unhandled
+	}
 }
 
 class DigestsTests: XCTestCase {
@@ -65,7 +65,7 @@ class DigestsTests: XCTestCase {
         XCTAssert(result == discontiguousResult)
         XCTAssertFalse(result == DispatchData.empty)
     }
-
+    
     func testMD5() {
         XCTAssert(Data(Insecure.MD5.hash(data: Data())).count == Insecure.MD5.byteCount)
         try! XCTAssert(Data(Insecure.MD5.hash(data: Data())) == Data(hexString: "d41d8cd98f00b204e9800998ecf8427e"))
@@ -74,16 +74,16 @@ class DigestsTests: XCTestCase {
 
     func testHashFunction<H: HashFunction>(hf: H.Type) throws {
         let data = ("abcdefghbcdefghicdefghijdefghijkefghijklfghijklmghijklmnhijklmnoijklmnopjklmnopqklmnopqrlmnopqrsmnopqrstnopqrstu".data(using: String.Encoding.ascii)!)
-        self.testHashFunctionWithVector(hf: hf, data: data, testVector: try testVectorForAlgorithm(hashFunction: hf))
-        self.testHashFunctionWithVector(hf: hf, data: Data(repeating: 0, count: 0), testVector: try nullTestVectorForAlgorithm(hashFunction: hf))
-    }
+        testHashFunctionWithVector(hf: hf, data: data, testVector: try testVectorForAlgorithm(hashFunction: hf))
+        testHashFunctionWithVector(hf: hf, data: Data(repeating: 0, count: 0), testVector: try nullTestVectorForAlgorithm(hashFunction: hf))
+	}
 
-    func testHashFunctions() throws {
-        try self.testHashFunction(hf: Insecure.SHA1.self)
-        try self.testHashFunction(hf: SHA256.self)
-        try self.testHashFunction(hf: SHA384.self)
-        try self.testHashFunction(hf: SHA512.self)
-    }
+	func testHashFunctions() throws {
+        try testHashFunction(hf: Insecure.SHA1.self)
+        try testHashFunction(hf: SHA256.self)
+        try testHashFunction(hf: SHA384.self)
+        try testHashFunction(hf: SHA512.self)
+	}
 
     func testHashFunctionImplementsCoW<H: HashFunction>(hf: H.Type) throws {
         var hf = H()
@@ -100,18 +100,18 @@ class DigestsTests: XCTestCase {
     }
 
     func testHashFunctionsImplementCow() throws {
-        try self.testHashFunctionImplementsCoW(hf: Insecure.MD5.self)
-        try self.testHashFunctionImplementsCoW(hf: Insecure.SHA1.self)
-        try self.testHashFunctionImplementsCoW(hf: SHA256.self)
-        try self.testHashFunctionImplementsCoW(hf: SHA384.self)
-        try self.testHashFunctionImplementsCoW(hf: SHA512.self)
+        try testHashFunctionImplementsCoW(hf: Insecure.MD5.self)
+        try testHashFunctionImplementsCoW(hf: Insecure.SHA1.self)
+        try testHashFunctionImplementsCoW(hf: SHA256.self)
+        try testHashFunctionImplementsCoW(hf: SHA384.self)
+        try testHashFunctionImplementsCoW(hf: SHA512.self)
     }
-
+    
     func testBlockSizes() {
         XCTAssert(Insecure.MD5.blockByteCount == 64)
         XCTAssert(Insecure.SHA1.blockByteCount == 64)
         XCTAssert(SHA256.blockByteCount == 64)
-
+        
         XCTAssert(SHA384.blockByteCount == 128)
         XCTAssert(SHA512.blockByteCount == 128)
     }

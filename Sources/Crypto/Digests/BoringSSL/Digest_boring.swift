@@ -16,11 +16,14 @@
 #else
 @_implementationOnly import CCryptoBoringSSL
 
-protocol HashFunctionImplementationDetails: HashFunction where Digest: DigestPrivate {}
+
+protocol HashFunctionImplementationDetails: HashFunction where Digest: DigestPrivate { }
+
 
 protocol BoringSSLBackedHashFunction: HashFunctionImplementationDetails {
     static var digestType: DigestContext.DigestType { get }
 }
+
 
 extension Insecure.MD5: BoringSSLBackedHashFunction {
     static var digestType: DigestContext.DigestType {
@@ -52,6 +55,7 @@ extension SHA512: BoringSSLBackedHashFunction {
     }
 }
 
+
 struct OpenSSLDigestImpl<H: BoringSSLBackedHashFunction> {
     private var context: DigestContext
 
@@ -72,10 +76,11 @@ struct OpenSSLDigestImpl<H: BoringSSLBackedHashFunction> {
         let digestBytes = copyContext.finalize()
         return digestBytes.withUnsafeBytes {
             // We force unwrap here because if the digest size is wrong it's an internal error.
-            H.Digest(bufferPointer: $0)!
+            return H.Digest(bufferPointer: $0)!
         }
     }
 }
+
 
 class DigestContext {
     private var contextPointer: UnsafeMutablePointer<EVP_MD_CTX>
@@ -83,7 +88,7 @@ class DigestContext {
     init(digest: DigestType) {
         // We force unwrap because we cannot recover from allocation failure.
         self.contextPointer = CCryptoBoringSSL_EVP_MD_CTX_new()!
-        guard CCryptoBoringSSL_EVP_DigestInit(self.contextPointer, digest.dispatchTable) != 0 else {
+        guard 0 != CCryptoBoringSSL_EVP_DigestInit(self.contextPointer, digest.dispatchTable) else {
             // We can't do much but crash here.
             fatalError("Unable to initialize digest state: \(CCryptoBoringSSL_ERR_get_error())")
         }
@@ -92,7 +97,7 @@ class DigestContext {
     init(copying original: DigestContext) {
         // We force unwrap because we cannot recover from allocation failure.
         self.contextPointer = CCryptoBoringSSL_EVP_MD_CTX_new()!
-        guard CCryptoBoringSSL_EVP_MD_CTX_copy(self.contextPointer, original.contextPointer) != 0 else {
+        guard 0 != CCryptoBoringSSL_EVP_MD_CTX_copy(self.contextPointer, original.contextPointer) else {
             // We can't do much but crash here.
             fatalError("Unable to copy digest state: \(CCryptoBoringSSL_ERR_get_error())")
         }
@@ -124,6 +129,7 @@ class DigestContext {
         CCryptoBoringSSL_EVP_MD_CTX_free(self.contextPointer)
     }
 }
+
 
 extension DigestContext {
     struct DigestType {

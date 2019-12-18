@@ -24,7 +24,7 @@ public struct HMAC<H: HashFunction>: MACAlgorithm {
     public typealias MAC = HashedAuthenticationCode<H>
     var outerHasher: H
     var innerHasher: H
-
+    
     /// Verifies a tag of a Message Authentication Code. The comparison is done in constant-time.
     ///
     /// - Parameters:
@@ -33,51 +33,51 @@ public struct HMAC<H: HashFunction>: MACAlgorithm {
     ///   - mac: The MAC to verify
     /// - Returns: Returns true if the MAC is valid. False otherwise.
     public static func isValidAuthenticationCode(_ mac: MAC, authenticating bufferPointer: UnsafeRawBufferPointer, using key: SymmetricKey) -> Bool {
-        return self.isValidAuthenticationCode(authenticationCodeBytes: mac, authenticatedData: bufferPointer, key: key)
+        return isValidAuthenticationCode(authenticationCodeBytes: mac, authenticatedData: bufferPointer, key: key)
     }
-
+    
     /// Initializes an incremental HMAC
     ///
     /// - Parameter key: The key to use for HMAC.
     public init(key: SymmetricKey) {
         var K: ContiguousBytes
-
+        
         if key.byteCount == H.blockByteCount {
             K = key
-        } else if key.byteCount > H.blockByteCount {
+        } else if (key.byteCount > H.blockByteCount) {
             var array = Array(repeating: UInt8(0), count: H.blockByteCount)
-
-            K = key.withUnsafeBytes { keyBytes in
+            
+            K = key.withUnsafeBytes { (keyBytes)  in
                 let hash = H.hash(bufferPointer: keyBytes)
-
-                return hash.withUnsafeBytes { hashBytes in
+                
+                return hash.withUnsafeBytes({ (hashBytes) in
                     memcpy(&array, hashBytes.baseAddress!, hashBytes.count)
                     return array
-                }
+                })
             }
         } else {
             var keyArray = Array(repeating: UInt8(0), count: H.blockByteCount)
-            key.withUnsafeBytes { keyArray.replaceSubrange(0 ..< $0.count, with: $0) }
+            key.withUnsafeBytes { keyArray.replaceSubrange(0..<$0.count, with: $0) }
             K = keyArray
         }
-
+        
         self.innerHasher = H()
         let innerKey = K.withUnsafeBytes {
-            $0.map { keyByte in
+            return $0.map({ (keyByte) in
                 keyByte ^ 0x36
-            }
+            })
         }
-        self.innerHasher.update(data: innerKey)
-
+        innerHasher.update(data: innerKey)
+        
         self.outerHasher = H()
         let outerKey = K.withUnsafeBytes {
-            $0.map { keyByte in
-                keyByte ^ 0x5C
-            }
+            return $0.map({ (keyByte) in
+                keyByte ^ 0x5c
+            })
         }
-        self.outerHasher.update(data: outerKey)
+        outerHasher.update(data: outerKey)
     }
-
+    
     /// Computes a Message Authentication Code.
     ///
     /// - Parameters:
@@ -89,7 +89,7 @@ public struct HMAC<H: HashFunction>: MACAlgorithm {
         authenticator.update(data: data)
         return authenticator.finalize()
     }
-
+    
     /// Verifies a Message Authentication Code. The comparison is done in constant-time.
     ///
     /// - Parameters:
@@ -98,9 +98,9 @@ public struct HMAC<H: HashFunction>: MACAlgorithm {
     ///   - key: The key to authenticate the data with
     /// - Returns: Returns true if the MAC is valid. False otherwise.
     public static func isValidAuthenticationCode<D: DataProtocol>(_ authenticationCode: MAC, authenticating authenticatedData: D, using key: SymmetricKey) -> Bool {
-        return self.isValidAuthenticationCode(authenticationCodeBytes: authenticationCode, authenticatedData: authenticatedData, key: key)
+        return isValidAuthenticationCode(authenticationCodeBytes: authenticationCode, authenticatedData: authenticatedData, key: key)
     }
-
+    
     /// Verifies a Message Authentication Code. The comparison is done in constant-time.
     ///
     /// - Parameters:
@@ -112,42 +112,42 @@ public struct HMAC<H: HashFunction>: MACAlgorithm {
     public static func isValidAuthenticationCode<C: ContiguousBytes, D: DataProtocol>(_ authenticationCode: C,
                                                                                       authenticating authenticatedData: D,
                                                                                       using key: SymmetricKey) -> Bool {
-        return self.isValidAuthenticationCode(authenticationCodeBytes: authenticationCode, authenticatedData: authenticatedData, key: key)
+        return isValidAuthenticationCode(authenticationCodeBytes: authenticationCode, authenticatedData: authenticatedData, key: key)
     }
-
+    
     /// Updates the MAC with data.
     ///
     /// - Parameter data: The data to update the MAC
     public mutating func update<D: DataProtocol>(data: D) {
-        data.regions.forEach { memoryRegion in
-            memoryRegion.withUnsafeBytes { bp in
+        data.regions.forEach { (memoryRegion) in
+            memoryRegion.withUnsafeBytes({ (bp) in
                 self.update(bufferPointer: bp)
-            }
+            })
         }
     }
-
+    
     /// Returns the Message Authentication Code (MAC) from the data inputted into the MAC.
     ///
     /// - Returns: The Message Authentication Code
     /// - Throws: Throws if the MAC has already been finalized
     public func finalize() -> MAC {
-        let innerHash = self.innerHasher.finalize()
-        var outerHashForFinalization = self.outerHasher
-
+        let innerHash = innerHasher.finalize()
+        var outerHashForFinalization = outerHasher
+        
         let mac = innerHash.withUnsafeBytes { buffer -> H.Digest in
-            outerHashForFinalization.update(bufferPointer: buffer)
+            outerHashForFinalization.update(bufferPointer: (buffer))
             return outerHashForFinalization.finalize()
         }
-
+        
         return HashedAuthenticationCode(digest: mac)
     }
-
+    
     /// Adds data to be authenticated by MAC function. This can be called one or more times to append additional data.
     ///
     /// - Parameter data: The data to be authenticated
     /// - Throws: Throws if the HMAC has already been finalized
     mutating func update(bufferPointer: UnsafeRawBufferPointer) {
-        self.innerHasher.update(bufferPointer: bufferPointer)
+        innerHasher.update(bufferPointer: bufferPointer)
     }
 
     /// A common implementation of isValidAuthenticationCode shared by the various entry points.
@@ -165,17 +165,17 @@ public struct HMAC<H: HashFunction>: MACAlgorithm {
 @available(iOS 13.0, macOS 10.15, watchOS 6.0, tvOS 13.0, macCatalyst 13.0, *)
 public struct HashedAuthenticationCode<H: HashFunction>: MessageAuthenticationCode {
     let digest: H.Digest
-
+    
     public var byteCount: Int {
         return H.Digest.byteCount
     }
-
+    
     public var description: String {
-        return "HMAC with \(H.self): \(Array(self.digest).hexString)"
+        return "HMAC with \(H.self): \(Array(digest).hexString)"
     }
-
+    
     public func withUnsafeBytes<R>(_ body: (UnsafeRawBufferPointer) throws -> R) rethrows -> R {
-        return try self.digest.withUnsafeBytes(body)
+        return try digest.withUnsafeBytes(body)
     }
 }
 #endif // Linux or !SwiftPM

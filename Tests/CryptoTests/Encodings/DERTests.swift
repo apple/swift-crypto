@@ -27,16 +27,16 @@ class DERTests: XCTestCase {
         let pointSize = self.coordinateSizeForCurve(P256.CurveDetails.self)
         let r = self.randomBytes(count: pointSize)
         let s = self.randomBytes(count: pointSize)
-
-        let signature = try! P256.Signing.ECDSASignature(rawRepresentation: r + s)
-
+        
+        let signature = try! P256.Signing.ECDSASignature(rawRepresentation: (r + s))
+        
         XCTAssert(Data(r + s) == signature.rawRepresentation)
-
+        
         let der = try! P256.Signing.ECDSASignature(derRepresentation: signature.derRepresentation)
-
+        
         XCTAssert(der.rawRepresentation == signature.rawRepresentation)
         XCTAssert(der.derRepresentation == signature.derRepresentation)
-
+        
         XCTAssert(der.rawRepresentation.count == 64)
     }
 
@@ -51,7 +51,7 @@ class DERTests: XCTestCase {
     func randomBytes(count: Int) -> [UInt8] {
         #if (os(macOS) || os(iOS) || os(watchOS) || os(tvOS)) || os(Linux)
         var rng = SystemRandomNumberGenerator()
-        return (0 ..< count).map { _ in rng.next() }
+        return (0..<count).map { _ in rng.next() }
         #else
         fatalError("No secure random number generator on this platform.")
         #endif

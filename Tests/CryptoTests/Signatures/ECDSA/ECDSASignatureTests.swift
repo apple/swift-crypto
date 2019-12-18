@@ -52,85 +52,84 @@ struct EdDSAKey: Codable {
 
 class SignatureTests: XCTestCase {
     let data = "Testing Signatures".data(using: String.Encoding.utf8)!
-
+    
     func testWycheProofEdDSA() {
         wycheproofTest(bundleType: self,
                        jsonName: "eddsa_test",
                        testFunction: { (group: EdDSATestGroup) in
-                           try! testEdGroup(group: group)
+                        try! testEdGroup(group: group)
         })
     }
-
     func testWycheProofP256() {
         wycheproofTest(bundleType: self,
                        jsonName: "ecdsa_secp256r1_sha256_test",
                        testFunction: { (group: ECDSATestGroup) in
-                           try! testGroup(group: group, curve: P256.Signing.self, hashFunction: SHA256.self)
+                        try! testGroup(group: group, curve: P256.Signing.self, hashFunction: SHA256.self)
         })
-
+        
         wycheproofTest(bundleType: self,
                        jsonName: "ecdsa_secp256r1_sha512_test",
                        testFunction: { (group: ECDSATestGroup) in
-                           try! testGroup(group: group, curve: P256.Signing.self, hashFunction: SHA512.self)
+                        try! testGroup(group: group, curve: P256.Signing.self, hashFunction: SHA512.self)
         })
     }
-
+    
     func testWycheProofP384() {
         wycheproofTest(bundleType: self,
                        jsonName: "ecdsa_secp384r1_sha384_test",
                        testFunction: { (group: ECDSATestGroup) in
-                           try! testGroup(group: group, curve: P384.Signing.self, hashFunction: SHA384.self)
+                        try! testGroup(group: group, curve: P384.Signing.self, hashFunction: SHA384.self)
         })
         wycheproofTest(bundleType: self,
                        jsonName: "ecdsa_secp384r1_sha512_test",
                        testFunction: { (group: ECDSATestGroup) in
-                           try! testGroup(group: group, curve: P384.Signing.self, hashFunction: SHA512.self)
+                        try! testGroup(group: group, curve: P384.Signing.self, hashFunction: SHA512.self)
         })
     }
-
+    
     func testWycheProofP521() {
         wycheproofTest(bundleType: self,
                        jsonName: "ecdsa_secp521r1_sha512_test",
                        testFunction: { (group: ECDSATestGroup) in
-                           try! testGroup(group: group, curve: P521.Signing.self, hashFunction: SHA512.self)
+                        try! testGroup(group: group, curve: P521.Signing.self, hashFunction: SHA512.self)
         })
     }
-
+    
     func testEdGroup(group: EdDSATestGroup) throws {
         let keyBytes = try! Array(hexString: group.key.pk)
         let key = try! Curve25519.Signing.PublicKey(rawRepresentation: keyBytes)
-
+        
         for testVector in group.tests {
             var isValid = false
-
+            
             do {
                 let sig = try Data(hexString: testVector.sig)
-
+                
                 let msg: Data
                 if testVector.msg.count > 0 {
                     msg = try Data(hexString: testVector.msg)
                 } else {
                     msg = Data()
                 }
-
+                
                 isValid = key.isValidSignature(sig, for: msg)
             } catch {
                 XCTAssert(testVector.result == "invalid" || testVector.result == "acceptable", "Test ID: \(testVector.tcId) is valid, but failed \(error.localizedDescription).")
                 continue
             }
-
+            
             switch testVector.result {
             case "valid": XCTAssert(isValid, "Test vector is valid, but is rejected \(testVector.tcId)")
             case "acceptable": do {
                 XCTAssert(isValid)
-            }
+                }
             case "invalid": XCTAssert(!isValid, "Test ID: \(testVector.tcId) is valid, but failed.")
             default:
                 XCTAssert(false, "Unhandled test vector")
             }
         }
     }
-
+    
     func testGroup<C: NISTSigning, HF: HashFunction>(group: ECDSATestGroup, curve: C.Type, hashFunction: HF.Type) throws where C.ECDSASignature == C.PublicKey.Signature {
         let keyBytes = try! Array(hexString: group.key.uncompressed)
         let key = try! C.PublicKey(x963Representation: keyBytes)
@@ -160,7 +159,7 @@ class SignatureTests: XCTestCase {
             case "valid": XCTAssert(isValid, "Test vector is valid, but is rejected \(testVector.tcId)")
             case "acceptable": do {
                 XCTAssert(isValid)
-            }
+                }
             case "invalid": XCTAssert(!isValid, "Test ID: \(testVector.tcId) is valid, but failed.")
             default:
                 XCTAssert(false, "Unhandled test vector")
@@ -171,14 +170,14 @@ class SignatureTests: XCTestCase {
     func testP256Usage() throws {
         let signingKey = P256.Signing.PrivateKey()
 
-        let signature = try signingKey.signature(for: self.data)
+        let signature = try signingKey.signature(for: data)
 
-        XCTAssert(signingKey.publicKey.isValidSignature(signature, for: self.data))
+        XCTAssert(signingKey.publicKey.isValidSignature(signature, for: data))
     }
 
     func testP256Representations() throws {
         let signingKey = P256.Signing.PrivateKey()
-        let signature = try signingKey.signature(for: self.data)
+        let signature = try signingKey.signature(for: data)
         XCTAssertEqual(signature.composite.r + signature.composite.s, signature.rawRepresentation)
 
         let signatureBytesFromPointer = signature.withUnsafeBytes { Data($0) }
@@ -190,7 +189,7 @@ class SignatureTests: XCTestCase {
 
     func testP384Representations() throws {
         let signingKey = P384.Signing.PrivateKey()
-        let signature = try signingKey.signature(for: self.data)
+        let signature = try signingKey.signature(for: data)
         XCTAssertEqual(signature.composite.r + signature.composite.s, signature.rawRepresentation)
 
         let signatureBytesFromPointer = signature.withUnsafeBytes { Data($0) }
@@ -202,7 +201,7 @@ class SignatureTests: XCTestCase {
 
     func testP521Representations() throws {
         let signingKey = P521.Signing.PrivateKey()
-        let signature = try signingKey.signature(for: self.data)
+        let signature = try signingKey.signature(for: data)
         XCTAssertEqual(signature.composite.r + signature.composite.s, signature.rawRepresentation)
 
         let signatureBytesFromPointer = signature.withUnsafeBytes { Data($0) }

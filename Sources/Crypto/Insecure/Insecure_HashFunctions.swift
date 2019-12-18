@@ -25,18 +25,18 @@ extension Insecure {
 
         /// Initializes the hash function instance.
         public init() {
-            self.impl = DigestImpl()
+            impl = DigestImpl()
         }
 
         public mutating func update(bufferPointer: UnsafeRawBufferPointer) {
-            self.impl.update(data: bufferPointer)
+            impl.update(data: bufferPointer)
         }
 
         /// Returns the digest from the data input in the hash function instance.
         ///
         /// - Returns: The digest of the inputted data
         public func finalize() -> Self.Digest {
-            return self.impl.finalize()
+            return impl.finalize()
         }
     }
 
@@ -50,19 +50,19 @@ extension Insecure {
 
         /// Initializes the hash function instance.
         public init() {
-            self.impl = DigestImpl()
+            impl = DigestImpl()
         }
 
         public mutating func update(bufferPointer: UnsafeRawBufferPointer) {
-            self.impl.update(data: bufferPointer)
+            impl.update(data: bufferPointer)
         }
 
         /// Returns the digest from the data input in the hash function instance.
         ///
         /// - Returns: The digest of the inputted data
         public func finalize() -> Self.Digest {
-            return self.impl.finalize()
+            return impl.finalize()
         }
     }
 }
-#endif // Linux or !SwiftPM
+#endif  // Linux or !SwiftPM

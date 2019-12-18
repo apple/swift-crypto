@@ -86,7 +86,7 @@ extension Curve25519 {
             public func sharedSecretFromKeyAgreement(with publicKeyShare: PublicKey) throws -> SharedSecret {
                 return try self.baseKey.sharedSecretFromKeyAgreement(with: publicKeyShare.baseKey)
             }
-
+            
             /// A data representation of the private key
             public var rawRepresentation: Data {
                 return self.baseKey.rawRepresentation

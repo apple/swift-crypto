@@ -26,7 +26,7 @@ extension MessageAuthenticationCode {
     public static func == (lhs: Self, rhs: Self) -> Bool {
         return safeCompare(lhs, rhs)
     }
-
+    
     public static func == <D: DataProtocol>(lhs: Self, rhs: D) -> Bool {
         if rhs.regions.count != 1 {
             let rhsContiguous = Data(rhs)
@@ -35,11 +35,11 @@ extension MessageAuthenticationCode {
             return safeCompare(lhs, rhs.regions.first!)
         }
     }
-
+    
     public func makeIterator() -> Array<UInt8>.Iterator {
-        self.withUnsafeBytes { buffPtr in
-            Array(buffPtr.bindMemory(to: UInt8.self)).makeIterator()
-        }
+        self.withUnsafeBytes({ (buffPtr) in
+            return Array(buffPtr.bindMemory(to: UInt8.self)).makeIterator()
+        })
     }
 
     public var description: String {

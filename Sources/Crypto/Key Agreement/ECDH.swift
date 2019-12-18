@@ -30,39 +30,39 @@ extension P256 {
             var impl: NISTCurvePublicKeyImpl<P256.CurveDetails>
 
             public init<D: ContiguousBytes>(rawRepresentation: D) throws {
-                self.impl = try NISTCurvePublicKeyImpl(rawRepresentation: rawRepresentation)
+                impl = try NISTCurvePublicKeyImpl(rawRepresentation: rawRepresentation)
             }
 
             public init<Bytes: ContiguousBytes>(compactRepresentation: Bytes) throws {
-                self.impl = try NISTCurvePublicKeyImpl(compactRepresentation: compactRepresentation)
+                impl = try NISTCurvePublicKeyImpl(compactRepresentation: compactRepresentation)
             }
 
             public init<Bytes: ContiguousBytes>(x963Representation: Bytes) throws {
-                self.impl = try NISTCurvePublicKeyImpl(x963Representation: x963Representation)
+                impl = try NISTCurvePublicKeyImpl(x963Representation: x963Representation)
             }
 
             init(impl: NISTCurvePublicKeyImpl<P256.CurveDetails>) {
                 self.impl = impl
             }
 
-            public var compactRepresentation: Data? { self.impl.compactRepresentation }
-            public var rawRepresentation: Data { self.impl.rawRepresentation }
-            public var x963Representation: Data { self.impl.x963Representation }
+            public var compactRepresentation: Data? { impl.compactRepresentation }
+            public var rawRepresentation: Data { impl.rawRepresentation }
+            public var x963Representation: Data { impl.x963Representation }
         }
 
         public struct PrivateKey: NISTECPrivateKey {
             let impl: NISTCurvePrivateKeyImpl<P256.CurveDetails>
 
             public init(compactRepresentable: Bool = true) {
-                self.impl = NISTCurvePrivateKeyImpl(compactRepresentable: compactRepresentable)
+                impl = NISTCurvePrivateKeyImpl(compactRepresentable: compactRepresentable)
             }
 
             public init<Bytes: ContiguousBytes>(x963Representation: Bytes) throws {
-                self.impl = try NISTCurvePrivateKeyImpl(x963: x963Representation)
+                impl = try NISTCurvePrivateKeyImpl(x963: x963Representation)
             }
 
             public init<Bytes: ContiguousBytes>(rawRepresentation: Bytes) throws {
-                self.impl = try NISTCurvePrivateKeyImpl(data: rawRepresentation)
+                impl = try NISTCurvePrivateKeyImpl(data: rawRepresentation)
             }
 
             init(impl: NISTCurvePrivateKeyImpl<P256.CurveDetails>) {
@@ -70,11 +70,11 @@ extension P256 {
             }
 
             public var publicKey: P256.Signing.PublicKey {
-                return PublicKey(impl: self.impl.publicKey())
+                return PublicKey(impl: impl.publicKey())
             }
 
-            public var rawRepresentation: Data { self.impl.rawRepresentation }
-            public var x963Representation: Data { self.impl.x963Representation }
+            public var rawRepresentation: Data { impl.rawRepresentation }
+            public var x963Representation: Data { impl.x963Representation }
         }
     }
 }
@@ -85,39 +85,39 @@ extension P256 {
             var impl: NISTCurvePublicKeyImpl<P256.CurveDetails>
 
             public init<D: ContiguousBytes>(rawRepresentation: D) throws {
-                self.impl = try NISTCurvePublicKeyImpl(rawRepresentation: rawRepresentation)
+                impl = try NISTCurvePublicKeyImpl(rawRepresentation: rawRepresentation)
             }
 
             public init<Bytes: ContiguousBytes>(compactRepresentation: Bytes) throws {
-                self.impl = try NISTCurvePublicKeyImpl(compactRepresentation: compactRepresentation)
+                impl = try NISTCurvePublicKeyImpl(compactRepresentation: compactRepresentation)
             }
 
             public init<Bytes: ContiguousBytes>(x963Representation: Bytes) throws {
-                self.impl = try NISTCurvePublicKeyImpl(x963Representation: x963Representation)
+                impl = try NISTCurvePublicKeyImpl(x963Representation: x963Representation)
             }
 
             init(impl: NISTCurvePublicKeyImpl<P256.CurveDetails>) {
                 self.impl = impl
             }
 
-            public var compactRepresentation: Data? { self.impl.compactRepresentation }
-            public var rawRepresentation: Data { self.impl.rawRepresentation }
-            public var x963Representation: Data { self.impl.x963Representation }
+            public var compactRepresentation: Data? { impl.compactRepresentation }
+            public var rawRepresentation: Data { impl.rawRepresentation }
+            public var x963Representation: Data { impl.x963Representation }
         }
 
         public struct PrivateKey: NISTECPrivateKey {
             let impl: NISTCurvePrivateKeyImpl<P256.CurveDetails>
 
             public init(compactRepresentable: Bool = true) {
-                self.impl = NISTCurvePrivateKeyImpl(compactRepresentable: compactRepresentable)
+                impl = NISTCurvePrivateKeyImpl(compactRepresentable: compactRepresentable)
             }
 
             public init<Bytes: ContiguousBytes>(x963Representation: Bytes) throws {
-                self.impl = try NISTCurvePrivateKeyImpl(x963: x963Representation)
+                impl = try NISTCurvePrivateKeyImpl(x963: x963Representation)
             }
 
             public init<Bytes: ContiguousBytes>(rawRepresentation: Bytes) throws {
-                self.impl = try NISTCurvePrivateKeyImpl(data: rawRepresentation)
+                impl = try NISTCurvePrivateKeyImpl(data: rawRepresentation)
             }
 
             init(impl: NISTCurvePrivateKeyImpl<P256.CurveDetails>) {
@@ -125,11 +125,11 @@ extension P256 {
             }
 
             public var publicKey: P256.KeyAgreement.PublicKey {
-                return PublicKey(impl: self.impl.publicKey())
+                return PublicKey(impl: impl.publicKey())
             }
 
-            public var rawRepresentation: Data { self.impl.rawRepresentation }
-            public var x963Representation: Data { self.impl.x963Representation }
+            public var rawRepresentation: Data { impl.rawRepresentation }
+            public var x963Representation: Data { impl.x963Representation }
         }
     }
 }
@@ -140,39 +140,39 @@ extension P384 {
             var impl: NISTCurvePublicKeyImpl<P384.CurveDetails>
 
             public init<D: ContiguousBytes>(rawRepresentation: D) throws {
-                self.impl = try NISTCurvePublicKeyImpl(rawRepresentation: rawRepresentation)
+                impl = try NISTCurvePublicKeyImpl(rawRepresentation: rawRepresentation)
             }
 
             public init<Bytes: ContiguousBytes>(compactRepresentation: Bytes) throws {
-                self.impl = try NISTCurvePublicKeyImpl(compactRepresentation: compactRepresentation)
+                impl = try NISTCurvePublicKeyImpl(compactRepresentation: compactRepresentation)
             }
 
             public init<Bytes: ContiguousBytes>(x963Representation: Bytes) throws {
-                self.impl = try NISTCurvePublicKeyImpl(x963Representation: x963Representation)
+                impl = try NISTCurvePublicKeyImpl(x963Representation: x963Representation)
             }
 
             init(impl: NISTCurvePublicKeyImpl<P384.CurveDetails>) {
                 self.impl = impl
             }
 
-            public var compactRepresentation: Data? { self.impl.compactRepresentation }
-            public var rawRepresentation: Data { self.impl.rawRepresentation }
-            public var x963Representation: Data { self.impl.x963Representation }
+            public var compactRepresentation: Data? { impl.compactRepresentation }
+            public var rawRepresentation: Data { impl.rawRepresentation }
+            public var x963Representation: Data { impl.x963Representation }
         }
 
         public struct PrivateKey: NISTECPrivateKey {
             let impl: NISTCurvePrivateKeyImpl<P384.CurveDetails>
 
             public init(compactRepresentable: Bool = true) {
-                self.impl = NISTCurvePrivateKeyImpl(compactRepresentable: compactRepresentable)
+                impl = NISTCurvePrivateKeyImpl(compactRepresentable: compactRepresentable)
             }
 
             public init<Bytes: ContiguousBytes>(x963Representation: Bytes) throws {
-                self.impl = try NISTCurvePrivateKeyImpl(x963: x963Representation)
+                impl = try NISTCurvePrivateKeyImpl(x963: x963Representation)
             }
 
             public init<Bytes: ContiguousBytes>(rawRepresentation: Bytes) throws {
-                self.impl = try NISTCurvePrivateKeyImpl(data: rawRepresentation)
+                impl = try NISTCurvePrivateKeyImpl(data: rawRepresentation)
             }
 
             init(impl: NISTCurvePrivateKeyImpl<P384.CurveDetails>) {
@@ -180,11 +180,11 @@ extension P384 {
             }
 
             public var publicKey: P384.Signing.PublicKey {
-                return PublicKey(impl: self.impl.publicKey())
+                return PublicKey(impl: impl.publicKey())
             }
 
-            public var rawRepresentation: Data { self.impl.rawRepresentation }
-            public var x963Representation: Data { self.impl.x963Representation }
+            public var rawRepresentation: Data { impl.rawRepresentation }
+            public var x963Representation: Data { impl.x963Representation }
         }
     }
 }
@@ -195,39 +195,39 @@ extension P384 {
             var impl: NISTCurvePublicKeyImpl<P384.CurveDetails>
 
             public init<D: ContiguousBytes>(rawRepresentation: D) throws {
-                self.impl = try NISTCurvePublicKeyImpl(rawRepresentation: rawRepresentation)
+                impl = try NISTCurvePublicKeyImpl(rawRepresentation: rawRepresentation)
             }
 
             public init<Bytes: ContiguousBytes>(compactRepresentation: Bytes) throws {
-                self.impl = try NISTCurvePublicKeyImpl(compactRepresentation: compactRepresentation)
+                impl = try NISTCurvePublicKeyImpl(compactRepresentation: compactRepresentation)
             }
 
             public init<Bytes: ContiguousBytes>(x963Representation: Bytes) throws {
-                self.impl = try NISTCurvePublicKeyImpl(x963Representation: x963Representation)
+                impl = try NISTCurvePublicKeyImpl(x963Representation: x963Representation)
             }
 
             init(impl: NISTCurvePublicKeyImpl<P384.CurveDetails>) {
                 self.impl = impl
             }
 
-            public var compactRepresentation: Data? { self.impl.compactRepresentation }
-            public var rawRepresentation: Data { self.impl.rawRepresentation }
-            public var x963Representation: Data { self.impl.x963Representation }
+            public var compactRepresentation: Data? { impl.compactRepresentation }
+            public var rawRepresentation: Data { impl.rawRepresentation }
+            public var x963Representation: Data { impl.x963Representation }
         }
 
         public struct PrivateKey: NISTECPrivateKey {
             let impl: NISTCurvePrivateKeyImpl<P384.CurveDetails>
 
             public init(compactRepresentable: Bool = true) {
-                self.impl = NISTCurvePrivateKeyImpl(compactRepresentable: compactRepresentable)
+                impl = NISTCurvePrivateKeyImpl(compactRepresentable: compactRepresentable)
             }
 
             public init<Bytes: ContiguousBytes>(x963Representation: Bytes) throws {
-                self.impl = try NISTCurvePrivateKeyImpl(x963: x963Representation)
+                impl = try NISTCurvePrivateKeyImpl(x963: x963Representation)
             }
 
             public init<Bytes: ContiguousBytes>(rawRepresentation: Bytes) throws {
-                self.impl = try NISTCurvePrivateKeyImpl(data: rawRepresentation)
+                impl = try NISTCurvePrivateKeyImpl(data: rawRepresentation)
             }
 
             init(impl: NISTCurvePrivateKeyImpl<P384.CurveDetails>) {
@@ -235,11 +235,11 @@ extension P384 {
             }
 
             public var publicKey: P384.KeyAgreement.PublicKey {
-                return PublicKey(impl: self.impl.publicKey())
+                return PublicKey(impl: impl.publicKey())
             }
 
-            public var rawRepresentation: Data { self.impl.rawRepresentation }
-            public var x963Representation: Data { self.impl.x963Representation }
+            public var rawRepresentation: Data { impl.rawRepresentation }
+            public var x963Representation: Data { impl.x963Representation }
         }
     }
 }
@@ -250,39 +250,39 @@ extension P521 {
             var impl: NISTCurvePublicKeyImpl<P521.CurveDetails>
 
             public init<D: ContiguousBytes>(rawRepresentation: D) throws {
-                self.impl = try NISTCurvePublicKeyImpl(rawRepresentation: rawRepresentation)
+                impl = try NISTCurvePublicKeyImpl(rawRepresentation: rawRepresentation)
             }
 
             public init<Bytes: ContiguousBytes>(compactRepresentation: Bytes) throws {
-                self.impl = try NISTCurvePublicKeyImpl(compactRepresentation: compactRepresentation)
+                impl = try NISTCurvePublicKeyImpl(compactRepresentation: compactRepresentation)
             }
 
             public init<Bytes: ContiguousBytes>(x963Representation: Bytes) throws {
-                self.impl = try NISTCurvePublicKeyImpl(x963Representation: x963Representation)
+                impl = try NISTCurvePublicKeyImpl(x963Representation: x963Representation)
             }
 
             init(impl: NISTCurvePublicKeyImpl<P521.CurveDetails>) {
                 self.impl = impl
             }
 
-            public var compactRepresentation: Data? { self.impl.compactRepresentation }
-            public var rawRepresentation: Data { self.impl.rawRepresentation }
-            public var x963Representation: Data { self.impl.x963Representation }
+            public var compactRepresentation: Data? { impl.compactRepresentation }
+            public var rawRepresentation: Data { impl.rawRepresentation }
+            public var x963Representation: Data { impl.x963Representation }
         }
 
         public struct PrivateKey: NISTECPrivateKey {
             let impl: NISTCurvePrivateKeyImpl<P521.CurveDetails>
 
             public init(compactRepresentable: Bool = true) {
-                self.impl = NISTCurvePrivateKeyImpl(compactRepresentable: compactRepresentable)
+                impl = NISTCurvePrivateKeyImpl(compactRepresentable: compactRepresentable)
             }
 
             public init<Bytes: ContiguousBytes>(x963Representation: Bytes) throws {
-                self.impl = try NISTCurvePrivateKeyImpl(x963: x963Representation)
+                impl = try NISTCurvePrivateKeyImpl(x963: x963Representation)
             }
 
             public init<Bytes: ContiguousBytes>(rawRepresentation: Bytes) throws {
-                self.impl = try NISTCurvePrivateKeyImpl(data: rawRepresentation)
+                impl = try NISTCurvePrivateKeyImpl(data: rawRepresentation)
             }
 
             init(impl: NISTCurvePrivateKeyImpl<P521.CurveDetails>) {
@@ -290,11 +290,11 @@ extension P521 {
             }
 
             public var publicKey: P521.Signing.PublicKey {
-                return PublicKey(impl: self.impl.publicKey())
+                return PublicKey(impl: impl.publicKey())
             }
 
-            public var rawRepresentation: Data { self.impl.rawRepresentation }
-            public var x963Representation: Data { self.impl.x963Representation }
+            public var rawRepresentation: Data { impl.rawRepresentation }
+            public var x963Representation: Data { impl.x963Representation }
         }
     }
 }
@@ -305,39 +305,39 @@ extension P521 {
             var impl: NISTCurvePublicKeyImpl<P521.CurveDetails>
 
             public init<D: ContiguousBytes>(rawRepresentation: D) throws {
-                self.impl = try NISTCurvePublicKeyImpl(rawRepresentation: rawRepresentation)
+                impl = try NISTCurvePublicKeyImpl(rawRepresentation: rawRepresentation)
             }
 
             public init<Bytes: ContiguousBytes>(compactRepresentation: Bytes) throws {
-                self.impl = try NISTCurvePublicKeyImpl(compactRepresentation: compactRepresentation)
+                impl = try NISTCurvePublicKeyImpl(compactRepresentation: compactRepresentation)
             }
 
             public init<Bytes: ContiguousBytes>(x963Representation: Bytes) throws {
-                self.impl = try NISTCurvePublicKeyImpl(x963Representation: x963Representation)
+                impl = try NISTCurvePublicKeyImpl(x963Representation: x963Representation)
             }
 
             init(impl: NISTCurvePublicKeyImpl<P521.CurveDetails>) {
                 self.impl = impl
             }
 
-            public var compactRepresentation: Data? { self.impl.compactRepresentation }
-            public var rawRepresentation: Data { self.impl.rawRepresentation }
-            public var x963Representation: Data { self.impl.x963Representation }
+            public var compactRepresentation: Data? { impl.compactRepresentation }
+            public var rawRepresentation: Data { impl.rawRepresentation }
+            public var x963Representation: Data { impl.x963Representation }
         }
 
         public struct PrivateKey: NISTECPrivateKey {
             let impl: NISTCurvePrivateKeyImpl<P521.CurveDetails>
 
             public init(compactRepresentable: Bool = true) {
-                self.impl = NISTCurvePrivateKeyImpl(compactRepresentable: compactRepresentable)
+                impl = NISTCurvePrivateKeyImpl(compactRepresentable: compactRepresentable)
             }
 
             public init<Bytes: ContiguousBytes>(x963Representation: Bytes) throws {
-                self.impl = try NISTCurvePrivateKeyImpl(x963: x963Representation)
+                impl = try NISTCurvePrivateKeyImpl(x963: x963Representation)
             }
 
             public init<Bytes: ContiguousBytes>(rawRepresentation: Bytes) throws {
-                self.impl = try NISTCurvePrivateKeyImpl(data: rawRepresentation)
+                impl = try NISTCurvePrivateKeyImpl(data: rawRepresentation)
             }
 
             init(impl: NISTCurvePrivateKeyImpl<P521.CurveDetails>) {
@@ -345,11 +345,11 @@ extension P521 {
             }
 
             public var publicKey: P521.KeyAgreement.PublicKey {
-                return PublicKey(impl: self.impl.publicKey())
+                return PublicKey(impl: impl.publicKey())
             }
 
-            public var rawRepresentation: Data { self.impl.rawRepresentation }
-            public var x963Representation: Data { self.impl.x963Representation }
+            public var rawRepresentation: Data { impl.rawRepresentation }
+            public var x963Representation: Data { impl.x963Representation }
         }
     }
 }
@@ -368,7 +368,6 @@ extension P256.KeyAgreement.PrivateKey: DiffieHellmanKeyAgreement {
         #endif
     }
 }
-
 extension P384.KeyAgreement.PrivateKey: DiffieHellmanKeyAgreement {
     /// Performs a key agreement with provided public key share.
     ///
@@ -383,7 +382,6 @@ extension P384.KeyAgreement.PrivateKey: DiffieHellmanKeyAgreement {
         #endif
     }
 }
-
 extension P521.KeyAgreement.PrivateKey: DiffieHellmanKeyAgreement {
     /// Performs a key agreement with provided public key share.
     ///

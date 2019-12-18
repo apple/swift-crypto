@@ -19,7 +19,7 @@ contributors=$( cd "$here"/.. && git shortlog -es | cut -f2 | sed 's/^/- /' )
 
 cat > "$here/../CONTRIBUTORS.txt" <<- EOF
 	For the purpose of tracking copyright, this is the list of individuals and
-	organizations who have contributed source code to the SwiftCrypto.
+	organizations who have contributed source code to SwiftCrypto.
 
 	For employees of an organization/company where the copyright of work done
 	by employees of that company is held by the company itself, only the company

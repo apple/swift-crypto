@@ -14,9 +14,10 @@
 #if (os(macOS) || os(iOS) || os(watchOS) || os(tvOS)) && CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
 @_exported import CryptoKit
 #else
+import Foundation
 @_implementationOnly import CCryptoBoringSSL
 @_implementationOnly import CCryptoBoringSSLShims
-import Foundation
+
 
 enum OpenSSLChaChaPolyImpl {
     static func encrypt<M: DataProtocol, AD: DataProtocol>(key: SymmetricKey, message: M, nonce: ChaChaPoly.Nonce?, authenticatedData: AD?) throws -> ChaChaPoly.SealedBox {
@@ -49,6 +50,7 @@ enum OpenSSLChaChaPolyImpl {
     }
 }
 
+
 /// An abstraction over a BoringSSL AEAD
 @usableFromInline
 enum BoringSSLAEAD {
@@ -71,6 +73,7 @@ enum BoringSSLAEAD {
     }
 }
 
+
 extension BoringSSLAEAD {
     // Arguably this class is excessive, but it's probably better for this API to be as safe as possible
     // rather than rely on defer statements for our cleanup.
@@ -83,7 +86,7 @@ extension BoringSSLAEAD {
             let rc: CInt = key.withUnsafeBytes { keyPointer in
                 withUnsafeMutablePointer(to: &self.context) { contextPointer in
                     // Create the AEAD context with a default tag length using the given key.
-                    CCryptoBoringSSLShims_EVP_AEAD_CTX_init(contextPointer, cipher.boringSSLCipher, keyPointer.baseAddress, keyPointer.count, 0, nil)
+                    return CCryptoBoringSSLShims_EVP_AEAD_CTX_init(contextPointer, cipher.boringSSLCipher, keyPointer.baseAddress, keyPointer.count, 0, nil)
                 }
             }
             guard rc == 1 else {
@@ -99,8 +102,7 @@ extension BoringSSLAEAD {
     }
 }
 
-// MARK: - Sealing
-
+// MARK:- Sealing
 extension BoringSSLAEAD.AEADContext {
     /// The main entry point for sealing data. Covers the full gamut of types, including discontiguous data types. This must be inlinable.
     @inlinable
@@ -126,6 +128,7 @@ extension BoringSSLAEAD.AEADContext {
             let contiguousAD = Array(authenticatedData)
             return try self._sealContiguous(message: contiguousMessage, nonce: nonce, authenticatedData: contiguousAD)
         }
+
     }
 
     /// A fast-path for sealing contiguous data. Also inlinable to gain specialization information.
@@ -174,8 +177,8 @@ extension BoringSSLAEAD.AEADContext {
     }
 }
 
-// MARK: - Opening
 
+// MARK:- Opening
 extension BoringSSLAEAD.AEADContext {
     /// The main entry point for opening data. Covers the full gamut of types, including discontiguous data types. This must be inlinable.
     @inlinable
@@ -217,12 +220,12 @@ extension BoringSSLAEAD.AEADContext {
         let outputBuffer = UnsafeMutableRawBufferPointer(start: malloc(ciphertext.count)!, count: ciphertext.count)
 
         let rc = withUnsafePointer(to: &self.context) { contextPointer in
-            CCryptoBoringSSLShims_EVP_AEAD_CTX_open_gather(contextPointer,
-                                                           outputBuffer.baseAddress,
-                                                           nonceBytes.baseAddress, nonceBytes.count,
-                                                           ciphertext.baseAddress, ciphertext.count,
-                                                           tagBytes.baseAddress, tagBytes.count,
-                                                           authenticatedData.baseAddress, authenticatedData.count)
+            return CCryptoBoringSSLShims_EVP_AEAD_CTX_open_gather(contextPointer,
+                                                                  outputBuffer.baseAddress,
+                                                                  nonceBytes.baseAddress, nonceBytes.count,
+                                                                  ciphertext.baseAddress, ciphertext.count,
+                                                                  tagBytes.baseAddress, tagBytes.count,
+                                                                  authenticatedData.baseAddress, authenticatedData.count)
         }
 
         guard rc == 1 else {
@@ -236,8 +239,8 @@ extension BoringSSLAEAD.AEADContext {
     }
 }
 
-// MARK: - Supported ciphers
 
+// MARK:- Supported ciphers
 extension BoringSSLAEAD {
     var boringSSLCipher: OpaquePointer {
         switch self {

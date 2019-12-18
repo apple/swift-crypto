@@ -14,9 +14,9 @@
 #if (os(macOS) || os(iOS) || os(watchOS) || os(tvOS)) && CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
 @_exported import CryptoKit
 #else
+import Foundation
 @_implementationOnly import CCryptoBoringSSL
 @_implementationOnly import CCryptoBoringSSLShims
-import Foundation
 
 extension Curve25519.Signing.PublicKey {
     // We do this to enable inlinability on these methods.
@@ -49,8 +49,8 @@ extension Curve25519.Signing.PublicKey {
     @inlinable
     func openSSLIsValidSignature<S: ContiguousBytes, D: ContiguousBytes>(contiguousSignature signature: S, contiguousData data: D) -> Bool {
         return signature.withUnsafeBytes { signaturePointer in
-            data.withUnsafeBytes { dataPointer in
-                self.openSSLIsValidSignature(signaturePointer: signaturePointer, dataPointer: dataPointer)
+            return data.withUnsafeBytes { dataPointer in
+                return self.openSSLIsValidSignature(signaturePointer: signaturePointer, dataPointer: dataPointer)
             }
         }
     }
@@ -61,10 +61,10 @@ extension Curve25519.Signing.PublicKey {
         precondition(signaturePointer.count == Curve25519.Signing.PublicKey.signatureLength)
         precondition(self.keyBytes.count == 32)
         let rc: CInt = self.keyBytes.withUnsafeBytes { keyBytesPtr in
-            CCryptoBoringSSLShims_ED25519_verify(dataPointer.baseAddress,
-                                                 dataPointer.count,
-                                                 signaturePointer.baseAddress,
-                                                 keyBytesPtr.baseAddress)
+            return CCryptoBoringSSLShims_ED25519_verify(dataPointer.baseAddress,
+                                                        dataPointer.count,
+                                                        signaturePointer.baseAddress,
+                                                        keyBytesPtr.baseAddress)
         }
 
         return rc == 1
@@ -80,7 +80,7 @@ extension Curve25519.Signing.PrivateKey {
             return try self.openSSLSignature(forContiguousData: Array(data))
         }
     }
-
+    
     @inlinable
     func openSSLSignature<C: ContiguousBytes>(forContiguousData data: C) throws -> Data {
         return try data.withUnsafeBytes {
@@ -93,7 +93,7 @@ extension Curve25519.Signing.PrivateKey {
         var signature = Data(repeating: 0, count: Curve25519.Signing.PublicKey.signatureLength)
 
         let rc: CInt = signature.withUnsafeMutableBytes { signaturePointer in
-            self.key.withUnsafeBytes { keyPointer in
+            return self.key.withUnsafeBytes { keyPointer in
                 precondition(signaturePointer.count == Curve25519.Signing.PublicKey.signatureLength)
                 precondition(keyPointer.count == ED25519_PRIVATE_KEY_LEN)
 

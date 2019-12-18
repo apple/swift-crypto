@@ -14,13 +14,13 @@
 #if (os(macOS) || os(iOS) || os(watchOS) || os(tvOS)) && CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
 @_exported import CryptoKit
 #else
-@_implementationOnly import CCryptoBoringSSL
 import Foundation
+@_implementationOnly import CCryptoBoringSSL
 
 enum OpenSSLAESGCMImpl {
     @inlinable
     static func seal<Plaintext: DataProtocol, AuthenticatedData: DataProtocol>
-    (key: SymmetricKey, message: Plaintext, nonce: AES.GCM.Nonce?, authenticatedData: AuthenticatedData? = nil) throws -> AES.GCM.SealedBox {
+        (key: SymmetricKey, message: Plaintext, nonce: AES.GCM.Nonce?, authenticatedData: AuthenticatedData? = nil) throws -> AES.GCM.SealedBox {
         let nonce = nonce ?? AES.GCM.Nonce()
 
         let aead = try Self._backingAEAD(key: key)
@@ -38,7 +38,7 @@ enum OpenSSLAESGCMImpl {
 
     @inlinable
     static func open<AuthenticatedData: DataProtocol>
-    (key: SymmetricKey, sealedBox: AES.GCM.SealedBox, authenticatedData: AuthenticatedData? = nil) throws -> Data {
+        (key: SymmetricKey, sealedBox: AES.GCM.SealedBox, authenticatedData: AuthenticatedData? = nil) throws -> Data {
         let aead = try Self._backingAEAD(key: key)
 
         if let ad = authenticatedData {

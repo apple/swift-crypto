@@ -64,7 +64,7 @@ class HKDFTests: XCTestCase {
         XCTAssertEqual(thirdKey, expectedKey)
         XCTAssertEqual(fourthKey, expectedKey)
     }
-
+    
     func testRfcTestVectorsSHA1() throws {
         var decoder = try RFCVectorDecoder(bundleType: self, fileName: "rfc-5869-HKDF-SHA1")
         let vectors = try decoder.decode([RFCTestVector].self)

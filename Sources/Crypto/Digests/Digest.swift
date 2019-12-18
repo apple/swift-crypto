@@ -30,10 +30,10 @@ extension DigestPrivate {
     @inlinable
     init?(bytes: [UInt8]) {
         let some = bytes.withUnsafeBytes { bufferPointer in
-            Self(bufferPointer: bufferPointer)
+            return Self(bufferPointer: bufferPointer)
         }
-
-        if some != nil {
+        
+        if (some != nil) {
             self = some!
         } else {
             return nil
@@ -43,9 +43,9 @@ extension DigestPrivate {
 
 extension Digest {
     public func makeIterator() -> Array<UInt8>.Iterator {
-        self.withUnsafeBytes { buffPtr in
-            Array(buffPtr).makeIterator()
-        }
+        self.withUnsafeBytes({ (buffPtr) in
+            return Array(buffPtr).makeIterator()
+        })
     }
 }
 
@@ -53,8 +53,8 @@ extension Digest {
 extension Digest {
     public static func == (lhs: Self, rhs: Self) -> Bool {
         return safeCompare(lhs, rhs)
-    }
-
+	}
+    
     public static func == <D: DataProtocol>(lhs: Self, rhs: D) -> Bool {
         if rhs.regions.count != 1 {
             let rhsContiguous = Data(rhs)

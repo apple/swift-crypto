@@ -36,7 +36,7 @@ public struct SharedSecret: ContiguousBytes {
     var ss: SecureBytes
 
     public func withUnsafeBytes<R>(_ body: (UnsafeRawBufferPointer) throws -> R) rethrows -> R {
-        return try self.ss.withUnsafeBytes(body)
+        return try ss.withUnsafeBytes(body)
     }
 
     /// Derives a symmetric encryption key using X9.63 key derivation.
@@ -70,13 +70,13 @@ public struct SharedSecret: ContiguousBytes {
         guard UInt64(outputByteCount) < (UInt64(H.Digest.byteCount) * UInt64(UInt32.max)) else {
             fatalError("Invalid parameter size")
         }
-
+        
         var key = SecureBytes()
         key.reserveCapacity(outputByteCount)
-
+        
         var remainingBytes = outputByteCount
         var counter = UInt32(1)
-
+        
         while remainingBytes > 0 {
             // 1. Compute: Ki = Hash(Z || Counter || [SharedInfo]).
             var hasher = H()
@@ -84,10 +84,10 @@ public struct SharedSecret: ContiguousBytes {
             hasher.update(counter.bigEndian)
             hasher.update(data: sharedInfo)
             let digest = hasher.finalize()
-
+            
             // 2. Increment Counter.
             counter += 1
-
+            
             // Append the bytes of the digest. We don't want to append more than the remaining number of bytes.
             let bytesToAppend = min(remainingBytes, H.Digest.byteCount)
             digest.withUnsafeBytes { digestPtr in
@@ -95,7 +95,7 @@ public struct SharedSecret: ContiguousBytes {
             }
             remainingBytes -= bytesToAppend
         }
-
+        
         precondition(key.count == outputByteCount)
         return SymmetricKey(data: key)
     }
@@ -109,13 +109,13 @@ public struct SharedSecret: ContiguousBytes {
     ///   - outputByteCount: The length in bytes of resulting symmetric key.
     /// - Returns: The derived symmetric key
     public func hkdfDerivedSymmetricKey<H: HashFunction, Salt: DataProtocol, SI: DataProtocol>(using hashFunction: H.Type, salt: Salt, sharedInfo: SI, outputByteCount: Int) -> SymmetricKey {
-        return HKDF<H>.deriveKey(inputKeyMaterial: self.ss, salt: salt, info: sharedInfo, outputByteCount: outputByteCount)
+        return HKDF<H>.deriveKey(inputKeyMaterial: ss, salt: salt, info: sharedInfo, outputByteCount: outputByteCount)
     }
 }
 
 extension SharedSecret: Hashable {
     public func hash(into hasher: inout Hasher) {
-        self.ss.withUnsafeBytes { hasher.combine(bytes: $0) }
+        ss.withUnsafeBytes { hasher.combine(bytes: $0) }
     }
 }
 
@@ -124,7 +124,7 @@ extension SharedSecret: CustomStringConvertible, Equatable {
     public static func == (lhs: Self, rhs: Self) -> Bool {
         return safeCompare(lhs, rhs)
     }
-
+    
     public static func == <D: DataProtocol>(lhs: Self, rhs: D) -> Bool {
         if rhs.regions.count != 1 {
             let rhsContiguous = Data(rhs)
@@ -135,7 +135,7 @@ extension SharedSecret: CustomStringConvertible, Equatable {
     }
 
     public var description: String {
-        return "\(Self.self): \(self.ss.hexString)"
+        return "\(Self.self): \(ss.hexString)"
     }
 }
 
