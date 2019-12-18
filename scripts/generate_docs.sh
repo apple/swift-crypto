@@ -71,7 +71,7 @@ jazzy_args=(--clean
 
 for module in "${modules[@]}"; do
   args=("${jazzy_args[@]}" --output "$tmp/docs/$version/$module" --docset-path "$tmp/docset/$version/$module" --module "$module")
-  if [[ -f "$root_path/.build/sourcekitten/$module.json" ]]; then
+  if [[ "$(uname -s)" == "Linux" ]]; then
     args+=(--sourcekitten-sourcefile "$root_path/.build/sourcekitten/$module.json")
   fi
   jazzy "${args[@]}"
