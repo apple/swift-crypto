@@ -24,7 +24,6 @@ internal func openSSLSafeCompare<LHS: ContiguousBytes, RHS: ContiguousBytes>(_ l
     }
 }
 
-
 /// A straightforward constant-time comparison function for any two collections of bytes.
 @inlinable
 internal func constantTimeCompare<LHS: Collection, RHS: Collection>(_ lhs: LHS, _ rhs: RHS) -> Bool where LHS.Element == UInt8, RHS.Element == UInt8 {
@@ -32,5 +31,5 @@ internal func constantTimeCompare<LHS: Collection, RHS: Collection>(_ lhs: LHS, 
         return false
     }
 
-    return 0 == zip(lhs, rhs).reduce(into: 0) { $0 |= $1.0 ^ $1.1 }
+    return zip(lhs, rhs).reduce(into: 0) { $0 |= $1.0 ^ $1.1 } == 0
 }

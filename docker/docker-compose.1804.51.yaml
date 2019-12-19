@@ -1,0 +1,18 @@
+version: "3"
+
+services:
+
+  runtime-setup:
+    image: swift-crypto:18.04-5.1
+    build:
+      args:
+        ubuntu_version: "bionic"
+        swift_version: "5.1"
+
+  test:
+    image: swift-crypto:18.04-5.1
+    environment: []
+      #- SANITIZER_ARG=--sanitize=thread
+
+  shell:
+    image: swift-crypto:18.04-5.1

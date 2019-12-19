@@ -23,7 +23,7 @@ import XCTest
 #endif
 
 extension DERTests {
-    func openSSLCoordinateSizeForCurve<Curve: OpenSSLSupportedNISTCurve>(_ curve: Curve.Type) -> Int {
+    func openSSLCoordinateSizeForCurve<Curve: OpenSSLSupportedNISTCurve>(_: Curve.Type) -> Int {
         return Curve.coordinateByteCount
     }
 }

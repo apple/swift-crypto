@@ -20,8 +20,8 @@ import XCTest
 #if (os(macOS) || os(iOS) || os(watchOS) || os(tvOS)) && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
 @testable import CryptoKit
 #else
-@testable import Crypto
 @_implementationOnly import CCryptoBoringSSL
+@testable import Crypto
 #endif
 
 // This module implements "just enough" ASN.1. Specifically, we implement exactly enough ASN.1 DER parsing to handle
@@ -68,8 +68,8 @@ import XCTest
 //
 // This is the complete set of things we need to be able to parse. It's not that big. Let's see how the code looks.
 
+// MARK: - SPKI
 
-// MARK:- SPKI
 struct ASN1SubjectPublicKeyInfo {
     var algorithm: ASN1AlgorithmIdentifier
 
@@ -88,8 +88,8 @@ struct ASN1SubjectPublicKeyInfo {
     }
 }
 
+// MARK: - AlgorithmIdentifier
 
-// MARK:- AlgorithmIdentifier
 struct ASN1AlgorithmIdentifier {
     var algorithm: ASN1ObjectIdentifier
 
@@ -108,8 +108,8 @@ struct ASN1AlgorithmIdentifier {
     }
 }
 
+// MARK: - Bitstring
 
-// MARK:- Bitstring
 // A bitstring is a representation of...well...some bits.
 struct ASN1BitString {
     private var bytes: [UInt8]
@@ -135,14 +135,14 @@ struct ASN1BitString {
     }
 }
 
-
 extension ASN1BitString: ContiguousBytes {
     func withUnsafeBytes<R>(_ body: (UnsafeRawBufferPointer) throws -> R) rethrows -> R {
         return try self.bytes.withUnsafeBytes(body)
     }
 }
 
-// MARK:- ObjectIdentifier
+// MARK: - ObjectIdentifier
+
 // An Object Identifier is a representation of some kind of object: really any kind of object.
 //
 // It represents a node in an OID hierarchy, and is usually represented as an ordered sequence of numbers.
@@ -200,7 +200,7 @@ struct ASN1ObjectIdentifier {
         case ..<40:
             oidComponents.append(0)
             oidComponents.append(subcomponents.first!)
-        case 40..<80:
+        case 40 ..< 80:
             oidComponents.append(1)
             oidComponents.append(subcomponents.first! - 40)
         default:
@@ -214,16 +214,13 @@ struct ASN1ObjectIdentifier {
     }
 }
 
-
-extension ASN1ObjectIdentifier: Hashable { }
-
+extension ASN1ObjectIdentifier: Hashable {}
 
 extension ASN1ObjectIdentifier: ExpressibleByArrayLiteral {
     init(arrayLiteral elements: UInt...) {
         self.oidComponents = elements
     }
 }
-
 
 extension ASN1ObjectIdentifier {
     enum NamedCurves {
@@ -239,8 +236,8 @@ extension ASN1ObjectIdentifier {
     }
 }
 
+// MARK: - Helpers
 
-// MARK:- Helpers
 extension ArraySlice where Element == UInt8 {
     /// Returns an ArraySlice with the length of the ASN.1 section, and slices this slice to cover the remaining bytes.
     /// Requires the length to be at `startIndex`.
@@ -292,14 +289,13 @@ extension ArraySlice where Element == UInt8 {
             throw ECDHTestErrors.ParseSPKIFailure
         }
 
-        let oidSlice = self[self.startIndex...subidentifierEndIndex]
+        let oidSlice = self[self.startIndex ... subidentifierEndIndex]
         self = self[self.index(after: subidentifierEndIndex)...]
 
         // We need to compact the bits. These are 7-bit integers, which is really awkward.
         return UInt(sevenBitBigEndianBytes: oidSlice)
     }
 }
-
 
 extension UInt {
     init<Bytes: Collection>(bigEndianBytes bytes: Bytes) throws where Bytes.Element == UInt8 {

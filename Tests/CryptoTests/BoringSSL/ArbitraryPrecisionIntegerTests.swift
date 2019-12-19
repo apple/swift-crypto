@@ -11,8 +11,8 @@
 // SPDX-License-Identifier: Apache-2.0
 //
 //===----------------------------------------------------------------------===//
-import XCTest
 @testable import Crypto
+import XCTest
 
 final class ArbitraryPrecisionIntegerTests: XCTestCase {
     func testSimpleArithmetic() {

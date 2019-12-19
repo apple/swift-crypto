@@ -20,14 +20,13 @@ import XCTest
 #if (os(macOS) || os(iOS) || os(watchOS) || os(tvOS)) && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
 @testable import CryptoKit
 #else
-@testable import Crypto
 @_implementationOnly import CCryptoBoringSSL
+@testable import Crypto
 #endif
-
 
 extension NISTECDHTests {
     func testGroupOpenSSL<PrivKey: NISTECPrivateKey & DiffieHellmanKeyAgreement, Curve: OpenSSLSupportedNISTCurve>(group: ECDHTestGroup, privateKeys: PrivKey.Type, onCurve curve: Curve.Type) {
-        func padKeyIfNecessary(vector: String, curveDetails: OpenSSLSupportedNISTCurve.Type) -> Array<UInt8> {
+        func padKeyIfNecessary(vector: String, curveDetails: OpenSSLSupportedNISTCurve.Type) -> [UInt8] {
             let hexStringFromVector = (vector.count % 2 == 0) ? vector : "0\(vector)"
             return try! Array(hexString: hexStringFromVector)
         }
@@ -37,12 +36,12 @@ extension NISTECDHTests {
                 let pkBytes = try Array(hexString: testVector.publicKey)
                 let publicKey = try PrivKey.PublicKey(derBytes: pkBytes, curve: Curve.self)
 
-                var privateBytes = Array<UInt8>()
+                var privateBytes = [UInt8]()
                 privateBytes = padKeyIfNecessary(vector: testVector.privateKey, curveDetails: curve)
 
                 let privateKey = try PrivKey(rawRepresentation: privateBytes)
 
-                let result = try privateKey.sharedSecretFromKeyAgreement(with: (publicKey as! PrivKey.P))
+                let result = try privateKey.sharedSecretFromKeyAgreement(with: publicKey as! PrivKey.P)
 
                 let expectedResult = try Array(hexString: testVector.shared)
 
@@ -59,7 +58,6 @@ extension NISTECDHTests {
         }
     }
 }
-
 
 extension NISTECPublicKey {
     /// Creates the given EC public key using the DER encoding of the key.
