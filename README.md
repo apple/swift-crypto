@@ -81,4 +81,3 @@ SemVer and SwiftCrypto's Public API guarantees should result in a working progra
 ### Developing SwiftCrypto on macOS
 
 SwiftCrypto normally defers to the OS implementation of CryptoKit on macOS. Naturally, this makes developing SwiftCrypto on macOS tricky. To get SwiftCrypto to build the open source implementation on macOS, uncomment the line that reads: `//.define("CRYPTO_IN_SWIFTPM_FORCE_BUILD_API")`, as this will force SwiftCrypto to build its public API.
-
