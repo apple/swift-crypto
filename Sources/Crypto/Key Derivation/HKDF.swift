@@ -43,7 +43,7 @@ struct HKDF<H: HashFunction> {
     }
 
     static func expand<Info: DataProtocol>(PRK: HashedAuthenticationCode<H>, info: Info?, L: Int) -> SymmetricKey {
-        let iterations: Int = Int(ceil((Float(L) / Float(H.Digest.byteCount))))
+        let iterations = UInt8(ceil((Float(L) / Float(H.Digest.byteCount))))
         var output = SecureBytes()
         let key = SymmetricKey(data: Data(PRK.digest))
         var TMinusOne = Data()
@@ -53,9 +53,9 @@ struct HKDF<H: HashFunction> {
             if let infoData = info {
                 hmac.update(data: infoData)
             }
-            var counter_int = i
-            let counter = UnsafeRawBufferPointer(start: &counter_int, count: 1)
-            hmac.update(bufferPointer: counter)
+            withUnsafeBytes(of: i) { counter in
+                hmac.update(bufferPointer: counter)
+            }
             TMinusOne = Data(hmac.finalize())
             output.append(TMinusOne)
         }
