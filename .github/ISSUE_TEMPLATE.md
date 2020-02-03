@@ -13,8 +13,8 @@ _[what actually happened]_
 
 _[anything to help us reproducing the issue]_
 
-### SwiftLog version/commit hash
+### SwiftCrypto version/commit hash
 
-_[the SwiftLog tag/commit hash]_
+_[the SwiftCrypto tag/commit hash]_
 
 ### Swift & OS version (output of `swift --version && uname -a`)
