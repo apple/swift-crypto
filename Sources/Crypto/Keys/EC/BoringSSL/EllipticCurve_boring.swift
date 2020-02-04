@@ -63,7 +63,7 @@ extension BoringSSLEllipticCurveGroup {
         return try! ArbitraryPrecisionInteger(copying: baseOrder)
     }
 
-    /// An elliptic curve can be represented in a Weierstrass form: y² = x³ + ax + b. This
+    /// An elliptic curve can be represented in a Weierstrass form: `y² = x³ + ax + b`. This
     /// property provides the values of a and b on the curve.
     @usableFromInline
     var weierstrassCoefficients: (field: ArbitraryPrecisionInteger, a: ArbitraryPrecisionInteger, b: ArbitraryPrecisionInteger) {

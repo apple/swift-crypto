@@ -48,7 +48,7 @@ protocol Cipher {
     ///   - nonce: A Nonce used for sealing.
     ///   - authenticatedData: Optional additional data to be authenticated.
     /// - Returns: The sealed box containing the ciphertext and authentication tag
-    /// - Throws: An error occured while encrypting or authenticating.
+    /// - Throws: An error occurred while encrypting or authenticating.
     static func seal<Plaintext: DataProtocol, AuthenticatedData: DataProtocol>
         (_ message: Plaintext, using key: SymmetricKey, nonce: Nonce?, authenticating: AuthenticatedData) throws -> SealedBox
 
@@ -61,7 +61,7 @@ protocol Cipher {
     ///   - nonce: The nonce used for sealing
     ///   - authenticatedData: The data that was authenticated.
     /// - Returns: Returns the data, if the correct key is used and the authenticated data matches the one from the seal operation.
-    /// - Throws: An error occured while decrypting or authenticating.
+    /// - Throws: An error occurred while decrypting or authenticating.
     static func open<AuthenticatedData: DataProtocol>
         (_ sealedBox: SealedBox, using key: Key, authenticating: AuthenticatedData) throws -> Data
 }

@@ -120,7 +120,7 @@ extension AES.GCM {
         
         @inlinable
         public init<D: DataProtocol>(combined: D) throws {
-            // AES minumum nonce (12 bytes) + AES tag (16 bytes)
+            // AES minimum nonce (12 bytes) + AES tag (16 bytes)
             // While we have these values in the internal APIs, we can't use it in inlinable code.
             let aesGCMOverhead = 12 + 16
             

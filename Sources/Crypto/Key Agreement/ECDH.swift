@@ -359,7 +359,7 @@ extension P256.KeyAgreement.PrivateKey: DiffieHellmanKeyAgreement {
     ///
     /// - Parameter publicKeyShare: The public key to perform the ECDH with.
     /// - Returns: Returns a shared secret
-    /// - Throws: An error occured while computing the shared secret
+    /// - Throws: An error occurred while computing the shared secret
     public func sharedSecretFromKeyAgreement(with publicKeyShare: P256.KeyAgreement.PublicKey) throws -> SharedSecret {
         #if (os(macOS) || os(iOS) || os(watchOS) || os(tvOS)) && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
         return try self.coreCryptoSharedSecretFromKeyAgreement(with: publicKeyShare)
@@ -373,7 +373,7 @@ extension P384.KeyAgreement.PrivateKey: DiffieHellmanKeyAgreement {
     ///
     /// - Parameter publicKeyShare: The public key to perform the ECDH with.
     /// - Returns: Returns a shared secret
-    /// - Throws: An error occured while computing the shared secret
+    /// - Throws: An error occurred while computing the shared secret
     public func sharedSecretFromKeyAgreement(with publicKeyShare: P384.KeyAgreement.PublicKey) throws -> SharedSecret {
         #if (os(macOS) || os(iOS) || os(watchOS) || os(tvOS)) && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
         return try self.coreCryptoSharedSecretFromKeyAgreement(with: publicKeyShare)
@@ -387,7 +387,7 @@ extension P521.KeyAgreement.PrivateKey: DiffieHellmanKeyAgreement {
     ///
     /// - Parameter publicKeyShare: The public key to perform the ECDH with.
     /// - Returns: Returns a shared secret
-    /// - Throws: An error occured while computing the shared secret
+    /// - Throws: An error occurred while computing the shared secret
     public func sharedSecretFromKeyAgreement(with publicKeyShare: P521.KeyAgreement.PublicKey) throws -> SharedSecret {
         #if (os(macOS) || os(iOS) || os(watchOS) || os(tvOS)) && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
         return try self.coreCryptoSharedSecretFromKeyAgreement(with: publicKeyShare)

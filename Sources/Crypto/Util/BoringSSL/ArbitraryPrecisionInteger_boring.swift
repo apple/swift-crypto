@@ -427,7 +427,7 @@ extension ArbitraryPrecisionInteger: CustomDebugStringConvertible {
 
         // This line looks scary but it's actually pretty safe.
         //
-        // String.init(decoding:as:) treates the first argument as a Collection of UInt8, and so does not require it to be
+        // String.init(decoding:as:) treats the first argument as a Collection of UInt8, and so does not require it to be
         // null-terminated. It also doesn't take ownership of the data, instead copying the bytes in to its backing storage.
         //
         // The other note is that we don't need to free the pointer vended to us by BIO_mem_contents, as this is in fact an
