@@ -53,51 +53,69 @@ struct EdDSAKey: Codable {
 class SignatureTests: XCTestCase {
     let data = "Testing Signatures".data(using: String.Encoding.utf8)!
     
-    func testWycheProofEdDSA() {
-        wycheproofTest(bundleType: self,
-                       jsonName: "eddsa_test",
-                       testFunction: { (group: EdDSATestGroup) in
-                        try! testEdGroup(group: group)
-        })
+    func testWycheProofEdDSA() throws {
+        try orFail {
+            try wycheproofTest(
+                bundleType: self,
+                jsonName: "eddsa_test",
+                testFunction: { (group: EdDSATestGroup) in
+                    try orFail { try testEdGroup(group: group) }
+            })
+        }
     }
-    func testWycheProofP256() {
-        wycheproofTest(bundleType: self,
-                       jsonName: "ecdsa_secp256r1_sha256_test",
-                       testFunction: { (group: ECDSATestGroup) in
-                        try! testGroup(group: group, curve: P256.Signing.self, hashFunction: SHA256.self)
-        })
+    func testWycheProofP256() throws {
+        try orFail {
+            try wycheproofTest(
+                bundleType: self,
+                jsonName: "ecdsa_secp256r1_sha256_test",
+                testFunction: { (group: ECDSATestGroup) in
+                    try orFail { try testGroup(group: group, curve: P256.Signing.self, hashFunction: SHA256.self) }
+            })
+        }
         
-        wycheproofTest(bundleType: self,
-                       jsonName: "ecdsa_secp256r1_sha512_test",
-                       testFunction: { (group: ECDSATestGroup) in
-                        try! testGroup(group: group, curve: P256.Signing.self, hashFunction: SHA512.self)
-        })
+        try orFail {
+            try wycheproofTest(
+                bundleType: self,
+                jsonName: "ecdsa_secp256r1_sha512_test",
+                testFunction: { (group: ECDSATestGroup) in
+                    try orFail { try testGroup(group: group, curve: P256.Signing.self, hashFunction: SHA512.self) }
+            })
+        }
     }
     
-    func testWycheProofP384() {
-        wycheproofTest(bundleType: self,
-                       jsonName: "ecdsa_secp384r1_sha384_test",
-                       testFunction: { (group: ECDSATestGroup) in
-                        try! testGroup(group: group, curve: P384.Signing.self, hashFunction: SHA384.self)
-        })
-        wycheproofTest(bundleType: self,
-                       jsonName: "ecdsa_secp384r1_sha512_test",
-                       testFunction: { (group: ECDSATestGroup) in
-                        try! testGroup(group: group, curve: P384.Signing.self, hashFunction: SHA512.self)
-        })
+    func testWycheProofP384() throws {
+        try orFail {
+            try wycheproofTest(
+                bundleType: self,
+                jsonName: "ecdsa_secp384r1_sha384_test",
+                testFunction: { (group: ECDSATestGroup) in
+                    try orFail { try testGroup(group: group, curve: P384.Signing.self, hashFunction: SHA384.self) }
+            })
+        }
+        try orFail {
+            try wycheproofTest(
+                bundleType: self,
+                jsonName: "ecdsa_secp384r1_sha512_test",
+                testFunction: { (group: ECDSATestGroup) in
+                    try orFail { try testGroup(group: group, curve: P384.Signing.self, hashFunction: SHA512.self) }
+            })
+        }
     }
     
-    func testWycheProofP521() {
-        wycheproofTest(bundleType: self,
-                       jsonName: "ecdsa_secp521r1_sha512_test",
-                       testFunction: { (group: ECDSATestGroup) in
-                        try! testGroup(group: group, curve: P521.Signing.self, hashFunction: SHA512.self)
-        })
+    func testWycheProofP521() throws {
+        try orFail {
+            try wycheproofTest(
+                bundleType: self,
+                jsonName: "ecdsa_secp521r1_sha512_test",
+                testFunction: { (group: ECDSATestGroup) in
+                    try orFail { try testGroup(group: group, curve: P521.Signing.self, hashFunction: SHA512.self) }
+            })
+        }
     }
     
-    func testEdGroup(group: EdDSATestGroup) throws {
-        let keyBytes = try! Array(hexString: group.key.pk)
-        let key = try! Curve25519.Signing.PublicKey(rawRepresentation: keyBytes)
+    func testEdGroup(group: EdDSATestGroup, file: StaticString = #file, line: UInt = #line) throws {
+        let keyBytes = try orFail { try Array(hexString: group.key.pk) }
+        let key = try orFail { try Curve25519.Signing.PublicKey(rawRepresentation: keyBytes) }
         
         for testVector in group.tests {
             var isValid = false
@@ -130,9 +148,9 @@ class SignatureTests: XCTestCase {
         }
     }
     
-    func testGroup<C: NISTSigning, HF: HashFunction>(group: ECDSATestGroup, curve: C.Type, hashFunction: HF.Type) throws where C.ECDSASignature == C.PublicKey.Signature {
-        let keyBytes = try! Array(hexString: group.key.uncompressed)
-        let key = try! C.PublicKey(x963Representation: keyBytes)
+    func testGroup<C: NISTSigning, HF: HashFunction>(group: ECDSATestGroup, curve: C.Type, hashFunction: HF.Type, file: StaticString = #file, line: UInt = #line) throws where C.ECDSASignature == C.PublicKey.Signature {
+        let keyBytes = try orFail(file: file, line: line) { try Array(hexString: group.key.uncompressed) }
+        let key = try orFail(file: file, line: line) { try C.PublicKey(x963Representation: keyBytes) }
 
         for testVector in group.tests {
             if testVector.msg == "" {
@@ -151,18 +169,18 @@ class SignatureTests: XCTestCase {
 
                 isValid = key.isValidSignature(signature, for: digest)
             } catch {
-                XCTAssert(testVector.result == "invalid" || testVector.result == "acceptable", "Test ID: \(testVector.tcId) is valid, but failed \(error.localizedDescription).")
+                XCTAssert(testVector.result == "invalid" || testVector.result == "acceptable", "Test ID: \(testVector.tcId) is valid, but failed \(error.localizedDescription).", file: file, line: line)
                 continue
             }
 
             switch testVector.result {
-            case "valid": XCTAssert(isValid, "Test vector is valid, but is rejected \(testVector.tcId)")
+            case "valid": XCTAssert(isValid, "Test vector is valid, but is rejected \(testVector.tcId)", file: file, line: line)
             case "acceptable": do {
-                XCTAssert(isValid)
+                XCTAssert(isValid, file: file, line: line)
                 }
-            case "invalid": XCTAssert(!isValid, "Test ID: \(testVector.tcId) is valid, but failed.")
+            case "invalid": XCTAssert(!isValid, "Test ID: \(testVector.tcId) is valid, but failed.", file: file, line: line)
             default:
-                XCTFail("Unhandled test vector")
+                XCTFail("Unhandled test vector", file: file, line: line)
             }
         }
     }
@@ -170,44 +188,44 @@ class SignatureTests: XCTestCase {
     func testP256Usage() throws {
         let signingKey = P256.Signing.PrivateKey()
 
-        let signature = try signingKey.signature(for: data)
+        let signature = try orFail { try signingKey.signature(for: data) }
 
         XCTAssert(signingKey.publicKey.isValidSignature(signature, for: data))
     }
 
     func testP256Representations() throws {
         let signingKey = P256.Signing.PrivateKey()
-        let signature = try signingKey.signature(for: data)
+        let signature = try orFail { try signingKey.signature(for: data) }
         XCTAssertEqual(signature.composite.r + signature.composite.s, signature.rawRepresentation)
 
         let signatureBytesFromPointer = signature.withUnsafeBytes { Data($0) }
         XCTAssertEqual(signature.rawRepresentation, signatureBytesFromPointer)
 
-        let roundTrippedSignature = try P256.Signing.ECDSASignature(derRepresentation: signature.derRepresentation)
+        let roundTrippedSignature = try orFail { try P256.Signing.ECDSASignature(derRepresentation: signature.derRepresentation) }
         XCTAssertEqual(signature.rawRepresentation, roundTrippedSignature.rawRepresentation)
     }
 
     func testP384Representations() throws {
         let signingKey = P384.Signing.PrivateKey()
-        let signature = try signingKey.signature(for: data)
+        let signature = try orFail { try signingKey.signature(for: data) }
         XCTAssertEqual(signature.composite.r + signature.composite.s, signature.rawRepresentation)
 
         let signatureBytesFromPointer = signature.withUnsafeBytes { Data($0) }
         XCTAssertEqual(signature.rawRepresentation, signatureBytesFromPointer)
 
-        let roundTrippedSignature = try P384.Signing.ECDSASignature(derRepresentation: signature.derRepresentation)
+        let roundTrippedSignature = try orFail { try P384.Signing.ECDSASignature(derRepresentation: signature.derRepresentation) }
         XCTAssertEqual(signature.rawRepresentation, roundTrippedSignature.rawRepresentation)
     }
 
     func testP521Representations() throws {
         let signingKey = P521.Signing.PrivateKey()
-        let signature = try signingKey.signature(for: data)
+        let signature = try orFail { try signingKey.signature(for: data) }
         XCTAssertEqual(signature.composite.r + signature.composite.s, signature.rawRepresentation)
 
         let signatureBytesFromPointer = signature.withUnsafeBytes { Data($0) }
         XCTAssertEqual(signature.rawRepresentation, signatureBytesFromPointer)
 
-        let roundTrippedSignature = try P521.Signing.ECDSASignature(derRepresentation: signature.derRepresentation)
+        let roundTrippedSignature = try orFail { try P521.Signing.ECDSASignature(derRepresentation: signature.derRepresentation) }
         XCTAssertEqual(signature.rawRepresentation, roundTrippedSignature.rawRepresentation)
     }
 
@@ -240,8 +258,8 @@ class SignatureTests: XCTestCase {
         // We generate 4 signatures here, all of which should be identical. We validate them all, which means there is a lot of validating here:
         // 8 in total.
         let (contiguousData, discontiguousData) = Array(data).asDataProtocols()
-        let (contiguousContiguous, discontiguousContiguous) = Array(try signingKey.signature(for: contiguousData).derRepresentation).asDataProtocols()
-        let (contiguousDiscontiguous, discontiguousDiscontiguous) = Array(try signingKey.signature(for: discontiguousData).derRepresentation).asDataProtocols()
+        let (contiguousContiguous, discontiguousContiguous) = try orFail { Array(try signingKey.signature(for: contiguousData).derRepresentation).asDataProtocols() }
+        let (contiguousDiscontiguous, discontiguousDiscontiguous) = try orFail { Array(try signingKey.signature(for: discontiguousData).derRepresentation).asDataProtocols() }
 
         XCTAssertTrue(signingKey.publicKey.isValidSignature(try .init(derRepresentation: contiguousContiguous), for: contiguousData))
         XCTAssertTrue(signingKey.publicKey.isValidSignature(try .init(derRepresentation: discontiguousContiguous), for: contiguousData))
@@ -270,8 +288,8 @@ class SignatureTests: XCTestCase {
         // We generate 4 signatures here, all of which should be identical. We validate them all, which means there is a lot of validating here:
         // 8 in total.
         let (contiguousData, discontiguousData) = Array(data).asDataProtocols()
-        let (contiguousContiguous, discontiguousContiguous) = Array(try signingKey.signature(for: contiguousData).derRepresentation).asDataProtocols()
-        let (contiguousDiscontiguous, discontiguousDiscontiguous) = Array(try signingKey.signature(for: discontiguousData).derRepresentation).asDataProtocols()
+        let (contiguousContiguous, discontiguousContiguous) = try orFail { Array(try signingKey.signature(for: contiguousData).derRepresentation).asDataProtocols() }
+        let (contiguousDiscontiguous, discontiguousDiscontiguous) = try orFail { Array(try signingKey.signature(for: discontiguousData).derRepresentation).asDataProtocols() }
 
         XCTAssertTrue(signingKey.publicKey.isValidSignature(try .init(derRepresentation: contiguousContiguous), for: contiguousData))
         XCTAssertTrue(signingKey.publicKey.isValidSignature(try .init(derRepresentation: discontiguousContiguous), for: contiguousData))
@@ -300,8 +318,8 @@ class SignatureTests: XCTestCase {
         // We generate 4 signatures here, all of which should be identical. We validate them all, which means there is a lot of validating here:
         // 8 in total.
         let (contiguousData, discontiguousData) = Array(data).asDataProtocols()
-        let (contiguousContiguous, discontiguousContiguous) = Array(try signingKey.signature(for: contiguousData).derRepresentation).asDataProtocols()
-        let (contiguousDiscontiguous, discontiguousDiscontiguous) = Array(try signingKey.signature(for: discontiguousData).derRepresentation).asDataProtocols()
+        let (contiguousContiguous, discontiguousContiguous) = try orFail { Array(try signingKey.signature(for: contiguousData).derRepresentation).asDataProtocols() }
+        let (contiguousDiscontiguous, discontiguousDiscontiguous) = try orFail { Array(try signingKey.signature(for: discontiguousData).derRepresentation).asDataProtocols() }
 
         XCTAssertTrue(signingKey.publicKey.isValidSignature(try .init(derRepresentation: contiguousContiguous), for: contiguousData))
         XCTAssertTrue(signingKey.publicKey.isValidSignature(try .init(derRepresentation: discontiguousContiguous), for: contiguousData))

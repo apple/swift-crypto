@@ -23,16 +23,16 @@ import XCTest
 #endif
 
 class DERTests: XCTestCase {
-    func testEncodeDecodeECDSASignature() {
+    func testEncodeDecodeECDSASignature() throws {
         let pointSize = self.coordinateSizeForCurve(P256.CurveDetails.self)
         let r = self.randomBytes(count: pointSize)
         let s = self.randomBytes(count: pointSize)
         
-        let signature = try! P256.Signing.ECDSASignature(rawRepresentation: (r + s))
+        let signature = try orFail { try P256.Signing.ECDSASignature(rawRepresentation: (r + s)) }
         
         XCTAssertEqual(Data(r + s), signature.rawRepresentation)
         
-        let der = try! P256.Signing.ECDSASignature(derRepresentation: signature.derRepresentation)
+        let der = try orFail { try P256.Signing.ECDSASignature(derRepresentation: signature.derRepresentation) }
         
         XCTAssertEqual(der.rawRepresentation, signature.rawRepresentation)
         XCTAssertEqual(der.derRepresentation, signature.derRepresentation)

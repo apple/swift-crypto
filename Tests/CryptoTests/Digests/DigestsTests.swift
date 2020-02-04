@@ -50,39 +50,45 @@ func testVectorForAlgorithm<H: HashFunction>(hashFunction: H.Type) throws -> Str
 }
 
 class DigestsTests: XCTestCase {
-    func testHashFunctionWithVector<H: HashFunction>(hf: H.Type, data: Data, testVector: String) {
+    func assertHashFunctionWithVector<H: HashFunction>(hf: H.Type, data: Data, testVector: String, file: StaticString = #file, line: UInt = #line) throws {
         var h = hf.init()
         h.update(data: data)
         let result = h.finalize()
 
-        let testBytes = try! Array(hexString: testVector)
+        let testBytes = try orFail(file: file, line: line) { try Array(hexString: testVector) }
 
-        XCTAssertEqual(testBytes, Array(result))
-        XCTAssertEqual(Array(H.hash(data: data)), testBytes)
+        XCTAssertEqual(testBytes, Array(result), file: file, line: line)
+        XCTAssertEqual(Array(H.hash(data: data)), testBytes, file: file, line: line)
 
         let (contiguousResult, discontiguousResult) = testBytes.asDataProtocols()
-        XCTAssert(result == contiguousResult)
-        XCTAssert(result == discontiguousResult)
-        XCTAssertFalse(result == DispatchData.empty)
+        XCTAssert(result == contiguousResult, file: file, line: line)
+        XCTAssert(result == discontiguousResult, file: file, line: line)
+        XCTAssertFalse(result == DispatchData.empty, file: file, line: line)
     }
     
-    func testMD5() {
+    func testMD5() throws {
         XCTAssertEqual(Data(Insecure.MD5.hash(data: Data())).count, Insecure.MD5.byteCount)
-        try! XCTAssertEqual(Data(Insecure.MD5.hash(data: Data())), Data(hexString: "d41d8cd98f00b204e9800998ecf8427e"))
-        try! XCTAssertEqual(Data(Insecure.MD5.hash(data: Data("abcdbcdecdefdefgefghfghighijhijkijkljklmklmnlmnomnopnopq".utf8))), Data(hexString: "8215ef0796a20bcaaae116d3876c664a"))
+        XCTAssertEqual(
+            Data(Insecure.MD5.hash(data: Data())),
+            try Data(hexString: "d41d8cd98f00b204e9800998ecf8427e")
+        )
+        XCTAssertEqual(
+            Data(Insecure.MD5.hash(data: Data("abcdbcdecdefdefgefghfghighijhijkijkljklmklmnlmnomnopnopq".utf8))),
+            try Data(hexString: "8215ef0796a20bcaaae116d3876c664a")
+        )
     }
 
     func testHashFunction<H: HashFunction>(hf: H.Type) throws {
         let data = ("abcdefghbcdefghicdefghijdefghijkefghijklfghijklmghijklmnhijklmnoijklmnopjklmnopqklmnopqrlmnopqrsmnopqrstnopqrstu".data(using: String.Encoding.ascii)!)
-        testHashFunctionWithVector(hf: hf, data: data, testVector: try testVectorForAlgorithm(hashFunction: hf))
-        testHashFunctionWithVector(hf: hf, data: Data(repeating: 0, count: 0), testVector: try nullTestVectorForAlgorithm(hashFunction: hf))
+        try orFail { try assertHashFunctionWithVector(hf: hf, data: data, testVector: try testVectorForAlgorithm(hashFunction: hf)) }
+        try orFail { try assertHashFunctionWithVector(hf: hf, data: Data(repeating: 0, count: 0), testVector: try nullTestVectorForAlgorithm(hashFunction: hf)) }
 	}
 
 	func testHashFunctions() throws {
-        try testHashFunction(hf: Insecure.SHA1.self)
-        try testHashFunction(hf: SHA256.self)
-        try testHashFunction(hf: SHA384.self)
-        try testHashFunction(hf: SHA512.self)
+        try orFail { try testHashFunction(hf: Insecure.SHA1.self) }
+        try orFail { try testHashFunction(hf: SHA256.self) }
+        try orFail { try testHashFunction(hf: SHA384.self) }
+        try orFail { try testHashFunction(hf: SHA512.self) }
 	}
 
     func testHashFunctionImplementsCoW<H: HashFunction>(hf: H.Type) throws {
@@ -100,11 +106,11 @@ class DigestsTests: XCTestCase {
     }
 
     func testHashFunctionsImplementCow() throws {
-        try testHashFunctionImplementsCoW(hf: Insecure.MD5.self)
-        try testHashFunctionImplementsCoW(hf: Insecure.SHA1.self)
-        try testHashFunctionImplementsCoW(hf: SHA256.self)
-        try testHashFunctionImplementsCoW(hf: SHA384.self)
-        try testHashFunctionImplementsCoW(hf: SHA512.self)
+        try orFail { try testHashFunctionImplementsCoW(hf: Insecure.MD5.self) }
+        try orFail { try testHashFunctionImplementsCoW(hf: Insecure.SHA1.self) }
+        try orFail { try testHashFunctionImplementsCoW(hf: SHA256.self) }
+        try orFail { try testHashFunctionImplementsCoW(hf: SHA384.self) }
+        try orFail { try testHashFunctionImplementsCoW(hf: SHA512.self) }
     }
     
     func testBlockSizes() {

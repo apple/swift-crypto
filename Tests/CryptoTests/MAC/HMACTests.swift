@@ -105,74 +105,75 @@ class HMACTests: XCTestCase {
         }
     }
     
-    func testHMAC<H: HashFunction>(key: SymmetricKey, data: Data, vectors: (H.Type) throws -> String, for: H.Type) -> Bool {
-        return HMAC<H>.isValidAuthenticationCode(try! Data(hexString: vectors(H.self)), authenticating: data, using: key)
+    func testHMAC<H: HashFunction>(key: SymmetricKey, data: Data, vectors: (H.Type) throws -> String, for: H.Type, file: StaticString = #file, line: UInt = #line) throws -> Bool {
+        let code = try orFail(file: file, line: line) { try Data(hexString: vectors(H.self)) }
+        return HMAC<H>.isValidAuthenticationCode(code, authenticating: data, using: key)
     }
     
     func testCase1() throws {
-        let keyBytes = try Array(hexString: "0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b")
+        let keyBytes = try orFail { try Array(hexString: "0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b") }
         let key = SymmetricKey(data: keyBytes)
         
         let data = "Hi There".data(using: .ascii)!
         
-        XCTAssert(testHMAC(key: key, data: data, vectors: testCase1VectorForAlgorithm, for: SHA256.self))
-        XCTAssert(testHMAC(key: key, data: data, vectors: testCase1VectorForAlgorithm, for: SHA384.self))
-        XCTAssert(testHMAC(key: key, data: data, vectors: testCase1VectorForAlgorithm, for: SHA512.self))
+        XCTAssert(try testHMAC(key: key, data: data, vectors: testCase1VectorForAlgorithm, for: SHA256.self))
+        XCTAssert(try testHMAC(key: key, data: data, vectors: testCase1VectorForAlgorithm, for: SHA384.self))
+        XCTAssert(try testHMAC(key: key, data: data, vectors: testCase1VectorForAlgorithm, for: SHA512.self))
     }
     
     func testCase2() throws {
-        let keyBytes = try Array(hexString: "4a656665")
+        let keyBytes = try orFail { try Array(hexString: "4a656665") }
         let key = SymmetricKey(data: keyBytes)
         
-        let data = try Data(hexString: "7768617420646f2079612077616e7420666f72206e6f7468696e673f")
+        let data = try orFail { try Data(hexString: "7768617420646f2079612077616e7420666f72206e6f7468696e673f") }
         
-        XCTAssert(testHMAC(key: key, data: data, vectors: testCase2VectorForAlgorithm, for: SHA256.self))
-        XCTAssert(testHMAC(key: key, data: data, vectors: testCase2VectorForAlgorithm, for: SHA384.self))
-        XCTAssert(testHMAC(key: key, data: data, vectors: testCase2VectorForAlgorithm, for: SHA512.self))
+        XCTAssert(try testHMAC(key: key, data: data, vectors: testCase2VectorForAlgorithm, for: SHA256.self))
+        XCTAssert(try testHMAC(key: key, data: data, vectors: testCase2VectorForAlgorithm, for: SHA384.self))
+        XCTAssert(try testHMAC(key: key, data: data, vectors: testCase2VectorForAlgorithm, for: SHA512.self))
     }
     
     func testCase3() throws {
-        let keyBytes = try Array(hexString: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")
+        let keyBytes = try orFail { try Array(hexString: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa") }
         let key = SymmetricKey(data: keyBytes)
         
-        let data = try Data(hexString: "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd")
+        let data = try orFail { try Data(hexString: "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd") }
         
-        XCTAssert(testHMAC(key: key, data: data, vectors: testCase3VectorForAlgorithm, for: SHA256.self))
-        XCTAssert(testHMAC(key: key, data: data, vectors: testCase3VectorForAlgorithm, for: SHA384.self))
-        XCTAssert(testHMAC(key: key, data: data, vectors: testCase3VectorForAlgorithm, for: SHA512.self))
+        XCTAssert(try testHMAC(key: key, data: data, vectors: testCase3VectorForAlgorithm, for: SHA256.self))
+        XCTAssert(try testHMAC(key: key, data: data, vectors: testCase3VectorForAlgorithm, for: SHA384.self))
+        XCTAssert(try testHMAC(key: key, data: data, vectors: testCase3VectorForAlgorithm, for: SHA512.self))
     }
     
     func testCase4() throws {
-        let keyBytes = try Array(hexString: "0102030405060708090a0b0c0d0e0f10111213141516171819")
+        let keyBytes = try orFail { try Array(hexString: "0102030405060708090a0b0c0d0e0f10111213141516171819") }
         let key = SymmetricKey(data: keyBytes)
         
-        let data = try Data(hexString: "cdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcd")
+        let data = try orFail { try Data(hexString: "cdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcd") }
         
-        XCTAssert(testHMAC(key: key, data: data, vectors: testCase4VectorForAlgorithm, for: SHA256.self))
-        XCTAssert(testHMAC(key: key, data: data, vectors: testCase4VectorForAlgorithm, for: SHA384.self))
-        XCTAssert(testHMAC(key: key, data: data, vectors: testCase4VectorForAlgorithm, for: SHA512.self))
+        XCTAssert(try testHMAC(key: key, data: data, vectors: testCase4VectorForAlgorithm, for: SHA256.self))
+        XCTAssert(try testHMAC(key: key, data: data, vectors: testCase4VectorForAlgorithm, for: SHA384.self))
+        XCTAssert(try testHMAC(key: key, data: data, vectors: testCase4VectorForAlgorithm, for: SHA512.self))
     }
     
     func testCase6() throws {
-        let keyBytes = try Array(hexString: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")
+        let keyBytes = try orFail { try Array(hexString: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa") }
         let key = SymmetricKey(data: keyBytes)
         
-        let data = try Data(hexString: "54657374205573696e67204c6172676572205468616e20426c6f636b2d53697a65204b6579202d2048617368204b6579204669727374")
+        let data = try orFail { try Data(hexString: "54657374205573696e67204c6172676572205468616e20426c6f636b2d53697a65204b6579202d2048617368204b6579204669727374") }
         
-        XCTAssert(testHMAC(key: key, data: data, vectors: testCase6VectorForAlgorithm, for: SHA256.self))
-        XCTAssert(testHMAC(key: key, data: data, vectors: testCase6VectorForAlgorithm, for: SHA384.self))
-        XCTAssert(testHMAC(key: key, data: data, vectors: testCase6VectorForAlgorithm, for: SHA512.self))
+        XCTAssert(try testHMAC(key: key, data: data, vectors: testCase6VectorForAlgorithm, for: SHA256.self))
+        XCTAssert(try testHMAC(key: key, data: data, vectors: testCase6VectorForAlgorithm, for: SHA384.self))
+        XCTAssert(try testHMAC(key: key, data: data, vectors: testCase6VectorForAlgorithm, for: SHA512.self))
     }
     
     func testCase7() throws {
-        let keyBytes = try Array(hexString: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")
+        let keyBytes = try orFail { try Array(hexString: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa") }
         let key = SymmetricKey(data: keyBytes)
         
-        let data = try Data(hexString: "5468697320697320612074657374207573696e672061206c6172676572207468616e20626c6f636b2d73697a65206b657920616e642061206c6172676572207468616e20626c6f636b2d73697a6520646174612e20546865206b6579206e6565647320746f20626520686173686564206265666f7265206265696e6720757365642062792074686520484d414320616c676f726974686d2e")
+        let data = try orFail { try Data(hexString: "5468697320697320612074657374207573696e672061206c6172676572207468616e20626c6f636b2d73697a65206b657920616e642061206c6172676572207468616e20626c6f636b2d73697a6520646174612e20546865206b6579206e6565647320746f20626520686173686564206265666f7265206265696e6720757365642062792074686520484d414320616c676f726974686d2e") }
         
-        XCTAssert(testHMAC(key: key, data: data, vectors: testCase7VectorForAlgorithm, for: SHA256.self))
-        XCTAssert(testHMAC(key: key, data: data, vectors: testCase7VectorForAlgorithm, for: SHA384.self))
-        XCTAssert(testHMAC(key: key, data: data, vectors: testCase7VectorForAlgorithm, for: SHA512.self))
+        XCTAssert(try testHMAC(key: key, data: data, vectors: testCase7VectorForAlgorithm, for: SHA256.self))
+        XCTAssert(try testHMAC(key: key, data: data, vectors: testCase7VectorForAlgorithm, for: SHA384.self))
+        XCTAssert(try testHMAC(key: key, data: data, vectors: testCase7VectorForAlgorithm, for: SHA512.self))
     }
 
     func testDiscontiguousHMAC<H: HashFunction>(key: SymmetricKey, data: [UInt8], for: H.Type) {
@@ -195,22 +196,21 @@ class HMACTests: XCTestCase {
 
         // The HashedAuthenticationCode itself also has a == implementation against DataProtocols, so we want to test that.
         let (contiguousGoodCode, discontiguousGoodCode) = Array(authContiguous).asDataProtocols()
-        XCTAssertEqual(authContiguous, contiguousGoodCode)
-        XCTAssertEqual(authContiguous, discontiguousGoodCode)
-        XCTAssertNotEqual(unrelatedAuthenticationCode, contiguousGoodCode)
-        XCTAssertNotEqual(unrelatedAuthenticationCode, discontiguousGoodCode)
-
+        XCTAssertTrue(authContiguous == contiguousGoodCode)
+        XCTAssertTrue(authContiguous == discontiguousGoodCode)
+        XCTAssertFalse(unrelatedAuthenticationCode == contiguousGoodCode)
+        XCTAssertFalse(unrelatedAuthenticationCode == discontiguousGoodCode)
     }
 
-    func testDiscontiguousSHA256() throws {
+    func testDiscontiguousSHA256() {
         testDiscontiguousHMAC(key: SymmetricKey(size: .bits256), data: Array("some data".utf8), for: SHA256.self)
     }
 
-    func testDiscontiguousSHA384() throws {
+    func testDiscontiguousSHA384() {
         testDiscontiguousHMAC(key: SymmetricKey(size: .bits256), data: Array("some data".utf8), for: SHA384.self)
     }
 
-    func testDiscontiguousSHA512() throws {
+    func testDiscontiguousSHA512() {
         testDiscontiguousHMAC(key: SymmetricKey(size: .bits256), data: Array("some data".utf8), for: SHA512.self)
     }
 
@@ -230,7 +230,7 @@ class HMACTests: XCTestCase {
         let someData = "SomeData".data(using: .utf8)!
 
         let mac = HMAC<SHA256>.authenticationCode(for: someData, using: key)
-        XCTAssertNotEqual(mac, DispatchData.empty)
+        XCTAssertFalse(mac == DispatchData.empty)
     }
 }
 #endif // (os(macOS) || os(iOS) || os(watchOS) || os(tvOS)) && CRYPTO_IN_SWIFTPM
