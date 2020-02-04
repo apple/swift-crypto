@@ -72,7 +72,7 @@ class EdDSATests: XCTestCase {
 
         XCTAssert(privateKey.publicKey.isValidSignature(signature, for: DispatchData.empty))
 
-        // This should fail
+        // This signature should be invalid
         XCTAssertFalse(privateKey.publicKey.isValidSignature(DispatchData.empty, for: DispatchData.empty))
     }
 }
