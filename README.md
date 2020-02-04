@@ -60,7 +60,7 @@ If you discover a bug with SwiftCrypto, please report it via GitHub.
 
 If you are interested in fixing a bug, feel free to open a pull request. Please also submit regression tests with bug fixes to ensure that they are not regressed in future.
 
-If you have issues with CryptoKit, instead of Swift Crypto, please use Feedback Assistant to file those issues as you normally would.
+If you have issues with CryptoKit, instead of Swift Crypto, please use [Feedback Assistant](https://feedbackassistant.apple.com) to file those issues as you normally would.
 
 ### Security
 
