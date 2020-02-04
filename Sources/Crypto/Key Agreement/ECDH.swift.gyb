@@ -97,7 +97,7 @@ extension ${CURVE}.KeyAgreement.PrivateKey: DiffieHellmanKeyAgreement {
     ///
     /// - Parameter publicKeyShare: The public key to perform the ECDH with.
     /// - Returns: Returns a shared secret
-    /// - Throws: An error occured while computing the shared secret
+    /// - Throws: An error occurred while computing the shared secret
     public func sharedSecretFromKeyAgreement(with publicKeyShare: ${CURVE}.KeyAgreement.PublicKey) throws -> SharedSecret {
         #if (os(macOS) || os(iOS) || os(watchOS) || os(tvOS)) && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
         return try self.coreCryptoSharedSecretFromKeyAgreement(with: publicKeyShare)
