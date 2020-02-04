@@ -98,6 +98,8 @@ final class ArbitraryPrecisionIntegerTests: XCTestCase {
         let one = ArbitraryPrecisionInteger(1)
         let two = ArbitraryPrecisionInteger(2)
 
+        // Not using XCTAssertLessThan and friends
+        // because we want to test these operators specifically.
         XCTAssertTrue(one < two)
         XCTAssertTrue(one <= two)
         XCTAssertFalse(one < one)
