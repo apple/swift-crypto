@@ -41,7 +41,7 @@ struct AESGCMTestVector: Codable {
 }
 
 class AESGCMTests: XCTestCase {
-    func testingBadKeySize() {
+    func testBadKeySize() {
         let plaintext: Data = "Some Super Secret Message".data(using: String.Encoding.utf8)!
         let key = SymmetricKey(size: .init(bitCount: 304))
         let nonce = AES.GCM.Nonce()
