@@ -125,7 +125,7 @@ class SignatureTests: XCTestCase {
                 }
             case "invalid": XCTAssert(!isValid, "Test ID: \(testVector.tcId) is valid, but failed.")
             default:
-                XCTAssert(false, "Unhandled test vector")
+                XCTFail("Unhandled test vector")
             }
         }
     }
@@ -162,7 +162,7 @@ class SignatureTests: XCTestCase {
                 }
             case "invalid": XCTAssert(!isValid, "Test ID: \(testVector.tcId) is valid, but failed.")
             default:
-                XCTAssert(false, "Unhandled test vector")
+                XCTFail("Unhandled test vector")
             }
         }
     }

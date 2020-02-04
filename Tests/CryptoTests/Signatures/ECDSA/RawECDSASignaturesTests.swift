@@ -56,7 +56,7 @@ class RawECDSASignaturesTests: XCTestCase {
     func testForCurve<S: NISTSigning>(curve: S.Type) {
         let msg = "abc".data(using: .utf8)!
         // We check that the test message is correctly encoded.
-        try XCTAssert(msg == Data(hexString: "616263"))
+        try XCTAssertEqual(msg, Data(hexString: "616263"))
 
         let tv = try! testVectorForCurve(curve: curve)
 
@@ -65,8 +65,8 @@ class RawECDSASignaturesTests: XCTestCase {
         let privateKey = try! S.PrivateKey(rawRepresentation: tv.privateKey)
         let publicKey = try! S.PublicKey(rawRepresentation: tv.publicKey)
         
-        XCTAssert(privateKey.rawRepresentation == tv.privateKey)
-        XCTAssert(privateKey.publicKey.rawRepresentation == tv.publicKey)
+        XCTAssertEqual(privateKey.rawRepresentation, tv.privateKey)
+        XCTAssertEqual(privateKey.publicKey.rawRepresentation, tv.publicKey)
         
         XCTAssert(publicKey.isValidSignature(signature as! S.PublicKey.Signature, for: msg))
 

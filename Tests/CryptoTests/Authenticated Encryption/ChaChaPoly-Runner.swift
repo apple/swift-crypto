@@ -66,7 +66,7 @@ class ChaChaPolyTests: XCTestCase {
         let ciphertext = try! ChaChaPoly.seal(plaintext, using: key, nonce: nonce, authenticating: Data())
         let recoveredPlaintext = try! ChaChaPoly.open(ciphertext, using: key, authenticating: Data())
 
-        XCTAssert(recoveredPlaintext == plaintext)
+        XCTAssertEqual(recoveredPlaintext, plaintext)
     }
 
     func testUserConstructedSealedBoxesCombined() throws {
@@ -130,7 +130,7 @@ class ChaChaPolyTests: XCTestCase {
             let ciphertext = try! ChaChaPoly.seal(message, using: key, nonce: nonce, authenticating: aad)
             let recoveredPlaintext = try! ChaChaPoly.open(ciphertext, using: key, authenticating: aad)
 
-            XCTAssert(Array(recoveredPlaintext) == Array(message))
+            XCTAssertEqual(Array(recoveredPlaintext), Array(message))
         }
 
         let message = Array("Hello, world, it's ChaCha!".utf8)
@@ -164,7 +164,7 @@ class ChaChaPolyTests: XCTestCase {
             do {
                 nonce = try ChaChaPoly.Nonce(data: Array(hexString: testVector.iv))
             } catch {
-                XCTAssert(testVector.result == "invalid")
+                XCTAssertEqual(testVector.result, "invalid")
                 return
             }
 
@@ -189,22 +189,20 @@ class ChaChaPolyTests: XCTestCase {
 
             let sb = try! ChaChaPoly.seal(msg, using: key, nonce: nonce, authenticating: aad)
 
-            XCTAssert(Data(ct) == sb.ciphertext)
+            XCTAssertEqual(Data(ct), sb.ciphertext)
 
             if (testVector.result == "valid") {
-                XCTAssert(Data(tag) == sb.tag)
+                XCTAssertEqual(Data(tag), sb.tag)
             }
 
             do {
                 let recovered_pt = try ChaChaPoly.open(ChaChaPoly.SealedBox(nonce: nonce, ciphertext: ct, tag: tag), using: key, authenticating: aad)
 
                 if (testVector.result == "valid" || testVector.result == "acceptable") {
-                    XCTAssert(recovered_pt == msg)
-                } else {
-                    XCTAssert(true)
+                    XCTAssertEqual(recovered_pt, msg)
                 }
             } catch {
-                XCTAssert(testVector.result == "invalid")
+                XCTAssertEqual(testVector.result, "invalid")
             }
         }
     }

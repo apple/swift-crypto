@@ -70,8 +70,8 @@ class AESGCMTests: XCTestCase {
         let recoveredPlaintext = try! AES.GCM.open(ciphertext, using: key, authenticating: Data())
         let recoveredPlaintextWithoutAAD = try! AES.GCM.open(ciphertext, using: key)
 
-        XCTAssert(recoveredPlaintext == plaintext)
-        XCTAssert(recoveredPlaintextWithoutAAD == plaintext)
+        XCTAssertEqual(recoveredPlaintext, plaintext)
+        XCTAssertEqual(recoveredPlaintextWithoutAAD, plaintext)
     }
 
     func testExtractingBytesFromNonce() throws {
@@ -155,7 +155,7 @@ class AESGCMTests: XCTestCase {
             let ciphertext = try! AES.GCM.seal(message, using: key, nonce: nonce, authenticating: aad)
             let recoveredPlaintext = try! AES.GCM.open(ciphertext, using: key, authenticating: aad)
 
-            XCTAssert(Array(recoveredPlaintext) == Array(message))
+            XCTAssertEqual(Array(recoveredPlaintext), Array(message))
         }
 
         let message = Array("Hello, world, it's AES-GCM!".utf8)
@@ -189,7 +189,7 @@ class AESGCMTests: XCTestCase {
                                 do {
                                     nonce = try AES.GCM.Nonce(data: nonceData)
                                 } catch {
-                                    XCTAssert(nonceData.count < 12)
+                                    XCTAssertLessThan(nonceData.count, 12)
                                     continue
                                 }
 
@@ -211,22 +211,22 @@ class AESGCMTests: XCTestCase {
 
                                 let sb = try! AES.GCM.seal(msg, using: key, nonce: nonce, authenticating: aad)
 
-                                XCTAssert(Data(ct) == sb.ciphertext)
+                                XCTAssertEqual(Data(ct), sb.ciphertext)
 
                                 if (testVector.result == "valid") {
-                                    XCTAssert(Data(tag) == sb.tag)
+                                    XCTAssertEqual(Data(tag), sb.tag)
                                 }
 
                                 do {
                                     let recovered_pt = try AES.GCM.open(AES.GCM.SealedBox(nonce: nonce, ciphertext: ct, tag: tag), using: key, authenticating: aad)
 
                                     if (testVector.result == "valid" || testVector.result == "acceptable") {
-                                        XCTAssert(recovered_pt == msg)
+                                        XCTAssertEqual(recovered_pt, msg)
                                     } else {
-                                        XCTAssert(false)
+                                        XCTFail()
                                     }
                                 } catch {
-                                    XCTAssert(testVector.result == "invalid")
+                                    XCTAssertEqual(testVector.result, "invalid")
                                 }
                             } catch {
                                 XCTAssert(testVector.result == "invalid" || testVector.iv == "")

@@ -30,14 +30,14 @@ class DERTests: XCTestCase {
         
         let signature = try! P256.Signing.ECDSASignature(rawRepresentation: (r + s))
         
-        XCTAssert(Data(r + s) == signature.rawRepresentation)
+        XCTAssertEqual(Data(r + s), signature.rawRepresentation)
         
         let der = try! P256.Signing.ECDSASignature(derRepresentation: signature.derRepresentation)
         
-        XCTAssert(der.rawRepresentation == signature.rawRepresentation)
-        XCTAssert(der.derRepresentation == signature.derRepresentation)
+        XCTAssertEqual(der.rawRepresentation, signature.rawRepresentation)
+        XCTAssertEqual(der.derRepresentation, signature.derRepresentation)
         
-        XCTAssert(der.rawRepresentation.count == 64)
+        XCTAssertEqual(der.rawRepresentation.count, 64)
     }
 
     func coordinateSizeForCurve<Curve: SupportedCurveDetailsImpl>(_ curve: Curve.Type) -> Int {

@@ -57,8 +57,8 @@ class DigestsTests: XCTestCase {
 
         let testBytes = try! Array(hexString: testVector)
 
-        XCTAssert(testBytes == Array(result))
-        XCTAssert(Array(H.hash(data: data)) == testBytes)
+        XCTAssertEqual(testBytes, Array(result))
+        XCTAssertEqual(Array(H.hash(data: data)), testBytes)
 
         let (contiguousResult, discontiguousResult) = testBytes.asDataProtocols()
         XCTAssert(result == contiguousResult)
@@ -67,9 +67,9 @@ class DigestsTests: XCTestCase {
     }
     
     func testMD5() {
-        XCTAssert(Data(Insecure.MD5.hash(data: Data())).count == Insecure.MD5.byteCount)
-        try! XCTAssert(Data(Insecure.MD5.hash(data: Data())) == Data(hexString: "d41d8cd98f00b204e9800998ecf8427e"))
-        try! XCTAssert(Data(Insecure.MD5.hash(data: Data("abcdbcdecdefdefgefghfghighijhijkijkljklmklmnlmnomnopnopq".utf8))) == Data(hexString: "8215ef0796a20bcaaae116d3876c664a"))
+        XCTAssertEqual(Data(Insecure.MD5.hash(data: Data())).count, Insecure.MD5.byteCount)
+        try! XCTAssertEqual(Data(Insecure.MD5.hash(data: Data())), Data(hexString: "d41d8cd98f00b204e9800998ecf8427e"))
+        try! XCTAssertEqual(Data(Insecure.MD5.hash(data: Data("abcdbcdecdefdefgefghfghighijhijkijkljklmklmnlmnomnopnopq".utf8))), Data(hexString: "8215ef0796a20bcaaae116d3876c664a"))
     }
 
     func testHashFunction<H: HashFunction>(hf: H.Type) throws {
@@ -108,11 +108,11 @@ class DigestsTests: XCTestCase {
     }
     
     func testBlockSizes() {
-        XCTAssert(Insecure.MD5.blockByteCount == 64)
-        XCTAssert(Insecure.SHA1.blockByteCount == 64)
-        XCTAssert(SHA256.blockByteCount == 64)
+        XCTAssertEqual(Insecure.MD5.blockByteCount, 64)
+        XCTAssertEqual(Insecure.SHA1.blockByteCount, 64)
+        XCTAssertEqual(SHA256.blockByteCount, 64)
         
-        XCTAssert(SHA384.blockByteCount == 128)
-        XCTAssert(SHA512.blockByteCount == 128)
+        XCTAssertEqual(SHA384.blockByteCount, 128)
+        XCTAssertEqual(SHA512.blockByteCount, 128)
     }
 }

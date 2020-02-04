@@ -60,8 +60,8 @@ class X25519Tests: XCTestCase {
         let ss1 = try! privateKey.sharedSecretFromKeyAgreement(with: bobsKey.publicKey)
         let ss2 = try! recoveredKey.sharedSecretFromKeyAgreement(with: bobsKey.publicKey)
         
-        XCTAssert(ss1 == ss2)
-        XCTAssert(recoveredKey.rawRepresentation == keyData)
+        XCTAssertEqual(ss1, ss2)
+        XCTAssertEqual(recoveredKey.rawRepresentation, keyData)
     }
     
     func testWycheproof() throws {
@@ -80,9 +80,9 @@ class X25519Tests: XCTestCase {
             do {
                 let expectedSharedSecret = try Array(hexString: testVector.shared)
 
-                XCTAssert(try Array(privateKey.sharedSecretFromKeyAgreement(with: publicKey).ss) == expectedSharedSecret)
+                XCTAssertEqual(try Array(privateKey.sharedSecretFromKeyAgreement(with: publicKey).ss), expectedSharedSecret)
             } catch {
-                XCTAssert(testVector.result == "invalid")
+                XCTAssertEqual(testVector.result, "invalid")
             }
         }
     }

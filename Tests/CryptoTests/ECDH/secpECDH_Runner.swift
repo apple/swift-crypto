@@ -49,7 +49,7 @@ class NISTECDHTests: XCTestCase {
         
         let ss1 = try! fipsKey.sharedSecretFromKeyAgreement(with: compactKey.publicKey)
         let ss2 = try! compactKey.sharedSecretFromKeyAgreement(with: fipsKey.publicKey)
-        XCTAssert(ss1 == ss2)
+        XCTAssertEqual(ss1, ss2)
         
         XCTAssertThrowsError(try P256.KeyAgreement.PublicKey(compactRepresentation: fipsKey.publicKey.rawRepresentation))
         XCTAssertNotNil(try P256.KeyAgreement.PublicKey(compactRepresentation: compactKey.publicKey.compactRepresentation!))
