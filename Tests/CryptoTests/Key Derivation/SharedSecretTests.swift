@@ -28,9 +28,9 @@ class SharedSecretTests: XCTestCase {
         let ss = SharedSecret(ss: SecureBytes(bytes: testSecret))
         let (contiguousSecret, discontiguousSecret) = testSecret.asDataProtocols()
 
-        XCTAssertTrue(ss == contiguousSecret)
-        XCTAssertTrue(ss == discontiguousSecret)
-        XCTAssertFalse(ss == DispatchData.empty)
+        XCTAssertEqual(ss, contiguousSecret)
+        XCTAssertEqual(ss, discontiguousSecret)
+        XCTAssertNotEqual(ss, DispatchData.empty)
     }
 }
 

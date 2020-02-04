@@ -195,10 +195,10 @@ class HMACTests: XCTestCase {
 
         // The HashedAuthenticationCode itself also has a == implementation against DataProtocols, so we want to test that.
         let (contiguousGoodCode, discontiguousGoodCode) = Array(authContiguous).asDataProtocols()
-        XCTAssertTrue(authContiguous == contiguousGoodCode)
-        XCTAssertTrue(authContiguous == discontiguousGoodCode)
-        XCTAssertFalse(unrelatedAuthenticationCode == contiguousGoodCode)
-        XCTAssertFalse(unrelatedAuthenticationCode == discontiguousGoodCode)
+        XCTAssertEqual(authContiguous, contiguousGoodCode)
+        XCTAssertEqual(authContiguous, discontiguousGoodCode)
+        XCTAssertNotEqual(unrelatedAuthenticationCode, contiguousGoodCode)
+        XCTAssertNotEqual(unrelatedAuthenticationCode, discontiguousGoodCode)
 
     }
 
@@ -230,7 +230,7 @@ class HMACTests: XCTestCase {
         let someData = "SomeData".data(using: .utf8)!
 
         let mac = HMAC<SHA256>.authenticationCode(for: someData, using: key)
-        XCTAssertFalse(mac == DispatchData.empty)
+        XCTAssertNotEqual(mac, DispatchData.empty)
     }
 }
 #endif // (os(macOS) || os(iOS) || os(watchOS) || os(tvOS)) && CRYPTO_IN_SWIFTPM
