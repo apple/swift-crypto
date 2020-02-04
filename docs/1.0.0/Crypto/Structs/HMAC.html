@@ -1,0 +1,712 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>HMAC Structure Reference</title>
+    <link rel="stylesheet" type="text/css" href="../css/jazzy.css" />
+    <link rel="stylesheet" type="text/css" href="../css/highlight.css" />
+    <meta charset="utf-8">
+    <script src="../js/jquery.min.js" defer></script>
+    <script src="../js/jazzy.js" defer></script>
+    
+    <script src="../js/lunr.min.js" defer></script>
+    <script src="../js/typeahead.jquery.js" defer></script>
+    <script src="../js/jazzy.search.js" defer></script>
+  </head>
+  <body>
+
+    <a name="//apple_ref/swift/Struct/HMAC" class="dashAnchor"></a>
+
+    <a title="HMAC Structure Reference"></a>
+
+    <header class="header">
+      <p class="header-col header-col--primary">
+        <a class="header-link" href="../index.html">
+          Crypto Docs
+        </a>
+         (56% documented)
+      </p>
+    
+      <p class="header-col--secondary">
+        <form role="search" action="../search.json">
+          <input type="text" placeholder="Search documentation" data-typeahead>
+        </form>
+      </p>
+    
+        <p class="header-col header-col--secondary">
+          <a class="header-link" href="https://github.com/apple/swift-crypto">
+            <img class="header-icon" src="../img/gh.png"/>
+            View on GitHub
+          </a>
+        </p>
+    
+    </header>
+
+    <p class="breadcrumbs">
+      <a class="breadcrumb" href="../index.html">Crypto Reference</a>
+      <img class="carat" src="../img/carat.png" />
+      HMAC Structure Reference
+    </p>
+
+    <div class="content-wrapper">
+      <nav class="navigation">
+        <ul class="nav-groups">
+          <li class="nav-group-name">
+            <a class="nav-group-name-link" href="../Enums.html">Enumerations</a>
+            <ul class="nav-group-tasks">
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="../Enums/AES.html">AES</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="../Enums/AES/GCM.html">– GCM</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="../Enums/ChaChaPoly.html">ChaChaPoly</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="../Enums/ChaChaPoly/SealedBox.html">– SealedBox</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="../Enums/ChaChaPoly/Nonce.html">– Nonce</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="../Enums/CryptoKitError.html">CryptoKitError</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="../Enums/Curve25519.html">Curve25519</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="../Enums/Curve25519/Signing.html">– Signing</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="../Enums/Curve25519/KeyAgreement.html">– KeyAgreement</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="../Enums/Insecure.html">Insecure</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="../Enums/Insecure/MD5.html">– MD5</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="../Enums/Insecure/SHA1.html">– SHA1</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="../Enums/Insecure/SHA1Digest.html">– SHA1Digest</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="../Enums/Insecure/MD5Digest.html">– MD5Digest</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="../Enums/P256.html">P256</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="../Enums/P256/Signing.html">– Signing</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="../Enums/P256/KeyAgreement.html">– KeyAgreement</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="../Enums/P384.html">P384</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="../Enums/P384/Signing.html">– Signing</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="../Enums/P384/KeyAgreement.html">– KeyAgreement</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="../Enums/P521.html">P521</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="../Enums/P521/Signing.html">– Signing</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="../Enums/P521/KeyAgreement.html">– KeyAgreement</a>
+              </li>
+            </ul>
+          </li>
+          <li class="nav-group-name">
+            <a class="nav-group-name-link" href="../Protocols.html">Protocols</a>
+            <ul class="nav-group-tasks">
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="../Protocols/Digest.html">Digest</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="../Protocols/HashFunction.html">HashFunction</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="../Protocols/MessageAuthenticationCode.html">MessageAuthenticationCode</a>
+              </li>
+            </ul>
+          </li>
+          <li class="nav-group-name">
+            <a class="nav-group-name-link" href="../Structs.html">Structures</a>
+            <ul class="nav-group-tasks">
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="../Structs/HMAC.html">HMAC</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="../Structs/HashedAuthenticationCode.html">HashedAuthenticationCode</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="../Structs/SHA256.html">SHA256</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="../Structs/SHA256Digest.html">SHA256Digest</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="../Structs/SHA384.html">SHA384</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="../Structs/SHA384Digest.html">SHA384Digest</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="../Structs/SHA512.html">SHA512</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="../Structs/SHA512Digest.html">SHA512Digest</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="../Structs/SharedSecret.html">SharedSecret</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="../Structs/SymmetricKey.html">SymmetricKey</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="../Structs/SymmetricKeySize.html">SymmetricKeySize</a>
+              </li>
+            </ul>
+          </li>
+        </ul>
+      </nav>
+      <article class="main-content">
+
+        <section class="section">
+          <div class="section-content top-matter">
+            <h1>HMAC</h1>
+              <div class="declaration">
+                <div class="language">
+                  <pre class="highlight swift"><code><span class="kd">@available</span><span class="p">(</span><span class="n">iOS</span> <span class="mf">13.0</span><span class="p">,</span> <span class="kt">OSX</span> <span class="mf">10.15</span><span class="p">,</span> <span class="n">watchOS</span> <span class="mf">6.0</span><span class="p">,</span> <span class="n">tvOS</span> <span class="mf">13.0</span><span class="p">,</span> <span class="o">*</span><span class="p">)</span>
+<span class="kd">public</span> <span class="kd">struct</span> <span class="kt">HMAC</span><span class="o">&lt;</span><span class="kt">H</span><span class="o">&gt;</span> <span class="p">:</span> <span class="kt">MACAlgorithm</span> <span class="k">where</span> <span class="kt">H</span> <span class="p">:</span> <span class="kt"><a href="../Protocols/HashFunction.html">HashFunction</a></span></code></pre>
+
+                </div>
+              </div>
+            <p>Performs HMAC - Keyed-Hashing for Message Authentication
+Reference: <a href="https://tools.ietf.org/html/rfc2104">https://tools.ietf.org/html/rfc2104</a></p>
+
+          </div>
+        </section>
+
+        <section class="section">
+          <div class="section-content">
+            <div class="task-group">
+              <ul class="item-container">
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:6Crypto4HMACV3Keya"></a>
+                    <a name="//apple_ref/swift/Alias/Key" class="dashAnchor"></a>
+                    <a class="token" href="#/s:6Crypto4HMACV3Keya">Key</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Undocumented</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">typealias</span> <span class="kt">Key</span> <span class="o">=</span> <span class="kt"><a href="../Structs/SymmetricKey.html">SymmetricKey</a></span></code></pre>
+
+                        </div>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/apple/swift-crypto/tree/1.0.0/Sources/Crypto/Message Authentication Codes/HMAC/HMAC.swift#L">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:6Crypto4HMACV3MACa"></a>
+                    <a name="//apple_ref/swift/Alias/MAC" class="dashAnchor"></a>
+                    <a class="token" href="#/s:6Crypto4HMACV3MACa">MAC</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Undocumented</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">typealias</span> <span class="kt">MAC</span> <span class="o">=</span> <span class="kt"><a href="../Structs/HashedAuthenticationCode.html">HashedAuthenticationCode</a></span><span class="o">&lt;</span><span class="kt">H</span><span class="o">&gt;</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/apple/swift-crypto/tree/1.0.0/Sources/Crypto/Message Authentication Codes/HMAC/HMAC.swift#L">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:6Crypto4HMACV25isValidAuthenticationCode_14authenticating5usingSbAA06HashedeF0VyxG_SWAA12SymmetricKeyVtFZ"></a>
+                    <a name="//apple_ref/swift/Method/isValidAuthenticationCode(_:authenticating:using:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:6Crypto4HMACV25isValidAuthenticationCode_14authenticating5usingSbAA06HashedeF0VyxG_SWAA12SymmetricKeyVtFZ">isValidAuthenticationCode(_:authenticating:using:)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Verifies a tag of a Message Authentication Code. The comparison is done in constant-time.</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">static</span> <span class="kd">func</span> <span class="nf">isValidAuthenticationCode</span><span class="p">(</span><span class="n">_</span> <span class="nv">mac</span><span class="p">:</span> <span class="kt"><a href="../Structs/HMAC.html#/s:6Crypto4HMACV3MACa">MAC</a></span><span class="p">,</span> <span class="n">authenticating</span> <span class="nv">bufferPointer</span><span class="p">:</span> <span class="kt">UnsafeRawBufferPointer</span><span class="p">,</span> <span class="n">using</span> <span class="nv">key</span><span class="p">:</span> <span class="kt"><a href="../Structs/SymmetricKey.html">SymmetricKey</a></span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kt">Bool</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div>
+                        <h4>Parameters</h4>
+                        <table class="graybox">
+                          <tbody>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>key</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>The key used to authenticate the data</p>
+                                </div>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>data</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>The data to authenticate</p>
+                                </div>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>mac</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>The MAC to verify</p>
+                                </div>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                      <div>
+                        <h4>Return Value</h4>
+                        <p>Returns true if the MAC is valid. False otherwise.</p>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/apple/swift-crypto/tree/1.0.0/Sources/Crypto/Message Authentication Codes/HMAC/HMAC.swift#L35-L37">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:6Crypto4HMACV3keyACyxGAA12SymmetricKeyV_tcfc"></a>
+                    <a name="//apple_ref/swift/Method/init(key:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:6Crypto4HMACV3keyACyxGAA12SymmetricKeyV_tcfc">init(key:)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Initializes an incremental HMAC</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="nf">init</span><span class="p">(</span><span class="nv">key</span><span class="p">:</span> <span class="kt"><a href="../Structs/SymmetricKey.html">SymmetricKey</a></span><span class="p">)</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div>
+                        <h4>Parameters</h4>
+                        <table class="graybox">
+                          <tbody>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>key</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>The key to use for HMAC.</p>
+                                </div>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/apple/swift-crypto/tree/1.0.0/Sources/Crypto/Message Authentication Codes/HMAC/HMAC.swift#L42-L79">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:6Crypto4HMACV18authenticationCode3for5usingAA020HashedAuthenticationD0VyxGqd___AA12SymmetricKeyVt10Foundation12DataProtocolRd__lFZ"></a>
+                    <a name="//apple_ref/swift/Method/authenticationCode(for:using:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:6Crypto4HMACV18authenticationCode3for5usingAA020HashedAuthenticationD0VyxGqd___AA12SymmetricKeyVt10Foundation12DataProtocolRd__lFZ">authenticationCode(for:using:)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Computes a Message Authentication Code.</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">static</span> <span class="kd">func</span> <span class="n">authenticationCode</span><span class="o">&lt;</span><span class="kt">D</span><span class="o">&gt;</span><span class="p">(</span><span class="k">for</span> <span class="nv">data</span><span class="p">:</span> <span class="kt">D</span><span class="p">,</span> <span class="n">using</span> <span class="nv">key</span><span class="p">:</span> <span class="kt"><a href="../Structs/SymmetricKey.html">SymmetricKey</a></span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kt"><a href="../Structs/HMAC.html#/s:6Crypto4HMACV3MACa">MAC</a></span> <span class="k">where</span> <span class="kt">D</span> <span class="p">:</span> <span class="kt">DataProtocol</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div>
+                        <h4>Parameters</h4>
+                        <table class="graybox">
+                          <tbody>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>key</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>The key used to authenticate the data</p>
+                                </div>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>data</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>The data to authenticate</p>
+                                </div>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                      <div>
+                        <h4>Return Value</h4>
+                        <p>A Message Authentication Code</p>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/apple/swift-crypto/tree/1.0.0/Sources/Crypto/Message Authentication Codes/HMAC/HMAC.swift#L87-L91">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:6Crypto4HMACV25isValidAuthenticationCode_14authenticating5usingSbAA06HashedeF0VyxG_qd__AA12SymmetricKeyVt10Foundation12DataProtocolRd__lFZ"></a>
+                    <a name="//apple_ref/swift/Method/isValidAuthenticationCode(_:authenticating:using:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:6Crypto4HMACV25isValidAuthenticationCode_14authenticating5usingSbAA06HashedeF0VyxG_qd__AA12SymmetricKeyVt10Foundation12DataProtocolRd__lFZ">isValidAuthenticationCode(_:authenticating:using:)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Verifies a Message Authentication Code. The comparison is done in constant-time.</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">static</span> <span class="kd">func</span> <span class="n">isValidAuthenticationCode</span><span class="o">&lt;</span><span class="kt">D</span><span class="o">&gt;</span><span class="p">(</span><span class="n">_</span> <span class="nv">authenticationCode</span><span class="p">:</span> <span class="kt"><a href="../Structs/HMAC.html#/s:6Crypto4HMACV3MACa">MAC</a></span><span class="p">,</span> <span class="n">authenticating</span> <span class="nv">authenticatedData</span><span class="p">:</span> <span class="kt">D</span><span class="p">,</span> <span class="n">using</span> <span class="nv">key</span><span class="p">:</span> <span class="kt"><a href="../Structs/SymmetricKey.html">SymmetricKey</a></span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kt">Bool</span> <span class="k">where</span> <span class="kt">D</span> <span class="p">:</span> <span class="kt">DataProtocol</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div>
+                        <h4>Parameters</h4>
+                        <table class="graybox">
+                          <tbody>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>authenticationCode</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>The authentication code</p>
+                                </div>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>authenticatedData</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>Authenticated Data</p>
+                                </div>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>key</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>The key to authenticate the data with</p>
+                                </div>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                      <div>
+                        <h4>Return Value</h4>
+                        <p>Returns true if the MAC is valid. False otherwise.</p>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/apple/swift-crypto/tree/1.0.0/Sources/Crypto/Message Authentication Codes/HMAC/HMAC.swift#L100-L102">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:6Crypto4HMACV25isValidAuthenticationCode_14authenticating5usingSbqd___qd_0_AA12SymmetricKeyVt10Foundation15ContiguousBytesRd__AI12DataProtocolRd_0_r0_lFZ"></a>
+                    <a name="//apple_ref/swift/Method/isValidAuthenticationCode(_:authenticating:using:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:6Crypto4HMACV25isValidAuthenticationCode_14authenticating5usingSbqd___qd_0_AA12SymmetricKeyVt10Foundation15ContiguousBytesRd__AI12DataProtocolRd_0_r0_lFZ">isValidAuthenticationCode(_:authenticating:using:)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Verifies a Message Authentication Code. The comparison is done in constant-time.</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">@available</span><span class="p">(</span><span class="n">iOS</span> <span class="mf">13.2</span><span class="p">,</span> <span class="kt">OSX</span> <span class="mf">10.15</span><span class="p">,</span> <span class="n">watchOS</span> <span class="mf">6.1</span><span class="p">,</span> <span class="n">tvOS</span> <span class="mf">13.2</span><span class="p">,</span> <span class="o">*</span><span class="p">)</span>
+<span class="kd">public</span> <span class="kd">static</span> <span class="kd">func</span> <span class="n">isValidAuthenticationCode</span><span class="o">&lt;</span><span class="kt">C</span><span class="p">:</span> <span class="kt">ContiguousBytes</span><span class="p">,</span> <span class="kt">D</span><span class="p">:</span> <span class="kt">DataProtocol</span><span class="o">&gt;</span><span class="p">(</span><span class="n">_</span> <span class="nv">authenticationCode</span><span class="p">:</span> <span class="kt">C</span><span class="p">,</span>
+                                                                                  <span class="n">authenticating</span> <span class="nv">authenticatedData</span><span class="p">:</span> <span class="kt">D</span><span class="p">,</span>
+                                                                                  <span class="n">using</span> <span class="nv">key</span><span class="p">:</span> <span class="kt"><a href="../Structs/SymmetricKey.html">SymmetricKey</a></span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kt">Bool</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div>
+                        <h4>Parameters</h4>
+                        <table class="graybox">
+                          <tbody>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>authenticationCode</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>The authentication code</p>
+                                </div>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>authenticatedData</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>Authenticated Data</p>
+                                </div>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>key</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>The key to authenticate the data with</p>
+                                </div>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                      <div>
+                        <h4>Return Value</h4>
+                        <p>Returns true if the MAC is valid. False otherwise.</p>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/apple/swift-crypto/tree/1.0.0/Sources/Crypto/Message Authentication Codes/HMAC/HMAC.swift#L112-L116">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:6Crypto4HMACV6update4datayqd___t10Foundation12DataProtocolRd__lF"></a>
+                    <a name="//apple_ref/swift/Method/update(data:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:6Crypto4HMACV6update4datayqd___t10Foundation12DataProtocolRd__lF">update(data:)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Updates the MAC with data.</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="k">mutating</span> <span class="kd">func</span> <span class="n">update</span><span class="o">&lt;</span><span class="kt">D</span><span class="o">&gt;</span><span class="p">(</span><span class="nv">data</span><span class="p">:</span> <span class="kt">D</span><span class="p">)</span> <span class="k">where</span> <span class="kt">D</span> <span class="p">:</span> <span class="kt">DataProtocol</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div>
+                        <h4>Parameters</h4>
+                        <table class="graybox">
+                          <tbody>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>data</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>The data to update the MAC</p>
+                                </div>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/apple/swift-crypto/tree/1.0.0/Sources/Crypto/Message Authentication Codes/HMAC/HMAC.swift#L121-L127">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:6Crypto4HMACV8finalizeAA24HashedAuthenticationCodeVyxGyF"></a>
+                    <a name="//apple_ref/swift/Method/finalize()" class="dashAnchor"></a>
+                    <a class="token" href="#/s:6Crypto4HMACV8finalizeAA24HashedAuthenticationCodeVyxGyF">finalize()</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Returns the Message Authentication Code (MAC) from the data inputted into the MAC.</p>
+<div class="aside aside-throws">
+    <p class="aside-title">Throws</p>
+    Throws if the MAC has already been finalized
+
+</div>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">func</span> <span class="nf">finalize</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kt"><a href="../Structs/HMAC.html#/s:6Crypto4HMACV3MACa">MAC</a></span></code></pre>
+
+                        </div>
+                      </div>
+                      <div>
+                        <h4>Return Value</h4>
+                        <p>The Message Authentication Code</p>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/apple/swift-crypto/tree/1.0.0/Sources/Crypto/Message Authentication Codes/HMAC/HMAC.swift#L133-L143">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+              </ul>
+            </div>
+          </div>
+        </section>
+
+      </article>
+    </div>
+    <section class="footer">
+      <p>&copy; 2020 <a class="link" href="https://github.com/apple/swift-crypto" target="_blank" rel="external">SwiftCrypto team</a>. All rights reserved. (Last updated: 2020-02-04)</p>
+      <p>Generated by <a class="link" href="https://github.com/realm/jazzy" target="_blank" rel="external">jazzy ♪♫ v0.13.1</a>, a <a class="link" href="https://realm.io" target="_blank" rel="external">Realm</a> project.</p>
+    </section>
+  </body>
+</div>
+</html>

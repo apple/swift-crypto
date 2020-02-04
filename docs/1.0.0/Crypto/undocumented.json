@@ -1,0 +1,1125 @@
+{
+  "warnings": [
+    {
+      "file": "/code/Sources/Crypto/AEADs/AES/GCM/AES-GCM.swift",
+      "line": 89,
+      "symbol": "AES.GCM.SealedBox",
+      "symbol_kind": "source.lang.swift.decl.struct",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/code/Sources/Crypto/AEADs/AES/GCM/AES-GCM.swift",
+      "line": 122,
+      "symbol": "AES.GCM.SealedBox.init(combined:)",
+      "symbol_kind": "source.lang.swift.decl.function.method.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/code/Sources/Crypto/AEADs/ChachaPoly/ChaChaPoly.swift",
+      "line": 91,
+      "symbol": "ChaChaPoly.SealedBox",
+      "symbol_kind": "source.lang.swift.decl.struct",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/code/Sources/Crypto/AEADs/ChachaPoly/ChaChaPoly.swift",
+      "line": 108,
+      "symbol": "ChaChaPoly.SealedBox.init(combined:)",
+      "symbol_kind": "source.lang.swift.decl.function.method.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/code/Sources/Crypto/AEADs/Nonces.swift",
+      "line": 20,
+      "symbol": "AES.GCM.Nonce",
+      "symbol_kind": "source.lang.swift.decl.struct",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/code/Sources/Crypto/AEADs/Nonces.swift",
+      "line": 28,
+      "symbol": "AES.GCM.Nonce.init(data:)",
+      "symbol_kind": "source.lang.swift.decl.function.method.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/code/Sources/Crypto/AEADs/Nonces.swift",
+      "line": 49,
+      "symbol": "ChaChaPoly.Nonce",
+      "symbol_kind": "source.lang.swift.decl.struct",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/code/Sources/Crypto/AEADs/Nonces.swift",
+      "line": 57,
+      "symbol": "ChaChaPoly.Nonce.init(data:)",
+      "symbol_kind": "source.lang.swift.decl.function.method.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/code/Sources/Crypto/CryptoKitErrors.swift",
+      "line": 24,
+      "symbol": "CryptoKitError.incorrectKeySize",
+      "symbol_kind": "source.lang.swift.decl.enumelement",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/code/Sources/Crypto/CryptoKitErrors.swift",
+      "line": 25,
+      "symbol": "CryptoKitError.incorrectParameterSize",
+      "symbol_kind": "source.lang.swift.decl.enumelement",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/code/Sources/Crypto/CryptoKitErrors.swift",
+      "line": 26,
+      "symbol": "CryptoKitError.authenticationFailure",
+      "symbol_kind": "source.lang.swift.decl.enumelement",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/code/Sources/Crypto/CryptoKitErrors.swift",
+      "line": 27,
+      "symbol": "CryptoKitError.underlyingCoreCryptoError(error:)",
+      "symbol_kind": "source.lang.swift.decl.enumelement",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/code/Sources/Crypto/Digests/Digest.swift",
+      "line": 22,
+      "symbol": "Digest.byteCount",
+      "symbol_kind": "source.lang.swift.decl.var.static",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/code/Sources/Crypto/Digests/Digests.swift",
+      "line": 19,
+      "symbol": "SHA256Digest",
+      "symbol_kind": "source.lang.swift.decl.struct",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/code/Sources/Crypto/Digests/Digests.swift",
+      "line": 34,
+      "symbol": "SHA256Digest.byteCount",
+      "symbol_kind": "source.lang.swift.decl.var.static",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/code/Sources/Crypto/Digests/Digests.swift",
+      "line": 65,
+      "symbol": "SHA384Digest",
+      "symbol_kind": "source.lang.swift.decl.struct",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/code/Sources/Crypto/Digests/Digests.swift",
+      "line": 80,
+      "symbol": "SHA384Digest.byteCount",
+      "symbol_kind": "source.lang.swift.decl.var.static",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/code/Sources/Crypto/Digests/Digests.swift",
+      "line": 113,
+      "symbol": "SHA512Digest",
+      "symbol_kind": "source.lang.swift.decl.struct",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/code/Sources/Crypto/Digests/Digests.swift",
+      "line": 128,
+      "symbol": "SHA512Digest.byteCount",
+      "symbol_kind": "source.lang.swift.decl.var.static",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/code/Sources/Crypto/Digests/Digests.swift",
+      "line": 164,
+      "symbol": "Insecure.SHA1Digest",
+      "symbol_kind": "source.lang.swift.decl.struct",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/code/Sources/Crypto/Digests/Digests.swift",
+      "line": 179,
+      "symbol": "Insecure.SHA1Digest.byteCount",
+      "symbol_kind": "source.lang.swift.decl.var.static",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/code/Sources/Crypto/Digests/Digests.swift",
+      "line": 211,
+      "symbol": "Insecure.MD5Digest",
+      "symbol_kind": "source.lang.swift.decl.struct",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/code/Sources/Crypto/Digests/Digests.swift",
+      "line": 226,
+      "symbol": "Insecure.MD5Digest.byteCount",
+      "symbol_kind": "source.lang.swift.decl.var.static",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/code/Sources/Crypto/Digests/HashFunctions.swift",
+      "line": 34,
+      "symbol": "HashFunction.Digest",
+      "symbol_kind": "source.lang.swift.decl.associatedtype",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/code/Sources/Crypto/Digests/HashFunctions_SHA2.swift",
+      "line": 21,
+      "symbol": "SHA256.Digest",
+      "symbol_kind": "source.lang.swift.decl.typealias",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/code/Sources/Crypto/Digests/HashFunctions_SHA2.swift",
+      "line": 22,
+      "symbol": "SHA256.byteCount",
+      "symbol_kind": "source.lang.swift.decl.var.static",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/code/Sources/Crypto/Digests/HashFunctions_SHA2.swift",
+      "line": 49,
+      "symbol": "SHA384.Digest",
+      "symbol_kind": "source.lang.swift.decl.typealias",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/code/Sources/Crypto/Digests/HashFunctions_SHA2.swift",
+      "line": 50,
+      "symbol": "SHA384.byteCount",
+      "symbol_kind": "source.lang.swift.decl.var.static",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/code/Sources/Crypto/Digests/HashFunctions_SHA2.swift",
+      "line": 73,
+      "symbol": "SHA512.Digest",
+      "symbol_kind": "source.lang.swift.decl.typealias",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/code/Sources/Crypto/Digests/HashFunctions_SHA2.swift",
+      "line": 74,
+      "symbol": "SHA512.byteCount",
+      "symbol_kind": "source.lang.swift.decl.var.static",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/code/Sources/Crypto/Insecure/Insecure_HashFunctions.swift",
+      "line": 22,
+      "symbol": "Insecure.SHA1.Digest",
+      "symbol_kind": "source.lang.swift.decl.typealias",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/code/Sources/Crypto/Insecure/Insecure_HashFunctions.swift",
+      "line": 23,
+      "symbol": "Insecure.SHA1.byteCount",
+      "symbol_kind": "source.lang.swift.decl.var.static",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/code/Sources/Crypto/Insecure/Insecure_HashFunctions.swift",
+      "line": 47,
+      "symbol": "Insecure.MD5.Digest",
+      "symbol_kind": "source.lang.swift.decl.typealias",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/code/Sources/Crypto/Insecure/Insecure_HashFunctions.swift",
+      "line": 48,
+      "symbol": "Insecure.MD5.byteCount",
+      "symbol_kind": "source.lang.swift.decl.var.static",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/code/Sources/Crypto/Key Agreement/DH.swift",
+      "line": 128,
+      "symbol": "SharedSecret.==(_:_:)",
+      "symbol_kind": "source.lang.swift.decl.function.method.static",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/code/Sources/Crypto/Key Agreement/ECDH.swift",
+      "line": 28,
+      "symbol": "P256.Signing",
+      "symbol_kind": "source.lang.swift.decl.enum",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/code/Sources/Crypto/Key Agreement/ECDH.swift",
+      "line": 29,
+      "symbol": "P256.Signing.PublicKey",
+      "symbol_kind": "source.lang.swift.decl.struct",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/code/Sources/Crypto/Key Agreement/ECDH.swift",
+      "line": 32,
+      "symbol": "P256.Signing.PublicKey.init(rawRepresentation:)",
+      "symbol_kind": "source.lang.swift.decl.function.method.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/code/Sources/Crypto/Key Agreement/ECDH.swift",
+      "line": 33,
+      "symbol": "P256.Signing",
+      "symbol_kind": "source.lang.swift.decl.extension",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/code/Sources/Crypto/Key Agreement/ECDH.swift",
+      "line": 36,
+      "symbol": "P256.Signing.PublicKey.init(compactRepresentation:)",
+      "symbol_kind": "source.lang.swift.decl.function.method.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/code/Sources/Crypto/Key Agreement/ECDH.swift",
+      "line": 40,
+      "symbol": "P256.Signing.PublicKey.init(x963Representation:)",
+      "symbol_kind": "source.lang.swift.decl.function.method.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/code/Sources/Crypto/Key Agreement/ECDH.swift",
+      "line": 48,
+      "symbol": "P256.Signing.PublicKey.compactRepresentation",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/code/Sources/Crypto/Key Agreement/ECDH.swift",
+      "line": 49,
+      "symbol": "P256.Signing.PublicKey.rawRepresentation",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/code/Sources/Crypto/Key Agreement/ECDH.swift",
+      "line": 50,
+      "symbol": "P256.Signing.PublicKey.x963Representation",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/code/Sources/Crypto/Key Agreement/ECDH.swift",
+      "line": 53,
+      "symbol": "P256.Signing.PrivateKey",
+      "symbol_kind": "source.lang.swift.decl.struct",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/code/Sources/Crypto/Key Agreement/ECDH.swift",
+      "line": 56,
+      "symbol": "P256.Signing.PrivateKey.init(compactRepresentable:)",
+      "symbol_kind": "source.lang.swift.decl.function.method.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/code/Sources/Crypto/Key Agreement/ECDH.swift",
+      "line": 60,
+      "symbol": "P256.Signing.PrivateKey.init(x963Representation:)",
+      "symbol_kind": "source.lang.swift.decl.function.method.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/code/Sources/Crypto/Key Agreement/ECDH.swift",
+      "line": 64,
+      "symbol": "P256.Signing.PrivateKey.init(rawRepresentation:)",
+      "symbol_kind": "source.lang.swift.decl.function.method.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/code/Sources/Crypto/Key Agreement/ECDH.swift",
+      "line": 72,
+      "symbol": "P256.Signing.PrivateKey.publicKey",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/code/Sources/Crypto/Key Agreement/ECDH.swift",
+      "line": 76,
+      "symbol": "P256.Signing.PrivateKey.rawRepresentation",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/code/Sources/Crypto/Key Agreement/ECDH.swift",
+      "line": 77,
+      "symbol": "P256.Signing.PrivateKey.x963Representation",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/code/Sources/Crypto/Key Agreement/ECDH.swift",
+      "line": 83,
+      "symbol": "P256.KeyAgreement",
+      "symbol_kind": "source.lang.swift.decl.enum",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/code/Sources/Crypto/Key Agreement/ECDH.swift",
+      "line": 84,
+      "symbol": "P256.KeyAgreement.PublicKey",
+      "symbol_kind": "source.lang.swift.decl.struct",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/code/Sources/Crypto/Key Agreement/ECDH.swift",
+      "line": 87,
+      "symbol": "P256.KeyAgreement.PublicKey.init(rawRepresentation:)",
+      "symbol_kind": "source.lang.swift.decl.function.method.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/code/Sources/Crypto/Key Agreement/ECDH.swift",
+      "line": 91,
+      "symbol": "P256.KeyAgreement.PublicKey.init(compactRepresentation:)",
+      "symbol_kind": "source.lang.swift.decl.function.method.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/code/Sources/Crypto/Key Agreement/ECDH.swift",
+      "line": 91,
+      "symbol": "P256.Signing.PrivateKey",
+      "symbol_kind": "source.lang.swift.decl.extension",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/code/Sources/Crypto/Key Agreement/ECDH.swift",
+      "line": 95,
+      "symbol": "P256.KeyAgreement.PublicKey.init(x963Representation:)",
+      "symbol_kind": "source.lang.swift.decl.function.method.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/code/Sources/Crypto/Key Agreement/ECDH.swift",
+      "line": 103,
+      "symbol": "P256.KeyAgreement.PublicKey.compactRepresentation",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/code/Sources/Crypto/Key Agreement/ECDH.swift",
+      "line": 104,
+      "symbol": "P256.KeyAgreement.PublicKey.rawRepresentation",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/code/Sources/Crypto/Key Agreement/ECDH.swift",
+      "line": 105,
+      "symbol": "P256.KeyAgreement.PublicKey.x963Representation",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/code/Sources/Crypto/Key Agreement/ECDH.swift",
+      "line": 106,
+      "symbol": "P256.Signing.PrivateKey",
+      "symbol_kind": "source.lang.swift.decl.extension",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/code/Sources/Crypto/Key Agreement/ECDH.swift",
+      "line": 108,
+      "symbol": "P256.KeyAgreement.PrivateKey",
+      "symbol_kind": "source.lang.swift.decl.struct",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/code/Sources/Crypto/Key Agreement/ECDH.swift",
+      "line": 111,
+      "symbol": "P256.KeyAgreement.PrivateKey.init(compactRepresentable:)",
+      "symbol_kind": "source.lang.swift.decl.function.method.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/code/Sources/Crypto/Key Agreement/ECDH.swift",
+      "line": 115,
+      "symbol": "P256.KeyAgreement.PrivateKey.init(x963Representation:)",
+      "symbol_kind": "source.lang.swift.decl.function.method.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/code/Sources/Crypto/Key Agreement/ECDH.swift",
+      "line": 118,
+      "symbol": "P256.Signing.PublicKey",
+      "symbol_kind": "source.lang.swift.decl.extension",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/code/Sources/Crypto/Key Agreement/ECDH.swift",
+      "line": 119,
+      "symbol": "P256.KeyAgreement.PrivateKey.init(rawRepresentation:)",
+      "symbol_kind": "source.lang.swift.decl.function.method.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/code/Sources/Crypto/Key Agreement/ECDH.swift",
+      "line": 127,
+      "symbol": "P256.KeyAgreement.PrivateKey.publicKey",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/code/Sources/Crypto/Key Agreement/ECDH.swift",
+      "line": 131,
+      "symbol": "P256.KeyAgreement.PrivateKey.rawRepresentation",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/code/Sources/Crypto/Key Agreement/ECDH.swift",
+      "line": 132,
+      "symbol": "P256.KeyAgreement.PrivateKey.x963Representation",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/code/Sources/Crypto/Key Agreement/ECDH.swift",
+      "line": 134,
+      "symbol": "P256.Signing.PublicKey",
+      "symbol_kind": "source.lang.swift.decl.extension",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/code/Sources/Crypto/Key Agreement/ECDH.swift",
+      "line": 138,
+      "symbol": "P384.Signing",
+      "symbol_kind": "source.lang.swift.decl.enum",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/code/Sources/Crypto/Key Agreement/ECDH.swift",
+      "line": 139,
+      "symbol": "P384.Signing.PublicKey",
+      "symbol_kind": "source.lang.swift.decl.struct",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/code/Sources/Crypto/Key Agreement/ECDH.swift",
+      "line": 142,
+      "symbol": "P384.Signing.PublicKey.init(rawRepresentation:)",
+      "symbol_kind": "source.lang.swift.decl.function.method.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/code/Sources/Crypto/Key Agreement/ECDH.swift",
+      "line": 146,
+      "symbol": "P384.Signing.PublicKey.init(compactRepresentation:)",
+      "symbol_kind": "source.lang.swift.decl.function.method.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/code/Sources/Crypto/Key Agreement/ECDH.swift",
+      "line": 148,
+      "symbol": "P384.Signing",
+      "symbol_kind": "source.lang.swift.decl.extension",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/code/Sources/Crypto/Key Agreement/ECDH.swift",
+      "line": 150,
+      "symbol": "P384.Signing.PublicKey.init(x963Representation:)",
+      "symbol_kind": "source.lang.swift.decl.function.method.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/code/Sources/Crypto/Key Agreement/ECDH.swift",
+      "line": 158,
+      "symbol": "P384.Signing.PublicKey.compactRepresentation",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/code/Sources/Crypto/Key Agreement/ECDH.swift",
+      "line": 159,
+      "symbol": "P384.Signing.PublicKey.rawRepresentation",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/code/Sources/Crypto/Key Agreement/ECDH.swift",
+      "line": 160,
+      "symbol": "P384.Signing.PublicKey.x963Representation",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/code/Sources/Crypto/Key Agreement/ECDH.swift",
+      "line": 163,
+      "symbol": "P384.Signing.PrivateKey",
+      "symbol_kind": "source.lang.swift.decl.struct",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/code/Sources/Crypto/Key Agreement/ECDH.swift",
+      "line": 166,
+      "symbol": "P384.Signing.PrivateKey.init(compactRepresentable:)",
+      "symbol_kind": "source.lang.swift.decl.function.method.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/code/Sources/Crypto/Key Agreement/ECDH.swift",
+      "line": 170,
+      "symbol": "P384.Signing.PrivateKey.init(x963Representation:)",
+      "symbol_kind": "source.lang.swift.decl.function.method.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/code/Sources/Crypto/Key Agreement/ECDH.swift",
+      "line": 174,
+      "symbol": "P384.Signing.PrivateKey.init(rawRepresentation:)",
+      "symbol_kind": "source.lang.swift.decl.function.method.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/code/Sources/Crypto/Key Agreement/ECDH.swift",
+      "line": 182,
+      "symbol": "P384.Signing.PrivateKey.publicKey",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/code/Sources/Crypto/Key Agreement/ECDH.swift",
+      "line": 186,
+      "symbol": "P384.Signing.PrivateKey.rawRepresentation",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/code/Sources/Crypto/Key Agreement/ECDH.swift",
+      "line": 187,
+      "symbol": "P384.Signing.PrivateKey.x963Representation",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/code/Sources/Crypto/Key Agreement/ECDH.swift",
+      "line": 193,
+      "symbol": "P384.KeyAgreement",
+      "symbol_kind": "source.lang.swift.decl.enum",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/code/Sources/Crypto/Key Agreement/ECDH.swift",
+      "line": 194,
+      "symbol": "P384.KeyAgreement.PublicKey",
+      "symbol_kind": "source.lang.swift.decl.struct",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/code/Sources/Crypto/Key Agreement/ECDH.swift",
+      "line": 197,
+      "symbol": "P384.KeyAgreement.PublicKey.init(rawRepresentation:)",
+      "symbol_kind": "source.lang.swift.decl.function.method.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/code/Sources/Crypto/Key Agreement/ECDH.swift",
+      "line": 201,
+      "symbol": "P384.KeyAgreement.PublicKey.init(compactRepresentation:)",
+      "symbol_kind": "source.lang.swift.decl.function.method.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/code/Sources/Crypto/Key Agreement/ECDH.swift",
+      "line": 205,
+      "symbol": "P384.KeyAgreement.PublicKey.init(x963Representation:)",
+      "symbol_kind": "source.lang.swift.decl.function.method.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/code/Sources/Crypto/Key Agreement/ECDH.swift",
+      "line": 206,
+      "symbol": "P384.Signing.PrivateKey",
+      "symbol_kind": "source.lang.swift.decl.extension",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/code/Sources/Crypto/Key Agreement/ECDH.swift",
+      "line": 213,
+      "symbol": "P384.KeyAgreement.PublicKey.compactRepresentation",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/code/Sources/Crypto/Key Agreement/ECDH.swift",
+      "line": 214,
+      "symbol": "P384.KeyAgreement.PublicKey.rawRepresentation",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/code/Sources/Crypto/Key Agreement/ECDH.swift",
+      "line": 215,
+      "symbol": "P384.KeyAgreement.PublicKey.x963Representation",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/code/Sources/Crypto/Key Agreement/ECDH.swift",
+      "line": 218,
+      "symbol": "P384.KeyAgreement.PrivateKey",
+      "symbol_kind": "source.lang.swift.decl.struct",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/code/Sources/Crypto/Key Agreement/ECDH.swift",
+      "line": 221,
+      "symbol": "P384.KeyAgreement.PrivateKey.init(compactRepresentable:)",
+      "symbol_kind": "source.lang.swift.decl.function.method.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/code/Sources/Crypto/Key Agreement/ECDH.swift",
+      "line": 221,
+      "symbol": "P384.Signing.PrivateKey",
+      "symbol_kind": "source.lang.swift.decl.extension",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/code/Sources/Crypto/Key Agreement/ECDH.swift",
+      "line": 225,
+      "symbol": "P384.KeyAgreement.PrivateKey.init(x963Representation:)",
+      "symbol_kind": "source.lang.swift.decl.function.method.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/code/Sources/Crypto/Key Agreement/ECDH.swift",
+      "line": 229,
+      "symbol": "P384.KeyAgreement.PrivateKey.init(rawRepresentation:)",
+      "symbol_kind": "source.lang.swift.decl.function.method.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/code/Sources/Crypto/Key Agreement/ECDH.swift",
+      "line": 233,
+      "symbol": "P384.Signing.PublicKey",
+      "symbol_kind": "source.lang.swift.decl.extension",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/code/Sources/Crypto/Key Agreement/ECDH.swift",
+      "line": 237,
+      "symbol": "P384.KeyAgreement.PrivateKey.publicKey",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/code/Sources/Crypto/Key Agreement/ECDH.swift",
+      "line": 241,
+      "symbol": "P384.KeyAgreement.PrivateKey.rawRepresentation",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/code/Sources/Crypto/Key Agreement/ECDH.swift",
+      "line": 242,
+      "symbol": "P384.KeyAgreement.PrivateKey.x963Representation",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/code/Sources/Crypto/Key Agreement/ECDH.swift",
+      "line": 248,
+      "symbol": "P521.Signing",
+      "symbol_kind": "source.lang.swift.decl.enum",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/code/Sources/Crypto/Key Agreement/ECDH.swift",
+      "line": 249,
+      "symbol": "P384.Signing.PublicKey",
+      "symbol_kind": "source.lang.swift.decl.extension",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/code/Sources/Crypto/Key Agreement/ECDH.swift",
+      "line": 249,
+      "symbol": "P521.Signing.PublicKey",
+      "symbol_kind": "source.lang.swift.decl.struct",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/code/Sources/Crypto/Key Agreement/ECDH.swift",
+      "line": 252,
+      "symbol": "P521.Signing.PublicKey.init(rawRepresentation:)",
+      "symbol_kind": "source.lang.swift.decl.function.method.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/code/Sources/Crypto/Key Agreement/ECDH.swift",
+      "line": 256,
+      "symbol": "P521.Signing.PublicKey.init(compactRepresentation:)",
+      "symbol_kind": "source.lang.swift.decl.function.method.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/code/Sources/Crypto/Key Agreement/ECDH.swift",
+      "line": 260,
+      "symbol": "P521.Signing.PublicKey.init(x963Representation:)",
+      "symbol_kind": "source.lang.swift.decl.function.method.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/code/Sources/Crypto/Key Agreement/ECDH.swift",
+      "line": 263,
+      "symbol": "P521.Signing",
+      "symbol_kind": "source.lang.swift.decl.extension",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/code/Sources/Crypto/Key Agreement/ECDH.swift",
+      "line": 268,
+      "symbol": "P521.Signing.PublicKey.compactRepresentation",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/code/Sources/Crypto/Key Agreement/ECDH.swift",
+      "line": 269,
+      "symbol": "P521.Signing.PublicKey.rawRepresentation",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/code/Sources/Crypto/Key Agreement/ECDH.swift",
+      "line": 270,
+      "symbol": "P521.Signing.PublicKey.x963Representation",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/code/Sources/Crypto/Key Agreement/ECDH.swift",
+      "line": 273,
+      "symbol": "P521.Signing.PrivateKey",
+      "symbol_kind": "source.lang.swift.decl.struct",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/code/Sources/Crypto/Key Agreement/ECDH.swift",
+      "line": 276,
+      "symbol": "P521.Signing.PrivateKey.init(compactRepresentable:)",
+      "symbol_kind": "source.lang.swift.decl.function.method.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/code/Sources/Crypto/Key Agreement/ECDH.swift",
+      "line": 280,
+      "symbol": "P521.Signing.PrivateKey.init(x963Representation:)",
+      "symbol_kind": "source.lang.swift.decl.function.method.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/code/Sources/Crypto/Key Agreement/ECDH.swift",
+      "line": 284,
+      "symbol": "P521.Signing.PrivateKey.init(rawRepresentation:)",
+      "symbol_kind": "source.lang.swift.decl.function.method.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/code/Sources/Crypto/Key Agreement/ECDH.swift",
+      "line": 292,
+      "symbol": "P521.Signing.PrivateKey.publicKey",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/code/Sources/Crypto/Key Agreement/ECDH.swift",
+      "line": 296,
+      "symbol": "P521.Signing.PrivateKey.rawRepresentation",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/code/Sources/Crypto/Key Agreement/ECDH.swift",
+      "line": 297,
+      "symbol": "P521.Signing.PrivateKey.x963Representation",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/code/Sources/Crypto/Key Agreement/ECDH.swift",
+      "line": 303,
+      "symbol": "P521.KeyAgreement",
+      "symbol_kind": "source.lang.swift.decl.enum",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/code/Sources/Crypto/Key Agreement/ECDH.swift",
+      "line": 304,
+      "symbol": "P521.KeyAgreement.PublicKey",
+      "symbol_kind": "source.lang.swift.decl.struct",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/code/Sources/Crypto/Key Agreement/ECDH.swift",
+      "line": 307,
+      "symbol": "P521.KeyAgreement.PublicKey.init(rawRepresentation:)",
+      "symbol_kind": "source.lang.swift.decl.function.method.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/code/Sources/Crypto/Key Agreement/ECDH.swift",
+      "line": 311,
+      "symbol": "P521.KeyAgreement.PublicKey.init(compactRepresentation:)",
+      "symbol_kind": "source.lang.swift.decl.function.method.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/code/Sources/Crypto/Key Agreement/ECDH.swift",
+      "line": 315,
+      "symbol": "P521.KeyAgreement.PublicKey.init(x963Representation:)",
+      "symbol_kind": "source.lang.swift.decl.function.method.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/code/Sources/Crypto/Key Agreement/ECDH.swift",
+      "line": 321,
+      "symbol": "P521.Signing.PrivateKey",
+      "symbol_kind": "source.lang.swift.decl.extension",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/code/Sources/Crypto/Key Agreement/ECDH.swift",
+      "line": 323,
+      "symbol": "P521.KeyAgreement.PublicKey.compactRepresentation",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/code/Sources/Crypto/Key Agreement/ECDH.swift",
+      "line": 324,
+      "symbol": "P521.KeyAgreement.PublicKey.rawRepresentation",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/code/Sources/Crypto/Key Agreement/ECDH.swift",
+      "line": 325,
+      "symbol": "P521.KeyAgreement.PublicKey.x963Representation",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/code/Sources/Crypto/Key Agreement/ECDH.swift",
+      "line": 328,
+      "symbol": "P521.KeyAgreement.PrivateKey",
+      "symbol_kind": "source.lang.swift.decl.struct",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/code/Sources/Crypto/Key Agreement/ECDH.swift",
+      "line": 331,
+      "symbol": "P521.KeyAgreement.PrivateKey.init(compactRepresentable:)",
+      "symbol_kind": "source.lang.swift.decl.function.method.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/code/Sources/Crypto/Key Agreement/ECDH.swift",
+      "line": 335,
+      "symbol": "P521.KeyAgreement.PrivateKey.init(x963Representation:)",
+      "symbol_kind": "source.lang.swift.decl.function.method.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/code/Sources/Crypto/Key Agreement/ECDH.swift",
+      "line": 336,
+      "symbol": "P521.Signing.PrivateKey",
+      "symbol_kind": "source.lang.swift.decl.extension",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/code/Sources/Crypto/Key Agreement/ECDH.swift",
+      "line": 339,
+      "symbol": "P521.KeyAgreement.PrivateKey.init(rawRepresentation:)",
+      "symbol_kind": "source.lang.swift.decl.function.method.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/code/Sources/Crypto/Key Agreement/ECDH.swift",
+      "line": 347,
+      "symbol": "P521.KeyAgreement.PrivateKey.publicKey",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/code/Sources/Crypto/Key Agreement/ECDH.swift",
+      "line": 348,
+      "symbol": "P521.Signing.PublicKey",
+      "symbol_kind": "source.lang.swift.decl.extension",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/code/Sources/Crypto/Key Agreement/ECDH.swift",
+      "line": 351,
+      "symbol": "P521.KeyAgreement.PrivateKey.rawRepresentation",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/code/Sources/Crypto/Key Agreement/ECDH.swift",
+      "line": 352,
+      "symbol": "P521.KeyAgreement.PrivateKey.x963Representation",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/code/Sources/Crypto/Key Agreement/ECDH.swift",
+      "line": 357,
+      "symbol": "P256.KeyAgreement.PrivateKey",
+      "symbol_kind": "source.lang.swift.decl.extension",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/code/Sources/Crypto/Key Agreement/ECDH.swift",
+      "line": 364,
+      "symbol": "P521.Signing.PublicKey",
+      "symbol_kind": "source.lang.swift.decl.extension",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/code/Sources/Crypto/Key Agreement/ECDH.swift",
+      "line": 371,
+      "symbol": "P384.KeyAgreement.PrivateKey",
+      "symbol_kind": "source.lang.swift.decl.extension",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/code/Sources/Crypto/Key Agreement/ECDH.swift",
+      "line": 385,
+      "symbol": "P521.KeyAgreement.PrivateKey",
+      "symbol_kind": "source.lang.swift.decl.extension",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/code/Sources/Crypto/Keys/EC/Ed25519.swift",
+      "line": 35,
+      "symbol": "Curve25519.Signing.PublicKey",
+      "symbol_kind": "source.lang.swift.decl.extension",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/code/Sources/Crypto/Keys/EC/Ed25519.swift",
+      "line": 46,
+      "symbol": "Curve25519.Signing.PrivateKey.init(rawRepresentation:)",
+      "symbol_kind": "source.lang.swift.decl.function.method.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/code/Sources/Crypto/Keys/EC/Ed25519.swift",
+      "line": 60,
+      "symbol": "Curve25519.Signing.PublicKey",
+      "symbol_kind": "source.lang.swift.decl.struct",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/code/Sources/Crypto/Keys/EC/Ed25519.swift",
+      "line": 63,
+      "symbol": "Curve25519.Signing.PublicKey.init(rawRepresentation:)",
+      "symbol_kind": "source.lang.swift.decl.function.method.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/code/Sources/Crypto/Keys/EC/Ed25519.swift",
+      "line": 71,
+      "symbol": "Curve25519.Signing.PublicKey.rawRepresentation",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/code/Sources/Crypto/Keys/EC/X25519Keys.swift",
+      "line": 20,
+      "symbol": "Curve25519.KeyAgreement",
+      "symbol_kind": "source.lang.swift.decl.enum",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/code/Sources/Crypto/Keys/EC/X25519Keys.swift",
+      "line": 29,
+      "symbol": "Curve25519.KeyAgreement.PublicKey",
+      "symbol_kind": "source.lang.swift.decl.struct",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/code/Sources/Crypto/Keys/EC/X25519Keys.swift",
+      "line": 59,
+      "symbol": "Curve25519.KeyAgreement.PrivateKey",
+      "symbol_kind": "source.lang.swift.decl.struct",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/code/Sources/Crypto/Keys/Symmetric/SymmetricKeys.swift",
+      "line": 22,
+      "symbol": "SymmetricKeySize.bitCount",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/code/Sources/Crypto/Message Authentication Codes/HMAC/HMAC.swift",
+      "line": 23,
+      "symbol": "HMAC.Key",
+      "symbol_kind": "source.lang.swift.decl.typealias",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/code/Sources/Crypto/Message Authentication Codes/HMAC/HMAC.swift",
+      "line": 24,
+      "symbol": "HMAC.MAC",
+      "symbol_kind": "source.lang.swift.decl.typealias",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/code/Sources/Crypto/Message Authentication Codes/HMAC/HMAC.swift",
+      "line": 169,
+      "symbol": "HashedAuthenticationCode.byteCount",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/code/Sources/Crypto/Message Authentication Codes/MessageAuthenticationCode.swift",
+      "line": 22,
+      "symbol": "MessageAuthenticationCode.byteCount",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/code/Sources/Crypto/Signatures/ECDSA.swift",
+      "line": 34,
+      "symbol": "P256.Signing.ECDSASignature",
+      "symbol_kind": "source.lang.swift.decl.struct",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/code/Sources/Crypto/Signatures/ECDSA.swift",
+      "line": 149,
+      "symbol": "P384.Signing.ECDSASignature",
+      "symbol_kind": "source.lang.swift.decl.struct",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/code/Sources/Crypto/Signatures/ECDSA.swift",
+      "line": 264,
+      "symbol": "P521.Signing.ECDSASignature",
+      "symbol_kind": "source.lang.swift.decl.struct",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/code/Sources/Crypto/Util/SecureBytes.swift",
+      "line": 398,
+      "symbol": "SecureBytes.Backing",
+      "symbol_kind": "source.lang.swift.decl.extension",
+      "warning": "undocumented"
+    }
+  ],
+  "source_directory": "/code"
+}

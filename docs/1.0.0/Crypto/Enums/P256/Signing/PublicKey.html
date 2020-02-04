@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>PublicKey Structure Reference</title>
+    <link rel="stylesheet" type="text/css" href="../../../css/jazzy.css" />
+    <link rel="stylesheet" type="text/css" href="../../../css/highlight.css" />
+    <meta charset="utf-8">
+    <script src="../../../js/jquery.min.js" defer></script>
+    <script src="../../../js/jazzy.js" defer></script>
+    
+    <script src="../../../js/lunr.min.js" defer></script>
+    <script src="../../../js/typeahead.jquery.js" defer></script>
+    <script src="../../../js/jazzy.search.js" defer></script>
+  </head>
+  <body>
+
+    <a name="//apple_ref/swift/Struct/PublicKey" class="dashAnchor"></a>
+
+    <a title="PublicKey Structure Reference"></a>
+
+    <header class="header">
+      <p class="header-col header-col--primary">
+        <a class="header-link" href="../../../index.html">
+          Crypto Docs
+        </a>
+         (56% documented)
+      </p>
+    
+      <p class="header-col--secondary">
+        <form role="search" action="../../../search.json">
+          <input type="text" placeholder="Search documentation" data-typeahead>
+        </form>
+      </p>
+    
+        <p class="header-col header-col--secondary">
+          <a class="header-link" href="https://github.com/apple/swift-crypto">
+            <img class="header-icon" src="../../../img/gh.png"/>
+            View on GitHub
+          </a>
+        </p>
+    
+    </header>
+
+    <p class="breadcrumbs">
+      <a class="breadcrumb" href="../../../index.html">Crypto Reference</a>
+      <img class="carat" src="../../../img/carat.png" />
+      PublicKey Structure Reference
+    </p>
+
+    <div class="content-wrapper">
+      <nav class="navigation">
+        <ul class="nav-groups">
+          <li class="nav-group-name">
+            <a class="nav-group-name-link" href="../../../Enums.html">Enumerations</a>
+            <ul class="nav-group-tasks">
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="../../../Enums/AES.html">AES</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="../../../Enums/AES/GCM.html">– GCM</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="../../../Enums/ChaChaPoly.html">ChaChaPoly</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="../../../Enums/ChaChaPoly/SealedBox.html">– SealedBox</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="../../../Enums/ChaChaPoly/Nonce.html">– Nonce</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="../../../Enums/CryptoKitError.html">CryptoKitError</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="../../../Enums/Curve25519.html">Curve25519</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="../../../Enums/Curve25519/Signing.html">– Signing</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="../../../Enums/Curve25519/KeyAgreement.html">– KeyAgreement</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="../../../Enums/Insecure.html">Insecure</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="../../../Enums/Insecure/MD5.html">– MD5</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="../../../Enums/Insecure/SHA1.html">– SHA1</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="../../../Enums/Insecure/SHA1Digest.html">– SHA1Digest</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="../../../Enums/Insecure/MD5Digest.html">– MD5Digest</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="../../../Enums/P256.html">P256</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="../../../Enums/P256/Signing.html">– Signing</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="../../../Enums/P256/KeyAgreement.html">– KeyAgreement</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="../../../Enums/P384.html">P384</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="../../../Enums/P384/Signing.html">– Signing</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="../../../Enums/P384/KeyAgreement.html">– KeyAgreement</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="../../../Enums/P521.html">P521</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="../../../Enums/P521/Signing.html">– Signing</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="../../../Enums/P521/KeyAgreement.html">– KeyAgreement</a>
+              </li>
+            </ul>
+          </li>
+          <li class="nav-group-name">
+            <a class="nav-group-name-link" href="../../../Protocols.html">Protocols</a>
+            <ul class="nav-group-tasks">
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="../../../Protocols/Digest.html">Digest</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="../../../Protocols/HashFunction.html">HashFunction</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="../../../Protocols/MessageAuthenticationCode.html">MessageAuthenticationCode</a>
+              </li>
+            </ul>
+          </li>
+          <li class="nav-group-name">
+            <a class="nav-group-name-link" href="../../../Structs.html">Structures</a>
+            <ul class="nav-group-tasks">
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="../../../Structs/HMAC.html">HMAC</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="../../../Structs/HashedAuthenticationCode.html">HashedAuthenticationCode</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="../../../Structs/SHA256.html">SHA256</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="../../../Structs/SHA256Digest.html">SHA256Digest</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="../../../Structs/SHA384.html">SHA384</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="../../../Structs/SHA384Digest.html">SHA384Digest</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="../../../Structs/SHA512.html">SHA512</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="../../../Structs/SHA512Digest.html">SHA512Digest</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="../../../Structs/SharedSecret.html">SharedSecret</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="../../../Structs/SymmetricKey.html">SymmetricKey</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="../../../Structs/SymmetricKeySize.html">SymmetricKeySize</a>
+              </li>
+            </ul>
+          </li>
+        </ul>
+      </nav>
+      <article class="main-content">
+
+        <section class="section">
+          <div class="section-content top-matter">
+            <h1>PublicKey</h1>
+              <div class="declaration">
+                <div class="language">
+                  <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">struct</span> <span class="kt">PublicKey</span> <span class="p">:</span> <span class="kt">NISTECPublicKey</span></code></pre>
+
+                </div>
+              </div>
+            <p>Undocumented</p>
+
+          </div>
+        </section>
+
+        <section class="section">
+          <div class="section-content">
+            <div class="task-group">
+              <ul class="item-container">
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:6Crypto4P256O7SigningO9PublicKeyV17rawRepresentationAGx_tKc10Foundation15ContiguousBytesRzlufc"></a>
+                    <a name="//apple_ref/swift/Method/init(rawRepresentation:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:6Crypto4P256O7SigningO9PublicKeyV17rawRepresentationAGx_tKc10Foundation15ContiguousBytesRzlufc">init(rawRepresentation:)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Undocumented</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">init</span><span class="o">&lt;</span><span class="kt">D</span><span class="o">&gt;</span><span class="p">(</span><span class="nv">rawRepresentation</span><span class="p">:</span> <span class="kt">D</span><span class="p">)</span> <span class="k">throws</span> <span class="k">where</span> <span class="kt">D</span> <span class="p">:</span> <span class="kt">ContiguousBytes</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/apple/swift-crypto/tree/1.0.0/Sources/Crypto/Key Agreement/ECDH.swift#L32-L34">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:6Crypto4P256O7SigningO9PublicKeyV21compactRepresentationAGx_tKc10Foundation15ContiguousBytesRzlufc"></a>
+                    <a name="//apple_ref/swift/Method/init(compactRepresentation:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:6Crypto4P256O7SigningO9PublicKeyV21compactRepresentationAGx_tKc10Foundation15ContiguousBytesRzlufc">init(compactRepresentation:)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Undocumented</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">init</span><span class="o">&lt;</span><span class="kt">Bytes</span><span class="o">&gt;</span><span class="p">(</span><span class="nv">compactRepresentation</span><span class="p">:</span> <span class="kt">Bytes</span><span class="p">)</span> <span class="k">throws</span> <span class="k">where</span> <span class="kt">Bytes</span> <span class="p">:</span> <span class="kt">ContiguousBytes</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/apple/swift-crypto/tree/1.0.0/Sources/Crypto/Key Agreement/ECDH.swift#L36-L38">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:6Crypto4P256O7SigningO9PublicKeyV18x963RepresentationAGx_tKc10Foundation15ContiguousBytesRzlufc"></a>
+                    <a name="//apple_ref/swift/Method/init(x963Representation:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:6Crypto4P256O7SigningO9PublicKeyV18x963RepresentationAGx_tKc10Foundation15ContiguousBytesRzlufc">init(x963Representation:)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Undocumented</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">init</span><span class="o">&lt;</span><span class="kt">Bytes</span><span class="o">&gt;</span><span class="p">(</span><span class="nv">x963Representation</span><span class="p">:</span> <span class="kt">Bytes</span><span class="p">)</span> <span class="k">throws</span> <span class="k">where</span> <span class="kt">Bytes</span> <span class="p">:</span> <span class="kt">ContiguousBytes</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/apple/swift-crypto/tree/1.0.0/Sources/Crypto/Key Agreement/ECDH.swift#L40-L42">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:6Crypto4P256O7SigningO9PublicKeyV21compactRepresentation10Foundation4DataVSgvp"></a>
+                    <a name="//apple_ref/swift/Property/compactRepresentation" class="dashAnchor"></a>
+                    <a class="token" href="#/s:6Crypto4P256O7SigningO9PublicKeyV21compactRepresentation10Foundation4DataVSgvp">compactRepresentation</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Undocumented</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="k">var</span> <span class="nv">compactRepresentation</span><span class="p">:</span> <span class="kt">Data</span><span class="p">?</span> <span class="p">{</span> <span class="k">get</span> <span class="p">}</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/apple/swift-crypto/tree/1.0.0/Sources/Crypto/Key Agreement/ECDH.swift#L">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:6Crypto4P256O7SigningO9PublicKeyV17rawRepresentation10Foundation4DataVvp"></a>
+                    <a name="//apple_ref/swift/Property/rawRepresentation" class="dashAnchor"></a>
+                    <a class="token" href="#/s:6Crypto4P256O7SigningO9PublicKeyV17rawRepresentation10Foundation4DataVvp">rawRepresentation</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Undocumented</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="k">var</span> <span class="nv">rawRepresentation</span><span class="p">:</span> <span class="kt">Data</span> <span class="p">{</span> <span class="k">get</span> <span class="p">}</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/apple/swift-crypto/tree/1.0.0/Sources/Crypto/Key Agreement/ECDH.swift#L">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:6Crypto4P256O7SigningO9PublicKeyV18x963Representation10Foundation4DataVvp"></a>
+                    <a name="//apple_ref/swift/Property/x963Representation" class="dashAnchor"></a>
+                    <a class="token" href="#/s:6Crypto4P256O7SigningO9PublicKeyV18x963Representation10Foundation4DataVvp">x963Representation</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Undocumented</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="k">var</span> <span class="nv">x963Representation</span><span class="p">:</span> <span class="kt">Data</span> <span class="p">{</span> <span class="k">get</span> <span class="p">}</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/apple/swift-crypto/tree/1.0.0/Sources/Crypto/Key Agreement/ECDH.swift#L">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:6Crypto4P256O7SigningO9PublicKeyV16isValidSignature_3forSbAE14ECDSASignatureV_xtAA6DigestRzlF"></a>
+                    <a name="//apple_ref/swift/Method/isValidSignature(_:for:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:6Crypto4P256O7SigningO9PublicKeyV16isValidSignature_3forSbAE14ECDSASignatureV_xtAA6DigestRzlF">isValidSignature(_:for:)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Verifies an ECDSA signature over the P256 elliptic curve.</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">func</span> <span class="n">isValidSignature</span><span class="o">&lt;</span><span class="kt">D</span><span class="o">&gt;</span><span class="p">(</span><span class="n">_</span> <span class="nv">signature</span><span class="p">:</span> <span class="kt"><a href="../../../Enums/P256.html">P256</a></span><span class="o">.</span><span class="kt"><a href="../../../Enums/P256/Signing.html">Signing</a></span><span class="o">.</span><span class="kt"><a href="../../../Enums/P256/Signing/ECDSASignature.html">ECDSASignature</a></span><span class="p">,</span> <span class="k">for</span> <span class="nv">digest</span><span class="p">:</span> <span class="kt">D</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kt">Bool</span> <span class="k">where</span> <span class="kt">D</span> <span class="p">:</span> <span class="kt"><a href="../../../Protocols/Digest.html">Digest</a></span></code></pre>
+
+                        </div>
+                      </div>
+                      <div>
+                        <h4>Parameters</h4>
+                        <table class="graybox">
+                          <tbody>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>signature</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>The signature to verify</p>
+                                </div>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>digest</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>The digest that was signed.</p>
+                                </div>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                      <div>
+                        <h4>Return Value</h4>
+                        <p>True if the signature is valid, false otherwise.</p>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/apple/swift-crypto/tree/1.0.0/Sources/Crypto/Signatures/ECDSA.swift#L125-L131">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:6Crypto4P256O7SigningO9PublicKeyV16isValidSignature_3forSbAE14ECDSASignatureV_xt10Foundation12DataProtocolRzlF"></a>
+                    <a name="//apple_ref/swift/Method/isValidSignature(_:for:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:6Crypto4P256O7SigningO9PublicKeyV16isValidSignature_3forSbAE14ECDSASignatureV_xt10Foundation12DataProtocolRzlF">isValidSignature(_:for:)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Verifies an ECDSA signature over the P256 elliptic curve.
+SHA256 is used as the hash function.</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">func</span> <span class="n">isValidSignature</span><span class="o">&lt;</span><span class="kt">D</span><span class="o">&gt;</span><span class="p">(</span><span class="n">_</span> <span class="nv">signature</span><span class="p">:</span> <span class="kt"><a href="../../../Enums/P256.html">P256</a></span><span class="o">.</span><span class="kt"><a href="../../../Enums/P256/Signing.html">Signing</a></span><span class="o">.</span><span class="kt"><a href="../../../Enums/P256/Signing/ECDSASignature.html">ECDSASignature</a></span><span class="p">,</span> <span class="k">for</span> <span class="nv">data</span><span class="p">:</span> <span class="kt">D</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kt">Bool</span> <span class="k">where</span> <span class="kt">D</span> <span class="p">:</span> <span class="kt">DataProtocol</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div>
+                        <h4>Parameters</h4>
+                        <table class="graybox">
+                          <tbody>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>signature</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>The signature to verify</p>
+                                </div>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>data</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>The data that was signed.</p>
+                                </div>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                      <div>
+                        <h4>Return Value</h4>
+                        <p>True if the signature is valid, false otherwise.</p>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/apple/swift-crypto/tree/1.0.0/Sources/Crypto/Signatures/ECDSA.swift#L142-L144">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+              </ul>
+            </div>
+          </div>
+        </section>
+
+      </article>
+    </div>
+    <section class="footer">
+      <p>&copy; 2020 <a class="link" href="https://github.com/apple/swift-crypto" target="_blank" rel="external">SwiftCrypto team</a>. All rights reserved. (Last updated: 2020-02-04)</p>
+      <p>Generated by <a class="link" href="https://github.com/realm/jazzy" target="_blank" rel="external">jazzy ♪♫ v0.13.1</a>, a <a class="link" href="https://realm.io" target="_blank" rel="external">Realm</a> project.</p>
+    </section>
+  </body>
+</div>
+</html>
