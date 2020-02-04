@@ -39,8 +39,8 @@ private func htoi(_ value: UInt8) throws -> UInt8 {
 extension Array where Element == UInt8 {
     init(hexString: String) throws {
         self.init()
-
-        if hexString.count % 2 != 0 || hexString.count == 0 {
+        
+        guard hexString.count.isMultiple(of: 2), !hexString.isEmpty else {
             throw ByteHexEncodingErrors.incorrectString
         }
 
