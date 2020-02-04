@@ -148,14 +148,14 @@ class AESGCMTests: XCTestCase {
     }
 
     func testRoundTripDataProtocols() throws {
-        func roundTrip<Message: DataProtocol, AAD: DataProtocol>(message: Message, aad: AAD) {
+        func roundTrip<Message: DataProtocol, AAD: DataProtocol>(message: Message, aad: AAD, file: StaticString = #file, line: UInt = #line) {
             let key = SymmetricKey(size: .bits256)
             let nonce = AES.GCM.Nonce()
 
             let ciphertext = try! AES.GCM.seal(message, using: key, nonce: nonce, authenticating: aad)
             let recoveredPlaintext = try! AES.GCM.open(ciphertext, using: key, authenticating: aad)
 
-            XCTAssertEqual(Array(recoveredPlaintext), Array(message))
+            XCTAssertEqual(Array(recoveredPlaintext), Array(message), file: file, line: line)
         }
 
         let message = Array("Hello, world, it's AES-GCM!".utf8)
