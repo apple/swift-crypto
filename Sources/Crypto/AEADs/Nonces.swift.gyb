@@ -28,6 +28,7 @@ nonceSize = cipher["recommendedNonceSize"]
 nonceValidation = cipher["nonceValidation"]
 }%
 
+// MARK: - ${name} + Nonce
 extension ${name} {
     public struct Nonce: ContiguousBytes, Sequence {
         let bytes: Data

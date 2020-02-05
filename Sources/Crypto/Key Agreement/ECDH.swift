@@ -23,12 +23,15 @@ typealias NISTCurvePrivateKeyImpl = OpenSSLNISTCurvePrivateKeyImpl
 #endif
 
 import Foundation
+
 // MARK: - Generated file, do NOT edit
 // any edits of this file WILL be overwritten and thus discarded
 // see section `gyb` in `README` for details.
 
+// MARK: - P256 + Signing
 extension P256 {
     public enum Signing {
+    
         public struct PublicKey: NISTECPublicKey {
             var impl: NISTCurvePublicKeyImpl<P256.CurveDetails>
 
@@ -81,9 +84,10 @@ extension P256 {
         }
     }
 }
-
+// MARK: - P256 + KeyAgreement
 extension P256 {
     public enum KeyAgreement {
+    
         public struct PublicKey: NISTECPublicKey {
             var impl: NISTCurvePublicKeyImpl<P256.CurveDetails>
 
@@ -136,9 +140,10 @@ extension P256 {
         }
     }
 }
-
+// MARK: - P384 + Signing
 extension P384 {
     public enum Signing {
+    
         public struct PublicKey: NISTECPublicKey {
             var impl: NISTCurvePublicKeyImpl<P384.CurveDetails>
 
@@ -191,9 +196,10 @@ extension P384 {
         }
     }
 }
-
+// MARK: - P384 + KeyAgreement
 extension P384 {
     public enum KeyAgreement {
+    
         public struct PublicKey: NISTECPublicKey {
             var impl: NISTCurvePublicKeyImpl<P384.CurveDetails>
 
@@ -246,9 +252,10 @@ extension P384 {
         }
     }
 }
-
+// MARK: - P521 + Signing
 extension P521 {
     public enum Signing {
+    
         public struct PublicKey: NISTECPublicKey {
             var impl: NISTCurvePublicKeyImpl<P521.CurveDetails>
 
@@ -301,9 +308,10 @@ extension P521 {
         }
     }
 }
-
+// MARK: - P521 + KeyAgreement
 extension P521 {
     public enum KeyAgreement {
+    
         public struct PublicKey: NISTECPublicKey {
             var impl: NISTCurvePublicKeyImpl<P521.CurveDetails>
 
@@ -357,6 +365,7 @@ extension P521 {
     }
 }
 
+// MARK: - P256 + DH
 extension P256.KeyAgreement.PrivateKey: DiffieHellmanKeyAgreement {
     /// Performs a key agreement with provided public key share.
     ///
@@ -371,6 +380,7 @@ extension P256.KeyAgreement.PrivateKey: DiffieHellmanKeyAgreement {
         #endif
     }
 }
+// MARK: - P384 + DH
 extension P384.KeyAgreement.PrivateKey: DiffieHellmanKeyAgreement {
     /// Performs a key agreement with provided public key share.
     ///
@@ -385,6 +395,7 @@ extension P384.KeyAgreement.PrivateKey: DiffieHellmanKeyAgreement {
         #endif
     }
 }
+// MARK: - P521 + DH
 extension P521.KeyAgreement.PrivateKey: DiffieHellmanKeyAgreement {
     /// Performs a key agreement with provided public key share.
     ///

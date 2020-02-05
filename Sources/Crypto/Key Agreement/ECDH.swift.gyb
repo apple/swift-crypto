@@ -23,18 +23,21 @@ typealias NISTCurvePrivateKeyImpl = OpenSSLNISTCurvePrivateKeyImpl
 #endif
 
 import Foundation
+
 // MARK: - Generated file, do NOT edit
 // any edits of this file WILL be overwritten and thus discarded
 // see section `gyb` in `README` for details.
+
 %{
     NIST_CURVES = ["P256", "P384", "P521"]
     CURVES_FUNC = ["Signing", "KeyAgreement"]
 }%
 % for CURVE in NIST_CURVES:
 % for FUNC in CURVES_FUNC:
-
+// MARK: - ${CURVE} + ${FUNC}
 extension ${CURVE} {
     public enum ${FUNC} {
+    
         public struct PublicKey: NISTECPublicKey {
             var impl: NISTCurvePublicKeyImpl<${CURVE}.CurveDetails>
 
@@ -91,6 +94,7 @@ extension ${CURVE} {
 % end
 
 % for CURVE in NIST_CURVES:
+// MARK: - ${CURVE} + DH
 extension ${CURVE}.KeyAgreement.PrivateKey: DiffieHellmanKeyAgreement {
     /// Performs a key agreement with provided public key share.
     ///

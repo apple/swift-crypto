@@ -32,6 +32,7 @@ protocol NISTSigning {
     associatedtype ECDSASignature: NISTECDSASignature
 }
 
+// MARK: - P256 + Signing
 /// An ECDSA (Elliptic Curve Digital Signature Algorithm) Signature
 extension P256.Signing {
     public struct ECDSASignature: ContiguousBytes, NISTECDSASignature {
@@ -91,6 +92,7 @@ extension P256.Signing {
 
 extension P256.Signing: NISTSigning {}
 
+// MARK: - P256 + PrivateKey
 extension P256.Signing.PrivateKey: DigestSigner {
     ///  Generates an ECDSA signature over the P256 elliptic curve.
     ///
@@ -147,6 +149,7 @@ extension P256.Signing.PublicKey: DigestValidator {
     }
  }
 
+// MARK: - P384 + Signing
 /// An ECDSA (Elliptic Curve Digital Signature Algorithm) Signature
 extension P384.Signing {
     public struct ECDSASignature: ContiguousBytes, NISTECDSASignature {
@@ -206,6 +209,7 @@ extension P384.Signing {
 
 extension P384.Signing: NISTSigning {}
 
+// MARK: - P384 + PrivateKey
 extension P384.Signing.PrivateKey: DigestSigner {
     ///  Generates an ECDSA signature over the P384 elliptic curve.
     ///
@@ -262,6 +266,7 @@ extension P384.Signing.PublicKey: DigestValidator {
     }
  }
 
+// MARK: - P521 + Signing
 /// An ECDSA (Elliptic Curve Digital Signature Algorithm) Signature
 extension P521.Signing {
     public struct ECDSASignature: ContiguousBytes, NISTECDSASignature {
@@ -321,6 +326,7 @@ extension P521.Signing {
 
 extension P521.Signing: NISTSigning {}
 
+// MARK: - P521 + PrivateKey
 extension P521.Signing.PrivateKey: DigestSigner {
     ///  Generates an ECDSA signature over the P521 elliptic curve.
     ///
