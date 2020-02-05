@@ -15,6 +15,9 @@
 @_exported import CryptoKit
 #else
 import Foundation
+// MARK: - Generated file, do NOT edit
+// any edits of this file WILL be overwritten and thus discarded
+// see section `gyb` in `README` for details.
 %{
 ciphers = [{"name": "AES.GCM", "recommendedNonceSize": "AES.GCM.defaultNonceByteCount", "nonceValidation": "< AES.GCM.defaultNonceByteCount"},{"name": "ChaChaPoly", "recommendedNonceSize": "ChaChaPoly.nonceByteCount", "nonceValidation": "!= ChaChaPoly.nonceByteCount"}]
 }%

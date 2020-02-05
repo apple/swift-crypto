@@ -11,9 +11,12 @@ ENV LC_ALL en_US.UTF-8
 ENV LANG en_US.UTF-8
 ENV LANGUAGE en_US.UTF-8
 
+# Get lldb out of the way
+RUN mv /usr/lib/python2.7/site-packages/* /usr/lib/python2.7/dist-packages && rmdir /usr/lib/python2.7/site-packages && ln -s /usr/lib/python2.7/dist-packages /usr/lib/python2.7/site-packages
+
 # dependencies
 RUN apt-get update && apt-get install -y wget
-RUN apt-get update && apt-get install -y lsof dnsutils netcat-openbsd net-tools curl jq # used by integration tests
+RUN apt-get update && apt-get install -y lsof dnsutils netcat-openbsd net-tools curl jq python2.7 # used by integration tests
 
 # ruby and jazzy for docs generation
 RUN apt-get update && apt-get install -y ruby ruby-dev libsqlite3-dev

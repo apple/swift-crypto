@@ -14,27 +14,26 @@
 #if (os(macOS) || os(iOS) || os(watchOS) || os(tvOS)) && CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
 @_exported import CryptoKit
 #else
-
+// MARK: - Generated file, do NOT edit
+// any edits of this file WILL be overwritten and thus discarded
+// see section `gyb` in `README` for details.
 %{
 digests_and_length = [{"name": "SHA256", "count": 32},{"name": "SHA384","count":48},{"name":"SHA512", "count": 64},{"name":"SHA1", "count":20, "prefix":"Insecure"},{"name":"MD5", "count":16, "prefix":"Insecure"}]
 }%
-
 % for HF in digests_and_length:
 %{
     name = HF["name"]
     byteCount = HF["count"]
     wordsCount = (byteCount*8)/64 + (0 if ((byteCount*8)%64) == 0 else 1)
 }%
-
 %{
     if "prefix" in HF.keys():
-        protocol_prefix = "extension " + HF["prefix"] + "{"
+        protocol_prefix = "extension " + HF["prefix"] + " {"
         protocol_suffix = "}"
     else:
         protocol_prefix = ""
         protocol_suffix = ""
 }%
-
 ${protocol_prefix}
 @available(iOS 13.0, macOS 10.15, watchOS 6.0, tvOS 13.0, macCatalyst 13.0, *)
 public struct ${name}Digest: DigestPrivate {
@@ -78,7 +77,7 @@ public struct ${name}Digest: DigestPrivate {
     }
     
     public func hash(into hasher: inout Hasher) {
-        self.withUnsafeBytes {hasher.combine(bytes: $0)}
+        self.withUnsafeBytes { hasher.combine(bytes: $0) }
     }
 }
 ${protocol_suffix}

@@ -15,11 +15,28 @@
 
 set -eu
 here="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-
 function replace_acceptable_years() {
     # this needs to replace all acceptable forms with 'YEARS'
     sed -e 's/2018-2019/YEARS/' -e 's/2019/YEARS/'
 }
+
+
+# Run gyb, if generated files was changed -> fail
+printf "=> Detecting manual edits in generated Swift files by comparing to gyb output\n"
+FIRST_OUT="$(git status --porcelain)"
+out=$($here/generate_boilerplate_files_with_gyb.sh 2>&1)
+SECOND_OUT="$(git status --porcelain)"
+if [ "$out" == *"error"* ]; then
+  printf "\033[0;31merror!\033[0m\n"
+  echo $out
+  exit 1
+fi
+if [[ "$FIRST_OUT" != "$SECOND_OUT" ]]; then
+  printf "\033[0;31mRunning gyb results in changes! Have you manually editted the generated swift files? Or did you forget to run gyb and commit changes?\033[0m\n"
+  exit 1
+fi
+printf "\033[0;32mokay.\033[0m\n"
+
 
 printf "=> Checking format\n"
 FIRST_OUT="$(git status --porcelain)"
