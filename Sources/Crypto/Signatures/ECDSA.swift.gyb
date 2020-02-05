@@ -15,7 +15,9 @@
 @_exported import CryptoKit
 #else
 import Foundation
-
+// MARK: - Generated file, do NOT edit
+// any edits of this file WILL be overwritten and thus discarded
+// see section `gyb` in `README` for details.
 %{
     NIST_CURVES_AND_HF = [{"curve": "P256", "hf": "SHA256"},{"curve": "P384", "hf": "SHA384"},{"curve": "P521", "hf": "SHA512"}]
 }%
@@ -38,7 +40,6 @@ protocol NISTSigning {
     CURVE = CURVE_AND_HF["curve"]
     HF    = CURVE_AND_HF["hf"]
 }%
-
 /// An ECDSA (Elliptic Curve Digital Signature Algorithm) Signature
 extension ${CURVE}.Signing {
     public struct ECDSASignature: ContiguousBytes, NISTECDSASignature {
@@ -67,8 +68,8 @@ extension ${CURVE}.Signing {
 
         var composite: (r: Data, s: Data) {
             let combined = rawRepresentation
-            assert(combined.count%2 == 0)
-            let half = combined.count/2
+            assert(combined.count % 2 == 0)
+            let half = combined.count / 2
             return (combined.prefix(upTo: half), combined.suffix(from: half))
         }
 
@@ -155,5 +156,4 @@ extension ${CURVE}.Signing.PublicKey: DigestValidator {
  }
 
 % end
-
 #endif // Linux or !SwiftPM

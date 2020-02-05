@@ -23,6 +23,9 @@ typealias NISTCurvePrivateKeyImpl = OpenSSLNISTCurvePrivateKeyImpl
 #endif
 
 import Foundation
+// MARK: - Generated file, do NOT edit
+// any edits of this file WILL be overwritten and thus discarded
+// see section `gyb` in `README` for details.
 
 extension P256 {
     public enum Signing {

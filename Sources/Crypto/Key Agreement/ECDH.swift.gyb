@@ -23,13 +23,13 @@ typealias NISTCurvePrivateKeyImpl = OpenSSLNISTCurvePrivateKeyImpl
 #endif
 
 import Foundation
-
-
+// MARK: - Generated file, do NOT edit
+// any edits of this file WILL be overwritten and thus discarded
+// see section `gyb` in `README` for details.
 %{
     NIST_CURVES = ["P256", "P384", "P521"]
     CURVES_FUNC = ["Signing", "KeyAgreement"]
 }%
-
 % for CURVE in NIST_CURVES:
 % for FUNC in CURVES_FUNC:
 
@@ -89,7 +89,6 @@ extension ${CURVE} {
 }
 % end
 % end
-
 
 % for CURVE in NIST_CURVES:
 extension ${CURVE}.KeyAgreement.PrivateKey: DiffieHellmanKeyAgreement {

@@ -15,6 +15,9 @@
 @_exported import CryptoKit
 #else
 import Foundation
+// MARK: - Generated file, do NOT edit
+// any edits of this file WILL be overwritten and thus discarded
+// see section `gyb` in `README` for details.
 
 extension AES.GCM {
     public struct Nonce: ContiguousBytes, Sequence {

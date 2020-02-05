@@ -14,6 +14,9 @@
 #if (os(macOS) || os(iOS) || os(watchOS) || os(tvOS)) && CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
 @_exported import CryptoKit
 #else
+// MARK: - Generated file, do NOT edit
+// any edits of this file WILL be overwritten and thus discarded
+// see section `gyb` in `README` for details.
 
 @available(iOS 13.0, macOS 10.15, watchOS 6.0, tvOS 13.0, macCatalyst 13.0, *)
 public struct SHA256Digest: DigestPrivate {
@@ -60,6 +63,7 @@ public struct SHA256Digest: DigestPrivate {
         self.withUnsafeBytes { hasher.combine(bytes: $0) }
     }
 }
+
 
 @available(iOS 13.0, macOS 10.15, watchOS 6.0, tvOS 13.0, macCatalyst 13.0, *)
 public struct SHA384Digest: DigestPrivate {
@@ -108,6 +112,7 @@ public struct SHA384Digest: DigestPrivate {
         self.withUnsafeBytes { hasher.combine(bytes: $0) }
     }
 }
+
 
 @available(iOS 13.0, macOS 10.15, watchOS 6.0, tvOS 13.0, macCatalyst 13.0, *)
 public struct SHA512Digest: DigestPrivate {
@@ -205,7 +210,6 @@ public struct SHA1Digest: DigestPrivate {
     }
 }
 }
-
 extension Insecure {
 @available(iOS 13.0, macOS 10.15, watchOS 6.0, tvOS 13.0, macCatalyst 13.0, *)
 public struct MD5Digest: DigestPrivate {
