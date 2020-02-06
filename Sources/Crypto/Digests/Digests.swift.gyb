@@ -35,6 +35,7 @@ digests_and_length = [{"name": "SHA256", "count": 32},{"name": "SHA384","count":
         protocol_suffix = ""
 }%
 ${protocol_prefix}
+// MARK: - ${name}Digest + DigestPrivate
 @available(iOS 13.0, macOS 10.15, watchOS 6.0, tvOS 13.0, macCatalyst 13.0, *)
 public struct ${name}Digest: DigestPrivate {
     let bytes: (${(wordsCount-1)*"UInt64, "+"UInt64"})

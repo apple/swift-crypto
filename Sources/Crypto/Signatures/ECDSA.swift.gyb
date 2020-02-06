@@ -40,6 +40,7 @@ protocol NISTSigning {
     CURVE = CURVE_AND_HF["curve"]
     HF    = CURVE_AND_HF["hf"]
 }%
+// MARK: - ${CURVE} + Signing
 /// An ECDSA (Elliptic Curve Digital Signature Algorithm) Signature
 extension ${CURVE}.Signing {
     public struct ECDSASignature: ContiguousBytes, NISTECDSASignature {
@@ -99,6 +100,7 @@ extension ${CURVE}.Signing {
 
 extension ${CURVE}.Signing: NISTSigning {}
 
+// MARK: - ${CURVE} + PrivateKey
 extension ${CURVE}.Signing.PrivateKey: DigestSigner {
     ///  Generates an ECDSA signature over the ${CURVE} elliptic curve.
     ///

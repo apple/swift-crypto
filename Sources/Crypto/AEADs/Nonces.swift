@@ -19,6 +19,7 @@ import Foundation
 // any edits of this file WILL be overwritten and thus discarded
 // see section `gyb` in `README` for details.
 
+// MARK: - AES.GCM + Nonce
 extension AES.GCM {
     public struct Nonce: ContiguousBytes, Sequence {
         let bytes: Data
@@ -48,6 +49,7 @@ extension AES.GCM {
     }
 }
 
+// MARK: - ChaChaPoly + Nonce
 extension ChaChaPoly {
     public struct Nonce: ContiguousBytes, Sequence {
         let bytes: Data
