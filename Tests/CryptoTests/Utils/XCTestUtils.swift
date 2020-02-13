@@ -27,7 +27,7 @@ func orFail<T>(file: StaticString = #file, line: UInt = #line, _ closure: () thr
         }
     }
 
-    #if compiler(>=5.2) && !os(Linux)
+    #if compiler(>=5.2) && canImport(Darwin)
         if #available(macOS 10.15.4, macCatalyst 13.4, iOS 13.4, tvOS 13.4, watchOS 6.0, *) {
             return try closure()
         } else {
