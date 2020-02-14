@@ -52,41 +52,41 @@ class X963KDFTests: XCTestCase {
 
     func testVectorsSHA1() throws {
         // The RFC vector decoder works here too.
-        var decoder = try RFCVectorDecoder(bundleType: self, fileName: "ansx963_2001_sha1")
-        let vectors = try decoder.decode([TestVector].self)
+        var decoder = try orFail { try RFCVectorDecoder(bundleType: self, fileName: "ansx963_2001_sha1") }
+        let vectors = try orFail { try decoder.decode([TestVector].self) }
 
         for vector in vectors {
-            try self.testVector(vector, hash: Insecure.SHA1.self)
+            try orFail { try self.testVector(vector, hash: Insecure.SHA1.self) }
         }
     }
 
     func testRfcTestVectorsSHA256() throws {
         // The RFC vector decoder works here too.
-        var decoder = try RFCVectorDecoder(bundleType: self, fileName: "ansx963_2001_sha256")
-        let vectors = try decoder.decode([TestVector].self)
+        var decoder = try orFail { try RFCVectorDecoder(bundleType: self, fileName: "ansx963_2001_sha256") }
+        let vectors = try orFail { try decoder.decode([TestVector].self) }
 
         for vector in vectors {
-            try self.testVector(vector, hash: SHA256.self)
+            try orFail { try self.testVector(vector, hash: SHA256.self) }
         }
     }
 
     func testRfcTestVectorsSHA384() throws {
         // The RFC vector decoder works here too.
-        var decoder = try RFCVectorDecoder(bundleType: self, fileName: "ansx963_2001_sha384")
-        let vectors = try decoder.decode([TestVector].self)
+        var decoder = try orFail { try RFCVectorDecoder(bundleType: self, fileName: "ansx963_2001_sha384") }
+        let vectors = try orFail { try decoder.decode([TestVector].self) }
 
         for vector in vectors {
-            try self.testVector(vector, hash: SHA384.self)
+            try orFail { try self.testVector(vector, hash: SHA384.self) }
         }
     }
 
     func testRfcTestVectorsSHA512() throws {
         // The RFC vector decoder works here too.
-        var decoder = try RFCVectorDecoder(bundleType: self, fileName: "ansx963_2001_sha512")
-        let vectors = try decoder.decode([TestVector].self)
+        var decoder = try orFail { try RFCVectorDecoder(bundleType: self, fileName: "ansx963_2001_sha512") }
+        let vectors = try orFail { try decoder.decode([TestVector].self) }
 
         for vector in vectors {
-            try self.testVector(vector, hash: SHA512.self)
+            try orFail { try self.testVector(vector, hash: SHA512.self) }
         }
     }
 }

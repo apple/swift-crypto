@@ -55,34 +55,38 @@ class X25519Tests: XCTestCase {
         let privateKey = Curve25519.KeyAgreement.PrivateKey()
         let keyData = privateKey.rawRepresentation
         
-        let recoveredKey = try Curve25519.KeyAgreement.PrivateKey(rawRepresentation: keyData)
+        let recoveredKey = try orFail { try Curve25519.KeyAgreement.PrivateKey(rawRepresentation: keyData) }
         
-        let ss1 = try! privateKey.sharedSecretFromKeyAgreement(with: bobsKey.publicKey)
-        let ss2 = try! recoveredKey.sharedSecretFromKeyAgreement(with: bobsKey.publicKey)
+        let ss1 = try orFail { try privateKey.sharedSecretFromKeyAgreement(with: bobsKey.publicKey) }
+        let ss2 = try orFail { try recoveredKey.sharedSecretFromKeyAgreement(with: bobsKey.publicKey) }
         
-        XCTAssert(ss1 == ss2)
-        XCTAssert(recoveredKey.rawRepresentation == keyData)
+        XCTAssertEqual(ss1, ss2)
+        XCTAssertEqual(recoveredKey.rawRepresentation, keyData)
     }
     
     func testWycheproof() throws {
-        wycheproofTest(bundleType: self,
-                       jsonName: "x25519_test",
-                       testFunction: { (group: ECDHTestGroup) in
-                        try! testGroup(group: group)
-        })
+        try orFail {
+            try wycheproofTest(
+                bundleType: self,
+                jsonName: "x25519_test",
+                testFunction: { (group: ECDHTestGroup) in
+                    try orFail { try testGroup(group: group) }
+            })
+        }
     }
 
     func testGroup(group: ECDHTestGroup) throws {
         for testVector in group.tests {
-            let publicKey = try! Curve25519.KeyAgreement.PublicKey(rawRepresentation: Array(hexString: testVector.publicKey))
-            let privateKey = try! Curve25519.KeyAgreement.PrivateKey(rawRepresentation: Array(hexString: testVector.privateKey))
+            let publicKey = try orFail { try Curve25519.KeyAgreement.PublicKey(rawRepresentation: Array(hexString: testVector.publicKey)) }
+            let privateKey = try orFail { try Curve25519.KeyAgreement.PrivateKey(rawRepresentation: Array(hexString: testVector.privateKey)) }
 
             do {
                 let expectedSharedSecret = try Array(hexString: testVector.shared)
 
-                XCTAssert(try Array(privateKey.sharedSecretFromKeyAgreement(with: publicKey).ss) == expectedSharedSecret)
+                let testSharedSecret = try Array(privateKey.sharedSecretFromKeyAgreement(with: publicKey).ss)
+                XCTAssertEqual(testSharedSecret, expectedSharedSecret)
             } catch {
-                XCTAssert(testVector.result == "invalid")
+                XCTAssertEqual(testVector.result, "invalid")
             }
         }
     }

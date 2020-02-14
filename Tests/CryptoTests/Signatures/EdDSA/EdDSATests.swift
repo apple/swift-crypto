@@ -28,7 +28,7 @@ class EdDSATests: XCTestCase {
 
         let someData = "Some Data".data(using: .utf8)!
 
-        let signature = try privateKey.signature(for: someData)
+        let signature = try orFail { try privateKey.signature(for: someData) }
 
         XCTAssert(publicKey.isValidSignature(signature, for: someData))
     }
@@ -37,8 +37,8 @@ class EdDSATests: XCTestCase {
         let privateKey = Curve25519.Signing.PrivateKey()
         let (someContiguousData, someDiscontiguousData) = Array("Some Data".utf8).asDataProtocols()
 
-        let signatureOnContiguous = try privateKey.signature(for: someContiguousData)
-        let signatureOnDiscontiguous = try privateKey.signature(for: someDiscontiguousData)
+        let signatureOnContiguous = try orFail { try privateKey.signature(for: someContiguousData) }
+        let signatureOnDiscontiguous = try orFail { try privateKey.signature(for: someDiscontiguousData) }
         #if !(os(macOS) || os(iOS) || os(watchOS) || os(tvOS))
         XCTAssertEqual(signatureOnContiguous, signatureOnDiscontiguous)
         #endif
@@ -56,7 +56,7 @@ class EdDSATests: XCTestCase {
         let otherPrivateKey = Curve25519.Signing.PrivateKey()
         let (someContiguousData, someDiscontiguousData) = Array("Some Data".utf8).asDataProtocols()
 
-        let signature = try privateKey.signature(for: someContiguousData)
+        let signature = try orFail { try privateKey.signature(for: someContiguousData) }
 
         // This tests the 4 combinations.
         let (contiguousSignature, discontiguousSignature) = Array(signature).asDataProtocols()
@@ -68,11 +68,11 @@ class EdDSATests: XCTestCase {
 
     func testSigningZeroRegionDataProtocol() throws {
         let privateKey = Curve25519.Signing.PrivateKey()
-        let signature = try privateKey.signature(for: DispatchData.empty)
+        let signature = try orFail { try privateKey.signature(for: DispatchData.empty) }
 
         XCTAssert(privateKey.publicKey.isValidSignature(signature, for: DispatchData.empty))
 
-        // This should fail
+        // This signature should be invalid
         XCTAssertFalse(privateKey.publicKey.isValidSignature(DispatchData.empty, for: DispatchData.empty))
     }
 }

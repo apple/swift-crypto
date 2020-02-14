@@ -25,10 +25,10 @@ import XCTest
 #endif
 
 extension NISTECDHTests {
-    func testGroupOpenSSL<PrivKey: NISTECPrivateKey & DiffieHellmanKeyAgreement, Curve: OpenSSLSupportedNISTCurve>(group: ECDHTestGroup, privateKeys: PrivKey.Type, onCurve curve: Curve.Type) {
-        func padKeyIfNecessary(vector: String, curveDetails: OpenSSLSupportedNISTCurve.Type) -> [UInt8] {
+    func testGroupOpenSSL<PrivKey: NISTECPrivateKey & DiffieHellmanKeyAgreement, Curve: OpenSSLSupportedNISTCurve>(group: ECDHTestGroup, privateKeys: PrivKey.Type, onCurve curve: Curve.Type, file: StaticString = #file, line: UInt = #line) {
+        func padKeyIfNecessary(vector: String, curveDetails: OpenSSLSupportedNISTCurve.Type, file: StaticString = #file, line: UInt = #line) throws -> [UInt8] {
             let hexStringFromVector = (vector.count % 2 == 0) ? vector : "0\(vector)"
-            return try! Array(hexString: hexStringFromVector)
+            return try orFail(file: file, line: line) { try Array(hexString: hexStringFromVector) }
         }
 
         for testVector in group.tests {
@@ -37,22 +37,23 @@ extension NISTECDHTests {
                 let publicKey = try PrivKey.PublicKey(derBytes: pkBytes, curve: Curve.self)
 
                 var privateBytes = [UInt8]()
-                privateBytes = padKeyIfNecessary(vector: testVector.privateKey, curveDetails: curve)
+                privateBytes = try padKeyIfNecessary(vector: testVector.privateKey, curveDetails: curve)
 
                 let privateKey = try PrivKey(rawRepresentation: privateBytes)
 
-                let result = try privateKey.sharedSecretFromKeyAgreement(with: publicKey as! PrivKey.P)
+                let agreement = try unwrap(publicKey as? PrivKey.P, file: file, line: line)
+                let result = try privateKey.sharedSecretFromKeyAgreement(with: agreement)
 
                 let expectedResult = try Array(hexString: testVector.shared)
 
-                XCTAssertEqual(Array(result.ss), Array(expectedResult))
+                XCTAssertEqual(Array(result.ss), Array(expectedResult), file: file, line: line)
             } catch ECDHTestErrors.PublicKeyFailure {
-                XCTAssert(testVector.flags.contains("CompressedPoint") || testVector.result == "invalid" || testVector.flags.contains("InvalidPublic") || testVector.flags.contains("InvalidAsn"))
+                XCTAssert(testVector.flags.contains("CompressedPoint") || testVector.result == "invalid" || testVector.flags.contains("InvalidPublic") || testVector.flags.contains("InvalidAsn"), file: file, line: line)
             } catch ECDHTestErrors.ParseSPKIFailure {
-                XCTAssert(testVector.flags.contains("InvalidAsn") || testVector.flags.contains("UnnamedCurve"))
+                XCTAssert(testVector.flags.contains("InvalidAsn") || testVector.flags.contains("UnnamedCurve"), file: file, line: line)
             } catch {
                 if testVector.result == "valid" {
-                    XCTAssert(testVector.tcId == 31 || testVector.tcId == 20 || testVector.tcId == 25)
+                    XCTAssert(testVector.tcId == 31 || testVector.tcId == 20 || testVector.tcId == 25, file: file, line: line)
                 }
             }
         }

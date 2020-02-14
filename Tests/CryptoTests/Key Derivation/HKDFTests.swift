@@ -66,22 +66,22 @@ class HKDFTests: XCTestCase {
     }
     
     func testRfcTestVectorsSHA1() throws {
-        var decoder = try RFCVectorDecoder(bundleType: self, fileName: "rfc-5869-HKDF-SHA1")
-        let vectors = try decoder.decode([RFCTestVector].self)
+        var decoder = try orFail { try RFCVectorDecoder(bundleType: self, fileName: "rfc-5869-HKDF-SHA1") }
+        let vectors = try orFail { try decoder.decode([RFCTestVector].self) }
 
         for vector in vectors {
             precondition(vector.hash == "SHA-1")
-            try self.testRFCVector(vector, hash: Insecure.SHA1.self)
+            try orFail { try self.testRFCVector(vector, hash: Insecure.SHA1.self) }
         }
     }
 
     func testRfcTestVectorsSHA256() throws {
-        var decoder = try RFCVectorDecoder(bundleType: self, fileName: "rfc-5869-HKDF-SHA256")
-        let vectors = try decoder.decode([RFCTestVector].self)
+        var decoder = try orFail { try RFCVectorDecoder(bundleType: self, fileName: "rfc-5869-HKDF-SHA256") }
+        let vectors = try orFail { try decoder.decode([RFCTestVector].self) }
 
         for vector in vectors {
             precondition(vector.hash == "SHA-256")
-            try self.testRFCVector(vector, hash: SHA256.self)
+            try orFail { try self.testRFCVector(vector, hash: SHA256.self) }
         }
     }
 }

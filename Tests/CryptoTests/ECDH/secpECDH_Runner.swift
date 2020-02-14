@@ -29,7 +29,7 @@ enum ECDHTestErrors: Error {
 }
 
 class NISTECDHTests: XCTestCase {
-    func testInteropFIPSKeys() {
+    func testInteropFIPSKeys() throws {
         var fipsKey: P256.KeyAgreement.PrivateKey = P256.KeyAgreement.PrivateKey(compactRepresentable: false)
         for _ in 0...10_000 {
             fipsKey = P256.KeyAgreement.PrivateKey(compactRepresentable: false)
@@ -47,30 +47,41 @@ class NISTECDHTests: XCTestCase {
         XCTAssertNil(fipsKey.publicKey.compactRepresentation)
         XCTAssertNotNil(compactKey.publicKey.compactRepresentation)
         
-        let ss1 = try! fipsKey.sharedSecretFromKeyAgreement(with: compactKey.publicKey)
-        let ss2 = try! compactKey.sharedSecretFromKeyAgreement(with: fipsKey.publicKey)
-        XCTAssert(ss1 == ss2)
+        let ss1 = try orFail { try fipsKey.sharedSecretFromKeyAgreement(with: compactKey.publicKey) }
+        let ss2 = try orFail { try compactKey.sharedSecretFromKeyAgreement(with: fipsKey.publicKey) }
+        XCTAssertEqual(ss1, ss2)
         
         XCTAssertThrowsError(try P256.KeyAgreement.PublicKey(compactRepresentation: fipsKey.publicKey.rawRepresentation))
-        XCTAssertNotNil(try P256.KeyAgreement.PublicKey(compactRepresentation: compactKey.publicKey.compactRepresentation!))
+        let compactRepresentation = try unwrap(compactKey.publicKey.compactRepresentation)
+        XCTAssertNotNil(try P256.KeyAgreement.PublicKey(compactRepresentation: compactRepresentation))
     }
     
     func testWycheproof() throws {
-        wycheproofTest(bundleType: self,
-                       jsonName: "ecdh_secp256r1_test",
-                       testFunction: { (group: ECDHTestGroup) in
-                        testGroup(group: group, privateKeys: P256.KeyAgreement.PrivateKey.self, onCurve: P256.CurveDetails.self)
-        })
-        wycheproofTest(bundleType: self,
-                       jsonName: "ecdh_secp384r1_test",
-                       testFunction: { (group: ECDHTestGroup) in
-                        testGroup(group: group, privateKeys: P384.KeyAgreement.PrivateKey.self, onCurve: P384.CurveDetails.self)
-        })
-        wycheproofTest(bundleType: self,
-                       jsonName: "ecdh_secp521r1_test",
-                       testFunction: { (group: ECDHTestGroup) in
-                        testGroup(group: group, privateKeys: P521.KeyAgreement.PrivateKey.self, onCurve: P521.CurveDetails.self)
-        })
+        try orFail {
+            try wycheproofTest(
+                bundleType: self,
+                jsonName: "ecdh_secp256r1_test",
+                testFunction: { (group: ECDHTestGroup) in
+                    testGroup(group: group, privateKeys: P256.KeyAgreement.PrivateKey.self, onCurve: P256.CurveDetails.self)
+            })
+        }
+        try orFail {
+            try wycheproofTest(
+                bundleType: self,
+                jsonName: "ecdh_secp384r1_test",
+                testFunction: { (group: ECDHTestGroup) in
+                    testGroup(group: group, privateKeys: P384.KeyAgreement.PrivateKey.self, onCurve: P384.CurveDetails.self)
+            })
+        }
+        try orFail {
+            try wycheproofTest(
+                bundleType: self,
+                jsonName: "ecdh_secp521r1_test",
+                testFunction: { (group: ECDHTestGroup) in
+                    testGroup(group: group, privateKeys: P521.KeyAgreement.PrivateKey.self, onCurve: P521.CurveDetails.self)
+            })
+        }
+
     }
     
     func testGroup<PrivKey: NISTECPrivateKey & DiffieHellmanKeyAgreement, Curve: SupportedCurveDetailsImpl>(group: ECDHTestGroup, privateKeys: PrivKey.Type, onCurve curve: Curve.Type) {

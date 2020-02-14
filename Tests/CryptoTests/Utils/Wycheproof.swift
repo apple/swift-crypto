@@ -11,7 +11,7 @@
 // SPDX-License-Identifier: Apache-2.0
 //
 //===----------------------------------------------------------------------===//
-import Foundation
+import XCTest
 
 struct WycheproofTest<T: Codable>: Codable {
     let algorithm: String
@@ -19,21 +19,23 @@ struct WycheproofTest<T: Codable>: Codable {
     let testGroups: [T]
 }
 
-func wycheproofTest<T: Codable>(bundleType: AnyObject, jsonName: String, testFunction: (T) -> Void) {
-    #if !CRYPTO_IN_SWIFTPM
-    let bundle = Bundle(for: type(of: bundleType))
-    let fileURL = bundle.url(forResource: jsonName, withExtension: "json")
-    #else
-    let testsDirectory: String = URL(fileURLWithPath: "\(#file)").pathComponents.dropLast(3).joined(separator: "/")
-    let fileURL: URL? = URL(fileURLWithPath: "\(testsDirectory)/Test Vectors/\(jsonName).json")
-    #endif
+extension XCTestCase {
+    func wycheproofTest<T: Codable>(bundleType: AnyObject, jsonName: String, file: StaticString = #file, line: UInt = #line, testFunction: (T) throws -> Void) throws {
+        #if !CRYPTO_IN_SWIFTPM
+        let bundle = Bundle(for: type(of: bundleType))
+        let fileURL = bundle.url(forResource: jsonName, withExtension: "json")
+        #else
+        let testsDirectory: String = URL(fileURLWithPath: "\(#file)").pathComponents.dropLast(3).joined(separator: "/")
+        let fileURL: URL? = URL(fileURLWithPath: "\(testsDirectory)/Test Vectors/\(jsonName).json")
+        #endif
 
-    let data = try! Data(contentsOf: fileURL!)
+        let data = try orFail(file: file, line: line) { try Data(contentsOf: unwrap(fileURL, file: file, line: line)) }
 
-    let decoder = JSONDecoder()
-    let wpTest = try! decoder.decode(WycheproofTest<T>.self, from: data)
+        let decoder = JSONDecoder()
+        let wpTest = try orFail(file: file, line: line) { try decoder.decode(WycheproofTest<T>.self, from: data) }
 
-    for group in wpTest.testGroups {
-        testFunction(group)
+        for group in wpTest.testGroups {
+            try orFail(file: file, line: line) { try testFunction(group) }
+        }
     }
 }
