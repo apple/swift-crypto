@@ -451,10 +451,13 @@
 %xdefine _CBB_add_space _ %+ BORINGSSL_PREFIX %+ _CBB_add_space
 %xdefine _CBB_add_u16 _ %+ BORINGSSL_PREFIX %+ _CBB_add_u16
 %xdefine _CBB_add_u16_length_prefixed _ %+ BORINGSSL_PREFIX %+ _CBB_add_u16_length_prefixed
+%xdefine _CBB_add_u16le _ %+ BORINGSSL_PREFIX %+ _CBB_add_u16le
 %xdefine _CBB_add_u24 _ %+ BORINGSSL_PREFIX %+ _CBB_add_u24
 %xdefine _CBB_add_u24_length_prefixed _ %+ BORINGSSL_PREFIX %+ _CBB_add_u24_length_prefixed
 %xdefine _CBB_add_u32 _ %+ BORINGSSL_PREFIX %+ _CBB_add_u32
+%xdefine _CBB_add_u32le _ %+ BORINGSSL_PREFIX %+ _CBB_add_u32le
 %xdefine _CBB_add_u64 _ %+ BORINGSSL_PREFIX %+ _CBB_add_u64
+%xdefine _CBB_add_u64le _ %+ BORINGSSL_PREFIX %+ _CBB_add_u64le
 %xdefine _CBB_add_u8 _ %+ BORINGSSL_PREFIX %+ _CBB_add_u8
 %xdefine _CBB_add_u8_length_prefixed _ %+ BORINGSSL_PREFIX %+ _CBB_add_u8_length_prefixed
 %xdefine _CBB_cleanup _ %+ BORINGSSL_PREFIX %+ _CBB_cleanup
@@ -493,10 +496,13 @@
 %xdefine _CBS_get_optional_asn1_uint64 _ %+ BORINGSSL_PREFIX %+ _CBS_get_optional_asn1_uint64
 %xdefine _CBS_get_u16 _ %+ BORINGSSL_PREFIX %+ _CBS_get_u16
 %xdefine _CBS_get_u16_length_prefixed _ %+ BORINGSSL_PREFIX %+ _CBS_get_u16_length_prefixed
+%xdefine _CBS_get_u16le _ %+ BORINGSSL_PREFIX %+ _CBS_get_u16le
 %xdefine _CBS_get_u24 _ %+ BORINGSSL_PREFIX %+ _CBS_get_u24
 %xdefine _CBS_get_u24_length_prefixed _ %+ BORINGSSL_PREFIX %+ _CBS_get_u24_length_prefixed
 %xdefine _CBS_get_u32 _ %+ BORINGSSL_PREFIX %+ _CBS_get_u32
+%xdefine _CBS_get_u32le _ %+ BORINGSSL_PREFIX %+ _CBS_get_u32le
 %xdefine _CBS_get_u64 _ %+ BORINGSSL_PREFIX %+ _CBS_get_u64
+%xdefine _CBS_get_u64le _ %+ BORINGSSL_PREFIX %+ _CBS_get_u64le
 %xdefine _CBS_get_u8 _ %+ BORINGSSL_PREFIX %+ _CBS_get_u8
 %xdefine _CBS_get_u8_length_prefixed _ %+ BORINGSSL_PREFIX %+ _CBS_get_u8_length_prefixed
 %xdefine _CBS_init _ %+ BORINGSSL_PREFIX %+ _CBS_init
@@ -693,6 +699,8 @@
 %xdefine _ECDSA_SIG_free _ %+ BORINGSSL_PREFIX %+ _ECDSA_SIG_free
 %xdefine _ECDSA_SIG_from_bytes _ %+ BORINGSSL_PREFIX %+ _ECDSA_SIG_from_bytes
 %xdefine _ECDSA_SIG_get0 _ %+ BORINGSSL_PREFIX %+ _ECDSA_SIG_get0
+%xdefine _ECDSA_SIG_get0_r _ %+ BORINGSSL_PREFIX %+ _ECDSA_SIG_get0_r
+%xdefine _ECDSA_SIG_get0_s _ %+ BORINGSSL_PREFIX %+ _ECDSA_SIG_get0_s
 %xdefine _ECDSA_SIG_marshal _ %+ BORINGSSL_PREFIX %+ _ECDSA_SIG_marshal
 %xdefine _ECDSA_SIG_max_len _ %+ BORINGSSL_PREFIX %+ _ECDSA_SIG_max_len
 %xdefine _ECDSA_SIG_new _ %+ BORINGSSL_PREFIX %+ _ECDSA_SIG_new
@@ -1431,8 +1439,16 @@
 %xdefine _RSA_generate_key_ex _ %+ BORINGSSL_PREFIX %+ _RSA_generate_key_ex
 %xdefine _RSA_generate_key_fips _ %+ BORINGSSL_PREFIX %+ _RSA_generate_key_fips
 %xdefine _RSA_get0_crt_params _ %+ BORINGSSL_PREFIX %+ _RSA_get0_crt_params
+%xdefine _RSA_get0_d _ %+ BORINGSSL_PREFIX %+ _RSA_get0_d
+%xdefine _RSA_get0_dmp1 _ %+ BORINGSSL_PREFIX %+ _RSA_get0_dmp1
+%xdefine _RSA_get0_dmq1 _ %+ BORINGSSL_PREFIX %+ _RSA_get0_dmq1
+%xdefine _RSA_get0_e _ %+ BORINGSSL_PREFIX %+ _RSA_get0_e
 %xdefine _RSA_get0_factors _ %+ BORINGSSL_PREFIX %+ _RSA_get0_factors
+%xdefine _RSA_get0_iqmp _ %+ BORINGSSL_PREFIX %+ _RSA_get0_iqmp
 %xdefine _RSA_get0_key _ %+ BORINGSSL_PREFIX %+ _RSA_get0_key
+%xdefine _RSA_get0_n _ %+ BORINGSSL_PREFIX %+ _RSA_get0_n
+%xdefine _RSA_get0_p _ %+ BORINGSSL_PREFIX %+ _RSA_get0_p
+%xdefine _RSA_get0_q _ %+ BORINGSSL_PREFIX %+ _RSA_get0_q
 %xdefine _RSA_get_ex_data _ %+ BORINGSSL_PREFIX %+ _RSA_get_ex_data
 %xdefine _RSA_get_ex_new_index _ %+ BORINGSSL_PREFIX %+ _RSA_get_ex_new_index
 %xdefine _RSA_is_opaque _ %+ BORINGSSL_PREFIX %+ _RSA_is_opaque
@@ -1965,6 +1981,8 @@
 %xdefine _X509_get_serialNumber _ %+ BORINGSSL_PREFIX %+ _X509_get_serialNumber
 %xdefine _X509_get_signature_nid _ %+ BORINGSSL_PREFIX %+ _X509_get_signature_nid
 %xdefine _X509_get_subject_name _ %+ BORINGSSL_PREFIX %+ _X509_get_subject_name
+%xdefine _X509_getm_notAfter _ %+ BORINGSSL_PREFIX %+ _X509_getm_notAfter
+%xdefine _X509_getm_notBefore _ %+ BORINGSSL_PREFIX %+ _X509_getm_notBefore
 %xdefine _X509_gmtime_adj _ %+ BORINGSSL_PREFIX %+ _X509_gmtime_adj
 %xdefine _X509_issuer_and_serial_cmp _ %+ BORINGSSL_PREFIX %+ _X509_issuer_and_serial_cmp
 %xdefine _X509_issuer_and_serial_hash _ %+ BORINGSSL_PREFIX %+ _X509_issuer_and_serial_hash
@@ -3110,10 +3128,13 @@
 %xdefine CBB_add_space BORINGSSL_PREFIX %+ _CBB_add_space
 %xdefine CBB_add_u16 BORINGSSL_PREFIX %+ _CBB_add_u16
 %xdefine CBB_add_u16_length_prefixed BORINGSSL_PREFIX %+ _CBB_add_u16_length_prefixed
+%xdefine CBB_add_u16le BORINGSSL_PREFIX %+ _CBB_add_u16le
 %xdefine CBB_add_u24 BORINGSSL_PREFIX %+ _CBB_add_u24
 %xdefine CBB_add_u24_length_prefixed BORINGSSL_PREFIX %+ _CBB_add_u24_length_prefixed
 %xdefine CBB_add_u32 BORINGSSL_PREFIX %+ _CBB_add_u32
+%xdefine CBB_add_u32le BORINGSSL_PREFIX %+ _CBB_add_u32le
 %xdefine CBB_add_u64 BORINGSSL_PREFIX %+ _CBB_add_u64
+%xdefine CBB_add_u64le BORINGSSL_PREFIX %+ _CBB_add_u64le
 %xdefine CBB_add_u8 BORINGSSL_PREFIX %+ _CBB_add_u8
 %xdefine CBB_add_u8_length_prefixed BORINGSSL_PREFIX %+ _CBB_add_u8_length_prefixed
 %xdefine CBB_cleanup BORINGSSL_PREFIX %+ _CBB_cleanup
@@ -3152,10 +3173,13 @@
 %xdefine CBS_get_optional_asn1_uint64 BORINGSSL_PREFIX %+ _CBS_get_optional_asn1_uint64
 %xdefine CBS_get_u16 BORINGSSL_PREFIX %+ _CBS_get_u16
 %xdefine CBS_get_u16_length_prefixed BORINGSSL_PREFIX %+ _CBS_get_u16_length_prefixed
+%xdefine CBS_get_u16le BORINGSSL_PREFIX %+ _CBS_get_u16le
 %xdefine CBS_get_u24 BORINGSSL_PREFIX %+ _CBS_get_u24
 %xdefine CBS_get_u24_length_prefixed BORINGSSL_PREFIX %+ _CBS_get_u24_length_prefixed
 %xdefine CBS_get_u32 BORINGSSL_PREFIX %+ _CBS_get_u32
+%xdefine CBS_get_u32le BORINGSSL_PREFIX %+ _CBS_get_u32le
 %xdefine CBS_get_u64 BORINGSSL_PREFIX %+ _CBS_get_u64
+%xdefine CBS_get_u64le BORINGSSL_PREFIX %+ _CBS_get_u64le
 %xdefine CBS_get_u8 BORINGSSL_PREFIX %+ _CBS_get_u8
 %xdefine CBS_get_u8_length_prefixed BORINGSSL_PREFIX %+ _CBS_get_u8_length_prefixed
 %xdefine CBS_init BORINGSSL_PREFIX %+ _CBS_init
@@ -3352,6 +3376,8 @@
 %xdefine ECDSA_SIG_free BORINGSSL_PREFIX %+ _ECDSA_SIG_free
 %xdefine ECDSA_SIG_from_bytes BORINGSSL_PREFIX %+ _ECDSA_SIG_from_bytes
 %xdefine ECDSA_SIG_get0 BORINGSSL_PREFIX %+ _ECDSA_SIG_get0
+%xdefine ECDSA_SIG_get0_r BORINGSSL_PREFIX %+ _ECDSA_SIG_get0_r
+%xdefine ECDSA_SIG_get0_s BORINGSSL_PREFIX %+ _ECDSA_SIG_get0_s
 %xdefine ECDSA_SIG_marshal BORINGSSL_PREFIX %+ _ECDSA_SIG_marshal
 %xdefine ECDSA_SIG_max_len BORINGSSL_PREFIX %+ _ECDSA_SIG_max_len
 %xdefine ECDSA_SIG_new BORINGSSL_PREFIX %+ _ECDSA_SIG_new
@@ -4090,8 +4116,16 @@
 %xdefine RSA_generate_key_ex BORINGSSL_PREFIX %+ _RSA_generate_key_ex
 %xdefine RSA_generate_key_fips BORINGSSL_PREFIX %+ _RSA_generate_key_fips
 %xdefine RSA_get0_crt_params BORINGSSL_PREFIX %+ _RSA_get0_crt_params
+%xdefine RSA_get0_d BORINGSSL_PREFIX %+ _RSA_get0_d
+%xdefine RSA_get0_dmp1 BORINGSSL_PREFIX %+ _RSA_get0_dmp1
+%xdefine RSA_get0_dmq1 BORINGSSL_PREFIX %+ _RSA_get0_dmq1
+%xdefine RSA_get0_e BORINGSSL_PREFIX %+ _RSA_get0_e
 %xdefine RSA_get0_factors BORINGSSL_PREFIX %+ _RSA_get0_factors
+%xdefine RSA_get0_iqmp BORINGSSL_PREFIX %+ _RSA_get0_iqmp
 %xdefine RSA_get0_key BORINGSSL_PREFIX %+ _RSA_get0_key
+%xdefine RSA_get0_n BORINGSSL_PREFIX %+ _RSA_get0_n
+%xdefine RSA_get0_p BORINGSSL_PREFIX %+ _RSA_get0_p
+%xdefine RSA_get0_q BORINGSSL_PREFIX %+ _RSA_get0_q
 %xdefine RSA_get_ex_data BORINGSSL_PREFIX %+ _RSA_get_ex_data
 %xdefine RSA_get_ex_new_index BORINGSSL_PREFIX %+ _RSA_get_ex_new_index
 %xdefine RSA_is_opaque BORINGSSL_PREFIX %+ _RSA_is_opaque
@@ -4624,6 +4658,8 @@
 %xdefine X509_get_serialNumber BORINGSSL_PREFIX %+ _X509_get_serialNumber
 %xdefine X509_get_signature_nid BORINGSSL_PREFIX %+ _X509_get_signature_nid
 %xdefine X509_get_subject_name BORINGSSL_PREFIX %+ _X509_get_subject_name
+%xdefine X509_getm_notAfter BORINGSSL_PREFIX %+ _X509_getm_notAfter
+%xdefine X509_getm_notBefore BORINGSSL_PREFIX %+ _X509_getm_notBefore
 %xdefine X509_gmtime_adj BORINGSSL_PREFIX %+ _X509_gmtime_adj
 %xdefine X509_issuer_and_serial_cmp BORINGSSL_PREFIX %+ _X509_issuer_and_serial_cmp
 %xdefine X509_issuer_and_serial_hash BORINGSSL_PREFIX %+ _X509_issuer_and_serial_hash
