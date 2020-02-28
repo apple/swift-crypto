@@ -44,9 +44,12 @@ if [[ "$(uname -s)" == "Linux" ]]; then
   done
 fi
 
+jazzy_dir="$root_path/.build/jazzy"
+rm -rf "$jazzy_dir"
+mkdir -p "$jazzy_dir"
+
 # prep index
-tmp=`mktemp -d`
-module_switcher="$tmp/README.md"
+module_switcher="$jazzy_dir/README.md"
 cat > "$module_switcher" <<"EOF"
 # SwiftCrypto Docs
 
@@ -70,7 +73,9 @@ jazzy_args=(--clean
             --swift-build-tool spm)
 
 for module in "${modules[@]}"; do
-  args=("${jazzy_args[@]}" --output "$tmp/docs/$version/$module" --docset-path "$tmp/docset/$version/$module" --module "$module")
+  args=("${jazzy_args[@]}" --output "$jazzy_dir/docs/$version/$module" --docset-path "$jazzy_dir/docset/$version/$module"
+        --module "$module" --module-version $version
+        --root-url "https://apple.github.io/swift-crypto/docs/$version/$module/")
   if [[ "$(uname -s)" == "Linux" ]]; then
     args+=(--sourcekitten-sourcefile "$root_path/.build/sourcekitten/$module.json")
   fi
@@ -78,13 +83,14 @@ for module in "${modules[@]}"; do
 done
 
 # push to github pages
-if [[ $CI == true ]]; then
+if [[ $PUSH == true ]]; then
   BRANCH_NAME=$(git rev-parse --abbrev-ref HEAD)
   GIT_AUTHOR=$(git --no-pager show -s --format='%an <%ae>' HEAD)
   git fetch origin +gh-pages:gh-pages
   git checkout gh-pages
-  rm -rf "docs"
-  cp -r "$tmp/docs" .
+  rm -rf "docs/$version"
+  rm -rf "docs/current"
+  cp -r "$jazzy_dir/docs/$version" docs/
   cp -r "docs/$version" docs/current
   git add --all docs
   echo '<html><head><meta http-equiv="refresh" content="0; url=docs/current/Crypto/index.html" /></head></html>' > index.html
