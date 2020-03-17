@@ -1532,6 +1532,7 @@
 %xdefine _SXNET_get_id_ulong _ %+ BORINGSSL_PREFIX %+ _SXNET_get_id_ulong
 %xdefine _SXNET_it _ %+ BORINGSSL_PREFIX %+ _SXNET_it
 %xdefine _SXNET_new _ %+ BORINGSSL_PREFIX %+ _SXNET_new
+%xdefine _TRUST_TOKEN_generate_key _ %+ BORINGSSL_PREFIX %+ _TRUST_TOKEN_generate_key
 %xdefine _USERNOTICE_free _ %+ BORINGSSL_PREFIX %+ _USERNOTICE_free
 %xdefine _USERNOTICE_it _ %+ BORINGSSL_PREFIX %+ _USERNOTICE_it
 %xdefine _USERNOTICE_new _ %+ BORINGSSL_PREFIX %+ _USERNOTICE_new
@@ -2373,11 +2374,13 @@
 %xdefine _ec_random_nonzero_scalar _ %+ BORINGSSL_PREFIX %+ _ec_random_nonzero_scalar
 %xdefine _ec_scalar_add _ %+ BORINGSSL_PREFIX %+ _ec_scalar_add
 %xdefine _ec_scalar_equal_vartime _ %+ BORINGSSL_PREFIX %+ _ec_scalar_equal_vartime
+%xdefine _ec_scalar_from_bytes _ %+ BORINGSSL_PREFIX %+ _ec_scalar_from_bytes
 %xdefine _ec_scalar_from_montgomery _ %+ BORINGSSL_PREFIX %+ _ec_scalar_from_montgomery
 %xdefine _ec_scalar_inv_montgomery _ %+ BORINGSSL_PREFIX %+ _ec_scalar_inv_montgomery
 %xdefine _ec_scalar_inv_montgomery_vartime _ %+ BORINGSSL_PREFIX %+ _ec_scalar_inv_montgomery_vartime
 %xdefine _ec_scalar_is_zero _ %+ BORINGSSL_PREFIX %+ _ec_scalar_is_zero
 %xdefine _ec_scalar_mul_montgomery _ %+ BORINGSSL_PREFIX %+ _ec_scalar_mul_montgomery
+%xdefine _ec_scalar_to_bytes _ %+ BORINGSSL_PREFIX %+ _ec_scalar_to_bytes
 %xdefine _ec_scalar_to_montgomery _ %+ BORINGSSL_PREFIX %+ _ec_scalar_to_montgomery
 %xdefine _ec_simple_scalar_inv_montgomery _ %+ BORINGSSL_PREFIX %+ _ec_simple_scalar_inv_montgomery
 %xdefine _ecp_nistz256_avx2_select_w7 _ %+ BORINGSSL_PREFIX %+ _ecp_nistz256_avx2_select_w7
@@ -4209,6 +4212,7 @@
 %xdefine SXNET_get_id_ulong BORINGSSL_PREFIX %+ _SXNET_get_id_ulong
 %xdefine SXNET_it BORINGSSL_PREFIX %+ _SXNET_it
 %xdefine SXNET_new BORINGSSL_PREFIX %+ _SXNET_new
+%xdefine TRUST_TOKEN_generate_key BORINGSSL_PREFIX %+ _TRUST_TOKEN_generate_key
 %xdefine USERNOTICE_free BORINGSSL_PREFIX %+ _USERNOTICE_free
 %xdefine USERNOTICE_it BORINGSSL_PREFIX %+ _USERNOTICE_it
 %xdefine USERNOTICE_new BORINGSSL_PREFIX %+ _USERNOTICE_new
@@ -5050,11 +5054,13 @@
 %xdefine ec_random_nonzero_scalar BORINGSSL_PREFIX %+ _ec_random_nonzero_scalar
 %xdefine ec_scalar_add BORINGSSL_PREFIX %+ _ec_scalar_add
 %xdefine ec_scalar_equal_vartime BORINGSSL_PREFIX %+ _ec_scalar_equal_vartime
+%xdefine ec_scalar_from_bytes BORINGSSL_PREFIX %+ _ec_scalar_from_bytes
 %xdefine ec_scalar_from_montgomery BORINGSSL_PREFIX %+ _ec_scalar_from_montgomery
 %xdefine ec_scalar_inv_montgomery BORINGSSL_PREFIX %+ _ec_scalar_inv_montgomery
 %xdefine ec_scalar_inv_montgomery_vartime BORINGSSL_PREFIX %+ _ec_scalar_inv_montgomery_vartime
 %xdefine ec_scalar_is_zero BORINGSSL_PREFIX %+ _ec_scalar_is_zero
 %xdefine ec_scalar_mul_montgomery BORINGSSL_PREFIX %+ _ec_scalar_mul_montgomery
+%xdefine ec_scalar_to_bytes BORINGSSL_PREFIX %+ _ec_scalar_to_bytes
 %xdefine ec_scalar_to_montgomery BORINGSSL_PREFIX %+ _ec_scalar_to_montgomery
 %xdefine ec_simple_scalar_inv_montgomery BORINGSSL_PREFIX %+ _ec_simple_scalar_inv_montgomery
 %xdefine ecp_nistz256_avx2_select_w7 BORINGSSL_PREFIX %+ _ecp_nistz256_avx2_select_w7

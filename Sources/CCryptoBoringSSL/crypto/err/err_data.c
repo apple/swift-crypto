@@ -51,7 +51,8 @@ OPENSSL_STATIC_ASSERT(ERR_LIB_DIGEST == 29, "library value changed");
 OPENSSL_STATIC_ASSERT(ERR_LIB_CIPHER == 30, "library value changed");
 OPENSSL_STATIC_ASSERT(ERR_LIB_HKDF == 31, "library value changed");
 OPENSSL_STATIC_ASSERT(ERR_LIB_USER == 32, "library value changed");
-OPENSSL_STATIC_ASSERT(ERR_NUM_LIBS == 33, "number of libraries changed");
+OPENSSL_STATIC_ASSERT(ERR_LIB_TRUST_TOKEN == 33, "library value changed");
+OPENSSL_STATIC_ASSERT(ERR_NUM_LIBS == 34, "number of libraries changed");
 
 const uint32_t kOpenSSLReasonValues[] = {
     0xc32083a,
@@ -756,6 +757,8 @@ const uint32_t kOpenSSLReasonValues[] = {
     0x783e0aa2,
     0x783e8a54,
     0x7c3211d7,
+    0x843213ed,
+    0x84328083,
 };
 
 const size_t kOpenSSLReasonValuesLen = sizeof(kOpenSSLReasonValues) / sizeof(kOpenSSLReasonValues[0]);
