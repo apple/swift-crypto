@@ -1,6 +1,7 @@
 ARG swift_version=5.0
 ARG ubuntu_version=bionic
-FROM swift:$swift_version-$ubuntu_version
+ARG base_image=swift:$swift_version-$ubuntu_version
+FROM $base_image
 # needed to do again after FROM due to docker limitation
 ARG swift_version
 ARG ubuntu_version
@@ -12,7 +13,7 @@ ENV LANG en_US.UTF-8
 ENV LANGUAGE en_US.UTF-8
 
 # Get lldb out of the way
-RUN mv /usr/lib/python2.7/site-packages/* /usr/lib/python2.7/dist-packages && rmdir /usr/lib/python2.7/site-packages && ln -s /usr/lib/python2.7/dist-packages /usr/lib/python2.7/site-packages
+RUN if [ -d /usr/lib/python2.7/site-packages ]; then mv /usr/lib/python2.7/site-packages/* /usr/lib/python2.7/dist-packages && rmdir /usr/lib/python2.7/site-packages && ln -s /usr/lib/python2.7/dist-packages /usr/lib/python2.7/site-packages; fi
 
 # dependencies
 RUN apt-get update && apt-get install -y wget
@@ -32,7 +33,7 @@ RUN chmod 755 $HOME/.tools/symbolicate-linux-fatal
 
 # swiftformat (until part of the toolchain)
 
-ARG swiftformat_version=0.40.12
+ARG swiftformat_version=0.44.6
 RUN git clone --branch $swiftformat_version --depth 1 https://github.com/nicklockwood/SwiftFormat $HOME/.tools/swift-format
 RUN cd $HOME/.tools/swift-format && swift build -c release
 RUN ln -s $HOME/.tools/swift-format/.build/release/swiftformat $HOME/.tools/swiftformat
