@@ -23,12 +23,16 @@
 // BoringSSL Commit: 5298ef99bf2b2d77600b3bb74dd572027bf495be
 
 import PackageDescription
+import Foundation
 
-let swiftSettings: [SwiftSetting] = [
+var swiftSettings: [SwiftSetting] = [
     .define("CRYPTO_IN_SWIFTPM"),
-    // To develop this on Apple platforms, uncomment this define.
-    // .define("CRYPTO_IN_SWIFTPM_FORCE_BUILD_API"),
 ]
+
+// To develop this on Apple platforms, define this in your environment:
+if ProcessInfo.processInfo.environment["CRYPTO_IN_SWIFTPM_FORCE_BUILD_API"] != nil {
+  swiftSettings.append(.define("CRYPTO_IN_SWIFTPM_FORCE_BUILD_API"))
+}
 
 let package = Package(
     name: "swift-crypto",
