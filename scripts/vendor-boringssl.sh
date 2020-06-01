@@ -188,7 +188,7 @@ PATTERNS=(
 'crypto/*/*/*.S'
 'crypto/*/*/*/*.c'
 'third_party/fiat/*.h'
-'third_party/fiat/*.c'
+#'third_party/fiat/*.c'
 )
 
 EXCLUDES=(
@@ -275,7 +275,6 @@ echo "PROTECTING against executable stacks"
 echo "PATCHING BoringSSL"
 git apply "${HERE}/scripts/patch-1-inttypes.patch"
 git apply "${HERE}/scripts/patch-2-arm-arch.patch"
-git apply "${HERE}/scripts/patch-3-weak-linking.patch"
 
 # We need BoringSSL to be modularised
 echo "MODULARISING BoringSSL"

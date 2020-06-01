@@ -23,7 +23,7 @@
 #include <CCryptoBoringSSL_sha.h>
 
 #include "../internal.h"
-#include "../../third_party/fiat/internal.h"
+#include "./internal.h"
 
 
 // The following precomputation tables are for the following
