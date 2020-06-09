@@ -27,8 +27,30 @@ import XCTest
 extension NISTECDHTests {
     func testGroupOpenSSL<PrivKey: NISTECPrivateKey & DiffieHellmanKeyAgreement, Curve: OpenSSLSupportedNISTCurve>(group: ECDHTestGroup, privateKeys: PrivKey.Type, onCurve curve: Curve.Type, file: StaticString = #file, line: UInt = #line) {
         func padKeyIfNecessary(vector: String, curveDetails: OpenSSLSupportedNISTCurve.Type, file: StaticString = #file, line: UInt = #line) throws -> [UInt8] {
+            // There are a few edge cases here.
+            //
+            // First, our raw bytes function requires the
+            // input buffer to be exactly as long as the curve size.
+            //
+            // Second, Wycheproof inputs may be too short or too long with
+            // leading zeros.
+            let curveSize = curve.coordinateByteCount
+            var privateBytes = [UInt8](repeating: 0, count: curveSize)
+
             let hexStringFromVector = (vector.count % 2 == 0) ? vector : "0\(vector)"
-            return try orFail(file: file, line: line) { try Array(hexString: hexStringFromVector) }
+            let privateKeyVector = try! Array(hexString: hexStringFromVector)
+
+            // Input is too long (i.e. we have leading zeros)
+            if privateKeyVector.count > curveSize {
+                privateBytes = privateKeyVector.suffix(curveSize)
+            } else if privateKeyVector.count == curveSize {
+                privateBytes = privateKeyVector
+            } else {
+                // Input is too short
+                privateBytes.replaceSubrange((privateBytes.count - privateKeyVector.count) ..< privateBytes.count, with: privateKeyVector)
+            }
+
+            return privateBytes
         }
 
         for testVector in group.tests {

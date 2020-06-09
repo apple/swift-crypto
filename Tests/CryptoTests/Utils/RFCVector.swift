@@ -2,7 +2,7 @@
 //
 // This source file is part of the SwiftCrypto open source project
 //
-// Copyright (c) 2019 Apple Inc. and the SwiftCrypto project authors
+// Copyright (c) 2019-2020 Apple Inc. and the SwiftCrypto project authors
 // Licensed under Apache License v2.0
 //
 // See LICENSE.txt for license information
@@ -55,7 +55,7 @@ struct RFCVectorDecoder {
         // Strip the leading elements.
         lines = lines.drop(while: { !$0.hasPrefix("COUNT") })
 
-        var decoded = Array<[String: String]>()
+        var decoded = [[String: String]]()
 
         // Parse the elements
         while let element = lines.parseElement() {
@@ -130,7 +130,7 @@ extension RFCVectorDecoder {
                 return stringResult as! T
             case is [UInt8].Type:
                 if stringResult.count == 0 {
-                    return Array<UInt8>() as! T
+                    return [UInt8]() as! T
                 } else {
                     return try Array(hexString: stringResult) as! T
                 }

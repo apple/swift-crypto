@@ -2,7 +2,7 @@
 //
 // This source file is part of the SwiftCrypto open source project
 //
-// Copyright (c) 2019 Apple Inc. and the SwiftCrypto project authors
+// Copyright (c) 2019-2020 Apple Inc. and the SwiftCrypto project authors
 // Licensed under Apache License v2.0
 //
 // See LICENSE.txt for license information
@@ -46,6 +46,16 @@ class ECKeyEncodingsTests: XCTestCase {
         let x25519KeyKA = Curve25519.KeyAgreement.PrivateKey()
         let x25519KeyKA_raw = x25519KeyKA.rawRepresentation
         XCTAssertNoThrow(try Curve25519.KeyAgreement.PrivateKey(rawRepresentation: x25519KeyKA_raw))
+    }
+    
+    /// This test validates that we correctly reject invalid Curve25519 private keys.
+    func testCurve25519InvalidPrivateKey() {
+        XCTAssertThrowsError(
+            try Curve25519.KeyAgreement.PrivateKey(rawRepresentation: Data(repeating: 0, count: 32))
+        )
+        XCTAssertThrowsError(
+            try Curve25519.KeyAgreement.PrivateKey(rawRepresentation: Data(repeating: 1, count: 32))
+        )
     }
     
     func testEncodingsSigningKeyTests() {

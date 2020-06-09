@@ -2,7 +2,7 @@
 //
 // This source file is part of the SwiftCrypto open source project
 //
-// Copyright (c) 2019 Apple Inc. and the SwiftCrypto project authors
+// Copyright (c) 2019-2020 Apple Inc. and the SwiftCrypto project authors
 // Licensed under Apache License v2.0
 //
 // See LICENSE.txt for license information
@@ -36,7 +36,7 @@ struct ECDHTestVector: Codable {
     let result: String
     let tcId: Int
     let flags: [String]
-
+    
     enum CodingKeys: String, CodingKey {
         case publicKey = "public"
         case privateKey = "private"
@@ -71,7 +71,7 @@ class X25519Tests: XCTestCase {
                 jsonName: "x25519_test",
                 testFunction: { (group: ECDHTestGroup) in
                     try orFail { try testGroup(group: group) }
-            })
+                })
         }
     }
 

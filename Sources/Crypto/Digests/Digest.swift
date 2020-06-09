@@ -2,7 +2,7 @@
 //
 // This source file is part of the SwiftCrypto open source project
 //
-// Copyright (c) 2019 Apple Inc. and the SwiftCrypto project authors
+// Copyright (c) 2019-2020 Apple Inc. and the SwiftCrypto project authors
 // Licensed under Apache License v2.0
 //
 // See LICENSE.txt for license information
@@ -17,7 +17,6 @@
 import Foundation
 
 /// A protocol defining requirements for digests
-@available(iOS 13.0, macOS 10.15, watchOS 6.0, tvOS 13.0, macCatalyst 13.0, *)
 public protocol Digest: Hashable, ContiguousBytes, CustomStringConvertible, Sequence where Element == UInt8 {
     static var byteCount: Int { get }
 }
@@ -33,7 +32,7 @@ extension DigestPrivate {
             return Self(bufferPointer: bufferPointer)
         }
         
-        if (some != nil) {
+        if some != nil {
             self = some!
         } else {
             return nil

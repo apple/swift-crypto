@@ -2,7 +2,7 @@
 //
 // This source file is part of the SwiftCrypto open source project
 //
-// Copyright (c) 2019 Apple Inc. and the SwiftCrypto project authors
+// Copyright (c) 2019-2020 Apple Inc. and the SwiftCrypto project authors
 // Licensed under Apache License v2.0
 //
 // See LICENSE.txt for license information
@@ -31,7 +31,6 @@ protocol DiffieHellmanKeyAgreement {
 
 /// A Key Agreement Result
 /// A SharedSecret has to go through a Key Derivation Function before being able to use by a symmetric key operation.
-@available(iOS 13.0, macOS 10.15, watchOS 6.0, tvOS 13.0, macCatalyst 13.0, *)
 public struct SharedSecret: ContiguousBytes {
     var ss: SecureBytes
 
@@ -109,7 +108,7 @@ public struct SharedSecret: ContiguousBytes {
     ///   - outputByteCount: The length in bytes of resulting symmetric key.
     /// - Returns: The derived symmetric key
     public func hkdfDerivedSymmetricKey<H: HashFunction, Salt: DataProtocol, SI: DataProtocol>(using hashFunction: H.Type, salt: Salt, sharedInfo: SI, outputByteCount: Int) -> SymmetricKey {
-        return HKDF<H>.deriveKey(inputKeyMaterial: ss, salt: salt, info: sharedInfo, outputByteCount: outputByteCount)
+        return HKDF<H>.deriveKey(inputKeyMaterial: SymmetricKey(data: ss), salt: salt, info: sharedInfo, outputByteCount: outputByteCount)
     }
 }
 
@@ -141,14 +140,11 @@ extension SharedSecret: CustomStringConvertible, Equatable {
 
 extension HashFunction {
     // A wrapper function to keep the unsafe code in one place.
-    @usableFromInline
     mutating func update(_ secret: SharedSecret) {
         secret.withUnsafeBytes {
             self.update(bufferPointer: $0)
         }
     }
-
-    @usableFromInline
     mutating func update(_ counter: UInt32) {
         withUnsafeBytes(of: counter) {
             self.update(bufferPointer: $0)

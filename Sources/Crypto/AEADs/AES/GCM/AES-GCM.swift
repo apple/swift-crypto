@@ -2,7 +2,7 @@
 //
 // This source file is part of the SwiftCrypto open source project
 //
-// Copyright (c) 2019 Apple Inc. and the SwiftCrypto project authors
+// Copyright (c) 2019-2020 Apple Inc. and the SwiftCrypto project authors
 // Licensed under Apache License v2.0
 //
 // See LICENSE.txt for license information
@@ -85,7 +85,6 @@ extension AES {
 }
 
 extension AES.GCM {
-    @available(iOS 13.0, macOS 10.15, watchOS 6.0, tvOS 13.0, macCatalyst 13.0, *)
     public struct SealedBox: AEADSealedBox {
         private let combinedRepresentation: Data
         private let nonceByteCount: Int
@@ -124,7 +123,7 @@ extension AES.GCM {
             // While we have these values in the internal APIs, we can't use it in inlinable code.
             let aesGCMOverhead = 12 + 16
             
-            if (combined.count < aesGCMOverhead) {
+            if combined.count < aesGCMOverhead {
                 throw CryptoKitError.incorrectParameterSize
             }
             

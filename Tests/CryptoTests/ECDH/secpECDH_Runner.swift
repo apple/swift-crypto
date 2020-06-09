@@ -2,7 +2,7 @@
 //
 // This source file is part of the SwiftCrypto open source project
 //
-// Copyright (c) 2019 Apple Inc. and the SwiftCrypto project authors
+// Copyright (c) 2019-2020 Apple Inc. and the SwiftCrypto project authors
 // Licensed under Apache License v2.0
 //
 // See LICENSE.txt for license information
@@ -63,7 +63,7 @@ class NISTECDHTests: XCTestCase {
                 jsonName: "ecdh_secp256r1_test",
                 testFunction: { (group: ECDHTestGroup) in
                     testGroup(group: group, privateKeys: P256.KeyAgreement.PrivateKey.self, onCurve: P256.CurveDetails.self)
-            })
+                })
         }
         try orFail {
             try wycheproofTest(
@@ -71,7 +71,7 @@ class NISTECDHTests: XCTestCase {
                 jsonName: "ecdh_secp384r1_test",
                 testFunction: { (group: ECDHTestGroup) in
                     testGroup(group: group, privateKeys: P384.KeyAgreement.PrivateKey.self, onCurve: P384.CurveDetails.self)
-            })
+                })
         }
         try orFail {
             try wycheproofTest(
@@ -79,7 +79,7 @@ class NISTECDHTests: XCTestCase {
                 jsonName: "ecdh_secp521r1_test",
                 testFunction: { (group: ECDHTestGroup) in
                     testGroup(group: group, privateKeys: P521.KeyAgreement.PrivateKey.self, onCurve: P521.CurveDetails.self)
-            })
+                })
         }
 
     }

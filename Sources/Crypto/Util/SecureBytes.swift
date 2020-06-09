@@ -2,7 +2,7 @@
 //
 // This source file is part of the SwiftCrypto open source project
 //
-// Copyright (c) 2019 Apple Inc. and the SwiftCrypto project authors
+// Copyright (c) 2019-2020 Apple Inc. and the SwiftCrypto project authors
 // Licensed under Apache License v2.0
 //
 // See LICENSE.txt for license information
@@ -16,7 +16,6 @@
 #else
 import Foundation
 
-@usableFromInline
 struct SecureBytes {
     @usableFromInline
     var backing: Backing
@@ -196,19 +195,16 @@ extension SecureBytes: MutableDataProtocol { }
 extension SecureBytes.Index: Hashable { }
 
 extension SecureBytes.Index: Comparable {
-    @usableFromInline
     static func <(lhs: SecureBytes.Index, rhs: SecureBytes.Index) -> Bool {
         return lhs.offset < rhs.offset
     }
 }
 
 extension SecureBytes.Index: Strideable {
-    @usableFromInline
     func advanced(by n: Int) -> SecureBytes.Index {
         return SecureBytes.Index(offset: self.offset + n)
     }
 
-    @usableFromInline
     func distance(to other: SecureBytes.Index) -> Int {
         return other.offset - self.offset
     }
@@ -296,7 +292,6 @@ extension SecureBytes {
 }
 
 extension SecureBytes.Backing {
-    @inlinable
     func replaceSubrangeFittingWithinCapacity<C: Collection>(_ subrange: Range<Int>, with newElements: C) where C.Element == UInt8 {
         // This function is called when have a unique reference to the backing storage, and we have enough room to store these bytes without
         // any problem. We have one pre-existing buffer made up of 4 regions: a prefix set of bytes that are
@@ -326,7 +321,6 @@ extension SecureBytes.Backing {
     }
 
     /// Appends the bytes of a collection to this storage, crashing if there is not enough room.
-    @inlinable
     /* private but inlinable */ func _appendBytes<C: Collection>(_ bytes: C) where C.Element == UInt8 {
         let byteCount = bytes.count
 
@@ -342,7 +336,6 @@ extension SecureBytes.Backing {
 
     /// Appends the bytes of a slice of another backing buffer to this storage, crashing if there
     /// is not enough room.
-    @inlinable
     /* private but inlinable */ func _appendBytes(_ backing: SecureBytes.Backing, inRange range: Range<Int>) {
         precondition(range.lowerBound >= 0)
         precondition(range.upperBound <= backing.capacity)
@@ -396,7 +389,6 @@ extension SecureBytes.Backing {
 }
 
 extension SecureBytes.Backing: ContiguousBytes {
-    @inlinable
     func withUnsafeBytes<T>(_ body: (UnsafeRawBufferPointer) throws -> T) rethrows -> T {
         let count = self.count
 
@@ -405,7 +397,6 @@ extension SecureBytes.Backing: ContiguousBytes {
         }
     }
 
-    @inlinable
     func withUnsafeMutableBytes<T>(_ body: (UnsafeMutableRawBufferPointer) throws -> T) rethrows -> T {
         let count = self.count
 
@@ -429,7 +420,6 @@ extension UInt32 {
     /// Returns the next power of two unless that would overflow, in which case UInt32.max (on 64-bit systems) or
     /// Int32.max (on 32-bit systems) is returned. The returned value is always safe to be cast to Int and passed
     /// to malloc on all platforms.
-    @usableFromInline
     func nextPowerOf2ClampedToMax() -> UInt32 {
         guard self > 0 else {
             return 1

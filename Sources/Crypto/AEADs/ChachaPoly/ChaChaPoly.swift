@@ -2,7 +2,7 @@
 //
 // This source file is part of the SwiftCrypto open source project
 //
-// Copyright (c) 2019 Apple Inc. and the SwiftCrypto project authors
+// Copyright (c) 2019-2020 Apple Inc. and the SwiftCrypto project authors
 // Licensed under Apache License v2.0
 //
 // See LICENSE.txt for license information
@@ -24,7 +24,6 @@ typealias ChaChaPolyImpl = OpenSSLChaChaPolyImpl
 import Foundation
 
 /// ChaCha20-Poly1305 as described in RFC 7539 with 96-bit nonces.
-@available(iOS 13.0, macOS 10.15, watchOS 6.0, tvOS 13.0, macCatalyst 13.0, *)
 public enum ChaChaPoly: Cipher {
     static let tagByteCount = 16
     static let keyBitsCount = 256
@@ -87,7 +86,6 @@ public enum ChaChaPoly: Cipher {
 
 extension ChaChaPoly {
     @frozen
-    @available(iOS 13.0, macOS 10.15, watchOS 6.0, tvOS 13.0, macCatalyst 13.0, *)
     public struct SealedBox: AEADSealedBox {
         /// The combined representation ( nonce || ciphertext || tag)
         public let combined: Data
@@ -110,7 +108,7 @@ extension ChaChaPoly {
             // While we have these values in the internal APIs, we can't use it in inlinable code.
             let chachaPolyOverhead = 12 + 16
             
-            if (combined.count < chachaPolyOverhead) {
+            if combined.count < chachaPolyOverhead {
                 throw CryptoKitError.incorrectParameterSize
             }
             

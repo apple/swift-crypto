@@ -2,7 +2,7 @@
 //
 // This source file is part of the SwiftCrypto open source project
 //
-// Copyright (c) 2019 Apple Inc. and the SwiftCrypto project authors
+// Copyright (c) 2019-2020 Apple Inc. and the SwiftCrypto project authors
 // Licensed under Apache License v2.0
 //
 // See LICENSE.txt for license information
@@ -15,11 +15,19 @@
 @_exported import CryptoKit
 #else
 /// The SHA-256 Hash Function
-@available(iOS 13.0, macOS 10.15, watchOS 6.0, tvOS 13.0, macCatalyst 13.0, *)
 public struct SHA256: HashFunctionImplementationDetails {
-    public static var blockByteCount: Int = 64
+    public static var blockByteCount: Int {
+        get { return 64 }
+        
+        set { fatalError("Cannot set SHA256.blockByteCount") }
+    }
+    public static var byteCount: Int {
+        get { return 32 }
+        
+        set { fatalError("Cannot set SHA256.byteCount") }
+    }
     public typealias Digest = SHA256Digest
-    public static var byteCount = 32
+    
     var impl: DigestImpl<SHA256>
 
     /// Initializes the hash function instance.
@@ -43,11 +51,19 @@ public struct SHA256: HashFunctionImplementationDetails {
 }
 
 /// The SHA-384 Hash Function
-@available(iOS 13.0, macOS 10.15, watchOS 6.0, tvOS 13.0, macCatalyst 13.0, *)
 public struct SHA384: HashFunctionImplementationDetails {
-    public static var blockByteCount: Int = 128
+    public static var blockByteCount: Int {
+        get { return 128 }
+        
+        set { fatalError("Cannot set SHA384.blockByteCount") }
+    }
+    public static var byteCount: Int {
+        get { return 48 }
+        
+        set { fatalError("Cannot set SHA384.byteCount") }
+    }
+    
     public typealias Digest = SHA384Digest
-    public static var byteCount = 48
     var impl: DigestImpl<SHA384>
 
     public init() {
@@ -67,11 +83,19 @@ public struct SHA384: HashFunctionImplementationDetails {
 }
 
 /// The SHA-512 Hash Function
-@available(iOS 13.0, macOS 10.15, watchOS 6.0, tvOS 13.0, macCatalyst 13.0, *)
 public struct SHA512: HashFunctionImplementationDetails {
-    public static var blockByteCount: Int = 128
+    public static var blockByteCount: Int {
+        get { return 128 }
+        
+        set { fatalError("Cannot set SHA512.blockByteCount") }
+    }
+    public static var byteCount: Int {
+        get { return 64 }
+        
+        set { fatalError("Cannot set SHA512.byteCount") }
+    }
     public typealias Digest = SHA512Digest
-    public static var byteCount = 64
+    
     var impl: DigestImpl<SHA512>
 
     /// Initializes the hash function instance.

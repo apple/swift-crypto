@@ -2,7 +2,7 @@
 //
 // This source file is part of the SwiftCrypto open source project
 //
-// Copyright (c) 2019 Apple Inc. and the SwiftCrypto project authors
+// Copyright (c) 2019-2020 Apple Inc. and the SwiftCrypto project authors
 // Licensed under Apache License v2.0
 //
 // See LICENSE.txt for license information
@@ -214,14 +214,14 @@ class AESGCMTests: XCTestCase {
 
                             XCTAssertEqual(Data(ct), sb.ciphertext)
 
-                            if (testVector.result == "valid") {
+                            if testVector.result == "valid" {
                                 XCTAssertEqual(Data(tag), sb.tag)
                             }
 
                             do {
                                 let recovered_pt = try AES.GCM.open(AES.GCM.SealedBox(nonce: nonce, ciphertext: ct, tag: tag), using: key, authenticating: aad)
 
-                                if (testVector.result == "valid" || testVector.result == "acceptable") {
+                                if testVector.result == "valid" || testVector.result == "acceptable" {
                                     XCTAssertEqual(recovered_pt, msg)
                                 } else {
                                     XCTFail()
@@ -234,7 +234,7 @@ class AESGCMTests: XCTestCase {
                             return
                         }
                     }
-            })
+                })
         }
     }
 }

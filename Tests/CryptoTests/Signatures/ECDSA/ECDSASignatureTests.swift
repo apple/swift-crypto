@@ -2,7 +2,7 @@
 //
 // This source file is part of the SwiftCrypto open source project
 //
-// Copyright (c) 2019 Apple Inc. and the SwiftCrypto project authors
+// Copyright (c) 2019-2020 Apple Inc. and the SwiftCrypto project authors
 // Licensed under Apache License v2.0
 //
 // See LICENSE.txt for license information
@@ -60,7 +60,7 @@ class SignatureTests: XCTestCase {
                 jsonName: "eddsa_test",
                 testFunction: { (group: EdDSATestGroup) in
                     try orFail { try testEdGroup(group: group) }
-            })
+                })
         }
     }
     func testWycheProofP256() throws {
@@ -70,7 +70,7 @@ class SignatureTests: XCTestCase {
                 jsonName: "ecdsa_secp256r1_sha256_test",
                 testFunction: { (group: ECDSATestGroup) in
                     try orFail { try testGroup(group: group, curve: P256.Signing.self, hashFunction: SHA256.self) }
-            })
+                })
         }
         
         try orFail {
@@ -79,7 +79,7 @@ class SignatureTests: XCTestCase {
                 jsonName: "ecdsa_secp256r1_sha512_test",
                 testFunction: { (group: ECDSATestGroup) in
                     try orFail { try testGroup(group: group, curve: P256.Signing.self, hashFunction: SHA512.self) }
-            })
+                })
         }
     }
     
@@ -90,7 +90,7 @@ class SignatureTests: XCTestCase {
                 jsonName: "ecdsa_secp384r1_sha384_test",
                 testFunction: { (group: ECDSATestGroup) in
                     try orFail { try testGroup(group: group, curve: P384.Signing.self, hashFunction: SHA384.self) }
-            })
+                })
         }
         try orFail {
             try wycheproofTest(
@@ -98,7 +98,7 @@ class SignatureTests: XCTestCase {
                 jsonName: "ecdsa_secp384r1_sha512_test",
                 testFunction: { (group: ECDSATestGroup) in
                     try orFail { try testGroup(group: group, curve: P384.Signing.self, hashFunction: SHA512.self) }
-            })
+                })
         }
     }
     
@@ -109,7 +109,7 @@ class SignatureTests: XCTestCase {
                 jsonName: "ecdsa_secp521r1_sha512_test",
                 testFunction: { (group: ECDSATestGroup) in
                     try orFail { try testGroup(group: group, curve: P521.Signing.self, hashFunction: SHA512.self) }
-            })
+                })
         }
     }
     

@@ -2,7 +2,7 @@
 //
 // This source file is part of the SwiftCrypto open source project
 //
-// Copyright (c) 2019 Apple Inc. and the SwiftCrypto project authors
+// Copyright (c) 2019-2020 Apple Inc. and the SwiftCrypto project authors
 // Licensed under Apache License v2.0
 //
 // See LICENSE.txt for license information
@@ -119,7 +119,6 @@ extension P256.Signing.PrivateKey: DigestSigner {
         return try self.signature(for: SHA256.hash(data: data))
     }
  }
-
 extension P256.Signing.PublicKey: DigestValidator {
     /// Verifies an ECDSA signature over the P256 elliptic curve.
     ///
@@ -134,9 +133,9 @@ extension P256.Signing.PublicKey: DigestValidator {
         return self.openSSLIsValidSignature(signature, for: digest)
         #endif
     }
- }
+}
 
- extension P256.Signing.PublicKey: DataValidator {
+extension P256.Signing.PublicKey: DataValidator {
     /// Verifies an ECDSA signature over the P256 elliptic curve.
     /// SHA256 is used as the hash function.
     ///
@@ -236,7 +235,6 @@ extension P384.Signing.PrivateKey: DigestSigner {
         return try self.signature(for: SHA384.hash(data: data))
     }
  }
-
 extension P384.Signing.PublicKey: DigestValidator {
     /// Verifies an ECDSA signature over the P384 elliptic curve.
     ///
@@ -251,9 +249,9 @@ extension P384.Signing.PublicKey: DigestValidator {
         return self.openSSLIsValidSignature(signature, for: digest)
         #endif
     }
- }
+}
 
- extension P384.Signing.PublicKey: DataValidator {
+extension P384.Signing.PublicKey: DataValidator {
     /// Verifies an ECDSA signature over the P384 elliptic curve.
     /// SHA384 is used as the hash function.
     ///
@@ -353,7 +351,6 @@ extension P521.Signing.PrivateKey: DigestSigner {
         return try self.signature(for: SHA512.hash(data: data))
     }
  }
-
 extension P521.Signing.PublicKey: DigestValidator {
     /// Verifies an ECDSA signature over the P521 elliptic curve.
     ///
@@ -368,9 +365,9 @@ extension P521.Signing.PublicKey: DigestValidator {
         return self.openSSLIsValidSignature(signature, for: digest)
         #endif
     }
- }
+}
 
- extension P521.Signing.PublicKey: DataValidator {
+extension P521.Signing.PublicKey: DataValidator {
     /// Verifies an ECDSA signature over the P521 elliptic curve.
     /// SHA512 is used as the hash function.
     ///
@@ -382,5 +379,6 @@ extension P521.Signing.PublicKey: DigestValidator {
         return self.isValidSignature(signature, for: SHA512.hash(data: data))
     }
  }
+
 
 #endif // Linux or !SwiftPM
