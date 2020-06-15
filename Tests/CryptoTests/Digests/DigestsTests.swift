@@ -50,7 +50,7 @@ func testVectorForAlgorithm<H: HashFunction>(hashFunction: H.Type) throws -> Str
 }
 
 class DigestsTests: XCTestCase {
-    func assertHashFunctionWithVector<H: HashFunction>(hf: H.Type, data: Data, testVector: String, file: StaticString = #file, line: UInt = #line) throws {
+    func assertHashFunctionWithVector<H: HashFunction>(hf: H.Type, data: Data, testVector: String, file: StaticString = (#file), line: UInt = #line) throws {
         var h = hf.init()
         h.update(data: data)
         let result = h.finalize()
