@@ -193,7 +193,7 @@ extension ArbitraryPrecisionInteger {
     private static func withUnsafeBN_CTX<T>(_ body: (OpaquePointer) throws -> T) rethrows -> T {
         // We force unwrap here because this call can only fail if the allocator is broken, and if
         // the allocator fails we don't have long to live anyway.
-        var bnCtx = CCryptoBoringSSL_BN_CTX_new()!
+        let bnCtx = CCryptoBoringSSL_BN_CTX_new()!
         defer {
             CCryptoBoringSSL_BN_CTX_free(bnCtx)
         }

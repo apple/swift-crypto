@@ -49,7 +49,7 @@ extension XCTestCase {
     /// been marked as `throws`.
     /// - Note: this is a replacement for `XCTUnwrap`, which is not availble
     /// in SPM command line builds as of this writing: <https://bugs.swift.org/browse/SR-11501>
-    func unwrap<T>(_ optional: T?, file: StaticString = #file, line: UInt = #line) throws -> T {
+    func unwrap<T>(_ optional: T?, file: StaticString = (#file), line: UInt = #line) throws -> T {
         guard let wrapped = optional else {
             XCTFail("Optional was nil", file: file, line: line)
             throw OptionalUnwrappingError(file: file, line: line)

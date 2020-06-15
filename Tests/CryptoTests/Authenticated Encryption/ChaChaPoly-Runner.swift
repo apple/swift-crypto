@@ -131,7 +131,7 @@ class ChaChaPolyTests: XCTestCase {
     }
 
     func testRoundTripDataProtocols() throws {
-        func roundTrip<Message: DataProtocol, AAD: DataProtocol>(message: Message, aad: AAD, file: StaticString = #file, line: UInt = #line) throws {
+        func roundTrip<Message: DataProtocol, AAD: DataProtocol>(message: Message, aad: AAD, file: StaticString = (#file), line: UInt = #line) throws {
             let key = SymmetricKey(size: .bits256)
             let nonce = ChaChaPoly.Nonce()
 
