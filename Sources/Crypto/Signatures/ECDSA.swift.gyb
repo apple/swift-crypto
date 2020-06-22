@@ -2,7 +2,7 @@
 //
 // This source file is part of the SwiftCrypto open source project
 //
-// Copyright (c) 2019 Apple Inc. and the SwiftCrypto project authors
+// Copyright (c) 2019-2020 Apple Inc. and the SwiftCrypto project authors
 // Licensed under Apache License v2.0
 //
 // See LICENSE.txt for license information
@@ -127,7 +127,6 @@ extension ${CURVE}.Signing.PrivateKey: DigestSigner {
         return try self.signature(for: ${HF}.hash(data: data))
     }
  }
-
 extension ${CURVE}.Signing.PublicKey: DigestValidator {
     /// Verifies an ECDSA signature over the ${CURVE} elliptic curve.
     ///
@@ -142,9 +141,9 @@ extension ${CURVE}.Signing.PublicKey: DigestValidator {
         return self.openSSLIsValidSignature(signature, for: digest)
         #endif
     }
- }
+}
 
- extension ${CURVE}.Signing.PublicKey: DataValidator {
+extension ${CURVE}.Signing.PublicKey: DataValidator {
     /// Verifies an ECDSA signature over the ${CURVE} elliptic curve.
     /// ${HF} is used as the hash function.
     ///
@@ -158,4 +157,5 @@ extension ${CURVE}.Signing.PublicKey: DigestValidator {
  }
 
 % end
+
 #endif // Linux or !SwiftPM

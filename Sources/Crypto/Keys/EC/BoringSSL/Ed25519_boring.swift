@@ -22,7 +22,7 @@ import Foundation
 extension Curve25519.Signing {
     @usableFromInline
     struct OpenSSLCurve25519PrivateKeyImpl {
-        /* private but @usableFromInline */ @usableFromInline var _privateKey: SecureBytes
+        /* private but @usableFromInline */ var _privateKey: SecureBytes
         /* private but @usableFromInline */ @usableFromInline var _publicKey: [UInt8]
 
         @usableFromInline
@@ -46,7 +46,6 @@ extension Curve25519.Signing {
             return OpenSSLCurve25519PublicKeyImpl(self._publicKey)
         }
 
-        @usableFromInline
         var key: SecureBytes {
             return self._privateKey
         }

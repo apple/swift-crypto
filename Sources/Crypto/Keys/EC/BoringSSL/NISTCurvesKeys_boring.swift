@@ -163,7 +163,16 @@ class BoringSSLECPrivateKeyWrapper<Curve: OpenSSLSupportedNISTCurve> {
     }
 
     init<Bytes: ContiguousBytes>(x963Representation bytes: Bytes) throws {
-        self.key = try Curve.group.makeUnsafeOwnedECKey()
+        // Before we do anything, we validate that the x963 representation has the right number of bytes.
+        // This is because BoringSSL will quietly accept shorter byte counts, though it will reject longer ones.
+        // This brings our behaviour into line with CryptoKit
+        let group = Curve.group
+        let length = bytes.withUnsafeBytes { $0.count }
+        guard length == (group.coordinateByteCount * 3) + 1 else {
+            throw CryptoKitError.incorrectParameterSize
+        }
+
+        self.key = try group.makeUnsafeOwnedECKey()
 
         // First, try to grab the numbers.
         var (x, y, k) = try bytes.readx963PrivateNumbers()
@@ -176,6 +185,15 @@ class BoringSSLECPrivateKeyWrapper<Curve: OpenSSLSupportedNISTCurve> {
 
     init<Bytes: ContiguousBytes>(rawRepresentation bytes: Bytes) throws {
         let group = Curve.group
+
+        // Before we do anything, we validate that the raw representation has the right number of bytes.
+        // This is because BoringSSL will quietly accept shorter byte counts, though it will reject longer ones.
+        // This brings our behaviour into line with CryptoKit
+        let length = bytes.withUnsafeBytes { $0.count }
+        guard length == group.coordinateByteCount else {
+            throw CryptoKitError.incorrectParameterSize
+        }
+
         self.key = try group.makeUnsafeOwnedECKey()
 
         // The raw representation is just the bytes that make up k.
@@ -306,6 +324,15 @@ class BoringSSLECPublicKeyWrapper<Curve: OpenSSLSupportedNISTCurve> {
 
     init<Bytes: ContiguousBytes>(compactRepresentation bytes: Bytes) throws {
         let group = Curve.group
+
+        // Before we do anything, we validate that the compact representation has the right number of bytes.
+        // This is because BoringSSL will quietly accept shorter byte counts, though it will reject longer ones.
+        // This brings our behaviour into line with CryptoKit
+        let length = bytes.withUnsafeBytes { $0.count }
+        guard length == group.coordinateByteCount else {
+            throw CryptoKitError.incorrectParameterSize
+        }
+
         self.key = try group.makeUnsafeOwnedECKey()
 
         // The compact representation is simply the X coordinate: deserializing then requires us to do a little math,
@@ -331,13 +358,32 @@ class BoringSSLECPublicKeyWrapper<Curve: OpenSSLSupportedNISTCurve> {
     }
 
     init<Bytes: ContiguousBytes>(x963Representation bytes: Bytes) throws {
-        self.key = try Curve.group.makeUnsafeOwnedECKey()
+        // Before we do anything, we validate that the x963 representation has the right number of bytes.
+        // This is because BoringSSL will quietly accept shorter byte counts, though it will reject longer ones.
+        // This brings our behaviour into line with CryptoKit
+        let group = Curve.group
+        let length = bytes.withUnsafeBytes { $0.count }
+        guard length == (group.coordinateByteCount * 2) + 1 else {
+            throw CryptoKitError.incorrectParameterSize
+        }
+
+        self.key = try group.makeUnsafeOwnedECKey()
         var (x, y) = try bytes.readx963PublicNumbers()
         try self.setPublicKey(x: &x, y: &y)
     }
 
     init<Bytes: ContiguousBytes>(rawRepresentation bytes: Bytes) throws {
-        self.key = try Curve.group.makeUnsafeOwnedECKey()
+        let group = Curve.group
+
+        // Before we do anything, we validate that the raw representation has the right number of bytes.
+        // This is because BoringSSL will quietly accept shorter byte counts, though it will reject longer ones.
+        // This brings our behaviour into line with CryptoKit
+        let length = bytes.withUnsafeBytes { $0.count }
+        guard length == group.coordinateByteCount * 2 else {
+            throw CryptoKitError.incorrectParameterSize
+        }
+
+        self.key = try group.makeUnsafeOwnedECKey()
 
         // The raw representation is identical to the x963 representation, without the leading 0x4.
         var (x, y): (ArbitraryPrecisionInteger, ArbitraryPrecisionInteger) = try bytes.withUnsafeBytes { bytesPtr in

@@ -51,7 +51,6 @@ extension Curve25519.KeyAgreement {
 
     @usableFromInline
     struct OpenSSLCurve25519PrivateKeyImpl {
-        @usableFromInline
         var key: SecureBytes
 
         @usableFromInline
@@ -69,13 +68,19 @@ extension Curve25519.KeyAgreement {
                 privateKeySize = Curve25519.KeyAgreement.keySizeBytes // We always use the whole thing.
             }
             self.publicKey = .init(publicKey)
+
+            // BoringSSL performs an "anti-mask" of the private key. That's well-motivated, but corecrypto doesn't
+            // and we'd like to behave the same way. Undo the private key anti-mask.
+            let firstByteIndex = self.key.startIndex
+            let lastByteIndex = self.key.index(before: self.key.endIndex)
+            self.key[firstByteIndex] &= 248
+            self.key[lastByteIndex] &= 127
+            self.key[lastByteIndex] |= 64
         }
 
         init<D: ContiguousBytes>(rawRepresentation: D) throws {
             let publicBytes: [UInt8] = try rawRepresentation.withUnsafeBytes { privatePointer in
-                guard privatePointer.count == Curve25519.KeyAgreement.keySizeBytes else {
-                    throw CryptoKitError.incorrectKeySize
-                }
+                try OpenSSLCurve25519PrivateKeyImpl.validateX25519PrivateKeyData(rawRepresentation: privatePointer)
 
                 return Array(unsafeUninitializedCapacity: Curve25519.KeyAgreement.keySizeBytes) { publicKeyBytes, publicKeySize in
                     precondition(publicKeyBytes.count >= Curve25519.KeyAgreement.keySizeBytes)
@@ -117,6 +122,33 @@ extension Curve25519.KeyAgreement {
         @usableFromInline
         var rawRepresentation: Data {
             return Data(self.key)
+        }
+
+        /// Validates whether the passed x25519 key representation is valid.
+        /// - Parameter rawRepresentation: The provided key representation. Expected to be a valid 32-bytes private key.
+        static func validateX25519PrivateKeyData(rawRepresentation: UnsafeRawBufferPointer) throws {
+            // X25519 keys have two constraints.
+
+            /// Verifies that the three least significant bits of the first byte are set to zero to prevent a small subgroup attack.
+            /// - Parameter byte: The first byte of the private key.
+            func isFirstKeyByteValid(_ byte: UInt8) -> Bool {
+                return byte & 0b111 == 0
+            }
+
+            /// Verifies that the second most significant bit of the last byte is set to 1 to prevent a timing leak on the number of iterations.
+            /// - Parameter byte: The last byte of the private key.
+            func isLastKeyByteValid(_ byte: UInt8) -> Bool {
+                let condition = ((byte >> 6) == 0b01)
+                return condition
+            }
+
+            guard rawRepresentation.count == 32 else {
+                throw CryptoKitError.incorrectKeySize
+            }
+
+            guard isFirstKeyByteValid(rawRepresentation.first!), isLastKeyByteValid(rawRepresentation.last!) else {
+                throw CryptoKitError.invalidPrivateKey
+            }
         }
     }
 }

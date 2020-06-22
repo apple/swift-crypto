@@ -2,7 +2,7 @@
 //
 // This source file is part of the SwiftCrypto open source project
 //
-// Copyright (c) 2019 Apple Inc. and the SwiftCrypto project authors
+// Copyright (c) 2019-2020 Apple Inc. and the SwiftCrypto project authors
 // Licensed under Apache License v2.0
 //
 // See LICENSE.txt for license information
@@ -28,7 +28,8 @@ digests_and_length = [{"name": "SHA256", "count": 32},{"name": "SHA384","count":
 }%
 %{
     if "prefix" in HF.keys():
-        protocol_prefix = "extension " + HF["prefix"] + " {"
+        protocol_prefix = ""
+        protocol_prefix = protocol_prefix + "extension " + HF["prefix"] + "{"
         protocol_suffix = "}"
     else:
         protocol_prefix = ""
@@ -36,7 +37,6 @@ digests_and_length = [{"name": "SHA256", "count": 32},{"name": "SHA384","count":
 }%
 ${protocol_prefix}
 // MARK: - ${name}Digest + DigestPrivate
-@available(iOS 13.0, macOS 10.15, watchOS 6.0, tvOS 13.0, macCatalyst 13.0, *)
 public struct ${name}Digest: DigestPrivate {
     let bytes: (${(wordsCount-1)*"UInt64, "+"UInt64"})
     

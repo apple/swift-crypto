@@ -2,7 +2,7 @@
 //
 // This source file is part of the SwiftCrypto open source project
 //
-// Copyright (c) 2019 Apple Inc. and the SwiftCrypto project authors
+// Copyright (c) 2019-2020 Apple Inc. and the SwiftCrypto project authors
 // Licensed under Apache License v2.0
 //
 // See LICENSE.txt for license information
@@ -47,6 +47,20 @@ extension P256 {
                 impl = try NISTCurvePublicKeyImpl(x963Representation: x963Representation)
             }
 
+            public init(pemRepresentation: String) throws {
+                let pem = try ASN1.PEMDocument(pemString: pemRepresentation)
+                guard pem.type == "PUBLIC KEY" else {
+                    throw CryptoKitASN1Error.invalidPEMDocument
+                }
+                self = try .init(derRepresentation: pem.derBytes)
+            }
+
+            public init<Bytes: RandomAccessCollection>(derRepresentation: Bytes) throws where Bytes.Element == UInt8 {
+                let bytes = Array(derRepresentation)
+                let parsed = try ASN1.SubjectPublicKeyInfo(asn1Encoded: bytes)
+                self = try .init(x963Representation: parsed.key)
+            }
+
             init(impl: NISTCurvePublicKeyImpl<P256.CurveDetails>) {
                 self.impl = impl
             }
@@ -54,6 +68,20 @@ extension P256 {
             public var compactRepresentation: Data? { impl.compactRepresentation }
             public var rawRepresentation: Data { impl.rawRepresentation }
             public var x963Representation: Data { impl.x963Representation }
+
+            public var derRepresentation: Data {
+                let spki = ASN1.SubjectPublicKeyInfo(algorithmIdentifier: .ecdsaP256, key: Array(self.x963Representation))
+                var serializer = ASN1.Serializer()
+
+                // Serializing these keys can't throw
+                try! serializer.serialize(spki)
+                return Data(serializer.serializedBytes)
+            }
+
+            public var pemRepresentation: String {
+                let pemDocument = ASN1.PEMDocument(type: "PUBLIC KEY", derBytes: self.derRepresentation)
+                return pemDocument.pemString
+            }
         }
 
         public struct PrivateKey: NISTECPrivateKey {
@@ -71,6 +99,36 @@ extension P256 {
                 impl = try NISTCurvePrivateKeyImpl(data: rawRepresentation)
             }
 
+            public init(pemRepresentation: String) throws {
+                let pem = try ASN1.PEMDocument(pemString: pemRepresentation)
+
+                switch pem.type {
+                case "EC PRIVATE KEY":
+                    let parsed = try ASN1.SEC1PrivateKey(asn1Encoded: Array(pem.derBytes))
+                    self = try .init(rawRepresentation: parsed.privateKey)
+                case "PRIVATE KEY":
+                    let parsed = try ASN1.PKCS8PrivateKey(asn1Encoded: Array(pem.derBytes))
+                    self = try .init(rawRepresentation: parsed.privateKey.privateKey)
+                default:
+                    throw CryptoKitASN1Error.invalidPEMDocument
+                }
+            }
+
+            public init<Bytes: RandomAccessCollection>(derRepresentation: Bytes) throws where Bytes.Element == UInt8 {
+                let bytes = Array(derRepresentation)
+
+                // We have to try to parse this twice because we have no informaton about what kind of key this is.
+                // We try with PKCS#8 first, and then fall back to SEC.1.
+
+                do {
+                    let key = try ASN1.PKCS8PrivateKey(asn1Encoded: bytes)
+                    self = try .init(rawRepresentation: key.privateKey.privateKey)
+                } catch {
+                    let key = try ASN1.SEC1PrivateKey(asn1Encoded: bytes)
+                    self = try .init(rawRepresentation: key.privateKey)
+                }
+            }
+
             init(impl: NISTCurvePrivateKeyImpl<P256.CurveDetails>) {
                 self.impl = impl
             }
@@ -81,6 +139,20 @@ extension P256 {
 
             public var rawRepresentation: Data { impl.rawRepresentation }
             public var x963Representation: Data { impl.x963Representation }
+
+            public var derRepresentation: Data {
+                let pkey = ASN1.PKCS8PrivateKey(algorithm: .ecdsaP256, privateKey: Array(self.rawRepresentation), publicKey: Array(self.publicKey.x963Representation))
+                var serializer = ASN1.Serializer()
+
+                // Serializing these keys can't throw
+                try! serializer.serialize(pkey)
+                return Data(serializer.serializedBytes)
+            }
+
+            public var pemRepresentation: String {
+                let pemDocument = ASN1.PEMDocument(type: "PRIVATE KEY", derBytes: self.derRepresentation)
+                return pemDocument.pemString
+            }
         }
     }
 }
@@ -103,6 +175,20 @@ extension P256 {
                 impl = try NISTCurvePublicKeyImpl(x963Representation: x963Representation)
             }
 
+            public init(pemRepresentation: String) throws {
+                let pem = try ASN1.PEMDocument(pemString: pemRepresentation)
+                guard pem.type == "PUBLIC KEY" else {
+                    throw CryptoKitASN1Error.invalidPEMDocument
+                }
+                self = try .init(derRepresentation: pem.derBytes)
+            }
+
+            public init<Bytes: RandomAccessCollection>(derRepresentation: Bytes) throws where Bytes.Element == UInt8 {
+                let bytes = Array(derRepresentation)
+                let parsed = try ASN1.SubjectPublicKeyInfo(asn1Encoded: bytes)
+                self = try .init(x963Representation: parsed.key)
+            }
+
             init(impl: NISTCurvePublicKeyImpl<P256.CurveDetails>) {
                 self.impl = impl
             }
@@ -110,6 +196,20 @@ extension P256 {
             public var compactRepresentation: Data? { impl.compactRepresentation }
             public var rawRepresentation: Data { impl.rawRepresentation }
             public var x963Representation: Data { impl.x963Representation }
+
+            public var derRepresentation: Data {
+                let spki = ASN1.SubjectPublicKeyInfo(algorithmIdentifier: .ecdsaP256, key: Array(self.x963Representation))
+                var serializer = ASN1.Serializer()
+
+                // Serializing these keys can't throw
+                try! serializer.serialize(spki)
+                return Data(serializer.serializedBytes)
+            }
+
+            public var pemRepresentation: String {
+                let pemDocument = ASN1.PEMDocument(type: "PUBLIC KEY", derBytes: self.derRepresentation)
+                return pemDocument.pemString
+            }
         }
 
         public struct PrivateKey: NISTECPrivateKey {
@@ -127,6 +227,36 @@ extension P256 {
                 impl = try NISTCurvePrivateKeyImpl(data: rawRepresentation)
             }
 
+            public init(pemRepresentation: String) throws {
+                let pem = try ASN1.PEMDocument(pemString: pemRepresentation)
+
+                switch pem.type {
+                case "EC PRIVATE KEY":
+                    let parsed = try ASN1.SEC1PrivateKey(asn1Encoded: Array(pem.derBytes))
+                    self = try .init(rawRepresentation: parsed.privateKey)
+                case "PRIVATE KEY":
+                    let parsed = try ASN1.PKCS8PrivateKey(asn1Encoded: Array(pem.derBytes))
+                    self = try .init(rawRepresentation: parsed.privateKey.privateKey)
+                default:
+                    throw CryptoKitASN1Error.invalidPEMDocument
+                }
+            }
+
+            public init<Bytes: RandomAccessCollection>(derRepresentation: Bytes) throws where Bytes.Element == UInt8 {
+                let bytes = Array(derRepresentation)
+
+                // We have to try to parse this twice because we have no informaton about what kind of key this is.
+                // We try with PKCS#8 first, and then fall back to SEC.1.
+
+                do {
+                    let key = try ASN1.PKCS8PrivateKey(asn1Encoded: bytes)
+                    self = try .init(rawRepresentation: key.privateKey.privateKey)
+                } catch {
+                    let key = try ASN1.SEC1PrivateKey(asn1Encoded: bytes)
+                    self = try .init(rawRepresentation: key.privateKey)
+                }
+            }
+
             init(impl: NISTCurvePrivateKeyImpl<P256.CurveDetails>) {
                 self.impl = impl
             }
@@ -137,6 +267,20 @@ extension P256 {
 
             public var rawRepresentation: Data { impl.rawRepresentation }
             public var x963Representation: Data { impl.x963Representation }
+
+            public var derRepresentation: Data {
+                let pkey = ASN1.PKCS8PrivateKey(algorithm: .ecdsaP256, privateKey: Array(self.rawRepresentation), publicKey: Array(self.publicKey.x963Representation))
+                var serializer = ASN1.Serializer()
+
+                // Serializing these keys can't throw
+                try! serializer.serialize(pkey)
+                return Data(serializer.serializedBytes)
+            }
+
+            public var pemRepresentation: String {
+                let pemDocument = ASN1.PEMDocument(type: "PRIVATE KEY", derBytes: self.derRepresentation)
+                return pemDocument.pemString
+            }
         }
     }
 }
@@ -159,6 +303,20 @@ extension P384 {
                 impl = try NISTCurvePublicKeyImpl(x963Representation: x963Representation)
             }
 
+            public init(pemRepresentation: String) throws {
+                let pem = try ASN1.PEMDocument(pemString: pemRepresentation)
+                guard pem.type == "PUBLIC KEY" else {
+                    throw CryptoKitASN1Error.invalidPEMDocument
+                }
+                self = try .init(derRepresentation: pem.derBytes)
+            }
+
+            public init<Bytes: RandomAccessCollection>(derRepresentation: Bytes) throws where Bytes.Element == UInt8 {
+                let bytes = Array(derRepresentation)
+                let parsed = try ASN1.SubjectPublicKeyInfo(asn1Encoded: bytes)
+                self = try .init(x963Representation: parsed.key)
+            }
+
             init(impl: NISTCurvePublicKeyImpl<P384.CurveDetails>) {
                 self.impl = impl
             }
@@ -166,6 +324,20 @@ extension P384 {
             public var compactRepresentation: Data? { impl.compactRepresentation }
             public var rawRepresentation: Data { impl.rawRepresentation }
             public var x963Representation: Data { impl.x963Representation }
+
+            public var derRepresentation: Data {
+                let spki = ASN1.SubjectPublicKeyInfo(algorithmIdentifier: .ecdsaP384, key: Array(self.x963Representation))
+                var serializer = ASN1.Serializer()
+
+                // Serializing these keys can't throw
+                try! serializer.serialize(spki)
+                return Data(serializer.serializedBytes)
+            }
+
+            public var pemRepresentation: String {
+                let pemDocument = ASN1.PEMDocument(type: "PUBLIC KEY", derBytes: self.derRepresentation)
+                return pemDocument.pemString
+            }
         }
 
         public struct PrivateKey: NISTECPrivateKey {
@@ -183,6 +355,36 @@ extension P384 {
                 impl = try NISTCurvePrivateKeyImpl(data: rawRepresentation)
             }
 
+            public init(pemRepresentation: String) throws {
+                let pem = try ASN1.PEMDocument(pemString: pemRepresentation)
+
+                switch pem.type {
+                case "EC PRIVATE KEY":
+                    let parsed = try ASN1.SEC1PrivateKey(asn1Encoded: Array(pem.derBytes))
+                    self = try .init(rawRepresentation: parsed.privateKey)
+                case "PRIVATE KEY":
+                    let parsed = try ASN1.PKCS8PrivateKey(asn1Encoded: Array(pem.derBytes))
+                    self = try .init(rawRepresentation: parsed.privateKey.privateKey)
+                default:
+                    throw CryptoKitASN1Error.invalidPEMDocument
+                }
+            }
+
+            public init<Bytes: RandomAccessCollection>(derRepresentation: Bytes) throws where Bytes.Element == UInt8 {
+                let bytes = Array(derRepresentation)
+
+                // We have to try to parse this twice because we have no informaton about what kind of key this is.
+                // We try with PKCS#8 first, and then fall back to SEC.1.
+
+                do {
+                    let key = try ASN1.PKCS8PrivateKey(asn1Encoded: bytes)
+                    self = try .init(rawRepresentation: key.privateKey.privateKey)
+                } catch {
+                    let key = try ASN1.SEC1PrivateKey(asn1Encoded: bytes)
+                    self = try .init(rawRepresentation: key.privateKey)
+                }
+            }
+
             init(impl: NISTCurvePrivateKeyImpl<P384.CurveDetails>) {
                 self.impl = impl
             }
@@ -193,6 +395,20 @@ extension P384 {
 
             public var rawRepresentation: Data { impl.rawRepresentation }
             public var x963Representation: Data { impl.x963Representation }
+
+            public var derRepresentation: Data {
+                let pkey = ASN1.PKCS8PrivateKey(algorithm: .ecdsaP384, privateKey: Array(self.rawRepresentation), publicKey: Array(self.publicKey.x963Representation))
+                var serializer = ASN1.Serializer()
+
+                // Serializing these keys can't throw
+                try! serializer.serialize(pkey)
+                return Data(serializer.serializedBytes)
+            }
+
+            public var pemRepresentation: String {
+                let pemDocument = ASN1.PEMDocument(type: "PRIVATE KEY", derBytes: self.derRepresentation)
+                return pemDocument.pemString
+            }
         }
     }
 }
@@ -215,6 +431,20 @@ extension P384 {
                 impl = try NISTCurvePublicKeyImpl(x963Representation: x963Representation)
             }
 
+            public init(pemRepresentation: String) throws {
+                let pem = try ASN1.PEMDocument(pemString: pemRepresentation)
+                guard pem.type == "PUBLIC KEY" else {
+                    throw CryptoKitASN1Error.invalidPEMDocument
+                }
+                self = try .init(derRepresentation: pem.derBytes)
+            }
+
+            public init<Bytes: RandomAccessCollection>(derRepresentation: Bytes) throws where Bytes.Element == UInt8 {
+                let bytes = Array(derRepresentation)
+                let parsed = try ASN1.SubjectPublicKeyInfo(asn1Encoded: bytes)
+                self = try .init(x963Representation: parsed.key)
+            }
+
             init(impl: NISTCurvePublicKeyImpl<P384.CurveDetails>) {
                 self.impl = impl
             }
@@ -222,6 +452,20 @@ extension P384 {
             public var compactRepresentation: Data? { impl.compactRepresentation }
             public var rawRepresentation: Data { impl.rawRepresentation }
             public var x963Representation: Data { impl.x963Representation }
+
+            public var derRepresentation: Data {
+                let spki = ASN1.SubjectPublicKeyInfo(algorithmIdentifier: .ecdsaP384, key: Array(self.x963Representation))
+                var serializer = ASN1.Serializer()
+
+                // Serializing these keys can't throw
+                try! serializer.serialize(spki)
+                return Data(serializer.serializedBytes)
+            }
+
+            public var pemRepresentation: String {
+                let pemDocument = ASN1.PEMDocument(type: "PUBLIC KEY", derBytes: self.derRepresentation)
+                return pemDocument.pemString
+            }
         }
 
         public struct PrivateKey: NISTECPrivateKey {
@@ -239,6 +483,36 @@ extension P384 {
                 impl = try NISTCurvePrivateKeyImpl(data: rawRepresentation)
             }
 
+            public init(pemRepresentation: String) throws {
+                let pem = try ASN1.PEMDocument(pemString: pemRepresentation)
+
+                switch pem.type {
+                case "EC PRIVATE KEY":
+                    let parsed = try ASN1.SEC1PrivateKey(asn1Encoded: Array(pem.derBytes))
+                    self = try .init(rawRepresentation: parsed.privateKey)
+                case "PRIVATE KEY":
+                    let parsed = try ASN1.PKCS8PrivateKey(asn1Encoded: Array(pem.derBytes))
+                    self = try .init(rawRepresentation: parsed.privateKey.privateKey)
+                default:
+                    throw CryptoKitASN1Error.invalidPEMDocument
+                }
+            }
+
+            public init<Bytes: RandomAccessCollection>(derRepresentation: Bytes) throws where Bytes.Element == UInt8 {
+                let bytes = Array(derRepresentation)
+
+                // We have to try to parse this twice because we have no informaton about what kind of key this is.
+                // We try with PKCS#8 first, and then fall back to SEC.1.
+
+                do {
+                    let key = try ASN1.PKCS8PrivateKey(asn1Encoded: bytes)
+                    self = try .init(rawRepresentation: key.privateKey.privateKey)
+                } catch {
+                    let key = try ASN1.SEC1PrivateKey(asn1Encoded: bytes)
+                    self = try .init(rawRepresentation: key.privateKey)
+                }
+            }
+
             init(impl: NISTCurvePrivateKeyImpl<P384.CurveDetails>) {
                 self.impl = impl
             }
@@ -249,6 +523,20 @@ extension P384 {
 
             public var rawRepresentation: Data { impl.rawRepresentation }
             public var x963Representation: Data { impl.x963Representation }
+
+            public var derRepresentation: Data {
+                let pkey = ASN1.PKCS8PrivateKey(algorithm: .ecdsaP384, privateKey: Array(self.rawRepresentation), publicKey: Array(self.publicKey.x963Representation))
+                var serializer = ASN1.Serializer()
+
+                // Serializing these keys can't throw
+                try! serializer.serialize(pkey)
+                return Data(serializer.serializedBytes)
+            }
+
+            public var pemRepresentation: String {
+                let pemDocument = ASN1.PEMDocument(type: "PRIVATE KEY", derBytes: self.derRepresentation)
+                return pemDocument.pemString
+            }
         }
     }
 }
@@ -271,6 +559,20 @@ extension P521 {
                 impl = try NISTCurvePublicKeyImpl(x963Representation: x963Representation)
             }
 
+            public init(pemRepresentation: String) throws {
+                let pem = try ASN1.PEMDocument(pemString: pemRepresentation)
+                guard pem.type == "PUBLIC KEY" else {
+                    throw CryptoKitASN1Error.invalidPEMDocument
+                }
+                self = try .init(derRepresentation: pem.derBytes)
+            }
+
+            public init<Bytes: RandomAccessCollection>(derRepresentation: Bytes) throws where Bytes.Element == UInt8 {
+                let bytes = Array(derRepresentation)
+                let parsed = try ASN1.SubjectPublicKeyInfo(asn1Encoded: bytes)
+                self = try .init(x963Representation: parsed.key)
+            }
+
             init(impl: NISTCurvePublicKeyImpl<P521.CurveDetails>) {
                 self.impl = impl
             }
@@ -278,6 +580,20 @@ extension P521 {
             public var compactRepresentation: Data? { impl.compactRepresentation }
             public var rawRepresentation: Data { impl.rawRepresentation }
             public var x963Representation: Data { impl.x963Representation }
+
+            public var derRepresentation: Data {
+                let spki = ASN1.SubjectPublicKeyInfo(algorithmIdentifier: .ecdsaP521, key: Array(self.x963Representation))
+                var serializer = ASN1.Serializer()
+
+                // Serializing these keys can't throw
+                try! serializer.serialize(spki)
+                return Data(serializer.serializedBytes)
+            }
+
+            public var pemRepresentation: String {
+                let pemDocument = ASN1.PEMDocument(type: "PUBLIC KEY", derBytes: self.derRepresentation)
+                return pemDocument.pemString
+            }
         }
 
         public struct PrivateKey: NISTECPrivateKey {
@@ -295,6 +611,36 @@ extension P521 {
                 impl = try NISTCurvePrivateKeyImpl(data: rawRepresentation)
             }
 
+            public init(pemRepresentation: String) throws {
+                let pem = try ASN1.PEMDocument(pemString: pemRepresentation)
+
+                switch pem.type {
+                case "EC PRIVATE KEY":
+                    let parsed = try ASN1.SEC1PrivateKey(asn1Encoded: Array(pem.derBytes))
+                    self = try .init(rawRepresentation: parsed.privateKey)
+                case "PRIVATE KEY":
+                    let parsed = try ASN1.PKCS8PrivateKey(asn1Encoded: Array(pem.derBytes))
+                    self = try .init(rawRepresentation: parsed.privateKey.privateKey)
+                default:
+                    throw CryptoKitASN1Error.invalidPEMDocument
+                }
+            }
+
+            public init<Bytes: RandomAccessCollection>(derRepresentation: Bytes) throws where Bytes.Element == UInt8 {
+                let bytes = Array(derRepresentation)
+
+                // We have to try to parse this twice because we have no informaton about what kind of key this is.
+                // We try with PKCS#8 first, and then fall back to SEC.1.
+
+                do {
+                    let key = try ASN1.PKCS8PrivateKey(asn1Encoded: bytes)
+                    self = try .init(rawRepresentation: key.privateKey.privateKey)
+                } catch {
+                    let key = try ASN1.SEC1PrivateKey(asn1Encoded: bytes)
+                    self = try .init(rawRepresentation: key.privateKey)
+                }
+            }
+
             init(impl: NISTCurvePrivateKeyImpl<P521.CurveDetails>) {
                 self.impl = impl
             }
@@ -305,6 +651,20 @@ extension P521 {
 
             public var rawRepresentation: Data { impl.rawRepresentation }
             public var x963Representation: Data { impl.x963Representation }
+
+            public var derRepresentation: Data {
+                let pkey = ASN1.PKCS8PrivateKey(algorithm: .ecdsaP521, privateKey: Array(self.rawRepresentation), publicKey: Array(self.publicKey.x963Representation))
+                var serializer = ASN1.Serializer()
+
+                // Serializing these keys can't throw
+                try! serializer.serialize(pkey)
+                return Data(serializer.serializedBytes)
+            }
+
+            public var pemRepresentation: String {
+                let pemDocument = ASN1.PEMDocument(type: "PRIVATE KEY", derBytes: self.derRepresentation)
+                return pemDocument.pemString
+            }
         }
     }
 }
@@ -327,6 +687,20 @@ extension P521 {
                 impl = try NISTCurvePublicKeyImpl(x963Representation: x963Representation)
             }
 
+            public init(pemRepresentation: String) throws {
+                let pem = try ASN1.PEMDocument(pemString: pemRepresentation)
+                guard pem.type == "PUBLIC KEY" else {
+                    throw CryptoKitASN1Error.invalidPEMDocument
+                }
+                self = try .init(derRepresentation: pem.derBytes)
+            }
+
+            public init<Bytes: RandomAccessCollection>(derRepresentation: Bytes) throws where Bytes.Element == UInt8 {
+                let bytes = Array(derRepresentation)
+                let parsed = try ASN1.SubjectPublicKeyInfo(asn1Encoded: bytes)
+                self = try .init(x963Representation: parsed.key)
+            }
+
             init(impl: NISTCurvePublicKeyImpl<P521.CurveDetails>) {
                 self.impl = impl
             }
@@ -334,6 +708,20 @@ extension P521 {
             public var compactRepresentation: Data? { impl.compactRepresentation }
             public var rawRepresentation: Data { impl.rawRepresentation }
             public var x963Representation: Data { impl.x963Representation }
+
+            public var derRepresentation: Data {
+                let spki = ASN1.SubjectPublicKeyInfo(algorithmIdentifier: .ecdsaP521, key: Array(self.x963Representation))
+                var serializer = ASN1.Serializer()
+
+                // Serializing these keys can't throw
+                try! serializer.serialize(spki)
+                return Data(serializer.serializedBytes)
+            }
+
+            public var pemRepresentation: String {
+                let pemDocument = ASN1.PEMDocument(type: "PUBLIC KEY", derBytes: self.derRepresentation)
+                return pemDocument.pemString
+            }
         }
 
         public struct PrivateKey: NISTECPrivateKey {
@@ -351,6 +739,36 @@ extension P521 {
                 impl = try NISTCurvePrivateKeyImpl(data: rawRepresentation)
             }
 
+            public init(pemRepresentation: String) throws {
+                let pem = try ASN1.PEMDocument(pemString: pemRepresentation)
+
+                switch pem.type {
+                case "EC PRIVATE KEY":
+                    let parsed = try ASN1.SEC1PrivateKey(asn1Encoded: Array(pem.derBytes))
+                    self = try .init(rawRepresentation: parsed.privateKey)
+                case "PRIVATE KEY":
+                    let parsed = try ASN1.PKCS8PrivateKey(asn1Encoded: Array(pem.derBytes))
+                    self = try .init(rawRepresentation: parsed.privateKey.privateKey)
+                default:
+                    throw CryptoKitASN1Error.invalidPEMDocument
+                }
+            }
+
+            public init<Bytes: RandomAccessCollection>(derRepresentation: Bytes) throws where Bytes.Element == UInt8 {
+                let bytes = Array(derRepresentation)
+
+                // We have to try to parse this twice because we have no informaton about what kind of key this is.
+                // We try with PKCS#8 first, and then fall back to SEC.1.
+
+                do {
+                    let key = try ASN1.PKCS8PrivateKey(asn1Encoded: bytes)
+                    self = try .init(rawRepresentation: key.privateKey.privateKey)
+                } catch {
+                    let key = try ASN1.SEC1PrivateKey(asn1Encoded: bytes)
+                    self = try .init(rawRepresentation: key.privateKey)
+                }
+            }
+
             init(impl: NISTCurvePrivateKeyImpl<P521.CurveDetails>) {
                 self.impl = impl
             }
@@ -361,6 +779,20 @@ extension P521 {
 
             public var rawRepresentation: Data { impl.rawRepresentation }
             public var x963Representation: Data { impl.x963Representation }
+
+            public var derRepresentation: Data {
+                let pkey = ASN1.PKCS8PrivateKey(algorithm: .ecdsaP521, privateKey: Array(self.rawRepresentation), publicKey: Array(self.publicKey.x963Representation))
+                var serializer = ASN1.Serializer()
+
+                // Serializing these keys can't throw
+                try! serializer.serialize(pkey)
+                return Data(serializer.serializedBytes)
+            }
+
+            public var pemRepresentation: String {
+                let pemDocument = ASN1.PEMDocument(type: "PRIVATE KEY", derBytes: self.derRepresentation)
+                return pemDocument.pemString
+            }
         }
     }
 }
