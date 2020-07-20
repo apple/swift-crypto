@@ -1576,6 +1576,160 @@ A5UvlNrk6ioTg2tumXD3Co06r1Hn+7lkkcjfT5mZO4jy7vP9ItvprJrIa6ySzVQ8
             XCTAssertEqual(error as? CryptoKitASN1Error, .invalidASN1Object)
         }
     }
+
+    func testCanaryValuesOfFixedWidthIntegerEncoding() throws {
+        // This test exercises integer encoding with all the stdlib fixed width integers, to confirm they work well.
+        // We try four or five values for each: max, min, 0, and 1, as well as -1 for the signed integers.
+        // This correctly validates that we know how to handle twos complement integers.
+        func oneShotSerialize<T: FixedWidthInteger & ASN1IntegerRepresentable>(_ t: T) -> [UInt8] {
+            var serializer = ASN1.Serializer()
+            XCTAssertNoThrow(try serializer.serialize(t))
+            return serializer.serializedBytes
+        }
+
+        XCTAssertEqual(oneShotSerialize(UInt8.max), [0x02, 0x02, 0x00, 0xFF])
+        XCTAssertEqual(oneShotSerialize(UInt8.min), [0x02, 0x01, 0x00])
+        XCTAssertEqual(oneShotSerialize(UInt8(0)), [0x02, 0x01, 0x00])
+        XCTAssertEqual(oneShotSerialize(UInt8(1)), [0x02, 0x01, 0x01])
+
+        XCTAssertEqual(oneShotSerialize(UInt16.max), [0x02, 0x03, 0x00, 0xFF, 0xFF])
+        XCTAssertEqual(oneShotSerialize(UInt16.min), [0x02, 0x01, 0x00])
+        XCTAssertEqual(oneShotSerialize(UInt16(0)), [0x02, 0x01, 0x00])
+        XCTAssertEqual(oneShotSerialize(UInt16(1)), [0x02, 0x01, 0x01])
+
+        XCTAssertEqual(oneShotSerialize(UInt32.max), [0x02, 0x05, 0x00, 0xFF, 0xFF, 0xFF, 0xFF])
+        XCTAssertEqual(oneShotSerialize(UInt32.min), [0x02, 0x01, 0x00])
+        XCTAssertEqual(oneShotSerialize(UInt32(0)), [0x02, 0x01, 0x00])
+        XCTAssertEqual(oneShotSerialize(UInt32(1)), [0x02, 0x01, 0x01])
+
+        XCTAssertEqual(oneShotSerialize(UInt64.max), [0x02, 0x09, 0x00, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF])
+        XCTAssertEqual(oneShotSerialize(UInt64.min), [0x02, 0x01, 0x00])
+        XCTAssertEqual(oneShotSerialize(UInt64(0)), [0x02, 0x01, 0x00])
+        XCTAssertEqual(oneShotSerialize(UInt64(1)), [0x02, 0x01, 0x01])
+
+        XCTAssertEqual(oneShotSerialize(Int8.max), [0x02, 0x01, 0x7F])
+        XCTAssertEqual(oneShotSerialize(Int8.min), [0x02, 0x01, 0x80])
+        XCTAssertEqual(oneShotSerialize(Int8(0)), [0x02, 0x01, 0x00])
+        XCTAssertEqual(oneShotSerialize(Int8(1)), [0x02, 0x01, 0x01])
+        XCTAssertEqual(oneShotSerialize(Int8(-1)), [0x02, 0x01, 0xFF])
+
+        XCTAssertEqual(oneShotSerialize(Int16.max), [0x02, 0x02, 0x7F, 0xFF])
+        XCTAssertEqual(oneShotSerialize(Int16.min), [0x02, 0x02, 0x80, 0x00])
+        XCTAssertEqual(oneShotSerialize(Int16(0)), [0x02, 0x01, 0x00])
+        XCTAssertEqual(oneShotSerialize(Int16(1)), [0x02, 0x01, 0x01])
+        XCTAssertEqual(oneShotSerialize(Int16(-1)), [0x02, 0x01, 0xFF])
+
+        XCTAssertEqual(oneShotSerialize(Int32.max), [0x02, 0x04, 0x7F, 0xFF, 0xFF, 0xFF])
+        XCTAssertEqual(oneShotSerialize(Int32.min), [0x02, 0x04, 0x80, 0x00, 0x00, 0x00])
+        XCTAssertEqual(oneShotSerialize(Int32(0)), [0x02, 0x01, 0x00])
+        XCTAssertEqual(oneShotSerialize(Int32(1)), [0x02, 0x01, 0x01])
+        XCTAssertEqual(oneShotSerialize(Int32(-1)), [0x02, 0x01, 0xFF])
+
+        XCTAssertEqual(oneShotSerialize(Int64.max), [0x02, 0x08, 0x7F, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF])
+        XCTAssertEqual(oneShotSerialize(Int64.min), [0x02, 0x08, 0x80, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00])
+        XCTAssertEqual(oneShotSerialize(Int64(0)), [0x02, 0x01, 0x00])
+        XCTAssertEqual(oneShotSerialize(Int64(1)), [0x02, 0x01, 0x01])
+        XCTAssertEqual(oneShotSerialize(Int64(-1)), [0x02, 0x01, 0xFF])
+    }
+
+    func testCanaryValuesOfFixedWidthIntegerDecoding() throws {
+        // This test exercises integer decoding with all the stdlib fixed width integers, to confirm they work well.
+        // We try four or five values for each: max, min, 0, and 1, as well as -1 for the signed integers.
+        // This correctly validates that we know how to handle twos complement integers.
+        func oneShotDecode<T: FixedWidthInteger & ASN1IntegerRepresentable>(_ bytes: [UInt8]) throws -> T {
+            let baseNode = try orFail { try ASN1.parse(bytes) }
+            return try orFail { try T(asn1Encoded: baseNode) }
+        }
+
+        XCTAssertEqual(UInt8.max, try oneShotDecode([0x02, 0x02, 0x00, 0xFF]))
+        XCTAssertEqual(UInt8.min, try oneShotDecode([0x02, 0x01, 0x00]))
+        XCTAssertEqual(UInt8(0), try oneShotDecode([0x02, 0x01, 0x00]))
+        XCTAssertEqual(UInt8(1), try oneShotDecode([0x02, 0x01, 0x01]))
+
+        XCTAssertEqual(UInt16.max, try oneShotDecode([0x02, 0x03, 0x00, 0xFF, 0xFF]))
+        XCTAssertEqual(UInt16.min, try oneShotDecode([0x02, 0x01, 0x00]))
+        XCTAssertEqual(UInt16(0), try oneShotDecode([0x02, 0x01, 0x00]))
+        XCTAssertEqual(UInt16(1), try oneShotDecode([0x02, 0x01, 0x01]))
+
+        XCTAssertEqual(UInt32.max, try oneShotDecode([0x02, 0x05, 0x00, 0xFF, 0xFF, 0xFF, 0xFF]))
+        XCTAssertEqual(UInt32.min, try oneShotDecode([0x02, 0x01, 0x00]))
+        XCTAssertEqual(UInt32(0), try oneShotDecode([0x02, 0x01, 0x00]))
+        XCTAssertEqual(UInt32(1), try oneShotDecode([0x02, 0x01, 0x01]))
+
+        XCTAssertEqual(UInt64.max, try oneShotDecode([0x02, 0x09, 0x00, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF]))
+        XCTAssertEqual(UInt64.min, try oneShotDecode([0x02, 0x01, 0x00]))
+        XCTAssertEqual(UInt64(0), try oneShotDecode([0x02, 0x01, 0x00]))
+        XCTAssertEqual(UInt64(1), try oneShotDecode([0x02, 0x01, 0x01]))
+
+        XCTAssertEqual(Int8.max, try oneShotDecode([0x02, 0x01, 0x7F]))
+        XCTAssertEqual(Int8.min, try oneShotDecode([0x02, 0x01, 0x80]))
+        XCTAssertEqual(Int8(0), try oneShotDecode([0x02, 0x01, 0x00]))
+        XCTAssertEqual(Int8(1), try oneShotDecode([0x02, 0x01, 0x01]))
+        XCTAssertEqual(Int8(-1), try oneShotDecode([0x02, 0x01, 0xFF]))
+
+        XCTAssertEqual(Int16.max, try oneShotDecode([0x02, 0x02, 0x7F, 0xFF]))
+        XCTAssertEqual(Int16.min, try oneShotDecode([0x02, 0x02, 0x80, 0x00]))
+        XCTAssertEqual(Int16(0), try oneShotDecode([0x02, 0x01, 0x00]))
+        XCTAssertEqual(Int16(1), try oneShotDecode([0x02, 0x01, 0x01]))
+        XCTAssertEqual(Int16(-1), try oneShotDecode([0x02, 0x01, 0xFF]))
+
+        XCTAssertEqual(Int32.max, try oneShotDecode([0x02, 0x04, 0x7F, 0xFF, 0xFF, 0xFF]))
+        XCTAssertEqual(Int32.min, try oneShotDecode([0x02, 0x04, 0x80, 0x00, 0x00, 0x00]))
+        XCTAssertEqual(Int32(0), try oneShotDecode([0x02, 0x01, 0x00]))
+        XCTAssertEqual(Int32(1), try oneShotDecode([0x02, 0x01, 0x01]))
+        XCTAssertEqual(Int32(-1), try oneShotDecode([0x02, 0x01, 0xFF]))
+
+        XCTAssertEqual(Int64.max, try oneShotDecode([0x02, 0x08, 0x7F, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF]))
+        XCTAssertEqual(Int64.min, try oneShotDecode([0x02, 0x08, 0x80, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00]))
+        XCTAssertEqual(Int64(0), try oneShotDecode([0x02, 0x01, 0x00]))
+        XCTAssertEqual(Int64(1), try oneShotDecode([0x02, 0x01, 0x01]))
+        XCTAssertEqual(Int64(-1), try oneShotDecode([0x02, 0x01, 0xFF]))
+    }
+
+    func testWeirdBigIntSerialization() throws {
+        // This is a bigint we can hook to get the test function to do weird things.
+        // We just take and accept arbitrary bytes.
+        struct BigIntOfBytes: ASN1IntegerRepresentable {
+            var bytes: [UInt8]
+
+            static let isSigned: Bool = false
+
+            init(bytes: [UInt8]) {
+                self.bytes = bytes
+            }
+
+            init(asn1IntegerBytes: ArraySlice<UInt8>) {
+                self.bytes = Array(asn1IntegerBytes)
+            }
+
+            func withBigEndianIntegerBytes<ReturnType>(_ body: ([UInt8]) throws -> ReturnType) rethrows -> ReturnType {
+                return try body(self.bytes)
+            }
+        }
+
+        func oneShotSerialize(_ t: BigIntOfBytes) -> [UInt8] {
+            var serializer = ASN1.Serializer()
+            XCTAssertNoThrow(try serializer.serialize(t))
+            return serializer.serializedBytes
+        }
+
+        func oneShotDecode(_ bytes: [UInt8]) throws -> BigIntOfBytes {
+            let baseNode = try orFail { try ASN1.parse(bytes) }
+            return try orFail { try BigIntOfBytes(asn1Encoded: baseNode) }
+        }
+
+        // Leading zero bytes should be stripped.
+        let leadingZeros = BigIntOfBytes(bytes: [0, 0, 0, 0, 1])
+        XCTAssertEqual(oneShotSerialize(leadingZeros), [0x02, 0x01, 0x01])
+
+        // Except when they are guarding a 1 in the next byte.
+        let fakeOutLeadingZeros = BigIntOfBytes(bytes: [0x00, 0x00, 0x80])
+        XCTAssertEqual(oneShotSerialize(fakeOutLeadingZeros), [0x02, 0x02, 0x00, 0x80])
+
+        // And a leading zero is removed for unsigned bigints.
+        let leadingZeroFromWire = try oneShotDecode([0x02, 0x02, 0x00, 0x80])
+        XCTAssertEqual(leadingZeroFromWire.bytes, [0x80])
+    }
 }
 
 #endif

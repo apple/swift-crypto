@@ -68,11 +68,25 @@ extension P256.Signing {
 
         /// Initializes ECDSASignature from the DER representation.
         public init<D: DataProtocol>(derRepresentation: D) throws {
-            #if (os(macOS) || os(iOS) || os(watchOS) || os(tvOS)) && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
-            try self.init(coreCryptoDERSignature: derRepresentation)
-            #else
-            try self.init(openSSLDERSignature: derRepresentation)
-            #endif
+            let parsed = try ASN1.parse(Array(derRepresentation))
+            let signature = try ASN1.ECDSASignature<ArraySlice<UInt8>>(asn1Encoded: parsed)
+
+            let coordinateByteCount = P256.CurveDetails.coordinateByteCount
+
+            guard signature.r.count <= coordinateByteCount && signature.s.count <= coordinateByteCount else {
+                throw CryptoKitError.incorrectParameterSize
+            }
+
+            // r and s must be padded out to the coordinate byte count.
+            var raw = Data()
+            raw.reserveCapacity(2 * P256.CurveDetails.coordinateByteCount)
+
+            raw.append(contentsOf: repeatElement(0, count: P256.CurveDetails.coordinateByteCount - signature.r.count))
+            raw.append(contentsOf: signature.r)
+            raw.append(contentsOf: repeatElement(0, count: P256.CurveDetails.coordinateByteCount - signature.s.count))
+            raw.append(contentsOf: signature.s)
+
+            self.rawRepresentation = raw
         }
 
         public func withUnsafeBytes<R>(_ body: (UnsafeRawBufferPointer) throws -> R) rethrows -> R {
@@ -81,11 +95,15 @@ extension P256.Signing {
 
         /// A DER-encoded representation of the signature
         public var derRepresentation: Data {
-            #if (os(macOS) || os(iOS) || os(watchOS) || os(tvOS)) && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
-            return self.coreCryptoDERRepresentation
-            #else
-            return self.openSSLDERRepresentation
-            #endif
+            let raw = rawRepresentation
+            let half = raw.count / 2
+            let r = Array(raw.prefix(upTo: half))[...]
+            let s = Array(raw.suffix(from: half))[...]
+
+            let sig = ASN1.ECDSASignature(r: r, s: s)
+            var serializer = ASN1.Serializer()
+            try! serializer.serialize(sig)
+            return Data(serializer.serializedBytes)
         }
     }
 }
@@ -184,11 +202,25 @@ extension P384.Signing {
 
         /// Initializes ECDSASignature from the DER representation.
         public init<D: DataProtocol>(derRepresentation: D) throws {
-            #if (os(macOS) || os(iOS) || os(watchOS) || os(tvOS)) && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
-            try self.init(coreCryptoDERSignature: derRepresentation)
-            #else
-            try self.init(openSSLDERSignature: derRepresentation)
-            #endif
+            let parsed = try ASN1.parse(Array(derRepresentation))
+            let signature = try ASN1.ECDSASignature<ArraySlice<UInt8>>(asn1Encoded: parsed)
+
+            let coordinateByteCount = P384.CurveDetails.coordinateByteCount
+
+            guard signature.r.count <= coordinateByteCount && signature.s.count <= coordinateByteCount else {
+                throw CryptoKitError.incorrectParameterSize
+            }
+
+            // r and s must be padded out to the coordinate byte count.
+            var raw = Data()
+            raw.reserveCapacity(2 * P384.CurveDetails.coordinateByteCount)
+
+            raw.append(contentsOf: repeatElement(0, count: P384.CurveDetails.coordinateByteCount - signature.r.count))
+            raw.append(contentsOf: signature.r)
+            raw.append(contentsOf: repeatElement(0, count: P384.CurveDetails.coordinateByteCount - signature.s.count))
+            raw.append(contentsOf: signature.s)
+
+            self.rawRepresentation = raw
         }
 
         public func withUnsafeBytes<R>(_ body: (UnsafeRawBufferPointer) throws -> R) rethrows -> R {
@@ -197,11 +229,15 @@ extension P384.Signing {
 
         /// A DER-encoded representation of the signature
         public var derRepresentation: Data {
-            #if (os(macOS) || os(iOS) || os(watchOS) || os(tvOS)) && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
-            return self.coreCryptoDERRepresentation
-            #else
-            return self.openSSLDERRepresentation
-            #endif
+            let raw = rawRepresentation
+            let half = raw.count / 2
+            let r = Array(raw.prefix(upTo: half))[...]
+            let s = Array(raw.suffix(from: half))[...]
+
+            let sig = ASN1.ECDSASignature(r: r, s: s)
+            var serializer = ASN1.Serializer()
+            try! serializer.serialize(sig)
+            return Data(serializer.serializedBytes)
         }
     }
 }
@@ -300,11 +336,25 @@ extension P521.Signing {
 
         /// Initializes ECDSASignature from the DER representation.
         public init<D: DataProtocol>(derRepresentation: D) throws {
-            #if (os(macOS) || os(iOS) || os(watchOS) || os(tvOS)) && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
-            try self.init(coreCryptoDERSignature: derRepresentation)
-            #else
-            try self.init(openSSLDERSignature: derRepresentation)
-            #endif
+            let parsed = try ASN1.parse(Array(derRepresentation))
+            let signature = try ASN1.ECDSASignature<ArraySlice<UInt8>>(asn1Encoded: parsed)
+
+            let coordinateByteCount = P521.CurveDetails.coordinateByteCount
+
+            guard signature.r.count <= coordinateByteCount && signature.s.count <= coordinateByteCount else {
+                throw CryptoKitError.incorrectParameterSize
+            }
+
+            // r and s must be padded out to the coordinate byte count.
+            var raw = Data()
+            raw.reserveCapacity(2 * P521.CurveDetails.coordinateByteCount)
+
+            raw.append(contentsOf: repeatElement(0, count: P521.CurveDetails.coordinateByteCount - signature.r.count))
+            raw.append(contentsOf: signature.r)
+            raw.append(contentsOf: repeatElement(0, count: P521.CurveDetails.coordinateByteCount - signature.s.count))
+            raw.append(contentsOf: signature.s)
+
+            self.rawRepresentation = raw
         }
 
         public func withUnsafeBytes<R>(_ body: (UnsafeRawBufferPointer) throws -> R) rethrows -> R {
@@ -313,11 +363,15 @@ extension P521.Signing {
 
         /// A DER-encoded representation of the signature
         public var derRepresentation: Data {
-            #if (os(macOS) || os(iOS) || os(watchOS) || os(tvOS)) && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
-            return self.coreCryptoDERRepresentation
-            #else
-            return self.openSSLDERRepresentation
-            #endif
+            let raw = rawRepresentation
+            let half = raw.count / 2
+            let r = Array(raw.prefix(upTo: half))[...]
+            let s = Array(raw.suffix(from: half))[...]
+
+            let sig = ASN1.ECDSASignature(r: r, s: s)
+            var serializer = ASN1.Serializer()
+            try! serializer.serialize(sig)
+            return Data(serializer.serializedBytes)
         }
     }
 }

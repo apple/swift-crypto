@@ -103,7 +103,6 @@ import Foundation
 // generally: that is, we don't hard-code special knowledge of these formats as part of the parsing process. Instead we have written a
 // parser that can divide the world of ASN.1 into parseable chunks, and then we try to decode specific formats from those chunks. This
 // allows us to extend things in the future without too much pain.
-
 internal enum ASN1 { }
 
 // MARK: - Parser Node
@@ -228,14 +227,19 @@ extension ASN1 {
             }
 
             let identifier = try ASN1Identifier(rawIdentifier: rawIdentifier)
-            guard let length = try data.readASN1Length() else {
+            guard let wideLength = try data.readASN1Length() else {
                 throw CryptoKitASN1Error.truncatedASN1Field
             }
 
-            var subData = data.prefix(Int(length))
-            data = data.dropFirst(Int(length))
+            // UInt is sometimes too large for us!
+            guard let length = Int(exactly: wideLength) else {
+                throw CryptoKitASN1Error.invalidASN1Object
+            }
 
-            guard subData.count == Int(length) else {
+            var subData = data.prefix(length)
+            data = data.dropFirst(length)
+
+            guard subData.count == length else {
                 throw CryptoKitASN1Error.truncatedASN1Field
             }
 
@@ -486,7 +490,26 @@ extension ArraySlice where Element == UInt8 {
             // We need to read the length bytes
             let lengthBytes = self.prefix(fieldLength)
             self = self.dropFirst(fieldLength)
-            return try UInt(bigEndianBytes: lengthBytes)
+            let length = try UInt(bigEndianBytes: lengthBytes)
+
+            // DER requires that we enforce that the length field was encoded in the minimum number of octets necessary.
+            let requiredBits = UInt.bitWidth - length.leadingZeroBitCount
+            switch requiredBits {
+            case 0...7:
+                // For 0 to 7 bits, the long form is unnacceptable and we require the short.
+                throw CryptoKitASN1Error.unsupportedFieldLength
+            case 8...:
+                // For 8 or more bits, fieldLength should be the minimum required.
+                let requiredBytes = (requiredBits + 7) / 8
+                if fieldLength > requiredBytes {
+                    throw CryptoKitASN1Error.unsupportedFieldLength
+                }
+            default:
+                // This is not reachable, but we'll error anyway.
+                throw CryptoKitASN1Error.unsupportedFieldLength
+            }
+
+            return length
         case let val:
             // Short form, the length is only one 7-bit integer.
             return UInt(val)
@@ -494,9 +517,9 @@ extension ArraySlice where Element == UInt8 {
     }
 }
 
-extension UInt {
+extension FixedWidthInteger {
     internal init<Bytes: Collection>(bigEndianBytes bytes: Bytes) throws where Bytes.Element == UInt8 {
-        guard bytes.count <= MemoryLayout<UInt>.size else {
+        guard bytes.count <= (Self.bitWidth / 8) else {
             throw CryptoKitASN1Error.invalidASN1Object
         }
 
@@ -505,7 +528,7 @@ extension UInt {
 
         var index = bytes.startIndex
         for shift in shiftSizes {
-            self |= UInt(bytes[index]) << shift
+            self |= Self(truncatingIfNeeded: bytes[index]) << shift
             bytes.formIndex(after: &index)
         }
     }
@@ -553,7 +576,7 @@ extension Int {
     }
 }
 
-extension UInt {
+extension FixedWidthInteger {
     // Bytes needed to store a given integer.
     internal var neededBytes: Int {
         let neededBits = self.bitWidth - self.leadingZeroBitCount
