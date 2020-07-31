@@ -127,27 +127,8 @@ extension Curve25519.KeyAgreement {
         /// Validates whether the passed x25519 key representation is valid.
         /// - Parameter rawRepresentation: The provided key representation. Expected to be a valid 32-bytes private key.
         static func validateX25519PrivateKeyData(rawRepresentation: UnsafeRawBufferPointer) throws {
-            // X25519 keys have two constraints.
-
-            /// Verifies that the three least significant bits of the first byte are set to zero to prevent a small subgroup attack.
-            /// - Parameter byte: The first byte of the private key.
-            func isFirstKeyByteValid(_ byte: UInt8) -> Bool {
-                return byte & 0b111 == 0
-            }
-
-            /// Verifies that the second most significant bit of the last byte is set to 1 to prevent a timing leak on the number of iterations.
-            /// - Parameter byte: The last byte of the private key.
-            func isLastKeyByteValid(_ byte: UInt8) -> Bool {
-                let condition = ((byte >> 6) == 0b01)
-                return condition
-            }
-
             guard rawRepresentation.count == 32 else {
                 throw CryptoKitError.incorrectKeySize
-            }
-
-            guard isFirstKeyByteValid(rawRepresentation.first!), isLastKeyByteValid(rawRepresentation.last!) else {
-                throw CryptoKitError.invalidPrivateKey
             }
         }
     }

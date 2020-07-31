@@ -48,16 +48,6 @@ class ECKeyEncodingsTests: XCTestCase {
         XCTAssertNoThrow(try Curve25519.KeyAgreement.PrivateKey(rawRepresentation: x25519KeyKA_raw))
     }
     
-    /// This test validates that we correctly reject invalid Curve25519 private keys.
-    func testCurve25519InvalidPrivateKey() {
-        XCTAssertThrowsError(
-            try Curve25519.KeyAgreement.PrivateKey(rawRepresentation: Data(repeating: 0, count: 32))
-        )
-        XCTAssertThrowsError(
-            try Curve25519.KeyAgreement.PrivateKey(rawRepresentation: Data(repeating: 1, count: 32))
-        )
-    }
-    
     func testEncodingsSigningKeyTests() {
         let p256KeyKA = P256.Signing.PrivateKey()
         let p256KeyKA_raw = p256KeyKA.rawRepresentation
