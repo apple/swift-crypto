@@ -36,7 +36,7 @@ struct ECDHTestVector: Codable {
     let result: String
     let tcId: Int
     let flags: [String]
-    
+
     enum CodingKeys: String, CodingKey {
         case publicKey = "public"
         case privateKey = "private"
