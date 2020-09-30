@@ -14,6 +14,8 @@
 #if defined(BORINGSSL_PREFIX)
 #include <CCryptoBoringSSL_boringssl_prefix_symbols_asm.h>
 #endif
+#include <CCryptoBoringSSL_arm_arch.h>
+
 .text
 
 .globl	_gcm_init_neon
@@ -21,6 +23,7 @@
 
 .align	4
 _gcm_init_neon:
+	AARCH64_VALID_CALL_TARGET
 	// This function is adapted from gcm_init_v8. xC2 is t3.
 	ld1	{v17.2d}, [x1]			// load H
 	movi	v19.16b, #0xe1
@@ -46,6 +49,7 @@ _gcm_init_neon:
 
 .align	4
 _gcm_gmult_neon:
+	AARCH64_VALID_CALL_TARGET
 	ld1	{v3.16b}, [x0]		// load Xi
 	ld1	{v5.1d}, [x1], #8		// load twisted H
 	ld1	{v6.1d}, [x1]
@@ -65,6 +69,7 @@ _gcm_gmult_neon:
 
 .align	4
 _gcm_ghash_neon:
+	AARCH64_VALID_CALL_TARGET
 	ld1	{v0.16b}, [x0]		// load Xi
 	ld1	{v5.1d}, [x1], #8		// load twisted H
 	ld1	{v6.1d}, [x1]
