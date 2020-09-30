@@ -178,7 +178,7 @@ extern "C" {
 #endif
 
 #define OPENSSL_IS_BORINGSSL
-#define OPENSSL_VERSION_NUMBER 0x1010007f
+#define OPENSSL_VERSION_NUMBER 0x1010107f
 #define SSLEAY_VERSION_NUMBER OPENSSL_VERSION_NUMBER
 
 // BORINGSSL_API_VERSION is a positive integer that increments as BoringSSL
@@ -189,7 +189,7 @@ extern "C" {
 // A consumer may use this symbol in the preprocessor to temporarily build
 // against multiple revisions of BoringSSL at the same time. It is not
 // recommended to do so for longer than is necessary.
-#define BORINGSSL_API_VERSION 10
+#define BORINGSSL_API_VERSION 11
 
 #if defined(BORINGSSL_SHARED_LIBRARY)
 
