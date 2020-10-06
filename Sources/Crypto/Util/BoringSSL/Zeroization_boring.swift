@@ -14,11 +14,15 @@
 #if !(os(macOS) || os(iOS) || os(watchOS) || os(tvOS))
 @_implementationOnly import CCryptoBoringSSL
 
+typealias errno_t = CInt
+
 // This is a Swift wrapper for the libc function that does not exist on Linux. We shim it via a call to OPENSSL_cleanse.
 // We have the same syntax, but mostly ignore it.
-func memset_s(_ s: UnsafeMutableRawPointer!, _ smax: Int, _ byte: CInt, _ n: Int) {
+@discardableResult
+func memset_s(_ s: UnsafeMutableRawPointer!, _ smax: Int, _ byte: CInt, _ n: Int) -> errno_t {
     assert(smax == n, "memset_s invariant not met")
     assert(byte == 0, "memset_s used to not zero anything")
     CCryptoBoringSSL_OPENSSL_cleanse(s, smax)
+    return 0
 }
 #endif
