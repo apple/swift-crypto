@@ -46,7 +46,17 @@ let package = Package(
     ],
     dependencies: [],
     targets: [
-        .target(name: "CCryptoBoringSSL"),
+        .target(
+          name: "CCryptoBoringSSL",
+          cSettings: [
+            /*
+             * This define is required on Windows, but because we need older
+             * versions of SPM, we cannot conditionally define this on Windows
+             * only.  Unconditionally define it instead.
+             */
+            .define("WIN32_LEAN_AND_MEAN"),
+          ]
+        ),
         .target(name: "CCryptoBoringSSLShims", dependencies: ["CCryptoBoringSSL"]),
         .target(name: "Crypto", dependencies: ["CCryptoBoringSSL", "CCryptoBoringSSLShims"], swiftSettings: swiftSettings),
         .target(name: "crypto-shasum", dependencies: ["Crypto"]),
