@@ -52,6 +52,9 @@
 
 #ifndef OPENSSL_HEADER_BASE_H
 #define OPENSSL_HEADER_BASE_H
+#if defined(_WIN32) && !(defined(_M_IX86) || defined(__i386__))
+#define OPENSSL_NO_ASM
+#endif
 #if defined(__APPLE__) && defined(__i386__)
 #define OPENSSL_NO_ASM
 #endif
