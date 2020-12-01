@@ -143,7 +143,10 @@ extern "C" {
 #define OPENSSL_WINDOWS
 #endif
 
-#if defined(__linux__)
+// Trusty isn't Linux but currently defines __linux__. As a workaround, we
+// exclude it here.
+// TODO(b/169780122): Remove this workaround once Trusty no longer defines it.
+#if defined(__linux__) && !defined(TRUSTY)
 #define OPENSSL_LINUX
 #endif
 
@@ -189,7 +192,7 @@ extern "C" {
 // A consumer may use this symbol in the preprocessor to temporarily build
 // against multiple revisions of BoringSSL at the same time. It is not
 // recommended to do so for longer than is necessary.
-#define BORINGSSL_API_VERSION 11
+#define BORINGSSL_API_VERSION 12
 
 #if defined(BORINGSSL_SHARED_LIBRARY)
 
