@@ -127,7 +127,7 @@
 // appropriate architecture-dependent feature bits set.
 // Read more: "ELF for the Arm® 64-bit Architecture"
 
-#if (__ARM_FEATURE_BTI_DEFAULT == 1)
+#if defined(__ARM_FEATURE_BTI_DEFAULT) && __ARM_FEATURE_BTI_DEFAULT == 1
 #define GNU_PROPERTY_AARCH64_BTI (1 << 0)   // Has Branch Target Identification
 #define AARCH64_VALID_CALL_TARGET hint #34  // BTI 'c'
 #else
@@ -135,19 +135,21 @@
 #define AARCH64_VALID_CALL_TARGET
 #endif
 
-#if ((__ARM_FEATURE_PAC_DEFAULT & 1) == 1)  // Signed with A-key
+#if defined(__ARM_FEATURE_PAC_DEFAULT) && \
+    (__ARM_FEATURE_PAC_DEFAULT & 1) == 1  // Signed with A-key
 #define GNU_PROPERTY_AARCH64_POINTER_AUTH \
   (1 << 1)                                       // Has Pointer Authentication
 #define AARCH64_SIGN_LINK_REGISTER hint #25      // PACIASP
 #define AARCH64_VALIDATE_LINK_REGISTER hint #29  // AUTIASP
-#elif ((__ARM_FEATURE_PAC_DEFAULT & 2) == 2)     // Signed with B-key
+#elif defined(__ARM_FEATURE_PAC_DEFAULT) && \
+    (__ARM_FEATURE_PAC_DEFAULT & 2) == 2  // Signed with B-key
 #define GNU_PROPERTY_AARCH64_POINTER_AUTH \
   (1 << 1)                                       // Has Pointer Authentication
 #define AARCH64_SIGN_LINK_REGISTER hint #27      // PACIBSP
 #define AARCH64_VALIDATE_LINK_REGISTER hint #31  // AUTIBSP
 #else
 #define GNU_PROPERTY_AARCH64_POINTER_AUTH 0  // No Pointer Authentication
-#if defined(__ARM_FEATURE_BTI_DEFAULT)
+#if GNU_PROPERTY_AARCH64_BTI != 0
 #define AARCH64_SIGN_LINK_REGISTER AARCH64_VALID_CALL_TARGET
 #else
 #define AARCH64_SIGN_LINK_REGISTER
@@ -155,8 +157,8 @@
 #define AARCH64_VALIDATE_LINK_REGISTER
 #endif
 
-#if (GNU_PROPERTY_AARCH64_POINTER_AUTH != 0) || (GNU_PROPERTY_AARCH64_BTI != 0)
-.pushsection note.gnu.property, "a";
+#if GNU_PROPERTY_AARCH64_POINTER_AUTH != 0 || GNU_PROPERTY_AARCH64_BTI != 0
+.pushsection .note.gnu.property, "a";
 .balign 8;
 .long 4;
 .long 0x10;
@@ -165,8 +167,8 @@
 .long 0xc0000000; /* GNU_PROPERTY_AARCH64_FEATURE_1_AND */
 .long 4;
 .long (GNU_PROPERTY_AARCH64_POINTER_AUTH | GNU_PROPERTY_AARCH64_BTI);
-.long 0
-.popsection
+.long 0;
+.popsection;
 #endif
 
 #endif  /* defined __ASSEMBLER__ */
