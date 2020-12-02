@@ -1,0 +1,369 @@
+#define BORINGSSL_PREFIX CCryptoBoringSSL
+#if defined(__i386__) && defined(_WIN32)
+# This file is generated from a similarly-named Perl script in the BoringSSL
+# source tree. Do not edit by hand.
+
+#if defined(__i386__)
+#if defined(BORINGSSL_PREFIX)
+#include <CCryptoBoringSSL_boringssl_prefix_symbols_asm.h>
+#endif
+.text
+.globl	_bn_mul_mont
+.hidden	_bn_mul_mont
+.def	_bn_mul_mont;	.scl	2;	.type	32;	.endef
+.align	16
+_bn_mul_mont:
+.L_bn_mul_mont_begin:
+	pushl	%ebp
+	pushl	%ebx
+	pushl	%esi
+	pushl	%edi
+	xorl	%eax,%eax
+	movl	40(%esp),%edi
+	cmpl	$4,%edi
+	jl	.L000just_leave
+	leal	20(%esp),%esi
+	leal	24(%esp),%edx
+	addl	$2,%edi
+	negl	%edi
+	leal	-32(%esp,%edi,4),%ebp
+	negl	%edi
+	movl	%ebp,%eax
+	subl	%edx,%eax
+	andl	$2047,%eax
+	subl	%eax,%ebp
+	xorl	%ebp,%edx
+	andl	$2048,%edx
+	xorl	$2048,%edx
+	subl	%edx,%ebp
+	andl	$-64,%ebp
+	movl	%esp,%eax
+	subl	%ebp,%eax
+	andl	$-4096,%eax
+	movl	%esp,%edx
+	leal	(%ebp,%eax,1),%esp
+	movl	(%esp),%eax
+	cmpl	%ebp,%esp
+	ja	.L001page_walk
+	jmp	.L002page_walk_done
+.align	16
+.L001page_walk:
+	leal	-4096(%esp),%esp
+	movl	(%esp),%eax
+	cmpl	%ebp,%esp
+	ja	.L001page_walk
+.L002page_walk_done:
+	movl	(%esi),%eax
+	movl	4(%esi),%ebx
+	movl	8(%esi),%ecx
+	movl	12(%esi),%ebp
+	movl	16(%esi),%esi
+	movl	(%esi),%esi
+	movl	%eax,4(%esp)
+	movl	%ebx,8(%esp)
+	movl	%ecx,12(%esp)
+	movl	%ebp,16(%esp)
+	movl	%esi,20(%esp)
+	leal	-3(%edi),%ebx
+	movl	%edx,24(%esp)
+	movl	8(%esp),%esi
+	leal	1(%ebx),%ebp
+	movl	12(%esp),%edi
+	xorl	%ecx,%ecx
+	movl	%esi,%edx
+	andl	$1,%ebp
+	subl	%edi,%edx
+	leal	4(%edi,%ebx,4),%eax
+	orl	%edx,%ebp
+	movl	(%edi),%edi
+	jz	.L003bn_sqr_mont
+	movl	%eax,28(%esp)
+	movl	(%esi),%eax
+	xorl	%edx,%edx
+.align	16
+.L004mull:
+	movl	%edx,%ebp
+	mull	%edi
+	addl	%eax,%ebp
+	leal	1(%ecx),%ecx
+	adcl	$0,%edx
+	movl	(%esi,%ecx,4),%eax
+	cmpl	%ebx,%ecx
+	movl	%ebp,28(%esp,%ecx,4)
+	jl	.L004mull
+	movl	%edx,%ebp
+	mull	%edi
+	movl	20(%esp),%edi
+	addl	%ebp,%eax
+	movl	16(%esp),%esi
+	adcl	$0,%edx
+	imull	32(%esp),%edi
+	movl	%eax,32(%esp,%ebx,4)
+	xorl	%ecx,%ecx
+	movl	%edx,36(%esp,%ebx,4)
+	movl	%ecx,40(%esp,%ebx,4)
+	movl	(%esi),%eax
+	mull	%edi
+	addl	32(%esp),%eax
+	movl	4(%esi),%eax
+	adcl	$0,%edx
+	incl	%ecx
+	jmp	.L0052ndmadd
+.align	16
+.L0061stmadd:
+	movl	%edx,%ebp
+	mull	%edi
+	addl	32(%esp,%ecx,4),%ebp
+	leal	1(%ecx),%ecx
+	adcl	$0,%edx
+	addl	%eax,%ebp
+	movl	(%esi,%ecx,4),%eax
+	adcl	$0,%edx
+	cmpl	%ebx,%ecx
+	movl	%ebp,28(%esp,%ecx,4)
+	jl	.L0061stmadd
+	movl	%edx,%ebp
+	mull	%edi
+	addl	32(%esp,%ebx,4),%eax
+	movl	20(%esp),%edi
+	adcl	$0,%edx
+	movl	16(%esp),%esi
+	addl	%eax,%ebp
+	adcl	$0,%edx
+	imull	32(%esp),%edi
+	xorl	%ecx,%ecx
+	addl	36(%esp,%ebx,4),%edx
+	movl	%ebp,32(%esp,%ebx,4)
+	adcl	$0,%ecx
+	movl	(%esi),%eax
+	movl	%edx,36(%esp,%ebx,4)
+	movl	%ecx,40(%esp,%ebx,4)
+	mull	%edi
+	addl	32(%esp),%eax
+	movl	4(%esi),%eax
+	adcl	$0,%edx
+	movl	$1,%ecx
+.align	16
+.L0052ndmadd:
+	movl	%edx,%ebp
+	mull	%edi
+	addl	32(%esp,%ecx,4),%ebp
+	leal	1(%ecx),%ecx
+	adcl	$0,%edx
+	addl	%eax,%ebp
+	movl	(%esi,%ecx,4),%eax
+	adcl	$0,%edx
+	cmpl	%ebx,%ecx
+	movl	%ebp,24(%esp,%ecx,4)
+	jl	.L0052ndmadd
+	movl	%edx,%ebp
+	mull	%edi
+	addl	32(%esp,%ebx,4),%ebp
+	adcl	$0,%edx
+	addl	%eax,%ebp
+	adcl	$0,%edx
+	movl	%ebp,28(%esp,%ebx,4)
+	xorl	%eax,%eax
+	movl	12(%esp),%ecx
+	addl	36(%esp,%ebx,4),%edx
+	adcl	40(%esp,%ebx,4),%eax
+	leal	4(%ecx),%ecx
+	movl	%edx,32(%esp,%ebx,4)
+	cmpl	28(%esp),%ecx
+	movl	%eax,36(%esp,%ebx,4)
+	je	.L007common_tail
+	movl	(%ecx),%edi
+	movl	8(%esp),%esi
+	movl	%ecx,12(%esp)
+	xorl	%ecx,%ecx
+	xorl	%edx,%edx
+	movl	(%esi),%eax
+	jmp	.L0061stmadd
+.align	16
+.L003bn_sqr_mont:
+	movl	%ebx,(%esp)
+	movl	%ecx,12(%esp)
+	movl	%edi,%eax
+	mull	%edi
+	movl	%eax,32(%esp)
+	movl	%edx,%ebx
+	shrl	$1,%edx
+	andl	$1,%ebx
+	incl	%ecx
+.align	16
+.L008sqr:
+	movl	(%esi,%ecx,4),%eax
+	movl	%edx,%ebp
+	mull	%edi
+	addl	%ebp,%eax
+	leal	1(%ecx),%ecx
+	adcl	$0,%edx
+	leal	(%ebx,%eax,2),%ebp
+	shrl	$31,%eax
+	cmpl	(%esp),%ecx
+	movl	%eax,%ebx
+	movl	%ebp,28(%esp,%ecx,4)
+	jl	.L008sqr
+	movl	(%esi,%ecx,4),%eax
+	movl	%edx,%ebp
+	mull	%edi
+	addl	%ebp,%eax
+	movl	20(%esp),%edi
+	adcl	$0,%edx
+	movl	16(%esp),%esi
+	leal	(%ebx,%eax,2),%ebp
+	imull	32(%esp),%edi
+	shrl	$31,%eax
+	movl	%ebp,32(%esp,%ecx,4)
+	leal	(%eax,%edx,2),%ebp
+	movl	(%esi),%eax
+	shrl	$31,%edx
+	movl	%ebp,36(%esp,%ecx,4)
+	movl	%edx,40(%esp,%ecx,4)
+	mull	%edi
+	addl	32(%esp),%eax
+	movl	%ecx,%ebx
+	adcl	$0,%edx
+	movl	4(%esi),%eax
+	movl	$1,%ecx
+.align	16
+.L0093rdmadd:
+	movl	%edx,%ebp
+	mull	%edi
+	addl	32(%esp,%ecx,4),%ebp
+	adcl	$0,%edx
+	addl	%eax,%ebp
+	movl	4(%esi,%ecx,4),%eax
+	adcl	$0,%edx
+	movl	%ebp,28(%esp,%ecx,4)
+	movl	%edx,%ebp
+	mull	%edi
+	addl	36(%esp,%ecx,4),%ebp
+	leal	2(%ecx),%ecx
+	adcl	$0,%edx
+	addl	%eax,%ebp
+	movl	(%esi,%ecx,4),%eax
+	adcl	$0,%edx
+	cmpl	%ebx,%ecx
+	movl	%ebp,24(%esp,%ecx,4)
+	jl	.L0093rdmadd
+	movl	%edx,%ebp
+	mull	%edi
+	addl	32(%esp,%ebx,4),%ebp
+	adcl	$0,%edx
+	addl	%eax,%ebp
+	adcl	$0,%edx
+	movl	%ebp,28(%esp,%ebx,4)
+	movl	12(%esp),%ecx
+	xorl	%eax,%eax
+	movl	8(%esp),%esi
+	addl	36(%esp,%ebx,4),%edx
+	adcl	40(%esp,%ebx,4),%eax
+	movl	%edx,32(%esp,%ebx,4)
+	cmpl	%ebx,%ecx
+	movl	%eax,36(%esp,%ebx,4)
+	je	.L007common_tail
+	movl	4(%esi,%ecx,4),%edi
+	leal	1(%ecx),%ecx
+	movl	%edi,%eax
+	movl	%ecx,12(%esp)
+	mull	%edi
+	addl	32(%esp,%ecx,4),%eax
+	adcl	$0,%edx
+	movl	%eax,32(%esp,%ecx,4)
+	xorl	%ebp,%ebp
+	cmpl	%ebx,%ecx
+	leal	1(%ecx),%ecx
+	je	.L010sqrlast
+	movl	%edx,%ebx
+	shrl	$1,%edx
+	andl	$1,%ebx
+.align	16
+.L011sqradd:
+	movl	(%esi,%ecx,4),%eax
+	movl	%edx,%ebp
+	mull	%edi
+	addl	%ebp,%eax
+	leal	(%eax,%eax,1),%ebp
+	adcl	$0,%edx
+	shrl	$31,%eax
+	addl	32(%esp,%ecx,4),%ebp
+	leal	1(%ecx),%ecx
+	adcl	$0,%eax
+	addl	%ebx,%ebp
+	adcl	$0,%eax
+	cmpl	(%esp),%ecx
+	movl	%ebp,28(%esp,%ecx,4)
+	movl	%eax,%ebx
+	jle	.L011sqradd
+	movl	%edx,%ebp
+	addl	%edx,%edx
+	shrl	$31,%ebp
+	addl	%ebx,%edx
+	adcl	$0,%ebp
+.L010sqrlast:
+	movl	20(%esp),%edi
+	movl	16(%esp),%esi
+	imull	32(%esp),%edi
+	addl	32(%esp,%ecx,4),%edx
+	movl	(%esi),%eax
+	adcl	$0,%ebp
+	movl	%edx,32(%esp,%ecx,4)
+	movl	%ebp,36(%esp,%ecx,4)
+	mull	%edi
+	addl	32(%esp),%eax
+	leal	-1(%ecx),%ebx
+	adcl	$0,%edx
+	movl	$1,%ecx
+	movl	4(%esi),%eax
+	jmp	.L0093rdmadd
+.align	16
+.L007common_tail:
+	movl	16(%esp),%ebp
+	movl	4(%esp),%edi
+	leal	32(%esp),%esi
+	movl	(%esi),%eax
+	movl	%ebx,%ecx
+	xorl	%edx,%edx
+.align	16
+.L012sub:
+	sbbl	(%ebp,%edx,4),%eax
+	movl	%eax,(%edi,%edx,4)
+	decl	%ecx
+	movl	4(%esi,%edx,4),%eax
+	leal	1(%edx),%edx
+	jge	.L012sub
+	sbbl	$0,%eax
+	movl	$-1,%edx
+	xorl	%eax,%edx
+	jmp	.L013copy
+.align	16
+.L013copy:
+	movl	32(%esp,%ebx,4),%esi
+	movl	(%edi,%ebx,4),%ebp
+	movl	%ecx,32(%esp,%ebx,4)
+	andl	%eax,%esi
+	andl	%edx,%ebp
+	orl	%esi,%ebp
+	movl	%ebp,(%edi,%ebx,4)
+	decl	%ebx
+	jge	.L013copy
+	movl	24(%esp),%esp
+	movl	$1,%eax
+.L000just_leave:
+	popl	%edi
+	popl	%esi
+	popl	%ebx
+	popl	%ebp
+	ret
+.byte	77,111,110,116,103,111,109,101,114,121,32,77,117,108,116,105
+.byte	112,108,105,99,97,116,105,111,110,32,102,111,114,32,120,56
+.byte	54,44,32,67,82,89,80,84,79,71,65,77,83,32,98,121
+.byte	32,60,97,112,112,114,111,64,111,112,101,110,115,115,108,46
+.byte	111,114,103,62,0
+#endif
+#endif  // defined(__i386__) && defined(_WIN32)
+#if defined(__linux__) && defined(__ELF__)
+.section .note.GNU-stack,"",%progbits
+#endif
+

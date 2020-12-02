@@ -11,3 +11,5 @@ Package.resolved
 DerivedData
 .swiftpm
 **/gyb.pyc
+
+.*.sw[nop]
