@@ -13,3 +13,8 @@ DerivedData
 **/gyb.pyc
 
 .*.sw[nop]
+
+CMakeFiles
+CMakeCache.txt
+cmake_*.cmake
+*.ninja
