@@ -8,12 +8,18 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 
-add_library(CCryptoBoringSSLShims STATIC shims.c)
+add_library(CCryptoBoringSSLShims STATIC
+  shims.c)
 
 target_include_directories(CCryptoBoringSSLShims PUBLIC
   include)
 
 target_link_libraries(CCryptoBoringSSLShims PUBLIC
   CCryptoBoringSSL)
+  
+set_target_properties(CCryptoBoringSSLShims PROPERTIES
+  INTERFACE_INCLUDE_DIRECTORIES ${CMAKE_Swift_MODULE_DIRECTORY})
+  
+_install_target(CCryptoBoringSSLShims)
 
 set_property(GLOBAL APPEND PROPERTY SWIFT_CRYPTO_EXPORTS CCryptoBoringSSLShims)
