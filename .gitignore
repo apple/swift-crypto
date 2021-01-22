@@ -17,4 +17,4 @@ DerivedData
 CMakeFiles
 CMakeCache.txt
 cmake_*.cmake
-*.ninja
+*.ninja*
