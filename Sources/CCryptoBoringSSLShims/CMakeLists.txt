@@ -19,7 +19,5 @@ target_link_libraries(CCryptoBoringSSLShims PUBLIC
   
 set_target_properties(CCryptoBoringSSLShims PROPERTIES
   INTERFACE_INCLUDE_DIRECTORIES ${CMAKE_Swift_MODULE_DIRECTORY})
-  
-_install_target(CCryptoBoringSSLShims)
 
 set_property(GLOBAL APPEND PROPERTY SWIFT_CRYPTO_EXPORTS CCryptoBoringSSLShims)
