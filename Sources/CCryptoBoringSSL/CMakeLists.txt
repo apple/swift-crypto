@@ -313,7 +313,7 @@ add_library(CCryptoBoringSSL STATIC
 
 target_include_directories(CCryptoBoringSSL PUBLIC
   include)
-  
+
 set_target_properties(CCryptoBoringSSL PROPERTIES
   INTERFACE_INCLUDE_DIRECTORIES ${CMAKE_Swift_MODULE_DIRECTORY})
   
