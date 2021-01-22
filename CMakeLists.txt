@@ -34,5 +34,12 @@ if(CMAKE_SYSTEM_NAME STREQUAL Windows OR CMAKE_SYSTEM_NAME STREQUAL Darwin)
   option(BUILD_SHARED_LIBS "Build shared libraries by default" YES)
 endif()
 
+if(APPLE)
+  find_library(CRYPTO_KIT CryptoKit)
+  if(NOT CRYPTO_KIT)
+    message(FATAL_ERROR "CryptoKit not found")
+  endif()
+endif()
+
 add_subdirectory(Sources)
 add_subdirectory(cmake/modules)

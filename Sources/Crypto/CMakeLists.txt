@@ -73,6 +73,12 @@ add_library(Crypto
 target_link_libraries(Crypto PUBLIC
   CCryptoBoringSSL
   CCryptoBoringSSLShims)
+  
+if(APPLE AND CRYPTO_KIT)
+  target_link_libraries(Crypto PRIVATE
+    ${CRYPTO_KIT})
+endif()
+  
 target_include_directories(Crypto PRIVATE
   $<TARGET_PROPERTY:CCryptoBoringSSL,INCLUDE_DIRECTORIES>
   $<TARGET_PROPERTY:CCryptoBoringSSLShims,INCLUDE_DIRECTORIES>)
