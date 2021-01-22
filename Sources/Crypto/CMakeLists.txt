@@ -73,7 +73,9 @@ add_library(Crypto
 target_link_libraries(Crypto PUBLIC
   CCryptoBoringSSL
   CCryptoBoringSSLShims)
-
+target_include_directories(Crypto PRIVATE
+  $<TARGET_PROPERTY:CCryptoBoringSSL,INCLUDE_DIRECTORIES>
+  $<TARGET_PROPERTY:CCryptoBoringSSLShims,INCLUDE_DIRECTORIES>)
 set_target_properties(Crypto PROPERTIES
   INTERFACE_INCLUDE_DIRECTORIES ${CMAKE_Swift_MODULE_DIRECTORY})
 
