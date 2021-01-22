@@ -20,6 +20,22 @@ function replace_acceptable_years() {
     sed -e 's/20[12][890]-20[12][90]/YEARS/' -e 's/2019/YEARS/' -e 's/2020/YEARS/'
 }
 
+printf "=> Checking for unacceptable language... "
+# This greps for unacceptable terminology. The square bracket[s] are so that
+# "git grep" doesn't find the lines that greps :).
+# We exclude the vendored BoringSSL copy from this check.
+unacceptable_terms=(
+    -e blacklis[t]
+    -e whitelis[t]
+    -e slav[e]
+    -e sanit[y]
+)
+if git grep --color=never -i "${unacceptable_terms[@]}" ':(exclude)Sources/CCryptoBoringSSL*' > /dev/null; then
+    printf "\033[0;31mUnacceptable language found.\033[0m\n"
+    git grep -i "${unacceptable_terms[@]}" ':(exclude)Sources/CCryptoBoringSSL*'
+    exit 1
+fi
+printf "\033[0;32mokay.\033[0m\n"
 
 # Run gyb, if generated files was changed -> fail
 printf "=> Detecting manual edits in generated Swift files by comparing to gyb output\n"
@@ -36,7 +52,6 @@ if [[ "$FIRST_OUT" != "$SECOND_OUT" ]]; then
   exit 1
 fi
 printf "\033[0;32mokay.\033[0m\n"
-
 
 printf "=> Checking format\n"
 FIRST_OUT="$(git status --porcelain)"
@@ -68,7 +83,7 @@ else
 fi
 
 printf "=> Checking license headers\n"
-tmp=$(mktemp /tmp/.swift-crypto-sanity_XXXXXX)
+tmp=$(mktemp /tmp/.swift-crypto-soundness_XXXXXX)
 
 for language in swift-or-c bash dtrace; do
   printf "   * $language... "
