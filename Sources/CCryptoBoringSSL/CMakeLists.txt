@@ -318,8 +318,5 @@ target_compile_definitions(CCryptoBoringSSL PRIVATE
   $<$<PLATFORM_ID:Windows>:WIN32_LEAN_AND_MEAN>)
 set_target_properties(CCryptoBoringSSL PROPERTIES
   INTERFACE_INCLUDE_DIRECTORIES ${CMAKE_Swift_MODULE_DIRECTORY})
-  
-target_compile_definitions(CCryptoBoringSSL PRIVATE
-  $<$<PLATFORM_ID:Windows>:WIN32_LEAN_AND_MEAN>)
 
 set_property(GLOBAL APPEND PROPERTY SWIFT_CRYPTO_EXPORTS CCryptoBoringSSL)
