@@ -1,4 +1,4 @@
 module CCryptoBoringSSL {
-    umbrella header "CCryptoBoringSSL.h"
+    header "CCryptoBoringSSL.h"
     export *
 }

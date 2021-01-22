@@ -1,4 +1,4 @@
 module CCryptoBoringSSLShims {
-    umbrella header "CCryptoBoringSSLShims.h"
+    header "CCryptoBoringSSLShims.h"
     export *
 }
