@@ -314,6 +314,8 @@ add_library(CCryptoBoringSSL STATIC
 target_include_directories(CCryptoBoringSSL PUBLIC
   include)
 
+target_compile_definitions(CCryptoBoringSSL PRIVATE
+  $<$<PLATFORM_ID:Windows>:WIN32_LEAN_AND_MEAN>)
 set_target_properties(CCryptoBoringSSL PROPERTIES
   INTERFACE_INCLUDE_DIRECTORIES ${CMAKE_Swift_MODULE_DIRECTORY})
   
