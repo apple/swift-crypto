@@ -12,7 +12,8 @@ add_library(CCryptoBoringSSLShims STATIC
   shims.c)
 
 target_include_directories(CCryptoBoringSSLShims PUBLIC
-  include)
+  include
+  $<TARGET_PROPERTY:CCryptoBoringSSL,INCLUDE_DIRECTORIES>)
 
 target_link_libraries(CCryptoBoringSSLShims PUBLIC
   CCryptoBoringSSL)
