@@ -11,7 +11,7 @@
 cmake_minimum_required(VERSION 3.15.1)
 
 project(SwiftCrypto
-  LANGUAGES C Swift)
+  LANGUAGES ASM C Swift)
 
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake/modules)
 
@@ -33,13 +33,6 @@ endif()
 
 if(BUILD_SHARED_LIBS)
   set(CMAKE_POSITION_INDEPENDENT_CODE YES)
-endif()
-
-if(APPLE)
-  find_library(CRYPTO_KIT CryptoKit)
-  if(NOT CRYPTO_KIT)
-    message(FATAL_ERROR "CryptoKit not found")
-  endif()
 endif()
 
 add_subdirectory(Sources)
