@@ -319,7 +319,5 @@ set_target_properties(CCryptoBoringSSL PROPERTIES
   
 target_compile_definitions(CCryptoBoringSSL PRIVATE
   $<$<PLATFORM_ID:Windows>:WIN32_LEAN_AND_MEAN>)
-  
-_install_target(CCryptoBoringSSL)
 
 set_property(GLOBAL APPEND PROPERTY SWIFT_CRYPTO_EXPORTS CCryptoBoringSSL)
