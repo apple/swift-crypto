@@ -1,5 +1,6 @@
 .DS_Store
 /.build
+/out
 /Packages
 /*.xcodeproj
 Package.pins
@@ -14,7 +15,3 @@ DerivedData
 
 .*.sw[nop]
 
-CMakeFiles
-CMakeCache.txt
-cmake_*.cmake
-*.ninja*
