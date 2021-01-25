@@ -9,66 +9,66 @@
 # SPDX-License-Identifier: Apache-2.0
 
 add_library(Crypto
-  AEADs/AES/GCM/AES-GCM.swift
-  AEADs/AES/GCM/BoringSSL/AES-GCM_boring.swift
-  AEADS/ChachaPoly/ChaChaPoly.swift
-  AEADS/ChachaPoly/BoringSSL/ChaChaPoly_boring.swift
-  AEADS/Cipher.swift
-  AEADS/Nonces.swift
-  ASN1/ASN1.swift
-  "ASN1/Basic ASN1 Types/ArraySliceBigint.swift"
+  "AEADs/AES/GCM/AES-GCM.swift"
+  "AEADs/AES/GCM/BoringSSL/AES-GCM_boring.swift"
+  "AEADs/ChachaPoly/BoringSSL/ChaChaPoly_boring.swift"
+  "AEADs/ChachaPoly/ChaChaPoly.swift"
+  "AEADs/Cipher.swift"
+  "AEADs/Nonces.swift"
+  "ASN1/ASN1.swift"
   "ASN1/Basic ASN1 Types/ASN1BitString.swift"
   "ASN1/Basic ASN1 Types/ASN1Identifier.swift"
   "ASN1/Basic ASN1 Types/ASN1Integer.swift"
   "ASN1/Basic ASN1 Types/ASN1OctetString.swift"
+  "ASN1/Basic ASN1 Types/ArraySliceBigint.swift"
   "ASN1/Basic ASN1 Types/ObjectIdentifier.swift"
-  ASN1/ECDSASignature.swift
-  ASN1/PEMDocument.swift
-  ASN1/PKCS8PrivateKey.swift
-  ASN1/SEC1PrivateKey.swift
-  ASN1/SubjectPublicKeyInfo.swift
-  CryptoKitErrors.swift
-  Digests/BoringSSL/Digest_boring.swift
-  Digests/Digest.swift
-  Digests/Digests.swift
-  Digests/HashFunctions_SHA2.swift
-  Digests/HashFunctions.swift
-  Insecure/Insecure_HashFunctions.swift
-  Insecure/Insecure.swift
+  "ASN1/ECDSASignature.swift"
+  "ASN1/PEMDocument.swift"
+  "ASN1/PKCS8PrivateKey.swift"
+  "ASN1/SEC1PrivateKey.swift"
+  "ASN1/SubjectPublicKeyInfo.swift"
+  "CryptoKitErrors.swift"
+  "Digests/BoringSSL/Digest_boring.swift"
+  "Digests/Digest.swift"
+  "Digests/Digests.swift"
+  "Digests/HashFunctions.swift"
+  "Digests/HashFunctions_SHA2.swift"
+  "Insecure/Insecure.swift"
+  "Insecure/Insecure_HashFunctions.swift"
   "Key Agreement/BoringSSL/ECDH_boring.swift"
   "Key Agreement/DH.swift"
   "Key Agreement/ECDH.swift"
   "Key Derivation/HKDF.swift"
-  Keys/EC/BoringSSL/Ed25519_boring.swift
-  Keys/EC/BoringSSL/EllipticCurve_boring.swift
-  Keys/EC/BoringSSL/EllipticCurvePoint_boring.swift
-  Keys/EC/BoringSSL/NISTCurvesKeys_boring.swift
-  Keys/EC/BoringSSL/X25519Keys_boring.swift
-  Keys/EC/Curve25519.swift
-  Keys/EC/Ed25519.swift
-  Keys/EC/NISTCurvesKeys.swift
-  Keys/EC/X25519Keys.swift
-  Keys/Symmetric/SymmetricKeys.swift
+  "Keys/EC/BoringSSL/Ed25519_boring.swift"
+  "Keys/EC/BoringSSL/EllipticCurvePoint_boring.swift"
+  "Keys/EC/BoringSSL/EllipticCurve_boring.swift"
+  "Keys/EC/BoringSSL/NISTCurvesKeys_boring.swift"
+  "Keys/EC/BoringSSL/X25519Keys_boring.swift"
+  "Keys/EC/Curve25519.swift"
+  "Keys/EC/Ed25519.swift"
+  "Keys/EC/NISTCurvesKeys.swift"
+  "Keys/EC/X25519Keys.swift"
+  "Keys/Symmetric/SymmetricKeys.swift"
   "Message Authentication Codes/HMAC/HMAC.swift"
   "Message Authentication Codes/MACFunctions.swift"
   "Message Authentication Codes/MessageAuthenticationCode.swift"
-  PRF/AES.swift
-  Signatures/BoringSSL/ECDSA_boring.swift
-  Signatures/BoringSSL/ECDSASignature_boring.swift
-  Signatures/BoringSSL/EdDSA_boring.swift
-  Signatures/ECDSA.swift
-  Signatures/EdDSA.swift
-  Signatures/Signature.swift
-  Util/BoringSSL/ArbitraryPrecisionInteger_boring.swift
-  Util/BoringSSL/CryptoKitErrors_boring.swift
-  Util/BoringSSL/FiniteFieldArithmeticContext_boring.swift
-  Util/BoringSSL/RNG_boring.swift
-  Util/BoringSSL/SafeCompare_boring.swift
-  Util/BoringSSL/Zeroization_boring.swift
-  Util/PrettyBytes.swift
-  Util/SafeCompare.swift
-  Util/SecureBytes.swift
-  Util/Zeroization.swift)
+  "PRF/AES.swift"
+  "Signatures/BoringSSL/ECDSASignature_boring.swift"
+  "Signatures/BoringSSL/ECDSA_boring.swift"
+  "Signatures/BoringSSL/EdDSA_boring.swift"
+  "Signatures/ECDSA.swift"
+  "Signatures/EdDSA.swift"
+  "Signatures/Signature.swift"
+  "Util/BoringSSL/ArbitraryPrecisionInteger_boring.swift"
+  "Util/BoringSSL/CryptoKitErrors_boring.swift"
+  "Util/BoringSSL/FiniteFieldArithmeticContext_boring.swift"
+  "Util/BoringSSL/RNG_boring.swift"
+  "Util/BoringSSL/SafeCompare_boring.swift"
+  "Util/BoringSSL/Zeroization_boring.swift"
+  "Util/PrettyBytes.swift"
+  "Util/SafeCompare.swift"
+  "Util/SecureBytes.swift"
+  "Util/Zeroization.swift")
 
 target_compile_definitions(Crypto PRIVATE
   CRYPTO_IN_SWIFTPM_FORCE_BUILD_API)

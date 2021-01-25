@@ -9,7 +9,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 add_library(CCryptoBoringSSLShims STATIC
-  shims.c)
+  "shims.c")
 
 target_include_directories(CCryptoBoringSSLShims PUBLIC
   include
