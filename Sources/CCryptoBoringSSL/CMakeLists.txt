@@ -310,29 +310,38 @@ add_library(CCryptoBoringSSL STATIC
   "crypto/x509v3/v3_purp.c"
   "crypto/x509v3/v3_skey.c"
   "crypto/x509v3/v3_utl.c")
-if(APPLE)
-  if(CMAKE_SYSTEM_PROCESSOR MATCHES "x86_64|amd64")
-    target_sources(CCryptoBoringSSL PRIVATE
-      crypto/chacha/chacha-x86_64.mac.x86_64.S
-      crypto/cipher_extra/aes128gcmsiv-x86_64.mac.x86_64.S
-      crypto/cipher_extra/chacha20_poly1305_x86_64.mac.x86_64.S
-      crypto/fipsmodule/aesni-gcm-x86_64.mac.x86_64.S
-      crypto/fipsmodule/aesni-x86_64.mac.x86_64.S
-      crypto/fipsmodule/ghash-ssse3-x86_64.mac.x86_64.S
-      crypto/fipsmodule/ghash-x86_64.mac.x86_64.S
-      crypto/fipsmodule/md5-x86_64.mac.x86_64.S
-      crypto/fipsmodule/p256-x86_64-asm.mac.x86_64.S
-      crypto/fipsmodule/p256_beeu-x86_64-asm.mac.x86_64.S
-      crypto/fipsmodule/rdrand-x86_64.mac.x86_64.S
-      crypto/fipsmodule/rsaz-avx2.mac.x86_64.S
-      crypto/fipsmodule/sha1-x86_64.mac.x86_64.S
-      crypto/fipsmodule/sha256-x86_64.mac.x86_64.S
-      crypto/fipsmodule/sha512-x86_64.mac.x86_64.S
-      crypto/fipsmodule/vpaes-x86_64.mac.x86_64.S
-      crypto/fipsmodule/x86_64-mont.mac.x86_64.S
-      crypto/fipsmodule/x86_64-mont5.mac.x86_64.S)
+  
+function(add_assembly_files)
+  if(CMAKE_SYSTEM_NAME STREQUAL Darwin)
+    set(platform_name mac)
+  elseif(CMAKE_SYSTEM_NAME STREQUAL Linux)
+    set(platform_name linux)
+  else()
+    return()
   endif()
-endif()
+  
+  target_sources(CCryptoBoringSSL PRIVATE
+    crypto/chacha/chacha-x86_64.${platform_name}.x86_64.S
+    crypto/cipher_extra/aes128gcmsiv-x86_64.${platform_name}.x86_64.S
+    crypto/cipher_extra/chacha20_poly1305_x86_64.${platform_name}.x86_64.S
+    crypto/fipsmodule/aesni-gcm-x86_64.${platform_name}.x86_64.S
+    crypto/fipsmodule/aesni-x86_64.${platform_name}.x86_64.S
+    crypto/fipsmodule/ghash-ssse3-x86_64.${platform_name}.x86_64.S
+    crypto/fipsmodule/ghash-x86_64.${platform_name}.x86_64.S
+    crypto/fipsmodule/md5-x86_64.${platform_name}.x86_64.S
+    crypto/fipsmodule/p256-x86_64-asm.${platform_name}.x86_64.S
+    crypto/fipsmodule/p256_beeu-x86_64-asm.${platform_name}.x86_64.S
+    crypto/fipsmodule/rdrand-x86_64.${platform_name}.x86_64.S
+    crypto/fipsmodule/rsaz-avx2.${platform_name}.x86_64.S
+    crypto/fipsmodule/sha1-x86_64.${platform_name}.x86_64.S
+    crypto/fipsmodule/sha256-x86_64.${platform_name}.x86_64.S
+    crypto/fipsmodule/sha512-x86_64.${platform_name}.x86_64.S
+    crypto/fipsmodule/vpaes-x86_64.${platform_name}.x86_64.S
+    crypto/fipsmodule/x86_64-mont.${platform_name}.x86_64.S
+    crypto/fipsmodule/x86_64-mont5.${platform_name}.x86_64.S)
+endfunction()
+
+add_assembly_files()
 
 target_include_directories(CCryptoBoringSSL PUBLIC
   include)
