@@ -19,10 +19,10 @@ here=$(pwd)
 
 case "$(uname -s)" in
     Darwin)
-        sed=gsed
+        find=gfind # brew install findutils
         ;;
     *)
-        sed=sed
+        find=find
         ;;
 esac
 
@@ -38,16 +38,14 @@ function update_cmakelists() {
     
     # Build file extensions argument for `find`
     declare -a exts_arg
-    exts_arg+=(-name ${src_exts[0]})
+    exts_arg+=(-name "${src_exts[0]}")
     for (( i=1; i<$num_exts; i++ ));
     do
-        exts_arg+=(-o -name ${src_exts[$i]})
+        exts_arg+=(-o -name "${src_exts[$i]}")
     done
     
-    cd $src_root
-    
     # Wrap quotes around each filename since it might contain spaces
-    srcs=$(find . -type f \( "${exts_arg[@]}" \) | sort | $sed 's/\.\///g;s/\(.*\)/  "\1"/g')
+    srcs=$($find "${src_root}" -type f \( "${exts_arg[@]}" \) -printf '  "%P"\n' | sort)
     echo "$srcs"
     
     # Update list of source files in CMakeLists.txt
