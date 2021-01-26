@@ -48,7 +48,17 @@ if [ "$out" == *"error"* ]; then
   exit 1
 fi
 if [[ "$FIRST_OUT" != "$SECOND_OUT" ]]; then
-  printf "\033[0;31mRunning gyb results in changes! Have you manually editted the generated swift files? Or did you forget to run gyb and commit changes?\033[0m\n"
+  printf "\033[0;31mRunning gyb results in changes! Have you manually edited the generated Swift files? Or did you forget to run gyb and commit changes?\033[0m\n"
+  exit 1
+fi
+printf "\033[0;32mokay.\033[0m\n"
+
+printf "=> Detecting changes in source files for CMake build\n"
+FIRST_OUT="$(git status --porcelain)"
+out=$($here/update_cmakelists.sh 2>&1)
+SECOND_OUT="$(git status --porcelain)"
+if [[ "$FIRST_OUT" != "$SECOND_OUT" ]]; then
+  printf "\033[0;31mThere are source file changes! Have you added or renamed source files? Or did you forget to run 'update_cmakelists.sh' and commit changes?\033[0m\n"
   exit 1
 fi
 printf "\033[0;32mokay.\033[0m\n"
