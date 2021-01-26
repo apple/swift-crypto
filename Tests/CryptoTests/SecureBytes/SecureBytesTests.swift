@@ -23,7 +23,7 @@ import XCTest
 #endif
 
 final class SecureBytesTests: XCTestCase {
-    func testBasicSanity() {
+    func testBasicSoundness() {
         var first = SecureBytes()
         var second = SecureBytes()
 
