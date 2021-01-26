@@ -65,7 +65,7 @@ printf "\033[0;32mokay.\033[0m\n"
 
 printf "=> Checking format\n"
 FIRST_OUT="$(git status --porcelain)"
-# only checking direcotry named BoringSSL, rest is shared code and we need to preserve original format
+# only checking directory named BoringSSL, rest is shared code and we need to preserve original format
 shopt -u dotglob
 find Sources/* Tests/* -name BoringSSL -type d | while IFS= read -r d; do
   printf "   * checking $d... "
