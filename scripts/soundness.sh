@@ -3,7 +3,7 @@
 ##
 ## This source file is part of the SwiftCrypto open source project
 ##
-## Copyright (c) 2019 Apple Inc. and the SwiftCrypto project authors
+## Copyright (c) 2019-2021 Apple Inc. and the SwiftCrypto project authors
 ## Licensed under Apache License v2.0
 ##
 ## See LICENSE.txt for license information
@@ -85,7 +85,7 @@ fi
 printf "=> Checking license headers\n"
 tmp=$(mktemp /tmp/.swift-crypto-soundness_XXXXXX)
 
-for language in swift-or-c bash dtrace; do
+for language in swift-or-c bash dtrace cmake; do
   printf "   * $language... "
   declare -a matching_files
   declare -a exceptions
@@ -147,6 +147,24 @@ EOF
  *  SPDX-License-Identifier: Apache-2.0
  *
  *===----------------------------------------------------------------------===*/
+EOF
+      ;;
+      cmake)
+        matching_files=( -name 'SwiftSupport.cmake' -o -name 'CMakeLists.txt' )
+        cat > "$tmp" <<"EOF"
+##===----------------------------------------------------------------------===##
+##
+## This source file is part of the SwiftCrypto open source project
+##
+## Copyright (c) YEARS Apple Inc. and the SwiftCrypto project authors
+## Licensed under Apache License v2.0
+##
+## See LICENSE.txt for license information
+## See CONTRIBUTORS.md for the list of SwiftCrypto project authors
+##
+## SPDX-License-Identifier: Apache-2.0
+##
+##===----------------------------------------------------------------------===##
 EOF
       ;;
     *)
