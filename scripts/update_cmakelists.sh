@@ -26,16 +26,16 @@ case "$(uname -s)" in
         ;;
 esac
 
-function update_cmakelists() {
+function update_cmakelists_source() {
     src_root="$here/Sources/$1"
-    
+
     # Build an array with the rest of the arguments
     shift
     src_exts=("$@")
     echo "Finding source files (${src_exts[@]}) under $src_root"
-    
+
     num_exts=${#src_exts[@]}
-    
+
     # Build file extensions argument for `find`
     declare -a exts_arg
     exts_arg+=(-name "${src_exts[0]}")
@@ -43,11 +43,11 @@ function update_cmakelists() {
     do
         exts_arg+=(-o -name "${src_exts[$i]}")
     done
-    
+
     # Wrap quotes around each filename since it might contain spaces
     srcs=$($find "${src_root}" -type f \( "${exts_arg[@]}" \) -printf '  "%P"\n' | LC_ALL=POSIX sort)
     echo "$srcs"
-    
+
     # Update list of source files in CMakeLists.txt
     # The first part in `BEGIN` (i.e., `undef $/;`) is for working with multi-line;
     # the second is so that we can pass in a variable to replace with.
@@ -55,6 +55,25 @@ function update_cmakelists() {
     echo "Updated $src_root/CMakeLists.txt"
 }
 
-update_cmakelists "CCryptoBoringSSL" "*.c"
-update_cmakelists "CCryptoBoringSSLShims" "*.c"
-update_cmakelists "Crypto" "*.swift"
+function update_cmakelists_assembly() {
+    src_root="$here/Sources/$1"
+    echo "Finding assembly files (.S) under $src_root"
+
+    mac_asms=$($find "${src_root}" -type f -name "*.mac.x86_64.S" -printf '      %P\n' | LC_ALL=POSIX sort)
+    linux_asms=$($find "${src_root}" -type f -name "*.linux.x86_64.S" -printf '      %P\n' | LC_ALL=POSIX sort)
+    echo "$mac_asms"
+    echo "$linux_asms"
+    
+    # Update list of assembly files in CMakeLists.txt
+    # The first part in `BEGIN` (i.e., `undef $/;`) is for working with multi-line;
+    # the second is so that we can pass in a variable to replace with.
+    perl -pi -e 'BEGIN { undef $/; $replace = shift } s/Darwin\)\n(.+)target_sources\(([^\n]+)\n([^\)]+)/Darwin\)\n$1target_sources\($2\n$replace/' "$mac_asms" "$src_root/CMakeLists.txt"
+    perl -pi -e 'BEGIN { undef $/; $replace = shift } s/Linux\)\n(.+)target_sources\(([^\n]+)\n([^\)]+)/Linux\)\n$1target_sources\($2\n$replace/' "$linux_asms" "$src_root/CMakeLists.txt"
+    echo "Updated $src_root/CMakeLists.txt"
+}
+
+update_cmakelists_source "CCryptoBoringSSL" "*.c"
+update_cmakelists_source "CCryptoBoringSSLShims" "*.c"
+update_cmakelists_source "Crypto" "*.swift"
+
+update_cmakelists_assembly "CCryptoBoringSSL"
