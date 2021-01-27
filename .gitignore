@@ -1,5 +1,6 @@
 .DS_Store
 /.build
+/out
 /Packages
 /*.xcodeproj
 Package.pins
@@ -13,3 +14,4 @@ DerivedData
 **/gyb.pyc
 
 .*.sw[nop]
+

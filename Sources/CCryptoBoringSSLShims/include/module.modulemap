@@ -1,0 +1,4 @@
+module CCryptoBoringSSLShims {
+    header "CCryptoBoringSSLShims.h"
+    export *
+}

@@ -3,7 +3,7 @@
 ##
 ## This source file is part of the SwiftCrypto open source project
 ##
-## Copyright (c) 2019 Apple Inc. and the SwiftCrypto project authors
+## Copyright (c) 2019-2021 Apple Inc. and the SwiftCrypto project authors
 ## Licensed under Apache License v2.0
 ##
 ## See LICENSE.txt for license information
@@ -17,7 +17,7 @@ set -eu
 here="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 function replace_acceptable_years() {
     # this needs to replace all acceptable forms with 'YEARS'
-    sed -e 's/20[12][890]-20[12][90]/YEARS/' -e 's/2019/YEARS/' -e 's/2020/YEARS/'
+    sed -e 's/20[12][890]-20[12][190]/YEARS/' -e 's/2019/YEARS/' -e 's/2020/YEARS/' -e 's/2021/YEARS/'
 }
 
 printf "=> Checking for unacceptable language... "
@@ -48,14 +48,24 @@ if [ "$out" == *"error"* ]; then
   exit 1
 fi
 if [[ "$FIRST_OUT" != "$SECOND_OUT" ]]; then
-  printf "\033[0;31mRunning gyb results in changes! Have you manually editted the generated swift files? Or did you forget to run gyb and commit changes?\033[0m\n"
+  printf "\033[0;31mRunning gyb results in changes! Have you manually edited the generated Swift files? Or did you forget to run gyb and commit changes?\033[0m\n"
+  exit 1
+fi
+printf "\033[0;32mokay.\033[0m\n"
+
+printf "=> Detecting changes in source files for CMake build\n"
+FIRST_OUT="$(git status --porcelain)"
+out=$($here/update_cmakelists.sh 2>&1)
+SECOND_OUT="$(git status --porcelain)"
+if [[ "$FIRST_OUT" != "$SECOND_OUT" ]]; then
+  printf "\033[0;31mThere are source file changes! Have you added or renamed source files? Or did you forget to run 'update_cmakelists.sh' and commit changes?\033[0m\n"
   exit 1
 fi
 printf "\033[0;32mokay.\033[0m\n"
 
 printf "=> Checking format\n"
 FIRST_OUT="$(git status --porcelain)"
-# only checking direcotry named BoringSSL, rest is shared code and we need to preserve original format
+# only checking directory named BoringSSL, rest is shared code and we need to preserve original format
 shopt -u dotglob
 find Sources/* Tests/* -name BoringSSL -type d | while IFS= read -r d; do
   printf "   * checking $d... "
@@ -85,7 +95,7 @@ fi
 printf "=> Checking license headers\n"
 tmp=$(mktemp /tmp/.swift-crypto-soundness_XXXXXX)
 
-for language in swift-or-c bash dtrace; do
+for language in swift-or-c bash dtrace cmake; do
   printf "   * $language... "
   declare -a matching_files
   declare -a exceptions
@@ -147,6 +157,24 @@ EOF
  *  SPDX-License-Identifier: Apache-2.0
  *
  *===----------------------------------------------------------------------===*/
+EOF
+      ;;
+      cmake)
+        matching_files=( -name 'SwiftSupport.cmake' -o -name 'CMakeLists.txt' )
+        cat > "$tmp" <<"EOF"
+##===----------------------------------------------------------------------===##
+##
+## This source file is part of the SwiftCrypto open source project
+##
+## Copyright (c) YEARS Apple Inc. and the SwiftCrypto project authors
+## Licensed under Apache License v2.0
+##
+## See LICENSE.txt for license information
+## See CONTRIBUTORS.md for the list of SwiftCrypto project authors
+##
+## SPDX-License-Identifier: Apache-2.0
+##
+##===----------------------------------------------------------------------===##
 EOF
       ;;
     *)
