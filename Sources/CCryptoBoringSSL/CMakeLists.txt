@@ -12,7 +12,7 @@
 ##
 ##===----------------------------------------------------------------------===##
 
-add_library(CCryptoBoringSSL STATIC
+add_library(CCryptoBoringSSL
   "crypto/asn1/a_bitstr.c"
   "crypto/asn1/a_bool.c"
   "crypto/asn1/a_d2i_fp.c"
@@ -367,4 +367,5 @@ target_compile_definitions(CCryptoBoringSSL PRIVATE
 set_target_properties(CCryptoBoringSSL PROPERTIES
   INTERFACE_INCLUDE_DIRECTORIES ${CMAKE_Swift_MODULE_DIRECTORY})
 
+_install_target(CCryptoBoringSSL)
 set_property(GLOBAL APPEND PROPERTY SWIFT_CRYPTO_EXPORTS CCryptoBoringSSL)
