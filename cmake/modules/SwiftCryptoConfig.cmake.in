@@ -12,9 +12,6 @@
 ##
 ##===----------------------------------------------------------------------===##
 
-set(SWIFT_CRYPTO_EXPORTS_FILE ${CMAKE_CURRENT_BINARY_DIR}/SwiftCryptoExports.cmake)
-configure_file(SwiftCryptoConfig.cmake.in
-    ${CMAKE_CURRENT_BINARY_DIR}/SwiftCryptoConfig.cmake)
-
-get_property(SWIFT_CRYPTO_EXPORTS GLOBAL PROPERTY SWIFT_CRYPTO_EXPORTS)
-export(TARGETS ${SWIFT_CRYPTO_EXPORTS} FILE ${SWIFT_CRYPTO_EXPORTS_FILE})
+if(NOT TARGET SwiftCrypto)
+  include(@SWIFT_CRYPTO_EXPORTS_FILE@)
+endif()
