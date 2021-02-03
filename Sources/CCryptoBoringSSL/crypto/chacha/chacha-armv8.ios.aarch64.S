@@ -17,6 +17,7 @@
 #include <CCryptoBoringSSL_arm_arch.h>
 
 
+.private_extern	_OPENSSL_armcap_P
 
 .section	__TEXT,__const
 
