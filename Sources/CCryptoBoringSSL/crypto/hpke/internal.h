@@ -18,6 +18,7 @@
 #include <CCryptoBoringSSL_aead.h>
 #include <CCryptoBoringSSL_base.h>
 #include <CCryptoBoringSSL_curve25519.h>
+#include <CCryptoBoringSSL_digest.h>
 
 #if defined(__cplusplus)
 extern "C" {
@@ -30,7 +31,7 @@ extern "C" {
 // receiver with a public key. Optionally, the sender may authenticate its
 // possession of a pre-shared key to the recipient.
 //
-// See https://tools.ietf.org/html/draft-irtf-cfrg-hpke-05.
+// See https://tools.ietf.org/html/draft-irtf-cfrg-hpke-07.
 
 // EVP_HPKE_AEAD_* are AEAD identifiers.
 #define EVP_HPKE_AEAD_AES_GCM_128 0x0001
@@ -55,7 +56,7 @@ typedef struct evp_hpke_ctx_st {
   EVP_AEAD_CTX aead_ctx;
   uint16_t kdf_id;
   uint16_t aead_id;
-  uint8_t nonce[EVP_AEAD_MAX_NONCE_LENGTH];
+  uint8_t base_nonce[EVP_AEAD_MAX_NONCE_LENGTH];
   uint8_t exporter_secret[EVP_MAX_MD_SIZE];
   uint64_t seq;
   int is_sender;
@@ -77,8 +78,8 @@ OPENSSL_EXPORT void EVP_HPKE_CTX_cleanup(EVP_HPKE_CTX *ctx);
 // In each of the following functions, |hpke| must have been initialized with
 // |EVP_HPKE_CTX_init|. |kdf_id| selects the KDF for non-KEM HPKE operations and
 // must be one of the |EVP_HPKE_HKDF_*| constants. |aead_id| selects the AEAD
-// for the "open" and "seal" operations and must be one of the |EVP_HPKE_AEAD_*"
-// constants."
+// for the "open" and "seal" operations and must be one of the |EVP_HPKE_AEAD_*|
+// constants.
 
 // EVP_HPKE_CTX_setup_base_s_x25519 sets up |hpke| as a sender context that can
 // encrypt for the private key corresponding to |peer_public_value| (the
@@ -214,6 +215,14 @@ OPENSSL_EXPORT int EVP_HPKE_CTX_export(const EVP_HPKE_CTX *hpke, uint8_t *out,
 // added by sealing data with |EVP_HPKE_CTX_seal|. The |hpke| context must be
 // set up as a sender.
 OPENSSL_EXPORT size_t EVP_HPKE_CTX_max_overhead(const EVP_HPKE_CTX *hpke);
+
+// EVP_HPKE_get_aead returns the AEAD corresponding to |aead_id|, or NULL if
+// |aead_id| is not a known AEAD identifier.
+OPENSSL_EXPORT const EVP_AEAD *EVP_HPKE_get_aead(uint16_t aead_id);
+
+// EVP_HPKE_get_hkdf_md returns the hash function associated with |kdf_id|, or
+// NULL if |kdf_id| is not a known KDF identifier that uses HKDF.
+OPENSSL_EXPORT const EVP_MD *EVP_HPKE_get_hkdf_md(uint16_t kdf_id);
 
 
 #if defined(__cplusplus)

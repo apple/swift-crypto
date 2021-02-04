@@ -123,7 +123,7 @@
 #ifndef OPENSSL_HEADER_BN_INTERNAL_H
 #define OPENSSL_HEADER_BN_INTERNAL_H
 
-#include <CCryptoBoringSSL_base.h>
+#include <CCryptoBoringSSL_bn.h>
 
 #if defined(OPENSSL_X86_64) && defined(_MSC_VER)
 OPENSSL_MSVC_PRAGMA(warning(push, 3))
@@ -240,6 +240,14 @@ void bn_select_words(BN_ULONG *r, BN_ULONG mask, const BN_ULONG *a,
 // bn_set_words sets |bn| to the value encoded in the |num| words in |words|,
 // least significant word first.
 int bn_set_words(BIGNUM *bn, const BN_ULONG *words, size_t num);
+
+// bn_set_static_words acts like |bn_set_words|, but doesn't copy the data. A
+// flag is set on |bn| so that |BN_free| won't attempt to free the data.
+//
+// The |STATIC_BIGNUM| macro is probably a better solution for this outside of
+// the FIPS module. Inside of the FIPS module that macro generates rel.ro data,
+// which doesn't work with FIPS requirements.
+void bn_set_static_words(BIGNUM *bn, const BN_ULONG *words, size_t num);
 
 // bn_fits_in_words returns one if |bn| may be represented in |num| words, plus
 // a sign bit, and zero otherwise.

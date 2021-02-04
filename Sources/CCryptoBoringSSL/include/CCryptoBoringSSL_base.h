@@ -98,19 +98,19 @@ extern "C" {
 #elif defined(__x86) || defined(__i386) || defined(__i386__) || defined(_M_IX86)
 #define OPENSSL_32_BIT
 #define OPENSSL_X86
-#elif defined(__aarch64__) || defined(_M_ARM64)
+#elif defined(__AARCH64EL__) || defined(_M_ARM64)
 #define OPENSSL_64_BIT
 #define OPENSSL_AARCH64
-#elif defined(__arm) || defined(__arm__) || defined(_M_ARM)
+#elif defined(__ARMEL__) || defined(_M_ARM)
 #define OPENSSL_32_BIT
 #define OPENSSL_ARM
 #elif (defined(__PPC64__) || defined(__powerpc64__)) && defined(_LITTLE_ENDIAN)
 #define OPENSSL_64_BIT
 #define OPENSSL_PPC64LE
-#elif defined(__mips__) && !defined(__LP64__)
+#elif defined(__MIPSEL__) && !defined(__LP64__)
 #define OPENSSL_32_BIT
 #define OPENSSL_MIPS
-#elif defined(__mips__) && defined(__LP64__)
+#elif defined(__MIPSEL__) && defined(__LP64__)
 #define OPENSSL_64_BIT
 #define OPENSSL_MIPS64
 #elif defined(__pnacl__)
@@ -164,6 +164,10 @@ extern "C" {
 
 #if defined(__ANDROID_API__)
 #define OPENSSL_ANDROID
+#if defined(BORINGSSL_FIPS)
+// The FIPS module on Android passively receives entropy.
+#define BORINGSSL_FIPS_PASSIVE_ENTROPY
+#endif
 #endif
 
 // BoringSSL requires platform's locking APIs to make internal global state
@@ -195,7 +199,7 @@ extern "C" {
 // A consumer may use this symbol in the preprocessor to temporarily build
 // against multiple revisions of BoringSSL at the same time. It is not
 // recommended to do so for longer than is necessary.
-#define BORINGSSL_API_VERSION 12
+#define BORINGSSL_API_VERSION 14
 
 #if defined(BORINGSSL_SHARED_LIBRARY)
 
@@ -380,6 +384,7 @@ typedef struct bignum_ctx BN_CTX;
 typedef struct bignum_st BIGNUM;
 typedef struct bio_method_st BIO_METHOD;
 typedef struct bio_st BIO;
+typedef struct blake2b_state_st BLAKE2B_CTX;
 typedef struct bn_gencb_st BN_GENCB;
 typedef struct bn_mont_ctx_st BN_MONT_CTX;
 typedef struct buf_mem_st BUF_MEM;

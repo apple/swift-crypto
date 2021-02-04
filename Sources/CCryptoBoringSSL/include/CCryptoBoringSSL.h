@@ -20,6 +20,7 @@
 #include "CCryptoBoringSSL_asn1t.h"
 #include "CCryptoBoringSSL_base.h"
 #include "CCryptoBoringSSL_bio.h"
+#include "CCryptoBoringSSL_blake2.h"
 #include "CCryptoBoringSSL_blowfish.h"
 #include "CCryptoBoringSSL_boringssl_prefix_symbols.h"
 #include "CCryptoBoringSSL_boringssl_prefix_symbols_asm.h"
