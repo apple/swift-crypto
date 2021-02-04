@@ -31,6 +31,10 @@ services:
     # FIXME: get rid of existing warnings
     #command: /bin/bash -xcl "swift test --enable-test-discovery -Xswiftc -warnings-as-errors $${SANITIZER_ARG-}"
     command: /bin/bash -xcl "swift test --enable-test-discovery"
+    
+  cmake:
+    <<: *common
+    command: /bin/bash -xcl "cmake -G Ninja -D CMAKE_BUILD_TYPE=Release -B out -S . && ninja -C out"
 
   # util
 
