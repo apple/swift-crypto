@@ -21,7 +21,10 @@ RUN apt-get update && apt-get install -y lsof dnsutils netcat-openbsd net-tools 
 
 # ruby and jazzy for docs generation
 RUN apt-get update && apt-get install -y ruby ruby-dev libsqlite3-dev
-RUN gem install jazzy --no-ri --no-rdoc
+RUN if [ "${ubuntu_version}" != "focal" ] ; then gem install jazzy --no-document ; fi
+
+# cmake build
+RUN apt-get update && apt-get install -y cmake ninja-build
 
 # tools
 RUN mkdir -p $HOME/.tools
