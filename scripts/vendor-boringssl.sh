@@ -3,7 +3,7 @@
 ##
 ## This source file is part of the SwiftCrypto open source project
 ##
-## Copyright (c) 2019 Apple Inc. and the SwiftCrypto project authors
+## Copyright (c) 2019-2021 Apple Inc. and the SwiftCrypto project authors
 ## Licensed under Apache License v2.0
 ##
 ## See LICENSE.txt for license information
@@ -144,6 +144,9 @@ if ! hash ${sed} 2>/dev/null; then
     echo "On macOS: brew install gnu-sed"
     exit 43
 fi
+
+echo "SAVING modulemap"
+cp "$DSTROOT/include/module.modulemap" "$TMPDIR"
 
 echo "REMOVING any previously-vendored BoringSSL code"
 rm -rf $DSTROOT/include
@@ -347,6 +350,9 @@ cat << EOF > "$DSTROOT/include/CCryptoBoringSSL.h"
 
 #endif  // C_CRYPTO_BORINGSSL_H
 EOF
+
+echo "COPYING modulemap back"
+cp "$TMPDIR/module.modulemap" "$DSTROOT/include"
 
 echo "RECORDING BoringSSL revision"
 $sed -i -e "s/BoringSSL Commit: [0-9a-f]\+/BoringSSL Commit: ${BORINGSSL_REVISION}/" "$HERE/Package.swift"
