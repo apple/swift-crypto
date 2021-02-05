@@ -145,9 +145,6 @@ if ! hash ${sed} 2>/dev/null; then
     exit 43
 fi
 
-echo "SAVING modulemap"
-cp "$DSTROOT/include/module.modulemap" "$TMPDIR"
-
 echo "REMOVING any previously-vendored BoringSSL code"
 rm -rf $DSTROOT/include
 rm -rf $DSTROOT/ssl
@@ -351,8 +348,14 @@ cat << EOF > "$DSTROOT/include/CCryptoBoringSSL.h"
 #endif  // C_CRYPTO_BORINGSSL_H
 EOF
 
-echo "COPYING modulemap back"
-cp "$TMPDIR/module.modulemap" "$DSTROOT/include"
+# modulemap is required by the cmake build
+echo "CREATING modulemap"
+cat << EOF > "$DSTROOT/include/module.modulemap"
+module CCryptoBoringSSL {
+    header "CCryptoBoringSSL.h"
+    export *
+}
+EOF
 
 echo "RECORDING BoringSSL revision"
 $sed -i -e "s/BoringSSL Commit: [0-9a-f]\+/BoringSSL Commit: ${BORINGSSL_REVISION}/" "$HERE/Package.swift"
