@@ -3,7 +3,7 @@
 ##
 ## This source file is part of the SwiftCrypto open source project
 ##
-## Copyright (c) 2019 Apple Inc. and the SwiftCrypto project authors
+## Copyright (c) 2019-2021 Apple Inc. and the SwiftCrypto project authors
 ## Licensed under Apache License v2.0
 ##
 ## See LICENSE.txt for license information
@@ -346,6 +346,15 @@ cat << EOF > "$DSTROOT/include/CCryptoBoringSSL.h"
 #include "CCryptoBoringSSL_x509v3.h"
 
 #endif  // C_CRYPTO_BORINGSSL_H
+EOF
+
+# modulemap is required by the cmake build
+echo "CREATING modulemap"
+cat << EOF > "$DSTROOT/include/module.modulemap"
+module CCryptoBoringSSL {
+    header "CCryptoBoringSSL.h"
+    export *
+}
 EOF
 
 echo "RECORDING BoringSSL revision"
