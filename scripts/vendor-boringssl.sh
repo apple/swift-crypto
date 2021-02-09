@@ -285,7 +285,7 @@ echo "MODULARISING BoringSSL"
 cat << EOF > "$DSTROOT/include/CCryptoBoringSSL.h"
 //===----------------------------------------------------------------------===//
 //
-// This source file is part of the SwitCrypto open source project
+// This source file is part of the SwiftCrypto open source project
 //
 // Copyright (c) 2019 Apple Inc. and the SwiftCrypto project authors
 // Licensed under Apache License v2.0
