@@ -237,9 +237,9 @@ echo "REMOVING libssl"
 
 mangle_symbols
 
-# Removing ASM on 32 bit Apple platforms
-echo "REMOVING assembly on 32-bit Apple platforms"
-gsed -i "/#define OPENSSL_HEADER_BASE_H/a#if defined(__APPLE__) && defined(__i386__)\n#define OPENSSL_NO_ASM\n#endif" "$DSTROOT/include/openssl/base.h"
+# Removing ASM on 32-bit and ARM64 Apple platforms
+echo "REMOVING assembly on 32-bit and ARM64 Apple platforms"
+gsed -i "/#define OPENSSL_HEADER_BASE_H/a#if defined(__APPLE__) && (defined(__i386__) || defined(__aarch64__))\n#define OPENSSL_NO_ASM\n#endif" "$DSTROOT/include/openssl/base.h"
 
 # Remove assembly on non-x86 Windows
 echo "REMOVING assembly on non-x86 Windows"
