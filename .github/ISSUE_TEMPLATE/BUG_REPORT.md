@@ -8,7 +8,7 @@ about: If something isn't working as expected
 
 ### New Issue Checklist
 
-- [ ] I'm using the latest version of Swift Crypto (master branch)
+- [ ] I'm using the latest version of Swift Crypto (`main` branch)
 - [ ] I read the [Contribution Guidelines](https://github.com/apple/swift-crypto/blob/master/CONTRIBUTING.md)
 - [ ] I searched for [existing GitHub issues](https://github.com/apple/swift-crypto/issues)
 
