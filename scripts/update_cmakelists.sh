@@ -59,16 +59,22 @@ function update_cmakelists_assembly() {
     src_root="$here/Sources/$1"
     echo "Finding assembly files (.S) under $src_root"
 
-    mac_asms=$($find "${src_root}" -type f -name "*.mac.x86_64.S" -printf '      %P\n' | LC_ALL=POSIX sort)
-    linux_asms=$($find "${src_root}" -type f -name "*.linux.x86_64.S" -printf '      %P\n' | LC_ALL=POSIX sort)
-    echo "$mac_asms"
-    echo "$linux_asms"
+    mac_x86_64_asms=$($find "${src_root}" -type f -name "*.mac.x86_64.S" -printf '    %P\n' | LC_ALL=POSIX sort)
+    linux_x86_64_asms=$($find "${src_root}" -type f -name "*.linux.x86_64.S" -printf '    %P\n' | LC_ALL=POSIX sort)
+    mac_aarch64_asms=$($find "${src_root}" -type f -name "*.ios.aarch64.S" -printf '    %P\n' | LC_ALL=POSIX sort)
+    linux_aarch64_asms=$($find "${src_root}" -type f -name "*.linux.aarch64.S" -printf '    %P\n' | LC_ALL=POSIX sort)
+    echo "$mac_x86_64_asms"
+    echo "$linux_x86_64_asms"
+    echo "$mac_aarch64_asms"
+    echo "$linux_aarch64_asms"
     
     # Update list of assembly files in CMakeLists.txt
     # The first part in `BEGIN` (i.e., `undef $/;`) is for working with multi-line;
     # the second is so that we can pass in a variable to replace with.
-    perl -pi -e 'BEGIN { undef $/; $replace = shift } s/Darwin\)\n(.+)target_sources\(([^\n]+)\n([^\)]+)/Darwin\)\n$1target_sources\($2\n$replace/' "$mac_asms" "$src_root/CMakeLists.txt"
-    perl -pi -e 'BEGIN { undef $/; $replace = shift } s/Linux\)\n(.+)target_sources\(([^\n]+)\n([^\)]+)/Linux\)\n$1target_sources\($2\n$replace/' "$linux_asms" "$src_root/CMakeLists.txt"
+    perl -pi -e 'BEGIN { undef $/; $replace = shift } s/Darwin([^\)]+)x86_64"\)\n  target_sources\(([^\n]+)\n([^\)]+)/Darwin$1x86_64"\)\n  target_sources\($2\n$replace/' "$mac_x86_64_asms" "$src_root/CMakeLists.txt"
+    perl -pi -e 'BEGIN { undef $/; $replace = shift } s/Linux([^\)]+)x86_64"\)\n  target_sources\(([^\n]+)\n([^\)]+)/Linux$1x86_64"\)\n  target_sources\($2\n$replace/' "$linux_x86_64_asms" "$src_root/CMakeLists.txt"
+    perl -pi -e 'BEGIN { undef $/; $replace = shift } s/Darwin([^\)]+)aarch64"\)\n  target_sources\(([^\n]+)\n([^\)]+)/Darwin$1aarch64"\)\n  target_sources\($2\n$replace/' "$mac_aarch64_asms" "$src_root/CMakeLists.txt"
+    perl -pi -e 'BEGIN { undef $/; $replace = shift } s/Linux([^\)]+)aarch64"\)\n  target_sources\(([^\n]+)\n([^\)]+)/Linux$1aarch64"\)\n  target_sources\($2\n$replace/' "$linux_aarch64_asms" "$src_root/CMakeLists.txt"
     echo "Updated $src_root/CMakeLists.txt"
 }
 
