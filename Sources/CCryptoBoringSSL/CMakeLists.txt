@@ -318,48 +318,68 @@ add_library(CCryptoBoringSSL STATIC
   "crypto/x509v3/v3_skey.c"
   "crypto/x509v3/v3_utl.c")
 
-if(CMAKE_SYSTEM_PROCESSOR MATCHES "x86_64|amd64")
-  if(CMAKE_SYSTEM_NAME STREQUAL Darwin)
-    target_sources(CCryptoBoringSSL PRIVATE
-      crypto/chacha/chacha-x86_64.mac.x86_64.S
-      crypto/cipher_extra/aes128gcmsiv-x86_64.mac.x86_64.S
-      crypto/cipher_extra/chacha20_poly1305_x86_64.mac.x86_64.S
-      crypto/fipsmodule/aesni-gcm-x86_64.mac.x86_64.S
-      crypto/fipsmodule/aesni-x86_64.mac.x86_64.S
-      crypto/fipsmodule/ghash-ssse3-x86_64.mac.x86_64.S
-      crypto/fipsmodule/ghash-x86_64.mac.x86_64.S
-      crypto/fipsmodule/md5-x86_64.mac.x86_64.S
-      crypto/fipsmodule/p256-x86_64-asm.mac.x86_64.S
-      crypto/fipsmodule/p256_beeu-x86_64-asm.mac.x86_64.S
-      crypto/fipsmodule/rdrand-x86_64.mac.x86_64.S
-      crypto/fipsmodule/rsaz-avx2.mac.x86_64.S
-      crypto/fipsmodule/sha1-x86_64.mac.x86_64.S
-      crypto/fipsmodule/sha256-x86_64.mac.x86_64.S
-      crypto/fipsmodule/sha512-x86_64.mac.x86_64.S
-      crypto/fipsmodule/vpaes-x86_64.mac.x86_64.S
-      crypto/fipsmodule/x86_64-mont.mac.x86_64.S
-      crypto/fipsmodule/x86_64-mont5.mac.x86_64.S)
-  elseif(CMAKE_SYSTEM_NAME STREQUAL Linux)
-    target_sources(CCryptoBoringSSL PRIVATE
-      crypto/chacha/chacha-x86_64.linux.x86_64.S
-      crypto/cipher_extra/aes128gcmsiv-x86_64.linux.x86_64.S
-      crypto/cipher_extra/chacha20_poly1305_x86_64.linux.x86_64.S
-      crypto/fipsmodule/aesni-gcm-x86_64.linux.x86_64.S
-      crypto/fipsmodule/aesni-x86_64.linux.x86_64.S
-      crypto/fipsmodule/ghash-ssse3-x86_64.linux.x86_64.S
-      crypto/fipsmodule/ghash-x86_64.linux.x86_64.S
-      crypto/fipsmodule/md5-x86_64.linux.x86_64.S
-      crypto/fipsmodule/p256-x86_64-asm.linux.x86_64.S
-      crypto/fipsmodule/p256_beeu-x86_64-asm.linux.x86_64.S
-      crypto/fipsmodule/rdrand-x86_64.linux.x86_64.S
-      crypto/fipsmodule/rsaz-avx2.linux.x86_64.S
-      crypto/fipsmodule/sha1-x86_64.linux.x86_64.S
-      crypto/fipsmodule/sha256-x86_64.linux.x86_64.S
-      crypto/fipsmodule/sha512-x86_64.linux.x86_64.S
-      crypto/fipsmodule/vpaes-x86_64.linux.x86_64.S
-      crypto/fipsmodule/x86_64-mont.linux.x86_64.S
-      crypto/fipsmodule/x86_64-mont5.linux.x86_64.S)
-  endif()
+if(CMAKE_SYSTEM_NAME STREQUAL Darwin AND CMAKE_SYSTEM_PROCESSOR MATCHES "amd64|x86_64")
+  target_sources(CCryptoBoringSSL PRIVATE
+    crypto/chacha/chacha-x86_64.mac.x86_64.S
+    crypto/cipher_extra/aes128gcmsiv-x86_64.mac.x86_64.S
+    crypto/cipher_extra/chacha20_poly1305_x86_64.mac.x86_64.S
+    crypto/fipsmodule/aesni-gcm-x86_64.mac.x86_64.S
+    crypto/fipsmodule/aesni-x86_64.mac.x86_64.S
+    crypto/fipsmodule/ghash-ssse3-x86_64.mac.x86_64.S
+    crypto/fipsmodule/ghash-x86_64.mac.x86_64.S
+    crypto/fipsmodule/md5-x86_64.mac.x86_64.S
+    crypto/fipsmodule/p256-x86_64-asm.mac.x86_64.S
+    crypto/fipsmodule/p256_beeu-x86_64-asm.mac.x86_64.S
+    crypto/fipsmodule/rdrand-x86_64.mac.x86_64.S
+    crypto/fipsmodule/rsaz-avx2.mac.x86_64.S
+    crypto/fipsmodule/sha1-x86_64.mac.x86_64.S
+    crypto/fipsmodule/sha256-x86_64.mac.x86_64.S
+    crypto/fipsmodule/sha512-x86_64.mac.x86_64.S
+    crypto/fipsmodule/vpaes-x86_64.mac.x86_64.S
+    crypto/fipsmodule/x86_64-mont.mac.x86_64.S
+    crypto/fipsmodule/x86_64-mont5.mac.x86_64.S)
+elseif(CMAKE_SYSTEM_NAME STREQUAL Linux AND CMAKE_SYSTEM_PROCESSOR MATCHES "amd64|x86_64")
+  target_sources(CCryptoBoringSSL PRIVATE
+    crypto/chacha/chacha-x86_64.linux.x86_64.S
+    crypto/cipher_extra/aes128gcmsiv-x86_64.linux.x86_64.S
+    crypto/cipher_extra/chacha20_poly1305_x86_64.linux.x86_64.S
+    crypto/fipsmodule/aesni-gcm-x86_64.linux.x86_64.S
+    crypto/fipsmodule/aesni-x86_64.linux.x86_64.S
+    crypto/fipsmodule/ghash-ssse3-x86_64.linux.x86_64.S
+    crypto/fipsmodule/ghash-x86_64.linux.x86_64.S
+    crypto/fipsmodule/md5-x86_64.linux.x86_64.S
+    crypto/fipsmodule/p256-x86_64-asm.linux.x86_64.S
+    crypto/fipsmodule/p256_beeu-x86_64-asm.linux.x86_64.S
+    crypto/fipsmodule/rdrand-x86_64.linux.x86_64.S
+    crypto/fipsmodule/rsaz-avx2.linux.x86_64.S
+    crypto/fipsmodule/sha1-x86_64.linux.x86_64.S
+    crypto/fipsmodule/sha256-x86_64.linux.x86_64.S
+    crypto/fipsmodule/sha512-x86_64.linux.x86_64.S
+    crypto/fipsmodule/vpaes-x86_64.linux.x86_64.S
+    crypto/fipsmodule/x86_64-mont.linux.x86_64.S
+    crypto/fipsmodule/x86_64-mont5.linux.x86_64.S)
+elseif(CMAKE_SYSTEM_NAME STREQUAL Darwin AND CMAKE_SYSTEM_PROCESSOR MATCHES "arm64|aarch64")
+  target_sources(CCryptoBoringSSL PRIVATE
+    crypto/chacha/chacha-armv8.ios.aarch64.S
+    crypto/fipsmodule/aesv8-armx64.ios.aarch64.S
+    crypto/fipsmodule/armv8-mont.ios.aarch64.S
+    crypto/fipsmodule/ghash-neon-armv8.ios.aarch64.S
+    crypto/fipsmodule/ghashv8-armx64.ios.aarch64.S
+    crypto/fipsmodule/sha1-armv8.ios.aarch64.S
+    crypto/fipsmodule/sha256-armv8.ios.aarch64.S
+    crypto/fipsmodule/sha512-armv8.ios.aarch64.S
+    crypto/fipsmodule/vpaes-armv8.ios.aarch64.S)
+elseif(CMAKE_SYSTEM_NAME STREQUAL Linux AND CMAKE_SYSTEM_PROCESSOR MATCHES "arm64|aarch64")
+  target_sources(CCryptoBoringSSL PRIVATE
+    crypto/chacha/chacha-armv8.linux.aarch64.S
+    crypto/fipsmodule/aesv8-armx64.linux.aarch64.S
+    crypto/fipsmodule/armv8-mont.linux.aarch64.S
+    crypto/fipsmodule/ghash-neon-armv8.linux.aarch64.S
+    crypto/fipsmodule/ghashv8-armx64.linux.aarch64.S
+    crypto/fipsmodule/sha1-armv8.linux.aarch64.S
+    crypto/fipsmodule/sha256-armv8.linux.aarch64.S
+    crypto/fipsmodule/sha512-armv8.linux.aarch64.S
+    crypto/fipsmodule/vpaes-armv8.linux.aarch64.S)
 endif()
 
 target_include_directories(CCryptoBoringSSL PUBLIC
