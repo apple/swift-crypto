@@ -100,7 +100,7 @@ Swift Crypto supports Swift 5.1 and later.
 
 ### Compatibility
 
-Swift Crypto follows [SemVer 2.0.0](https://semver.org/#semantic-versioning-200). Our public API is the same as that of CryptoKit (except where we lack an implementation entirely), as well as everything in the Server and Staging namespaces. We do not maintain a stable ABI, as Swift Crypto is a source-only distribution.
+Swift Crypto follows [SemVer 2.0.0](https://semver.org/#semantic-versioning-200). Our public API is the same as that of CryptoKit (except where we lack an implementation entirely), as well as everything in the Server and Staging namespaces. Any symbol beginning with an underscore, and any product beginning with an underscore, is not subject to semantic versioning: these APIs may change without warning. We do not maintain a stable ABI, as Swift Crypto is a source-only distribution.
 
 What this means for you is that you should depend on Swift Crypto with a version range that covers everything from the minimum Swift Crypto version you require up to the next major version.
 In SwiftPM that can be easily done specifying for example `from: "1.0.0"` meaning that you support Swift Crypto in every version starting from 1.0.0 up to (excluding) 2.0.0.

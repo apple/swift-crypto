@@ -90,4 +90,21 @@ BIGNUM *CCryptoBoringSSLShims_BN_bin2bn(const void *in, size_t len, BIGNUM *ret)
 
 size_t CCryptoBoringSSLShims_BN_bn2bin(const BIGNUM *in, void *out);
 
+int CCryptoBoringSSLShims_RSA_verify(int hash_nid, const void *msg, size_t msg_len,
+                                     const void *sig, size_t sig_len, RSA *rsa);
+
+int CCryptoBoringSSLShims_RSA_verify_pss_mgf1(RSA *rsa, const void *msg,
+                                              size_t msg_len, const EVP_MD *md,
+                                              const EVP_MD *mgf1_md, int salt_len,
+                                              const void *sig, size_t sig_len);
+
+int CCryptoBoringSSLShims_RSA_sign(int hash_nid, const void *in,
+                                   unsigned int in_len, void *out,
+                                   unsigned int *out_len, RSA *rsa);
+
+int CCryptoBoringSSLShims_RSA_sign_pss_mgf1(RSA *rsa, size_t *out_len, void *out,
+                                            size_t max_out, const void *in,
+                                            size_t in_len, const EVP_MD *md,
+                                            const EVP_MD *mgf1_md, int salt_len);
+
 #endif  // C_CRYPTO_BORINGSSL_SHIMS_H
