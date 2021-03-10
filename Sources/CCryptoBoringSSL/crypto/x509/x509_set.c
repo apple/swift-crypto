@@ -60,8 +60,15 @@
 #include <CCryptoBoringSSL_obj.h>
 #include <CCryptoBoringSSL_x509.h>
 
+#include "internal.h"
+
+
 long X509_get_version(const X509 *x509)
 {
+    // The default version is v1(0).
+    if (x509->cert_info->version == NULL) {
+        return X509V1_VERSION;
+    }
     return ASN1_INTEGER_get(x509->cert_info->version);
 }
 
@@ -72,6 +79,7 @@ X509_CINF *X509_get_cert_info(const X509 *x509)
 
 int X509_set_version(X509 *x, long version)
 {
+    // TODO(davidben): Reject invalid version numbers.
     if (x == NULL)
         return (0);
     if (version == 0) {
@@ -86,7 +94,7 @@ int X509_set_version(X509 *x, long version)
     return (ASN1_INTEGER_set(x->cert_info->version, version));
 }
 
-int X509_set_serialNumber(X509 *x, ASN1_INTEGER *serial)
+int X509_set_serialNumber(X509 *x, const ASN1_INTEGER *serial)
 {
     ASN1_INTEGER *in;
 

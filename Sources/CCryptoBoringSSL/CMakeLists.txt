@@ -259,7 +259,6 @@ add_library(CCryptoBoringSSL STATIC
   "crypto/x509/x509_ext.c"
   "crypto/x509/x509_lu.c"
   "crypto/x509/x509_obj.c"
-  "crypto/x509/x509_r2x.c"
   "crypto/x509/x509_req.c"
   "crypto/x509/x509_set.c"
   "crypto/x509/x509_trs.c"
