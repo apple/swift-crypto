@@ -19,11 +19,15 @@
 /// - incorrectParameterSize: The number of bytes passed for a given argument is incorrect.
 /// - authenticationFailure: The authentication tag or signature is incorrect.
 /// - underlyingCoreCryptoError: An unexpected error at a lower-level occured.
+/// - wrapFailure: Failed to wrap key
+/// - unwrapFailure: Failed to unwrap key
 public enum CryptoKitError: Error {
     case incorrectKeySize
     case incorrectParameterSize
     case authenticationFailure
     case underlyingCoreCryptoError(error: Int32)
+    case wrapFailure
+    case unwrapFailure
 }
 
 /// Errors encountered when parsing ASN.1 formatted keys.

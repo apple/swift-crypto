@@ -76,6 +76,9 @@ extension ${CURVE}.Signing {
 
         /// Initializes ECDSASignature from the DER representation.
         public init<D: DataProtocol>(derRepresentation: D) throws {
+            #if os(iOS) && (arch(arm) || arch(i386))
+            fatalError("Unsupported architecture")
+            #else
             let parsed = try ASN1.parse(Array(derRepresentation))
             let signature = try ASN1.ECDSASignature<ArraySlice<UInt8>>(asn1Encoded: parsed)
 
@@ -95,6 +98,7 @@ extension ${CURVE}.Signing {
             raw.append(contentsOf: signature.s)
 
             self.rawRepresentation = raw
+            #endif
         }
 
         public func withUnsafeBytes<R>(_ body: (UnsafeRawBufferPointer) throws -> R) rethrows -> R {
@@ -103,6 +107,9 @@ extension ${CURVE}.Signing {
 
         /// A DER-encoded representation of the signature
         public var derRepresentation: Data {
+            #if os(iOS) && (arch(arm) || arch(i386))
+            fatalError("Unsupported architecture")
+            #else
             let raw = rawRepresentation
             let half = raw.count / 2
             let r = Array(raw.prefix(upTo: half))[...]
@@ -112,6 +119,7 @@ extension ${CURVE}.Signing {
             var serializer = ASN1.Serializer()
             try! serializer.serialize(sig)
             return Data(serializer.serializedBytes)
+            #endif
         }
     }
 }

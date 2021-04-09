@@ -280,11 +280,11 @@ extension SecureBytes {
         @usableFromInline
         subscript(offset offset: Int) -> UInt8 {
             get {
-                //precondition(offset >= 0 && offset < self.count)
+                // precondition(offset >= 0 && offset < self.count)
                 return self.withUnsafeMutablePointerToElements { return ($0 + offset).pointee }
             }
             set {
-                //precondition(offset >= 0 && offset < self.count)
+                // precondition(offset >= 0 && offset < self.count)
                 return self.withUnsafeMutablePointerToElements { ($0 + offset).pointee = newValue }
             }
         }

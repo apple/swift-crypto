@@ -39,6 +39,9 @@ public struct HMAC<H: HashFunction>: MACAlgorithm {
     ///
     /// - Parameter key: The key to use for HMAC.
     public init(key: SymmetricKey) {
+        #if os(iOS) && (arch(arm) || arch(i386))
+        fatalError("Unsupported architecture")
+        #else
         var K: ContiguousBytes
         
         if key.byteCount == H.blockByteCount {
@@ -75,6 +78,7 @@ public struct HMAC<H: HashFunction>: MACAlgorithm {
             })
         }
         outerHasher.update(data: outerKey)
+        #endif
     }
     
     /// Computes a Message Authentication Code.
