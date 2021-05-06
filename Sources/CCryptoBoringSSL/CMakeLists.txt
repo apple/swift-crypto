@@ -337,7 +337,7 @@ if(CMAKE_SYSTEM_NAME STREQUAL Darwin AND CMAKE_SYSTEM_PROCESSOR MATCHES "amd64|x
     crypto/fipsmodule/vpaes-x86_64.mac.x86_64.S
     crypto/fipsmodule/x86_64-mont.mac.x86_64.S
     crypto/fipsmodule/x86_64-mont5.mac.x86_64.S)
-elseif(CMAKE_SYSTEM_NAME STREQUAL Linux AND CMAKE_SYSTEM_PROCESSOR MATCHES "amd64|x86_64")
+elseif(CMAKE_SYSTEM_NAME MATCHES "Linux|Android" AND CMAKE_SYSTEM_PROCESSOR MATCHES "amd64|x86_64")
   target_sources(CCryptoBoringSSL PRIVATE
     crypto/chacha/chacha-x86_64.linux.x86_64.S
     crypto/cipher_extra/aes128gcmsiv-x86_64.linux.x86_64.S
@@ -368,7 +368,7 @@ elseif(CMAKE_SYSTEM_NAME STREQUAL Darwin AND CMAKE_SYSTEM_PROCESSOR MATCHES "arm
     crypto/fipsmodule/sha256-armv8.ios.aarch64.S
     crypto/fipsmodule/sha512-armv8.ios.aarch64.S
     crypto/fipsmodule/vpaes-armv8.ios.aarch64.S)
-elseif(CMAKE_SYSTEM_NAME STREQUAL Linux AND CMAKE_SYSTEM_PROCESSOR MATCHES "arm64|aarch64")
+elseif(CMAKE_SYSTEM_NAME MATCHES "Linux|Android" AND CMAKE_SYSTEM_PROCESSOR MATCHES "arm64|aarch64")
   target_sources(CCryptoBoringSSL PRIVATE
     crypto/chacha/chacha-armv8.linux.aarch64.S
     crypto/fipsmodule/aesv8-armx64.linux.aarch64.S
