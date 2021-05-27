@@ -24,31 +24,31 @@ protocol BoringSSLBackedHashFunction: HashFunctionImplementationDetails {
 
 extension Insecure.MD5: BoringSSLBackedHashFunction {
     static var digestType: DigestContext.DigestType {
-        return .md5
+        .md5
     }
 }
 
 extension Insecure.SHA1: BoringSSLBackedHashFunction {
     static var digestType: DigestContext.DigestType {
-        return .sha1
+        .sha1
     }
 }
 
 extension SHA256: BoringSSLBackedHashFunction {
     static var digestType: DigestContext.DigestType {
-        return .sha256
+        .sha256
     }
 }
 
 extension SHA384: BoringSSLBackedHashFunction {
     static var digestType: DigestContext.DigestType {
-        return .sha384
+        .sha384
     }
 }
 
 extension SHA512: BoringSSLBackedHashFunction {
     static var digestType: DigestContext.DigestType {
-        return .sha512
+        .sha512
     }
 }
 

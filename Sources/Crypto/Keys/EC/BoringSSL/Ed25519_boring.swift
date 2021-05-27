@@ -43,11 +43,11 @@ extension Curve25519.Signing {
 
         @usableFromInline
         var publicKey: Curve25519.Signing.OpenSSLCurve25519PublicKeyImpl {
-            return OpenSSLCurve25519PublicKeyImpl(self._publicKey)
+            OpenSSLCurve25519PublicKeyImpl(self._publicKey)
         }
 
         var key: SecureBytes {
-            return self._privateKey
+            self._privateKey
         }
 
         init<D: ContiguousBytes>(rawRepresentation data: D) throws {
@@ -76,7 +76,7 @@ extension Curve25519.Signing {
         @usableFromInline
         var rawRepresentation: Data {
             // The "rawRepresentation" is what BoringSSL calls the "seed", and it's the first 32 bytes of our key.
-            return Data(self._privateKey.prefix(32))
+            Data(self._privateKey.prefix(32))
         }
     }
 
@@ -101,7 +101,7 @@ extension Curve25519.Signing {
         }
 
         var rawRepresentation: Data {
-            return Data(self.keyBytes)
+            Data(self.keyBytes)
         }
     }
 }

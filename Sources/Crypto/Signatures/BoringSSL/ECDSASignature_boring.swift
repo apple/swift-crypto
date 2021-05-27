@@ -98,6 +98,6 @@ class ECDSASignature {
     }
 
     func withUnsafeSignaturePointer<T>(_ body: (UnsafeMutablePointer<ECDSA_SIG>) throws -> T) rethrows -> T {
-        return try body(self._baseSig)
+        try body(self._baseSig)
     }
 }

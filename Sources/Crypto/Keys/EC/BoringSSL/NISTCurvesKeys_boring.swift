@@ -27,7 +27,7 @@ protocol OpenSSLSupportedNISTCurve {
 extension OpenSSLSupportedNISTCurve {
     @inlinable
     static var coordinateByteCount: Int {
-        return self.group.coordinateByteCount
+        self.group.coordinateByteCount
     }
 }
 
@@ -36,7 +36,7 @@ extension P256 {
     struct CurveDetails: OpenSSLSupportedNISTCurve {
         @inlinable
         static var group: BoringSSLEllipticCurveGroup {
-            return try! BoringSSLEllipticCurveGroup(.p256)
+            try! BoringSSLEllipticCurveGroup(.p256)
         }
     }
 }
@@ -46,7 +46,7 @@ extension P384 {
     struct CurveDetails: OpenSSLSupportedNISTCurve {
         @inlinable
         static var group: BoringSSLEllipticCurveGroup {
-            return try! BoringSSLEllipticCurveGroup(.p384)
+            try! BoringSSLEllipticCurveGroup(.p384)
         }
     }
 }
@@ -56,7 +56,7 @@ extension P521 {
     struct CurveDetails: OpenSSLSupportedNISTCurve {
         @inlinable
         static var group: BoringSSLEllipticCurveGroup {
-            return try! BoringSSLEllipticCurveGroup(.p521)
+            try! BoringSSLEllipticCurveGroup(.p521)
         }
     }
 }
@@ -79,15 +79,15 @@ struct OpenSSLNISTCurvePrivateKeyImpl<Curve: OpenSSLSupportedNISTCurve> {
     }
 
     func publicKey() -> OpenSSLNISTCurvePublicKeyImpl<Curve> {
-        return OpenSSLNISTCurvePublicKeyImpl(wrapping: self.key.publicKey)
+        OpenSSLNISTCurvePublicKeyImpl(wrapping: self.key.publicKey)
     }
 
     var rawRepresentation: Data {
-        return self.key.rawRepresentation
+        self.key.rawRepresentation
     }
 
     var x963Representation: Data {
-        return self.key.x963Representation
+        self.key.x963Representation
     }
 }
 
@@ -115,17 +115,17 @@ struct OpenSSLNISTCurvePublicKeyImpl<Curve: OpenSSLSupportedNISTCurve> {
 
     @inlinable
     var compactRepresentation: Data? {
-        return self.key.compactRepresentation
+        self.key.compactRepresentation
     }
 
     @inlinable
     var rawRepresentation: Data {
-        return self.key.rawRepresentation
+        self.key.rawRepresentation
     }
 
     @inlinable
     var x963Representation: Data {
-        return self.key.x963Representation
+        self.key.x963Representation
     }
 }
 
@@ -238,17 +238,17 @@ class BoringSSLECPrivateKeyWrapper<Curve: OpenSSLSupportedNISTCurve> {
     var publicKey: BoringSSLECPublicKeyWrapper<Curve> {
         // This is a weird little trick we can do here: because EC_KEY is both private and public depending on
         // its internal state, we can just vend a pointer to ourself and this will work.
-        return try! BoringSSLECPublicKeyWrapper(unsafeTakingOwnership: CCryptoBoringSSL_EC_KEY_dup(self.key))
+        try! BoringSSLECPublicKeyWrapper(unsafeTakingOwnership: CCryptoBoringSSL_EC_KEY_dup(self.key))
     }
 
     @usableFromInline
     var publicKeyPoint: EllipticCurvePoint {
-        return try! EllipticCurvePoint(copying: CCryptoBoringSSL_EC_KEY_get0_public_key(self.key)!, on: Curve.group)
+        try! EllipticCurvePoint(copying: CCryptoBoringSSL_EC_KEY_get0_public_key(self.key)!, on: Curve.group)
     }
 
     @usableFromInline
     var privateKeyScalar: ArbitraryPrecisionInteger {
-        return try! ArbitraryPrecisionInteger(copying: CCryptoBoringSSL_EC_KEY_get0_private_key(self.key)!)
+        try! ArbitraryPrecisionInteger(copying: CCryptoBoringSSL_EC_KEY_get0_private_key(self.key)!)
     }
 
     @inlinable
@@ -431,7 +431,7 @@ class BoringSSLECPublicKeyWrapper<Curve: OpenSSLSupportedNISTCurve> {
     var rawRepresentation: Data {
         // The raw representation is the X coordinate concatenated with the Y coordinate: essentially, it's
         // the x963 representation without the leading byte.
-        return self.x963Representation.dropFirst()
+        self.x963Representation.dropFirst()
     }
 
     @inlinable
@@ -458,7 +458,7 @@ class BoringSSLECPublicKeyWrapper<Curve: OpenSSLSupportedNISTCurve> {
 
     @usableFromInline
     var publicKeyPoint: EllipticCurvePoint {
-        return try! EllipticCurvePoint(copying: CCryptoBoringSSL_EC_KEY_get0_public_key(self.key)!, on: Curve.group)
+        try! EllipticCurvePoint(copying: CCryptoBoringSSL_EC_KEY_get0_public_key(self.key)!, on: Curve.group)
     }
 
     func setPublicKey(x: inout ArbitraryPrecisionInteger, y: inout ArbitraryPrecisionInteger) throws {

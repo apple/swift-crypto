@@ -137,7 +137,7 @@ struct ASN1BitString {
 
 extension ASN1BitString: ContiguousBytes {
     func withUnsafeBytes<R>(_ body: (UnsafeRawBufferPointer) throws -> R) rethrows -> R {
-        return try self.bytes.withUnsafeBytes(body)
+        try self.bytes.withUnsafeBytes(body)
     }
 }
 

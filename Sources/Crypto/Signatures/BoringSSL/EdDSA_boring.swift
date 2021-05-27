@@ -48,7 +48,7 @@ extension Curve25519.Signing.PublicKey {
 
     @inlinable
     func openSSLIsValidSignature<S: ContiguousBytes, D: ContiguousBytes>(contiguousSignature signature: S, contiguousData data: D) -> Bool {
-        return signature.withUnsafeBytes { signaturePointer in
+        signature.withUnsafeBytes { signaturePointer in
             data.withUnsafeBytes { dataPointer in
                 self.openSSLIsValidSignature(signaturePointer: signaturePointer, dataPointer: dataPointer)
             }
@@ -83,7 +83,7 @@ extension Curve25519.Signing.PrivateKey {
 
     @inlinable
     func openSSLSignature<C: ContiguousBytes>(forContiguousData data: C) throws -> Data {
-        return try data.withUnsafeBytes {
+        try data.withUnsafeBytes {
             try self.openSSLSignature(forDataPointer: $0)
         }
     }

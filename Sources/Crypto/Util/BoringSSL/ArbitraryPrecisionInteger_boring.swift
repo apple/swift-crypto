@@ -110,7 +110,7 @@ extension ArbitraryPrecisionInteger.BackingStorage {
 
 extension ArbitraryPrecisionInteger {
     func withUnsafeBignumPointer<T>(_ body: (UnsafePointer<BIGNUM>) throws -> T) rethrows -> T {
-        return try self._backing.withUnsafeBignumPointer(body)
+        try self._backing.withUnsafeBignumPointer(body)
     }
 
     mutating func withUnsafeMutableBignumPointer<T>(_ body: (UnsafeMutablePointer<BIGNUM>) throws -> T) rethrows -> T {
@@ -125,11 +125,11 @@ extension ArbitraryPrecisionInteger {
 
 extension ArbitraryPrecisionInteger.BackingStorage {
     func withUnsafeBignumPointer<T>(_ body: (UnsafePointer<BIGNUM>) throws -> T) rethrows -> T {
-        return try body(&self._backing)
+        try body(&self._backing)
     }
 
     func withUnsafeMutableBignumPointer<T>(_ body: (UnsafeMutablePointer<BIGNUM>) throws -> T) rethrows -> T {
-        return try body(&self._backing)
+        try body(&self._backing)
     }
 }
 
@@ -137,7 +137,7 @@ extension ArbitraryPrecisionInteger.BackingStorage {
 
 extension ArbitraryPrecisionInteger {
     /* private but @usableFromInline */ @usableFromInline static func _compare(lhs: ArbitraryPrecisionInteger, rhs: ArbitraryPrecisionInteger) -> CInt {
-        return lhs.withUnsafeBignumPointer { lhsPtr in
+        lhs.withUnsafeBignumPointer { lhsPtr in
             rhs.withUnsafeBignumPointer { rhsPtr in
                 CCryptoBoringSSL_BN_cmp(lhsPtr, rhsPtr)
             }
@@ -146,7 +146,7 @@ extension ArbitraryPrecisionInteger {
 
     // This lets us check the sign of an ArbitraryPrecisionInteger.
     /* private but @usableFromInline */ @usableFromInline var _positive: Bool {
-        return self.withUnsafeBignumPointer {
+        self.withUnsafeBignumPointer {
             CCryptoBoringSSL_BN_is_negative($0) == 0
         }
     }
@@ -184,7 +184,7 @@ extension ArbitraryPrecisionInteger {
 
     @usableFromInline
     var byteCount: Int {
-        return self._backing.withUnsafeBignumPointer {
+        self._backing.withUnsafeBignumPointer {
             Int(CCryptoBoringSSL_BN_num_bytes($0))
         }
     }
@@ -207,7 +207,7 @@ extension ArbitraryPrecisionInteger {
 extension ArbitraryPrecisionInteger: Equatable {
     @inlinable
     static func == (lhs: ArbitraryPrecisionInteger, rhs: ArbitraryPrecisionInteger) -> Bool {
-        return self._compare(lhs: lhs, rhs: rhs) == 0
+        self._compare(lhs: lhs, rhs: rhs) == 0
     }
 }
 
@@ -216,22 +216,22 @@ extension ArbitraryPrecisionInteger: Equatable {
 extension ArbitraryPrecisionInteger: Comparable {
     @inlinable
     static func < (lhs: ArbitraryPrecisionInteger, rhs: ArbitraryPrecisionInteger) -> Bool {
-        return self._compare(lhs: lhs, rhs: rhs) < 0
+        self._compare(lhs: lhs, rhs: rhs) < 0
     }
 
     @inlinable
     static func <= (lhs: ArbitraryPrecisionInteger, rhs: ArbitraryPrecisionInteger) -> Bool {
-        return self._compare(lhs: lhs, rhs: rhs) <= 0
+        self._compare(lhs: lhs, rhs: rhs) <= 0
     }
 
     @inlinable
     static func > (lhs: ArbitraryPrecisionInteger, rhs: ArbitraryPrecisionInteger) -> Bool {
-        return self._compare(lhs: lhs, rhs: rhs) > 0
+        self._compare(lhs: lhs, rhs: rhs) > 0
     }
 
     @inlinable
     static func >= (lhs: ArbitraryPrecisionInteger, rhs: ArbitraryPrecisionInteger) -> Bool {
-        return self._compare(lhs: lhs, rhs: rhs) >= 0
+        self._compare(lhs: lhs, rhs: rhs) >= 0
     }
 }
 
@@ -244,7 +244,7 @@ extension ArbitraryPrecisionInteger: ExpressibleByIntegerLiteral {}
 extension ArbitraryPrecisionInteger: AdditiveArithmetic {
     @inlinable
     static var zero: ArbitraryPrecisionInteger {
-        return 0
+        0
     }
 
     @usableFromInline

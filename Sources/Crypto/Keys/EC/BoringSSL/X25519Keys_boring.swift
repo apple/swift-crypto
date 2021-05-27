@@ -45,7 +45,7 @@ extension Curve25519.KeyAgreement {
 
         @usableFromInline
         var rawRepresentation: Data {
-            return Data(self.keyBytes)
+            Data(self.keyBytes)
         }
     }
 
@@ -121,7 +121,7 @@ extension Curve25519.KeyAgreement {
 
         @usableFromInline
         var rawRepresentation: Data {
-            return Data(self.key)
+            Data(self.key)
         }
 
         /// Validates whether the passed x25519 key representation is valid.
