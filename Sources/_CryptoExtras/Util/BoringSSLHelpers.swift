@@ -78,7 +78,7 @@ extension String {
 
 extension FixedWidthInteger {
     func withBignumPointer<ReturnType>(_ block: (UnsafeMutablePointer<BIGNUM>) throws -> ReturnType) rethrows -> ReturnType {
-        precondition(self.bitWidth <= 64)
+        precondition(self.bitWidth <= UInt.bitWidth)
 
         var bn = BIGNUM()
         CCryptoBoringSSL_BN_init(&bn)
@@ -86,7 +86,7 @@ extension FixedWidthInteger {
             CCryptoBoringSSL_BN_clear(&bn)
         }
 
-        CCryptoBoringSSL_BN_set_word(&bn, UInt64(self))
+        CCryptoBoringSSL_BN_set_word(&bn, .init(self))
 
         return try block(&bn)
     }
