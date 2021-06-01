@@ -38,7 +38,7 @@ class BoringSSLEllipticCurveGroup {
 extension BoringSSLEllipticCurveGroup {
     @usableFromInline
     var coordinateByteCount: Int {
-        return (Int(CCryptoBoringSSL_EC_GROUP_get_degree(self._group)) + 7) / 8
+        (Int(CCryptoBoringSSL_EC_GROUP_get_degree(self._group)) + 7) / 8
     }
 
     @usableFromInline
@@ -53,7 +53,7 @@ extension BoringSSLEllipticCurveGroup {
 
     @inlinable
     func withUnsafeGroupPointer<T>(_ body: (OpaquePointer) throws -> T) rethrows -> T {
-        return try body(self._group)
+        try body(self._group)
     }
 
     @usableFromInline

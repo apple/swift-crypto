@@ -55,7 +55,7 @@ extension P256.Signing.ECDSASignature {
     }
 
     var openSSLDERRepresentation: Data {
-        return try! ECDSASignature(rawRepresentation: self.rawRepresentation).derBytes
+        try! ECDSASignature(rawRepresentation: self.rawRepresentation).derBytes
     }
 }
 
@@ -83,7 +83,7 @@ extension P384.Signing.ECDSASignature {
     }
 
     var openSSLDERRepresentation: Data {
-        return try! ECDSASignature(rawRepresentation: self.rawRepresentation).derBytes
+        try! ECDSASignature(rawRepresentation: self.rawRepresentation).derBytes
     }
 }
 
@@ -111,7 +111,7 @@ extension P521.Signing.ECDSASignature {
     }
 
     var openSSLDERRepresentation: Data {
-        return try! ECDSASignature(rawRepresentation: self.rawRepresentation).derBytes
+        try! ECDSASignature(rawRepresentation: self.rawRepresentation).derBytes
     }
 }
 

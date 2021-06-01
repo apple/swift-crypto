@@ -1,0 +1,21 @@
+version: "3"
+
+services:
+
+  runtime-setup:
+    image: swift-crypto:20.04-main
+    build:
+      args:
+        base_image: "swiftlang/swift:nightly-main-focal"
+        ubuntu_version: "focal"
+
+  test:
+    image: swift-crypto:20.04-main
+    environment: []
+      #- SANITIZER_ARG=--sanitize=thread
+
+  cmake:
+    image: swift-crypto:20.04-main
+
+  shell:
+    image: swift-crypto:20.04-main

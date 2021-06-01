@@ -55,7 +55,7 @@ class EllipticCurvePoint {
 extension EllipticCurvePoint {
     @inlinable
     func withPointPointer<T>(_ body: (OpaquePointer) throws -> T) rethrows -> T {
-        return try body(self._basePoint)
+        try body(self._basePoint)
     }
 
     @usableFromInline
