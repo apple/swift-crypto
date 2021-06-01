@@ -198,7 +198,7 @@ extension BoringSSLAEAD.AEADContext {
     /// A fast-path for opening contiguous data. Also inlinable to gain specialization information.
     @inlinable
     func _openContiguous<Nonce: ContiguousBytes, AuthenticatedData: ContiguousBytes>(ciphertext: Data, nonce: Nonce, tag: Data, authenticatedData: AuthenticatedData) throws -> Data {
-        return try ciphertext.withUnsafeBytes { ciphertextPointer in
+        try ciphertext.withUnsafeBytes { ciphertextPointer in
             try nonce.withUnsafeBytes { nonceBytes in
                 try tag.withUnsafeBytes { tagBytes in
                     try authenticatedData.withUnsafeBytes { authenticatedDataBytes in

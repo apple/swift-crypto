@@ -17,7 +17,7 @@ import Foundation
 /// some of the usage sites to pass better data structures to us.
 @inlinable
 internal func openSSLSafeCompare<LHS: ContiguousBytes, RHS: ContiguousBytes>(_ lhs: LHS, _ rhs: RHS) -> Bool {
-    return lhs.withUnsafeBytes { lhsPtr in
+    lhs.withUnsafeBytes { lhsPtr in
         rhs.withUnsafeBytes { rhsPtr in
             constantTimeCompare(lhsPtr, rhsPtr)
         }

@@ -103,7 +103,7 @@ for old_tag in "$@"; do
             --input-paths "$tmpdir/api-old/$f" -input-paths "$tmpdir/api-new/$f" 2>&1 \
             > "$report" 2>&1
 
-        if ! shasum "$report" | grep -q cefc4ee5bb7bcdb7cb5a7747efa178dab3c794d5; then
+        if ! shasum "$report" | grep -q afd2a1b542b33273920d65821deddc653063c700; then
             echo ERROR
             echo >&2 "=============================="
             echo >&2 "ERROR: public API change in $f"
