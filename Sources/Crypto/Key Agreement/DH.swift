@@ -108,7 +108,11 @@ public struct SharedSecret: ContiguousBytes {
     ///   - outputByteCount: The length in bytes of resulting symmetric key.
     /// - Returns: The derived symmetric key
     public func hkdfDerivedSymmetricKey<H: HashFunction, Salt: DataProtocol, SI: DataProtocol>(using hashFunction: H.Type, salt: Salt, sharedInfo: SI, outputByteCount: Int) -> SymmetricKey {
+        #if os(iOS) && (arch(arm) || arch(i386))
+        fatalError("Unsupported architecture")
+        #else
         return HKDF<H>.deriveKey(inputKeyMaterial: SymmetricKey(data: ss), salt: salt, info: sharedInfo, outputByteCount: outputByteCount)
+        #endif
     }
 }
 

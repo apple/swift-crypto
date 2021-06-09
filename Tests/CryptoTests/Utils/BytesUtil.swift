@@ -84,7 +84,7 @@ extension Data {
             throw ByteHexEncodingErrors.incorrectString
         }
 
-        let stringBytes: [UInt8] = Array(hexString.data(using: String.Encoding.utf8)!)
+        let stringBytes: [UInt8] = Array(hexString.lowercased().data(using: String.Encoding.utf8)!)
 
         for i in 0...((hexString.count / 2) - 1) {
             let char1 = stringBytes[2 * i]

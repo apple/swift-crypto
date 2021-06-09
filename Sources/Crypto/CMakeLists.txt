@@ -43,6 +43,8 @@ add_library(Crypto
   "Key Agreement/DH.swift"
   "Key Agreement/ECDH.swift"
   "Key Derivation/HKDF.swift"
+  "Key Wrapping/AESWrap.swift"
+  "Key Wrapping/BoringSSL/AESWrap_boring.swift"
   "Keys/EC/BoringSSL/Ed25519_boring.swift"
   "Keys/EC/BoringSSL/EllipticCurvePoint_boring.swift"
   "Keys/EC/BoringSSL/EllipticCurve_boring.swift"

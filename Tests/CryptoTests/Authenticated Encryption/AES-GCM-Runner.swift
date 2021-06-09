@@ -41,6 +41,23 @@ struct AESGCMTestVector: Codable {
 }
 
 class AESGCMTests: XCTestCase {
+    func testPropertiesStayTheSameAfterFailedOpening() throws {
+        let message = Data("this is a message".utf8)
+        let sealed = try AES.GCM.seal(message, using: SymmetricKey(size: .bits128))
+
+        // We copy the bytes of these fields out here to ensure they're saved.
+        let originalCiphertext = Array(sealed.ciphertext)
+        let originalNonce = Array(sealed.nonce)
+        let originalTag = Array(sealed.tag)
+
+        XCTAssertThrowsError(try AES.GCM.open(sealed, using: SymmetricKey(size: .bits128)))
+
+        // The fields must all be unchanged.
+        XCTAssertEqual(originalCiphertext, Array(sealed.ciphertext))
+        XCTAssertEqual(originalNonce, Array(sealed.nonce))
+        XCTAssertEqual(originalTag, Array(sealed.tag))
+    }
+
     func testBadKeySize() {
         let plaintext: Data = "Some Super Secret Message".data(using: String.Encoding.utf8)!
         let key = SymmetricKey(size: .init(bitCount: 304))

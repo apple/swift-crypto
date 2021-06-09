@@ -68,6 +68,9 @@ extension P256.Signing {
 
         /// Initializes ECDSASignature from the DER representation.
         public init<D: DataProtocol>(derRepresentation: D) throws {
+            #if os(iOS) && (arch(arm) || arch(i386))
+            fatalError("Unsupported architecture")
+            #else
             let parsed = try ASN1.parse(Array(derRepresentation))
             let signature = try ASN1.ECDSASignature<ArraySlice<UInt8>>(asn1Encoded: parsed)
 
@@ -87,6 +90,7 @@ extension P256.Signing {
             raw.append(contentsOf: signature.s)
 
             self.rawRepresentation = raw
+            #endif
         }
 
         public func withUnsafeBytes<R>(_ body: (UnsafeRawBufferPointer) throws -> R) rethrows -> R {
@@ -95,6 +99,9 @@ extension P256.Signing {
 
         /// A DER-encoded representation of the signature
         public var derRepresentation: Data {
+            #if os(iOS) && (arch(arm) || arch(i386))
+            fatalError("Unsupported architecture")
+            #else
             let raw = rawRepresentation
             let half = raw.count / 2
             let r = Array(raw.prefix(upTo: half))[...]
@@ -104,6 +111,7 @@ extension P256.Signing {
             var serializer = ASN1.Serializer()
             try! serializer.serialize(sig)
             return Data(serializer.serializedBytes)
+            #endif
         }
     }
 }
@@ -202,6 +210,9 @@ extension P384.Signing {
 
         /// Initializes ECDSASignature from the DER representation.
         public init<D: DataProtocol>(derRepresentation: D) throws {
+            #if os(iOS) && (arch(arm) || arch(i386))
+            fatalError("Unsupported architecture")
+            #else
             let parsed = try ASN1.parse(Array(derRepresentation))
             let signature = try ASN1.ECDSASignature<ArraySlice<UInt8>>(asn1Encoded: parsed)
 
@@ -221,6 +232,7 @@ extension P384.Signing {
             raw.append(contentsOf: signature.s)
 
             self.rawRepresentation = raw
+            #endif
         }
 
         public func withUnsafeBytes<R>(_ body: (UnsafeRawBufferPointer) throws -> R) rethrows -> R {
@@ -229,6 +241,9 @@ extension P384.Signing {
 
         /// A DER-encoded representation of the signature
         public var derRepresentation: Data {
+            #if os(iOS) && (arch(arm) || arch(i386))
+            fatalError("Unsupported architecture")
+            #else
             let raw = rawRepresentation
             let half = raw.count / 2
             let r = Array(raw.prefix(upTo: half))[...]
@@ -238,6 +253,7 @@ extension P384.Signing {
             var serializer = ASN1.Serializer()
             try! serializer.serialize(sig)
             return Data(serializer.serializedBytes)
+            #endif
         }
     }
 }
@@ -336,6 +352,9 @@ extension P521.Signing {
 
         /// Initializes ECDSASignature from the DER representation.
         public init<D: DataProtocol>(derRepresentation: D) throws {
+            #if os(iOS) && (arch(arm) || arch(i386))
+            fatalError("Unsupported architecture")
+            #else
             let parsed = try ASN1.parse(Array(derRepresentation))
             let signature = try ASN1.ECDSASignature<ArraySlice<UInt8>>(asn1Encoded: parsed)
 
@@ -355,6 +374,7 @@ extension P521.Signing {
             raw.append(contentsOf: signature.s)
 
             self.rawRepresentation = raw
+            #endif
         }
 
         public func withUnsafeBytes<R>(_ body: (UnsafeRawBufferPointer) throws -> R) rethrows -> R {
@@ -363,6 +383,9 @@ extension P521.Signing {
 
         /// A DER-encoded representation of the signature
         public var derRepresentation: Data {
+            #if os(iOS) && (arch(arm) || arch(i386))
+            fatalError("Unsupported architecture")
+            #else
             let raw = rawRepresentation
             let half = raw.count / 2
             let r = Array(raw.prefix(upTo: half))[...]
@@ -372,6 +395,7 @@ extension P521.Signing {
             var serializer = ASN1.Serializer()
             try! serializer.serialize(sig)
             return Data(serializer.serializedBytes)
+            #endif
         }
     }
 }

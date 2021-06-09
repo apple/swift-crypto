@@ -34,4 +34,5 @@ extension ArraySlice: ASN1IntegerRepresentable where Element == UInt8 {
         return try body(self)
     }
 }
-#endif
+
+#endif // Linux or !SwiftPM
