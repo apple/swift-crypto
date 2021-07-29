@@ -63,6 +63,50 @@ class X25519Tests: XCTestCase {
         XCTAssertEqual(ss1, ss2)
         XCTAssertEqual(recoveredKey.rawRepresentation, keyData)
     }
+
+    func testCompressedKeys() throws {
+        let x963Positive = Data(base64Encoded: "A+QHCXtGd5WWSQgp37FBPXMy+nnSwFK79QQD0ZeNMv7L")!
+        let key = try P256.KeyAgreement.PublicKey(x963Representation: x963Positive)
+        XCTAssertEqual(
+            key.x963Representation.base64EncodedString(),
+            "BOQHCXtGd5WWSQgp37FBPXMy+nnSwFK79QQD0ZeNMv7LE6xvfFkB4Y3VXoOpB/Kp6ngpf3Lce9hDMl7fqaDUfYE="
+        )
+
+        let x963Negative = Data(base64Encoded: "AuQHCXtGd5WWSQgp37FBPXMy+nnSwFK79QQD0ZeNMv7L")!
+        let negativeKey = try P256.KeyAgreement.PublicKey(x963Representation: x963Negative)
+        XCTAssertEqual(
+            negativeKey.x963Representation.base64EncodedString(),
+            "BOQHCXtGd5WWSQgp37FBPXMy+nnSwFK79QQD0ZeNMv7L7FOQgqb+HnMqoXxW+A1WFYfWgI4jhCe8zaEgVl8rgn4="
+        )
+
+        let p384Positive = Data(base64Encoded: "AyEfGE5ySReJyfSruLRdsjvCB5RNWGLk8JYrzIrans3MprXf5Q4nh69bQ2rI4+DNpw==")!
+        let p384Key = try P384.KeyAgreement.PublicKey(x963Representation: p384Positive)
+        XCTAssertEqual(
+            p384Key.x963Representation.base64EncodedString(),
+            "BCEfGE5ySReJyfSruLRdsjvCB5RNWGLk8JYrzIrans3MprXf5Q4nh69bQ2rI4+DNp22k0ZcxSL1Ljf19pe25Y6UgedrZf1sOLBVVDZxO36mxwUgPUqFp5/0nNmGMDdQeTQ=="
+        )
+
+        let p384Negative = Data(base64Encoded: "AiEfGE5ySReJyfSruLRdsjvCB5RNWGLk8JYrzIrans3MprXf5Q4nh69bQ2rI4+DNpw==")!
+        let p384NegativeKey = try P384.KeyAgreement.PublicKey(x963Representation: p384Negative)
+        XCTAssertEqual(
+            p384NegativeKey.x963Representation.base64EncodedString(),
+            "BCEfGE5ySReJyfSruLRdsjvCB5RNWGLk8JYrzIrans3MprXf5Q4nh69bQ2rI4+DNp5JbLmjOt0K0cgKCWhJGnFrfhiUmgKTx0+qq8mOxIFZNPrfwrF6WGALYyZ508ivhsg=="
+        )
+
+        let p521Positive = Data(base64Encoded: "AwGUsatNKbCi6jeO1oFHpvhxesJnRxeZ45/sqCvaEZgwnpyj+/SsXjgBViEjvlJUdqentCaUFCwjuYZJM9HpdVq4Iw==")!
+        let p521Key = try P521.KeyAgreement.PublicKey(x963Representation: p521Positive)
+        XCTAssertEqual(
+            p521Key.x963Representation.base64EncodedString(),
+            "BAGUsatNKbCi6jeO1oFHpvhxesJnRxeZ45/sqCvaEZgwnpyj+/SsXjgBViEjvlJUdqentCaUFCwjuYZJM9HpdVq4IwE8xEGqskayEkbPkQCGqSKfVYPZTkBdEs1ham1IXcqT4HSfoGGw98UwjQRiDPfIv0+vU6ocPbxURTdvwUSWPm72WQ=="
+        )
+
+        let p521Negative = Data(base64Encoded: "AgGUsatNKbCi6jeO1oFHpvhxesJnRxeZ45/sqCvaEZgwnpyj+/SsXjgBViEjvlJUdqentCaUFCwjuYZJM9HpdVq4Iw==")!
+        let p521NegativeKey = try P521.KeyAgreement.PublicKey(x963Representation: p521Negative)
+        XCTAssertEqual(
+            p521NegativeKey.x963Representation.base64EncodedString(),
+            "BAGUsatNKbCi6jeO1oFHpvhxesJnRxeZ45/sqCvaEZgwnpyj+/SsXjgBViEjvlJUdqentCaUFCwjuYZJM9HpdVq4IwDDO75VTblN7bkwbv95Vt1gqnwmsb+i7TKelZK3ojVsH4tgX55PCDrPcvud8wg3QLBQrFXjwkOrusiQPrtpwZEJpg=="
+        )
+    }
     
     func testWycheproof() throws {
         try orFail {

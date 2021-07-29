@@ -51,6 +51,15 @@ extension BoringSSLEllipticCurveGroup {
         return key
     }
 
+    @usableFromInline
+    func makeUnsafeOwnedECPoint() throws -> OpaquePointer {
+        guard let point = CCryptoBoringSSL_EC_POINT_new(self._group) else {
+            throw CryptoKitError.internalBoringSSLError()
+        }
+
+        return point
+    }
+
     @inlinable
     func withUnsafeGroupPointer<T>(_ body: (OpaquePointer) throws -> T) rethrows -> T {
         try body(self._group)
