@@ -363,13 +363,21 @@ class BoringSSLECPublicKeyWrapper<Curve: OpenSSLSupportedNISTCurve> {
         // This brings our behaviour into line with CryptoKit
         let group = Curve.group
         let length = bytes.withUnsafeBytes { $0.count }
-        guard length == (group.coordinateByteCount * 2) + 1 else {
+
+        switch length {
+        case (group.coordinateByteCount * 2) + 1:
+            var (x, y) = try bytes.readx963PublicNumbers()
+            self.key = try group.makeUnsafeOwnedECKey()
+            try self.setPublicKey(x: &x, y: &y)
+
+        case group.coordinateByteCount + 1:
+            var (x, yBit) = try bytes.readx963CompressedPublicNumbers()
+            self.key = try group.makeUnsafeOwnedECKey()
+            try self.setPublicKey(x: &x, yBit: yBit)
+
+        default:
             throw CryptoKitError.incorrectParameterSize
         }
-
-        self.key = try group.makeUnsafeOwnedECKey()
-        var (x, y) = try bytes.readx963PublicNumbers()
-        try self.setPublicKey(x: &x, y: &y)
     }
 
     init<Bytes: ContiguousBytes>(rawRepresentation bytes: Bytes) throws {
@@ -473,6 +481,29 @@ class BoringSSLECPublicKeyWrapper<Curve: OpenSSLSupportedNISTCurve> {
         }
     }
 
+    func setPublicKey(x: inout ArbitraryPrecisionInteger, yBit: Bool) throws {
+        try x.withUnsafeMutableBignumPointer { xPointer in
+            // We cannot handle allocation errors.
+            let point = try Curve.group.makeUnsafeOwnedECPoint()
+            defer {
+                // We either error, or EC_KEY_set_public_key dups the key,
+                // so we must always free.
+                CCryptoBoringSSL_EC_POINT_free(point)
+            }
+            let rc = Curve.group.withUnsafeGroupPointer { groupPtr in
+                CCryptoBoringSSL_EC_POINT_set_compressed_coordinates_GFp(groupPtr, point, xPointer, yBit ? 1 : 0, nil)
+            }
+
+            guard rc == 1 else {
+                throw CryptoKitError.internalBoringSSLError()
+            }
+
+            guard CCryptoBoringSSL_EC_KEY_set_public_key(self.key, point) == 1 else {
+                throw CryptoKitError.internalBoringSSLError()
+            }
+        }
+    }
+
     func isValidSignature<D: Digest>(_ signature: ECDSASignature, for digest: D) -> Bool {
         let rc: CInt = signature.withUnsafeSignaturePointer { signaturePointer in
             digest.withUnsafeBytes { digestPointer in
@@ -519,6 +550,29 @@ extension ContiguousBytes {
             }
 
             return try readRawPublicNumbers(copyingBytes: UnsafeRawBufferPointer(rebasing: bytesPtr[1...]))
+        }
+    }
+
+    @inlinable
+    func readx963CompressedPublicNumbers() throws -> (x: ArbitraryPrecisionInteger, yBit: Bool) {
+        // The x9.63 compressed public key format is a discriminator byte (0x2 or 0x3) that signals which
+        // of the possible two Y values is being used, concatenated with the X point of the key.
+        return try self.withUnsafeBytes { bytesPtr in
+            let yBit: Bool
+
+            switch bytesPtr.first {
+            case 0x03:
+                yBit = true
+            case 0x02:
+                yBit = false
+            default:
+                throw CryptoKitError.incorrectKeySize // This is the same error CryptoKit throws on Apple platforms.
+            }
+
+            let xBytes = UnsafeRawBufferPointer(rebasing: bytesPtr.dropFirst())
+            let x = try ArbitraryPrecisionInteger(bytes: xBytes)
+
+            return (x: x, yBit: yBit)
         }
     }
 }

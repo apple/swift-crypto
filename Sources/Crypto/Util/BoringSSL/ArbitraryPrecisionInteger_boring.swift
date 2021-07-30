@@ -88,6 +88,7 @@ extension ArbitraryPrecisionInteger {
 // MARK: - Extra initializers
 
 extension ArbitraryPrecisionInteger {
+    @usableFromInline
     init<Bytes: ContiguousBytes>(bytes: Bytes) throws {
         self._backing = try BackingStorage(bytes: bytes)
     }
