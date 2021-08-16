@@ -66,7 +66,7 @@
 #include <CCryptoBoringSSL_thread.h>
 
 #include "../internal.h"
-#include "asn1_locl.h"
+#include "internal.h"
 
 
 /* Utility functions for manipulating fields and offsets */

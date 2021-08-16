@@ -59,6 +59,8 @@
 #include <CCryptoBoringSSL_cipher.h>
 #include <CCryptoBoringSSL_x509.h>
 
+#include "internal.h"
+
 
 ASN1_SEQUENCE(X509_EXTENSION) = {
         ASN1_SIMPLE(X509_EXTENSION, object, ASN1_OBJECT),

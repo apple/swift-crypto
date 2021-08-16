@@ -103,7 +103,7 @@ extern "C" {
 #define V_ASN1_PRIMITIVE_TAG 0x1f
 
 // V_ASN1_MAX_UNIVERSAL is the highest supported universal tag number. It is
-// necessary to avoid ambiguity with |V_ASN1_NEG|.
+// necessary to avoid ambiguity with |V_ASN1_NEG| and |MBSTRING_FLAG|.
 //
 // TODO(davidben): Make this private.
 #define V_ASN1_MAX_UNIVERSAL 0xff
@@ -157,6 +157,31 @@ extern "C" {
 #define V_ASN1_NEG_INTEGER (V_ASN1_INTEGER | V_ASN1_NEG)
 #define V_ASN1_NEG_ENUMERATED (V_ASN1_ENUMERATED | V_ASN1_NEG)
 
+// The following constants are bitmask representations of ASN.1 types.
+#define B_ASN1_NUMERICSTRING 0x0001
+#define B_ASN1_PRINTABLESTRING 0x0002
+#define B_ASN1_T61STRING 0x0004
+#define B_ASN1_TELETEXSTRING 0x0004
+#define B_ASN1_VIDEOTEXSTRING 0x0008
+#define B_ASN1_IA5STRING 0x0010
+#define B_ASN1_GRAPHICSTRING 0x0020
+#define B_ASN1_ISO64STRING 0x0040
+#define B_ASN1_VISIBLESTRING 0x0040
+#define B_ASN1_GENERALSTRING 0x0080
+#define B_ASN1_UNIVERSALSTRING 0x0100
+#define B_ASN1_OCTET_STRING 0x0200
+#define B_ASN1_BIT_STRING 0x0400
+#define B_ASN1_BMPSTRING 0x0800
+#define B_ASN1_UNKNOWN 0x1000
+#define B_ASN1_UTF8STRING 0x2000
+#define B_ASN1_UTCTIME 0x4000
+#define B_ASN1_GENERALIZEDTIME 0x8000
+#define B_ASN1_SEQUENCE 0x10000
+
+// ASN1_tag2str returns a string representation of |tag|, interpret as a tag
+// number for a universal type, or |V_ASN1_NEG_*|.
+OPENSSL_EXPORT const char *ASN1_tag2str(int tag);
+
 
 // Strings.
 //
@@ -177,29 +202,19 @@ extern "C" {
 // string.
 //
 // When representing a BIT STRING value, the type field is |V_ASN1_BIT_STRING|.
-// The data contains the encoded form of the BIT STRING, including any padding
-// bits added to round to a whole number of bytes, but excluding the leading
-// byte containing the number of padding bits. The number of padding bits is
-// encoded in the flags field. See |ASN1_STRING_FLAG_BITS_LEFT| for details. For
-// example, DER encodes the BIT STRING {1, 0} as {0x06, 0x80 = 0b10_000000}. The
-// |ASN1_STRING| representation has data of {0x80} and flags of
-// ASN1_STRING_FLAG_BITS_LEFT | 6.
+// See bit string documentation below for how the data and flags are used.
 //
-// When representing an INTEGER or ENUMERATED value, the data contains the
-// big-endian encoding of the absolute value of the integer. The sign bit is
-// encoded in the type: non-negative values have a type of |V_ASN1_INTEGER| or
-// |V_ASN1_ENUMERATED|, while negative values have a type of
-// |V_ASN1_NEG_INTEGER| or |V_ASN1_NEG_ENUMERATED|. Note this differs from DER's
-// two's complement representation.
+// When representing an INTEGER or ENUMERATED value, the type field is one of
+// |V_ASN1_INTEGER|, |V_ASN1_NEG_INTEGER|, |V_ASN1_ENUMERATED|, or
+// |V_ASN1_NEG_ENUMERATED|. See integer documentation below for details.
 //
 // When representing a GeneralizedTime or UTCTime value, the type field is
 // |V_ASN1_GENERALIZEDTIME| or |V_ASN1_UTCTIME|, respectively. The data contains
 // the DER encoding of the value. For example, the UNIX epoch would be
 // "19700101000000Z" for a GeneralizedTime and "700101000000Z" for a UTCTime.
 //
-// TODO(davidben): |ASN1_TYPE| additionally uses |ASN1_STRING| to represent
-// various other odd cases. It also likes to assume unknown universal tags are
-// string types. Make a note here when documenting |ASN1_TYPE|.
+// |ASN1_STRING|, when stored in an |ASN1_TYPE|, may also represent an element
+// with tag not directly supported by this library. See |ASN1_TYPE| for details.
 //
 // |ASN1_STRING| additionally has the following typedefs: |ASN1_BIT_STRING|,
 // |ASN1_BMPSTRING|, |ASN1_ENUMERATED|, |ASN1_GENERALIZEDTIME|,
@@ -242,14 +257,6 @@ struct asn1_string_st {
 // treated as padding. This behavior is deprecated and should not be used.
 #define ASN1_STRING_FLAG_BITS_LEFT 0x08
 
-// ASN1_STRING_FLAG_MSTRING indicates that the |ASN1_STRING| is an MSTRING type,
-// which is how this library refers to a CHOICE type of several string types.
-// For example, DirectoryString as defined in RFC5280.
-//
-// TODO(davidben): This is only used in one place within the library and is easy
-// to accidentally drop. Can it be removed?
-#define ASN1_STRING_FLAG_MSTRING 0x040
-
 // ASN1_STRING_type_new returns a newly-allocated empty |ASN1_STRING| object of
 // type |type|, or NULL on error.
 OPENSSL_EXPORT ASN1_STRING *ASN1_STRING_type_new(int type);
@@ -291,11 +298,16 @@ OPENSSL_EXPORT int ASN1_STRING_length(const ASN1_STRING *str);
 
 // ASN1_STRING_cmp compares |a| and |b|'s type and contents. It returns an
 // integer equal to, less than, or greater than zero if |a| is equal to, less
-// than, or greater than |b|, respectively. The comparison is suitable for
-// sorting, but callers should not rely on the particular comparison.
+// than, or greater than |b|, respectively. This function compares by length,
+// then data, then type. Note the data compared is the |ASN1_STRING| internal
+// representation and the type order is arbitrary. While this comparison is
+// suitable for sorting, callers should not rely on the exact order when |a|
+// and |b| are different types.
 //
-// Note if |a| or |b| are BIT STRINGs, this function does not compare the
-// |ASN1_STRING_FLAG_BITS_LEFT| flags.
+// If |a| or |b| are BIT STRINGs, this function does not compare the
+// |ASN1_STRING_FLAG_BITS_LEFT| flags. Additionally, if |a| and |b| are
+// INTEGERs, this comparison does not order the values numerically. For a
+// numerical comparison, use |ASN1_INTEGER_cmp|.
 //
 // TODO(davidben): The BIT STRING comparison seems like a bug. Fix it?
 OPENSSL_EXPORT int ASN1_STRING_cmp(const ASN1_STRING *a, const ASN1_STRING *b);
@@ -309,60 +321,531 @@ OPENSSL_EXPORT int ASN1_STRING_set(ASN1_STRING *str, const void *data, int len);
 // |OPENSSL_malloc|.
 OPENSSL_EXPORT void ASN1_STRING_set0(ASN1_STRING *str, void *data, int len);
 
-// TODO(davidben): Pull up and document functions specific to individual string
-// types.
+// ASN1_STRING_to_UTF8 converts |in| to UTF-8. On success, sets |*out| to a
+// newly-allocated buffer containing the resulting string and returns the length
+// of the string. The caller must call |OPENSSL_free| to release |*out| when
+// done. On error, it returns a negative number.
+OPENSSL_EXPORT int ASN1_STRING_to_UTF8(unsigned char **out,
+                                       const ASN1_STRING *in);
+
+// The following formats define encodings for use with functions like
+// |ASN1_mbstring_copy|.
+#define MBSTRING_FLAG 0x1000
+#define MBSTRING_UTF8 (MBSTRING_FLAG)
+// |MBSTRING_ASC| refers to Latin-1, not ASCII.
+#define MBSTRING_ASC (MBSTRING_FLAG | 1)
+#define MBSTRING_BMP (MBSTRING_FLAG | 2)
+#define MBSTRING_UNIV (MBSTRING_FLAG | 4)
+
+// DIRSTRING_TYPE contains the valid string types in an X.509 DirectoryString.
+#define DIRSTRING_TYPE                                            \
+  (B_ASN1_PRINTABLESTRING | B_ASN1_T61STRING | B_ASN1_BMPSTRING | \
+   B_ASN1_UTF8STRING)
+
+// PKCS9STRING_TYPE contains the valid string types in a PKCS9String.
+#define PKCS9STRING_TYPE (DIRSTRING_TYPE | B_ASN1_IA5STRING)
+
+// ASN1_mbstring_copy converts |len| bytes from |in| to an ASN.1 string. If
+// |len| is -1, |in| must be NUL-terminated and the length is determined by
+// |strlen|. |in| is decoded according to |inform|, which must be one of
+// |MBSTRING_*|. |mask| determines the set of valid output types and is a
+// bitmask containing a subset of |B_ASN1_PRINTABLESTRING|, |B_ASN1_IA5STRING|,
+// |B_ASN1_T61STRING|, |B_ASN1_BMPSTRING|, |B_ASN1_UNIVERSALSTRING|, and
+// |B_ASN1_UTF8STRING|, in that preference order. This function chooses the
+// first output type in |mask| which can represent |in|. It interprets T61String
+// as Latin-1, rather than T.61.
+//
+// If |mask| is zero, |DIRSTRING_TYPE| is used by default.
+//
+// On success, this function returns the |V_ASN1_*| constant corresponding to
+// the selected output type and, if |out| and |*out| are both non-NULL, updates
+// the object at |*out| with the result. If |out| is non-NULL and |*out| is
+// NULL, it instead sets |*out| to a newly-allocated |ASN1_STRING| containing
+// the result. If |out| is NULL, it returns the selected output type without
+// constructing an |ASN1_STRING|. On error, this function returns -1.
+OPENSSL_EXPORT int ASN1_mbstring_copy(ASN1_STRING **out, const uint8_t *in,
+                                      int len, int inform, unsigned long mask);
+
+// ASN1_mbstring_ncopy behaves like |ASN1_mbstring_copy| but returns an error if
+// the input is less than |minsize| or greater than |maxsize| codepoints long. A
+// |maxsize| value of zero is ignored. Note the sizes are measured in
+// codepoints, not output bytes.
+OPENSSL_EXPORT int ASN1_mbstring_ncopy(ASN1_STRING **out, const uint8_t *in,
+                                       int len, int inform, unsigned long mask,
+                                       long minsize, long maxsize);
+
+// TODO(davidben): Expand and document function prototypes generated in macros.
+
+
+// Bit strings.
+//
+// An ASN.1 BIT STRING type represents a string of bits. The string may not
+// necessarily be a whole number of bytes. BIT STRINGs occur in ASN.1 structures
+// in several forms:
+//
+// Some BIT STRINGs represent a bitmask of named bits, such as the X.509 key
+// usage extension in RFC5280, section 4.2.1.3. For such bit strings, DER
+// imposes an additional restriction that trailing zero bits are removed. Some
+// functions like |ASN1_BIT_STRING_set_bit| help in maintaining this.
+//
+// Other BIT STRINGs are arbitrary strings of bits used as identifiers and do
+// not have this constraint, such as the X.509 issuerUniqueID field.
+//
+// Finally, some structures use BIT STRINGs as a container for byte strings. For
+// example, the signatureValue field in X.509 and the subjectPublicKey field in
+// SubjectPublicKeyInfo are defined as BIT STRINGs with a value specific to the
+// AlgorithmIdentifier. While some unknown algorithm could choose to store
+// arbitrary bit strings, all supported algorithms use a byte string, with bit
+// order matching the DER encoding. Callers interpreting a BIT STRING as a byte
+// string should use |ASN1_BIT_STRING_num_bytes| instead of |ASN1_STRING_length|
+// and reject bit strings that are not a whole number of bytes.
+//
+// This library represents BIT STRINGs as |ASN1_STRING|s with type
+// |V_ASN1_BIT_STRING|. The data contains the encoded form of the BIT STRING,
+// including any padding bits added to round to a whole number of bytes, but
+// excluding the leading byte containing the number of padding bits. If
+// |ASN1_STRING_FLAG_BITS_LEFT| is set, the bottom three bits contains the
+// number of padding bits. For example, DER encodes the BIT STRING {1, 0} as
+// {0x06, 0x80 = 0b10_000000}. The |ASN1_STRING| representation has data of
+// {0x80} and flags of ASN1_STRING_FLAG_BITS_LEFT | 6. If
+// |ASN1_STRING_FLAG_BITS_LEFT| is unset, trailing zero bits are implicitly
+// removed. Callers should not rely this representation when constructing bit
+// strings.
+
+// ASN1_BIT_STRING_num_bytes computes the length of |str| in bytes. If |str|'s
+// bit length is a multiple of 8, it sets |*out| to the byte length and returns
+// one. Otherwise, it returns zero.
+//
+// This function may be used with |ASN1_STRING_get0_data| to interpret |str| as
+// a byte string.
+OPENSSL_EXPORT int ASN1_BIT_STRING_num_bytes(const ASN1_BIT_STRING *str,
+                                             size_t *out);
+
+// ASN1_BIT_STRING_set calls |ASN1_STRING_set|. It leaves flags unchanged, so
+// the caller must set the number of unused bits.
+//
+// TODO(davidben): Maybe it should? Wrapping a byte string in a bit string is a
+// common use case.
+OPENSSL_EXPORT int ASN1_BIT_STRING_set(ASN1_BIT_STRING *str,
+                                       const unsigned char *d, int length);
+
+// ASN1_BIT_STRING_set_bit sets bit |n| of |str| to one if |value| is non-zero
+// and zero if |value| is zero, resizing |str| as needed. It then truncates
+// trailing zeros in |str| to align with the DER represention for a bit string
+// with named bits. It returns one on success and zero on error. |n| is indexed
+// beginning from zero.
+OPENSSL_EXPORT int ASN1_BIT_STRING_set_bit(ASN1_BIT_STRING *str, int n,
+                                           int value);
+
+// ASN1_BIT_STRING_get_bit returns one if bit |n| of |a| is in bounds and set,
+// and zero otherwise. |n| is indexed beginning from zero.
+OPENSSL_EXPORT int ASN1_BIT_STRING_get_bit(const ASN1_BIT_STRING *str, int n);
+
+// ASN1_BIT_STRING_check returns one if |str| only contains bits that are set in
+// the |flags_len| bytes pointed by |flags|. Otherwise it returns zero. Bits in
+// |flags| are arranged according to the DER representation, so bit 0
+// corresponds to the MSB of |flags[0]|.
+OPENSSL_EXPORT int ASN1_BIT_STRING_check(const ASN1_BIT_STRING *str,
+                                         const unsigned char *flags,
+                                         int flags_len);
+
+// TODO(davidben): Expand and document function prototypes generated in macros.
+
+
+// Integers and enumerated values.
+//
+// INTEGER and ENUMERATED values are represented as |ASN1_STRING|s where the
+// data contains the big-endian encoding of the absolute value of the integer.
+// The sign bit is encoded in the type: non-negative values have a type of
+// |V_ASN1_INTEGER| or |V_ASN1_ENUMERATED|, while negative values have a type of
+// |V_ASN1_NEG_INTEGER| or |V_ASN1_NEG_ENUMERATED|. Note this differs from DER's
+// two's complement representation.
+
+// ASN1_INTEGER_set sets |a| to an INTEGER with value |v|. It returns one on
+// success and zero on error.
+OPENSSL_EXPORT int ASN1_INTEGER_set(ASN1_INTEGER *a, long v);
+
+// ASN1_INTEGER_set sets |a| to an INTEGER with value |v|. It returns one on
+// success and zero on error.
+OPENSSL_EXPORT int ASN1_INTEGER_set_uint64(ASN1_INTEGER *out, uint64_t v);
+
+// ASN1_INTEGER_get returns the value of |a| as a |long|, or -1 if |a| is out of
+// range or the wrong type.
+OPENSSL_EXPORT long ASN1_INTEGER_get(const ASN1_INTEGER *a);
+
+// BN_to_ASN1_INTEGER sets |ai| to an INTEGER with value |bn| and returns |ai|
+// on success or NULL or error. If |ai| is NULL, it returns a newly-allocated
+// |ASN1_INTEGER| on success instead, which the caller must release with
+// |ASN1_INTEGER_free|.
+OPENSSL_EXPORT ASN1_INTEGER *BN_to_ASN1_INTEGER(const BIGNUM *bn,
+                                                ASN1_INTEGER *ai);
+
+// ASN1_INTEGER_to_BN sets |bn| to the value of |ai| and returns |bn| on success
+// or NULL or error. If |bn| is NULL, it returns a newly-allocated |BIGNUM| on
+// success instead, which the caller must release with |BN_free|.
+OPENSSL_EXPORT BIGNUM *ASN1_INTEGER_to_BN(const ASN1_INTEGER *ai, BIGNUM *bn);
+
+// ASN1_INTEGER_cmp compares the values of |x| and |y|. It returns an integer
+// equal to, less than, or greater than zero if |x| is equal to, less than, or
+// greater than |y|, respectively.
+OPENSSL_EXPORT int ASN1_INTEGER_cmp(const ASN1_INTEGER *x,
+                                    const ASN1_INTEGER *y);
+
+// ASN1_ENUMERATED_set sets |a| to an ENUMERATED with value |v|. It returns one
+// on success and zero on error.
+OPENSSL_EXPORT int ASN1_ENUMERATED_set(ASN1_ENUMERATED *a, long v);
+
+// ASN1_INTEGER_get returns the value of |a| as a |long|, or -1 if |a| is out of
+// range or the wrong type.
+OPENSSL_EXPORT long ASN1_ENUMERATED_get(const ASN1_ENUMERATED *a);
+
+// BN_to_ASN1_ENUMERATED sets |ai| to an ENUMERATED with value |bn| and returns
+// |ai| on success or NULL or error. If |ai| is NULL, it returns a
+// newly-allocated |ASN1_INTEGER| on success instead, which the caller must
+// release with |ASN1_INTEGER_free|.
+OPENSSL_EXPORT ASN1_ENUMERATED *BN_to_ASN1_ENUMERATED(const BIGNUM *bn,
+                                                      ASN1_ENUMERATED *ai);
+
+// ASN1_ENUMERATED_to_BN sets |bn| to the value of |ai| and returns |bn| on
+// success or NULL or error. If |bn| is NULL, it returns a newly-allocated
+// |BIGNUM| on success instead, which the caller must release with |BN_free|.
+OPENSSL_EXPORT BIGNUM *ASN1_ENUMERATED_to_BN(const ASN1_ENUMERATED *ai,
+                                             BIGNUM *bn);
+
+// TODO(davidben): Expand and document function prototypes generated in macros.
+
+
+// Time.
+//
+// GeneralizedTime and UTCTime values are represented as |ASN1_STRING|s. The
+// type field is |V_ASN1_GENERALIZEDTIME| or |V_ASN1_UTCTIME|, respectively. The
+// data field contains the DER encoding of the value. For example, the UNIX
+// epoch would be "19700101000000Z" for a GeneralizedTime and "700101000000Z"
+// for a UTCTime.
+//
+// ASN.1 does not define how to interpret UTCTime's two-digit year. RFC5280
+// defines it as a range from 1950 to 2049 for X.509. The library uses the
+// RFC5280 interpretation. It does not currently enforce the restrictions from
+// BER, and the additional restrictions from RFC5280, but future versions may.
+// Callers should not rely on fractional seconds and non-UTC time zones.
+//
+// The |ASN1_TIME| typedef represents the X.509 Time type, which is a CHOICE of
+// GeneralizedTime and UTCTime, using UTCTime when the value is in range.
+
+// ASN1_UTCTIME_check returns one if |a| is a valid UTCTime and zero otherwise.
+OPENSSL_EXPORT int ASN1_UTCTIME_check(const ASN1_UTCTIME *a);
+
+// ASN1_UTCTIME_set represents |t| as a UTCTime and writes the result to |s|. It
+// returns |s| on success and NULL on error. If |s| is NULL, it returns a
+// newly-allocated |ASN1_UTCTIME| instead.
+//
+// Note this function may fail if the time is out of range for UTCTime.
+OPENSSL_EXPORT ASN1_UTCTIME *ASN1_UTCTIME_set(ASN1_UTCTIME *s, time_t t);
+
+// ASN1_UTCTIME_adj adds |offset_day| days and |offset_sec| seconds to |t| and
+// writes the result to |s| as a UTCTime. It returns |s| on success and NULL on
+// error. If |s| is NULL, it returns a newly-allocated |ASN1_UTCTIME| instead.
+//
+// Note this function may fail if the time overflows or is out of range for
+// UTCTime.
+OPENSSL_EXPORT ASN1_UTCTIME *ASN1_UTCTIME_adj(ASN1_UTCTIME *s, time_t t,
+                                              int offset_day, long offset_sec);
+
+// ASN1_UTCTIME_set_string sets |s| to a UTCTime whose contents are a copy of
+// |str|. It returns one on success and zero on error or if |str| is not a valid
+// UTCTime.
+//
+// If |s| is NULL, this function validates |str| without copying it.
+OPENSSL_EXPORT int ASN1_UTCTIME_set_string(ASN1_UTCTIME *s, const char *str);
+
+// ASN1_UTCTIME_cmp_time_t compares |s| to |t|. It returns -1 if |s| < |t|, 0 if
+// they are equal, 1 if |s| > |t|, and -2 on error.
+OPENSSL_EXPORT int ASN1_UTCTIME_cmp_time_t(const ASN1_UTCTIME *s, time_t t);
+
+// ASN1_GENERALIZEDTIME_check returns one if |a| is a valid GeneralizedTime and
+// zero otherwise.
+OPENSSL_EXPORT int ASN1_GENERALIZEDTIME_check(const ASN1_GENERALIZEDTIME *a);
+
+// ASN1_GENERALIZEDTIME_set represents |t| as a GeneralizedTime and writes the
+// result to |s|. It returns |s| on success and NULL on error. If |s| is NULL,
+// it returns a newly-allocated |ASN1_GENERALIZEDTIME| instead.
+//
+// Note this function may fail if the time is out of range for GeneralizedTime.
+OPENSSL_EXPORT ASN1_GENERALIZEDTIME *ASN1_GENERALIZEDTIME_set(
+    ASN1_GENERALIZEDTIME *s, time_t t);
+
+// ASN1_GENERALIZEDTIME_adj adds |offset_day| days and |offset_sec| seconds to
+// |t| and writes the result to |s| as a GeneralizedTime. It returns |s| on
+// success and NULL on error. If |s| is NULL, it returns a newly-allocated
+// |ASN1_GENERALIZEDTIME| instead.
+//
+// Note this function may fail if the time overflows or is out of range for
+// GeneralizedTime.
+OPENSSL_EXPORT ASN1_GENERALIZEDTIME *ASN1_GENERALIZEDTIME_adj(
+    ASN1_GENERALIZEDTIME *s, time_t t, int offset_day, long offset_sec);
+
+// ASN1_GENERALIZEDTIME_set_string sets |s| to a GeneralizedTime whose contents
+// are a copy of |str|. It returns one on success and zero on error or if |str|
+// is not a valid GeneralizedTime.
+//
+// If |s| is NULL, this function validates |str| without copying it.
+OPENSSL_EXPORT int ASN1_GENERALIZEDTIME_set_string(ASN1_GENERALIZEDTIME *s,
+                                                   const char *str);
+
+// ASN1_TIME_diff computes |to| - |from|. On success, it sets |*out_days| to the
+// difference in days, rounded towards zero, sets |*out_seconds| to the
+// remainder, and returns one. On error, it returns zero.
+//
+// If |from| is before |to|, both outputs will be <= 0, with at least one
+// negative. If |from| is after |to|, both will be >= 0, with at least one
+// positive. If they are equal, ignoring fractional seconds, both will be zero.
+//
+// Note this function may fail on overflow, or if |from| or |to| cannot be
+// decoded.
+OPENSSL_EXPORT int ASN1_TIME_diff(int *out_days, int *out_seconds,
+                                  const ASN1_TIME *from, const ASN1_TIME *to);
+
+// ASN1_TIME_set represents |t| as a GeneralizedTime or UTCTime and writes
+// the result to |s|. As in RFC5280, section 4.1.2.5, it uses UTCTime when the
+// time fits and GeneralizedTime otherwise. It returns |s| on success and NULL
+// on error. If |s| is NULL, it returns a newly-allocated |ASN1_TIME| instead.
+//
+// Note this function may fail if the time is out of range for GeneralizedTime.
+OPENSSL_EXPORT ASN1_TIME *ASN1_TIME_set(ASN1_TIME *s, time_t t);
+
+// ASN1_TIME_adj adds |offset_day| days and |offset_sec| seconds to
+// |t| and writes the result to |s|. As in RFC5280, section 4.1.2.5, it uses
+// UTCTime when the time fits and GeneralizedTime otherwise. It returns |s| on
+// success and NULL on error. If |s| is NULL, it returns a newly-allocated
+// |ASN1_GENERALIZEDTIME| instead.
+//
+// Note this function may fail if the time overflows or is out of range for
+// GeneralizedTime.
+OPENSSL_EXPORT ASN1_TIME *ASN1_TIME_adj(ASN1_TIME *s, time_t t, int offset_day,
+                                        long offset_sec);
+
+// ASN1_TIME_check returns one if |t| is a valid UTCTime or GeneralizedTime, and
+// zero otherwise. |t|'s type determines which check is performed. This
+// function does not enforce that UTCTime was used when possible.
+OPENSSL_EXPORT int ASN1_TIME_check(const ASN1_TIME *t);
+
+// ASN1_TIME_to_generalizedtime converts |t| to a GeneralizedTime. If |out| is
+// NULL, it returns a newly-allocated |ASN1_GENERALIZEDTIME| on success, or NULL
+// on error. If |out| is non-NULL and |*out| is NULL, it additionally sets
+// |*out| to the result. If |out| and |*out| are non-NULL, it instead updates
+// the object pointed by |*out| and returns |*out| on success or NULL on error.
+OPENSSL_EXPORT ASN1_GENERALIZEDTIME *ASN1_TIME_to_generalizedtime(
+    const ASN1_TIME *t, ASN1_GENERALIZEDTIME **out);
+
+// ASN1_TIME_set_string behaves like |ASN1_UTCTIME_set_string| if |str| is a
+// valid UTCTime, and |ASN1_GENERALIZEDTIME_set_string| if |str| is a valid
+// GeneralizedTime. If |str| is neither, it returns zero.
+OPENSSL_EXPORT int ASN1_TIME_set_string(ASN1_TIME *s, const char *str);
+
+// TODO(davidben): Expand and document function prototypes generated in macros.
+
+
+// Arbitrary elements.
+
+// ASN1_VALUE_st (aka |ASN1_VALUE|) is an opaque type used internally in the
+// library.
+typedef struct ASN1_VALUE_st ASN1_VALUE;
+
+// An asn1_type_st (aka |ASN1_TYPE|) represents an arbitrary ASN.1 element,
+// typically used used for ANY types. It contains a |type| field and a |value|
+// union dependent on |type|.
+//
+// WARNING: This struct has a complex representation. Callers must not construct
+// |ASN1_TYPE| values manually. Use |ASN1_TYPE_set| and |ASN1_TYPE_set1|
+// instead. Additionally, callers performing non-trivial operations on this type
+// are encouraged to use |CBS| and |CBB| from <openssl/bytestring.h>, and
+// convert to or from |ASN1_TYPE| with |d2i_ASN1_TYPE| or |i2d_ASN1_TYPE|.
+//
+// The |type| field corresponds to the tag of the ASN.1 element being
+// represented:
+//
+// If |type| is a |V_ASN1_*| constant for an ASN.1 string-like type, as defined
+// by |ASN1_STRING|, the tag matches the constant. |value| contains an
+// |ASN1_STRING| pointer (equivalently, one of the more specific typedefs). See
+// |ASN1_STRING| for details on the representation. Unlike |ASN1_STRING|,
+// |ASN1_TYPE| does not use the |V_ASN1_NEG| flag for negative INTEGER and
+// ENUMERATE values. For a negative value, the |ASN1_TYPE|'s |type| will be
+// |V_ASN1_INTEGER| or |V_ASN1_ENUMERATED|, but |value| will an |ASN1_STRING|
+// whose |type| is |V_ASN1_NEG_INTEGER| or |V_ASN1_NEG_ENUMERATED|.
+//
+// If |type| is |V_ASN1_OBJECT|, the tag is OBJECT IDENTIFIER and |value|
+// contains an |ASN1_OBJECT| pointer.
+//
+// If |type| is |V_ASN1_NULL|, the tag is NULL. |value| contains a NULL pointer.
+//
+// If |type| is |V_ASN1_BOOLEAN|, the tag is BOOLEAN. |value| contains an
+// |ASN1_BOOLEAN|.
+//
+// If |type| is |V_ASN1_SEQUENCE|, |V_ASN1_SET|, or |V_ASN1_OTHER|, the tag is
+// SEQUENCE, SET, or some non-universal tag, respectively. |value| is an
+// |ASN1_STRING| containing the entire element, including the tag and length.
+// The |ASN1_STRING|'s |type| field matches the containing |ASN1_TYPE|'s |type|.
+//
+// Other positive values of |type|, up to |V_ASN1_MAX_UNIVERSAL|, correspond to
+// universal primitive tags not directly supported by this library. |value| is
+// an |ASN1_STRING| containing the body of the element, excluding the tag
+// and length. The |ASN1_STRING|'s |type| field matches the containing
+// |ASN1_TYPE|'s |type|.
+struct asn1_type_st {
+  int type;
+  union {
+    char *ptr;
+    ASN1_BOOLEAN boolean;
+    ASN1_STRING *asn1_string;
+    ASN1_OBJECT *object;
+    ASN1_INTEGER *integer;
+    ASN1_ENUMERATED *enumerated;
+    ASN1_BIT_STRING *bit_string;
+    ASN1_OCTET_STRING *octet_string;
+    ASN1_PRINTABLESTRING *printablestring;
+    ASN1_T61STRING *t61string;
+    ASN1_IA5STRING *ia5string;
+    ASN1_GENERALSTRING *generalstring;
+    ASN1_BMPSTRING *bmpstring;
+    ASN1_UNIVERSALSTRING *universalstring;
+    ASN1_UTCTIME *utctime;
+    ASN1_GENERALIZEDTIME *generalizedtime;
+    ASN1_VISIBLESTRING *visiblestring;
+    ASN1_UTF8STRING *utf8string;
+    // set and sequence are left complete and still contain the entire element.
+    ASN1_STRING *set;
+    ASN1_STRING *sequence;
+    ASN1_VALUE *asn1_value;
+  } value;
+};
+
+// ASN1_TYPE_get returns the type of |a|, which will be one of the |V_ASN1_*|
+// constants, or zero if |a| is not fully initialized.
+OPENSSL_EXPORT int ASN1_TYPE_get(const ASN1_TYPE *a);
+
+// ASN1_TYPE_set sets |a| to an |ASN1_TYPE| of type |type| and value |value|,
+// releasing the previous contents of |a|.
+//
+// If |type| is |V_ASN1_BOOLEAN|, |a| is set to FALSE if |value| is NULL and
+// TRUE otherwise. If setting |a| to TRUE, |value| may be an invalid pointer,
+// such as (void*)1.
+//
+// If |type| is |V_ASN1_NULL|, |value| must be NULL.
+//
+// For other values of |type|, this function takes ownership of |value|, which
+// must point to an object of the corresponding type. See |ASN1_TYPE| for
+// details.
+OPENSSL_EXPORT void ASN1_TYPE_set(ASN1_TYPE *a, int type, void *value);
+
+// ASN1_TYPE_set1 behaves like |ASN1_TYPE_set| except it does not take ownership
+// of |value|. It returns one on success and zero on error.
+OPENSSL_EXPORT int ASN1_TYPE_set1(ASN1_TYPE *a, int type, const void *value);
+
+// ASN1_TYPE_cmp returns zero if |a| and |b| are equal and some non-zero value
+// otherwise. Note this function can only be used for equality checks, not an
+// ordering.
+OPENSSL_EXPORT int ASN1_TYPE_cmp(const ASN1_TYPE *a, const ASN1_TYPE *b);
+
+// TODO(davidben): Most of |ASN1_TYPE|'s APIs are hidden behind macros. Expand
+// the macros, document them, and move them to this section.
+
+
+// Human-readable output.
+//
+// The following functions output types in some human-readable format. These
+// functions may be used for debugging and logging. However, the output should
+// not be consumed programmatically. They may be ambiguous or lose information.
+
+// ASN1_UTCTIME_print writes a human-readable representation of |a| to |out|. It
+// returns one on success and zero on error.
+OPENSSL_EXPORT int ASN1_UTCTIME_print(BIO *out, const ASN1_UTCTIME *a);
+
+// ASN1_GENERALIZEDTIME_print writes a human-readable representation of |a| to
+// |out|. It returns one on success and zero on error.
+OPENSSL_EXPORT int ASN1_GENERALIZEDTIME_print(BIO *out,
+                                              const ASN1_GENERALIZEDTIME *a);
+
+// ASN1_TIME_print writes a human-readable representation of |a| to |out|. It
+// returns one on success and zero on error.
+OPENSSL_EXPORT int ASN1_TIME_print(BIO *out, const ASN1_TIME *a);
+
+// ASN1_STRING_print writes a human-readable representation of |str| to |out|.
+// It returns one on success and zero on error. Unprintable characters are
+// replaced with '.'.
+OPENSSL_EXPORT int ASN1_STRING_print(BIO *out, const ASN1_STRING *str);
+
+// ASN1_STRFLGS_ESC_2253 causes characters to be escaped as in RFC2253, section
+// 2.4.
+#define ASN1_STRFLGS_ESC_2253 1
+
+// ASN1_STRFLGS_ESC_CTRL causes all control characters to be escaped.
+#define ASN1_STRFLGS_ESC_CTRL 2
+
+// ASN1_STRFLGS_ESC_MSB causes all characters above 127 to be escaped.
+#define ASN1_STRFLGS_ESC_MSB 4
+
+// ASN1_STRFLGS_ESC_QUOTE causes the string to be surrounded by quotes, rather
+// than using backslashes, when characters are escaped. Fewer characters will
+// require escapes in this case.
+#define ASN1_STRFLGS_ESC_QUOTE 8
+
+// ASN1_STRFLGS_UTF8_CONVERT causes the string to be encoded as UTF-8, with each
+// byte in the UTF-8 encoding treated as an individual character for purposes of
+// escape sequences. If not set, each Unicode codepoint in the string is treated
+// as a character, with wide characters escaped as "\Uxxxx" or "\Wxxxxxxxx".
+// Note this can be ambiguous if |ASN1_STRFLGS_ESC_*| are all unset. In that
+// case, backslashes are not escaped, but wide characters are.
+#define ASN1_STRFLGS_UTF8_CONVERT 0x10
+
+// ASN1_STRFLGS_IGNORE_TYPE causes the string type to be ignored. The
+// |ASN1_STRING| in-memory representation will be printed directly.
+#define ASN1_STRFLGS_IGNORE_TYPE 0x20
+
+// ASN1_STRFLGS_SHOW_TYPE causes the string type to be included in the output.
+#define ASN1_STRFLGS_SHOW_TYPE 0x40
+
+// ASN1_STRFLGS_DUMP_ALL causes all strings to be printed as a hexdump, using
+// RFC2253 hexstring notation, such as "#0123456789ABCDEF".
+#define ASN1_STRFLGS_DUMP_ALL 0x80
+
+// ASN1_STRFLGS_DUMP_UNKNOWN behaves like |ASN1_STRFLGS_DUMP_ALL| but only
+// applies to values of unknown type. If unset, unknown values will print
+// their contents as single-byte characters with escape sequences.
+#define ASN1_STRFLGS_DUMP_UNKNOWN 0x100
+
+// ASN1_STRFLGS_DUMP_DER causes hexdumped strings (as determined by
+// |ASN1_STRFLGS_DUMP_ALL| or |ASN1_STRFLGS_DUMP_UNKNOWN|) to print the entire
+// DER element as in RFC2253, rather than only the contents of the
+// |ASN1_STRING|.
+#define ASN1_STRFLGS_DUMP_DER 0x200
+
+// ASN1_STRFLGS_RFC2253 causes the string to be escaped as in RFC2253,
+// additionally escaping control characters.
+#define ASN1_STRFLGS_RFC2253                                              \
+  (ASN1_STRFLGS_ESC_2253 | ASN1_STRFLGS_ESC_CTRL | ASN1_STRFLGS_ESC_MSB | \
+   ASN1_STRFLGS_UTF8_CONVERT | ASN1_STRFLGS_DUMP_UNKNOWN |                \
+   ASN1_STRFLGS_DUMP_DER)
+
+// ASN1_STRING_print_ex writes a human-readable representation of |str| to
+// |out|. It returns the number of bytes written on success and -1 on error. If
+// |out| is NULL, it returns the number of bytes it would have written, without
+// writing anything.
+//
+// The |flags| should be a combination of combination of |ASN1_STRFLGS_*|
+// constants. See the documentation for each flag for how it controls the
+// output. If unsure, use |ASN1_STRFLGS_RFC2253|.
+OPENSSL_EXPORT int ASN1_STRING_print_ex(BIO *out, const ASN1_STRING *str,
+                                        unsigned long flags);
+
+// ASN1_STRING_print_ex_fp behaves like |ASN1_STRING_print_ex| but writes to a
+// |FILE| rather than a |BIO|.
+OPENSSL_EXPORT int ASN1_STRING_print_ex_fp(FILE *fp, const ASN1_STRING *str,
+                                           unsigned long flags);
 
 
 // Underdocumented functions.
 //
 // The following functions are not yet documented and organized.
-
-// For use with d2i_ASN1_type_bytes()
-#define B_ASN1_NUMERICSTRING 0x0001
-#define B_ASN1_PRINTABLESTRING 0x0002
-#define B_ASN1_T61STRING 0x0004
-#define B_ASN1_TELETEXSTRING 0x0004
-#define B_ASN1_VIDEOTEXSTRING 0x0008
-#define B_ASN1_IA5STRING 0x0010
-#define B_ASN1_GRAPHICSTRING 0x0020
-#define B_ASN1_ISO64STRING 0x0040
-#define B_ASN1_VISIBLESTRING 0x0040
-#define B_ASN1_GENERALSTRING 0x0080
-#define B_ASN1_UNIVERSALSTRING 0x0100
-#define B_ASN1_OCTET_STRING 0x0200
-#define B_ASN1_BIT_STRING 0x0400
-#define B_ASN1_BMPSTRING 0x0800
-#define B_ASN1_UNKNOWN 0x1000
-#define B_ASN1_UTF8STRING 0x2000
-#define B_ASN1_UTCTIME 0x4000
-#define B_ASN1_GENERALIZEDTIME 0x8000
-#define B_ASN1_SEQUENCE 0x10000
-
-// For use with ASN1_mbstring_copy()
-#define MBSTRING_FLAG 0x1000
-#define MBSTRING_UTF8 (MBSTRING_FLAG)
-// |MBSTRING_ASC| refers to Latin-1, not ASCII. It is used with TeletexString
-// which, in turn, is treated as Latin-1 rather than T.61 by OpenSSL and most
-// other software.
-#define MBSTRING_ASC (MBSTRING_FLAG | 1)
-#define MBSTRING_BMP (MBSTRING_FLAG | 2)
-#define MBSTRING_UNIV (MBSTRING_FLAG | 4)
-
-#define DECLARE_ASN1_SET_OF(type)    // filled in by mkstack.pl
-#define IMPLEMENT_ASN1_SET_OF(type)  // nothing, no longer needed
-
-// These are used internally in the ASN1_OBJECT to keep track of
-// whether the names and data need to be free()ed
-#define ASN1_OBJECT_FLAG_DYNAMIC 0x01          // internal use
-#define ASN1_OBJECT_FLAG_DYNAMIC_STRINGS 0x04  // internal use
-#define ASN1_OBJECT_FLAG_DYNAMIC_DATA 0x08     // internal use
-struct asn1_object_st {
-  const char *sn, *ln;
-  int nid;
-  int length;
-  const unsigned char *data;  // data remains const after init
-  int flags;                  // Should we free this one
-};
 
 DEFINE_STACK_OF(ASN1_OBJECT)
 
@@ -386,10 +869,6 @@ typedef struct ASN1_ENCODING_st {
 
 #define STABLE_FLAGS_MALLOC 0x01
 #define STABLE_NO_MASK 0x02
-#define DIRSTRING_TYPE                                            \
-  (B_ASN1_PRINTABLESTRING | B_ASN1_T61STRING | B_ASN1_BMPSTRING | \
-   B_ASN1_UTF8STRING)
-#define PKCS9STRING_TYPE (DIRSTRING_TYPE | B_ASN1_IA5STRING)
 
 typedef struct asn1_string_table_st {
   int nid;
@@ -399,23 +878,10 @@ typedef struct asn1_string_table_st {
   unsigned long flags;
 } ASN1_STRING_TABLE;
 
-// size limits: this stuff is taken straight from RFC2459
-
-#define ub_name 32768
-#define ub_common_name 64
-#define ub_locality_name 128
-#define ub_state_name 128
-#define ub_organization_name 64
-#define ub_organization_unit_name 64
-#define ub_title 64
-#define ub_email_address 128
-
 // Declarations for template structures: for full definitions
 // see asn1t.h
 typedef struct ASN1_TEMPLATE_st ASN1_TEMPLATE;
 typedef struct ASN1_TLC_st ASN1_TLC;
-// This is just an opaque pointer
-typedef struct ASN1_VALUE_st ASN1_VALUE;
 
 // Declare ASN1 functions: the implement macro in in asn1t.h
 
@@ -509,128 +975,14 @@ typedef const ASN1_ITEM ASN1_ITEM_EXP;
 
 #define DECLARE_ASN1_ITEM(name) extern OPENSSL_EXPORT const ASN1_ITEM name##_it;
 
-// Parameters used by ASN1_STRING_print_ex()
-
-// These determine which characters to escape:
-// RFC2253 special characters, control characters and
-// MSB set characters
-
-#define ASN1_STRFLGS_ESC_2253 1
-#define ASN1_STRFLGS_ESC_CTRL 2
-#define ASN1_STRFLGS_ESC_MSB 4
-
-
-// This flag determines how we do escaping: normally
-// RC2253 backslash only, set this to use backslash and
-// quote.
-
-#define ASN1_STRFLGS_ESC_QUOTE 8
-
-
-// These three flags are internal use only.
-
-// Character is a valid PrintableString character
-#define CHARTYPE_PRINTABLESTRING 0x10
-// Character needs escaping if it is the first character
-#define CHARTYPE_FIRST_ESC_2253 0x20
-// Character needs escaping if it is the last character
-#define CHARTYPE_LAST_ESC_2253 0x40
-
-// NB the internal flags are safely reused below by flags
-// handled at the top level.
-
-// If this is set we convert all character strings
-// to UTF8 first
-
-#define ASN1_STRFLGS_UTF8_CONVERT 0x10
-
-// If this is set we don't attempt to interpret content:
-// just assume all strings are 1 byte per character. This
-// will produce some pretty odd looking output!
-
-#define ASN1_STRFLGS_IGNORE_TYPE 0x20
-
-// If this is set we include the string type in the output
-#define ASN1_STRFLGS_SHOW_TYPE 0x40
-
-// This determines which strings to display and which to
-// 'dump' (hex dump of content octets or DER encoding). We can
-// only dump non character strings or everything. If we
-// don't dump 'unknown' they are interpreted as character
-// strings with 1 octet per character and are subject to
-// the usual escaping options.
-
-#define ASN1_STRFLGS_DUMP_ALL 0x80
-#define ASN1_STRFLGS_DUMP_UNKNOWN 0x100
-
-// These determine what 'dumping' does, we can dump the
-// content octets or the DER encoding: both use the
-// RFC2253 #XXXXX notation.
-
-#define ASN1_STRFLGS_DUMP_DER 0x200
-
-// All the string flags consistent with RFC2253,
-// escaping control characters isn't essential in
-// RFC2253 but it is advisable anyway.
-
-#define ASN1_STRFLGS_RFC2253                                              \
-  (ASN1_STRFLGS_ESC_2253 | ASN1_STRFLGS_ESC_CTRL | ASN1_STRFLGS_ESC_MSB | \
-   ASN1_STRFLGS_UTF8_CONVERT | ASN1_STRFLGS_DUMP_UNKNOWN |                \
-   ASN1_STRFLGS_DUMP_DER)
-
 DEFINE_STACK_OF(ASN1_INTEGER)
-DECLARE_ASN1_SET_OF(ASN1_INTEGER)
-
-struct asn1_type_st {
-  int type;
-  union {
-    char *ptr;
-    ASN1_BOOLEAN boolean;
-    ASN1_STRING *asn1_string;
-    ASN1_OBJECT *object;
-    ASN1_INTEGER *integer;
-    ASN1_ENUMERATED *enumerated;
-    ASN1_BIT_STRING *bit_string;
-    ASN1_OCTET_STRING *octet_string;
-    ASN1_PRINTABLESTRING *printablestring;
-    ASN1_T61STRING *t61string;
-    ASN1_IA5STRING *ia5string;
-    ASN1_GENERALSTRING *generalstring;
-    ASN1_BMPSTRING *bmpstring;
-    ASN1_UNIVERSALSTRING *universalstring;
-    ASN1_UTCTIME *utctime;
-    ASN1_GENERALIZEDTIME *generalizedtime;
-    ASN1_VISIBLESTRING *visiblestring;
-    ASN1_UTF8STRING *utf8string;
-    // set and sequence are left complete and still
-    // contain the set or sequence bytes
-    ASN1_STRING *set;
-    ASN1_STRING *sequence;
-    ASN1_VALUE *asn1_value;
-  } value;
-};
 
 DEFINE_STACK_OF(ASN1_TYPE)
-DECLARE_ASN1_SET_OF(ASN1_TYPE)
 
 typedef STACK_OF(ASN1_TYPE) ASN1_SEQUENCE_ANY;
 
 DECLARE_ASN1_ENCODE_FUNCTIONS_const(ASN1_SEQUENCE_ANY, ASN1_SEQUENCE_ANY)
 DECLARE_ASN1_ENCODE_FUNCTIONS_const(ASN1_SEQUENCE_ANY, ASN1_SET_ANY)
-
-struct X509_algor_st {
-  ASN1_OBJECT *algorithm;
-  ASN1_TYPE *parameter;
-} /* X509_ALGOR */;
-
-DECLARE_ASN1_FUNCTIONS(X509_ALGOR)
-
-// This is used to contain a list of bit names
-typedef struct BIT_STRING_BITNAME_st {
-  int bitnum;
-  const char *lname;
-  const char *sname;
-} BIT_STRING_BITNAME;
 
 // M_ASN1_* are legacy aliases for various |ASN1_STRING| functions. Use the
 // functions themselves.
@@ -696,11 +1048,6 @@ typedef struct BIT_STRING_BITNAME_st {
 
 DECLARE_ASN1_FUNCTIONS_fname(ASN1_TYPE, ASN1_ANY, ASN1_TYPE)
 
-OPENSSL_EXPORT int ASN1_TYPE_get(const ASN1_TYPE *a);
-OPENSSL_EXPORT void ASN1_TYPE_set(ASN1_TYPE *a, int type, void *value);
-OPENSSL_EXPORT int ASN1_TYPE_set1(ASN1_TYPE *a, int type, const void *value);
-OPENSSL_EXPORT int ASN1_TYPE_cmp(const ASN1_TYPE *a, const ASN1_TYPE *b);
-
 OPENSSL_EXPORT ASN1_OBJECT *ASN1_OBJECT_new(void);
 OPENSSL_EXPORT void ASN1_OBJECT_free(ASN1_OBJECT *a);
 OPENSSL_EXPORT int i2d_ASN1_OBJECT(const ASN1_OBJECT *a, unsigned char **pp);
@@ -713,21 +1060,12 @@ OPENSSL_EXPORT ASN1_OBJECT *d2i_ASN1_OBJECT(ASN1_OBJECT **a,
 
 DECLARE_ASN1_ITEM(ASN1_OBJECT)
 
-DECLARE_ASN1_SET_OF(ASN1_OBJECT)
-
 DECLARE_ASN1_FUNCTIONS(ASN1_BIT_STRING)
 OPENSSL_EXPORT int i2c_ASN1_BIT_STRING(const ASN1_BIT_STRING *a,
                                        unsigned char **pp);
 OPENSSL_EXPORT ASN1_BIT_STRING *c2i_ASN1_BIT_STRING(ASN1_BIT_STRING **a,
                                                     const unsigned char **pp,
                                                     long length);
-OPENSSL_EXPORT int ASN1_BIT_STRING_set(ASN1_BIT_STRING *a, unsigned char *d,
-                                       int length);
-OPENSSL_EXPORT int ASN1_BIT_STRING_set_bit(ASN1_BIT_STRING *a, int n,
-                                           int value);
-OPENSSL_EXPORT int ASN1_BIT_STRING_get_bit(const ASN1_BIT_STRING *a, int n);
-OPENSSL_EXPORT int ASN1_BIT_STRING_check(const ASN1_BIT_STRING *a,
-                                         unsigned char *flags, int flags_len);
 
 OPENSSL_EXPORT int i2d_ASN1_BOOLEAN(int a, unsigned char **pp);
 OPENSSL_EXPORT int d2i_ASN1_BOOLEAN(int *a, const unsigned char **pp,
@@ -739,30 +1077,8 @@ OPENSSL_EXPORT ASN1_INTEGER *c2i_ASN1_INTEGER(ASN1_INTEGER **a,
                                               const unsigned char **pp,
                                               long length);
 OPENSSL_EXPORT ASN1_INTEGER *ASN1_INTEGER_dup(const ASN1_INTEGER *x);
-OPENSSL_EXPORT int ASN1_INTEGER_cmp(const ASN1_INTEGER *x,
-                                    const ASN1_INTEGER *y);
 
 DECLARE_ASN1_FUNCTIONS(ASN1_ENUMERATED)
-
-OPENSSL_EXPORT int ASN1_UTCTIME_check(const ASN1_UTCTIME *a);
-OPENSSL_EXPORT ASN1_UTCTIME *ASN1_UTCTIME_set(ASN1_UTCTIME *s, time_t t);
-OPENSSL_EXPORT ASN1_UTCTIME *ASN1_UTCTIME_adj(ASN1_UTCTIME *s, time_t t,
-                                              int offset_day, long offset_sec);
-OPENSSL_EXPORT int ASN1_UTCTIME_set_string(ASN1_UTCTIME *s, const char *str);
-OPENSSL_EXPORT int ASN1_UTCTIME_cmp_time_t(const ASN1_UTCTIME *s, time_t t);
-#if 0
-time_t ASN1_UTCTIME_get(const ASN1_UTCTIME *s);
-#endif
-
-OPENSSL_EXPORT int ASN1_GENERALIZEDTIME_check(const ASN1_GENERALIZEDTIME *a);
-OPENSSL_EXPORT ASN1_GENERALIZEDTIME *ASN1_GENERALIZEDTIME_set(
-    ASN1_GENERALIZEDTIME *s, time_t t);
-OPENSSL_EXPORT ASN1_GENERALIZEDTIME *ASN1_GENERALIZEDTIME_adj(
-    ASN1_GENERALIZEDTIME *s, time_t t, int offset_day, long offset_sec);
-OPENSSL_EXPORT int ASN1_GENERALIZEDTIME_set_string(ASN1_GENERALIZEDTIME *s,
-                                                   const char *str);
-OPENSSL_EXPORT int ASN1_TIME_diff(int *pday, int *psec, const ASN1_TIME *from,
-                                  const ASN1_TIME *to);
 
 DECLARE_ASN1_FUNCTIONS(ASN1_OCTET_STRING)
 OPENSSL_EXPORT ASN1_OCTET_STRING *ASN1_OCTET_STRING_dup(
@@ -790,14 +1106,6 @@ DECLARE_ASN1_FUNCTIONS(ASN1_UTCTIME)
 DECLARE_ASN1_FUNCTIONS(ASN1_GENERALIZEDTIME)
 DECLARE_ASN1_FUNCTIONS(ASN1_TIME)
 
-OPENSSL_EXPORT ASN1_TIME *ASN1_TIME_set(ASN1_TIME *s, time_t t);
-OPENSSL_EXPORT ASN1_TIME *ASN1_TIME_adj(ASN1_TIME *s, time_t t, int offset_day,
-                                        long offset_sec);
-OPENSSL_EXPORT int ASN1_TIME_check(const ASN1_TIME *t);
-OPENSSL_EXPORT ASN1_GENERALIZEDTIME *ASN1_TIME_to_generalizedtime(
-    const ASN1_TIME *t, ASN1_GENERALIZEDTIME **out);
-OPENSSL_EXPORT int ASN1_TIME_set_string(ASN1_TIME *s, const char *str);
-
 OPENSSL_EXPORT int i2a_ASN1_INTEGER(BIO *bp, const ASN1_INTEGER *a);
 OPENSSL_EXPORT int i2a_ASN1_ENUMERATED(BIO *bp, const ASN1_ENUMERATED *a);
 OPENSSL_EXPORT int i2a_ASN1_OBJECT(BIO *bp, const ASN1_OBJECT *a);
@@ -805,23 +1113,10 @@ OPENSSL_EXPORT int i2a_ASN1_STRING(BIO *bp, const ASN1_STRING *a, int type);
 OPENSSL_EXPORT int i2t_ASN1_OBJECT(char *buf, int buf_len,
                                    const ASN1_OBJECT *a);
 
-OPENSSL_EXPORT ASN1_OBJECT *ASN1_OBJECT_create(int nid, unsigned char *data,
+OPENSSL_EXPORT ASN1_OBJECT *ASN1_OBJECT_create(int nid,
+                                               const unsigned char *data,
                                                int len, const char *sn,
                                                const char *ln);
-
-OPENSSL_EXPORT int ASN1_INTEGER_set(ASN1_INTEGER *a, long v);
-OPENSSL_EXPORT int ASN1_INTEGER_set_uint64(ASN1_INTEGER *out, uint64_t v);
-OPENSSL_EXPORT long ASN1_INTEGER_get(const ASN1_INTEGER *a);
-OPENSSL_EXPORT ASN1_INTEGER *BN_to_ASN1_INTEGER(const BIGNUM *bn,
-                                                ASN1_INTEGER *ai);
-OPENSSL_EXPORT BIGNUM *ASN1_INTEGER_to_BN(const ASN1_INTEGER *ai, BIGNUM *bn);
-
-OPENSSL_EXPORT int ASN1_ENUMERATED_set(ASN1_ENUMERATED *a, long v);
-OPENSSL_EXPORT long ASN1_ENUMERATED_get(const ASN1_ENUMERATED *a);
-OPENSSL_EXPORT ASN1_ENUMERATED *BN_to_ASN1_ENUMERATED(const BIGNUM *bn,
-                                                      ASN1_ENUMERATED *ai);
-OPENSSL_EXPORT BIGNUM *ASN1_ENUMERATED_to_BN(const ASN1_ENUMERATED *ai,
-                                             BIGNUM *bn);
 
 // General
 // given a string, return the correct type, max is the maximum length
@@ -839,25 +1134,11 @@ OPENSSL_EXPORT int ASN1_object_size(int constructed, int length, int tag);
 
 OPENSSL_EXPORT void *ASN1_item_dup(const ASN1_ITEM *it, void *x);
 
-#ifndef OPENSSL_NO_FP_API
 OPENSSL_EXPORT void *ASN1_item_d2i_fp(const ASN1_ITEM *it, FILE *in, void *x);
 OPENSSL_EXPORT int ASN1_item_i2d_fp(const ASN1_ITEM *it, FILE *out, void *x);
-OPENSSL_EXPORT int ASN1_STRING_print_ex_fp(FILE *fp, const ASN1_STRING *str,
-                                           unsigned long flags);
-#endif
-
-OPENSSL_EXPORT int ASN1_STRING_to_UTF8(unsigned char **out, ASN1_STRING *in);
 
 OPENSSL_EXPORT void *ASN1_item_d2i_bio(const ASN1_ITEM *it, BIO *in, void *x);
 OPENSSL_EXPORT int ASN1_item_i2d_bio(const ASN1_ITEM *it, BIO *out, void *x);
-OPENSSL_EXPORT int ASN1_UTCTIME_print(BIO *fp, const ASN1_UTCTIME *a);
-OPENSSL_EXPORT int ASN1_GENERALIZEDTIME_print(BIO *fp,
-                                              const ASN1_GENERALIZEDTIME *a);
-OPENSSL_EXPORT int ASN1_TIME_print(BIO *fp, const ASN1_TIME *a);
-OPENSSL_EXPORT int ASN1_STRING_print(BIO *bp, const ASN1_STRING *v);
-OPENSSL_EXPORT int ASN1_STRING_print_ex(BIO *out, const ASN1_STRING *str,
-                                        unsigned long flags);
-OPENSSL_EXPORT const char *ASN1_tag2str(int tag);
 
 // Used to load and write netscape format cert
 
@@ -867,16 +1148,14 @@ OPENSSL_EXPORT void *ASN1_item_unpack(const ASN1_STRING *oct,
 OPENSSL_EXPORT ASN1_STRING *ASN1_item_pack(void *obj, const ASN1_ITEM *it,
                                            ASN1_OCTET_STRING **oct);
 
+// ASN1_STRING_set_default_mask does nothing.
 OPENSSL_EXPORT void ASN1_STRING_set_default_mask(unsigned long mask);
+
+// ASN1_STRING_set_default_mask_asc returns one.
 OPENSSL_EXPORT int ASN1_STRING_set_default_mask_asc(const char *p);
+
+// ASN1_STRING_get_default_mask returns |B_ASN1_UTF8STRING|.
 OPENSSL_EXPORT unsigned long ASN1_STRING_get_default_mask(void);
-OPENSSL_EXPORT int ASN1_mbstring_copy(ASN1_STRING **out,
-                                      const unsigned char *in, int len,
-                                      int inform, unsigned long mask);
-OPENSSL_EXPORT int ASN1_mbstring_ncopy(ASN1_STRING **out,
-                                       const unsigned char *in, int len,
-                                       int inform, unsigned long mask,
-                                       long minsize, long maxsize);
 
 OPENSSL_EXPORT ASN1_STRING *ASN1_STRING_set_by_NID(ASN1_STRING **out,
                                                    const unsigned char *in,

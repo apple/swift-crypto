@@ -91,7 +91,7 @@ function mangle_symbols {
 
         # Now build for iOS. We use xcodebuild for this because SwiftPM doesn't
         # meaningfully support it. Unfortunately we must archive ourselves.
-        xcodebuild -sdk iphoneos -scheme CCryptoBoringSSL -derivedDataPath "${TMPDIR}/iphoneos-deriveddata"
+        xcodebuild -sdk iphoneos -scheme CCryptoBoringSSL -derivedDataPath "${TMPDIR}/iphoneos-deriveddata" -destination generic/platform=iOS
         ar -r "${TMPDIR}/libCCryptoBoringSSL-ios.a" "${TMPDIR}/iphoneos-deriveddata/Build/Products/Debug-iphoneos/CCryptoBoringSSL.o"
         (
             cd "${SRCROOT}"

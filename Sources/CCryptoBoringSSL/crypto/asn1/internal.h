@@ -1,4 +1,3 @@
-/* asn1t.h */
 /*
  * Written by Dr Stephen N Henson (steve@openssl.org) for the OpenSSL project
  * 2006.
@@ -87,6 +86,26 @@ int OPENSSL_gmtime_diff(int *out_days, int *out_secs, const struct tm *from,
 
 /* Internal ASN1 structures and functions: not for application use */
 
+/* These are used internally in the ASN1_OBJECT to keep track of
+ * whether the names and data need to be free()ed */
+#define ASN1_OBJECT_FLAG_DYNAMIC 0x01         /* internal use */
+#define ASN1_OBJECT_FLAG_DYNAMIC_STRINGS 0x04 /* internal use */
+#define ASN1_OBJECT_FLAG_DYNAMIC_DATA 0x08    /* internal use */
+
+/* An asn1_object_st (aka |ASN1_OBJECT|) represents an ASN.1 OBJECT IDENTIFIER.
+ * Note: Mutating an |ASN1_OBJECT| is only permitted when initializing it. The
+ * library maintains a table of static |ASN1_OBJECT|s, which may be referenced
+ * by non-const |ASN1_OBJECT| pointers. Code which receives an |ASN1_OBJECT|
+ * pointer externally must assume it is immutable, even if the pointer is not
+ * const. */
+struct asn1_object_st {
+  const char *sn, *ln;
+  int nid;
+  int length;
+  const unsigned char *data; /* data remains const after init */
+  int flags;                 /* Should we free this one */
+};
+
 int asn1_utctime_to_tm(struct tm *tm, const ASN1_UTCTIME *d);
 int asn1_generalizedtime_to_tm(struct tm *tm, const ASN1_GENERALIZEDTIME *d);
 
@@ -125,6 +144,11 @@ int asn1_enc_restore(int *len, unsigned char **out, ASN1_VALUE **pval,
                      const ASN1_ITEM *it);
 int asn1_enc_save(ASN1_VALUE **pval, const unsigned char *in, int inlen,
                   const ASN1_ITEM *it);
+
+/* asn1_type_value_as_pointer returns |a|'s value in pointer form. This is
+ * usually the value object but, for BOOLEAN values, is 0 or 0xff cast to
+ * a pointer. */
+const void *asn1_type_value_as_pointer(const ASN1_TYPE *a);
 
 
 #if defined(__cplusplus)

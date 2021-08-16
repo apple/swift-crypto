@@ -63,7 +63,7 @@
 #include <CCryptoBoringSSL_mem.h>
 
 #include "../internal.h"
-#include "asn1_locl.h"
+#include "internal.h"
 
 
 static int asn1_i2d_ex_primitive(ASN1_VALUE **pval, unsigned char **out,
@@ -295,11 +295,12 @@ static int asn1_template_ex_i2d(ASN1_VALUE **pval, unsigned char **out,
 
         if (flags & ASN1_TFLG_SET_OF) {
             isset = 1;
-            /* 2 means we reorder */
-            if (flags & ASN1_TFLG_SEQUENCE_OF)
-                isset = 2;
-        } else
+            /* Historically, types with both bits set were mutated when
+             * serialized to apply the sort. We no longer support this. */
+            assert((flags & ASN1_TFLG_SEQUENCE_OF) == 0);
+        } else {
             isset = 0;
+        }
 
         /*
          * Work out inner tag value: if EXPLICIT or no tagging use underlying
@@ -378,7 +379,6 @@ static int asn1_template_ex_i2d(ASN1_VALUE **pval, unsigned char **out,
 typedef struct {
     unsigned char *data;
     int length;
-    ASN1_VALUE *field;
 } DER_ENC;
 
 static int der_cmp(const void *a, const void *b)
@@ -433,7 +433,6 @@ static int asn1_set_seq_out(STACK_OF(ASN1_VALUE) *sk, unsigned char **out,
         skitem = sk_ASN1_VALUE_value(sk, i);
         tder->data = p;
         tder->length = ASN1_item_ex_i2d(&skitem, &p, item, -1, iclass);
-        tder->field = skitem;
     }
 
     /* Now sort them */
@@ -445,11 +444,6 @@ static int asn1_set_seq_out(STACK_OF(ASN1_VALUE) *sk, unsigned char **out,
         p += tder->length;
     }
     *out = p;
-    /* If do_sort is 2 then reorder the STACK */
-    if (do_sort == 2) {
-        for (i = 0, tder = derlst; i < sk_ASN1_VALUE_num(sk); i++, tder++)
-            (void)sk_ASN1_VALUE_set(sk, i, tder->field);
-    }
     OPENSSL_free(derlst);
     OPENSSL_free(tmpdat);
     return 1;
@@ -531,6 +525,20 @@ static int asn1_ex_i2c(ASN1_VALUE **pval, unsigned char *cout, int *putype,
         /* If MSTRING type set the underlying type */
         strtmp = (ASN1_STRING *)*pval;
         utype = strtmp->type;
+        /* Negative INTEGER and ENUMERATED values use |ASN1_STRING| type values
+         * that do not match their corresponding utype values. INTEGERs cannot
+         * participate in MSTRING types, but ENUMERATEDs can.
+         *
+         * TODO(davidben): Is this a bug? Although arguably one of the MSTRING
+         * types should contain more values, rather than less. See
+         * https://crbug.com/boringssl/412. But it is not possible to fit all
+         * possible ANY values into an |ASN1_STRING|, so matching the spec here
+         * is somewhat hopeless. */
+        if (utype == V_ASN1_NEG_INTEGER) {
+            utype = V_ASN1_INTEGER;
+        } else if (utype == V_ASN1_NEG_ENUMERATED) {
+            utype = V_ASN1_ENUMERATED;
+        }
         *putype = utype;
     } else if (it->utype == V_ASN1_ANY) {
         /* If ANY set type and pointer to value */
@@ -569,7 +577,7 @@ static int asn1_ex_i2c(ASN1_VALUE **pval, unsigned char *cout, int *putype,
             if (!*tbool && !it->size)
                 return -1;
         }
-        c = (unsigned char)*tbool;
+        c = *tbool ? 0xff : 0x00;
         cont = &c;
         len = 1;
         break;

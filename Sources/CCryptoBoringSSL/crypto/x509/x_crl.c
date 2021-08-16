@@ -66,6 +66,7 @@
 #include <CCryptoBoringSSL_x509v3.h>
 
 #include "../internal.h"
+#include "internal.h"
 
 /*
  * Method to handle CRL access. In general a CRL could be very large (several
@@ -204,11 +205,12 @@ static int crl_set_issuers(X509_CRL *crl)
 
         for (k = 0; k < sk_X509_EXTENSION_num(exts); k++) {
             ext = sk_X509_EXTENSION_value(exts, k);
-            if (ext->critical > 0) {
-                if (OBJ_obj2nid(ext->object) == NID_certificate_issuer)
-                    continue;
-                crl->flags |= EXFLAG_CRITICAL;
-                break;
+            if (X509_EXTENSION_get_critical(ext)) {
+              if (OBJ_obj2nid(X509_EXTENSION_get_object(ext)) ==
+                  NID_certificate_issuer)
+                continue;
+              crl->flags |= EXFLAG_CRITICAL;
+              break;
             }
         }
 
@@ -297,10 +299,10 @@ static int crl_cb(int operation, ASN1_VALUE **pval, const ASN1_ITEM *it,
         for (idx = 0; idx < sk_X509_EXTENSION_num(exts); idx++) {
             int nid;
             ext = sk_X509_EXTENSION_value(exts, idx);
-            nid = OBJ_obj2nid(ext->object);
+            nid = OBJ_obj2nid(X509_EXTENSION_get_object(ext));
             if (nid == NID_freshest_crl)
                 crl->flags |= EXFLAG_FRESHEST;
-            if (ext->critical > 0) {
+            if (X509_EXTENSION_get_critical(ext)) {
                 /* We handle IDP and deltas */
                 if ((nid == NID_issuing_distribution_point)
                     || (nid == NID_authority_key_identifier)
@@ -561,7 +563,3 @@ void *X509_CRL_get_meth_data(X509_CRL *crl)
 {
     return crl->meth_data;
 }
-
-IMPLEMENT_ASN1_SET_OF(X509_REVOKED)
-
-IMPLEMENT_ASN1_SET_OF(X509_CRL)

@@ -66,7 +66,7 @@
 #include <CCryptoBoringSSL_stack.h>
 #include <CCryptoBoringSSL_x509.h>
 
-#include "../asn1/asn1_locl.h"
+#include "../asn1/internal.h"
 #include "../internal.h"
 
 
@@ -520,8 +520,6 @@ int X509_NAME_set(X509_NAME **xn, X509_NAME *name)
     *xn = name;
     return 1;
 }
-
-IMPLEMENT_ASN1_SET_OF(X509_NAME_ENTRY)
 
 int X509_NAME_ENTRY_set(const X509_NAME_ENTRY *ne)
 {

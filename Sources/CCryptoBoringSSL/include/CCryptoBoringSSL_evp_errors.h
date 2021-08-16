@@ -54,77 +54,46 @@
  * copied and put under another distribution licence
  * [including the GNU Public Licence.] */
 
-#include <CCryptoBoringSSL_asn1.h>
-#include <CCryptoBoringSSL_err.h>
-#include <CCryptoBoringSSL_mem.h>
-#include <CCryptoBoringSSL_obj.h>
-#include <CCryptoBoringSSL_x509.h>
-#include <CCryptoBoringSSL_x509v3.h>
+#ifndef OPENSSL_HEADER_EVP_ERRORS_H
+#define OPENSSL_HEADER_EVP_ERRORS_H
 
-int X509_CRL_print_fp(FILE *fp, X509_CRL *x)
-{
-    BIO *b = BIO_new_fp(fp, BIO_NOCLOSE);
-    if (b == NULL) {
-        OPENSSL_PUT_ERROR(X509, ERR_R_BUF_LIB);
-        return 0;
-    }
-    int ret = X509_CRL_print(b, x);
-    BIO_free(b);
-    return ret;
-}
+#define EVP_R_BUFFER_TOO_SMALL 100
+#define EVP_R_COMMAND_NOT_SUPPORTED 101
+#define EVP_R_DECODE_ERROR 102
+#define EVP_R_DIFFERENT_KEY_TYPES 103
+#define EVP_R_DIFFERENT_PARAMETERS 104
+#define EVP_R_ENCODE_ERROR 105
+#define EVP_R_EXPECTING_AN_EC_KEY_KEY 106
+#define EVP_R_EXPECTING_AN_RSA_KEY 107
+#define EVP_R_EXPECTING_A_DSA_KEY 108
+#define EVP_R_ILLEGAL_OR_UNSUPPORTED_PADDING_MODE 109
+#define EVP_R_INVALID_DIGEST_LENGTH 110
+#define EVP_R_INVALID_DIGEST_TYPE 111
+#define EVP_R_INVALID_KEYBITS 112
+#define EVP_R_INVALID_MGF1_MD 113
+#define EVP_R_INVALID_OPERATION 114
+#define EVP_R_INVALID_PADDING_MODE 115
+#define EVP_R_INVALID_PSS_SALTLEN 116
+#define EVP_R_KEYS_NOT_SET 117
+#define EVP_R_MISSING_PARAMETERS 118
+#define EVP_R_NO_DEFAULT_DIGEST 119
+#define EVP_R_NO_KEY_SET 120
+#define EVP_R_NO_MDC2_SUPPORT 121
+#define EVP_R_NO_NID_FOR_CURVE 122
+#define EVP_R_NO_OPERATION_SET 123
+#define EVP_R_NO_PARAMETERS_SET 124
+#define EVP_R_OPERATION_NOT_SUPPORTED_FOR_THIS_KEYTYPE 125
+#define EVP_R_OPERATON_NOT_INITIALIZED 126
+#define EVP_R_UNKNOWN_PUBLIC_KEY_TYPE 127
+#define EVP_R_UNSUPPORTED_ALGORITHM 128
+#define EVP_R_UNSUPPORTED_PUBLIC_KEY_TYPE 129
+#define EVP_R_NOT_A_PRIVATE_KEY 130
+#define EVP_R_INVALID_SIGNATURE 131
+#define EVP_R_MEMORY_LIMIT_EXCEEDED 132
+#define EVP_R_INVALID_PARAMETERS 133
+#define EVP_R_INVALID_PEER_KEY 134
+#define EVP_R_NOT_XOF_OR_INVALID_LENGTH 135
+#define EVP_R_EMPTY_PSK 136
+#define EVP_R_INVALID_BUFFER_SIZE 137
 
-int X509_CRL_print(BIO *out, X509_CRL *x)
-{
-    STACK_OF(X509_REVOKED) *rev;
-    X509_REVOKED *r;
-    long l;
-    size_t i;
-    char *p;
-
-    BIO_printf(out, "Certificate Revocation List (CRL):\n");
-    l = X509_CRL_get_version(x);
-    BIO_printf(out, "%8sVersion %lu (0x%lx)\n", "", l + 1, l);
-    const X509_ALGOR *sig_alg;
-    const ASN1_BIT_STRING *signature;
-    X509_CRL_get0_signature(x, &signature, &sig_alg);
-    // Note this and the other |X509_signature_print| call print the outer
-    // signature algorithm twice, rather than both the inner and outer ones.
-    // This matches OpenSSL, though it was probably a bug.
-    X509_signature_print(out, sig_alg, NULL);
-    p = X509_NAME_oneline(X509_CRL_get_issuer(x), NULL, 0);
-    BIO_printf(out, "%8sIssuer: %s\n", "", p);
-    OPENSSL_free(p);
-    BIO_printf(out, "%8sLast Update: ", "");
-    ASN1_TIME_print(out, X509_CRL_get0_lastUpdate(x));
-    BIO_printf(out, "\n%8sNext Update: ", "");
-    if (X509_CRL_get0_nextUpdate(x))
-        ASN1_TIME_print(out, X509_CRL_get0_nextUpdate(x));
-    else
-        BIO_printf(out, "NONE");
-    BIO_printf(out, "\n");
-
-    X509V3_extensions_print(out, "CRL extensions", X509_CRL_get0_extensions(x),
-                            0, 8);
-
-    rev = X509_CRL_get_REVOKED(x);
-
-    if (sk_X509_REVOKED_num(rev) > 0)
-        BIO_printf(out, "Revoked Certificates:\n");
-    else
-        BIO_printf(out, "No Revoked Certificates.\n");
-
-    for (i = 0; i < sk_X509_REVOKED_num(rev); i++) {
-        r = sk_X509_REVOKED_value(rev, i);
-        BIO_printf(out, "    Serial Number: ");
-        i2a_ASN1_INTEGER(out, r->serialNumber);
-        BIO_printf(out, "\n        Revocation Date: ");
-        ASN1_TIME_print(out, r->revocationDate);
-        BIO_printf(out, "\n");
-        X509V3_extensions_print(out, "CRL entry extensions",
-                                r->extensions, 0, 8);
-    }
-    X509_signature_print(out, sig_alg, signature);
-
-    return 1;
-
-}
+#endif  // OPENSSL_HEADER_EVP_ERRORS_H
