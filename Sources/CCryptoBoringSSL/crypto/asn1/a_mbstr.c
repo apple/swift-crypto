@@ -63,7 +63,7 @@
 #include <CCryptoBoringSSL_err.h>
 #include <CCryptoBoringSSL_mem.h>
 
-#include "asn1_locl.h"
+#include "internal.h"
 #include "../bytestring/internal.h"
 
 static int is_printable(uint32_t value);
@@ -208,11 +208,14 @@ int ASN1_mbstring_ncopy(ASN1_STRING **out, const unsigned char *in, int len,
         encode_func = cbb_add_utf32_be;
         size_estimate = 4 * nchar;
         outform = MBSTRING_UNIV;
-    } else {
+    } else if (mask & B_ASN1_UTF8STRING) {
         str_type = V_ASN1_UTF8STRING;
         outform = MBSTRING_UTF8;
         encode_func = cbb_add_utf8;
         size_estimate = utf8_len;
+    } else {
+        OPENSSL_PUT_ERROR(ASN1, ASN1_R_ILLEGAL_CHARACTERS);
+        return -1;
     }
 
     if (!out)

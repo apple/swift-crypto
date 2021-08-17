@@ -81,8 +81,8 @@ static STACK_OF(OPENSSL_STRING) *get_email(X509_NAME *name,
 static void str_free(OPENSSL_STRING str);
 static int append_ia5(STACK_OF(OPENSSL_STRING) **sk, ASN1_IA5STRING *email);
 
-static int ipv4_from_asc(unsigned char *v4, const char *in);
-static int ipv6_from_asc(unsigned char *v6, const char *in);
+static int ipv4_from_asc(unsigned char v4[4], const char *in);
+static int ipv6_from_asc(unsigned char v6[16], const char *in);
 static int ipv6_cb(const char *elem, int len, void *usr);
 static int ipv6_hex(unsigned char *out, const char *in, int inlen);
 
@@ -1112,7 +1112,7 @@ int X509_check_ip_asc(X509 *x, const char *ipasc, unsigned int flags)
 
     if (ipasc == NULL)
         return -2;
-    iplen = (size_t)a2i_ipadd(ipout, ipasc);
+    iplen = (size_t)x509v3_a2i_ipadd(ipout, ipasc);
     if (iplen == 0)
         return -2;
     return do_x509_check(x, (char *)ipout, iplen, flags, GEN_IPADD, NULL);
@@ -1129,10 +1129,7 @@ ASN1_OCTET_STRING *a2i_IPADDRESS(const char *ipasc)
     ASN1_OCTET_STRING *ret;
     int iplen;
 
-    /* If string contains a ':' assume IPv6 */
-
-    iplen = a2i_ipadd(ipout, ipasc);
-
+    iplen = x509v3_a2i_ipadd(ipout, ipasc);
     if (!iplen)
         return NULL;
 
@@ -1161,12 +1158,12 @@ ASN1_OCTET_STRING *a2i_IPADDRESS_NC(const char *ipasc)
     p = iptmp + (p - ipasc);
     *p++ = 0;
 
-    iplen1 = a2i_ipadd(ipout, iptmp);
+    iplen1 = x509v3_a2i_ipadd(ipout, iptmp);
 
     if (!iplen1)
         goto err;
 
-    iplen2 = a2i_ipadd(ipout + iplen1, p);
+    iplen2 = x509v3_a2i_ipadd(ipout + iplen1, p);
 
     OPENSSL_free(iptmp);
     iptmp = NULL;
@@ -1190,7 +1187,7 @@ ASN1_OCTET_STRING *a2i_IPADDRESS_NC(const char *ipasc)
     return NULL;
 }
 
-int a2i_ipadd(unsigned char *ipout, const char *ipasc)
+int x509v3_a2i_ipadd(unsigned char ipout[16], const char *ipasc)
 {
     /* If string contains a ':' assume IPv6 */
 
@@ -1205,7 +1202,7 @@ int a2i_ipadd(unsigned char *ipout, const char *ipasc)
     }
 }
 
-static int ipv4_from_asc(unsigned char *v4, const char *in)
+static int ipv4_from_asc(unsigned char v4[4], const char *in)
 {
     int a0, a1, a2, a3;
     if (sscanf(in, "%d.%d.%d.%d", &a0, &a1, &a2, &a3) != 4)
@@ -1231,7 +1228,7 @@ typedef struct {
     int zero_cnt;
 } IPV6_STAT;
 
-static int ipv6_from_asc(unsigned char *v6, const char *in)
+static int ipv6_from_asc(unsigned char v6[16], const char *in)
 {
     IPV6_STAT v6stat;
     v6stat.total = 0;

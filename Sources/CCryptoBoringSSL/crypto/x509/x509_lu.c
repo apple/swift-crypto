@@ -64,6 +64,7 @@
 #include <CCryptoBoringSSL_x509v3.h>
 
 #include "../internal.h"
+#include "internal.h"
 
 X509_LOOKUP *X509_LOOKUP_new(X509_LOOKUP_METHOD *method)
 {

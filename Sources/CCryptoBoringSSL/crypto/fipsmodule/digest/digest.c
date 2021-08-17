@@ -68,6 +68,8 @@
 
 int EVP_MD_type(const EVP_MD *md) { return md->type; }
 
+int EVP_MD_nid(const EVP_MD *md) { return EVP_MD_type(md); }
+
 uint32_t EVP_MD_flags(const EVP_MD *md) { return md->flags; }
 
 size_t EVP_MD_size(const EVP_MD *md) { return md->md_size; }
@@ -175,6 +177,13 @@ int EVP_MD_CTX_copy_ex(EVP_MD_CTX *out, const EVP_MD_CTX *in) {
   assert(out->pctx == NULL || out->pctx_ops != NULL);
 
   return 1;
+}
+
+void EVP_MD_CTX_move(EVP_MD_CTX *out, EVP_MD_CTX *in) {
+  EVP_MD_CTX_cleanup(out);
+  // While not guaranteed, |EVP_MD_CTX| is currently safe to move with |memcpy|.
+  OPENSSL_memcpy(out, in, sizeof(EVP_MD_CTX));
+  EVP_MD_CTX_init(in);
 }
 
 int EVP_MD_CTX_copy(EVP_MD_CTX *out, const EVP_MD_CTX *in) {

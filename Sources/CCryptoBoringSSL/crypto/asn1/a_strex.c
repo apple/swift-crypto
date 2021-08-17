@@ -54,23 +54,27 @@
  * copied and put under another distribution licence
  * [including the GNU Public Licence.] */
 
-#include <CCryptoBoringSSL_x509.h>
+#include <CCryptoBoringSSL_asn1.h>
 
+#include <ctype.h>
 #include <inttypes.h>
 #include <string.h>
 
-#include <CCryptoBoringSSL_asn1.h>
+#include <CCryptoBoringSSL_bio.h>
 #include <CCryptoBoringSSL_mem.h>
-#include <CCryptoBoringSSL_obj.h>
 
 #include "charmap.h"
-#include "../asn1/asn1_locl.h"
+#include "internal.h"
 
-/*
- * ASN1_STRING_print_ex() and X509_NAME_print_ex(). Enhanced string and name
- * printing routines handling multibyte characters, RFC2253 and a host of
- * other options.
- */
+
+// These flags must be distinct from |ESC_FLAGS| and fit in a byte.
+
+// Character is a valid PrintableString character
+#define CHARTYPE_PRINTABLESTRING 0x10
+// Character needs escaping if it is the first character
+#define CHARTYPE_FIRST_ESC_2253 0x20
+// Character needs escaping if it is the last character
+#define CHARTYPE_LAST_ESC_2253 0x40
 
 #define CHARTYPE_BS_ESC         (ASN1_STRFLGS_ESC_2253 | CHARTYPE_FIRST_ESC_2253 | CHARTYPE_LAST_ESC_2253)
 
@@ -79,25 +83,11 @@
                   ASN1_STRFLGS_ESC_CTRL | \
                   ASN1_STRFLGS_ESC_MSB)
 
-static int send_bio_chars(void *arg, const void *buf, int len)
+static int maybe_write(BIO *out, const void *buf, int len)
 {
-    if (!arg)
-        return 1;
-    if (BIO_write(arg, buf, len) != len)
-        return 0;
-    return 1;
+    /* If |out| is NULL, ignore the output but report the length. */
+    return out == NULL || BIO_write(out, buf, len) == len;
 }
-
-static int send_fp_chars(void *arg, const void *buf, int len)
-{
-    if (!arg)
-        return 1;
-    if (fwrite(buf, 1, len, arg) != (unsigned int)len)
-        return 0;
-    return 1;
-}
-
-typedef int char_io (void *arg, const void *buf, int len);
 
 /*
  * This function handles display of strings, one character at a time. It is
@@ -108,20 +98,20 @@ typedef int char_io (void *arg, const void *buf, int len);
 #define HEX_SIZE(type) (sizeof(type)*2)
 
 static int do_esc_char(uint32_t c, unsigned char flags, char *do_quotes,
-                       char_io *io_ch, void *arg)
+                       BIO *out)
 {
     unsigned char chflgs, chtmp;
     char tmphex[HEX_SIZE(uint32_t) + 3];
 
     if (c > 0xffff) {
         BIO_snprintf(tmphex, sizeof tmphex, "\\W%08" PRIX32, c);
-        if (!io_ch(arg, tmphex, 10))
+        if (!maybe_write(out, tmphex, 10))
             return -1;
         return 10;
     }
     if (c > 0xff) {
         BIO_snprintf(tmphex, sizeof tmphex, "\\U%04" PRIX32, c);
-        if (!io_ch(arg, tmphex, 6))
+        if (!maybe_write(out, tmphex, 6))
             return -1;
         return 6;
     }
@@ -135,19 +125,19 @@ static int do_esc_char(uint32_t c, unsigned char flags, char *do_quotes,
         if (chflgs & ASN1_STRFLGS_ESC_QUOTE) {
             if (do_quotes)
                 *do_quotes = 1;
-            if (!io_ch(arg, &chtmp, 1))
+            if (!maybe_write(out, &chtmp, 1))
                 return -1;
             return 1;
         }
-        if (!io_ch(arg, "\\", 1))
+        if (!maybe_write(out, "\\", 1))
             return -1;
-        if (!io_ch(arg, &chtmp, 1))
+        if (!maybe_write(out, &chtmp, 1))
             return -1;
         return 2;
     }
     if (chflgs & (ASN1_STRFLGS_ESC_CTRL | ASN1_STRFLGS_ESC_MSB)) {
         BIO_snprintf(tmphex, 11, "\\%02X", chtmp);
-        if (!io_ch(arg, tmphex, 3))
+        if (!maybe_write(out, tmphex, 3))
             return -1;
         return 3;
     }
@@ -156,11 +146,11 @@ static int do_esc_char(uint32_t c, unsigned char flags, char *do_quotes,
      * character itself: backslash.
      */
     if (chtmp == '\\' && flags & ESC_FLAGS) {
-        if (!io_ch(arg, "\\\\", 2))
+        if (!maybe_write(out, "\\\\", 2))
             return -1;
         return 2;
     }
-    if (!io_ch(arg, &chtmp, 1))
+    if (!maybe_write(out, &chtmp, 1))
         return -1;
     return 1;
 }
@@ -175,8 +165,7 @@ static int do_esc_char(uint32_t c, unsigned char flags, char *do_quotes,
  */
 
 static int do_buf(unsigned char *buf, int buflen,
-                  int type, unsigned char flags, char *quotes, char_io *io_ch,
-                  void *arg)
+                  int type, unsigned char flags, char *quotes, BIO *out)
 {
     int i, outlen, len, charwidth;
     unsigned char orflags, *p, *q;
@@ -208,6 +197,8 @@ static int do_buf(unsigned char *buf, int buflen,
             orflags = CHARTYPE_FIRST_ESC_2253;
         else
             orflags = 0;
+        /* TODO(davidben): Replace this with |cbs_get_ucs2_be|, etc., to check
+         * for invalid codepoints. */
         switch (charwidth) {
         case 4:
             c = ((uint32_t)*p++) << 24;
@@ -248,17 +239,14 @@ static int do_buf(unsigned char *buf, int buflen,
                  * otherwise each character will be > 0x7f and so the
                  * character will never be escaped on first and last.
                  */
-                len =
-                    do_esc_char(utfbuf[i], (unsigned char)(flags | orflags),
-                                quotes, io_ch, arg);
+                len = do_esc_char(utfbuf[i], (unsigned char)(flags | orflags),
+                                  quotes, out);
                 if (len < 0)
                     return -1;
                 outlen += len;
             }
         } else {
-            len =
-                do_esc_char(c, (unsigned char)(flags | orflags), quotes,
-                            io_ch, arg);
+            len = do_esc_char(c, (unsigned char)(flags | orflags), quotes, out);
             if (len < 0)
                 return -1;
             outlen += len;
@@ -269,19 +257,18 @@ static int do_buf(unsigned char *buf, int buflen,
 
 /* This function hex dumps a buffer of characters */
 
-static int do_hex_dump(char_io *io_ch, void *arg, unsigned char *buf,
-                       int buflen)
+static int do_hex_dump(BIO *out, unsigned char *buf, int buflen)
 {
     static const char hexdig[] = "0123456789ABCDEF";
     unsigned char *p, *q;
     char hextmp[2];
-    if (arg) {
+    if (out) {
         p = buf;
         q = buf + buflen;
         while (p != q) {
             hextmp[0] = hexdig[*p >> 4];
             hextmp[1] = hexdig[*p & 0xf];
-            if (!io_ch(arg, hextmp, 2))
+            if (!maybe_write(out, hextmp, 2))
                 return -1;
             p++;
         }
@@ -295,38 +282,52 @@ static int do_hex_dump(char_io *io_ch, void *arg, unsigned char *buf,
  * encoding. This uses the RFC2253 #01234 format.
  */
 
-static int do_dump(unsigned long lflags, char_io *io_ch, void *arg,
-                   const ASN1_STRING *str)
+static int do_dump(unsigned long lflags, BIO *out, const ASN1_STRING *str)
 {
-    /*
-     * Placing the ASN1_STRING in a temp ASN1_TYPE allows the DER encoding to
-     * readily obtained
-     */
-    ASN1_TYPE t;
-    unsigned char *der_buf, *p;
-    int outlen, der_len;
-
-    if (!io_ch(arg, "#", 1))
+    if (!maybe_write(out, "#", 1)) {
         return -1;
+    }
+
     /* If we don't dump DER encoding just dump content octets */
     if (!(lflags & ASN1_STRFLGS_DUMP_DER)) {
-        outlen = do_hex_dump(io_ch, arg, str->data, str->length);
-        if (outlen < 0)
+        int outlen = do_hex_dump(out, str->data, str->length);
+        if (outlen < 0) {
             return -1;
+        }
         return outlen + 1;
     }
+
+    /*
+     * Placing the ASN1_STRING in a temporary ASN1_TYPE allows the DER encoding
+     * to readily obtained.
+     */
+    ASN1_TYPE t;
     t.type = str->type;
-    t.value.ptr = (char *)str;
-    der_len = i2d_ASN1_TYPE(&t, NULL);
-    der_buf = OPENSSL_malloc(der_len);
-    if (!der_buf)
+    /* Negative INTEGER and ENUMERATED values are the only case where
+     * |ASN1_STRING| and |ASN1_TYPE| types do not match.
+     *
+     * TODO(davidben): There are also some type fields which, in |ASN1_TYPE|, do
+     * not correspond to |ASN1_STRING|. It is unclear whether those are allowed
+     * in |ASN1_STRING| at all, or what the space of allowed types is.
+     * |ASN1_item_ex_d2i| will never produce such a value so, for now, we say
+     * this is an invalid input. But this corner of the library in general
+     * should be more robust. */
+    if (t.type == V_ASN1_NEG_INTEGER) {
+      t.type = V_ASN1_INTEGER;
+    } else if (t.type == V_ASN1_NEG_ENUMERATED) {
+      t.type = V_ASN1_ENUMERATED;
+    }
+    t.value.asn1_string = (ASN1_STRING *)str;
+    unsigned char *der_buf = NULL;
+    int der_len = i2d_ASN1_TYPE(&t, &der_buf);
+    if (der_len < 0) {
         return -1;
-    p = der_buf;
-    i2d_ASN1_TYPE(&t, &p);
-    outlen = do_hex_dump(io_ch, arg, der_buf, der_len);
+    }
+    int outlen = do_hex_dump(out, der_buf, der_len);
     OPENSSL_free(der_buf);
-    if (outlen < 0)
+    if (outlen < 0) {
         return -1;
+    }
     return outlen + 1;
 }
 
@@ -353,8 +354,7 @@ static const signed char tag2nbyte[] = {
  * an error occurred.
  */
 
-static int do_print_ex(char_io *io_ch, void *arg, unsigned long lflags,
-                       const ASN1_STRING *str)
+int ASN1_STRING_print_ex(BIO *out, const ASN1_STRING *str, unsigned long lflags)
 {
     int outlen, len;
     int type;
@@ -372,7 +372,7 @@ static int do_print_ex(char_io *io_ch, void *arg, unsigned long lflags,
         const char *tagname;
         tagname = ASN1_tag2str(type);
         outlen += strlen(tagname);
-        if (!io_ch(arg, tagname, outlen) || !io_ch(arg, ":", 1))
+        if (!maybe_write(out, tagname, outlen) || !maybe_write(out, ":", 1))
             return -1;
         outlen++;
     }
@@ -396,7 +396,7 @@ static int do_print_ex(char_io *io_ch, void *arg, unsigned long lflags,
     }
 
     if (type == -1) {
-        len = do_dump(lflags, io_ch, arg, str);
+        len = do_dump(lflags, out, str);
         if (len < 0)
             return -1;
         outlen += len;
@@ -415,219 +415,41 @@ static int do_print_ex(char_io *io_ch, void *arg, unsigned long lflags,
             type |= BUF_TYPE_CONVUTF8;
     }
 
-    len = do_buf(str->data, str->length, type, flags, &quotes, io_ch, NULL);
+    len = do_buf(str->data, str->length, type, flags, &quotes, NULL);
     if (len < 0)
         return -1;
     outlen += len;
     if (quotes)
         outlen += 2;
-    if (!arg)
+    if (!out)
         return outlen;
-    if (quotes && !io_ch(arg, "\"", 1))
+    if (quotes && !maybe_write(out, "\"", 1))
         return -1;
-    if (do_buf(str->data, str->length, type, flags, NULL, io_ch, arg) < 0)
+    if (do_buf(str->data, str->length, type, flags, NULL, out) < 0)
         return -1;
-    if (quotes && !io_ch(arg, "\"", 1))
+    if (quotes && !maybe_write(out, "\"", 1))
         return -1;
     return outlen;
 }
 
-/* Used for line indenting: print 'indent' spaces */
-
-static int do_indent(char_io *io_ch, void *arg, int indent)
+int ASN1_STRING_print_ex_fp(FILE *fp, const ASN1_STRING *str,
+                            unsigned long flags)
 {
-    int i;
-    for (i = 0; i < indent; i++)
-        if (!io_ch(arg, " ", 1))
-            return 0;
-    return 1;
-}
-
-#define FN_WIDTH_LN     25
-#define FN_WIDTH_SN     10
-
-static int do_name_ex(char_io *io_ch, void *arg, const X509_NAME *n,
-                      int indent, unsigned long flags)
-{
-    int i, prev = -1, orflags, cnt;
-    int fn_opt, fn_nid;
-    ASN1_OBJECT *fn;
-    ASN1_STRING *val;
-    X509_NAME_ENTRY *ent;
-    char objtmp[80];
-    const char *objbuf;
-    int outlen, len;
-    const char *sep_dn, *sep_mv, *sep_eq;
-    int sep_dn_len, sep_mv_len, sep_eq_len;
-    if (indent < 0)
-        indent = 0;
-    outlen = indent;
-    if (!do_indent(io_ch, arg, indent))
-        return -1;
-    switch (flags & XN_FLAG_SEP_MASK) {
-    case XN_FLAG_SEP_MULTILINE:
-        sep_dn = "\n";
-        sep_dn_len = 1;
-        sep_mv = " + ";
-        sep_mv_len = 3;
-        break;
-
-    case XN_FLAG_SEP_COMMA_PLUS:
-        sep_dn = ",";
-        sep_dn_len = 1;
-        sep_mv = "+";
-        sep_mv_len = 1;
-        indent = 0;
-        break;
-
-    case XN_FLAG_SEP_CPLUS_SPC:
-        sep_dn = ", ";
-        sep_dn_len = 2;
-        sep_mv = " + ";
-        sep_mv_len = 3;
-        indent = 0;
-        break;
-
-    case XN_FLAG_SEP_SPLUS_SPC:
-        sep_dn = "; ";
-        sep_dn_len = 2;
-        sep_mv = " + ";
-        sep_mv_len = 3;
-        indent = 0;
-        break;
-
-    default:
-        return -1;
-    }
-
-    if (flags & XN_FLAG_SPC_EQ) {
-        sep_eq = " = ";
-        sep_eq_len = 3;
-    } else {
-        sep_eq = "=";
-        sep_eq_len = 1;
-    }
-
-    fn_opt = flags & XN_FLAG_FN_MASK;
-
-    cnt = X509_NAME_entry_count(n);
-    for (i = 0; i < cnt; i++) {
-        if (flags & XN_FLAG_DN_REV)
-            ent = X509_NAME_get_entry(n, cnt - i - 1);
-        else
-            ent = X509_NAME_get_entry(n, i);
-        if (prev != -1) {
-            if (prev == ent->set) {
-                if (!io_ch(arg, sep_mv, sep_mv_len))
-                    return -1;
-                outlen += sep_mv_len;
-            } else {
-                if (!io_ch(arg, sep_dn, sep_dn_len))
-                    return -1;
-                outlen += sep_dn_len;
-                if (!do_indent(io_ch, arg, indent))
-                    return -1;
-                outlen += indent;
-            }
-        }
-        prev = ent->set;
-        fn = X509_NAME_ENTRY_get_object(ent);
-        val = X509_NAME_ENTRY_get_data(ent);
-        fn_nid = OBJ_obj2nid(fn);
-        if (fn_opt != XN_FLAG_FN_NONE) {
-            int objlen, fld_len;
-            if ((fn_opt == XN_FLAG_FN_OID) || (fn_nid == NID_undef)) {
-                OBJ_obj2txt(objtmp, sizeof objtmp, fn, 1);
-                fld_len = 0;    /* XXX: what should this be? */
-                objbuf = objtmp;
-            } else {
-                if (fn_opt == XN_FLAG_FN_SN) {
-                    fld_len = FN_WIDTH_SN;
-                    objbuf = OBJ_nid2sn(fn_nid);
-                } else if (fn_opt == XN_FLAG_FN_LN) {
-                    fld_len = FN_WIDTH_LN;
-                    objbuf = OBJ_nid2ln(fn_nid);
-                } else {
-                    fld_len = 0; /* XXX: what should this be? */
-                    objbuf = "";
-                }
-            }
-            objlen = strlen(objbuf);
-            if (!io_ch(arg, objbuf, objlen))
-                return -1;
-            if ((objlen < fld_len) && (flags & XN_FLAG_FN_ALIGN)) {
-                if (!do_indent(io_ch, arg, fld_len - objlen))
-                    return -1;
-                outlen += fld_len - objlen;
-            }
-            if (!io_ch(arg, sep_eq, sep_eq_len))
-                return -1;
-            outlen += objlen + sep_eq_len;
-        }
-        /*
-         * If the field name is unknown then fix up the DER dump flag. We
-         * might want to limit this further so it will DER dump on anything
-         * other than a few 'standard' fields.
-         */
-        if ((fn_nid == NID_undef) && (flags & XN_FLAG_DUMP_UNKNOWN_FIELDS))
-            orflags = ASN1_STRFLGS_DUMP_ALL;
-        else
-            orflags = 0;
-
-        len = do_print_ex(io_ch, arg, flags | orflags, val);
-        if (len < 0)
+    BIO *bio = NULL;
+    if (fp != NULL) {
+        /* If |fp| is NULL, this function returns the number of bytes without
+         * writing. */
+        bio = BIO_new_fp(fp, BIO_NOCLOSE);
+        if (bio == NULL) {
             return -1;
-        outlen += len;
+        }
     }
-    return outlen;
+    int ret = ASN1_STRING_print_ex(bio, str, flags);
+    BIO_free(bio);
+    return ret;
 }
 
-/* Wrappers round the main functions */
-
-int X509_NAME_print_ex(BIO *out, const X509_NAME *nm, int indent,
-                       unsigned long flags)
-{
-    if (flags == XN_FLAG_COMPAT)
-        return X509_NAME_print(out, nm, indent);
-    return do_name_ex(send_bio_chars, out, nm, indent, flags);
-}
-
-#ifndef OPENSSL_NO_FP_API
-int X509_NAME_print_ex_fp(FILE *fp, const X509_NAME *nm, int indent,
-                          unsigned long flags)
-{
-    if (flags == XN_FLAG_COMPAT) {
-        BIO *btmp;
-        int ret;
-        btmp = BIO_new_fp(fp, BIO_NOCLOSE);
-        if (!btmp)
-            return -1;
-        ret = X509_NAME_print(btmp, nm, indent);
-        BIO_free(btmp);
-        return ret;
-    }
-    return do_name_ex(send_fp_chars, fp, nm, indent, flags);
-}
-#endif
-
-int ASN1_STRING_print_ex(BIO *out, const ASN1_STRING *str, unsigned long flags)
-{
-    return do_print_ex(send_bio_chars, out, flags, str);
-}
-
-#ifndef OPENSSL_NO_FP_API
-int ASN1_STRING_print_ex_fp(FILE *fp, const ASN1_STRING *str, unsigned long flags)
-{
-    return do_print_ex(send_fp_chars, fp, flags, str);
-}
-#endif
-
-/*
- * Utility function: convert any string type to UTF8, returns number of bytes
- * in output string or a negative error code
- */
-
-int ASN1_STRING_to_UTF8(unsigned char **out, ASN1_STRING *in)
+int ASN1_STRING_to_UTF8(unsigned char **out, const ASN1_STRING *in)
 {
     ASN1_STRING stmp, *str = &stmp;
     int mbflag, type, ret;
@@ -643,11 +465,186 @@ int ASN1_STRING_to_UTF8(unsigned char **out, ASN1_STRING *in)
     stmp.data = NULL;
     stmp.length = 0;
     stmp.flags = 0;
-    ret =
-        ASN1_mbstring_copy(&str, in->data, in->length, mbflag,
-                           B_ASN1_UTF8STRING);
+    ret = ASN1_mbstring_copy(&str, in->data, in->length, mbflag,
+                             B_ASN1_UTF8STRING);
     if (ret < 0)
         return ret;
     *out = stmp.data;
     return stmp.length;
+}
+
+int ASN1_STRING_print(BIO *bp, const ASN1_STRING *v)
+{
+    int i, n;
+    char buf[80];
+    const char *p;
+
+    if (v == NULL)
+        return (0);
+    n = 0;
+    p = (const char *)v->data;
+    for (i = 0; i < v->length; i++) {
+        if ((p[i] > '~') || ((p[i] < ' ') &&
+                             (p[i] != '\n') && (p[i] != '\r')))
+            buf[n] = '.';
+        else
+            buf[n] = p[i];
+        n++;
+        if (n >= 80) {
+            if (BIO_write(bp, buf, n) <= 0)
+                return (0);
+            n = 0;
+        }
+    }
+    if (n > 0)
+        if (BIO_write(bp, buf, n) <= 0)
+            return (0);
+    return (1);
+}
+
+int ASN1_TIME_print(BIO *bp, const ASN1_TIME *tm)
+{
+    if (tm->type == V_ASN1_UTCTIME)
+        return ASN1_UTCTIME_print(bp, tm);
+    if (tm->type == V_ASN1_GENERALIZEDTIME)
+        return ASN1_GENERALIZEDTIME_print(bp, tm);
+    BIO_write(bp, "Bad time value", 14);
+    return (0);
+}
+
+static const char *const mon[12] = {
+    "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+    "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
+};
+
+int ASN1_GENERALIZEDTIME_print(BIO *bp, const ASN1_GENERALIZEDTIME *tm)
+{
+    char *v;
+    int gmt = 0;
+    int i;
+    int y = 0, M = 0, d = 0, h = 0, m = 0, s = 0;
+    char *f = NULL;
+    int f_len = 0;
+
+    i = tm->length;
+    v = (char *)tm->data;
+
+    if (i < 12)
+        goto err;
+    if (v[i - 1] == 'Z')
+        gmt = 1;
+    for (i = 0; i < 12; i++)
+        if ((v[i] > '9') || (v[i] < '0'))
+            goto err;
+    y = (v[0] - '0') * 1000 + (v[1] - '0') * 100 + (v[2] - '0') * 10 + (v[3] -
+                                                                        '0');
+    M = (v[4] - '0') * 10 + (v[5] - '0');
+    if ((M > 12) || (M < 1))
+        goto err;
+    d = (v[6] - '0') * 10 + (v[7] - '0');
+    h = (v[8] - '0') * 10 + (v[9] - '0');
+    m = (v[10] - '0') * 10 + (v[11] - '0');
+    if (tm->length >= 14 &&
+        (v[12] >= '0') && (v[12] <= '9') &&
+        (v[13] >= '0') && (v[13] <= '9')) {
+        s = (v[12] - '0') * 10 + (v[13] - '0');
+        /* Check for fractions of seconds. */
+        if (tm->length >= 15 && v[14] == '.') {
+            int l = tm->length;
+            f = &v[14];         /* The decimal point. */
+            f_len = 1;
+            while (14 + f_len < l && f[f_len] >= '0' && f[f_len] <= '9')
+                ++f_len;
+        }
+    }
+
+    if (BIO_printf(bp, "%s %2d %02d:%02d:%02d%.*s %d%s",
+                   mon[M - 1], d, h, m, s, f_len, f, y,
+                   (gmt) ? " GMT" : "") <= 0)
+        return (0);
+    else
+        return (1);
+ err:
+    BIO_write(bp, "Bad time value", 14);
+    return (0);
+}
+
+// consume_two_digits is a helper function for ASN1_UTCTIME_print. If |*v|,
+// assumed to be |*len| bytes long, has two leading digits, updates |*out| with
+// their value, updates |v| and |len|, and returns one. Otherwise, returns
+// zero.
+static int consume_two_digits(int* out, const char **v, int *len) {
+  if (*len < 2|| !isdigit((*v)[0]) || !isdigit((*v)[1])) {
+    return 0;
+  }
+  *out = ((*v)[0] - '0') * 10 + ((*v)[1] - '0');
+  *len -= 2;
+  *v += 2;
+  return 1;
+}
+
+// consume_zulu_timezone is a helper function for ASN1_UTCTIME_print. If |*v|,
+// assumed to be |*len| bytes long, starts with "Z" then it updates |*v| and
+// |*len| and returns one. Otherwise returns zero.
+static int consume_zulu_timezone(const char **v, int *len) {
+  if (*len == 0 || (*v)[0] != 'Z') {
+    return 0;
+  }
+
+  *len -= 1;
+  *v += 1;
+  return 1;
+}
+
+int ASN1_UTCTIME_print(BIO *bp, const ASN1_UTCTIME *tm) {
+  const char *v = (const char *)tm->data;
+  int len = tm->length;
+  int Y = 0, M = 0, D = 0, h = 0, m = 0, s = 0;
+
+  // YYMMDDhhmm are required to be present.
+  if (!consume_two_digits(&Y, &v, &len) ||
+      !consume_two_digits(&M, &v, &len) ||
+      !consume_two_digits(&D, &v, &len) ||
+      !consume_two_digits(&h, &v, &len) ||
+      !consume_two_digits(&m, &v, &len)) {
+    goto err;
+  }
+  // https://tools.ietf.org/html/rfc5280, section 4.1.2.5.1, requires seconds
+  // to be present, but historically this code has forgiven its absence.
+  consume_two_digits(&s, &v, &len);
+
+  // https://tools.ietf.org/html/rfc5280, section 4.1.2.5.1, specifies this
+  // interpretation of the year.
+  if (Y < 50) {
+    Y += 2000;
+  } else {
+    Y += 1900;
+  }
+  if (M > 12 || M == 0) {
+    goto err;
+  }
+  if (D > 31 || D == 0) {
+    goto err;
+  }
+  if (h > 23 || m > 59 || s > 60) {
+    goto err;
+  }
+
+  // https://tools.ietf.org/html/rfc5280, section 4.1.2.5.1, requires the "Z"
+  // to be present, but historically this code has forgiven its absence.
+  const int is_gmt = consume_zulu_timezone(&v, &len);
+
+  // https://tools.ietf.org/html/rfc5280, section 4.1.2.5.1, does not permit
+  // the specification of timezones using the +hhmm / -hhmm syntax, which is
+  // the only other thing that might legitimately be found at the end.
+  if (len) {
+    goto err;
+  }
+
+  return BIO_printf(bp, "%s %2d %02d:%02d:%02d %d%s", mon[M - 1], D, h, m, s, Y,
+                    is_gmt ? " GMT" : "") > 0;
+
+err:
+  BIO_write(bp, "Bad time value", 14);
+  return 0;
 }

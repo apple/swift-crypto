@@ -59,6 +59,9 @@
 #include <CCryptoBoringSSL_obj.h>
 #include <CCryptoBoringSSL_x509.h>
 
+#include "internal.h"
+
+
 int X509_REQ_set_version(X509_REQ *x, long version)
 {
     if (x == NULL)

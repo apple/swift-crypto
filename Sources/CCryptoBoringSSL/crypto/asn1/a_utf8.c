@@ -59,7 +59,7 @@
 #include <CCryptoBoringSSL_err.h>
 #include <CCryptoBoringSSL_mem.h>
 
-#include "asn1_locl.h"
+#include "internal.h"
 
 /* UTF8 utilities */
 
