@@ -153,7 +153,7 @@ extern "C" {
 // Trusty isn't Linux but currently defines __linux__. As a workaround, we
 // exclude it here.
 // TODO(b/169780122): Remove this workaround once Trusty no longer defines it.
-#if defined(__linux__) && !defined(TRUSTY)
+#if defined(__linux__) && !defined(__TRUSTY__)
 #define OPENSSL_LINUX
 #endif
 
@@ -161,7 +161,7 @@ extern "C" {
 #define OPENSSL_FUCHSIA
 #endif
 
-#if defined(TRUSTY)
+#if defined(__TRUSTY__)
 #define OPENSSL_TRUSTY
 #define OPENSSL_NO_THREADS_CORRUPT_MEMORY_AND_LEAK_SECRETS_IF_THREADED
 #endif
@@ -453,9 +453,10 @@ typedef struct trust_token_method_st TRUST_TOKEN_METHOD;
 typedef struct v3_ext_ctx X509V3_CTX;
 typedef struct x509_attributes_st X509_ATTRIBUTE;
 typedef struct x509_cert_aux_st X509_CERT_AUX;
-typedef struct x509_cinf_st X509_CINF;
 typedef struct x509_crl_method_st X509_CRL_METHOD;
 typedef struct x509_lookup_st X509_LOOKUP;
+typedef struct x509_lookup_method_st X509_LOOKUP_METHOD;
+typedef struct x509_object_st X509_OBJECT;
 typedef struct x509_revoked_st X509_REVOKED;
 typedef struct x509_st X509;
 typedef struct x509_store_ctx_st X509_STORE_CTX;

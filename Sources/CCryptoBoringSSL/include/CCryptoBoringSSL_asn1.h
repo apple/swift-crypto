@@ -111,10 +111,6 @@ extern "C" {
 // V_ASN1_UNDEF is used in some APIs to indicate an ASN.1 element is omitted.
 #define V_ASN1_UNDEF (-1)
 
-// V_ASN1_APP_CHOOSE is used in some APIs to specify a default ASN.1 type based
-// on the context.
-#define V_ASN1_APP_CHOOSE (-2)
-
 // V_ASN1_OTHER is used in |ASN1_TYPE| to indicate a non-universal ASN.1 type.
 #define V_ASN1_OTHER (-3)
 
@@ -384,7 +380,7 @@ OPENSSL_EXPORT int ASN1_mbstring_ncopy(ASN1_STRING **out, const uint8_t *in,
 // in several forms:
 //
 // Some BIT STRINGs represent a bitmask of named bits, such as the X.509 key
-// usage extension in RFC5280, section 4.2.1.3. For such bit strings, DER
+// usage extension in RFC 5280, section 4.2.1.3. For such bit strings, DER
 // imposes an additional restriction that trailing zero bits are removed. Some
 // functions like |ASN1_BIT_STRING_set_bit| help in maintaining this.
 //
@@ -523,10 +519,10 @@ OPENSSL_EXPORT BIGNUM *ASN1_ENUMERATED_to_BN(const ASN1_ENUMERATED *ai,
 // epoch would be "19700101000000Z" for a GeneralizedTime and "700101000000Z"
 // for a UTCTime.
 //
-// ASN.1 does not define how to interpret UTCTime's two-digit year. RFC5280
+// ASN.1 does not define how to interpret UTCTime's two-digit year. RFC 5280
 // defines it as a range from 1950 to 2049 for X.509. The library uses the
-// RFC5280 interpretation. It does not currently enforce the restrictions from
-// BER, and the additional restrictions from RFC5280, but future versions may.
+// RFC 5280 interpretation. It does not currently enforce the restrictions from
+// BER, and the additional restrictions from RFC 5280, but future versions may.
 // Callers should not rely on fractional seconds and non-UTC time zones.
 //
 // The |ASN1_TIME| typedef represents the X.509 Time type, which is a CHOICE of
@@ -606,7 +602,7 @@ OPENSSL_EXPORT int ASN1_TIME_diff(int *out_days, int *out_seconds,
                                   const ASN1_TIME *from, const ASN1_TIME *to);
 
 // ASN1_TIME_set represents |t| as a GeneralizedTime or UTCTime and writes
-// the result to |s|. As in RFC5280, section 4.1.2.5, it uses UTCTime when the
+// the result to |s|. As in RFC 5280, section 4.1.2.5, it uses UTCTime when the
 // time fits and GeneralizedTime otherwise. It returns |s| on success and NULL
 // on error. If |s| is NULL, it returns a newly-allocated |ASN1_TIME| instead.
 //
@@ -614,7 +610,7 @@ OPENSSL_EXPORT int ASN1_TIME_diff(int *out_days, int *out_seconds,
 OPENSSL_EXPORT ASN1_TIME *ASN1_TIME_set(ASN1_TIME *s, time_t t);
 
 // ASN1_TIME_adj adds |offset_day| days and |offset_sec| seconds to
-// |t| and writes the result to |s|. As in RFC5280, section 4.1.2.5, it uses
+// |t| and writes the result to |s|. As in RFC 5280, section 4.1.2.5, it uses
 // UTCTime when the time fits and GeneralizedTime otherwise. It returns |s| on
 // success and NULL on error. If |s| is NULL, it returns a newly-allocated
 // |ASN1_GENERALIZEDTIME| instead.
@@ -774,7 +770,7 @@ OPENSSL_EXPORT int ASN1_TIME_print(BIO *out, const ASN1_TIME *a);
 // replaced with '.'.
 OPENSSL_EXPORT int ASN1_STRING_print(BIO *out, const ASN1_STRING *str);
 
-// ASN1_STRFLGS_ESC_2253 causes characters to be escaped as in RFC2253, section
+// ASN1_STRFLGS_ESC_2253 causes characters to be escaped as in RFC 2253, section
 // 2.4.
 #define ASN1_STRFLGS_ESC_2253 1
 
@@ -805,7 +801,7 @@ OPENSSL_EXPORT int ASN1_STRING_print(BIO *out, const ASN1_STRING *str);
 #define ASN1_STRFLGS_SHOW_TYPE 0x40
 
 // ASN1_STRFLGS_DUMP_ALL causes all strings to be printed as a hexdump, using
-// RFC2253 hexstring notation, such as "#0123456789ABCDEF".
+// RFC 2253 hexstring notation, such as "#0123456789ABCDEF".
 #define ASN1_STRFLGS_DUMP_ALL 0x80
 
 // ASN1_STRFLGS_DUMP_UNKNOWN behaves like |ASN1_STRFLGS_DUMP_ALL| but only
@@ -815,11 +811,11 @@ OPENSSL_EXPORT int ASN1_STRING_print(BIO *out, const ASN1_STRING *str);
 
 // ASN1_STRFLGS_DUMP_DER causes hexdumped strings (as determined by
 // |ASN1_STRFLGS_DUMP_ALL| or |ASN1_STRFLGS_DUMP_UNKNOWN|) to print the entire
-// DER element as in RFC2253, rather than only the contents of the
+// DER element as in RFC 2253, rather than only the contents of the
 // |ASN1_STRING|.
 #define ASN1_STRFLGS_DUMP_DER 0x200
 
-// ASN1_STRFLGS_RFC2253 causes the string to be escaped as in RFC2253,
+// ASN1_STRFLGS_RFC2253 causes the string to be escaped as in RFC 2253,
 // additionally escaping control characters.
 #define ASN1_STRFLGS_RFC2253                                              \
   (ASN1_STRFLGS_ESC_2253 | ASN1_STRFLGS_ESC_CTRL | ASN1_STRFLGS_ESC_MSB | \
@@ -1118,9 +1114,11 @@ OPENSSL_EXPORT ASN1_OBJECT *ASN1_OBJECT_create(int nid,
                                                int len, const char *sn,
                                                const char *ln);
 
-// General
-// given a string, return the correct type, max is the maximum length
-OPENSSL_EXPORT int ASN1_PRINTABLE_type(const unsigned char *s, int max);
+// ASN1_PRINTABLE_type interprets |len| bytes from |s| as a Latin-1 string. It
+// returns the first of |V_ASN1_PRINTABLESTRING|, |V_ASN1_IA5STRING|, or
+// |V_ASN1_T61STRING| that can represent every character. If |len| is negative,
+// |strlen(s)| is used instead.
+OPENSSL_EXPORT int ASN1_PRINTABLE_type(const unsigned char *s, int len);
 
 OPENSSL_EXPORT unsigned long ASN1_tag2bit(int tag);
 
