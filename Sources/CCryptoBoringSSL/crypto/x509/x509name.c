@@ -64,6 +64,7 @@
 #include <CCryptoBoringSSL_x509.h>
 
 #include "../internal.h"
+#include "internal.h"
 
 
 int X509_NAME_get_text_by_NID(const X509_NAME *name, int nid, char *buf,
@@ -367,10 +368,7 @@ int X509_NAME_ENTRY_set_data(X509_NAME_ENTRY *ne, int type,
     if (!i)
         return (0);
     if (type != V_ASN1_UNDEF) {
-        if (type == V_ASN1_APP_CHOOSE)
-            ne->value->type = ASN1_PRINTABLE_type(bytes, len);
-        else
-            ne->value->type = type;
+        ne->value->type = type;
     }
     return (1);
 }

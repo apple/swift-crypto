@@ -66,8 +66,6 @@
 #include "internal.h"
 #include "../bytestring/internal.h"
 
-static int is_printable(uint32_t value);
-
 /*
  * These functions take a string in UTF8, ASCII or multibyte form and a mask
  * of permissible ASN1 string types. It then works out the minimal type
@@ -153,7 +151,7 @@ int ASN1_mbstring_ncopy(ASN1_STRING **out, const unsigned char *in, int len,
         }
 
         /* Update which output formats are still possible. */
-        if ((mask & B_ASN1_PRINTABLESTRING) && !is_printable(c)) {
+        if ((mask & B_ASN1_PRINTABLESTRING) && !asn1_is_printable(c)) {
             mask &= ~B_ASN1_PRINTABLESTRING;
         }
         if ((mask & B_ASN1_IA5STRING) && (c > 127)) {
@@ -285,24 +283,16 @@ int ASN1_mbstring_ncopy(ASN1_STRING **out, const unsigned char *in, int len,
     return -1;
 }
 
-/* Return 1 if the character is permitted in a PrintableString */
-static int is_printable(uint32_t value)
+int asn1_is_printable(uint32_t value)
 {
-    int ch;
-    if (value > 0x7f)
+    if (value > 0x7f) {
         return 0;
-    ch = (int)value;
-    /*
-     * Note: we can't use 'isalnum' because certain accented characters may
-     * count as alphanumeric in some environments.
-     */
-    if ((ch >= 'a') && (ch <= 'z'))
-        return 1;
-    if ((ch >= 'A') && (ch <= 'Z'))
-        return 1;
-    if ((ch >= '0') && (ch <= '9'))
-        return 1;
-    if ((ch == ' ') || strchr("'()+,-./:=?", ch))
-        return 1;
-    return 0;
+    }
+    /* Note we cannot use |isalnum| because it is locale-dependent. */
+    return ('a' <= value && value <= 'z') ||  //
+           ('A' <= value && value <= 'Z') ||  //
+           ('0' <= value && value <= '9') ||  //
+           value == ' ' || value == '\'' || value == '(' || value == ')' ||
+           value == '+' || value == ',' || value == '-' || value == '.' ||
+           value == '/' || value == ':' || value == '=' || value == '?';
 }

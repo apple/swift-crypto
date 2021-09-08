@@ -154,6 +154,11 @@ OPENSSL_EXPORT int CBS_get_u16_length_prefixed(CBS *cbs, CBS *out);
 // returns one on success and zero on error.
 OPENSSL_EXPORT int CBS_get_u24_length_prefixed(CBS *cbs, CBS *out);
 
+// CBS_get_until_first finds the first instance of |c| in |cbs|. If found, it
+// sets |*out| to the text before the match, advances |cbs| over it, and returns
+// one. Otherwise, it returns zero and leaves |cbs| unmodified.
+OPENSSL_EXPORT int CBS_get_until_first(CBS *cbs, CBS *out, uint8_t c);
+
 
 // Parsing ASN.1
 //
@@ -462,6 +467,10 @@ OPENSSL_EXPORT int CBB_add_asn1(CBB *cbb, CBB *out_contents, unsigned tag);
 // CBB_add_bytes appends |len| bytes from |data| to |cbb|. It returns one on
 // success and zero otherwise.
 OPENSSL_EXPORT int CBB_add_bytes(CBB *cbb, const uint8_t *data, size_t len);
+
+// CBB_add_zeros append |len| bytes with value zero to |cbb|. It returns one on
+// success and zero otherwise.
+OPENSSL_EXPORT int CBB_add_zeros(CBB *cbb, size_t len);
 
 // CBB_add_space appends |len| bytes to |cbb| and sets |*out_data| to point to
 // the beginning of that space. The caller must then write |len| bytes of
