@@ -36,19 +36,30 @@ class PBKDF2Tests: XCTestCase {
     }
         
     func oneshotTesting<H: HashFunction>(_ vector: RFCTestVector, hash: H.Type) throws {
+        let (contiguousInput, discontiguousInput) = vector.inputSecret.asDataProtocols()
         let (contiguousSalt, discontiguousSalt) = vector.salt.asDataProtocols()
         
-        let DK1 = try PBKDF2<H>.deriveKey(from: vector.inputSecret, salt: contiguousSalt,
+        let DK1 = try PBKDF2<H>.deriveKey(from: contiguousInput, salt: contiguousSalt,
                                       outputByteCount: vector.outputLength,
                                       rounds: vector.rounds)
         
-        let DK2 = try PBKDF2<H>.deriveKey(from: vector.inputSecret, salt: discontiguousSalt,
+        let DK2 = try PBKDF2<H>.deriveKey(from: discontiguousInput, salt: contiguousSalt,
+                                      outputByteCount: vector.outputLength,
+                                      rounds: vector.rounds)
+        
+        let DK3 = try PBKDF2<H>.deriveKey(from: contiguousInput, salt: discontiguousSalt,
+                                      outputByteCount: vector.outputLength,
+                                      rounds: vector.rounds)
+        
+        let DK4 = try PBKDF2<H>.deriveKey(from: discontiguousInput, salt: discontiguousSalt,
                                       outputByteCount: vector.outputLength,
                                       rounds: vector.rounds)
                 
         let expectedDK = SymmetricKey(data: vector.derivedKey)
         XCTAssertEqual(DK1, expectedDK)
         XCTAssertEqual(DK2, expectedDK)
+        XCTAssertEqual(DK3, expectedDK)
+        XCTAssertEqual(DK4, expectedDK)
     }
         
     func testRFCVector<H: HashFunction>(_ vector: RFCTestVector, hash: H.Type) throws {
