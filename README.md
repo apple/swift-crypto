@@ -12,7 +12,7 @@ Swift Crypto is available as a Swift Package Manager package. To use it, add the
 .package(url: "https://github.com/apple/swift-crypto.git", "1.0.0" ..< "3.0.0"),
 ```
 
-and to your target, add "Crypto" to your dependencies. You can then `import Crypto` to get access to Swift Crypto's functionality.
+and to your target, add `Crypto` to your dependencies. You can then `import Crypto` to get access to Swift Crypto's functionality.
 
 ## Functionality
 
@@ -118,7 +118,7 @@ What this means for you is that you should depend on Swift Crypto with a version
 In SwiftPM that can be easily done specifying for example `from: "1.0.0"` meaning that you support Swift Crypto in every version starting from 1.0.0 up to (excluding) 2.0.0.
 SemVer and Swift Crypto's Public API guarantees should result in a working program without having to worry about testing every single version for compatibility.
 
-Swift Crypto 2.0.0 was recently released. The only breaking change between Swift Crypto 2.0.0 and 1.0.0 was the addition of new cases in the `CryptoKitError` enumeration. For most users, then, it's safe to depend on either the 1.0.0 _or_ 2.0.0 series of releases.
+Swift Crypto 2.0.0 was released in September 2021. The only breaking change between Swift Crypto 2.0.0 and 1.0.0 was the addition of new cases in the `CryptoKitError` enumeration. For most users, then, it's safe to depend on either the 1.0.0 _or_ 2.0.0 series of releases.
 
 To do so, please use the following dependency in your `Package.swift`:
 
