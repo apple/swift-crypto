@@ -1,4 +1,4 @@
-// swift-tools-version:5.2
+// swift-tools-version:5.3
 //===----------------------------------------------------------------------===//
 //
 // This source file is part of the SwiftCrypto open source project
