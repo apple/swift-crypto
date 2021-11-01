@@ -24,11 +24,34 @@
 
 import PackageDescription
 
-let swiftSettings: [SwiftSetting] = [
-    .define("CRYPTO_IN_SWIFTPM"),
-    // To develop this on Apple platforms, uncomment this define.
-    // .define("CRYPTO_IN_SWIFTPM_FORCE_BUILD_API"),
-]
+// To develop this on Apple platforms, set this to true
+let development = false
+
+let swiftSettings: [SwiftSetting]
+let dependencies: [Target.Dependency]
+if development {
+    swiftSettings = [
+        .define("CRYPTO_IN_SWIFTPM"),
+        .define("CRYPTO_IN_SWIFTPM_FORCE_BUILD_API"),
+    ]
+    dependencies = [
+        "CCryptoBoringSSL",
+        "CCryptoBoringSSLShims"
+    ]
+} else {
+    swiftSettings = [
+        .define("CRYPTO_IN_SWIFTPM"),
+    ]
+    let platforms: [Platform] = [
+        Platform.linux,
+        Platform.android,
+        Platform.windows,
+    ]
+    dependencies = [
+        .targetItem(name: "CCryptoBoringSSL", condition: .when(platforms: platforms)),
+        .targetItem(name: "CCryptoBoringSSLShims", condition: .when(platforms: platforms))
+    ]
+}
 
 let package = Package(
     name: "swift-crypto",
@@ -59,7 +82,11 @@ let package = Package(
           ]
         ),
         .target(name: "CCryptoBoringSSLShims", dependencies: ["CCryptoBoringSSL"]),
-        .target(name: "Crypto", dependencies: ["CCryptoBoringSSL", "CCryptoBoringSSLShims"], swiftSettings: swiftSettings),
+        .target(
+            name: "Crypto",
+            dependencies: dependencies,
+            swiftSettings: swiftSettings
+        ),
         .target(name: "_CryptoExtras", dependencies: ["CCryptoBoringSSL", "CCryptoBoringSSLShims", "Crypto"]),
         .target(name: "crypto-shasum", dependencies: ["Crypto"]),
         .testTarget(name: "CryptoTests", dependencies: ["Crypto"], swiftSettings: swiftSettings),
