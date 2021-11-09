@@ -34,7 +34,6 @@ add_library(CCryptoBoringSSL STATIC
   "crypto/asn1/asn1_lib.c"
   "crypto/asn1/asn1_par.c"
   "crypto/asn1/asn_pack.c"
-  "crypto/asn1/f_enum.c"
   "crypto/asn1/f_int.c"
   "crypto/asn1/f_string.c"
   "crypto/asn1/tasn_dec.c"

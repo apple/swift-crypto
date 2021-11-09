@@ -1,7 +1,7 @@
 #define BORINGSSL_PREFIX CCryptoBoringSSL
 #if defined(__i386__) && defined(_WIN32)
-# This file is generated from a similarly-named Perl script in the BoringSSL
-# source tree. Do not edit by hand.
+// This file is generated from a similarly-named Perl script in the BoringSSL
+// source tree. Do not edit by hand.
 
 #if defined(__i386__)
 #if defined(BORINGSSL_PREFIX)
