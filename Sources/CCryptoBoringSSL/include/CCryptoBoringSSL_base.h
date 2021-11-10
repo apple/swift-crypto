@@ -336,8 +336,11 @@ enum ssl_verify_result_t BORINGSSL_ENUM_INT;
 // CRYPTO_THREADID is a dummy value.
 typedef int CRYPTO_THREADID;
 
+// An |ASN1_NULL| is an opaque type. asn1.h represents the ASN.1 NULL value as
+// an opaque, non-NULL |ASN1_NULL*| pointer.
+typedef struct asn1_null_st ASN1_NULL;
+
 typedef int ASN1_BOOLEAN;
-typedef int ASN1_NULL;
 typedef struct ASN1_ITEM_st ASN1_ITEM;
 typedef struct asn1_object_st ASN1_OBJECT;
 typedef struct asn1_pctx_st ASN1_PCTX;
@@ -381,7 +384,6 @@ typedef struct X509_name_st X509_NAME;
 typedef struct X509_pubkey_st X509_PUBKEY;
 typedef struct X509_req_st X509_REQ;
 typedef struct X509_sig_st X509_SIG;
-typedef struct X509_val_st X509_VAL;
 typedef struct bignum_ctx BN_CTX;
 typedef struct bignum_st BIGNUM;
 typedef struct bio_method_st BIO_METHOD;
@@ -430,6 +432,7 @@ typedef struct private_key_st X509_PKEY;
 typedef struct rand_meth_st RAND_METHOD;
 typedef struct rc4_key_st RC4_KEY;
 typedef struct rsa_meth_st RSA_METHOD;
+typedef struct rsa_pss_params_st RSA_PSS_PARAMS;
 typedef struct rsa_st RSA;
 typedef struct sha256_state_st SHA256_CTX;
 typedef struct sha512_state_st SHA512_CTX;
@@ -438,6 +441,7 @@ typedef struct spake2_ctx_st SPAKE2_CTX;
 typedef struct srtp_protection_profile_st SRTP_PROTECTION_PROFILE;
 typedef struct ssl_cipher_st SSL_CIPHER;
 typedef struct ssl_ctx_st SSL_CTX;
+typedef struct ssl_early_callback_ctx SSL_CLIENT_HELLO;
 typedef struct ssl_ech_keys_st SSL_ECH_KEYS;
 typedef struct ssl_method_st SSL_METHOD;
 typedef struct ssl_private_key_method_st SSL_PRIVATE_KEY_METHOD;
