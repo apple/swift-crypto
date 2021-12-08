@@ -64,6 +64,7 @@
 #include <CCryptoBoringSSL_obj.h>
 #include <CCryptoBoringSSL_x509v3.h>
 
+#include "../x509/internal.h"
 #include "internal.h"
 
 

@@ -62,6 +62,7 @@
 #include <time.h>
 
 #include <CCryptoBoringSSL_asn1.h>
+#include <CCryptoBoringSSL_asn1t.h>
 
 #if defined(__cplusplus)
 extern "C" {
@@ -106,6 +107,25 @@ struct asn1_object_st {
   int flags;                 /* Should we free this one */
 };
 
+ASN1_OBJECT *ASN1_OBJECT_new(void);
+
+// ASN1_ENCODING structure: this is used to save the received
+// encoding of an ASN1 type. This is useful to get round
+// problems with invalid encodings which can break signatures.
+typedef struct ASN1_ENCODING_st {
+  unsigned char *enc;  // DER encoding
+  long len;            // Length of encoding
+  int modified;        // set to 1 if 'enc' is invalid
+  // alias_only is zero if |enc| owns the buffer that it points to
+  // (although |enc| may still be NULL). If one, |enc| points into a
+  // buffer that is owned elsewhere.
+  unsigned alias_only : 1;
+  // alias_only_on_next_parse is one iff the next parsing operation
+  // should avoid taking a copy of the input and rather set
+  // |alias_only|.
+  unsigned alias_only_on_next_parse : 1;
+} ASN1_ENCODING;
+
 int asn1_utctime_to_tm(struct tm *tm, const ASN1_UTCTIME *d);
 int asn1_generalizedtime_to_tm(struct tm *tm, const ASN1_GENERALIZEDTIME *d);
 
@@ -123,15 +143,31 @@ int ASN1_item_ex_d2i(ASN1_VALUE **pval, const unsigned char **in, long len,
                      const ASN1_ITEM *it, int tag, int aclass, char opt,
                      ASN1_TLC *ctx);
 
+/* ASN1_item_ex_i2d encodes |*pval| as a value of type |it| to |out| under the
+ * i2d output convention. It returns a non-zero length on success and -1 on
+ * error. If |tag| is -1. the tag and class come from |it|. Otherwise, the tag
+ * number is |tag| and the class is |aclass|. This is used for implicit tagging.
+ * This function treats a missing value as an error, not an optional field. */
 int ASN1_item_ex_i2d(ASN1_VALUE **pval, unsigned char **out,
                      const ASN1_ITEM *it, int tag, int aclass);
+
 void ASN1_primitive_free(ASN1_VALUE **pval, const ASN1_ITEM *it);
 
+/* asn1_get_choice_selector returns the CHOICE selector value for |*pval|, which
+ * must of type |it|. */
 int asn1_get_choice_selector(ASN1_VALUE **pval, const ASN1_ITEM *it);
+
 int asn1_set_choice_selector(ASN1_VALUE **pval, int value, const ASN1_ITEM *it);
 
+/* asn1_get_field_ptr returns a pointer to the field in |*pval| corresponding to
+ * |tt|. */
 ASN1_VALUE **asn1_get_field_ptr(ASN1_VALUE **pval, const ASN1_TEMPLATE *tt);
 
+/* asn1_do_adb returns the |ASN1_TEMPLATE| for the ANY DEFINED BY field |tt|,
+ * based on the selector INTEGER or OID in |*pval|. If |tt| is not an ADB field,
+ * it returns |tt|. If the selector does not match any value, it returns NULL.
+ * If |nullerr| is non-zero, it will additionally push an error to the error
+ * queue when there is no match. */
 const ASN1_TEMPLATE *asn1_do_adb(ASN1_VALUE **pval, const ASN1_TEMPLATE *tt,
                                  int nullerr);
 
@@ -140,8 +176,13 @@ int asn1_refcount_dec_and_test_zero(ASN1_VALUE **pval, const ASN1_ITEM *it);
 
 void asn1_enc_init(ASN1_VALUE **pval, const ASN1_ITEM *it);
 void asn1_enc_free(ASN1_VALUE **pval, const ASN1_ITEM *it);
+
+/* asn1_enc_restore, if |*pval| has a saved encoding, writes it to |out| under
+ * the i2d output convention, sets |*len| to the length, and returns one. If it
+ * has no saved encoding, it returns zero. */
 int asn1_enc_restore(int *len, unsigned char **out, ASN1_VALUE **pval,
                      const ASN1_ITEM *it);
+
 int asn1_enc_save(ASN1_VALUE **pval, const unsigned char *in, int inlen,
                   const ASN1_ITEM *it);
 
@@ -153,6 +194,27 @@ const void *asn1_type_value_as_pointer(const ASN1_TYPE *a);
 /* asn1_is_printable returns one if |value| is a valid Unicode codepoint for an
  * ASN.1 PrintableString, and zero otherwise. */
 int asn1_is_printable(uint32_t value);
+
+/* asn1_bit_string_length returns the number of bytes in |str| and sets
+ * |*out_padding_bits| to the number of padding bits.
+ *
+ * This function should be used instead of |ASN1_STRING_length| to correctly
+ * handle the non-|ASN1_STRING_FLAG_BITS_LEFT| case. */
+int asn1_bit_string_length(const ASN1_BIT_STRING *str,
+                           uint8_t *out_padding_bits);
+
+typedef struct {
+  int nid;
+  long minsize;
+  long maxsize;
+  unsigned long mask;
+  unsigned long flags;
+} ASN1_STRING_TABLE;
+
+/* asn1_get_string_table_for_testing sets |*out_ptr| and |*out_len| to the table
+ * of built-in |ASN1_STRING_TABLE| values. It is exported for testing. */
+OPENSSL_EXPORT void asn1_get_string_table_for_testing(
+    const ASN1_STRING_TABLE **out_ptr, size_t *out_len);
 
 
 #if defined(__cplusplus)

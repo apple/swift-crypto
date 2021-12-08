@@ -60,7 +60,7 @@
 #include "CCryptoBoringSSL_lhash.h"
 #include "CCryptoBoringSSL_x509.h"
 
-#ifdef __cplusplus
+#if defined(__cplusplus)
 extern "C" {
 #endif
 
@@ -928,8 +928,8 @@ DEFINE_STACK_OF(X509_POLICY_NODE)
 // made after this point may be overwritten when the script is next run.
 
 
-#ifdef __cplusplus
-}
+#if defined(__cplusplus)
+}  // extern C
 
 extern "C++" {
 
@@ -1016,5 +1016,6 @@ BSSL_NAMESPACE_END
 #define X509V3_R_UNSUPPORTED_TYPE 161
 #define X509V3_R_USER_TOO_LONG 162
 #define X509V3_R_INVALID_VALUE 163
+#define X509V3_R_TRAILING_DATA_IN_EXTENSION 164
 
 #endif

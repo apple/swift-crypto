@@ -69,20 +69,26 @@
 
 int i2d_ASN1_OBJECT(const ASN1_OBJECT *a, unsigned char **pp)
 {
-    unsigned char *p, *allocated = NULL;
-    int objsize;
+    if (a == NULL) {
+        OPENSSL_PUT_ERROR(ASN1, ERR_R_PASSED_NULL_PARAMETER);
+        return -1;
+    }
 
-    if ((a == NULL) || (a->data == NULL))
-        return (0);
+    if (a->length == 0) {
+        OPENSSL_PUT_ERROR(ASN1, ASN1_R_ILLEGAL_OBJECT);
+        return -1;
+    }
 
-    objsize = ASN1_object_size(0, a->length, V_ASN1_OBJECT);
-    if (pp == NULL || objsize == -1)
+    int objsize = ASN1_object_size(0, a->length, V_ASN1_OBJECT);
+    if (pp == NULL || objsize == -1) {
         return objsize;
+    }
 
+    unsigned char *p, *allocated = NULL;
     if (*pp == NULL) {
         if ((p = allocated = OPENSSL_malloc(objsize)) == NULL) {
             OPENSSL_PUT_ERROR(ASN1, ERR_R_MALLOC_FAILURE);
-            return 0;
+            return -1;
         }
     } else {
         p = *pp;
@@ -104,54 +110,65 @@ int i2t_ASN1_OBJECT(char *buf, int buf_len, const ASN1_OBJECT *a)
     return OBJ_obj2txt(buf, buf_len, a, 0);
 }
 
+static int write_str(BIO *bp, const char *str)
+{
+    int len = strlen(str);
+    return BIO_write(bp, str, len) == len ? len : -1;
+}
+
 int i2a_ASN1_OBJECT(BIO *bp, const ASN1_OBJECT *a)
 {
-    char buf[80], *p = buf;
-    int i;
-
-    if ((a == NULL) || (a->data == NULL))
-        return (BIO_write(bp, "NULL", 4));
-    i = i2t_ASN1_OBJECT(buf, sizeof buf, a);
-    if (i > (int)(sizeof(buf) - 1)) {
-        p = OPENSSL_malloc(i + 1);
-        if (!p)
-            return -1;
-        i2t_ASN1_OBJECT(p, i + 1, a);
+    if (a == NULL || a->data == NULL) {
+        return write_str(bp, "NULL");
     }
-    if (i <= 0)
-        return BIO_write(bp, "<INVALID>", 9);
-    BIO_write(bp, p, i);
-    if (p != buf)
-        OPENSSL_free(p);
-    return (i);
+
+    char buf[80], *allocated = NULL;
+    const char *str = buf;
+    int len = i2t_ASN1_OBJECT(buf, sizeof(buf), a);
+    if (len > (int)sizeof(buf) - 1) {
+        /* The input was truncated. Allocate a buffer that fits. */
+        allocated = OPENSSL_malloc(len + 1);
+        if (allocated == NULL) {
+            return -1;
+        }
+        len = i2t_ASN1_OBJECT(allocated, len + 1, a);
+        str = allocated;
+    }
+    if (len <= 0) {
+        str = "<INVALID>";
+    }
+
+    int ret = write_str(bp, str);
+    OPENSSL_free(allocated);
+    return ret;
 }
 
 ASN1_OBJECT *d2i_ASN1_OBJECT(ASN1_OBJECT **a, const unsigned char **pp,
                              long length)
 {
-    const unsigned char *p;
     long len;
     int tag, xclass;
-    int inf, i;
-    ASN1_OBJECT *ret = NULL;
-    p = *pp;
-    inf = ASN1_get_object(&p, &len, &tag, &xclass, length);
+    const unsigned char *p = *pp;
+    int inf = ASN1_get_object(&p, &len, &tag, &xclass, length);
     if (inf & 0x80) {
-        i = ASN1_R_BAD_OBJECT_HEADER;
-        goto err;
+        OPENSSL_PUT_ERROR(ASN1, ASN1_R_BAD_OBJECT_HEADER);
+        return NULL;
     }
 
-    if (tag != V_ASN1_OBJECT) {
-        i = ASN1_R_EXPECTING_AN_OBJECT;
-        goto err;
+    if (inf & V_ASN1_CONSTRUCTED) {
+        OPENSSL_PUT_ERROR(ASN1, ASN1_R_TYPE_NOT_PRIMITIVE);
+        return NULL;
     }
-    ret = c2i_ASN1_OBJECT(a, &p, len);
-    if (ret)
+
+    if (tag != V_ASN1_OBJECT || xclass != V_ASN1_UNIVERSAL) {
+        OPENSSL_PUT_ERROR(ASN1, ASN1_R_EXPECTING_AN_OBJECT);
+        return NULL;
+    }
+    ASN1_OBJECT *ret = c2i_ASN1_OBJECT(a, &p, len);
+    if (ret) {
         *pp = p;
+    }
     return ret;
- err:
-    OPENSSL_PUT_ERROR(ASN1, i);
-    return (NULL);
 }
 
 ASN1_OBJECT *c2i_ASN1_OBJECT(ASN1_OBJECT **a, const unsigned char **pp,
