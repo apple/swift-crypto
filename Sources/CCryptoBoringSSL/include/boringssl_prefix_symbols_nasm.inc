@@ -264,6 +264,7 @@
 %xdefine _BIO_s_file _ %+ BORINGSSL_PREFIX %+ _BIO_s_file
 %xdefine _BIO_s_mem _ %+ BORINGSSL_PREFIX %+ _BIO_s_mem
 %xdefine _BIO_s_socket _ %+ BORINGSSL_PREFIX %+ _BIO_s_socket
+%xdefine _BIO_seek _ %+ BORINGSSL_PREFIX %+ _BIO_seek
 %xdefine _BIO_set_close _ %+ BORINGSSL_PREFIX %+ _BIO_set_close
 %xdefine _BIO_set_conn_hostname _ %+ BORINGSSL_PREFIX %+ _BIO_set_conn_hostname
 %xdefine _BIO_set_conn_int_port _ %+ BORINGSSL_PREFIX %+ _BIO_set_conn_int_port
@@ -288,6 +289,7 @@
 %xdefine _BIO_should_write _ %+ BORINGSSL_PREFIX %+ _BIO_should_write
 %xdefine _BIO_shutdown_wr _ %+ BORINGSSL_PREFIX %+ _BIO_shutdown_wr
 %xdefine _BIO_snprintf _ %+ BORINGSSL_PREFIX %+ _BIO_snprintf
+%xdefine _BIO_tell _ %+ BORINGSSL_PREFIX %+ _BIO_tell
 %xdefine _BIO_test_flags _ %+ BORINGSSL_PREFIX %+ _BIO_test_flags
 %xdefine _BIO_up_ref _ %+ BORINGSSL_PREFIX %+ _BIO_up_ref
 %xdefine _BIO_vfree _ %+ BORINGSSL_PREFIX %+ _BIO_vfree
@@ -3112,6 +3114,7 @@
 %xdefine BIO_s_file BORINGSSL_PREFIX %+ _BIO_s_file
 %xdefine BIO_s_mem BORINGSSL_PREFIX %+ _BIO_s_mem
 %xdefine BIO_s_socket BORINGSSL_PREFIX %+ _BIO_s_socket
+%xdefine BIO_seek BORINGSSL_PREFIX %+ _BIO_seek
 %xdefine BIO_set_close BORINGSSL_PREFIX %+ _BIO_set_close
 %xdefine BIO_set_conn_hostname BORINGSSL_PREFIX %+ _BIO_set_conn_hostname
 %xdefine BIO_set_conn_int_port BORINGSSL_PREFIX %+ _BIO_set_conn_int_port
@@ -3136,6 +3139,7 @@
 %xdefine BIO_should_write BORINGSSL_PREFIX %+ _BIO_should_write
 %xdefine BIO_shutdown_wr BORINGSSL_PREFIX %+ _BIO_shutdown_wr
 %xdefine BIO_snprintf BORINGSSL_PREFIX %+ _BIO_snprintf
+%xdefine BIO_tell BORINGSSL_PREFIX %+ _BIO_tell
 %xdefine BIO_test_flags BORINGSSL_PREFIX %+ _BIO_test_flags
 %xdefine BIO_up_ref BORINGSSL_PREFIX %+ _BIO_up_ref
 %xdefine BIO_vfree BORINGSSL_PREFIX %+ _BIO_vfree
