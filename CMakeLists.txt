@@ -37,6 +37,11 @@ if(BUILD_SHARED_LIBS)
   set(CMAKE_POSITION_INDEPENDENT_CODE YES)
 endif()
 
+if(CMAKE_SYSTEM_NAME STREQUAL Darwin AND NOT CMAKE_CROSSCOMPILING)
+  set(CMAKE_AR "/usr/bin/ar")
+  set(CMAKE_C_ARCHIVE_CREATE "<CMAKE_AR> crs <TARGET> <LINK_FLAGS> <OBJECTS>")
+endif()
+
 if(NOT CMAKE_SYSTEM_NAME STREQUAL Darwin)
   find_package(dispatch CONFIG)
   find_package(Foundation CONFIG)
