@@ -112,7 +112,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include <CCryptoBoringSSL_cpu.h>
 #include <CCryptoBoringSSL_err.h>
 #include <CCryptoBoringSSL_mem.h>
 

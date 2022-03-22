@@ -1,4 +1,4 @@
-/* Copyright (c) 2014, Google Inc.
+/* Copyright (c) 2022, Google Inc.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -12,27 +12,25 @@
  * OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN
  * CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. */
 
-#include "internal.h"
+#ifndef OPENSSL_HEADER_CRYPTO_FIPSMODULE_DH_INTERNAL_H
+#define OPENSSL_HEADER_CRYPTO_FIPSMODULE_DH_INTERNAL_H
 
-#if (defined(OPENSSL_ARM) || defined(OPENSSL_AARCH64)) && \
-    !defined(OPENSSL_STATIC_ARMCAP)
+#include <CCryptoBoringSSL_base.h>
 
-#include <CCryptoBoringSSL_arm_arch.h>
+#if defined(__cplusplus)
+extern "C" {
+#endif
 
 
-extern uint32_t OPENSSL_armcap_P;
+// dh_compute_key_padded_no_self_test does the same as |DH_compute_key_padded|,
+// but doesn't try to run the self-test first. This is for use in the self tests
+// themselves, to prevent an infinite loop.
+int dh_compute_key_padded_no_self_test(unsigned char *out,
+                                       const BIGNUM *peers_key, DH *dh);
 
-int CRYPTO_is_NEON_capable_at_runtime(void) {
-  return (OPENSSL_armcap_P & ARMV7_NEON) != 0;
+
+#if defined(__cplusplus)
 }
+#endif
 
-int CRYPTO_is_ARMv8_AES_capable_at_runtime(void) {
-  return (OPENSSL_armcap_P & ARMV8_AES) != 0;
-}
-
-int CRYPTO_is_ARMv8_PMULL_capable_at_runtime(void) {
-  return (OPENSSL_armcap_P & ARMV8_PMULL) != 0;
-}
-
-#endif  /* (defined(OPENSSL_ARM) || defined(OPENSSL_AARCH64)) &&
-           !defined(OPENSSL_STATIC_ARMCAP) */
+#endif  // OPENSSL_HEADER_CRYPTO_FIPSMODULE_DH_INTERNAL_H

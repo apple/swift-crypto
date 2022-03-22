@@ -290,7 +290,6 @@ echo "PROTECTING against executable stacks"
 
 echo "PATCHING BoringSSL"
 git apply "${HERE}/scripts/patch-1-inttypes.patch"
-git apply "${HERE}/scripts/patch-2-arm-arch.patch"
 
 # We need BoringSSL to be modularised
 echo "MODULARISING BoringSSL"

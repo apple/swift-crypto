@@ -20,8 +20,6 @@
 
 #include <string.h>
 
-#include <CCryptoBoringSSL_cpu.h>
-
 #include "internal.h"
 #include "../internal.h"
 
