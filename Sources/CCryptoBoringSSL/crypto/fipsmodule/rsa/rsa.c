@@ -303,13 +303,21 @@ int RSA_public_encrypt(size_t flen, const uint8_t *from, uint8_t *to, RSA *rsa,
   return out_len;
 }
 
-int RSA_sign_raw(RSA *rsa, size_t *out_len, uint8_t *out, size_t max_out,
-                 const uint8_t *in, size_t in_len, int padding) {
+static int rsa_sign_raw_no_self_test(RSA *rsa, size_t *out_len, uint8_t *out,
+                                     size_t max_out, const uint8_t *in,
+                                     size_t in_len, int padding) {
   if (rsa->meth->sign_raw) {
     return rsa->meth->sign_raw(rsa, out_len, out, max_out, in, in_len, padding);
   }
 
   return rsa_default_sign_raw(rsa, out_len, out, max_out, in, in_len, padding);
+}
+
+int RSA_sign_raw(RSA *rsa, size_t *out_len, uint8_t *out, size_t max_out,
+                 const uint8_t *in, size_t in_len, int padding) {
+  boringssl_ensure_rsa_self_test();
+  return rsa_sign_raw_no_self_test(rsa, out_len, out, max_out, in, in_len,
+                                   padding);
 }
 
 int RSA_private_encrypt(size_t flen, const uint8_t *from, uint8_t *to, RSA *rsa,
@@ -523,8 +531,9 @@ int RSA_add_pkcs1_prefix(uint8_t **out_msg, size_t *out_msg_len,
   return 0;
 }
 
-int RSA_sign(int hash_nid, const uint8_t *digest, unsigned digest_len,
-             uint8_t *out, unsigned *out_len, RSA *rsa) {
+int rsa_sign_no_self_test(int hash_nid, const uint8_t *digest,
+                          unsigned digest_len, uint8_t *out, unsigned *out_len,
+                          RSA *rsa) {
   const unsigned rsa_size = RSA_size(rsa);
   int ret = 0;
   uint8_t *signed_msg = NULL;
@@ -539,8 +548,9 @@ int RSA_sign(int hash_nid, const uint8_t *digest, unsigned digest_len,
   if (!RSA_add_pkcs1_prefix(&signed_msg, &signed_msg_len,
                             &signed_msg_is_alloced, hash_nid, digest,
                             digest_len) ||
-      !RSA_sign_raw(rsa, &size_t_out_len, out, rsa_size, signed_msg,
-                    signed_msg_len, RSA_PKCS1_PADDING)) {
+      !rsa_sign_raw_no_self_test(rsa, &size_t_out_len, out, rsa_size,
+                                 signed_msg, signed_msg_len,
+                                 RSA_PKCS1_PADDING)) {
     goto err;
   }
 
@@ -552,6 +562,13 @@ err:
     OPENSSL_free(signed_msg);
   }
   return ret;
+}
+
+int RSA_sign(int hash_nid, const uint8_t *digest, unsigned digest_len,
+             uint8_t *out, unsigned *out_len, RSA *rsa) {
+  boringssl_ensure_rsa_self_test();
+
+  return rsa_sign_no_self_test(hash_nid, digest, digest_len, out, out_len, rsa);
 }
 
 int RSA_sign_pss_mgf1(RSA *rsa, size_t *out_len, uint8_t *out, size_t max_out,
@@ -577,8 +594,9 @@ int RSA_sign_pss_mgf1(RSA *rsa, size_t *out_len, uint8_t *out, size_t max_out,
   return ret;
 }
 
-int RSA_verify(int hash_nid, const uint8_t *digest, size_t digest_len,
-               const uint8_t *sig, size_t sig_len, RSA *rsa) {
+int rsa_verify_no_self_test(int hash_nid, const uint8_t *digest,
+                            size_t digest_len, const uint8_t *sig,
+                            size_t sig_len, RSA *rsa) {
   if (rsa->n == NULL || rsa->e == NULL) {
     OPENSSL_PUT_ERROR(RSA, RSA_R_VALUE_MISSING);
     return 0;
@@ -602,12 +620,9 @@ int RSA_verify(int hash_nid, const uint8_t *digest, size_t digest_len,
     return 0;
   }
 
-  if (!RSA_verify_raw(rsa, &len, buf, rsa_size, sig, sig_len,
-                      RSA_PKCS1_PADDING)) {
-    goto out;
-  }
-
-  if (!RSA_add_pkcs1_prefix(&signed_msg, &signed_msg_len,
+  if (!rsa_verify_raw_no_self_test(rsa, &len, buf, rsa_size, sig, sig_len,
+                                   RSA_PKCS1_PADDING) ||
+      !RSA_add_pkcs1_prefix(&signed_msg, &signed_msg_len,
                             &signed_msg_is_alloced, hash_nid, digest,
                             digest_len)) {
     goto out;
@@ -628,6 +643,13 @@ out:
     OPENSSL_free(signed_msg);
   }
   return ret;
+}
+
+int RSA_verify(int hash_nid, const uint8_t *digest, size_t digest_len,
+               const uint8_t *sig, size_t sig_len, RSA *rsa) {
+  boringssl_ensure_rsa_self_test();
+  return rsa_verify_no_self_test(hash_nid, digest, digest_len, sig, sig_len,
+                                 rsa);
 }
 
 int RSA_verify_pss_mgf1(RSA *rsa, const uint8_t *digest, size_t digest_len,
@@ -905,9 +927,9 @@ int RSA_check_fips(RSA *key) {
     ret = 0;
     goto cleanup;
   }
-#if defined(BORINGSSL_FIPS_BREAK_RSA_PWCT)
-  data[0] = ~data[0];
-#endif
+  if (boringssl_fips_break_test("RSA_PWCT")) {
+    data[0] = ~data[0];
+  }
   if (!RSA_verify(NID_sha256, data, sizeof(data), sig, sig_len, key)) {
     OPENSSL_PUT_ERROR(RSA, ERR_R_INTERNAL_ERROR);
     ret = 0;

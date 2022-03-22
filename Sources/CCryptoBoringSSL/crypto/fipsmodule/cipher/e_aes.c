@@ -52,7 +52,6 @@
 #include <CCryptoBoringSSL_aead.h>
 #include <CCryptoBoringSSL_aes.h>
 #include <CCryptoBoringSSL_cipher.h>
-#include <CCryptoBoringSSL_cpu.h>
 #include <CCryptoBoringSSL_err.h>
 #include <CCryptoBoringSSL_mem.h>
 #include <CCryptoBoringSSL_nid.h>

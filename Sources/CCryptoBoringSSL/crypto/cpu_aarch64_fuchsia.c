@@ -12,7 +12,7 @@
  * OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN
  * CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. */
 
-#include <CCryptoBoringSSL_cpu.h>
+#include "internal.h"
 
 #if defined(OPENSSL_AARCH64) && defined(OPENSSL_FUCHSIA) && \
     !defined(OPENSSL_STATIC_ARMCAP)
@@ -23,16 +23,14 @@
 
 #include <CCryptoBoringSSL_arm_arch.h>
 
-#include "internal.h"
-
 extern uint32_t OPENSSL_armcap_P;
 
 void OPENSSL_cpuid_setup(void) {
   uint32_t hwcap;
   zx_status_t rc = zx_system_get_features(ZX_FEATURE_KIND_CPU, &hwcap);
   if (rc != ZX_OK || (hwcap & ZX_ARM64_FEATURE_ISA_ASIMD) == 0) {
-    // Matching OpenSSL, if NEON/ASIMD is missing, don't report other features
-    // either.
+    // If NEON/ASIMD is missing, don't report other features either. This
+    // matches OpenSSL, and the other features depend on SIMD registers.
     return;
   }
 
@@ -47,12 +45,12 @@ void OPENSSL_cpuid_setup(void) {
   if (hwcap & ZX_ARM64_FEATURE_ISA_SHA1) {
     OPENSSL_armcap_P |= ARMV8_SHA1;
   }
-  if (hwcap & ZX_ARM64_FEATURE_ISA_SHA2) {
+  if (hwcap & ZX_ARM64_FEATURE_ISA_SHA256) {
     OPENSSL_armcap_P |= ARMV8_SHA256;
   }
-  // As of writing, Fuchsia does not have a flag for ARMv8.2 SHA-512
-  // extensions. When it does, add it here. See
-  // https://bugs.fuchsia.dev/p/fuchsia/issues/detail?id=90759.
+  if (hwcap & ZX_ARM64_FEATURE_ISA_SHA512) {
+    OPENSSL_armcap_P |= ARMV8_SHA512;
+  }
 }
 
 #endif  // OPENSSL_AARCH64 && OPENSSL_FUCHSIA && !OPENSSL_STATIC_ARMCAP
