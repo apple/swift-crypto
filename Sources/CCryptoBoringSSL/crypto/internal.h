@@ -121,6 +121,10 @@
 #include <valgrind/memcheck.h>
 #endif
 
+#if defined(BORINGSSL_FIPS_BREAK_TESTS)
+#include <stdlib.h>
+#endif
+
 #if !defined(__cplusplus)
 #if defined(_MSC_VER)
 #define alignas(x) __declspec(align(x))
@@ -932,25 +936,310 @@ static inline uint64_t CRYPTO_rotr_u64(uint64_t value, int shift) {
 // FIPS functions.
 
 #if defined(BORINGSSL_FIPS)
+
 // BORINGSSL_FIPS_abort is called when a FIPS power-on or continuous test
 // fails. It prevents any further cryptographic operations by the current
 // process.
 void BORINGSSL_FIPS_abort(void) __attribute__((noreturn));
-#endif
 
-// boringssl_fips_self_test runs the FIPS KAT-based self tests. It returns one
-// on success and zero on error. The argument is the integrity hash of the FIPS
-// module and may be used to check and write flag files to suppress duplicate
-// self-tests. If |module_hash_len| is zero then no flag file will be checked
-// nor written and tests will always be run.
-int boringssl_fips_self_test(const uint8_t *module_hash,
-                             size_t module_hash_len);
+// boringssl_self_test_startup runs all startup self tests and returns one on
+// success or zero on error. Startup self tests do not include lazy tests.
+// Call |BORINGSSL_self_test| to run every self test.
+int boringssl_self_test_startup(void);
+
+// boringssl_ensure_rsa_self_test checks whether the RSA self-test has been run
+// in this address space. If not, it runs it and crashes the address space if
+// unsuccessful.
+void boringssl_ensure_rsa_self_test(void);
+
+// boringssl_ensure_ecc_self_test checks whether the ECDSA and ECDH self-test
+// has been run in this address space. If not, it runs it and crashes the
+// address space if unsuccessful.
+void boringssl_ensure_ecc_self_test(void);
+
+// boringssl_ensure_ffdh_self_test checks whether the FFDH self-test has been
+// run in this address space. If not, it runs it and crashes the address space
+// if unsuccessful.
+void boringssl_ensure_ffdh_self_test(void);
+
+#else
+
+// Outside of FIPS mode, the lazy tests are no-ops.
+
+OPENSSL_INLINE void boringssl_ensure_rsa_self_test(void) {}
+OPENSSL_INLINE void boringssl_ensure_ecc_self_test(void) {}
+OPENSSL_INLINE void boringssl_ensure_ffdh_self_test(void) {}
+
+#endif  // FIPS
+
+// boringssl_self_test_sha256 performs a SHA-256 KAT.
+int boringssl_self_test_sha256(void);
+
+// boringssl_self_test_sha512 performs a SHA-512 KAT.
+int boringssl_self_test_sha512(void);
+
+// boringssl_self_test_hmac_sha256 performs an HMAC-SHA-256 KAT.
+int boringssl_self_test_hmac_sha256(void);
 
 #if defined(BORINGSSL_FIPS_COUNTERS)
 void boringssl_fips_inc_counter(enum fips_counter_t counter);
 #else
 OPENSSL_INLINE void boringssl_fips_inc_counter(enum fips_counter_t counter) {}
 #endif
+
+#if defined(BORINGSSL_FIPS_BREAK_TESTS)
+OPENSSL_INLINE int boringssl_fips_break_test(const char *test) {
+  const char *const value = getenv("BORINGSSL_FIPS_BREAK_TEST");
+  return value != NULL && strcmp(value, test) == 0;
+}
+#else
+OPENSSL_INLINE int boringssl_fips_break_test(const char *test) {
+  return 0;
+}
+#endif  // BORINGSSL_FIPS_BREAK_TESTS
+
+
+// Runtime CPU feature support
+
+#if defined(OPENSSL_X86) || defined(OPENSSL_X86_64)
+// OPENSSL_ia32cap_P contains the Intel CPUID bits when running on an x86 or
+// x86-64 system.
+//
+//   Index 0:
+//     EDX for CPUID where EAX = 1
+//     Bit 20 is always zero
+//     Bit 28 is adjusted to reflect whether the data cache is shared between
+//       multiple logical cores
+//     Bit 30 is used to indicate an Intel CPU
+//   Index 1:
+//     ECX for CPUID where EAX = 1
+//     Bit 11 is used to indicate AMD XOP support, not SDBG
+//   Index 2:
+//     EBX for CPUID where EAX = 7
+//   Index 3:
+//     ECX for CPUID where EAX = 7
+//
+// Note: the CPUID bits are pre-adjusted for the OSXSAVE bit and the YMM and XMM
+// bits in XCR0, so it is not necessary to check those.
+extern uint32_t OPENSSL_ia32cap_P[4];
+
+#if defined(BORINGSSL_FIPS) && !defined(BORINGSSL_SHARED_LIBRARY)
+// The FIPS module, as a static library, requires an out-of-line version of
+// |OPENSSL_ia32cap_get| so accesses can be rewritten by delocate. Mark the
+// function const so multiple accesses can be optimized together.
+const uint32_t *OPENSSL_ia32cap_get(void) __attribute__((const));
+#else
+OPENSSL_INLINE const uint32_t *OPENSSL_ia32cap_get(void) {
+  return OPENSSL_ia32cap_P;
+}
+#endif
+
+// See Intel manual, volume 2A, table 3-11.
+
+OPENSSL_INLINE int CRYPTO_is_FXSR_capable(void) {
+#if defined(__FXSR__)
+  return 1;
+#else
+  return (OPENSSL_ia32cap_get()[0] & (1 << 24)) != 0;
+#endif
+}
+
+OPENSSL_INLINE int CRYPTO_is_intel_cpu(void) {
+  // The reserved bit 30 is used to indicate an Intel CPU.
+  return (OPENSSL_ia32cap_get()[0] & (1 << 30)) != 0;
+}
+
+// See Intel manual, volume 2A, table 3-10.
+
+OPENSSL_INLINE int CRYPTO_is_PCLMUL_capable(void) {
+#if defined(__PCLMUL__)
+  return 1;
+#else
+  return (OPENSSL_ia32cap_get()[1] & (1 << 1)) != 0;
+#endif
+}
+
+OPENSSL_INLINE int CRYPTO_is_SSSE3_capable(void) {
+#if defined(__SSSE3__)
+  return 1;
+#else
+  return (OPENSSL_ia32cap_get()[1] & (1 << 9)) != 0;
+#endif
+}
+
+OPENSSL_INLINE int CRYPTO_is_SSE4_1_capable(void) {
+#if defined(__SSE4_1__)
+  return 1;
+#else
+  return (OPENSSL_ia32cap_P[1] & (1 << 19)) != 0;
+#endif
+}
+
+OPENSSL_INLINE int CRYPTO_is_MOVBE_capable(void) {
+#if defined(__MOVBE__)
+  return 1;
+#else
+  return (OPENSSL_ia32cap_get()[1] & (1 << 22)) != 0;
+#endif
+}
+
+OPENSSL_INLINE int CRYPTO_is_AESNI_capable(void) {
+#if defined(__AES__)
+  return 1;
+#else
+  return (OPENSSL_ia32cap_get()[1] & (1 << 25)) != 0;
+#endif
+}
+
+OPENSSL_INLINE int CRYPTO_is_AVX_capable(void) {
+#if defined(__AVX__)
+  return 1;
+#else
+  return (OPENSSL_ia32cap_get()[1] & (1 << 28)) != 0;
+#endif
+}
+
+OPENSSL_INLINE int CRYPTO_is_RDRAND_capable(void) {
+  // The GCC/Clang feature name and preprocessor symbol for RDRAND are "rdrnd"
+  // and |__RDRND__|, respectively.
+#if defined(__RDRND__)
+  return 1;
+#else
+  return (OPENSSL_ia32cap_get()[1] & (1u << 30)) != 0;
+#endif
+}
+
+// See Intel manual, volume 2A, table 3-8.
+
+OPENSSL_INLINE int CRYPTO_is_BMI1_capable(void) {
+#if defined(__BMI1__)
+  return 1;
+#else
+  return (OPENSSL_ia32cap_get()[2] & (1 << 3)) != 0;
+#endif
+}
+
+OPENSSL_INLINE int CRYPTO_is_AVX2_capable(void) {
+#if defined(__AVX2__)
+  return 1;
+#else
+  return (OPENSSL_ia32cap_get()[2] & (1 << 5)) != 0;
+#endif
+}
+
+OPENSSL_INLINE int CRYPTO_is_BMI2_capable(void) {
+#if defined(__BMI2__)
+  return 1;
+#else
+  return (OPENSSL_ia32cap_get()[2] & (1 << 8)) != 0;
+#endif
+}
+
+OPENSSL_INLINE int CRYPTO_is_ADX_capable(void) {
+#if defined(__ADX__)
+  return 1;
+#else
+  return (OPENSSL_ia32cap_get()[2] & (1 << 19)) != 0;
+#endif
+}
+
+#endif  // OPENSSL_X86 || OPENSSL_X86_64
+
+#if defined(OPENSSL_ARM) || defined(OPENSSL_AARCH64)
+
+#if defined(OPENSSL_APPLE) && defined(OPENSSL_ARM)
+// We do not detect any features at runtime for Apple's 32-bit ARM platforms. On
+// 64-bit ARM, we detect some post-ARMv8.0 features.
+#define OPENSSL_STATIC_ARMCAP
+#endif
+
+// Normalize some older feature flags to their modern ACLE values.
+// https://developer.arm.com/architectures/system-architectures/software-standards/acle
+#if defined(__ARM_NEON__) && !defined(__ARM_NEON)
+#define __ARM_NEON 1
+#endif
+#if defined(__ARM_FEATURE_CRYPTO)
+#if !defined(__ARM_FEATURE_AES)
+#define __ARM_FEATURE_AES 1
+#endif
+#if !defined(__ARM_FEATURE_SHA2)
+#define __ARM_FEATURE_SHA2 1
+#endif
+#endif
+
+#if !defined(OPENSSL_STATIC_ARMCAP)
+// CRYPTO_is_NEON_capable_at_runtime returns true if the current CPU has a NEON
+// unit. Note that |OPENSSL_armcap_P| also exists and contains the same
+// information in a form that's easier for assembly to use.
+OPENSSL_EXPORT int CRYPTO_is_NEON_capable_at_runtime(void);
+
+// CRYPTO_is_ARMv8_AES_capable_at_runtime returns true if the current CPU
+// supports the ARMv8 AES instruction.
+int CRYPTO_is_ARMv8_AES_capable_at_runtime(void);
+
+// CRYPTO_is_ARMv8_PMULL_capable_at_runtime returns true if the current CPU
+// supports the ARMv8 PMULL instruction.
+int CRYPTO_is_ARMv8_PMULL_capable_at_runtime(void);
+#endif  // !OPENSSL_STATIC_ARMCAP
+
+// CRYPTO_is_NEON_capable returns true if the current CPU has a NEON unit. If
+// this is known statically, it is a constant inline function.
+OPENSSL_INLINE int CRYPTO_is_NEON_capable(void) {
+#if defined(OPENSSL_STATIC_ARMCAP_NEON) || defined(__ARM_NEON)
+  return 1;
+#elif defined(OPENSSL_STATIC_ARMCAP)
+  return 0;
+#else
+  return CRYPTO_is_NEON_capable_at_runtime();
+#endif
+}
+
+OPENSSL_INLINE int CRYPTO_is_ARMv8_AES_capable(void) {
+#if defined(OPENSSL_STATIC_ARMCAP_AES) || defined(__ARM_FEATURE_AES)
+  return 1;
+#elif defined(OPENSSL_STATIC_ARMCAP)
+  return 0;
+#else
+  return CRYPTO_is_ARMv8_AES_capable_at_runtime();
+#endif
+}
+
+OPENSSL_INLINE int CRYPTO_is_ARMv8_PMULL_capable(void) {
+#if defined(OPENSSL_STATIC_ARMCAP_PMULL) || defined(__ARM_FEATURE_AES)
+  return 1;
+#elif defined(OPENSSL_STATIC_ARMCAP)
+  return 0;
+#else
+  return CRYPTO_is_ARMv8_PMULL_capable_at_runtime();
+#endif
+}
+
+#endif  // OPENSSL_ARM || OPENSSL_AARCH64
+
+#if defined(OPENSSL_PPC64LE)
+
+// CRYPTO_is_PPC64LE_vcrypto_capable returns true iff the current CPU supports
+// the Vector.AES category of instructions.
+int CRYPTO_is_PPC64LE_vcrypto_capable(void);
+
+extern unsigned long OPENSSL_ppc64le_hwcap2;
+
+#endif  // OPENSSL_PPC64LE
+
+#if defined(BORINGSSL_DISPATCH_TEST)
+// Runtime CPU dispatch testing support
+
+// BORINGSSL_function_hit is an array of flags. The following functions will
+// set these flags if BORINGSSL_DISPATCH_TEST is defined.
+//   0: aes_hw_ctr32_encrypt_blocks
+//   1: aes_hw_encrypt
+//   2: aesni_gcm_encrypt
+//   3: aes_hw_set_encrypt_key
+//   4: vpaes_encrypt
+//   5: vpaes_set_encrypt_key
+extern uint8_t BORINGSSL_function_hit[7];
+#endif  // BORINGSSL_DISPATCH_TEST
+
 
 #if defined(__cplusplus)
 }  // extern C

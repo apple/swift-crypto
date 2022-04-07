@@ -59,7 +59,7 @@
 
 #include <CCryptoBoringSSL_base.h>
 
-#include "../../internal.h"
+#include "../internal.h"
 
 #if defined(__cplusplus)
 extern "C" {

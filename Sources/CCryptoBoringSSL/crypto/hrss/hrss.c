@@ -20,7 +20,6 @@
 #include <stdlib.h>
 
 #include <CCryptoBoringSSL_bn.h>
-#include <CCryptoBoringSSL_cpu.h>
 #include <CCryptoBoringSSL_hmac.h>
 #include <CCryptoBoringSSL_mem.h>
 #include <CCryptoBoringSSL_rand.h>
@@ -39,8 +38,7 @@
 #include <emmintrin.h>
 #endif
 
-#if (defined(OPENSSL_ARM) || defined(OPENSSL_AARCH64)) && \
-    (defined(__ARM_NEON__) || defined(__ARM_NEON))
+#if (defined(OPENSSL_ARM) || defined(OPENSSL_AARCH64)) && defined(__ARM_NEON)
 #include <arm_neon.h>
 #endif
 
@@ -190,8 +188,7 @@ static inline vec_t vec_broadcast_bit(vec_t a) {
 // compiler requires that |i| be a compile-time constant.)
 #define vec_get_word(v, i) _mm_extract_epi16(v, i)
 
-#elif (defined(OPENSSL_ARM) || defined(OPENSSL_AARCH64)) && \
-    (defined(__ARM_NEON__) || defined(__ARM_NEON))
+#elif (defined(OPENSSL_ARM) || defined(OPENSSL_AARCH64)) && defined(__ARM_NEON)
 
 #define HRSS_HAVE_VECTOR_UNIT
 typedef uint16x8_t vec_t;
@@ -1318,8 +1315,7 @@ static void poly_mul_novec(struct POLY_MUL_SCRATCH *scratch, struct poly *out,
 static void poly_mul(struct POLY_MUL_SCRATCH *scratch, struct poly *r,
                      const struct poly *a, const struct poly *b) {
 #if defined(POLY_RQ_MUL_ASM)
-  const int has_avx2 = (OPENSSL_ia32cap_P[2] & (1 << 5)) != 0;
-  if (has_avx2) {
+  if (CRYPTO_is_AVX2_capable()) {
     poly_Rq_mul(r->v, a->v, b->v, scratch->u.rq);
     return;
   }

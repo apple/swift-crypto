@@ -3,18 +3,18 @@ version: "3"
 services:
 
   runtime-setup:
-    image: swift-crypto:20.04-main
+    image: swift-crypto:20.04-5.7
     build:
       args:
         base_image: "swiftlang/swift:nightly-main-focal"
 
   test:
-    image: swift-crypto:20.04-main
+    image: swift-crypto:20.04-5.7
     environment: []
       #- SANITIZER_ARG=--sanitize=thread
 
   cmake:
-    image: swift-crypto:20.04-main
+    image: swift-crypto:20.04-5.7
 
   shell:
-    image: swift-crypto:20.04-main
+    image: swift-crypto:20.04-5.7

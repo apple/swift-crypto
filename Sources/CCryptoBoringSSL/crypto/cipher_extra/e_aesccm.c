@@ -50,7 +50,6 @@
 
 #include <assert.h>
 
-#include <CCryptoBoringSSL_cpu.h>
 #include <CCryptoBoringSSL_cipher.h>
 #include <CCryptoBoringSSL_err.h>
 #include <CCryptoBoringSSL_mem.h>

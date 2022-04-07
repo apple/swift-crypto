@@ -308,6 +308,9 @@ int EC_KEY_check_key(const EC_KEY *eckey) {
   }
 
   // Check the public and private keys match.
+  //
+  // NOTE: this is a FIPS pair-wise consistency check for the ECDH case. See SP
+  // 800-56Ar3, page 36.
   if (eckey->priv_key != NULL) {
     EC_RAW_POINT point;
     if (!ec_point_mul_scalar_base(eckey->group, &point,
@@ -339,9 +342,9 @@ int EC_KEY_check_fips(const EC_KEY *key) {
   if (key->priv_key) {
     uint8_t data[16] = {0};
     ECDSA_SIG *sig = ECDSA_do_sign(data, sizeof(data), key);
-#if defined(BORINGSSL_FIPS_BREAK_ECDSA_PWCT)
-    data[0] = ~data[0];
-#endif
+    if (boringssl_fips_break_test("ECDSA_PWCT")) {
+      data[0] = ~data[0];
+    }
     int ok = sig != NULL &&
              ECDSA_do_verify(data, sizeof(data), sig, key);
     ECDSA_SIG_free(sig);
@@ -439,6 +442,8 @@ int EC_KEY_generate_key(EC_KEY *key) {
 }
 
 int EC_KEY_generate_key_fips(EC_KEY *eckey) {
+  boringssl_ensure_ecc_self_test();
+
   if (EC_KEY_generate_key(eckey) && EC_KEY_check_fips(eckey)) {
     return 1;
   }

@@ -50,8 +50,6 @@
 
 #include <assert.h>
 
-#include <CCryptoBoringSSL_cpu.h>
-
 #include "internal.h"
 #include "../modes/internal.h"
 

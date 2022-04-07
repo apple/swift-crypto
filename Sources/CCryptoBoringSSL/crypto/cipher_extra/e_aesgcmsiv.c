@@ -17,11 +17,11 @@
 #include <assert.h>
 
 #include <CCryptoBoringSSL_cipher.h>
-#include <CCryptoBoringSSL_cpu.h>
 #include <CCryptoBoringSSL_crypto.h>
 #include <CCryptoBoringSSL_err.h>
 
 #include "../fipsmodule/cipher/internal.h"
+#include "../internal.h"
 
 
 #define EVP_AEAD_AES_GCM_SIV_NONCE_LEN 12
@@ -857,22 +857,15 @@ static const EVP_AEAD aead_aes_256_gcm_siv = {
 
 #if defined(AES_GCM_SIV_ASM)
 
-static char avx_aesni_capable(void) {
-  const uint32_t ecx = OPENSSL_ia32cap_P[1];
-
-  return (ecx & (1 << (57 - 32))) != 0 /* AESNI */ &&
-         (ecx & (1 << 28)) != 0 /* AVX */;
-}
-
 const EVP_AEAD *EVP_aead_aes_128_gcm_siv(void) {
-  if (avx_aesni_capable()) {
+  if (CRYPTO_is_AVX_capable() && CRYPTO_is_AESNI_capable()) {
     return &aead_aes_128_gcm_siv_asm;
   }
   return &aead_aes_128_gcm_siv;
 }
 
 const EVP_AEAD *EVP_aead_aes_256_gcm_siv(void) {
-  if (avx_aesni_capable()) {
+  if (CRYPTO_is_AVX_capable() && CRYPTO_is_AESNI_capable()) {
     return &aead_aes_256_gcm_siv_asm;
   }
   return &aead_aes_256_gcm_siv;

@@ -12,7 +12,7 @@
  * OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN
  * CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. */
 
-#include <CCryptoBoringSSL_cpu.h>
+#include "internal.h"
 
 #if defined(OPENSSL_AARCH64) && defined(OPENSSL_APPLE) && \
     !defined(OPENSSL_STATIC_ARMCAP)
@@ -21,8 +21,6 @@
 #include <sys/types.h>
 
 #include <CCryptoBoringSSL_arm_arch.h>
-
-#include "internal.h"
 
 
 extern uint32_t OPENSSL_armcap_P;
@@ -53,7 +51,8 @@ void OPENSSL_cpuid_setup(void) {
   // Apple ARM64 platforms have NEON and cryptography extensions available
   // statically, so we do not need to query them. In particular, there sometimes
   // are no sysctls corresponding to such features. See below.
-#if !defined(__ARM_NEON) || !defined(__ARM_FEATURE_CRYPTO)
+#if !defined(__ARM_NEON) || !defined(__ARM_FEATURE_AES) || \
+    !defined(__ARM_FEATURE_SHA2)
 #error "NEON and crypto extensions should be statically available."
 #endif
   OPENSSL_armcap_P =
