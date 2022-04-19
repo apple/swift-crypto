@@ -158,7 +158,7 @@ add_library(CCryptoBoringSSL STATIC
   "crypto/fipsmodule/ec/felem.c"
   "crypto/fipsmodule/ec/oct.c"
   "crypto/fipsmodule/ec/p224-64.c"
-  "crypto/fipsmodule/ec/p256-x86_64.c"
+  "crypto/fipsmodule/ec/p256-nistz.c"
   "crypto/fipsmodule/ec/p256.c"
   "crypto/fipsmodule/ec/scalar.c"
   "crypto/fipsmodule/ec/simple.c"
@@ -364,6 +364,8 @@ elseif(CMAKE_SYSTEM_NAME STREQUAL Darwin AND CMAKE_SYSTEM_PROCESSOR MATCHES "arm
     crypto/fipsmodule/armv8-mont.ios.aarch64.S
     crypto/fipsmodule/ghash-neon-armv8.ios.aarch64.S
     crypto/fipsmodule/ghashv8-armx64.ios.aarch64.S
+    crypto/fipsmodule/p256-armv8-asm.ios.aarch64.S
+    crypto/fipsmodule/p256_beeu-armv8-asm.ios.aarch64.S
     crypto/fipsmodule/sha1-armv8.ios.aarch64.S
     crypto/fipsmodule/sha256-armv8.ios.aarch64.S
     crypto/fipsmodule/sha512-armv8.ios.aarch64.S
@@ -375,6 +377,8 @@ elseif(CMAKE_SYSTEM_NAME MATCHES "Linux|Android" AND CMAKE_SYSTEM_PROCESSOR MATC
     crypto/fipsmodule/armv8-mont.linux.aarch64.S
     crypto/fipsmodule/ghash-neon-armv8.linux.aarch64.S
     crypto/fipsmodule/ghashv8-armx64.linux.aarch64.S
+    crypto/fipsmodule/p256-armv8-asm.linux.aarch64.S
+    crypto/fipsmodule/p256_beeu-armv8-asm.linux.aarch64.S
     crypto/fipsmodule/sha1-armv8.linux.aarch64.S
     crypto/fipsmodule/sha256-armv8.linux.aarch64.S
     crypto/fipsmodule/sha512-armv8.linux.aarch64.S
