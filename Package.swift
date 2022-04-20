@@ -48,8 +48,8 @@ if development {
         Platform.windows,
     ]
     dependencies = [
-        .targetItem(name: "CCryptoBoringSSL", condition: .when(platforms: platforms)),
-        .targetItem(name: "CCryptoBoringSSLShims", condition: .when(platforms: platforms))
+        .target(name: "CCryptoBoringSSL", condition: .when(platforms: platforms)),
+        .target(name: "CCryptoBoringSSLShims", condition: .when(platforms: platforms))
     ]
 }
 
@@ -71,24 +71,42 @@ let package = Package(
     dependencies: [],
     targets: [
         .target(
-          name: "CCryptoBoringSSL",
-          cSettings: [
-            /*
-             * This define is required on Windows, but because we need older
-             * versions of SPM, we cannot conditionally define this on Windows
-             * only.  Unconditionally define it instead.
-             */
-            .define("WIN32_LEAN_AND_MEAN"),
-          ]
+            name: "CCryptoBoringSSL",
+            exclude: [
+                "hash.txt",
+                "include/boringssl_prefix_symbols_nasm.inc",
+                "CMakeLists.txt",
+            ],
+            cSettings: [
+                /*
+                 * This define is required on Windows, but because we need older
+                 * versions of SPM, we cannot conditionally define this on Windows
+                 * only.  Unconditionally define it instead.
+                 */
+                .define("WIN32_LEAN_AND_MEAN"),
+            ]
         ),
-        .target(name: "CCryptoBoringSSLShims", dependencies: ["CCryptoBoringSSL"]),
+        .target(
+            name: "CCryptoBoringSSLShims",
+            dependencies: ["CCryptoBoringSSL"],
+            exclude: [
+                "CMakeLists.txt"
+            ]
+        ),
         .target(
             name: "Crypto",
             dependencies: dependencies,
+            exclude: [
+                "CMakeLists.txt",
+                "AEADs/Nonces.swift.gyb",
+                "Digests/Digests.swift.gyb",
+                "Key Agreement/ECDH.swift.gyb",
+                "Signatures/ECDSA.swift.gyb",
+            ],
             swiftSettings: swiftSettings
         ),
         .target(name: "_CryptoExtras", dependencies: ["CCryptoBoringSSL", "CCryptoBoringSSLShims", "Crypto"]),
-        .target(name: "crypto-shasum", dependencies: ["Crypto"]),
+        .executableTarget(name: "crypto-shasum", dependencies: ["Crypto"]),
         .testTarget(name: "CryptoTests", dependencies: ["Crypto"], swiftSettings: swiftSettings),
         .testTarget(name: "_CryptoExtrasTests", dependencies: ["_CryptoExtras"]),
     ],
