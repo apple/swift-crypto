@@ -14,7 +14,7 @@
 #if defined(BORINGSSL_PREFIX)
 #include <CCryptoBoringSSL_boringssl_prefix_symbols_asm.h>
 #endif
-#include "openssl/arm_arch.h"
+#include "CCryptoBoringSSL_arm_arch.h"
 
 .text
 .globl	_beeu_mod_inverse_vartime
