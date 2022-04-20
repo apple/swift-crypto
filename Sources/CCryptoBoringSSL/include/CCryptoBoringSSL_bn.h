@@ -126,6 +126,7 @@
 #include "CCryptoBoringSSL_base.h"
 #include "CCryptoBoringSSL_thread.h"
 
+#include <inttypes.h>  // for PRIu64 and friends
 #include <sys/types.h>
 #include <stdio.h>  // for FILE*
 
@@ -148,14 +149,14 @@ extern "C" {
 // Projects which use |BN_*_FMT*| with outdated C headers may need to define it
 // externally.
 #if defined(OPENSSL_64_BIT)
-#define BN_ULONG uint64_t
+typedef uint64_t BN_ULONG;
 #define BN_BITS2 64
 #define BN_DEC_FMT1 "%" PRIu64
 #define BN_DEC_FMT2 "%019" PRIu64
 #define BN_HEX_FMT1 "%" PRIx64
 #define BN_HEX_FMT2 "%016" PRIx64
 #elif defined(OPENSSL_32_BIT)
-#define BN_ULONG uint32_t
+typedef uint32_t BN_ULONG;
 #define BN_BITS2 32
 #define BN_DEC_FMT1 "%" PRIu32
 #define BN_DEC_FMT2 "%09" PRIu32
@@ -584,9 +585,14 @@ OPENSSL_EXPORT int BN_mod_lshift1_quick(BIGNUM *r, const BIGNUM *a,
                                         const BIGNUM *m);
 
 // BN_mod_sqrt returns a newly-allocated |BIGNUM|, r, such that
-// r^2 == a (mod p). |p| must be a prime. It returns NULL on error or if |a| is
-// not a square mod |p|. In the latter case, it will add |BN_R_NOT_A_SQUARE| to
-// the error queue.
+// r^2 == a (mod p). It returns NULL on error or if |a| is not a square mod |p|.
+// In the latter case, it will add |BN_R_NOT_A_SQUARE| to the error queue.
+// If |a| is a square and |p| > 2, there are two possible square roots. This
+// function may return either and may even select one non-deterministically.
+//
+// This function only works if |p| is a prime. If |p| is composite, it may fail
+// or return an arbitrary value. Callers should not pass attacker-controlled
+// values of |p|.
 OPENSSL_EXPORT BIGNUM *BN_mod_sqrt(BIGNUM *in, const BIGNUM *a, const BIGNUM *p,
                                    BN_CTX *ctx);
 
@@ -658,6 +664,14 @@ struct bn_gencb_st {
   int (*callback)(int event, int n, struct bn_gencb_st *);
 };
 
+// BN_GENCB_new returns a newly-allocated |BN_GENCB| object, or NULL on
+// allocation failure. The result must be released with |BN_GENCB_free| when
+// done.
+OPENSSL_EXPORT BN_GENCB *BN_GENCB_new(void);
+
+// BN_GENCB_free releases memory associated with |callback|.
+OPENSSL_EXPORT void BN_GENCB_free(BN_GENCB *callback);
+
 // BN_GENCB_set configures |callback| to call |f| and sets |callout->arg| to
 // |arg|.
 OPENSSL_EXPORT void BN_GENCB_set(BN_GENCB *callback,
@@ -687,9 +701,9 @@ OPENSSL_EXPORT int BN_generate_prime_ex(BIGNUM *ret, int bits, int safe,
 // BN_prime_checks_for_validation can be used as the |checks| argument to the
 // primarily testing functions when validating an externally-supplied candidate
 // prime. It gives a false positive rate of at most 2^{-128}. (The worst case
-// false positive rate for a single iteration is 1/4, so we perform 32
-// iterations.)
-#define BN_prime_checks_for_validation 32
+// false positive rate for a single iteration is 1/4 per
+// https://eprint.iacr.org/2018/749. (1/4)^64 = 2^{-128}.)
+#define BN_prime_checks_for_validation 64
 
 // BN_prime_checks_for_generation can be used as the |checks| argument to the
 // primality testing functions when generating random primes. It gives a false

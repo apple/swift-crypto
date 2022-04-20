@@ -13,7 +13,7 @@
  * OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN
  * CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. */
 
-#include <CCryptoBoringSSL_cpu.h>
+#include "internal.h"
 
 #if defined(OPENSSL_AARCH64) && defined(OPENSSL_WINDOWS) && \
     !defined(OPENSSL_STATIC_ARMCAP)
@@ -21,8 +21,6 @@
 #include <windows.h>
 
 #include <CCryptoBoringSSL_arm_arch.h>
-
-#include "internal.h"
 
 extern uint32_t OPENSSL_armcap_P;
 void OPENSSL_cpuid_setup(void) {
@@ -36,6 +34,8 @@ void OPENSSL_cpuid_setup(void) {
     OPENSSL_armcap_P |= ARMV8_SHA1;
     OPENSSL_armcap_P |= ARMV8_SHA256;
   }
+  // As of writing, Windows does not have a |PF_*| value for ARMv8.2 SHA-512
+  // extensions. When it does, add it here.
 }
 
-#endif
+#endif  // OPENSSL_AARCH64 && OPENSSL_WINDOWS && !OPENSSL_STATIC_ARMCAP

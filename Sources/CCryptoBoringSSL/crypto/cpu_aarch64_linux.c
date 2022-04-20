@@ -12,7 +12,7 @@
  * OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN
  * CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. */
 
-#include <CCryptoBoringSSL_cpu.h>
+#include "internal.h"
 
 #if defined(OPENSSL_AARCH64) && defined(OPENSSL_LINUX) && \
     !defined(OPENSSL_STATIC_ARMCAP)
@@ -20,8 +20,6 @@
 #include <sys/auxv.h>
 
 #include <CCryptoBoringSSL_arm_arch.h>
-
-#include "internal.h"
 
 
 extern uint32_t OPENSSL_armcap_P;
@@ -36,6 +34,7 @@ void OPENSSL_cpuid_setup(void) {
   static const unsigned long kPMULL = 1 << 4;
   static const unsigned long kSHA1 = 1 << 5;
   static const unsigned long kSHA256 = 1 << 6;
+  static const unsigned long kSHA512 = 1 << 21;
 
   if ((hwcap & kNEON) == 0) {
     // Matching OpenSSL, if NEON is missing, don't report other features
@@ -57,6 +56,9 @@ void OPENSSL_cpuid_setup(void) {
   if (hwcap & kSHA256) {
     OPENSSL_armcap_P |= ARMV8_SHA256;
   }
+  if (hwcap & kSHA512) {
+    OPENSSL_armcap_P |= ARMV8_SHA512;
+  }
 }
 
-#endif  // OPENSSL_AARCH64 && !OPENSSL_STATIC_ARMCAP
+#endif  // OPENSSL_AARCH64 && OPENSSL_LINUX && !OPENSSL_STATIC_ARMCAP

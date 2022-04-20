@@ -1,4 +1,4 @@
-/* Copyright (c) 2021, Google Inc.
+/* Copyright (c) 2022, Google Inc.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -12,7 +12,25 @@
  * OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN
  * CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. */
 
-/* This header is provided in order to make compiling against code that expects
-   OpenSSL easier. */
+#ifndef OPENSSL_HEADER_CRYPTO_FIPSMODULE_DH_INTERNAL_H
+#define OPENSSL_HEADER_CRYPTO_FIPSMODULE_DH_INTERNAL_H
 
-#include "CCryptoBoringSSL_x509.h"
+#include <CCryptoBoringSSL_base.h>
+
+#if defined(__cplusplus)
+extern "C" {
+#endif
+
+
+// dh_compute_key_padded_no_self_test does the same as |DH_compute_key_padded|,
+// but doesn't try to run the self-test first. This is for use in the self tests
+// themselves, to prevent an infinite loop.
+int dh_compute_key_padded_no_self_test(unsigned char *out,
+                                       const BIGNUM *peers_key, DH *dh);
+
+
+#if defined(__cplusplus)
+}
+#endif
+
+#endif  // OPENSSL_HEADER_CRYPTO_FIPSMODULE_DH_INTERNAL_H

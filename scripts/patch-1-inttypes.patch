@@ -14,11 +14,11 @@ diff --git a/Sources/CCryptoBoringSSL/include/CCryptoBoringSSL_bn.h b/Sources/CC
 index c86c1ef..7013140 100644
 --- a/Sources/CCryptoBoringSSL/include/CCryptoBoringSSL_bn.h
 +++ b/Sources/CCryptoBoringSSL/include/CCryptoBoringSSL_bn.h
-@@ -126,7 +126,7 @@
+@@ -126,7 +126,8 @@
  #include "CCryptoBoringSSL_base.h"
  #include "CCryptoBoringSSL_thread.h"
  
--#include <inttypes.h>  // for PRIu64 and friends
+ #include <inttypes.h>  // for PRIu64 and friends
 +#include <sys/types.h>
  #include <stdio.h>  // for FILE*
  

@@ -14,8 +14,6 @@
 
 #include <CCryptoBoringSSL_crypto.h>
 
-#include <CCryptoBoringSSL_cpu.h>
-
 #include "fipsmodule/rand/fork_detect.h"
 #include "fipsmodule/rand/internal.h"
 #include "internal.h"
@@ -88,22 +86,31 @@ HIDDEN unsigned long OPENSSL_ppc64le_hwcap2 = 0;
 
 #if defined(OPENSSL_STATIC_ARMCAP)
 
+// See ARM ACLE for the definitions of these macros. Note |__ARM_FEATURE_AES|
+// covers both AES and PMULL and |__ARM_FEATURE_SHA2| covers SHA-1 and SHA-256.
+// https://developer.arm.com/architectures/system-architectures/software-standards/acle
+// https://github.com/ARM-software/acle/issues/152
+//
+// TODO(davidben): Do we still need |OPENSSL_STATIC_ARMCAP_*| or are the
+// standard flags and -march sufficient?
 HIDDEN uint32_t OPENSSL_armcap_P =
-#if defined(OPENSSL_STATIC_ARMCAP_NEON) || \
-    (defined(__ARM_NEON__) || defined(__ARM_NEON))
+#if defined(OPENSSL_STATIC_ARMCAP_NEON) || defined(__ARM_NEON)
     ARMV7_NEON |
 #endif
-#if defined(OPENSSL_STATIC_ARMCAP_AES) || defined(__ARM_FEATURE_CRYPTO)
+#if defined(OPENSSL_STATIC_ARMCAP_AES) || defined(__ARM_FEATURE_AES)
     ARMV8_AES |
 #endif
-#if defined(OPENSSL_STATIC_ARMCAP_SHA1) || defined(__ARM_FEATURE_CRYPTO)
+#if defined(OPENSSL_STATIC_ARMCAP_PMULL) || defined(__ARM_FEATURE_AES)
+    ARMV8_PMULL |
+#endif
+#if defined(OPENSSL_STATIC_ARMCAP_SHA1) || defined(__ARM_FEATURE_SHA2)
     ARMV8_SHA1 |
 #endif
-#if defined(OPENSSL_STATIC_ARMCAP_SHA256) || defined(__ARM_FEATURE_CRYPTO)
+#if defined(OPENSSL_STATIC_ARMCAP_SHA256) || defined(__ARM_FEATURE_SHA2)
     ARMV8_SHA256 |
 #endif
-#if defined(OPENSSL_STATIC_ARMCAP_PMULL) || defined(__ARM_FEATURE_CRYPTO)
-    ARMV8_PMULL |
+#if defined(__ARM_FEATURE_SHA512)
+    ARMV8_SHA512 |
 #endif
     0;
 

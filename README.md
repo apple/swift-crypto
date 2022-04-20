@@ -108,7 +108,7 @@ If you believe you have identified a vulnerability in Swift Crypto, please [repo
 
 ### Swift versions
 
-Swift Crypto supports Swift 5.2 and later. Swift Crypto supported Swift 5.1 until version 1.2.
+Swift Crypto supports Swift 5.4 and later. Swift Crypto supported Swift 5.2 and 5.3 until version 2.1 and Swift 5.1 until version 2.0.
 
 ### Compatibility
 
