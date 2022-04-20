@@ -2013,7 +2013,6 @@
 %xdefine _X509_TRUST_get_flags _ %+ BORINGSSL_PREFIX %+ _X509_TRUST_get_flags
 %xdefine _X509_TRUST_get_trust _ %+ BORINGSSL_PREFIX %+ _X509_TRUST_get_trust
 %xdefine _X509_TRUST_set _ %+ BORINGSSL_PREFIX %+ _X509_TRUST_set
-%xdefine _X509_TRUST_set_default _ %+ BORINGSSL_PREFIX %+ _X509_TRUST_set_default
 %xdefine _X509_VAL_free _ %+ BORINGSSL_PREFIX %+ _X509_VAL_free
 %xdefine _X509_VAL_it _ %+ BORINGSSL_PREFIX %+ _X509_VAL_it
 %xdefine _X509_VAL_new _ %+ BORINGSSL_PREFIX %+ _X509_VAL_new
@@ -2551,6 +2550,10 @@
 %xdefine _ecdsa_do_verify_no_self_test _ %+ BORINGSSL_PREFIX %+ _ecdsa_do_verify_no_self_test
 %xdefine _ecdsa_sign_with_nonce_for_known_answer_test _ %+ BORINGSSL_PREFIX %+ _ecdsa_sign_with_nonce_for_known_answer_test
 %xdefine _ecp_nistz256_avx2_select_w7 _ %+ BORINGSSL_PREFIX %+ _ecp_nistz256_avx2_select_w7
+%xdefine _ecp_nistz256_div_by_2 _ %+ BORINGSSL_PREFIX %+ _ecp_nistz256_div_by_2
+%xdefine _ecp_nistz256_from_mont _ %+ BORINGSSL_PREFIX %+ _ecp_nistz256_from_mont
+%xdefine _ecp_nistz256_mul_by_2 _ %+ BORINGSSL_PREFIX %+ _ecp_nistz256_mul_by_2
+%xdefine _ecp_nistz256_mul_by_3 _ %+ BORINGSSL_PREFIX %+ _ecp_nistz256_mul_by_3
 %xdefine _ecp_nistz256_mul_mont _ %+ BORINGSSL_PREFIX %+ _ecp_nistz256_mul_mont
 %xdefine _ecp_nistz256_neg _ %+ BORINGSSL_PREFIX %+ _ecp_nistz256_neg
 %xdefine _ecp_nistz256_ord_mul_mont _ %+ BORINGSSL_PREFIX %+ _ecp_nistz256_ord_mul_mont
@@ -2561,6 +2564,8 @@
 %xdefine _ecp_nistz256_select_w5 _ %+ BORINGSSL_PREFIX %+ _ecp_nistz256_select_w5
 %xdefine _ecp_nistz256_select_w7 _ %+ BORINGSSL_PREFIX %+ _ecp_nistz256_select_w7
 %xdefine _ecp_nistz256_sqr_mont _ %+ BORINGSSL_PREFIX %+ _ecp_nistz256_sqr_mont
+%xdefine _ecp_nistz256_sub _ %+ BORINGSSL_PREFIX %+ _ecp_nistz256_sub
+%xdefine _ecp_nistz256_to_mont _ %+ BORINGSSL_PREFIX %+ _ecp_nistz256_to_mont
 %xdefine _ed25519_asn1_meth _ %+ BORINGSSL_PREFIX %+ _ed25519_asn1_meth
 %xdefine _ed25519_pkey_meth _ %+ BORINGSSL_PREFIX %+ _ed25519_pkey_meth
 %xdefine _gcm_ghash_avx _ %+ BORINGSSL_PREFIX %+ _gcm_ghash_avx
@@ -4878,7 +4883,6 @@
 %xdefine X509_TRUST_get_flags BORINGSSL_PREFIX %+ _X509_TRUST_get_flags
 %xdefine X509_TRUST_get_trust BORINGSSL_PREFIX %+ _X509_TRUST_get_trust
 %xdefine X509_TRUST_set BORINGSSL_PREFIX %+ _X509_TRUST_set
-%xdefine X509_TRUST_set_default BORINGSSL_PREFIX %+ _X509_TRUST_set_default
 %xdefine X509_VAL_free BORINGSSL_PREFIX %+ _X509_VAL_free
 %xdefine X509_VAL_it BORINGSSL_PREFIX %+ _X509_VAL_it
 %xdefine X509_VAL_new BORINGSSL_PREFIX %+ _X509_VAL_new
@@ -5416,6 +5420,10 @@
 %xdefine ecdsa_do_verify_no_self_test BORINGSSL_PREFIX %+ _ecdsa_do_verify_no_self_test
 %xdefine ecdsa_sign_with_nonce_for_known_answer_test BORINGSSL_PREFIX %+ _ecdsa_sign_with_nonce_for_known_answer_test
 %xdefine ecp_nistz256_avx2_select_w7 BORINGSSL_PREFIX %+ _ecp_nistz256_avx2_select_w7
+%xdefine ecp_nistz256_div_by_2 BORINGSSL_PREFIX %+ _ecp_nistz256_div_by_2
+%xdefine ecp_nistz256_from_mont BORINGSSL_PREFIX %+ _ecp_nistz256_from_mont
+%xdefine ecp_nistz256_mul_by_2 BORINGSSL_PREFIX %+ _ecp_nistz256_mul_by_2
+%xdefine ecp_nistz256_mul_by_3 BORINGSSL_PREFIX %+ _ecp_nistz256_mul_by_3
 %xdefine ecp_nistz256_mul_mont BORINGSSL_PREFIX %+ _ecp_nistz256_mul_mont
 %xdefine ecp_nistz256_neg BORINGSSL_PREFIX %+ _ecp_nistz256_neg
 %xdefine ecp_nistz256_ord_mul_mont BORINGSSL_PREFIX %+ _ecp_nistz256_ord_mul_mont
@@ -5426,6 +5434,8 @@
 %xdefine ecp_nistz256_select_w5 BORINGSSL_PREFIX %+ _ecp_nistz256_select_w5
 %xdefine ecp_nistz256_select_w7 BORINGSSL_PREFIX %+ _ecp_nistz256_select_w7
 %xdefine ecp_nistz256_sqr_mont BORINGSSL_PREFIX %+ _ecp_nistz256_sqr_mont
+%xdefine ecp_nistz256_sub BORINGSSL_PREFIX %+ _ecp_nistz256_sub
+%xdefine ecp_nistz256_to_mont BORINGSSL_PREFIX %+ _ecp_nistz256_to_mont
 %xdefine ed25519_asn1_meth BORINGSSL_PREFIX %+ _ed25519_asn1_meth
 %xdefine ed25519_pkey_meth BORINGSSL_PREFIX %+ _ed25519_pkey_meth
 %xdefine gcm_ghash_avx BORINGSSL_PREFIX %+ _gcm_ghash_avx
