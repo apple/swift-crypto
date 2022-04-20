@@ -85,7 +85,7 @@ find Sources/* Tests/* -name BoringSSL -type d | while IFS= read -r d; do
 done
 
 printf "=> Checking #defines..."
-if grep '\.define("CRYPTO_IN_SWIFTPM_FORCE_BUILD_API")' Package.swift | grep -v "//" > /dev/null; then
+if grep 'development = true' Package.swift > /dev/null; then
   printf "\033[0;31mstill in development mode!\033[0m Comment out CRYPTO_IN_SWIFTPM_FORCE_BUILD_API.\n"
   exit 1
 else
