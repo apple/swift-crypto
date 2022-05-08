@@ -17,7 +17,7 @@ set -eu
 here="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 function replace_acceptable_years() {
     # this needs to replace all acceptable forms with 'YEARS'
-    sed -e 's/20[12][890]-20[12][190]/YEARS/' -e 's/2019/YEARS/' -e 's/2020/YEARS/' -e 's/2021/YEARS/'
+    sed -e 's/20[12][890]-20[12][1290]/YEARS/' -e 's/2019/YEARS/' -e 's/2020/YEARS/' -e 's/2021/YEARS/'
 }
 
 printf "=> Checking for unacceptable language... "
@@ -85,7 +85,7 @@ find Sources/* Tests/* -name BoringSSL -type d | while IFS= read -r d; do
 done
 
 printf "=> Checking #defines..."
-if grep '\.define("CRYPTO_IN_SWIFTPM_FORCE_BUILD_API")' Package.swift | grep -v "//" > /dev/null; then
+if grep 'development = true' Package.swift > /dev/null; then
   printf "\033[0;31mstill in development mode!\033[0m Comment out CRYPTO_IN_SWIFTPM_FORCE_BUILD_API.\n"
   exit 1
 else

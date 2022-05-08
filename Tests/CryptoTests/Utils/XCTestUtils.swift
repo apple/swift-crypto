@@ -26,15 +26,11 @@ func orFail<T>(file: StaticString = #file, line: UInt = #line, _ closure: () thr
         }
     }
 
-    #if compiler(>=5.2) && canImport(Darwin)
-        if #available(macOS 10.15.4, macCatalyst 13.4, iOS 13.4, tvOS 13.4, watchOS 6.0, *) {
-            return try closure()
-        } else {
-            return try wrapper(closure, file: file, line: line)
-        }
-    #else
+    if #available(macOS 10.15.4, macCatalyst 13.4, iOS 13.4, tvOS 13.4, watchOS 6.0, *) {
+        return try closure()
+    } else {
         return try wrapper(closure, file: file, line: line)
-    #endif
+    }
 }
 
 extension XCTestCase {

@@ -11,6 +11,9 @@
 // SPDX-License-Identifier: Apache-2.0
 //
 //===----------------------------------------------------------------------===//
+#if (os(macOS) || os(iOS) || os(watchOS) || os(tvOS)) && CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
+@_exported import CryptoKit
+#else
 @_implementationOnly import CCryptoBoringSSL
 @_implementationOnly import CCryptoBoringSSLShims
 import Foundation
@@ -101,3 +104,4 @@ class ECDSASignature {
         try body(self._baseSig)
     }
 }
+#endif // (os(macOS) || os(iOS) || os(watchOS) || os(tvOS)) && CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
