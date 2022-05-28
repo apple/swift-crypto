@@ -185,11 +185,11 @@ def munge_file(pp_arch, pp_platform, source_lines, sink):
     """
     Wraps a single assembly file in appropriate defines.
     """
-    sink.write("#if defined(%s) && defined(%s)\n" % (pp_arch, pp_platform))
+    sink.write(b"#if defined(%b) && defined(%b)\n" % (pp_arch.encode(), pp_platform.encode()))
     for line in source_lines:
         sink.write(line)
 
-    sink.write("#endif  // defined(%s) && defined(%s)\n" % (pp_arch, pp_platform))
+    sink.write(b"#endif  // defined(%b) && defined(%b)\n" % (pp_arch.encode(), pp_platform.encode()))
 
 
 def munge_all_files(osname, arch, asms):
@@ -214,10 +214,10 @@ def main():
     # Now we need to bring over all the .S files, inserting our preprocessor
     # directives along the way. We do this to allow the C preprocessor to make
     # unneeded assembly files vanish.
-    for ((osname, arch), asm_files) in asm_outputs.iteritems():
+    for ((osname, arch), asm_files) in asm_outputs.items():
         munge_all_files(osname, arch, asm_files)
 
-    for ((osname, arch), asm_files) in NON_PERL_FILES.iteritems():
+    for ((osname, arch), asm_files) in NON_PERL_FILES.items():
         for asm_file in asm_files:
              with open(asm_file, 'rb') as f:
                  lines = f.readlines()
