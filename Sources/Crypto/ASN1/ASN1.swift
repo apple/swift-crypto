@@ -438,7 +438,7 @@ extension ASN1 {
             for shift in (0..<(lengthBytesNeeded - 1)).reversed() {
                 // Shift and mask the integer.
                 self.serializedBytes.formIndex(after: &writeIndex)
-                self.serializedBytes[writeIndex] = UInt8((contentLength >> (shift * 8)) | 0x80 )
+                self.serializedBytes[writeIndex] = UInt8(truncatingIfNeeded: (contentLength >> (shift * 8)) | 0x80 )
             }
 
             assert(writeIndex == self.serializedBytes.index(lengthIndex, offsetBy: lengthBytesNeeded - 1))
