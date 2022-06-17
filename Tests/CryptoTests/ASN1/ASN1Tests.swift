@@ -1689,7 +1689,7 @@ A5UvlNrk6ioTg2tumXD3Co06r1Hn+7lkkcjfT5mZO4jy7vP9ItvprJrIa6ySzVQ8
     func testWeirdBigIntSerialization() throws {
         // This is a bigint we can hook to get the test function to do weird things.
         // We just take and accept arbitrary bytes.
-        struct BigIntOfBytes: ASN1IntegerRepresentable {
+        struct BigIntOfBytes: ASN1IntegerRepresentable, Equatable {
             var bytes: [UInt8]
 
             static let isSigned: Bool = false
@@ -1729,6 +1729,13 @@ A5UvlNrk6ioTg2tumXD3Co06r1Hn+7lkkcjfT5mZO4jy7vP9ItvprJrIa6ySzVQ8
         // And a leading zero is removed for unsigned bigints.
         let leadingZeroFromWire = try oneShotDecode([0x02, 0x02, 0x00, 0x80])
         XCTAssertEqual(leadingZeroFromWire.bytes, [0x80])
+
+        // Check encoding and decoding results should be same
+        let smallBytes = BigIntOfBytes(bytes: [1, 1, 1])
+        XCTAssertEqual(smallBytes, try oneShotDecode(oneShotSerialize(smallBytes)))
+
+        let largeBytes = BigIntOfBytes(bytes: .init(repeating: 1, count: 1024))
+        XCTAssertEqual(largeBytes, try oneShotDecode(oneShotSerialize(largeBytes)))
     }
 }
 
