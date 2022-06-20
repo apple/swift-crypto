@@ -126,7 +126,9 @@
 #endif
 
 #if !defined(__cplusplus)
-#if defined(_MSC_VER) && !defined(__clang__)
+#if defined(__STDC_VERSION__) && __STDC_VERSION__ >= 201112L
+#include <stdalign.h>
+#elif defined(_MSC_VER) && !defined(__clang__)
 #define alignas(x) __declspec(align(x))
 #define alignof __alignof
 #else
@@ -135,10 +137,12 @@
 // compilers have long implemented C11 and made it default. The most likely
 // cause of pre-C11 modes is stale -std=c99 or -std=gnu99 flags in build
 // configuration. Such flags can be removed.
-#if __STDC_VERSION__ < 201112L
+//
+// TODO(davidben): In MSVC 2019 16.8 or higher (_MSC_VER >= 1928),
+// |__STDC_VERSION__| will be 201112 when passed /std:c11 and unset otherwise.
+// C11 alignas and alignof are only implemented in C11 mode. Can we mandate C11
+// mode for those versions?
 #error "BoringSSL must be built in C11 mode or higher."
-#endif
-#include <stdalign.h>
 #endif
 #endif
 
@@ -648,6 +652,7 @@ typedef enum {
   OPENSSL_THREAD_LOCAL_ERR = 0,
   OPENSSL_THREAD_LOCAL_RAND,
   OPENSSL_THREAD_LOCAL_FIPS_COUNTERS,
+  OPENSSL_THREAD_LOCAL_FIPS_SERVICE_INDICATOR_STATE,
   OPENSSL_THREAD_LOCAL_TEST,
   NUM_OPENSSL_THREAD_LOCALS,
 } thread_local_data_t;
@@ -880,6 +885,16 @@ static inline void CRYPTO_store_u32_be(void *out, uint32_t v) {
   OPENSSL_memcpy(out, &v, sizeof(v));
 }
 
+static inline uint64_t CRYPTO_load_u64_le(const void *in) {
+  uint64_t v;
+  OPENSSL_memcpy(&v, in, sizeof(v));
+  return v;
+}
+
+static inline void CRYPTO_store_u64_le(void *out, uint64_t v) {
+  OPENSSL_memcpy(out, &v, sizeof(v));
+}
+
 static inline uint64_t CRYPTO_load_u64_be(const void *ptr) {
   uint64_t ret;
   OPENSSL_memcpy(&ret, ptr, sizeof(ret));
@@ -899,6 +914,18 @@ static inline crypto_word_t CRYPTO_load_word_le(const void *in) {
 
 static inline void CRYPTO_store_word_le(void *out, crypto_word_t v) {
   OPENSSL_memcpy(out, &v, sizeof(v));
+}
+
+static inline crypto_word_t CRYPTO_load_word_be(const void *in) {
+  crypto_word_t v;
+  OPENSSL_memcpy(&v, in, sizeof(v));
+#if defined(OPENSSL_64_BIT)
+  static_assert(sizeof(v) == 8, "crypto_word_t has unexpected size");
+  return CRYPTO_bswap8(v);
+#else
+  static_assert(sizeof(v) == 4, "crypto_word_t has unexpected size");
+  return CRYPTO_bswap4(v);
+#endif
 }
 
 
