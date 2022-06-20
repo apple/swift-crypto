@@ -57,6 +57,7 @@
 #include <CCryptoBoringSSL_cipher.h>
 #include <CCryptoBoringSSL_nid.h>
 
+#include "../fipsmodule/cipher/internal.h"
 #include "../internal.h"
 
 
