@@ -64,16 +64,29 @@
 
 int X509_CRL_set_version(X509_CRL *x, long version)
 {
-    /* TODO(https://crbug.com/boringssl/467): Reject invalid version
-     * numbers. Also correctly handle |X509_CRL_VERSION_1|, which should omit
-     * the encoding. */
-    if (x == NULL)
-        return (0);
-    if (x->crl->version == NULL) {
-        if ((x->crl->version = ASN1_INTEGER_new()) == NULL)
-            return (0);
+    if (x == NULL) {
+        return 0;
     }
-    return (ASN1_INTEGER_set(x->crl->version, version));
+
+    if (version < X509_CRL_VERSION_1 || version > X509_CRL_VERSION_2) {
+        OPENSSL_PUT_ERROR(X509, X509_R_INVALID_VERSION);
+        return 0;
+    }
+
+    /* v1(0) is default and is represented by omitting the version. */
+    if (version == X509_CRL_VERSION_1) {
+        ASN1_INTEGER_free(x->crl->version);
+        x->crl->version = NULL;
+        return 1;
+    }
+
+    if (x->crl->version == NULL) {
+        x->crl->version = ASN1_INTEGER_new();
+        if (x->crl->version == NULL) {
+            return 0;
+        }
+    }
+    return ASN1_INTEGER_set(x->crl->version, version);
 }
 
 int X509_CRL_set_issuer_name(X509_CRL *x, X509_NAME *name)
@@ -249,8 +262,8 @@ int i2d_X509_CRL_tbs(X509_CRL *crl, unsigned char **outp)
 
 int X509_CRL_set1_signature_algo(X509_CRL *crl, const X509_ALGOR *algo)
 {
-    /* TODO(davidben): Const-correct generated ASN.1 dup functions.
-     * Alternatively, when the types are hidden and we can embed required fields
+    /* TODO(https://crbug.com/boringssl/407): Generated ASN.1 dup functions
+     * should be const. Alternatively, when we can embed required fields
      * directly in structs, import |X509_ALGOR_copy| from upstream. */
     X509_ALGOR *copy1 = X509_ALGOR_dup((X509_ALGOR *)algo);
     X509_ALGOR *copy2 = X509_ALGOR_dup((X509_ALGOR *)algo);

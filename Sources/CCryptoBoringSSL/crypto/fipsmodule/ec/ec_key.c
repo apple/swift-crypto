@@ -79,6 +79,7 @@
 
 #include "internal.h"
 #include "../delocate.h"
+#include "../service_indicator/internal.h"
 #include "../../internal.h"
 
 
@@ -329,14 +330,17 @@ int EC_KEY_check_key(const EC_KEY *eckey) {
 }
 
 int EC_KEY_check_fips(const EC_KEY *key) {
+  int ret = 0;
+  FIPS_service_indicator_lock_state();
+
   if (EC_KEY_is_opaque(key)) {
     // Opaque keys can't be checked.
     OPENSSL_PUT_ERROR(EC, EC_R_PUBLIC_KEY_VALIDATION_FAILED);
-    return 0;
+    goto end;
   }
 
   if (!EC_KEY_check_key(key)) {
-    return 0;
+    goto end;
   }
 
   if (key->priv_key) {
@@ -350,11 +354,19 @@ int EC_KEY_check_fips(const EC_KEY *key) {
     ECDSA_SIG_free(sig);
     if (!ok) {
       OPENSSL_PUT_ERROR(EC, EC_R_PUBLIC_KEY_VALIDATION_FAILED);
-      return 0;
+      goto end;
     }
   }
 
-  return 1;
+  ret = 1;
+
+end:
+  FIPS_service_indicator_unlock_state();
+  if (ret) {
+    EC_KEY_keygen_verify_service_indicator(key);
+  }
+
+  return ret;
 }
 
 int EC_KEY_set_public_key_affine_coordinates(EC_KEY *key, const BIGNUM *x,
