@@ -26,40 +26,13 @@ import XCTest
 
 extension NISTECDHTests {
     func testGroupOpenSSL<PrivKey: NISTECPrivateKey & DiffieHellmanKeyAgreement, Curve: OpenSSLSupportedNISTCurve>(group: ECDHTestGroup, privateKeys: PrivKey.Type, onCurve curve: Curve.Type, file: StaticString = #file, line: UInt = #line) {
-        func padKeyIfNecessary(vector: String, curveDetails: OpenSSLSupportedNISTCurve.Type, file: StaticString = #file, line: UInt = #line) throws -> [UInt8] {
-            // There are a few edge cases here.
-            //
-            // First, our raw bytes function requires the
-            // input buffer to be exactly as long as the curve size.
-            //
-            // Second, Wycheproof inputs may be too short or too long with
-            // leading zeros.
-            let curveSize = curve.coordinateByteCount
-            var privateBytes = [UInt8](repeating: 0, count: curveSize)
-
-            let hexStringFromVector = (vector.count % 2 == 0) ? vector : "0\(vector)"
-            let privateKeyVector = try! Array(hexString: hexStringFromVector)
-
-            // Input is too long (i.e. we have leading zeros)
-            if privateKeyVector.count > curveSize {
-                privateBytes = privateKeyVector.suffix(curveSize)
-            } else if privateKeyVector.count == curveSize {
-                privateBytes = privateKeyVector
-            } else {
-                // Input is too short
-                privateBytes.replaceSubrange((privateBytes.count - privateKeyVector.count) ..< privateBytes.count, with: privateKeyVector)
-            }
-
-            return privateBytes
-        }
-
         for testVector in group.tests {
             do {
                 let pkBytes = try Array(hexString: testVector.publicKey)
                 let publicKey = try PrivKey.PublicKey(derBytes: pkBytes, curve: Curve.self)
 
                 var privateBytes = [UInt8]()
-                privateBytes = try padKeyIfNecessary(vector: testVector.privateKey, curveDetails: curve)
+                privateBytes = try padKeyIfNecessary(curve: curve, vector: testVector.privateKey)
 
                 let privateKey = try PrivKey(rawRepresentation: privateBytes)
 
@@ -79,6 +52,65 @@ extension NISTECDHTests {
                 }
             }
         }
+    }
+
+    func testGroupPointOpenSSL<PrivKey: NISTECPrivateKey & DiffieHellmanKeyAgreement, Curve: OpenSSLSupportedNISTCurve>(group: ECDHTestGroup, privateKeys: PrivKey.Type, onCurve curve: Curve.Type, file: StaticString = #file, line: UInt = #line) {
+        for testVector in group.tests {
+            do {
+                let pkBytes = try Array(hexString: testVector.publicKey)
+                let publicKey: PrivKey.PublicKey
+
+                if testVector.flags.contains("CompressedPoint") {
+                    publicKey = try PrivKey.PublicKey(compressedRepresentation: pkBytes)
+                } else {
+                    publicKey = try PrivKey.PublicKey(x963Representation: pkBytes)
+                }
+
+                var privateBytes = [UInt8]()
+                privateBytes = try padKeyIfNecessary(curve: curve, vector: testVector.privateKey)
+
+                let privateKey = try PrivKey(rawRepresentation: privateBytes)
+
+                let agreement = try unwrap(publicKey as? PrivKey.P, file: file, line: line)
+                let result = try privateKey.sharedSecretFromKeyAgreement(with: agreement)
+
+                let expectedResult = try Array(hexString: testVector.shared)
+
+                XCTAssertEqual(Array(result.ss), Array(expectedResult), file: file, line: line)
+
+                // If we didn't throw here, assert that the test is not invalid
+                XCTAssertTrue(testVector.result == "valid" || testVector.result == "acceptable")
+            } catch {
+                XCTAssertEqual(testVector.result, "invalid")
+            }
+        }
+    }
+
+    private func padKeyIfNecessary<Curve: OpenSSLSupportedNISTCurve>(curve: Curve.Type, vector: String, file: StaticString = #file, line: UInt = #line) throws -> [UInt8] {
+        // There are a few edge cases here.
+        //
+        // First, our raw bytes function requires the
+        // input buffer to be exactly as long as the curve size.
+        //
+        // Second, Wycheproof inputs may be too short or too long with
+        // leading zeros.
+        let curveSize = curve.coordinateByteCount
+        var privateBytes = [UInt8](repeating: 0, count: curveSize)
+
+        let hexStringFromVector = (vector.count % 2 == 0) ? vector : "0\(vector)"
+        let privateKeyVector = try! Array(hexString: hexStringFromVector)
+
+        // Input is too long (i.e. we have leading zeros)
+        if privateKeyVector.count > curveSize {
+            privateBytes = privateKeyVector.suffix(curveSize)
+        } else if privateKeyVector.count == curveSize {
+            privateBytes = privateKeyVector
+        } else {
+            // Input is too short
+            privateBytes.replaceSubrange((privateBytes.count - privateKeyVector.count) ..< privateBytes.count, with: privateKeyVector)
+        }
+
+        return privateBytes
     }
 }
 

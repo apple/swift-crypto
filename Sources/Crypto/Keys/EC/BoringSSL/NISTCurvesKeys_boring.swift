@@ -31,33 +31,24 @@ extension OpenSSLSupportedNISTCurve {
     }
 }
 
-extension P256 {
-    @usableFromInline
-    struct CurveDetails: OpenSSLSupportedNISTCurve {
-        @inlinable
-        static var group: BoringSSLEllipticCurveGroup {
-            try! BoringSSLEllipticCurveGroup(.p256)
-        }
+extension P256: OpenSSLSupportedNISTCurve {
+    @inlinable
+    static var group: BoringSSLEllipticCurveGroup {
+        try! BoringSSLEllipticCurveGroup(.p256)
     }
 }
 
-extension P384 {
-    @usableFromInline
-    struct CurveDetails: OpenSSLSupportedNISTCurve {
-        @inlinable
-        static var group: BoringSSLEllipticCurveGroup {
-            try! BoringSSLEllipticCurveGroup(.p384)
-        }
+extension P384: OpenSSLSupportedNISTCurve {
+    @inlinable
+    static var group: BoringSSLEllipticCurveGroup {
+        try! BoringSSLEllipticCurveGroup(.p384)
     }
 }
 
-extension P521 {
-    @usableFromInline
-    struct CurveDetails: OpenSSLSupportedNISTCurve {
-        @inlinable
-        static var group: BoringSSLEllipticCurveGroup {
-            try! BoringSSLEllipticCurveGroup(.p521)
-        }
+extension P521: OpenSSLSupportedNISTCurve {
+    @inlinable
+    static var group: BoringSSLEllipticCurveGroup {
+        try! BoringSSLEllipticCurveGroup(.p521)
     }
 }
 
@@ -108,6 +99,10 @@ struct OpenSSLNISTCurvePublicKeyImpl<Curve: OpenSSLSupportedNISTCurve> {
         self.key = try BoringSSLECPublicKeyWrapper(rawRepresentation: rawRepresentation)
     }
 
+    init<Bytes: ContiguousBytes>(compressedRepresentation: Bytes) throws {
+        self.key = try BoringSSLECPublicKeyWrapper(compressedRepresentation: compressedRepresentation)
+    }
+
     @inlinable
     init(wrapping key: BoringSSLECPublicKeyWrapper<Curve>) {
         self.key = key
@@ -126,6 +121,11 @@ struct OpenSSLNISTCurvePublicKeyImpl<Curve: OpenSSLSupportedNISTCurve> {
     @inlinable
     var x963Representation: Data {
         self.key.x963Representation
+    }
+
+    @inlinable
+    var compressedRepresentation: Data {
+        self.key.compressedRepresentation
     }
 }
 
@@ -380,6 +380,12 @@ class BoringSSLECPublicKeyWrapper<Curve: OpenSSLSupportedNISTCurve> {
         }
     }
 
+    convenience init<Bytes: ContiguousBytes>(compressedRepresentation bytes: Bytes) throws {
+        // CryptoKit accepts the exact same data through init(x963Representation:) as it does through
+        // init(compressedRepresentation:), so we do the same.
+        try self.init(x963Representation: bytes)
+    }
+
     init<Bytes: ContiguousBytes>(rawRepresentation bytes: Bytes) throws {
         let group = Curve.group
 
@@ -458,6 +464,17 @@ class BoringSSLECPublicKeyWrapper<Curve: OpenSSLSupportedNISTCurve> {
         try! bytes.append(bytesOf: y, paddedToSize: pointByteCount)
 
         return bytes
+    }
+
+    @inlinable
+    var compressedRepresentation: Data {
+        // The x963 representation is the X coordinate, prefixed by the byte 0x02 or 0x03 depending on whether the Y coordinate is odd or even.
+        // We calculate this by playing games with the x963Representation. We can safely assume that this Data is zero-indexed, because
+        // we just created it above.
+        var bytes = self.x963Representation
+        let yMask = bytes.last! & 0x1
+        bytes[0] = 0x2 | yMask
+        return bytes.dropLast(Curve.group.coordinateByteCount)
     }
 
     deinit {
