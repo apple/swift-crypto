@@ -26,7 +26,12 @@ extension AES.GCM {
 
         /// Generates a fresh random Nonce. Unless required by a specification to provide a specific Nonce, this is the recommended initializer.
         public init() {
-            try! self.init(data: SecureBytes(count: AES.GCM.defaultNonceByteCount))
+            var data = Data(repeating: 0, count: AES.GCM.defaultNonceByteCount)
+            data.withUnsafeMutableBytes {
+                assert($0.count == AES.GCM.defaultNonceByteCount)
+                $0.initializeWithRandomBytes(count: AES.GCM.defaultNonceByteCount)
+            }
+            self.bytes = data
         }
 
         public init<D: DataProtocol>(data: D) throws {
@@ -56,7 +61,12 @@ extension ChaChaPoly {
 
         /// Generates a fresh random Nonce. Unless required by a specification to provide a specific Nonce, this is the recommended initializer.
         public init() {
-            try! self.init(data: SecureBytes(count: ChaChaPoly.nonceByteCount))
+            var data = Data(repeating: 0, count: ChaChaPoly.nonceByteCount)
+            data.withUnsafeMutableBytes {
+                assert($0.count == ChaChaPoly.nonceByteCount)
+                $0.initializeWithRandomBytes(count: ChaChaPoly.nonceByteCount)
+            }
+            self.bytes = data
         }
 
         public init<D: DataProtocol>(data: D) throws {

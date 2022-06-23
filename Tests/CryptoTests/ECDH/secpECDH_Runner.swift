@@ -62,7 +62,7 @@ class NISTECDHTests: XCTestCase {
                 bundleType: self,
                 jsonName: "ecdh_secp256r1_test",
                 testFunction: { (group: ECDHTestGroup) in
-                    testGroup(group: group, privateKeys: P256.KeyAgreement.PrivateKey.self, onCurve: P256.CurveDetails.self)
+                    testGroup(group: group, privateKeys: P256.KeyAgreement.PrivateKey.self, onCurve: P256.self)
                 })
         }
         try orFail {
@@ -70,7 +70,7 @@ class NISTECDHTests: XCTestCase {
                 bundleType: self,
                 jsonName: "ecdh_secp384r1_test",
                 testFunction: { (group: ECDHTestGroup) in
-                    testGroup(group: group, privateKeys: P384.KeyAgreement.PrivateKey.self, onCurve: P384.CurveDetails.self)
+                    testGroup(group: group, privateKeys: P384.KeyAgreement.PrivateKey.self, onCurve: P384.self)
                 })
         }
         try orFail {
@@ -78,7 +78,7 @@ class NISTECDHTests: XCTestCase {
                 bundleType: self,
                 jsonName: "ecdh_secp521r1_test",
                 testFunction: { (group: ECDHTestGroup) in
-                    testGroup(group: group, privateKeys: P521.KeyAgreement.PrivateKey.self, onCurve: P521.CurveDetails.self)
+                    testGroup(group: group, privateKeys: P521.KeyAgreement.PrivateKey.self, onCurve: P521.self)
                 })
         }
 

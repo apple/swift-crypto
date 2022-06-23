@@ -17,12 +17,12 @@
 /// The SHA-256 Hash Function
 public struct SHA256: HashFunctionImplementationDetails {
     public static var blockByteCount: Int {
-        get { return 64 }
+        get { 64 }
         
         set { fatalError("Cannot set SHA256.blockByteCount") }
     }
     public static var byteCount: Int {
-        get { return 32 }
+        get { 32 }
         
         set { fatalError("Cannot set SHA256.byteCount") }
     }
@@ -53,12 +53,12 @@ public struct SHA256: HashFunctionImplementationDetails {
 /// The SHA-384 Hash Function
 public struct SHA384: HashFunctionImplementationDetails {
     public static var blockByteCount: Int {
-        get { return 128 }
+        get { 128 }
         
         set { fatalError("Cannot set SHA384.blockByteCount") }
     }
     public static var byteCount: Int {
-        get { return 48 }
+        get { 48 }
         
         set { fatalError("Cannot set SHA384.byteCount") }
     }
@@ -85,12 +85,12 @@ public struct SHA384: HashFunctionImplementationDetails {
 /// The SHA-512 Hash Function
 public struct SHA512: HashFunctionImplementationDetails {
     public static var blockByteCount: Int {
-        get { return 128 }
+        get { 128 }
         
         set { fatalError("Cannot set SHA512.blockByteCount") }
     }
     public static var byteCount: Int {
-        get { return 64 }
+        get { 64 }
         
         set { fatalError("Cannot set SHA512.byteCount") }
     }

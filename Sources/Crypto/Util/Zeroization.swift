@@ -34,4 +34,13 @@ extension Array: Zeroization where Element == UInt8 {
         memset_s(&self, self.count, 0, self.count)
     }
 }
+
+extension Data: Zeroization {
+    internal mutating func zeroize() {
+        _ = self.withUnsafeMutableBytes {
+            memset_s($0.baseAddress!, $0.count, 0, $0.count)
+        }
+    }
+}
+
 #endif // Linux or !SwiftPM

@@ -34,7 +34,7 @@ extension ASN1 {
             //
             // This function attempts to parse this string as a PEM document, and returns the discriminator type
             // and the base64 decoded bytes.
-            var lines: ArraySlice<Substring> = pemString.split { $0.isNewline }[...]
+            var lines = pemString.split { $0.isNewline }[...]
             guard let first = lines.first, let last = lines.last else {
                 throw CryptoKitASN1Error.invalidPEMDocument
             }

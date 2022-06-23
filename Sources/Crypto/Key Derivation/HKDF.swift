@@ -110,7 +110,7 @@ public struct HKDF<H: HashFunction> {
         let iterations: UInt8 = UInt8(ceil((Float(outputByteCount) / Float(H.Digest.byteCount))))
         var output = SecureBytes()
         let key = SymmetricKey(data: prk)
-        var TMinusOne = Data()
+        var TMinusOne = SecureBytes()
         for i in 1...iterations {
             var hmac = HMAC<H>(key: key)
             hmac.update(data: TMinusOne)
@@ -121,7 +121,7 @@ public struct HKDF<H: HashFunction> {
             withUnsafeBytes(of: i) { counter in
                 hmac.update(bufferPointer: counter)
             }
-            TMinusOne = Data(hmac.finalize())
+            TMinusOne = SecureBytes(hmac.finalize())
             output.append(TMinusOne)
         }
         

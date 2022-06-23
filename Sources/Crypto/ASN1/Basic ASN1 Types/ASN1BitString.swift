@@ -18,11 +18,15 @@ import Foundation
 
 extension ASN1 {
     /// A bitstring is a representation of...well...some bits.
-    struct ASN1BitString: ASN1Parseable, ASN1Serializable {
+    struct ASN1BitString: ASN1ImplicitlyTaggable {
+        static var defaultIdentifier: ASN1.ASN1Identifier {
+            .primitiveBitString
+        }
+
         var bytes: ArraySlice<UInt8>
 
-        init(asn1Encoded node: ASN1.ASN1Node) throws {
-            guard node.identifier == .primitiveBitString else {
+        init(asn1Encoded node: ASN1.ASN1Node, withIdentifier identifier: ASN1.ASN1Identifier) throws {
+            guard node.identifier == identifier else {
                 throw CryptoKitASN1Error.unexpectedFieldType
             }
 
@@ -43,8 +47,8 @@ extension ASN1 {
             self.bytes = bytes
         }
 
-        func serialize(into coder: inout ASN1.Serializer) throws {
-            coder.appendPrimitiveNode(identifier: .primitiveBitString) { bytes in
+        func serialize(into coder: inout ASN1.Serializer, withIdentifier identifier: ASN1.ASN1Identifier) throws {
+            coder.appendPrimitiveNode(identifier: identifier) { bytes in
                 bytes.append(0)
                 bytes.append(contentsOf: self.bytes)
             }
