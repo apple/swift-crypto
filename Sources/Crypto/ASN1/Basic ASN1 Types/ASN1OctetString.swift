@@ -18,11 +18,15 @@ import Foundation
 
 extension ASN1 {
     /// An octet string is a representation of a string of octets.
-    struct ASN1OctetString: ASN1Parseable, ASN1Serializable {
+    struct ASN1OctetString: ASN1ImplicitlyTaggable {
+        static var defaultIdentifier: ASN1.ASN1Identifier {
+            .primitiveOctetString
+        }
+
         var bytes: ArraySlice<UInt8>
 
-        init(asn1Encoded node: ASN1.ASN1Node) throws {
-            guard node.identifier == .primitiveOctetString else {
+        init(asn1Encoded node: ASN1.ASN1Node, withIdentifier identifier: ASN1.ASN1Identifier) throws {
+            guard node.identifier == identifier else {
                 throw CryptoKitASN1Error.unexpectedFieldType
             }
 
@@ -37,8 +41,8 @@ extension ASN1 {
             self.bytes = contentBytes
         }
 
-        func serialize(into coder: inout ASN1.Serializer) throws {
-            coder.appendPrimitiveNode(identifier: .primitiveOctetString) { bytes in
+        func serialize(into coder: inout ASN1.Serializer, withIdentifier identifier: ASN1.ASN1Identifier) throws {
+            coder.appendPrimitiveNode(identifier: identifier) { bytes in
                 bytes.append(contentsOf: self.bytes)
             }
         }

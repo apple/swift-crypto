@@ -116,6 +116,11 @@ extension AES.GCM {
             self.combinedRepresentation = combined
             self.nonceByteCount = AES.GCM.defaultNonceByteCount
         }
+
+        internal init(combined: Data, nonceByteCount: Int) {
+            self.combinedRepresentation = combined
+            self.nonceByteCount = nonceByteCount
+        }
         
         @inlinable
         public init<D: DataProtocol>(combined: D) throws {

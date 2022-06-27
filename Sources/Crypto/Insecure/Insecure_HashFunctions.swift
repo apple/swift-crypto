@@ -19,13 +19,13 @@ extension Insecure {
     /// ⚠️ Security Recommendation: The SHA-1 hash function is no longer considered secure. We strongly recommend using the SHA-256 hash function instead.
     public struct SHA1: HashFunctionImplementationDetails {
         public static var blockByteCount: Int {
-            get { return 64 }
+            get { 64 }
             
             set { fatalError("Cannot set SHA1.blockByteCount") }
         }
         
         public static var byteCount: Int {
-            get { return 20 }
+            get { 20 }
             
             set { fatalError("Cannot set SHA1.byteCount") }
         }
@@ -54,12 +54,12 @@ extension Insecure {
     /// ⚠️ Security Recommendation: The MD5 hash function is no longer considered secure. We strongly recommend using the SHA-256 hash function instead.
     public struct MD5: HashFunctionImplementationDetails {
         public static var blockByteCount: Int {
-            get { return 64 }
+            get { 64 }
             
             set { fatalError("Cannot set MD5.blockByteCount") }
         }
         public static var byteCount: Int {
-            get { return 16 }
+            get { 16 }
             
             set { fatalError("Cannot set MD5.byteCount") }
         }

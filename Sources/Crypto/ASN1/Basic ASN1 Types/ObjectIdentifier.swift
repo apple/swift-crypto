@@ -22,11 +22,15 @@ extension ASN1 {
     /// It represents a node in an OID hierarchy, and is usually represented as an ordered sequence of numbers.
     ///
     /// We mostly don't care about the semantics of the thing, we just care about being able to store and compare them.
-    struct ASN1ObjectIdentifier: ASN1Parseable, ASN1Serializable {
+    struct ASN1ObjectIdentifier: ASN1ImplicitlyTaggable {
+        static var defaultIdentifier: ASN1.ASN1Identifier {
+            .objectIdentifier
+        }
+
         private var oidComponents: [UInt]
 
-        init(asn1Encoded node: ASN1.ASN1Node) throws {
-            guard node.identifier == .objectIdentifier else {
+        init(asn1Encoded node: ASN1.ASN1Node, withIdentifier identifier: ASN1.ASN1Identifier) throws {
+            guard node.identifier == identifier else {
                 throw CryptoKitASN1Error.unexpectedFieldType
             }
 
@@ -86,8 +90,8 @@ extension ASN1 {
             self.oidComponents = oidComponents
         }
 
-        func serialize(into coder: inout ASN1.Serializer) throws {
-            coder.appendPrimitiveNode(identifier: .objectIdentifier) { bytes in
+        func serialize(into coder: inout ASN1.Serializer, withIdentifier identifier: ASN1.ASN1Identifier) throws {
+            coder.appendPrimitiveNode(identifier: identifier) { bytes in
                 var components = self.oidComponents[...]
                 guard let firstComponent = components.popFirst(), let secondComponent = components.popFirst() else {
                     preconditionFailure("Invalid number of OID components: must be at least two!")
@@ -143,10 +147,37 @@ extension ASN1.ASN1ObjectIdentifier {
 
         static let secp521r1: ASN1.ASN1ObjectIdentifier = [1, 3, 132, 0, 35]
     }
+    
+    enum HashFunctions {
+        static let sha256: ASN1.ASN1ObjectIdentifier = [2, 16, 840, 1, 101, 3, 4, 2, 1]
+        static let sha384: ASN1.ASN1ObjectIdentifier = [2, 16, 840, 1, 101, 3, 4, 2, 2]
+        static let sha512: ASN1.ASN1ObjectIdentifier = [2, 16, 840, 1, 101, 3, 4, 2, 3]
+    }
 
     enum AlgorithmIdentifier {
         static let idEcPublicKey: ASN1.ASN1ObjectIdentifier = [1, 2, 840, 10_045, 2, 1]
     }
+
+    enum NameAttributes {
+        static let name: ASN1.ASN1ObjectIdentifier = [2, 5, 4, 41]
+        static let surname: ASN1.ASN1ObjectIdentifier = [2, 5, 4, 4]
+        static let givenName: ASN1.ASN1ObjectIdentifier = [2, 5, 4, 42]
+        static let initials: ASN1.ASN1ObjectIdentifier = [2, 5, 4, 43]
+        static let generationQualifier: ASN1.ASN1ObjectIdentifier = [2, 5, 4, 44]
+        static let commonName: ASN1.ASN1ObjectIdentifier = [2, 5, 4, 3]
+        static let localityName: ASN1.ASN1ObjectIdentifier = [2, 5, 4, 7]
+        static let stateOrProvinceName: ASN1.ASN1ObjectIdentifier = [2, 5, 4, 8]
+        static let organizationName: ASN1.ASN1ObjectIdentifier = [2, 5, 4, 10]
+        static let organizationalUnitName: ASN1.ASN1ObjectIdentifier = [2, 5, 4, 11]
+        static let title: ASN1.ASN1ObjectIdentifier = [2, 5, 4, 12]
+        static let dnQualifier: ASN1.ASN1ObjectIdentifier = [2, 5, 4, 46]
+        static let countryName: ASN1.ASN1ObjectIdentifier = [2, 5, 4, 6]
+        static let serialNumber: ASN1.ASN1ObjectIdentifier = [2, 5, 4, 5]
+        static let pseudonym: ASN1.ASN1ObjectIdentifier = [2, 5, 4, 65]
+        static let domainComponent: ASN1.ASN1ObjectIdentifier = [0, 9, 2342, 19_200_300, 100, 1, 25]
+        static let emailAddress: ASN1.ASN1ObjectIdentifier = [1, 2, 840, 113_549, 1, 9, 1]
+    }
+
 }
 
 extension ArraySlice where Element == UInt8 {

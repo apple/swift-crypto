@@ -18,7 +18,7 @@
 // any edits of this file WILL be overwritten and thus discarded
 // see section `gyb` in `README` for details.
 %{
-digests_and_length = [{"name": "SHA256", "count": 32},{"name": "SHA384","count":48},{"name":"SHA512", "count": 64},{"name":"SHA1", "count":20, "prefix":"Insecure"},{"name":"MD5", "count":16, "prefix":"Insecure"}]
+digests_and_length = [{"name": "SHA256", "count": 32},{"name": "SHA384","count":48},{"name":"SHA512", "count": 64},{"name":"SHA1", "count":20, "prefix":"Insecure "},{"name":"MD5", "count":16, "prefix":"Insecure "}]
 }%
 % for HF in digests_and_length:
 %{

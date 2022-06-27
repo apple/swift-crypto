@@ -44,7 +44,7 @@ extension P256.Signing {
         /// The raw signature format for ECDSA is r || s
         /// As defined in https://tools.ietf.org/html/rfc4754
         public init<D: DataProtocol>(rawRepresentation: D) throws {
-            guard rawRepresentation.count == 2 * P256.CurveDetails.coordinateByteCount else {
+            guard rawRepresentation.count == 2 * P256.coordinateByteCount else {
                 throw CryptoKitError.incorrectParameterSize
             }
 
@@ -52,7 +52,7 @@ extension P256.Signing {
         }
         
         internal init(_ dataRepresentation: Data) throws {
-            guard dataRepresentation.count == 2 * P256.CurveDetails.coordinateByteCount else {
+            guard dataRepresentation.count == 2 * P256.coordinateByteCount else {
                 throw CryptoKitError.incorrectParameterSize
             }
 
@@ -74,7 +74,7 @@ extension P256.Signing {
             let parsed = try ASN1.parse(Array(derRepresentation))
             let signature = try ASN1.ECDSASignature<ArraySlice<UInt8>>(asn1Encoded: parsed)
 
-            let coordinateByteCount = P256.CurveDetails.coordinateByteCount
+            let coordinateByteCount = P256.coordinateByteCount
 
             guard signature.r.count <= coordinateByteCount && signature.s.count <= coordinateByteCount else {
                 throw CryptoKitError.incorrectParameterSize
@@ -82,11 +82,11 @@ extension P256.Signing {
 
             // r and s must be padded out to the coordinate byte count.
             var raw = Data()
-            raw.reserveCapacity(2 * P256.CurveDetails.coordinateByteCount)
+            raw.reserveCapacity(2 * P256.coordinateByteCount)
 
-            raw.append(contentsOf: repeatElement(0, count: P256.CurveDetails.coordinateByteCount - signature.r.count))
+            raw.append(contentsOf: repeatElement(0, count: P256.coordinateByteCount - signature.r.count))
             raw.append(contentsOf: signature.r)
-            raw.append(contentsOf: repeatElement(0, count: P256.CurveDetails.coordinateByteCount - signature.s.count))
+            raw.append(contentsOf: repeatElement(0, count: P256.coordinateByteCount - signature.s.count))
             raw.append(contentsOf: signature.s)
 
             self.rawRepresentation = raw
@@ -186,7 +186,7 @@ extension P384.Signing {
         /// The raw signature format for ECDSA is r || s
         /// As defined in https://tools.ietf.org/html/rfc4754
         public init<D: DataProtocol>(rawRepresentation: D) throws {
-            guard rawRepresentation.count == 2 * P384.CurveDetails.coordinateByteCount else {
+            guard rawRepresentation.count == 2 * P384.coordinateByteCount else {
                 throw CryptoKitError.incorrectParameterSize
             }
 
@@ -194,7 +194,7 @@ extension P384.Signing {
         }
         
         internal init(_ dataRepresentation: Data) throws {
-            guard dataRepresentation.count == 2 * P384.CurveDetails.coordinateByteCount else {
+            guard dataRepresentation.count == 2 * P384.coordinateByteCount else {
                 throw CryptoKitError.incorrectParameterSize
             }
 
@@ -216,7 +216,7 @@ extension P384.Signing {
             let parsed = try ASN1.parse(Array(derRepresentation))
             let signature = try ASN1.ECDSASignature<ArraySlice<UInt8>>(asn1Encoded: parsed)
 
-            let coordinateByteCount = P384.CurveDetails.coordinateByteCount
+            let coordinateByteCount = P384.coordinateByteCount
 
             guard signature.r.count <= coordinateByteCount && signature.s.count <= coordinateByteCount else {
                 throw CryptoKitError.incorrectParameterSize
@@ -224,11 +224,11 @@ extension P384.Signing {
 
             // r and s must be padded out to the coordinate byte count.
             var raw = Data()
-            raw.reserveCapacity(2 * P384.CurveDetails.coordinateByteCount)
+            raw.reserveCapacity(2 * P384.coordinateByteCount)
 
-            raw.append(contentsOf: repeatElement(0, count: P384.CurveDetails.coordinateByteCount - signature.r.count))
+            raw.append(contentsOf: repeatElement(0, count: P384.coordinateByteCount - signature.r.count))
             raw.append(contentsOf: signature.r)
-            raw.append(contentsOf: repeatElement(0, count: P384.CurveDetails.coordinateByteCount - signature.s.count))
+            raw.append(contentsOf: repeatElement(0, count: P384.coordinateByteCount - signature.s.count))
             raw.append(contentsOf: signature.s)
 
             self.rawRepresentation = raw
@@ -328,7 +328,7 @@ extension P521.Signing {
         /// The raw signature format for ECDSA is r || s
         /// As defined in https://tools.ietf.org/html/rfc4754
         public init<D: DataProtocol>(rawRepresentation: D) throws {
-            guard rawRepresentation.count == 2 * P521.CurveDetails.coordinateByteCount else {
+            guard rawRepresentation.count == 2 * P521.coordinateByteCount else {
                 throw CryptoKitError.incorrectParameterSize
             }
 
@@ -336,7 +336,7 @@ extension P521.Signing {
         }
         
         internal init(_ dataRepresentation: Data) throws {
-            guard dataRepresentation.count == 2 * P521.CurveDetails.coordinateByteCount else {
+            guard dataRepresentation.count == 2 * P521.coordinateByteCount else {
                 throw CryptoKitError.incorrectParameterSize
             }
 
@@ -358,7 +358,7 @@ extension P521.Signing {
             let parsed = try ASN1.parse(Array(derRepresentation))
             let signature = try ASN1.ECDSASignature<ArraySlice<UInt8>>(asn1Encoded: parsed)
 
-            let coordinateByteCount = P521.CurveDetails.coordinateByteCount
+            let coordinateByteCount = P521.coordinateByteCount
 
             guard signature.r.count <= coordinateByteCount && signature.s.count <= coordinateByteCount else {
                 throw CryptoKitError.incorrectParameterSize
@@ -366,11 +366,11 @@ extension P521.Signing {
 
             // r and s must be padded out to the coordinate byte count.
             var raw = Data()
-            raw.reserveCapacity(2 * P521.CurveDetails.coordinateByteCount)
+            raw.reserveCapacity(2 * P521.coordinateByteCount)
 
-            raw.append(contentsOf: repeatElement(0, count: P521.CurveDetails.coordinateByteCount - signature.r.count))
+            raw.append(contentsOf: repeatElement(0, count: P521.coordinateByteCount - signature.r.count))
             raw.append(contentsOf: signature.r)
-            raw.append(contentsOf: repeatElement(0, count: P521.CurveDetails.coordinateByteCount - signature.s.count))
+            raw.append(contentsOf: repeatElement(0, count: P521.coordinateByteCount - signature.s.count))
             raw.append(contentsOf: signature.s)
 
             self.rawRepresentation = raw
