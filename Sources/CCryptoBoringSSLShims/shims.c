@@ -142,3 +142,13 @@ int CCryptoBoringSSLShims_RSA_sign_pss_mgf1(RSA *rsa, size_t *out_len, void *out
                                             const EVP_MD *mgf1_md, int salt_len) {
     return CCryptoBoringSSL_RSA_sign_pss_mgf1(rsa, out_len, out, max_out, in, in_len, md, mgf1_md, salt_len);
 }
+
+int CCryptoBoringSSLShims_RSA_public_encrypt(int flen, const void *from, void *to,
+                                             RSA *rsa, int padding) {
+    return CCryptoBoringSSL_RSA_public_encrypt(flen, from, to, rsa, padding);
+}
+
+int CCryptoBoringSSLShims_RSA_private_decrypt(int flen, const void *from, void *to,
+                                              RSA *rsa, int padding) {
+    return CCryptoBoringSSL_RSA_private_decrypt(flen, from, to, rsa, padding);
+}

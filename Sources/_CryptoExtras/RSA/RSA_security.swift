@@ -170,6 +170,21 @@ extension SecurityRSAPrivateKey {
         return _RSA.Signing.RSASignature(rawRepresentation: signature as Data)
     }
  }
+ 
+extension SecurityRSAPrivateKey {
+    internal func decrypt<D: DataProtocol>(_ data: D, padding: _RSA.Encryption.Padding) throws -> _RSA.Encryption.RSADecryptedData {
+        let algorithm = try SecKeyAlgorithm(padding: padding)
+        let dataToDecrypt = Data(data)
+        var error: Unmanaged<CFError>? = nil
+        let dec = SecKeyCreateDecryptedData(self.backing, algorithm, dataToDecrypt as CFData, &error)
+        
+        guard let decrypted = dec else {
+            throw error!.takeRetainedValue() as Error
+        }
+        
+        return _RSA.Encryption.RSADecryptedData(rawRepresentation: decrypted as Data)
+    }
+}
 
 extension SecurityRSAPublicKey {
     func isValidSignature<D: Digest>(_ signature: _RSA.Signing.RSASignature, for digest: D, padding: _RSA.Signing.Padding) -> Bool {
@@ -187,6 +202,21 @@ extension SecurityRSAPublicKey {
         } catch {
             return false
         }
+    }
+}
+
+extension SecurityRSAPublicKey {
+    internal func encrypt<D: DataProtocol>(_ data: D, padding: _RSA.Encryption.Padding) throws -> _RSA.Encryption.RSAEncryptedData {
+        let algorithm = try SecKeyAlgorithm(padding: padding)
+        let dataToEncrypt = Data(data)
+        var error: Unmanaged<CFError>? = nil
+        let enc = SecKeyCreateEncryptedData(self.backing, algorithm, dataToEncrypt as CFData, &error)
+        
+        guard let encrypted = enc else {
+            throw error!.takeRetainedValue() as Error
+        }
+        
+        return _RSA.Encryption.RSAEncryptedData(rawRepresentation: encrypted as Data)
     }
 }
 
@@ -223,6 +253,15 @@ extension SecKeyAlgorithm {
             }
         default:
             throw CryptoKitError.incorrectParameterSize
+        }
+    }
+    
+    fileprivate init(padding: _RSA.Encryption.Padding) throws {
+        switch padding.backing {
+        case .pkcs1v1_5:
+            self = .rsaEncryptionPKCS1
+        case .pkcs1_oaep:
+            self = .rsaEncryptionOAEPSHA1
         }
     }
 }

@@ -35,6 +35,7 @@ public enum _RSA { }
 
 extension _RSA {
     public enum Signing { }
+    public enum Encryption { }
 }
 
 extension _RSA.Signing {
@@ -326,4 +327,65 @@ extension _RSA {
     static let PKCS1PublicKeyType = "RSA PUBLIC KEY"
 
     static let SPKIPublicKeyType = "PUBLIC KEY"
+}
+
+extension _RSA.Encryption {
+    public typealias PublicKey = _RSA.Signing.PublicKey
+    public typealias PrivateKey = _RSA.Signing.PrivateKey
+}
+
+extension _RSA.Encryption {
+    public struct RSAEncryptedData: ContiguousBytes {
+        public var rawRepresentation: Data
+        
+        public init<D: DataProtocol>(rawRepresentation: D) {
+            self.rawRepresentation = Data(rawRepresentation)
+        }
+        
+        public func withUnsafeBytes<R>(_ body: (UnsafeRawBufferPointer) throws -> R) rethrows -> R {
+            try self.rawRepresentation.withUnsafeBytes(body)
+        }
+    }
+    
+    public struct RSADecryptedData: ContiguousBytes {
+        public var rawRepresentation: Data
+        
+        public init<D: DataProtocol>(rawRepresentation: D) {
+            self.rawRepresentation = Data(rawRepresentation)
+        }
+        
+        public func withUnsafeBytes<R>(_ body: (UnsafeRawBufferPointer) throws -> R) rethrows -> R {
+            try self.rawRepresentation.withUnsafeBytes(body)
+        }
+    }
+}
+
+extension _RSA.Encryption {
+    public struct Padding {
+        internal enum Backing {
+            case pkcs1v1_5
+            case pkcs1_oaep
+        }
+        
+        internal var backing: Backing
+        
+        private init(_ backing: Backing) {
+            self.backing = backing
+        }
+        
+        public static let insecurePKCS1v1_5 = Self(.pkcs1v1_5)
+        public static let PKCS1_OAEP = Self(.pkcs1_oaep)
+    }
+}
+
+extension _RSA.Encryption.PrivateKey {
+    public func decrypt<D: DataProtocol>(_ data: D, padding: _RSA.Encryption.Padding) throws -> _RSA.Encryption.RSADecryptedData {
+        return try self.backing.decrypt(data, padding: padding)
+    }
+}
+
+extension _RSA.Encryption.PublicKey {
+    public func encrypt<D: DataProtocol>(_ data: D, padding: _RSA.Encryption.Padding) throws -> _RSA.Encryption.RSAEncryptedData {
+        return try self.backing.encrypt(data, padding: padding)
+    }
 }
