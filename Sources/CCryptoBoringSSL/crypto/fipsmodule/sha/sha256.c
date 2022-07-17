@@ -62,6 +62,7 @@
 
 #include "../../internal.h"
 #include "../digest/md32_common.h"
+#include "../service_indicator/internal.h"
 #include "internal.h"
 
 
@@ -150,6 +151,8 @@ static int sha256_final_impl(uint8_t *out, SHA256_CTX *c) {
     CRYPTO_store_u32_be(out, c->h[i]);
     out += 4;
   }
+
+  FIPS_service_indicator_update_state();
   return 1;
 }
 
@@ -161,6 +164,7 @@ int SHA256_Final(uint8_t out[SHA256_DIGEST_LENGTH], SHA256_CTX *c) {
   // TODO(davidben): Add an assert and fix code to match them up.
   return sha256_final_impl(out, c);
 }
+
 int SHA224_Final(uint8_t out[SHA224_DIGEST_LENGTH], SHA256_CTX *ctx) {
   // SHA224_Init sets |ctx->md_len| to |SHA224_DIGEST_LENGTH|, so this has a
   // smaller output.

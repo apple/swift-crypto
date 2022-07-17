@@ -25,15 +25,19 @@ extension ASN1 {
     //   parameters [0] EXPLICIT ECDomainParameters OPTIONAL,
     //   publicKey [1] EXPLICIT BIT STRING OPTIONAL
     // }
-    struct SEC1PrivateKey: ASN1Parseable, ASN1Serializable {
+    struct SEC1PrivateKey: ASN1ImplicitlyTaggable {
+        static var defaultIdentifier: ASN1.ASN1Identifier {
+            return .sequence
+        }
+
         var algorithm: ASN1.RFC5480AlgorithmIdentifier?
 
         var privateKey: ASN1.ASN1OctetString
 
         var publicKey: ASN1.ASN1BitString?
 
-        init(asn1Encoded rootNode: ASN1.ASN1Node) throws {
-            self = try ASN1.sequence(rootNode) { nodes in
+        init(asn1Encoded rootNode: ASN1.ASN1Node, withIdentifier identifier: ASN1.ASN1Identifier) throws {
+            self = try ASN1.sequence(rootNode, identifier: identifier) { nodes in
                 let version = try Int(asn1Encoded: &nodes)
                 guard 1 == version else {
                     throw CryptoKitASN1Error.invalidASN1Object
@@ -74,8 +78,8 @@ extension ASN1 {
             self.publicKey = ASN1BitString(bytes: publicKey[...])
         }
 
-        func serialize(into coder: inout ASN1.Serializer) throws {
-            try coder.appendConstructedNode(identifier: .sequence) { coder in
+        func serialize(into coder: inout ASN1.Serializer, withIdentifier identifier: ASN1.ASN1Identifier) throws {
+            try coder.appendConstructedNode(identifier: identifier) { coder in
                 try coder.serialize(1)  // version
                 try coder.serialize(self.privateKey)
 
@@ -88,6 +92,8 @@ extension ASN1 {
                         oid = ASN1ObjectIdentifier.NamedCurves.secp384r1
                     case .ecdsaP521:
                         oid = ASN1ObjectIdentifier.NamedCurves.secp521r1
+                    default:
+                        throw CryptoKitASN1Error.invalidASN1Object
                     }
 
                     try coder.serialize(oid, explicitlyTaggedWithTagNumber: 0, tagClass: .contextSpecific)

@@ -39,13 +39,17 @@ extension ASN1 {
     //
     // The private key octet string contains (surprise!) a SEC1-encoded private key! So we recursively invoke the
     // ASN.1 parser and go again.
-    struct PKCS8PrivateKey: ASN1Parseable, ASN1Serializable {
+    struct PKCS8PrivateKey: ASN1ImplicitlyTaggable {
+        static var defaultIdentifier: ASN1.ASN1Identifier {
+            return .sequence
+        }
+
         var algorithm: RFC5480AlgorithmIdentifier
 
         var privateKey: ASN1.SEC1PrivateKey
 
-        init(asn1Encoded rootNode: ASN1.ASN1Node) throws {
-            self = try ASN1.sequence(rootNode) { nodes in
+        init(asn1Encoded rootNode: ASN1.ASN1Node, withIdentifier identifier: ASN1.ASN1Identifier) throws {
+            self = try ASN1.sequence(rootNode, identifier: identifier) { nodes in
                 let version = try Int(asn1Encoded: &nodes)
                 guard version == 0 else {
                     throw CryptoKitASN1Error.invalidASN1Object
@@ -80,8 +84,8 @@ extension ASN1 {
             self.privateKey = ASN1.SEC1PrivateKey(privateKey: privateKey, algorithm: nil, publicKey: publicKey)
         }
 
-        func serialize(into coder: inout ASN1.Serializer) throws {
-            try coder.appendConstructedNode(identifier: .sequence) { coder in
+        func serialize(into coder: inout ASN1.Serializer, withIdentifier identifier: ASN1.ASN1Identifier) throws {
+            try coder.appendConstructedNode(identifier: identifier) { coder in
                 try coder.serialize(0)  // version
                 try coder.serialize(self.algorithm)
 

@@ -65,6 +65,15 @@ public struct SymmetricKey: ContiguousBytes {
         self.init(key: SecureBytes(count: Int(size.bitCount / 8)))
     }
 
+    internal init(unsafeUninitializedCapacity: Int, initializingWith callback: (inout UnsafeMutableRawBufferPointer, inout Int) throws -> Void) rethrows {
+        self.init(key: try SecureBytes(unsafeUninitializedCapacity: unsafeUninitializedCapacity, initializingWith: callback))
+    }
+
+    // Fast-path alias for cases whe know we have a SecureBytes object.
+    internal init(data: SecureBytes) {
+        self.init(key: data)
+    }
+
     /// The key size in bits
     public var bitCount: Int {
         return self.byteCount * 8

@@ -122,6 +122,11 @@ extension ChaChaPoly {
             
             self.combined = Data(nonce) + ciphertext + tag
         }
+
+        internal init(combined: Data, nonceByteCount: Int) {
+            assert(nonceByteCount == ChaChaPoly.nonceByteCount)
+            self.combined = combined
+        }
     }
 }
 #endif // Linux or !SwiftPM

@@ -54,7 +54,9 @@
 #include <CCryptoBoringSSL_err.h>
 #include <CCryptoBoringSSL_mem.h>
 
-#include "../fipsmodule/cipher/internal.h"
+#include "../delocate.h"
+#include "../service_indicator/internal.h"
+#include "internal.h"
 
 
 struct ccm128_context {
@@ -277,11 +279,9 @@ struct aead_aes_ccm_ctx {
 OPENSSL_STATIC_ASSERT(sizeof(((EVP_AEAD_CTX *)NULL)->state) >=
                           sizeof(struct aead_aes_ccm_ctx),
                       "AEAD state is too small");
-#if defined(__GNUC__) || defined(__clang__)
 OPENSSL_STATIC_ASSERT(alignof(union evp_aead_ctx_st_state) >=
                           alignof(struct aead_aes_ccm_ctx),
                       "AEAD state has insufficient alignment");
-#endif
 
 static int aead_aes_ccm_init(EVP_AEAD_CTX *ctx, const uint8_t *key,
                              size_t key_len, size_t tag_len, unsigned M,
@@ -350,6 +350,7 @@ static int aead_aes_ccm_seal_scatter(
   }
 
   *out_tag_len = ctx->tag_len;
+  AEAD_CCM_verify_service_indicator(ctx);
   return 1;
 }
 
@@ -390,6 +391,7 @@ static int aead_aes_ccm_open_gather(const EVP_AEAD_CTX *ctx, uint8_t *out,
     return 0;
   }
 
+  AEAD_CCM_verify_service_indicator(ctx);
   return 1;
 }
 
@@ -398,25 +400,18 @@ static int aead_aes_ccm_bluetooth_init(EVP_AEAD_CTX *ctx, const uint8_t *key,
   return aead_aes_ccm_init(ctx, key, key_len, tag_len, 4, 2);
 }
 
-static const EVP_AEAD aead_aes_128_ccm_bluetooth = {
-    16,  // key length (AES-128)
-    13,  // nonce length
-    4,   // overhead
-    4,   // max tag length
-    0,   // seal_scatter_supports_extra_in
+DEFINE_METHOD_FUNCTION(EVP_AEAD, EVP_aead_aes_128_ccm_bluetooth) {
+  memset(out, 0, sizeof(EVP_AEAD));
 
-    aead_aes_ccm_bluetooth_init,
-    NULL /* init_with_direction */,
-    aead_aes_ccm_cleanup,
-    NULL /* open */,
-    aead_aes_ccm_seal_scatter,
-    aead_aes_ccm_open_gather,
-    NULL /* get_iv */,
-    NULL /* tag_len */,
-};
+  out->key_len = 16;
+  out->nonce_len = 13;
+  out->overhead = 4;
+  out->max_tag_len = 4;
 
-const EVP_AEAD *EVP_aead_aes_128_ccm_bluetooth(void) {
-  return &aead_aes_128_ccm_bluetooth;
+  out->init = aead_aes_ccm_bluetooth_init;
+  out->cleanup = aead_aes_ccm_cleanup;
+  out->seal_scatter = aead_aes_ccm_seal_scatter;
+  out->open_gather = aead_aes_ccm_open_gather;
 }
 
 static int aead_aes_ccm_bluetooth_8_init(EVP_AEAD_CTX *ctx, const uint8_t *key,
@@ -424,23 +419,16 @@ static int aead_aes_ccm_bluetooth_8_init(EVP_AEAD_CTX *ctx, const uint8_t *key,
   return aead_aes_ccm_init(ctx, key, key_len, tag_len, 8, 2);
 }
 
-static const EVP_AEAD aead_aes_128_ccm_bluetooth_8 = {
-    16,  // key length (AES-128)
-    13,  // nonce length
-    8,   // overhead
-    8,   // max tag length
-    0,   // seal_scatter_supports_extra_in
+DEFINE_METHOD_FUNCTION(EVP_AEAD, EVP_aead_aes_128_ccm_bluetooth_8) {
+  memset(out, 0, sizeof(EVP_AEAD));
 
-    aead_aes_ccm_bluetooth_8_init,
-    NULL /* init_with_direction */,
-    aead_aes_ccm_cleanup,
-    NULL /* open */,
-    aead_aes_ccm_seal_scatter,
-    aead_aes_ccm_open_gather,
-    NULL /* get_iv */,
-    NULL /* tag_len */,
-};
+  out->key_len = 16;
+  out->nonce_len = 13;
+  out->overhead = 8;
+  out->max_tag_len = 8;
 
-const EVP_AEAD *EVP_aead_aes_128_ccm_bluetooth_8(void) {
-  return &aead_aes_128_ccm_bluetooth_8;
+  out->init = aead_aes_ccm_bluetooth_8_init;
+  out->cleanup = aead_aes_ccm_cleanup;
+  out->seal_scatter = aead_aes_ccm_seal_scatter;
+  out->open_gather = aead_aes_ccm_open_gather;
 }

@@ -35,7 +35,12 @@ extension ${name} {
 
         /// Generates a fresh random Nonce. Unless required by a specification to provide a specific Nonce, this is the recommended initializer.
         public init() {
-            try! self.init(data: SecureBytes(count: ${nonceSize}))
+            var data = Data(repeating: 0, count: ${nonceSize})
+            data.withUnsafeMutableBytes {
+                assert($0.count == ${nonceSize})
+                $0.initializeWithRandomBytes(count: ${nonceSize})
+            }
+            self.bytes = data
         }
 
         public init<D: DataProtocol>(data: D) throws {

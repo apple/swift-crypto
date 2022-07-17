@@ -33,7 +33,7 @@ extension P256 {
     public enum Signing {
     
         public struct PublicKey: NISTECPublicKey {
-            var impl: NISTCurvePublicKeyImpl<P256.CurveDetails>
+            var impl: NISTCurvePublicKeyImpl<P256>
 
             public init<D: ContiguousBytes>(rawRepresentation: D) throws {
                 impl = try NISTCurvePublicKeyImpl(rawRepresentation: rawRepresentation)
@@ -45,6 +45,10 @@ extension P256 {
 
             public init<Bytes: ContiguousBytes>(x963Representation: Bytes) throws {
                 impl = try NISTCurvePublicKeyImpl(x963Representation: x963Representation)
+            }
+            
+            public init<Bytes: ContiguousBytes>(compressedRepresentation: Bytes) throws {
+                impl = try NISTCurvePublicKeyImpl(compressedRepresentation: compressedRepresentation)
             }
 
             public init(pemRepresentation: String) throws {
@@ -61,7 +65,7 @@ extension P256 {
                 self = try .init(x963Representation: parsed.key)
             }
 
-            init(impl: NISTCurvePublicKeyImpl<P256.CurveDetails>) {
+            init(impl: NISTCurvePublicKeyImpl<P256>) {
                 self.impl = impl
             }
 
@@ -69,6 +73,8 @@ extension P256 {
             public var rawRepresentation: Data { impl.rawRepresentation }
             public var x963Representation: Data { impl.x963Representation }
 
+            public var compressedRepresentation: Data { impl.compressedRepresentation }
+            
             public var derRepresentation: Data {
                 let spki = ASN1.SubjectPublicKeyInfo(algorithmIdentifier: .ecdsaP256, key: Array(self.x963Representation))
                 var serializer = ASN1.Serializer()
@@ -85,7 +91,7 @@ extension P256 {
         }
 
         public struct PrivateKey: NISTECPrivateKey {
-            let impl: NISTCurvePrivateKeyImpl<P256.CurveDetails>
+            let impl: NISTCurvePrivateKeyImpl<P256>
 
             public init(compactRepresentable: Bool = true) {
                 impl = NISTCurvePrivateKeyImpl(compactRepresentable: compactRepresentable)
@@ -129,7 +135,7 @@ extension P256 {
                 }
             }
 
-            init(impl: NISTCurvePrivateKeyImpl<P256.CurveDetails>) {
+            init(impl: NISTCurvePrivateKeyImpl<P256>) {
                 self.impl = impl
             }
 
@@ -161,7 +167,7 @@ extension P256 {
     public enum KeyAgreement {
     
         public struct PublicKey: NISTECPublicKey {
-            var impl: NISTCurvePublicKeyImpl<P256.CurveDetails>
+            var impl: NISTCurvePublicKeyImpl<P256>
 
             public init<D: ContiguousBytes>(rawRepresentation: D) throws {
                 impl = try NISTCurvePublicKeyImpl(rawRepresentation: rawRepresentation)
@@ -173,6 +179,10 @@ extension P256 {
 
             public init<Bytes: ContiguousBytes>(x963Representation: Bytes) throws {
                 impl = try NISTCurvePublicKeyImpl(x963Representation: x963Representation)
+            }
+            
+            public init<Bytes: ContiguousBytes>(compressedRepresentation: Bytes) throws {
+                impl = try NISTCurvePublicKeyImpl(compressedRepresentation: compressedRepresentation)
             }
 
             public init(pemRepresentation: String) throws {
@@ -189,7 +199,7 @@ extension P256 {
                 self = try .init(x963Representation: parsed.key)
             }
 
-            init(impl: NISTCurvePublicKeyImpl<P256.CurveDetails>) {
+            init(impl: NISTCurvePublicKeyImpl<P256>) {
                 self.impl = impl
             }
 
@@ -197,6 +207,8 @@ extension P256 {
             public var rawRepresentation: Data { impl.rawRepresentation }
             public var x963Representation: Data { impl.x963Representation }
 
+            public var compressedRepresentation: Data { impl.compressedRepresentation }
+            
             public var derRepresentation: Data {
                 let spki = ASN1.SubjectPublicKeyInfo(algorithmIdentifier: .ecdsaP256, key: Array(self.x963Representation))
                 var serializer = ASN1.Serializer()
@@ -213,7 +225,7 @@ extension P256 {
         }
 
         public struct PrivateKey: NISTECPrivateKey {
-            let impl: NISTCurvePrivateKeyImpl<P256.CurveDetails>
+            let impl: NISTCurvePrivateKeyImpl<P256>
 
             public init(compactRepresentable: Bool = true) {
                 impl = NISTCurvePrivateKeyImpl(compactRepresentable: compactRepresentable)
@@ -257,7 +269,7 @@ extension P256 {
                 }
             }
 
-            init(impl: NISTCurvePrivateKeyImpl<P256.CurveDetails>) {
+            init(impl: NISTCurvePrivateKeyImpl<P256>) {
                 self.impl = impl
             }
 
@@ -289,7 +301,7 @@ extension P384 {
     public enum Signing {
     
         public struct PublicKey: NISTECPublicKey {
-            var impl: NISTCurvePublicKeyImpl<P384.CurveDetails>
+            var impl: NISTCurvePublicKeyImpl<P384>
 
             public init<D: ContiguousBytes>(rawRepresentation: D) throws {
                 impl = try NISTCurvePublicKeyImpl(rawRepresentation: rawRepresentation)
@@ -301,6 +313,10 @@ extension P384 {
 
             public init<Bytes: ContiguousBytes>(x963Representation: Bytes) throws {
                 impl = try NISTCurvePublicKeyImpl(x963Representation: x963Representation)
+            }
+            
+            public init<Bytes: ContiguousBytes>(compressedRepresentation: Bytes) throws {
+                impl = try NISTCurvePublicKeyImpl(compressedRepresentation: compressedRepresentation)
             }
 
             public init(pemRepresentation: String) throws {
@@ -317,7 +333,7 @@ extension P384 {
                 self = try .init(x963Representation: parsed.key)
             }
 
-            init(impl: NISTCurvePublicKeyImpl<P384.CurveDetails>) {
+            init(impl: NISTCurvePublicKeyImpl<P384>) {
                 self.impl = impl
             }
 
@@ -325,6 +341,8 @@ extension P384 {
             public var rawRepresentation: Data { impl.rawRepresentation }
             public var x963Representation: Data { impl.x963Representation }
 
+            public var compressedRepresentation: Data { impl.compressedRepresentation }
+            
             public var derRepresentation: Data {
                 let spki = ASN1.SubjectPublicKeyInfo(algorithmIdentifier: .ecdsaP384, key: Array(self.x963Representation))
                 var serializer = ASN1.Serializer()
@@ -341,7 +359,7 @@ extension P384 {
         }
 
         public struct PrivateKey: NISTECPrivateKey {
-            let impl: NISTCurvePrivateKeyImpl<P384.CurveDetails>
+            let impl: NISTCurvePrivateKeyImpl<P384>
 
             public init(compactRepresentable: Bool = true) {
                 impl = NISTCurvePrivateKeyImpl(compactRepresentable: compactRepresentable)
@@ -385,7 +403,7 @@ extension P384 {
                 }
             }
 
-            init(impl: NISTCurvePrivateKeyImpl<P384.CurveDetails>) {
+            init(impl: NISTCurvePrivateKeyImpl<P384>) {
                 self.impl = impl
             }
 
@@ -417,7 +435,7 @@ extension P384 {
     public enum KeyAgreement {
     
         public struct PublicKey: NISTECPublicKey {
-            var impl: NISTCurvePublicKeyImpl<P384.CurveDetails>
+            var impl: NISTCurvePublicKeyImpl<P384>
 
             public init<D: ContiguousBytes>(rawRepresentation: D) throws {
                 impl = try NISTCurvePublicKeyImpl(rawRepresentation: rawRepresentation)
@@ -429,6 +447,10 @@ extension P384 {
 
             public init<Bytes: ContiguousBytes>(x963Representation: Bytes) throws {
                 impl = try NISTCurvePublicKeyImpl(x963Representation: x963Representation)
+            }
+            
+            public init<Bytes: ContiguousBytes>(compressedRepresentation: Bytes) throws {
+                impl = try NISTCurvePublicKeyImpl(compressedRepresentation: compressedRepresentation)
             }
 
             public init(pemRepresentation: String) throws {
@@ -445,7 +467,7 @@ extension P384 {
                 self = try .init(x963Representation: parsed.key)
             }
 
-            init(impl: NISTCurvePublicKeyImpl<P384.CurveDetails>) {
+            init(impl: NISTCurvePublicKeyImpl<P384>) {
                 self.impl = impl
             }
 
@@ -453,6 +475,8 @@ extension P384 {
             public var rawRepresentation: Data { impl.rawRepresentation }
             public var x963Representation: Data { impl.x963Representation }
 
+            public var compressedRepresentation: Data { impl.compressedRepresentation }
+            
             public var derRepresentation: Data {
                 let spki = ASN1.SubjectPublicKeyInfo(algorithmIdentifier: .ecdsaP384, key: Array(self.x963Representation))
                 var serializer = ASN1.Serializer()
@@ -469,7 +493,7 @@ extension P384 {
         }
 
         public struct PrivateKey: NISTECPrivateKey {
-            let impl: NISTCurvePrivateKeyImpl<P384.CurveDetails>
+            let impl: NISTCurvePrivateKeyImpl<P384>
 
             public init(compactRepresentable: Bool = true) {
                 impl = NISTCurvePrivateKeyImpl(compactRepresentable: compactRepresentable)
@@ -513,7 +537,7 @@ extension P384 {
                 }
             }
 
-            init(impl: NISTCurvePrivateKeyImpl<P384.CurveDetails>) {
+            init(impl: NISTCurvePrivateKeyImpl<P384>) {
                 self.impl = impl
             }
 
@@ -545,7 +569,7 @@ extension P521 {
     public enum Signing {
     
         public struct PublicKey: NISTECPublicKey {
-            var impl: NISTCurvePublicKeyImpl<P521.CurveDetails>
+            var impl: NISTCurvePublicKeyImpl<P521>
 
             public init<D: ContiguousBytes>(rawRepresentation: D) throws {
                 impl = try NISTCurvePublicKeyImpl(rawRepresentation: rawRepresentation)
@@ -557,6 +581,10 @@ extension P521 {
 
             public init<Bytes: ContiguousBytes>(x963Representation: Bytes) throws {
                 impl = try NISTCurvePublicKeyImpl(x963Representation: x963Representation)
+            }
+            
+            public init<Bytes: ContiguousBytes>(compressedRepresentation: Bytes) throws {
+                impl = try NISTCurvePublicKeyImpl(compressedRepresentation: compressedRepresentation)
             }
 
             public init(pemRepresentation: String) throws {
@@ -573,7 +601,7 @@ extension P521 {
                 self = try .init(x963Representation: parsed.key)
             }
 
-            init(impl: NISTCurvePublicKeyImpl<P521.CurveDetails>) {
+            init(impl: NISTCurvePublicKeyImpl<P521>) {
                 self.impl = impl
             }
 
@@ -581,6 +609,8 @@ extension P521 {
             public var rawRepresentation: Data { impl.rawRepresentation }
             public var x963Representation: Data { impl.x963Representation }
 
+            public var compressedRepresentation: Data { impl.compressedRepresentation }
+            
             public var derRepresentation: Data {
                 let spki = ASN1.SubjectPublicKeyInfo(algorithmIdentifier: .ecdsaP521, key: Array(self.x963Representation))
                 var serializer = ASN1.Serializer()
@@ -597,7 +627,7 @@ extension P521 {
         }
 
         public struct PrivateKey: NISTECPrivateKey {
-            let impl: NISTCurvePrivateKeyImpl<P521.CurveDetails>
+            let impl: NISTCurvePrivateKeyImpl<P521>
 
             public init(compactRepresentable: Bool = true) {
                 impl = NISTCurvePrivateKeyImpl(compactRepresentable: compactRepresentable)
@@ -641,7 +671,7 @@ extension P521 {
                 }
             }
 
-            init(impl: NISTCurvePrivateKeyImpl<P521.CurveDetails>) {
+            init(impl: NISTCurvePrivateKeyImpl<P521>) {
                 self.impl = impl
             }
 
@@ -673,7 +703,7 @@ extension P521 {
     public enum KeyAgreement {
     
         public struct PublicKey: NISTECPublicKey {
-            var impl: NISTCurvePublicKeyImpl<P521.CurveDetails>
+            var impl: NISTCurvePublicKeyImpl<P521>
 
             public init<D: ContiguousBytes>(rawRepresentation: D) throws {
                 impl = try NISTCurvePublicKeyImpl(rawRepresentation: rawRepresentation)
@@ -685,6 +715,10 @@ extension P521 {
 
             public init<Bytes: ContiguousBytes>(x963Representation: Bytes) throws {
                 impl = try NISTCurvePublicKeyImpl(x963Representation: x963Representation)
+            }
+            
+            public init<Bytes: ContiguousBytes>(compressedRepresentation: Bytes) throws {
+                impl = try NISTCurvePublicKeyImpl(compressedRepresentation: compressedRepresentation)
             }
 
             public init(pemRepresentation: String) throws {
@@ -701,7 +735,7 @@ extension P521 {
                 self = try .init(x963Representation: parsed.key)
             }
 
-            init(impl: NISTCurvePublicKeyImpl<P521.CurveDetails>) {
+            init(impl: NISTCurvePublicKeyImpl<P521>) {
                 self.impl = impl
             }
 
@@ -709,6 +743,8 @@ extension P521 {
             public var rawRepresentation: Data { impl.rawRepresentation }
             public var x963Representation: Data { impl.x963Representation }
 
+            public var compressedRepresentation: Data { impl.compressedRepresentation }
+            
             public var derRepresentation: Data {
                 let spki = ASN1.SubjectPublicKeyInfo(algorithmIdentifier: .ecdsaP521, key: Array(self.x963Representation))
                 var serializer = ASN1.Serializer()
@@ -725,7 +761,7 @@ extension P521 {
         }
 
         public struct PrivateKey: NISTECPrivateKey {
-            let impl: NISTCurvePrivateKeyImpl<P521.CurveDetails>
+            let impl: NISTCurvePrivateKeyImpl<P521>
 
             public init(compactRepresentable: Bool = true) {
                 impl = NISTCurvePrivateKeyImpl(compactRepresentable: compactRepresentable)
@@ -769,7 +805,7 @@ extension P521 {
                 }
             }
 
-            init(impl: NISTCurvePrivateKeyImpl<P521.CurveDetails>) {
+            init(impl: NISTCurvePrivateKeyImpl<P521>) {
                 self.impl = impl
             }
 

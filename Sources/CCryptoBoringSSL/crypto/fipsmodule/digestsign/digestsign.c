@@ -57,8 +57,10 @@
 
 #include <CCryptoBoringSSL_err.h>
 
-#include "internal.h"
-#include "../fipsmodule/digest/internal.h"
+#include "../../evp/internal.h"
+#include "../delocate.h"
+#include "../digest/internal.h"
+#include "../service_indicator/internal.h"
 
 
 enum evp_sign_verify_t {
@@ -66,9 +68,9 @@ enum evp_sign_verify_t {
   evp_verify,
 };
 
-static const struct evp_md_pctx_ops md_pctx_ops = {
-  EVP_PKEY_CTX_free,
-  EVP_PKEY_CTX_dup,
+DEFINE_LOCAL_DATA(struct evp_md_pctx_ops, md_pctx_ops) {
+  out->free = EVP_PKEY_CTX_free;
+  out->dup = EVP_PKEY_CTX_dup;
 };
 
 static int uses_prehash(EVP_MD_CTX *ctx, enum evp_sign_verify_t op) {
@@ -85,7 +87,7 @@ static int do_sigver_init(EVP_MD_CTX *ctx, EVP_PKEY_CTX **pctx,
   if (ctx->pctx == NULL) {
     return 0;
   }
-  ctx->pctx_ops = &md_pctx_ops;
+  ctx->pctx_ops = md_pctx_ops();
 
   if (op == evp_verify) {
     if (!EVP_PKEY_verify_init(ctx->pctx)) {
@@ -159,11 +161,17 @@ int EVP_DigestSignFinal(EVP_MD_CTX *ctx, uint8_t *out_sig,
     uint8_t md[EVP_MAX_MD_SIZE];
     unsigned int mdlen;
 
+    FIPS_service_indicator_lock_state();
     EVP_MD_CTX_init(&tmp_ctx);
     ret = EVP_MD_CTX_copy_ex(&tmp_ctx, ctx) &&
           EVP_DigestFinal_ex(&tmp_ctx, md, &mdlen) &&
           EVP_PKEY_sign(ctx->pctx, out_sig, out_sig_len, md, mdlen);
     EVP_MD_CTX_cleanup(&tmp_ctx);
+    FIPS_service_indicator_unlock_state();
+
+    if (ret) {
+      EVP_DigestSign_verify_service_indicator(ctx);
+    }
 
     return ret;
   } else {
@@ -184,48 +192,76 @@ int EVP_DigestVerifyFinal(EVP_MD_CTX *ctx, const uint8_t *sig,
   uint8_t md[EVP_MAX_MD_SIZE];
   unsigned int mdlen;
 
+  FIPS_service_indicator_lock_state();
   EVP_MD_CTX_init(&tmp_ctx);
   ret = EVP_MD_CTX_copy_ex(&tmp_ctx, ctx) &&
         EVP_DigestFinal_ex(&tmp_ctx, md, &mdlen) &&
         EVP_PKEY_verify(ctx->pctx, sig, sig_len, md, mdlen);
+  FIPS_service_indicator_unlock_state();
   EVP_MD_CTX_cleanup(&tmp_ctx);
+
+  if (ret) {
+    EVP_DigestVerify_verify_service_indicator(ctx);
+  }
 
   return ret;
 }
 
 int EVP_DigestSign(EVP_MD_CTX *ctx, uint8_t *out_sig, size_t *out_sig_len,
                    const uint8_t *data, size_t data_len) {
+  FIPS_service_indicator_lock_state();
+  int ret = 0;
+
   if (uses_prehash(ctx, evp_sign)) {
     // If |out_sig| is NULL, the caller is only querying the maximum output
     // length. |data| should only be incorporated in the final call.
     if (out_sig != NULL &&
         !EVP_DigestSignUpdate(ctx, data, data_len)) {
-      return 0;
+      goto end;
     }
 
-    return EVP_DigestSignFinal(ctx, out_sig, out_sig_len);
+    ret = EVP_DigestSignFinal(ctx, out_sig, out_sig_len);
+    goto end;
   }
 
   if (ctx->pctx->pmeth->sign_message == NULL) {
     OPENSSL_PUT_ERROR(EVP, EVP_R_OPERATION_NOT_SUPPORTED_FOR_THIS_KEYTYPE);
-    return 0;
+    goto end;
   }
 
-  return ctx->pctx->pmeth->sign_message(ctx->pctx, out_sig, out_sig_len, data,
-                                        data_len);
+  ret = ctx->pctx->pmeth->sign_message(ctx->pctx, out_sig, out_sig_len, data,
+                                       data_len);
+
+end:
+  FIPS_service_indicator_unlock_state();
+  if (ret) {
+    EVP_DigestSign_verify_service_indicator(ctx);
+  }
+  return ret;
 }
 
 int EVP_DigestVerify(EVP_MD_CTX *ctx, const uint8_t *sig, size_t sig_len,
                      const uint8_t *data, size_t len) {
+  FIPS_service_indicator_lock_state();
+  int ret = 0;
+
   if (uses_prehash(ctx, evp_verify)) {
-    return EVP_DigestVerifyUpdate(ctx, data, len) &&
-           EVP_DigestVerifyFinal(ctx, sig, sig_len);
+    ret = EVP_DigestVerifyUpdate(ctx, data, len) &&
+          EVP_DigestVerifyFinal(ctx, sig, sig_len);
+    goto end;
   }
 
   if (ctx->pctx->pmeth->verify_message == NULL) {
     OPENSSL_PUT_ERROR(EVP, EVP_R_OPERATION_NOT_SUPPORTED_FOR_THIS_KEYTYPE);
-    return 0;
+    goto end;
   }
 
-  return ctx->pctx->pmeth->verify_message(ctx->pctx, sig, sig_len, data, len);
+  ret = ctx->pctx->pmeth->verify_message(ctx->pctx, sig, sig_len, data, len);
+
+end:
+  FIPS_service_indicator_unlock_state();
+  if (ret) {
+    EVP_DigestVerify_verify_service_indicator(ctx);
+  }
+  return ret;
 }

@@ -45,7 +45,7 @@ DSTROOT=Sources/CCryptoBoringSSL
 TMPDIR=$(mktemp -d /tmp/.workingXXXXXX)
 SRCROOT="${TMPDIR}/src/boringssl.googlesource.com/boringssl"
 CROSS_COMPILE_TARGET_LOCATION="/Library/Developer/Destinations"
-CROSS_COMPILE_VERSION="5.1.1"
+CROSS_COMPILE_VERSION="5.6.1"
 
 # This function namespaces the awkward inline functions declared in OpenSSL
 # and BoringSSL.
@@ -82,11 +82,14 @@ function mangle_symbols {
 
         export GOPATH="${TMPDIR}"
 
-        # Begin by building for macOS.
-        swift build --product CCryptoBoringSSL --enable-test-discovery
+        # Begin by building for macOS. We build for two target triples, Intel
+        # and Apple Silicon.
+        swift build --triple "x86_64-apple-macosx" --product CCryptoBoringSSL --enable-test-discovery
+        swift build --triple "arm64-apple-macosx" --product CCryptoBoringSSL --enable-test-discovery
         (
             cd "${SRCROOT}"
-            go run "util/read_symbols.go" -out "${TMPDIR}/symbols-macOS.txt" "${HERE}/.build/debug/libCCryptoBoringSSL.a"
+            go run "util/read_symbols.go" -out "${TMPDIR}/symbols-macOS-intel.txt" "${HERE}/.build/x86_64-apple-macosx/debug/libCCryptoBoringSSL.a"
+            go run "util/read_symbols.go" -out "${TMPDIR}/symbols-macOS-as.txt" "${HERE}/.build/arm64-apple-macosx/debug/libCCryptoBoringSSL.a"
         )
 
         # Now build for iOS. We use xcodebuild for this because SwiftPM doesn't
@@ -111,7 +114,7 @@ function mangle_symbols {
         # one go for all of them.
         (
             cd "${SRCROOT}"
-            go run "util/read_symbols.go" -obj-file-format elf -out "${TMPDIR}/symbols-linux-all.txt" "${HERE}"/.build/*-unknown-linux/debug/libCCryptoBoringSSL.a
+            go run "util/read_symbols.go" -obj-file-format elf -out "${TMPDIR}/symbols-linux-all.txt" "${HERE}"/.build/*-unknown-linux-gnu/debug/libCCryptoBoringSSL.a
         )
 
         # Now we concatenate all the symbols together and uniquify it.
@@ -183,7 +186,7 @@ echo "GENERATING assembly helpers"
     cd "$SRCROOT"
     cd ..
     mkdir -p "${SRCROOT}/crypto/third_party/sike/asm"
-    python "${HERE}/scripts/build-asm.py"
+    python3 "${HERE}/scripts/build-asm.py"
 )
 
 PATTERNS=(

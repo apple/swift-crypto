@@ -25,7 +25,11 @@ extension ASN1 {
     /// }
     ///
     /// This type is generic because our different backends want to use different bignum representations.
-    struct ECDSASignature<IntegerType: ASN1IntegerRepresentable>: ASN1Parseable, ASN1Serializable {
+    struct ECDSASignature<IntegerType: ASN1IntegerRepresentable>: ASN1ImplicitlyTaggable {
+        static var defaultIdentifier: ASN1.ASN1Identifier {
+            .sequence
+        }
+
         var r: IntegerType
         var s: IntegerType
 
@@ -34,8 +38,8 @@ extension ASN1 {
             self.s = s
         }
 
-        init(asn1Encoded rootNode: ASN1.ASN1Node) throws {
-            self = try ASN1.sequence(rootNode) { nodes in
+        init(asn1Encoded rootNode: ASN1.ASN1Node, withIdentifier identifier: ASN1.ASN1Identifier) throws {
+            self = try ASN1.sequence(rootNode, identifier: identifier) { nodes in
                 let r = try IntegerType(asn1Encoded: &nodes)
                 let s = try IntegerType(asn1Encoded: &nodes)
 
@@ -43,8 +47,8 @@ extension ASN1 {
             }
         }
 
-        func serialize(into coder: inout ASN1.Serializer) throws {
-            try coder.appendConstructedNode(identifier: .sequence) { coder in
+        func serialize(into coder: inout ASN1.Serializer, withIdentifier identifier: ASN1.ASN1Identifier) throws {
+            try coder.appendConstructedNode(identifier: identifier) { coder in
                 try coder.serialize(self.r)
                 try coder.serialize(self.s)
             }

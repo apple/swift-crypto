@@ -51,7 +51,7 @@ extension Data {
 
 extension P256.Signing.ECDSASignature {
     init<D: DataProtocol>(openSSLDERSignature derRepresentation: D) throws {
-        self.rawRepresentation = try Data(derSignature: derRepresentation, over: P256.CurveDetails.self)
+        self.rawRepresentation = try Data(derSignature: derRepresentation, over: P256.self)
     }
 
     var openSSLDERRepresentation: Data {
@@ -62,7 +62,7 @@ extension P256.Signing.ECDSASignature {
 extension P256.Signing.PrivateKey {
     func openSSLSignature<D: Digest>(for digest: D) throws -> P256.Signing.ECDSASignature {
         let baseSignature = try self.impl.key.sign(digest: digest)
-        return try .init(rawRepresentation: Data(rawSignature: baseSignature, over: P256.CurveDetails.self))
+        return try .init(rawRepresentation: Data(rawSignature: baseSignature, over: P256.self))
     }
 }
 
@@ -79,7 +79,7 @@ extension P256.Signing.PublicKey {
 
 extension P384.Signing.ECDSASignature {
     init<D: DataProtocol>(openSSLDERSignature derRepresentation: D) throws {
-        self.rawRepresentation = try Data(derSignature: derRepresentation, over: P384.CurveDetails.self)
+        self.rawRepresentation = try Data(derSignature: derRepresentation, over: P384.self)
     }
 
     var openSSLDERRepresentation: Data {
@@ -90,7 +90,7 @@ extension P384.Signing.ECDSASignature {
 extension P384.Signing.PrivateKey {
     func openSSLSignature<D: Digest>(for digest: D) throws -> P384.Signing.ECDSASignature {
         let baseSignature = try self.impl.key.sign(digest: digest)
-        return try .init(rawRepresentation: Data(rawSignature: baseSignature, over: P384.CurveDetails.self))
+        return try .init(rawRepresentation: Data(rawSignature: baseSignature, over: P384.self))
     }
 }
 
@@ -107,7 +107,7 @@ extension P384.Signing.PublicKey {
 
 extension P521.Signing.ECDSASignature {
     init<D: DataProtocol>(openSSLDERSignature derRepresentation: D) throws {
-        self.rawRepresentation = try Data(derSignature: derRepresentation, over: P521.CurveDetails.self)
+        self.rawRepresentation = try Data(derSignature: derRepresentation, over: P521.self)
     }
 
     var openSSLDERRepresentation: Data {
@@ -118,7 +118,7 @@ extension P521.Signing.ECDSASignature {
 extension P521.Signing.PrivateKey {
     func openSSLSignature<D: Digest>(for digest: D) throws -> P521.Signing.ECDSASignature {
         let baseSignature = try self.impl.key.sign(digest: digest)
-        return try .init(rawRepresentation: Data(rawSignature: baseSignature, over: P521.CurveDetails.self))
+        return try .init(rawRepresentation: Data(rawSignature: baseSignature, over: P521.self))
     }
 }
 

@@ -22,7 +22,7 @@ import Foundation
 /// This is not a very good solution for a fully-fledged ASN.1 library: we'd rather have a better numerics
 /// protocol that could both initialize from and serialize to either bytes or words. However, no such
 /// protocol exists today.
-protocol ASN1IntegerRepresentable: ASN1Parseable, ASN1Serializable {
+protocol ASN1IntegerRepresentable: ASN1ImplicitlyTaggable {
     associatedtype IntegerBytes: RandomAccessCollection where IntegerBytes.Element == UInt8
 
     /// Whether this type can represent signed integers. If this is set to false, the serializer and
@@ -35,8 +35,12 @@ protocol ASN1IntegerRepresentable: ASN1Parseable, ASN1Serializable {
 }
 
 extension ASN1IntegerRepresentable {
-    internal init(asn1Encoded node: ASN1.ASN1Node) throws {
-        guard node.identifier == .integer else {
+    static var defaultIdentifier: ASN1.ASN1Identifier {
+        .integer
+    }
+
+    internal init(asn1Encoded node: ASN1.ASN1Node, withIdentifier identifier: ASN1.ASN1Identifier) throws {
+        guard node.identifier == identifier else {
             throw CryptoKitASN1Error.unexpectedFieldType
         }
 
@@ -75,8 +79,8 @@ extension ASN1IntegerRepresentable {
         self = try Self(asn1IntegerBytes: dataBytes)
     }
 
-    internal func serialize(into coder: inout ASN1.Serializer) throws {
-        coder.appendPrimitiveNode(identifier: .integer) { bytes in
+    internal func serialize(into coder: inout ASN1.Serializer, withIdentifier identifier: ASN1.ASN1Identifier) throws {
+        coder.appendPrimitiveNode(identifier: identifier) { bytes in
             self.withBigEndianIntegerBytes { integerBytes in
                 // If the number of bytes is 0, we're encoding a zero. That actually _does_ require one byte.
                 if integerBytes.count == 0 {

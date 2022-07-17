@@ -52,7 +52,7 @@ extension ${CURVE}.Signing {
         /// The raw signature format for ECDSA is r || s
         /// As defined in https://tools.ietf.org/html/rfc4754
         public init<D: DataProtocol>(rawRepresentation: D) throws {
-            guard rawRepresentation.count == 2 * ${CURVE}.CurveDetails.coordinateByteCount else {
+            guard rawRepresentation.count == 2 * ${CURVE}.coordinateByteCount else {
                 throw CryptoKitError.incorrectParameterSize
             }
 
@@ -60,7 +60,7 @@ extension ${CURVE}.Signing {
         }
         
         internal init(_ dataRepresentation: Data) throws {
-            guard dataRepresentation.count == 2 * ${CURVE}.CurveDetails.coordinateByteCount else {
+            guard dataRepresentation.count == 2 * ${CURVE}.coordinateByteCount else {
                 throw CryptoKitError.incorrectParameterSize
             }
 
@@ -82,7 +82,7 @@ extension ${CURVE}.Signing {
             let parsed = try ASN1.parse(Array(derRepresentation))
             let signature = try ASN1.ECDSASignature<ArraySlice<UInt8>>(asn1Encoded: parsed)
 
-            let coordinateByteCount = ${CURVE}.CurveDetails.coordinateByteCount
+            let coordinateByteCount = ${CURVE}.coordinateByteCount
 
             guard signature.r.count <= coordinateByteCount && signature.s.count <= coordinateByteCount else {
                 throw CryptoKitError.incorrectParameterSize
@@ -90,11 +90,11 @@ extension ${CURVE}.Signing {
 
             // r and s must be padded out to the coordinate byte count.
             var raw = Data()
-            raw.reserveCapacity(2 * ${CURVE}.CurveDetails.coordinateByteCount)
+            raw.reserveCapacity(2 * ${CURVE}.coordinateByteCount)
 
-            raw.append(contentsOf: repeatElement(0, count: ${CURVE}.CurveDetails.coordinateByteCount - signature.r.count))
+            raw.append(contentsOf: repeatElement(0, count: ${CURVE}.coordinateByteCount - signature.r.count))
             raw.append(contentsOf: signature.r)
-            raw.append(contentsOf: repeatElement(0, count: ${CURVE}.CurveDetails.coordinateByteCount - signature.s.count))
+            raw.append(contentsOf: repeatElement(0, count: ${CURVE}.coordinateByteCount - signature.s.count))
             raw.append(contentsOf: signature.s)
 
             self.rawRepresentation = raw

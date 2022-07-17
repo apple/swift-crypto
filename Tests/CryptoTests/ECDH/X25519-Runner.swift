@@ -107,6 +107,50 @@ class X25519Tests: XCTestCase {
             "BAGUsatNKbCi6jeO1oFHpvhxesJnRxeZ45/sqCvaEZgwnpyj+/SsXjgBViEjvlJUdqentCaUFCwjuYZJM9HpdVq4IwDDO75VTblN7bkwbv95Vt1gqnwmsb+i7TKelZK3ojVsH4tgX55PCDrPcvud8wg3QLBQrFXjwkOrusiQPrtpwZEJpg=="
         )
     }
+
+    func testCompressedKeysUsingAPI() throws {
+        let x963Positive = Data(base64Encoded: "A+QHCXtGd5WWSQgp37FBPXMy+nnSwFK79QQD0ZeNMv7L")!
+        let key = try P256.KeyAgreement.PublicKey(compressedRepresentation: x963Positive)
+        XCTAssertEqual(
+            key.compressedRepresentation,
+            x963Positive
+        )
+
+        let x963Negative = Data(base64Encoded: "AuQHCXtGd5WWSQgp37FBPXMy+nnSwFK79QQD0ZeNMv7L")!
+        let negativeKey = try P256.KeyAgreement.PublicKey(compressedRepresentation: x963Negative)
+        XCTAssertEqual(
+            negativeKey.compressedRepresentation,
+            x963Negative
+        )
+
+        let p384Positive = Data(base64Encoded: "AyEfGE5ySReJyfSruLRdsjvCB5RNWGLk8JYrzIrans3MprXf5Q4nh69bQ2rI4+DNpw==")!
+        let p384Key = try P384.KeyAgreement.PublicKey(compressedRepresentation: p384Positive)
+        XCTAssertEqual(
+            p384Key.compressedRepresentation,
+            p384Positive
+        )
+
+        let p384Negative = Data(base64Encoded: "AiEfGE5ySReJyfSruLRdsjvCB5RNWGLk8JYrzIrans3MprXf5Q4nh69bQ2rI4+DNpw==")!
+        let p384NegativeKey = try P384.KeyAgreement.PublicKey(compressedRepresentation: p384Negative)
+        XCTAssertEqual(
+            p384NegativeKey.compressedRepresentation,
+            p384Negative
+        )
+
+        let p521Positive = Data(base64Encoded: "AwGUsatNKbCi6jeO1oFHpvhxesJnRxeZ45/sqCvaEZgwnpyj+/SsXjgBViEjvlJUdqentCaUFCwjuYZJM9HpdVq4Iw==")!
+        let p521Key = try P521.KeyAgreement.PublicKey(compressedRepresentation: p521Positive)
+        XCTAssertEqual(
+            p521Key.compressedRepresentation,
+            p521Positive
+        )
+
+        let p521Negative = Data(base64Encoded: "AgGUsatNKbCi6jeO1oFHpvhxesJnRxeZ45/sqCvaEZgwnpyj+/SsXjgBViEjvlJUdqentCaUFCwjuYZJM9HpdVq4Iw==")!
+        let p521NegativeKey = try P521.KeyAgreement.PublicKey(compressedRepresentation: p521Negative)
+        XCTAssertEqual(
+            p521NegativeKey.compressedRepresentation,
+            p521Negative
+        )
+    }
     
     func testWycheproof() throws {
         try orFail {

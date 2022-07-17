@@ -34,6 +34,7 @@ protocol ECPrivateKey {
 
 protocol NISTECPublicKey: ECPublicKey {
     init<Bytes: ContiguousBytes>(compactRepresentation: Bytes) throws
+    init<Bytes: ContiguousBytes>(compressedRepresentation: Bytes) throws
     init<Bytes: ContiguousBytes>(x963Representation: Bytes) throws
     
     var compactRepresentation: Data? { get }

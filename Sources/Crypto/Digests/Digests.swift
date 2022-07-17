@@ -164,7 +164,7 @@ public struct SHA512Digest: DigestPrivate {
     }
 }
 
-extension Insecure{
+extension Insecure {
 // MARK: - SHA1Digest + DigestPrivate
 public struct SHA1Digest: DigestPrivate {
     let bytes: (UInt64, UInt64, UInt64)
@@ -210,7 +210,7 @@ public struct SHA1Digest: DigestPrivate {
     }
 }
 }
-extension Insecure{
+extension Insecure {
 // MARK: - MD5Digest + DigestPrivate
 public struct MD5Digest: DigestPrivate {
     let bytes: (UInt64, UInt64)

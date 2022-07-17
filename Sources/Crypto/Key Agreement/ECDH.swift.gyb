@@ -39,7 +39,7 @@ extension ${CURVE} {
     public enum ${FUNC} {
     
         public struct PublicKey: NISTECPublicKey {
-            var impl: NISTCurvePublicKeyImpl<${CURVE}.CurveDetails>
+            var impl: NISTCurvePublicKeyImpl<${CURVE}>
 
             public init<D: ContiguousBytes>(rawRepresentation: D) throws {
                 impl = try NISTCurvePublicKeyImpl(rawRepresentation: rawRepresentation)
@@ -51,6 +51,10 @@ extension ${CURVE} {
 
             public init<Bytes: ContiguousBytes>(x963Representation: Bytes) throws {
                 impl = try NISTCurvePublicKeyImpl(x963Representation: x963Representation)
+            }
+            
+            public init<Bytes: ContiguousBytes>(compressedRepresentation: Bytes) throws {
+                impl = try NISTCurvePublicKeyImpl(compressedRepresentation: compressedRepresentation)
             }
 
             public init(pemRepresentation: String) throws {
@@ -67,7 +71,7 @@ extension ${CURVE} {
                 self = try .init(x963Representation: parsed.key)
             }
 
-            init(impl: NISTCurvePublicKeyImpl<${CURVE}.CurveDetails>) {
+            init(impl: NISTCurvePublicKeyImpl<${CURVE}>) {
                 self.impl = impl
             }
 
@@ -75,6 +79,8 @@ extension ${CURVE} {
             public var rawRepresentation: Data { impl.rawRepresentation }
             public var x963Representation: Data { impl.x963Representation }
 
+            public var compressedRepresentation: Data { impl.compressedRepresentation }
+            
             public var derRepresentation: Data {
                 let spki = ASN1.SubjectPublicKeyInfo(algorithmIdentifier: .ecdsa${CURVE}, key: Array(self.x963Representation))
                 var serializer = ASN1.Serializer()
@@ -91,7 +97,7 @@ extension ${CURVE} {
         }
 
         public struct PrivateKey: NISTECPrivateKey {
-            let impl: NISTCurvePrivateKeyImpl<${CURVE}.CurveDetails>
+            let impl: NISTCurvePrivateKeyImpl<${CURVE}>
 
             public init(compactRepresentable: Bool = true) {
                 impl = NISTCurvePrivateKeyImpl(compactRepresentable: compactRepresentable)
@@ -135,7 +141,7 @@ extension ${CURVE} {
                 }
             }
 
-            init(impl: NISTCurvePrivateKeyImpl<${CURVE}.CurveDetails>) {
+            init(impl: NISTCurvePrivateKeyImpl<${CURVE}>) {
                 self.impl = impl
             }
 

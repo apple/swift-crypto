@@ -86,6 +86,28 @@ extension ASN1 {
             // Explicit tags are always constructed.
             self.baseTag |= 0x20
         }
+
+        init(tagWithNumber number: Int, tagClass: TagClass, constructed: Bool) {
+            precondition(number >= 0)
+            precondition(number < 0x1F)
+
+            self.baseTag = UInt8(number)
+
+            switch tagClass {
+            case .universal:
+                preconditionFailure("Custom tags may not be universal")
+            case .application:
+                self.baseTag |= 1 << 6
+            case .contextSpecific:
+                self.baseTag |= 2 << 6
+            case .private:
+                self.baseTag |= 3 << 6
+            }
+
+            if constructed {
+                self.baseTag |= 0x20
+            }
+        }
     }
 }
 
@@ -95,6 +117,22 @@ extension ASN1.ASN1Identifier {
     internal static let primitiveOctetString = try! ASN1.ASN1Identifier(rawIdentifier: 0x04)
     internal static let integer = try! ASN1.ASN1Identifier(rawIdentifier: 0x02)
     internal static let sequence = try! ASN1.ASN1Identifier(rawIdentifier: 0x30)
+    internal static let set = try! ASN1.ASN1Identifier(rawIdentifier: 0x31)
+    internal static let null = try! ASN1.ASN1Identifier(rawIdentifier: 0x05)
+    internal static let boolean = try! ASN1.ASN1Identifier(rawIdentifier: 0x01)
+    internal static let enumerated = try! ASN1.ASN1Identifier(rawIdentifier: 0x0a)
+    internal static let primitiveUTF8String = try! ASN1.ASN1Identifier(rawIdentifier: 0x0c)
+    internal static let primitiveNumericString = try! ASN1.ASN1Identifier(rawIdentifier: 0x12)
+    internal static let primitivePrintableString = try! ASN1.ASN1Identifier(rawIdentifier: 0x13)
+    internal static let primitiveTeletexString = try! ASN1.ASN1Identifier(rawIdentifier: 0x14)
+    internal static let primitiveVideotexString = try! ASN1.ASN1Identifier(rawIdentifier: 0x15)
+    internal static let primitiveIA5String = try! ASN1.ASN1Identifier(rawIdentifier: 0x16)
+    internal static let primitiveGraphicString = try! ASN1.ASN1Identifier(rawIdentifier: 0x19)
+    internal static let primitiveVisibleString = try! ASN1.ASN1Identifier(rawIdentifier: 0x1a)
+    internal static let primitiveGeneralString = try! ASN1.ASN1Identifier(rawIdentifier: 0x1b)
+    internal static let primitiveUniversalString = try! ASN1.ASN1Identifier(rawIdentifier: 0x1c)
+    internal static let primitiveBMPString = try! ASN1.ASN1Identifier(rawIdentifier: 0x1e)
+    internal static let generalizedTime = try! ASN1.ASN1Identifier(rawIdentifier: 0x18)
 }
 
 extension ASN1.ASN1Identifier: Hashable { }

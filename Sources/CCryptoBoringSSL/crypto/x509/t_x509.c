@@ -119,10 +119,8 @@ int X509_print_ex(BIO *bp, X509 *x, unsigned long nmflags,
             goto err;
     }
     if (!(cflag & X509_FLAG_NO_VERSION)) {
-        /* TODO(https://crbug.com/boringssl/467): This loses information on some
-         * invalid versions, but we should fix this by making invalid versions
-         * impossible. */
         l = X509_get_version(x);
+        assert(X509_VERSION_1 <= l && l <= X509_VERSION_3);
         if (BIO_printf(bp, "%8sVersion: %ld (0x%lx)\n", "", l + 1,
                        (unsigned long)l) <= 0) {
             goto err;
@@ -142,6 +140,7 @@ int X509_print_ex(BIO *bp, X509 *x, unsigned long nmflags,
               goto err;
             }
         } else {
+            ERR_clear_error();  /* Clear |ASN1_INTEGER_get_uint64|'s error. */
             neg = (serial->type == V_ASN1_NEG_INTEGER) ? " (Negative)" : "";
             if (BIO_printf(bp, "\n%12s%s", "", neg) <= 0) {
                 goto err;

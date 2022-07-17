@@ -20,6 +20,8 @@ extension ArraySlice: ASN1Serializable where Element == UInt8 { }
 
 extension ArraySlice: ASN1Parseable where Element == UInt8 { }
 
+extension ArraySlice: ASN1ImplicitlyTaggable where Element == UInt8 { }
+
 extension ArraySlice: ASN1IntegerRepresentable where Element == UInt8 {
     // We only use unsigned "bigint"s
     static var isSigned: Bool {

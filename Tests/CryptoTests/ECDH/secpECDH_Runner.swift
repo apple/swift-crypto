@@ -62,7 +62,7 @@ class NISTECDHTests: XCTestCase {
                 bundleType: self,
                 jsonName: "ecdh_secp256r1_test",
                 testFunction: { (group: ECDHTestGroup) in
-                    testGroup(group: group, privateKeys: P256.KeyAgreement.PrivateKey.self, onCurve: P256.CurveDetails.self)
+                    testGroup(group: group, privateKeys: P256.KeyAgreement.PrivateKey.self, onCurve: P256.self)
                 })
         }
         try orFail {
@@ -70,7 +70,7 @@ class NISTECDHTests: XCTestCase {
                 bundleType: self,
                 jsonName: "ecdh_secp384r1_test",
                 testFunction: { (group: ECDHTestGroup) in
-                    testGroup(group: group, privateKeys: P384.KeyAgreement.PrivateKey.self, onCurve: P384.CurveDetails.self)
+                    testGroup(group: group, privateKeys: P384.KeyAgreement.PrivateKey.self, onCurve: P384.self)
                 })
         }
         try orFail {
@@ -78,10 +78,34 @@ class NISTECDHTests: XCTestCase {
                 bundleType: self,
                 jsonName: "ecdh_secp521r1_test",
                 testFunction: { (group: ECDHTestGroup) in
-                    testGroup(group: group, privateKeys: P521.KeyAgreement.PrivateKey.self, onCurve: P521.CurveDetails.self)
+                    testGroup(group: group, privateKeys: P521.KeyAgreement.PrivateKey.self, onCurve: P521.self)
                 })
         }
 
+        try orFail {
+            try wycheproofTest(
+                bundleType: self,
+                jsonName: "ecdh_secp256r1_ecpoint_test",
+                testFunction: { (group: ECDHTestGroup) in
+                    testGroupPoint(group: group, privateKeys: P256.KeyAgreement.PrivateKey.self, onCurve: P256.self)
+                })
+        }
+        try orFail {
+            try wycheproofTest(
+                bundleType: self,
+                jsonName: "ecdh_secp384r1_ecpoint_test",
+                testFunction: { (group: ECDHTestGroup) in
+                    testGroupPoint(group: group, privateKeys: P384.KeyAgreement.PrivateKey.self, onCurve: P384.self)
+                })
+        }
+        try orFail {
+            try wycheproofTest(
+                bundleType: self,
+                jsonName: "ecdh_secp521r1_ecpoint_test",
+                testFunction: { (group: ECDHTestGroup) in
+                    testGroupPoint(group: group, privateKeys: P521.KeyAgreement.PrivateKey.self, onCurve: P521.self)
+                })
+        }
     }
     
     func testGroup<PrivKey: NISTECPrivateKey & DiffieHellmanKeyAgreement, Curve: SupportedCurveDetailsImpl>(group: ECDHTestGroup, privateKeys: PrivKey.Type, onCurve curve: Curve.Type) {
@@ -89,6 +113,14 @@ class NISTECDHTests: XCTestCase {
         self.testGroupCC(group: group, privateKeys: privateKeys, onCurve: curve)
         #else
         self.testGroupOpenSSL(group: group, privateKeys: privateKeys, onCurve: curve)
+        #endif
+    }
+
+    func testGroupPoint<PrivKey: NISTECPrivateKey & DiffieHellmanKeyAgreement, Curve: SupportedCurveDetailsImpl>(group: ECDHTestGroup, privateKeys: PrivKey.Type, onCurve curve: Curve.Type) {
+        #if (os(macOS) || os(iOS) || os(watchOS) || os(tvOS)) && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
+        self.testGroupPointCC(group: group, privateKeys: privateKeys, onCurve: curve)
+        #else
+        self.testGroupPointOpenSSL(group: group, privateKeys: privateKeys, onCurve: curve)
         #endif
     }
 }
