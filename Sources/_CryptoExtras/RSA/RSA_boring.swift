@@ -246,14 +246,15 @@ extension BoringSSLRSAPublicKey {
             let outputSize = Int(CCryptoBoringSSL_RSA_size(self.pointer))
 
             let output = try Array<UInt8>(unsafeUninitializedCapacity: outputSize) { bufferPtr, length in
-                let rc: CInt = data.withUnsafeBytes { dataPtr in
+                let contiguousData: ContiguousBytes = data.regions.count == 1 ? data.regions.first! : Array(data)
+                let rc: CInt = contiguousData.withUnsafeBytes { dataPtr in
                     let rawPadding: CInt
                     switch padding.backing {
                     case .pkcs1v1_5: rawPadding = RSA_PKCS1_PADDING
                     case .pkcs1_oaep: rawPadding = RSA_PKCS1_OAEP_PADDING
                     }
                     let rc = CCryptoBoringSSLShims_RSA_public_encrypt(
-                        dataPtr.count,
+                        CInt(dataPtr.count),
                         dataPtr.baseAddress,
                         bufferPtr.baseAddress,
                         self.pointer,
@@ -264,7 +265,7 @@ extension BoringSSLRSAPublicKey {
                 if rc == -1 {
                     throw CryptoKitError.internalBoringSSLError()
                 }
-                length = rc
+                length = Int(rc)
             }
             return _RSA.Encryption.RSAEncryptedData(rawRepresentation: Data(output))
         }
@@ -444,14 +445,15 @@ extension BoringSSLRSAPrivateKey {
             let outputSize = Int(CCryptoBoringSSL_RSA_size(self.pointer))
 
             let output = try Array<UInt8>(unsafeUninitializedCapacity: outputSize) { bufferPtr, length in
-                let rc: CInt = data.withUnsafeBytes { dataPtr in
+                let contiguousData: ContiguousBytes = data.regions.count == 1 ? data.regions.first! : Array(data)
+                let rc: CInt = contiguousData.withUnsafeBytes { dataPtr in
                     let rawPadding: CInt
                     switch padding.backing {
                     case .pkcs1v1_5: rawPadding = RSA_PKCS1_PADDING
                     case .pkcs1_oaep: rawPadding = RSA_PKCS1_OAEP_PADDING
                     }
                     let rc = CCryptoBoringSSLShims_RSA_private_decrypt(
-                        dataPtr.count,
+                        CInt(dataPtr.count),
                         dataPtr.baseAddress,
                         bufferPtr.baseAddress,
                         self.pointer,
@@ -462,7 +464,7 @@ extension BoringSSLRSAPrivateKey {
                 if rc == -1 {
                     throw CryptoKitError.internalBoringSSLError()
                 }
-                length = rc
+                length = Int(rc)
             }
             return _RSA.Encryption.RSADecryptedData(rawRepresentation: Data(output))
         }
