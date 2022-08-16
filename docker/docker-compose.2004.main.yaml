@@ -10,7 +10,8 @@ services:
 
   test:
     image: swift-crypto:20.04-main
-    environment: []
+    environment:
+      - IMPORT_CHECK_ARG=--explicit-target-dependency-import-check error
       #- SANITIZER_ARG=--sanitize=thread
 
   cmake:
