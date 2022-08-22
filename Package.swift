@@ -1,4 +1,4 @@
-// swift-tools-version:5.7
+// swift-tools-version:5.4
 //===----------------------------------------------------------------------===//
 //
 // This source file is part of the SwiftCrypto open source project
@@ -56,7 +56,7 @@ if development {
 let package = Package(
     name: "swift-crypto",
     platforms: [
-        .macOS(.v13),
+        .macOS(.v10_15),
         .iOS(.v13),
         .watchOS(.v6),
         .tvOS(.v13),
