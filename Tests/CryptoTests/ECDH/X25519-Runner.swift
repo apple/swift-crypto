@@ -150,6 +150,23 @@ class X25519Tests: XCTestCase {
             p521NegativeKey.compressedRepresentation,
             p521Negative
         )
+
+        // Check that the uncompressed key gets rejected
+        let uncompressedX963 = Data(base64Encoded: "BOQHCXtGd5WWSQgp37FBPXMy+nnSwFK79QQD0ZeNMv7LE6xvfFkB4Y3VXoOpB/Kp6ngpf3Lce9hDMl7fqaDUfYE=")!
+
+        XCTAssertThrowsError(try P256.KeyAgreement.PublicKey(compressedRepresentation: uncompressedX963))
+    }
+
+    func testUncompressedKeys() throws {
+        let uncompressedX963 = Data(base64Encoded: "BOQHCXtGd5WWSQgp37FBPXMy+nnSwFK79QQD0ZeNMv7LE6xvfFkB4Y3VXoOpB/Kp6ngpf3Lce9hDMl7fqaDUfYE=")!
+        let key = try P256.KeyAgreement.PublicKey(x963Representation: uncompressedX963)
+        XCTAssertEqual(
+            key.x963Representation.base64EncodedString(),
+            "BOQHCXtGd5WWSQgp37FBPXMy+nnSwFK79QQD0ZeNMv7LE6xvfFkB4Y3VXoOpB/Kp6ngpf3Lce9hDMl7fqaDUfYE="
+        )
+
+        let compressedX963Positive = Data(base64Encoded: "A+QHCXtGd5WWSQgp37FBPXMy+nnSwFK79QQD0ZeNMv7L")!
+        XCTAssertThrowsError(try P256.KeyAgreement.PublicKey(x963Representation: compressedX963Positive))
     }
     
     func testWycheproof() throws {
