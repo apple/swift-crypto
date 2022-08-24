@@ -370,6 +370,16 @@ class BoringSSLECPublicKeyWrapper<Curve: OpenSSLSupportedNISTCurve> {
             self.key = try group.makeUnsafeOwnedECKey()
             try self.setPublicKey(x: &x, y: &y)
 
+        default:
+            throw CryptoKitError.incorrectParameterSize
+        }
+    }
+
+    init<Bytes: ContiguousBytes>(compressedRepresentation bytes: Bytes) throws {
+        let group = Curve.group
+        let length = bytes.withUnsafeBytes { $0.count }
+
+        switch length {
         case group.coordinateByteCount + 1:
             var (x, yBit) = try bytes.readx963CompressedPublicNumbers()
             self.key = try group.makeUnsafeOwnedECKey()
@@ -378,12 +388,6 @@ class BoringSSLECPublicKeyWrapper<Curve: OpenSSLSupportedNISTCurve> {
         default:
             throw CryptoKitError.incorrectParameterSize
         }
-    }
-
-    convenience init<Bytes: ContiguousBytes>(compressedRepresentation bytes: Bytes) throws {
-        // CryptoKit accepts the exact same data through init(x963Representation:) as it does through
-        // init(compressedRepresentation:), so we do the same.
-        try self.init(x963Representation: bytes)
     }
 
     init<Bytes: ContiguousBytes>(rawRepresentation bytes: Bytes) throws {
