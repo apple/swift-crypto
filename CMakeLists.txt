@@ -40,6 +40,7 @@ endif()
 if(CMAKE_SYSTEM_NAME STREQUAL Darwin AND NOT CMAKE_CROSSCOMPILING)
   set(CMAKE_AR "/usr/bin/ar")
   set(CMAKE_C_ARCHIVE_CREATE "<CMAKE_AR> crs <TARGET> <LINK_FLAGS> <OBJECTS>")
+  set(CMAKE_RANLIB "/usr/bin/ranlib")
 endif()
 
 if(NOT CMAKE_SYSTEM_NAME STREQUAL Darwin)
