@@ -108,7 +108,13 @@ If you believe you have identified a vulnerability in Swift Crypto, please [repo
 
 ### Swift versions
 
-Swift Crypto supports Swift 5.4 and later. Swift Crypto supported Swift 5.2 and 5.3 until version 2.1 and Swift 5.1 until version 2.0.
+The most recent versions of Swift Crypto support Swift 5.5 and newer. The minimum Swift version supported by Swift Crypto releases are detailed below:
+
+Swift Crypto      | Minimum Swift Version
+------------------|----------------------
+`2.0.0 ..< 2.1.0` | 5.2
+`2.1.0 ..< 2.2.0` | 5.4
+`2.2.0 ...`       | 5.5
 
 ### Compatibility
 
