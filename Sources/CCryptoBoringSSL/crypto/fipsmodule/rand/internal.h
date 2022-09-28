@@ -16,6 +16,7 @@
 #define OPENSSL_HEADER_CRYPTO_RAND_INTERNAL_H
 
 #include <CCryptoBoringSSL_aes.h>
+#include <CCryptoBoringSSL_ctrdrbg.h>
 
 #include "../../internal.h"
 #include "../modes/internal.h"
@@ -49,10 +50,10 @@ void CRYPTO_get_seed_entropy(uint8_t *out_entropy, size_t out_entropy_len,
                              int *out_used_cpu);
 
 // RAND_load_entropy supplies |entropy_len| bytes of entropy to the module. The
-// |from_cpu| parameter is true iff the entropy was obtained directly from the
-// CPU.
+// |want_additional_input| parameter is true iff the entropy was obtained from
+// a source other than the system, e.g. directly from the CPU.
 void RAND_load_entropy(const uint8_t *entropy, size_t entropy_len,
-                       int from_cpu);
+                       int want_additional_input);
 
 // RAND_need_entropy is implemented outside of the FIPS module and is called
 // when the module has stopped because it has run out of entropy.
@@ -95,20 +96,13 @@ int rand_fork_unsafe_buffering_enabled(void);
 
 // CTR_DRBG_STATE contains the state of a CTR_DRBG based on AES-256. See SP
 // 800-90Ar1.
-typedef struct {
+struct ctr_drbg_state_st {
   AES_KEY ks;
   block128_f block;
   ctr128_f ctr;
-  union {
-    uint8_t bytes[16];
-    uint32_t words[4];
-  } counter;
+  uint8_t counter[16];
   uint64_t reseed_counter;
-} CTR_DRBG_STATE;
-
-// See SP 800-90Ar1, table 3.
-#define CTR_DRBG_ENTROPY_LEN 48
-#define CTR_DRBG_MAX_GENERATE_LENGTH 65536
+};
 
 // CTR_DRBG_init initialises |*drbg| given |CTR_DRBG_ENTROPY_LEN| bytes of
 // entropy in |entropy| and, optionally, a personalization string up to
@@ -118,27 +112,6 @@ OPENSSL_EXPORT int CTR_DRBG_init(CTR_DRBG_STATE *drbg,
                                  const uint8_t entropy[CTR_DRBG_ENTROPY_LEN],
                                  const uint8_t *personalization,
                                  size_t personalization_len);
-
-// CTR_DRBG_reseed reseeds |drbg| given |CTR_DRBG_ENTROPY_LEN| bytes of entropy
-// in |entropy| and, optionally, up to |CTR_DRBG_ENTROPY_LEN| bytes of
-// additional data. It returns one on success or zero on error.
-OPENSSL_EXPORT int CTR_DRBG_reseed(CTR_DRBG_STATE *drbg,
-                                   const uint8_t entropy[CTR_DRBG_ENTROPY_LEN],
-                                   const uint8_t *additional_data,
-                                   size_t additional_data_len);
-
-// CTR_DRBG_generate processes to up |CTR_DRBG_ENTROPY_LEN| bytes of additional
-// data (if any) and then writes |out_len| random bytes to |out|, where
-// |out_len| <= |CTR_DRBG_MAX_GENERATE_LENGTH|. It returns one on success or
-// zero on error.
-OPENSSL_EXPORT int CTR_DRBG_generate(CTR_DRBG_STATE *drbg, uint8_t *out,
-                                     size_t out_len,
-                                     const uint8_t *additional_data,
-                                     size_t additional_data_len);
-
-// CTR_DRBG_clear zeroises the state of |drbg|.
-OPENSSL_EXPORT void CTR_DRBG_clear(CTR_DRBG_STATE *drbg);
-
 
 #if defined(OPENSSL_X86_64) && !defined(OPENSSL_NO_ASM)
 

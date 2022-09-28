@@ -70,14 +70,17 @@ extern "C" {
 #endif
 
 
-/* Internal structures. */
+// Internal structures.
+
+typedef struct X509_POLICY_CACHE_st X509_POLICY_CACHE;
+typedef struct X509_POLICY_TREE_st X509_POLICY_TREE;
 
 typedef struct X509_val_st {
   ASN1_TIME *notBefore;
   ASN1_TIME *notAfter;
 } X509_VAL;
 
-DECLARE_ASN1_FUNCTIONS(X509_VAL)
+DECLARE_ASN1_FUNCTIONS_const(X509_VAL)
 
 struct X509_pubkey_st {
   X509_ALGOR *algor;
@@ -113,7 +116,7 @@ typedef struct x509_cert_aux_st {
   ASN1_OCTET_STRING *keyid;       // key id of private key
 } X509_CERT_AUX;
 
-DECLARE_ASN1_FUNCTIONS(X509_CERT_AUX)
+DECLARE_ASN1_FUNCTIONS_const(X509_CERT_AUX)
 
 struct X509_extension_st {
   ASN1_OBJECT *object;
@@ -135,6 +138,8 @@ typedef struct {
   ASN1_ENCODING enc;
 } X509_CINF;
 
+// TODO(https://crbug.com/boringssl/407): This is not const because it contains
+// an |X509_NAME|.
 DECLARE_ASN1_FUNCTIONS(X509_CINF)
 
 struct x509_st {
@@ -171,13 +176,14 @@ typedef struct {
   STACK_OF(X509_ATTRIBUTE) *attributes;  // [ 0 ]
 } X509_REQ_INFO;
 
+// TODO(https://crbug.com/boringssl/407): This is not const because it contains
+// an |X509_NAME|.
 DECLARE_ASN1_FUNCTIONS(X509_REQ_INFO)
 
 struct X509_req_st {
   X509_REQ_INFO *req_info;
   X509_ALGOR *sig_alg;
   ASN1_BIT_STRING *signature;
-  CRYPTO_refcount_t references;
 } /* X509_REQ */;
 
 struct x509_revoked_st {
@@ -201,6 +207,8 @@ typedef struct {
   ASN1_ENCODING enc;
 } X509_CRL_INFO;
 
+// TODO(https://crbug.com/boringssl/407): This is not const because it contains
+// an |X509_NAME|.
 DECLARE_ASN1_FUNCTIONS(X509_CRL_INFO)
 
 struct X509_crl_st {
@@ -265,12 +273,6 @@ struct x509_lookup_method_st {
               char **ret);
   int (*get_by_subject)(X509_LOOKUP *ctx, int type, X509_NAME *name,
                         X509_OBJECT *ret);
-  int (*get_by_issuer_serial)(X509_LOOKUP *ctx, int type, X509_NAME *name,
-                              ASN1_INTEGER *serial, X509_OBJECT *ret);
-  int (*get_by_fingerprint)(X509_LOOKUP *ctx, int type, unsigned char *bytes,
-                            int len, X509_OBJECT *ret);
-  int (*get_by_alias)(X509_LOOKUP *ctx, int type, char *str, int len,
-                      X509_OBJECT *ret);
 } /* X509_LOOKUP_METHOD */;
 
 // This is used to hold everything.  It is used for all certificate
@@ -310,7 +312,7 @@ struct x509_lookup_st {
   int init;                    // have we been started
   int skip;                    // don't use us.
   X509_LOOKUP_METHOD *method;  // the functions
-  char *method_data;           // method data
+  void *method_data;           // method data
 
   X509_STORE *store_ctx;  // who owns us
 } /* X509_LOOKUP */;
@@ -372,44 +374,44 @@ ASN1_TYPE *ASN1_generate_v3(const char *str, X509V3_CTX *cnf);
 int X509_CERT_AUX_print(BIO *bp, X509_CERT_AUX *x, int indent);
 
 
-/* RSA-PSS functions. */
+// RSA-PSS functions.
 
-/* x509_rsa_pss_to_ctx configures |ctx| for an RSA-PSS operation based on
- * signature algorithm parameters in |sigalg| (which must have type
- * |NID_rsassaPss|) and key |pkey|. It returns one on success and zero on
- * error. */
+// x509_rsa_pss_to_ctx configures |ctx| for an RSA-PSS operation based on
+// signature algorithm parameters in |sigalg| (which must have type
+// |NID_rsassaPss|) and key |pkey|. It returns one on success and zero on
+// error.
 int x509_rsa_pss_to_ctx(EVP_MD_CTX *ctx, const X509_ALGOR *sigalg,
                         EVP_PKEY *pkey);
 
-/* x509_rsa_pss_to_ctx sets |algor| to the signature algorithm parameters for
- * |ctx|, which must have been configured for an RSA-PSS signing operation. It
- * returns one on success and zero on error. */
+// x509_rsa_pss_to_ctx sets |algor| to the signature algorithm parameters for
+// |ctx|, which must have been configured for an RSA-PSS signing operation. It
+// returns one on success and zero on error.
 int x509_rsa_ctx_to_pss(EVP_MD_CTX *ctx, X509_ALGOR *algor);
 
-/* x509_print_rsa_pss_params prints a human-readable representation of RSA-PSS
- * parameters in |sigalg| to |bp|. It returns one on success and zero on
- * error. */
+// x509_print_rsa_pss_params prints a human-readable representation of RSA-PSS
+// parameters in |sigalg| to |bp|. It returns one on success and zero on
+// error.
 int x509_print_rsa_pss_params(BIO *bp, const X509_ALGOR *sigalg, int indent,
                               ASN1_PCTX *pctx);
 
 
-/* Signature algorithm functions. */
+// Signature algorithm functions.
 
-/* x509_digest_sign_algorithm encodes the signing parameters of |ctx| as an
- * AlgorithmIdentifer and saves the result in |algor|. It returns one on
- * success, or zero on error. */
+// x509_digest_sign_algorithm encodes the signing parameters of |ctx| as an
+// AlgorithmIdentifer and saves the result in |algor|. It returns one on
+// success, or zero on error.
 int x509_digest_sign_algorithm(EVP_MD_CTX *ctx, X509_ALGOR *algor);
 
-/* x509_digest_verify_init sets up |ctx| for a signature verification operation
- * with public key |pkey| and parameters from |algor|. The |ctx| argument must
- * have been initialised with |EVP_MD_CTX_init|. It returns one on success, or
- * zero on error. */
+// x509_digest_verify_init sets up |ctx| for a signature verification operation
+// with public key |pkey| and parameters from |algor|. The |ctx| argument must
+// have been initialised with |EVP_MD_CTX_init|. It returns one on success, or
+// zero on error.
 int x509_digest_verify_init(EVP_MD_CTX *ctx, const X509_ALGOR *sigalg,
                             EVP_PKEY *pkey);
 
 
 #if defined(__cplusplus)
-}  /* extern C */
+}  // extern C
 #endif
 
-#endif  /* OPENSSL_HEADER_X509_INTERNAL_H */
+#endif  // OPENSSL_HEADER_X509_INTERNAL_H

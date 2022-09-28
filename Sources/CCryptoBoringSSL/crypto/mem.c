@@ -72,8 +72,7 @@ OPENSSL_MSVC_PRAGMA(warning(pop))
 
 
 #define OPENSSL_MALLOC_PREFIX 8
-OPENSSL_STATIC_ASSERT(OPENSSL_MALLOC_PREFIX >= sizeof(size_t),
-                      "size_t too large");
+static_assert(OPENSSL_MALLOC_PREFIX >= sizeof(size_t), "size_t too large");
 
 #if defined(OPENSSL_ASAN)
 void __asan_poison_memory_region(const volatile void *addr, size_t size);
@@ -183,6 +182,7 @@ void OPENSSL_free(void *orig_ptr) {
 
 // ASan knows to intercept malloc and free, but not sdallocx.
 #if defined(OPENSSL_ASAN)
+  (void)sdallocx;
   free(ptr);
 #else
   if (sdallocx) {
@@ -241,6 +241,18 @@ void OPENSSL_cleanse(void *ptr, size_t len) {
 
 void OPENSSL_clear_free(void *ptr, size_t unused) {
   OPENSSL_free(ptr);
+}
+
+int CRYPTO_secure_malloc_init(size_t size, size_t min_size) { return 0; }
+
+int CRYPTO_secure_malloc_initialized(void) { return 0; }
+
+size_t CRYPTO_secure_used(void) { return 0; }
+
+void *OPENSSL_secure_malloc(size_t size) { return OPENSSL_malloc(size); }
+
+void OPENSSL_secure_clear_free(void *ptr, size_t len) {
+  OPENSSL_clear_free(ptr, len);
 }
 
 int CRYPTO_memcmp(const void *in_a, const void *in_b, size_t len) {

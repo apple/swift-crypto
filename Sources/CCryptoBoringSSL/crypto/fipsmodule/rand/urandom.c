@@ -62,13 +62,10 @@
 #include <sys/random.h>
 #endif
 
-#if defined(OPENSSL_FREEBSD)
-#define URANDOM_BLOCKS_FOR_ENTROPY
-#if __FreeBSD__ >= 12
+#if defined(OPENSSL_FREEBSD) && __FreeBSD__ >= 12
 // getrandom is supported in FreeBSD 12 and up.
 #define FREEBSD_GETRANDOM
 #include <sys/random.h>
-#endif
 #endif
 
 #include <CCryptoBoringSSL_thread.h>
@@ -190,15 +187,21 @@ static void init_once(void) {
   return;
 #endif
 
-  // Android FIPS builds must support getrandom.
-#if defined(BORINGSSL_FIPS) && defined(OPENSSL_ANDROID)
+  // FIPS builds must support getrandom.
+  //
+  // Historically, only Android FIPS builds required getrandom, while Linux FIPS
+  // builds had a /dev/urandom fallback which used RNDGETENTCNT as a poor
+  // approximation for getrandom's blocking behavior. This is now removed, but
+  // avoid making assumptions on this removal until March 2023, in case it needs
+  // to be restored. This comment can be deleted after March 2023.
+#if defined(BORINGSSL_FIPS)
   perror("getrandom not found");
   abort();
 #endif
 
   int fd;
   do {
-    fd = open("/dev/urandom", O_RDONLY);
+    fd = open("/dev/urandom", O_RDONLY | O_CLOEXEC);
   } while (fd == -1 && errno == EINTR);
 
   if (fd < 0) {
@@ -206,20 +209,6 @@ static void init_once(void) {
     abort();
   }
 
-  int flags = fcntl(fd, F_GETFD);
-  if (flags == -1) {
-    // Native Client doesn't implement |fcntl|.
-    if (errno != ENOSYS) {
-      perror("failed to get flags from urandom fd");
-      abort();
-    }
-  } else {
-    flags |= FD_CLOEXEC;
-    if (fcntl(fd, F_SETFD, flags) == -1) {
-      perror("failed to set FD_CLOEXEC on urandom fd");
-      abort();
-    }
-  }
   *urandom_fd_bss_get() = fd;
 }
 
@@ -269,29 +258,6 @@ static void wait_for_entropy(void) {
 #endif  // USE_NR_getrandom
     return;
   }
-
-#if defined(BORINGSSL_FIPS) && !defined(URANDOM_BLOCKS_FOR_ENTROPY)
-  // In FIPS mode on platforms where urandom doesn't block at startup, we ensure
-  // that the kernel has sufficient entropy before continuing. This is
-  // automatically handled by getrandom, which requires that the entropy pool
-  // has been initialised, but for urandom we have to poll.
-  for (;;) {
-    int entropy_bits;
-    if (ioctl(fd, RNDGETENTCNT, &entropy_bits)) {
-      fprintf(stderr,
-              "RNDGETENTCNT on /dev/urandom failed. We cannot continue in this "
-              "case when in FIPS mode.\n");
-      abort();
-    }
-
-    static const int kBitsNeeded = 256;
-    if (entropy_bits >= kBitsNeeded) {
-      break;
-    }
-
-    usleep(250000);
-  }
-#endif  // BORINGSSL_FIPS && !URANDOM_BLOCKS_FOR_ENTROPY
 }
 
 // fill_with_entropy writes |len| bytes of entropy into |out|. It returns one

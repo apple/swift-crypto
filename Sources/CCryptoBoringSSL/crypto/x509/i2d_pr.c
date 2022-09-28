@@ -56,28 +56,25 @@
  * [including the GNU Public Licence.] */
 
 #include <CCryptoBoringSSL_asn1.h>
+#include <CCryptoBoringSSL_dsa.h>
 #include <CCryptoBoringSSL_ec_key.h>
 #include <CCryptoBoringSSL_err.h>
 #include <CCryptoBoringSSL_evp.h>
 #include <CCryptoBoringSSL_rsa.h>
-#include <CCryptoBoringSSL_dsa.h>
 
 
-int i2d_PrivateKey(const EVP_PKEY *a, uint8_t **pp)
-{
-    switch (EVP_PKEY_id(a)) {
+int i2d_PrivateKey(const EVP_PKEY *a, uint8_t **pp) {
+  switch (EVP_PKEY_id(a)) {
     case EVP_PKEY_RSA:
-        return i2d_RSAPrivateKey(a->pkey.rsa, pp);
+      return i2d_RSAPrivateKey(a->pkey.rsa, pp);
     case EVP_PKEY_EC:
-        return i2d_ECPrivateKey(a->pkey.ec, pp);
+      return i2d_ECPrivateKey(a->pkey.ec, pp);
     case EVP_PKEY_DSA:
-        return i2d_DSAPrivateKey(a->pkey.dsa, pp);
+      return i2d_DSAPrivateKey(a->pkey.dsa, pp);
     default:
-        /*
-         * Although this file is in crypto/x509 for layering reasons, it emits
-         * an error code from ASN1 for OpenSSL compatibility.
-         */
-        OPENSSL_PUT_ERROR(ASN1, ASN1_R_UNSUPPORTED_PUBLIC_KEY_TYPE);
-        return -1;
-    }
+      // Although this file is in crypto/x509 for layering reasons, it emits
+      // an error code from ASN1 for OpenSSL compatibility.
+      OPENSSL_PUT_ERROR(ASN1, ASN1_R_UNSUPPORTED_PUBLIC_KEY_TYPE);
+      return -1;
+  }
 }

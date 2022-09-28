@@ -20,6 +20,7 @@
 #include <CCryptoBoringSSL_aead.h>
 #include <CCryptoBoringSSL_aes.h>
 #include <CCryptoBoringSSL_bn.h>
+#include <CCryptoBoringSSL_ctrdrbg.h>
 #include <CCryptoBoringSSL_dh.h>
 #include <CCryptoBoringSSL_digest.h>
 #include <CCryptoBoringSSL_ec.h>
