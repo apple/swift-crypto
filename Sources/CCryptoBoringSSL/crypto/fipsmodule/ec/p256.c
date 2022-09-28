@@ -22,7 +22,6 @@
 #include <CCryptoBoringSSL_ec.h>
 #include <CCryptoBoringSSL_err.h>
 #include <CCryptoBoringSSL_mem.h>
-#include <CCryptoBoringSSL_type_check.h>
 
 #include <assert.h>
 #include <string.h>
