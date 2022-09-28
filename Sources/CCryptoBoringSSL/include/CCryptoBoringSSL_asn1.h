@@ -1080,9 +1080,9 @@ DECLARE_ASN1_ITEM(ASN1_INTEGER)
 // on success and zero on error.
 OPENSSL_EXPORT int ASN1_INTEGER_set_uint64(ASN1_INTEGER *out, uint64_t v);
 
-// ASN1_INTEGER_set sets |a| to an INTEGER with value |v|. It returns one on
-// success and zero on error.
-OPENSSL_EXPORT int ASN1_INTEGER_set(ASN1_INTEGER *a, long v);
+// ASN1_INTEGER_set_int64 sets |a| to an INTEGER with value |v|. It returns one
+// on success and zero on error.
+OPENSSL_EXPORT int ASN1_INTEGER_set_int64(ASN1_INTEGER *out, int64_t v);
 
 // ASN1_INTEGER_get_uint64 converts |a| to a |uint64_t|. On success, it returns
 // one and sets |*out| to the result. If |a| did not fit or has the wrong type,
@@ -1090,12 +1090,10 @@ OPENSSL_EXPORT int ASN1_INTEGER_set(ASN1_INTEGER *a, long v);
 OPENSSL_EXPORT int ASN1_INTEGER_get_uint64(uint64_t *out,
                                            const ASN1_INTEGER *a);
 
-// ASN1_INTEGER_get returns the value of |a| as a |long|, or -1 if |a| is out of
-// range or the wrong type.
-//
-// WARNING: This function's return value cannot distinguish errors from -1.
-// Prefer |ASN1_INTEGER_get_uint64|.
-OPENSSL_EXPORT long ASN1_INTEGER_get(const ASN1_INTEGER *a);
+// ASN1_INTEGER_get_int64 converts |a| to a |int64_t|. On success, it returns
+// one and sets |*out| to the result. If |a| did not fit or has the wrong type,
+// it returns zero.
+OPENSSL_EXPORT int ASN1_INTEGER_get_int64(int64_t *out, const ASN1_INTEGER *a);
 
 // BN_to_ASN1_INTEGER sets |ai| to an INTEGER with value |bn| and returns |ai|
 // on success or NULL or error. If |ai| is NULL, it returns a newly-allocated
@@ -1144,9 +1142,9 @@ DECLARE_ASN1_ITEM(ASN1_ENUMERATED)
 // returns one on success and zero on error.
 OPENSSL_EXPORT int ASN1_ENUMERATED_set_uint64(ASN1_ENUMERATED *out, uint64_t v);
 
-// ASN1_ENUMERATED_set sets |a| to an ENUMERATED with value |v|. It returns one
-// on success and zero on error.
-OPENSSL_EXPORT int ASN1_ENUMERATED_set(ASN1_ENUMERATED *a, long v);
+// ASN1_ENUMERATED_set_int64 sets |a| to an ENUMERATED with value |v|. It
+// returns one on success and zero on error.
+OPENSSL_EXPORT int ASN1_ENUMERATED_set_int64(ASN1_ENUMERATED *out, int64_t v);
 
 // ASN1_ENUMERATED_get_uint64 converts |a| to a |uint64_t|. On success, it
 // returns one and sets |*out| to the result. If |a| did not fit or has the
@@ -1154,12 +1152,11 @@ OPENSSL_EXPORT int ASN1_ENUMERATED_set(ASN1_ENUMERATED *a, long v);
 OPENSSL_EXPORT int ASN1_ENUMERATED_get_uint64(uint64_t *out,
                                               const ASN1_ENUMERATED *a);
 
-// ASN1_ENUMERATED_get returns the value of |a| as a |long|, or -1 if |a| is out
-// of range or the wrong type.
-//
-// WARNING: This function's return value cannot distinguish errors from -1.
-// Prefer |ASN1_ENUMERATED_get_uint64|.
-OPENSSL_EXPORT long ASN1_ENUMERATED_get(const ASN1_ENUMERATED *a);
+// ASN1_ENUMERATED_get_int64 converts |a| to a |int64_t|. On success, it
+// returns one and sets |*out| to the result. If |a| did not fit or has the
+// wrong type, it returns zero.
+OPENSSL_EXPORT int ASN1_ENUMERATED_get_int64(int64_t *out,
+                                             const ASN1_ENUMERATED *a);
 
 // BN_to_ASN1_ENUMERATED sets |ai| to an ENUMERATED with value |bn| and returns
 // |ai| on success or NULL or error. If |ai| is NULL, it returns a
@@ -1378,6 +1375,15 @@ OPENSSL_EXPORT ASN1_GENERALIZEDTIME *ASN1_TIME_to_generalizedtime(
 // valid UTCTime, and |ASN1_GENERALIZEDTIME_set_string| if |str| is a valid
 // GeneralizedTime. If |str| is neither, it returns zero.
 OPENSSL_EXPORT int ASN1_TIME_set_string(ASN1_TIME *s, const char *str);
+
+// ASN1_TIME_to_time_t converts |t| to a time_t value in |out|. On
+// success, one is returned. On failure zero is returned. This function
+// will fail if the time can not be represented in a time_t.
+OPENSSL_EXPORT int ASN1_TIME_to_time_t(const ASN1_TIME *t, time_t *out);
+
+// ASN1_TIME_to_posix converts |t| to a POSIX time value in |out|. On
+// success, one is returned. On failure zero is returned.
+OPENSSL_EXPORT int ASN1_TIME_to_posix(const ASN1_TIME *t, int64_t *out);
 
 // TODO(davidben): Expand and document function prototypes generated in macros.
 
@@ -1953,6 +1959,32 @@ OPENSSL_EXPORT int i2d_ASN1_PRINTABLE(const ASN1_STRING *in, uint8_t **outp);
 // Do not use this. Despite the name, it has no connection to PrintableString or
 // printable characters. See https://crbug.com/boringssl/412.
 DECLARE_ASN1_ITEM(ASN1_PRINTABLE)
+
+// ASN1_INTEGER_set sets |a| to an INTEGER with value |v|. It returns one on
+// success and zero on error.
+//
+// Use |ASN1_INTEGER_set_uint64| and |ASN1_INTEGER_set_int64| instead.
+OPENSSL_EXPORT int ASN1_INTEGER_set(ASN1_INTEGER *a, long v);
+
+// ASN1_ENUMERATED_set sets |a| to an ENUMERATED with value |v|. It returns one
+// on success and zero on error.
+//
+// Use |ASN1_ENUMERATED_set_uint64| and |ASN1_ENUMERATED_set_int64| instead.
+OPENSSL_EXPORT int ASN1_ENUMERATED_set(ASN1_ENUMERATED *a, long v);
+
+// ASN1_INTEGER_get returns the value of |a| as a |long|, or -1 if |a| is out of
+// range or the wrong type.
+//
+// WARNING: This function's return value cannot distinguish errors from -1.
+// Use |ASN1_INTEGER_get_uint64| and |ASN1_INTEGER_get_int64| instead.
+OPENSSL_EXPORT long ASN1_INTEGER_get(const ASN1_INTEGER *a);
+
+// ASN1_ENUMERATED_get returns the value of |a| as a |long|, or -1 if |a| is out
+// of range or the wrong type.
+//
+// WARNING: This function's return value cannot distinguish errors from -1.
+// Use |ASN1_ENUMERATED_get_uint64| and |ASN1_ENUMERATED_get_int64| instead.
+OPENSSL_EXPORT long ASN1_ENUMERATED_get(const ASN1_ENUMERATED *a);
 
 
 #if defined(__cplusplus)

@@ -115,6 +115,7 @@ extern "C" {
 #define OPENSSL_MIPS64
 #elif defined(__riscv) && __SIZEOF_POINTER__ == 8
 #define OPENSSL_64_BIT
+#define OPENSSL_RISCV64
 #elif defined(__riscv) && __SIZEOF_POINTER__ == 4
 #define OPENSSL_32_BIT
 #elif defined(__pnacl__)
@@ -126,8 +127,6 @@ extern "C" {
 #define OPENSSL_32_BIT
 #elif defined(__myriad2__)
 #define OPENSSL_32_BIT
-#elif defined(__riscv) && __riscv_xlen == 64
-#define OPENSSL_64_BIT
 #else
 // Note BoringSSL only supports standard 32-bit and 64-bit two's-complement,
 // little-endian architectures. Functions will not produce the correct answer
@@ -372,10 +371,6 @@ typedef struct NAME_CONSTRAINTS_st NAME_CONSTRAINTS;
 typedef struct Netscape_spkac_st NETSCAPE_SPKAC;
 typedef struct Netscape_spki_st NETSCAPE_SPKI;
 typedef struct RIPEMD160state_st RIPEMD160_CTX;
-typedef struct X509_POLICY_CACHE_st X509_POLICY_CACHE;
-typedef struct X509_POLICY_LEVEL_st X509_POLICY_LEVEL;
-typedef struct X509_POLICY_NODE_st X509_POLICY_NODE;
-typedef struct X509_POLICY_TREE_st X509_POLICY_TREE;
 typedef struct X509_VERIFY_PARAM_st X509_VERIFY_PARAM;
 typedef struct X509_algor_st X509_ALGOR;
 typedef struct X509_crl_st X509_CRL;
@@ -401,6 +396,7 @@ typedef struct conf_st CONF;
 typedef struct conf_value_st CONF_VALUE;
 typedef struct crypto_buffer_pool_st CRYPTO_BUFFER_POOL;
 typedef struct crypto_buffer_st CRYPTO_BUFFER;
+typedef struct ctr_drbg_state_st CTR_DRBG_STATE;
 typedef struct dh_st DH;
 typedef struct dsa_st DSA;
 typedef struct ec_group_st EC_GROUP;

@@ -12,7 +12,8 @@
  * OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN
  * CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. */
 
-#include <CCryptoBoringSSL_base.h>
+#include <CCryptoBoringSSL_ctrdrbg.h>
+
 #include "../fipsmodule/rand/internal.h"
 
 #if defined(BORINGSSL_FIPS)
@@ -20,15 +21,16 @@
 // RAND_need_entropy is called by the FIPS module when it has blocked because of
 // a lack of entropy. This signal is used as an indication to feed it more.
 void RAND_need_entropy(size_t bytes_needed) {
-  uint8_t buf[CTR_DRBG_ENTROPY_LEN * BORINGSSL_FIPS_OVERREAD];
+  uint8_t buf[/* last_block size */ 16 +
+              CTR_DRBG_ENTROPY_LEN * BORINGSSL_FIPS_OVERREAD];
   size_t todo = sizeof(buf);
   if (todo > bytes_needed) {
     todo = bytes_needed;
   }
 
-  int used_cpu;
-  CRYPTO_get_seed_entropy(buf, todo, &used_cpu);
-  RAND_load_entropy(buf, todo, used_cpu);
+  int want_additional_input;
+  CRYPTO_get_seed_entropy(buf, todo, &want_additional_input);
+  RAND_load_entropy(buf, todo, want_additional_input);
 }
 
 #endif  // FIPS
