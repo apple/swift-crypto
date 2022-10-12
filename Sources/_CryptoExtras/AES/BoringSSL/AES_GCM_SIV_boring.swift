@@ -2,7 +2,7 @@
 //
 // This source file is part of the SwiftCrypto open source project
 //
-// Copyright (c) 2019 Apple Inc. and the SwiftCrypto project authors
+// Copyright (c) 2022 Apple Inc. and the SwiftCrypto project authors
 // Licensed under Apache License v2.0
 //
 // See LICENSE.txt for license information
@@ -11,11 +11,12 @@
 // SPDX-License-Identifier: Apache-2.0
 //
 //===----------------------------------------------------------------------===//
-#if (os(macOS) || os(iOS) || os(watchOS) || os(tvOS)) && CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
-@_exported import CryptoKit
-#else
+
+// This is a copy ChaChaPoly_boring just with a different set aes algos
+
 @_implementationOnly import CCryptoBoringSSL
 @_implementationOnly import CCryptoBoringSSLShims
+import Crypto
 @_implementationOnly import CryptoBoringWrapper
 import Foundation
 
@@ -41,34 +42,46 @@ extension BoringSSLAEAD {
     }
 }
 
-enum OpenSSLChaChaPolyImpl {
-    static func encrypt<M: DataProtocol, AD: DataProtocol>(key: SymmetricKey, message: M, nonce: ChaChaPoly.Nonce?, authenticatedData: AD?) throws -> ChaChaPoly.SealedBox {
-        guard key.bitCount == ChaChaPoly.keyBitsCount else {
-            throw CryptoKitError.incorrectKeySize
-        }
-        let nonce = nonce ?? ChaChaPoly.Nonce()
+enum OpenSSLAESGCMSIVImpl {
+    @inlinable
+    static func seal<Plaintext: DataProtocol, AuthenticatedData: DataProtocol>
+    (key: SymmetricKey, message: Plaintext, nonce: AES.GCM._SIV.Nonce?, authenticatedData: AuthenticatedData? = nil) throws -> AES.GCM._SIV.SealedBox {
+        let nonce = nonce ?? AES.GCM._SIV.Nonce()
+
+        let aead = try Self._backingAEAD(key: key)
 
         let ciphertext: Data
         let tag: Data
         if let ad = authenticatedData {
-            (ciphertext, tag) = try BoringSSLAEAD.chacha20.seal(message: message, key: key, nonce: nonce, authenticatedData: ad)
+            (ciphertext, tag) = try aead.seal(message: message, key: key, nonce: nonce, authenticatedData: ad)
         } else {
-            (ciphertext, tag) = try BoringSSLAEAD.chacha20.seal(message: message, key: key, nonce: nonce, authenticatedData: [])
+            (ciphertext, tag) = try aead.seal(message: message, key: key, nonce: nonce, authenticatedData: [])
         }
 
-        return try ChaChaPoly.SealedBox(nonce: nonce, ciphertext: ciphertext, tag: tag)
+        return try AES.GCM._SIV.SealedBox(nonce: nonce, ciphertext: ciphertext, tag: tag)
     }
 
-    static func decrypt<AD: DataProtocol>(key: SymmetricKey, ciphertext: ChaChaPoly.SealedBox, authenticatedData: AD?) throws -> Data {
-        guard key.bitCount == ChaChaPoly.keyBitsCount else {
-            throw CryptoKitError.incorrectKeySize
-        }
+    @inlinable
+    static func open<AuthenticatedData: DataProtocol>
+    (key: SymmetricKey, sealedBox: AES.GCM._SIV.SealedBox, authenticatedData: AuthenticatedData? = nil) throws -> Data {
+        let aead = try Self._backingAEAD(key: key)
 
         if let ad = authenticatedData {
-            return try BoringSSLAEAD.chacha20.open(ciphertext: ciphertext.ciphertext, key: key, nonce: ciphertext.nonce, tag: ciphertext.tag, authenticatedData: ad)
+            return try aead.open(ciphertext: sealedBox.ciphertext, key: key, nonce: sealedBox.nonce, tag: sealedBox.tag, authenticatedData: ad)
         } else {
-            return try BoringSSLAEAD.chacha20.open(ciphertext: ciphertext.ciphertext, key: key, nonce: ciphertext.nonce, tag: ciphertext.tag, authenticatedData: [])
+            return try aead.open(ciphertext: sealedBox.ciphertext, key: key, nonce: sealedBox.nonce, tag: sealedBox.tag, authenticatedData: [])
+        }
+    }
+
+    @usableFromInline
+    static func _backingAEAD(key: SymmetricKey) throws -> BoringSSLAEAD {
+        switch key.bitCount {
+        case 128:
+            return .aes128gcmsiv
+        case 256:
+            return .aes256gcmsiv
+        default:
+            throw CryptoKitError.incorrectKeySize
         }
     }
 }
-#endif // (os(macOS) || os(iOS) || os(watchOS) || os(tvOS)) && CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API

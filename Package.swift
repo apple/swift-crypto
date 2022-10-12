@@ -36,7 +36,8 @@ if development {
     ]
     dependencies = [
         "CCryptoBoringSSL",
-        "CCryptoBoringSSLShims"
+        "CCryptoBoringSSLShims",
+        "CryptoBoringWrapper"
     ]
 } else {
     swiftSettings = [
@@ -49,7 +50,8 @@ if development {
     ]
     dependencies = [
         .target(name: "CCryptoBoringSSL", condition: .when(platforms: platforms)),
-        .target(name: "CCryptoBoringSSLShims", condition: .when(platforms: platforms))
+        .target(name: "CCryptoBoringSSLShims", condition: .when(platforms: platforms)),
+        .target(name: "CryptoBoringWrapper", condition: .when(platforms: platforms))
     ]
 }
 
@@ -105,7 +107,17 @@ let package = Package(
             ],
             swiftSettings: swiftSettings
         ),
-        .target(name: "_CryptoExtras", dependencies: ["CCryptoBoringSSL", "CCryptoBoringSSLShims", "Crypto"]),
+        .target(name: "_CryptoExtras", dependencies: ["CCryptoBoringSSL", "CCryptoBoringSSLShims", "CryptoBoringWrapper", "Crypto"]),
+        .target(
+            name: "CryptoBoringWrapper",
+            dependencies: [
+                "CCryptoBoringSSL",
+                "CCryptoBoringSSLShims"
+            ],
+            exclude: [
+                "CMakeLists.txt",
+            ]
+        ),
         .executableTarget(name: "crypto-shasum", dependencies: ["Crypto"]),
         .testTarget(name: "CryptoTests", dependencies: ["Crypto"], swiftSettings: swiftSettings),
         .testTarget(name: "_CryptoExtrasTests", dependencies: ["_CryptoExtras"]),

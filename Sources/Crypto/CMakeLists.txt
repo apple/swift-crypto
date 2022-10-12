@@ -85,12 +85,14 @@ target_compile_definitions(Crypto PRIVATE
   CRYPTO_IN_SWIFTPM_FORCE_BUILD_API)
 target_include_directories(Crypto PRIVATE
   $<TARGET_PROPERTY:CCryptoBoringSSL,INCLUDE_DIRECTORIES>
-  $<TARGET_PROPERTY:CCryptoBoringSSLShims,INCLUDE_DIRECTORIES>)
+  $<TARGET_PROPERTY:CCryptoBoringSSLShims,INCLUDE_DIRECTORIES>
+  $<TARGET_PROPERTY:CryptoBoringWrapper,INCLUDE_DIRECTORIES>)
 target_link_libraries(Crypto PUBLIC
   $<$<NOT:$<PLATFORM_ID:Darwin>>:dispatch>
   $<$<NOT:$<PLATFORM_ID:Darwin>>:Foundation>
   CCryptoBoringSSL
-  CCryptoBoringSSLShims)
+  CCryptoBoringSSLShims
+  CryptoBoringWrapper)
 set_target_properties(Crypto PROPERTIES
   INTERFACE_INCLUDE_DIRECTORIES ${CMAKE_Swift_MODULE_DIRECTORY})
 
