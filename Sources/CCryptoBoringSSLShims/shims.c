@@ -55,6 +55,13 @@ int CCryptoBoringSSLShims_EVP_AEAD_CTX_open_gather(const EVP_AEAD_CTX *ctx, void
     return CCryptoBoringSSL_EVP_AEAD_CTX_open_gather(ctx, out, nonce, nonce_len, in, in_len, in_tag, in_tag_len, ad, ad_len);
 }
 
+int CCryptoBoringSSLShims_EVP_AEAD_CTX_open(const EVP_AEAD_CTX *ctx, void *out, size_t *out_len, size_t max_out_len,
+                                                   const void *nonce, size_t nonce_len,
+                                                   const void *in, size_t in_len,
+                                                   const void *ad, size_t ad_len) {
+    return CCryptoBoringSSL_EVP_AEAD_CTX_open(ctx, out, out_len, max_out_len, nonce, nonce_len, in, in_len, ad, ad_len);
+}
+
 void CCryptoBoringSSLShims_ED25519_keypair(void *out_public_key, void *out_private_key) {
     CCryptoBoringSSL_ED25519_keypair(out_public_key, out_private_key);
 }

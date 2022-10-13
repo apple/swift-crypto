@@ -32,10 +32,10 @@ extension BoringSSLAEAD {
     }
 
     /// Open a given message.
-    func open<Nonce: ContiguousBytes, AuthenticatedData: DataProtocol>(ciphertext: Data, key: SymmetricKey, nonce: Nonce, tag: Data, authenticatedData: AuthenticatedData) throws -> Data {
+    func open<Nonce: ContiguousBytes, AuthenticatedData: DataProtocol>(combinedCiphertextAndTag: Data, key: SymmetricKey, nonce: Nonce, authenticatedData: AuthenticatedData) throws -> Data {
         do {
             let context = try AEADContext(cipher: self, key: key)
-            return try context.open(ciphertext: ciphertext, nonce: nonce, tag: tag, authenticatedData: authenticatedData)
+            return try context.open(combinedCiphertextAndTag: combinedCiphertextAndTag, nonce: nonce, authenticatedData: authenticatedData)
         } catch CryptoBoringWrapperError.underlyingCoreCryptoError(let errorCode) {
             throw CryptoKitError.underlyingCoreCryptoError(error: errorCode)
         }
@@ -67,9 +67,9 @@ enum OpenSSLAESGCMSIVImpl {
         let aead = try Self._backingAEAD(key: key)
 
         if let ad = authenticatedData {
-            return try aead.open(ciphertext: sealedBox.ciphertext, key: key, nonce: sealedBox.nonce, tag: sealedBox.tag, authenticatedData: ad)
+            return try aead.open(combinedCiphertextAndTag: sealedBox.combined.dropFirst(AES.GCM._SIV.nonceByteCount), key: key, nonce: sealedBox.nonce, authenticatedData: ad)
         } else {
-            return try aead.open(ciphertext: sealedBox.ciphertext, key: key, nonce: sealedBox.nonce, tag: sealedBox.tag, authenticatedData: [])
+            return try aead.open(combinedCiphertextAndTag: sealedBox.combined.dropFirst(AES.GCM._SIV.nonceByteCount), key: key, nonce: sealedBox.nonce, authenticatedData: [])
         }
     }
 

@@ -35,6 +35,7 @@ extension BoringSSLAEAD {
 
         public init<Key: ContiguousBytes>(cipher: BoringSSLAEAD, key: Key) throws {
             self.context = EVP_AEAD_CTX()
+
             let rc: CInt = key.withUnsafeBytes { keyPointer in
                 withUnsafeMutablePointer(to: &self.context) { contextPointer in
                     // Create the AEAD context with a default tag length using the given key.
@@ -133,6 +134,7 @@ extension BoringSSLAEAD.AEADContext {
 
 extension BoringSSLAEAD.AEADContext {
     /// The main entry point for opening data. Covers the full gamut of types, including discontiguous data types. This must be inlinable.
+    @inlinable
     public func open<Nonce: ContiguousBytes, AuthenticatedData: DataProtocol>(ciphertext: Data, nonce: Nonce, tag: Data, authenticatedData: AuthenticatedData) throws -> Data {
         // Open is a somewhat awkward function. As it returns a Data, we are going to need to initialize a Data large enough to write into. Data does not provide us an
         // initializer that gives us access to its uninitialized memory, so the cost of creating this Data is the cost of allocating the data + the cost of initializing
@@ -171,7 +173,7 @@ extension BoringSSLAEAD.AEADContext {
         let outputBuffer = UnsafeMutableRawBufferPointer(start: malloc(ciphertext.count)!, count: ciphertext.count)
 
         let rc = withUnsafePointer(to: &self.context) { contextPointer in
-            CCryptoBoringSSLShims_EVP_AEAD_CTX_open_gather(contextPointer,
+            return CCryptoBoringSSLShims_EVP_AEAD_CTX_open_gather(contextPointer,
                                                            outputBuffer.baseAddress,
                                                            nonceBytes.baseAddress, nonceBytes.count,
                                                            ciphertext.baseAddress, ciphertext.count,
@@ -188,6 +190,63 @@ extension BoringSSLAEAD.AEADContext {
         let output = Data(bytesNoCopy: outputBuffer.baseAddress!, count: outputBuffer.count, deallocator: .free)
         return output
     }
+
+    /// An additional entry point for opening data where the ciphertext and the tag can be provided as one combined data . Covers the full gamut of types, including discontiguous data types. This must be inlinable.
+    @inlinable
+    public func open<Nonce: ContiguousBytes, AuthenticatedData: DataProtocol>(combinedCiphertextAndTag: Data, nonce: Nonce, authenticatedData: AuthenticatedData) throws -> Data {
+        // Open is a somewhat awkward function. As it returns a Data, we are going to need to initialize a Data large enough to write into. Data does not provide us an
+        // initializer that gives us access to its uninitialized memory, so the cost of creating this Data is the cost of allocating the data + the cost of initializing
+        // it. For smaller plaintexts this isn't too big a deal, but for larger ones the initialization cost can really get hairy.
+        //
+        // We can avoid this by using Data(bytesNoCopy:deallocator:), so that's what we do. In principle we can do slightly better in the case where we have a discontiguous Plaintext
+        // type, but it's honestly not worth it enough to justify the code complexity.
+        if authenticatedData.regions.count == 1 {
+            // We can use a nice fast-path here.
+            return try self._openContiguous(combinedCiphertextAndTag: combinedCiphertextAndTag, nonce: nonce, authenticatedData: authenticatedData.regions.first!)
+        } else {
+            let contiguousAD = Array(authenticatedData)
+            return try self._openContiguous(combinedCiphertextAndTag: combinedCiphertextAndTag, nonce: nonce, authenticatedData: contiguousAD)
+        }
+    }
+
+    /// A fast-path for opening contiguous data. Also inlinable to gain specialization information.
+    @inlinable
+    func _openContiguous<Nonce: ContiguousBytes, AuthenticatedData: ContiguousBytes>(combinedCiphertextAndTag: Data, nonce: Nonce, authenticatedData: AuthenticatedData) throws -> Data {
+        try combinedCiphertextAndTag.withUnsafeBytes { combinedCiphertextAndTagPointer in
+            try nonce.withUnsafeBytes { nonceBytes in
+                try authenticatedData.withUnsafeBytes { authenticatedDataBytes in
+                    try self._openContiguous(combinedCiphertextAndTag: combinedCiphertextAndTagPointer, nonceBytes: nonceBytes, authenticatedData: authenticatedDataBytes)
+                }
+            }
+        }
+    }
+
+    /// The unsafe base call: not inlinable so that it can touch private variables.
+    @usableFromInline
+    func _openContiguous(combinedCiphertextAndTag: UnsafeRawBufferPointer, nonceBytes: UnsafeRawBufferPointer, authenticatedData: UnsafeRawBufferPointer) throws -> Data {
+        // We use malloc here because we are going to call free later. We force unwrap to trigger crashes if the allocation
+        // fails.
+        let outputBuffer = UnsafeMutableRawBufferPointer(start: malloc(combinedCiphertextAndTag.count)!, count: combinedCiphertextAndTag.count)
+
+        var writtenBytes = 0
+        let rc = withUnsafePointer(to: &self.context) { contextPointer in
+            return CCryptoBoringSSLShims_EVP_AEAD_CTX_open(contextPointer,
+                                                           outputBuffer.baseAddress, &writtenBytes, outputBuffer.count,
+                                                           nonceBytes.baseAddress, nonceBytes.count,
+                                                           combinedCiphertextAndTag.baseAddress, combinedCiphertextAndTag.count,
+                                                           authenticatedData.baseAddress, authenticatedData.count)
+        }
+
+        guard rc == 1 else {
+            // Ooops, error. Free the memory we allocated before we throw.
+            free(outputBuffer.baseAddress)
+            throw CryptoBoringWrapperError.internalBoringSSLError()
+        }
+
+        let output = Data(bytesNoCopy: outputBuffer.baseAddress!, count: outputBuffer.count, deallocator: .free).prefix(writtenBytes)
+        return output
+    }
+
 }
 
 // MARK: - Supported ciphers
