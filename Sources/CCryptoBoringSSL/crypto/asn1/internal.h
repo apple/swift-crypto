@@ -96,7 +96,8 @@ OPENSSL_EXPORT int OPENSSL_timegm(const struct tm *tm, time_t *out);
 // |offset_day| days and |offset_sec| seconds. It returns zero on failure. |tm|
 // must be in the range of year 0000 to 9999 both before and after the update or
 // a failure will be returned.
-int OPENSSL_gmtime_adj(struct tm *tm, int offset_day, long offset_sec);
+OPENSSL_EXPORT int OPENSSL_gmtime_adj(struct tm *tm, int offset_day,
+                                      long offset_sec);
 
 // OPENSSL_gmtime_diff calculates the difference between |from| and |to|. It
 // returns one, and outputs the difference as a number of days and seconds in
@@ -155,8 +156,6 @@ OPENSSL_EXPORT int asn1_generalizedtime_to_tm(struct tm *tm,
 
 void asn1_item_combine_free(ASN1_VALUE **pval, const ASN1_ITEM *it,
                             int combine);
-
-int UTF8_putc(unsigned char *str, int len, uint32_t value);
 
 int ASN1_item_ex_new(ASN1_VALUE **pval, const ASN1_ITEM *it);
 void ASN1_item_ex_free(ASN1_VALUE **pval, const ASN1_ITEM *it);

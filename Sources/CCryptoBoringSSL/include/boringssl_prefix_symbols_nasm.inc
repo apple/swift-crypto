@@ -464,9 +464,11 @@
 %xdefine _CBB_add_asn1 _ %+ BORINGSSL_PREFIX %+ _CBB_add_asn1
 %xdefine _CBB_add_asn1_bool _ %+ BORINGSSL_PREFIX %+ _CBB_add_asn1_bool
 %xdefine _CBB_add_asn1_int64 _ %+ BORINGSSL_PREFIX %+ _CBB_add_asn1_int64
+%xdefine _CBB_add_asn1_int64_with_tag _ %+ BORINGSSL_PREFIX %+ _CBB_add_asn1_int64_with_tag
 %xdefine _CBB_add_asn1_octet_string _ %+ BORINGSSL_PREFIX %+ _CBB_add_asn1_octet_string
 %xdefine _CBB_add_asn1_oid_from_text _ %+ BORINGSSL_PREFIX %+ _CBB_add_asn1_oid_from_text
 %xdefine _CBB_add_asn1_uint64 _ %+ BORINGSSL_PREFIX %+ _CBB_add_asn1_uint64
+%xdefine _CBB_add_asn1_uint64_with_tag _ %+ BORINGSSL_PREFIX %+ _CBB_add_asn1_uint64_with_tag
 %xdefine _CBB_add_bytes _ %+ BORINGSSL_PREFIX %+ _CBB_add_bytes
 %xdefine _CBB_add_space _ %+ BORINGSSL_PREFIX %+ _CBB_add_space
 %xdefine _CBB_add_u16 _ %+ BORINGSSL_PREFIX %+ _CBB_add_u16
@@ -812,9 +814,13 @@
 %xdefine _EC_KEY_new _ %+ BORINGSSL_PREFIX %+ _EC_KEY_new
 %xdefine _EC_KEY_new_by_curve_name _ %+ BORINGSSL_PREFIX %+ _EC_KEY_new_by_curve_name
 %xdefine _EC_KEY_new_method _ %+ BORINGSSL_PREFIX %+ _EC_KEY_new_method
+%xdefine _EC_KEY_oct2key _ %+ BORINGSSL_PREFIX %+ _EC_KEY_oct2key
+%xdefine _EC_KEY_oct2priv _ %+ BORINGSSL_PREFIX %+ _EC_KEY_oct2priv
 %xdefine _EC_KEY_parse_curve_name _ %+ BORINGSSL_PREFIX %+ _EC_KEY_parse_curve_name
 %xdefine _EC_KEY_parse_parameters _ %+ BORINGSSL_PREFIX %+ _EC_KEY_parse_parameters
 %xdefine _EC_KEY_parse_private_key _ %+ BORINGSSL_PREFIX %+ _EC_KEY_parse_private_key
+%xdefine _EC_KEY_priv2buf _ %+ BORINGSSL_PREFIX %+ _EC_KEY_priv2buf
+%xdefine _EC_KEY_priv2oct _ %+ BORINGSSL_PREFIX %+ _EC_KEY_priv2oct
 %xdefine _EC_KEY_set_asn1_flag _ %+ BORINGSSL_PREFIX %+ _EC_KEY_set_asn1_flag
 %xdefine _EC_KEY_set_conv_form _ %+ BORINGSSL_PREFIX %+ _EC_KEY_set_conv_form
 %xdefine _EC_KEY_set_enc_flags _ %+ BORINGSSL_PREFIX %+ _EC_KEY_set_enc_flags
@@ -840,6 +846,7 @@
 %xdefine _EC_POINT_mul _ %+ BORINGSSL_PREFIX %+ _EC_POINT_mul
 %xdefine _EC_POINT_new _ %+ BORINGSSL_PREFIX %+ _EC_POINT_new
 %xdefine _EC_POINT_oct2point _ %+ BORINGSSL_PREFIX %+ _EC_POINT_oct2point
+%xdefine _EC_POINT_point2buf _ %+ BORINGSSL_PREFIX %+ _EC_POINT_point2buf
 %xdefine _EC_POINT_point2cbb _ %+ BORINGSSL_PREFIX %+ _EC_POINT_point2cbb
 %xdefine _EC_POINT_point2oct _ %+ BORINGSSL_PREFIX %+ _EC_POINT_point2oct
 %xdefine _EC_POINT_set_affine_coordinates _ %+ BORINGSSL_PREFIX %+ _EC_POINT_set_affine_coordinates
@@ -1008,6 +1015,8 @@
 %xdefine _EVP_HPKE_KDF_id _ %+ BORINGSSL_PREFIX %+ _EVP_HPKE_KDF_id
 %xdefine _EVP_HPKE_KEM_enc_len _ %+ BORINGSSL_PREFIX %+ _EVP_HPKE_KEM_enc_len
 %xdefine _EVP_HPKE_KEM_id _ %+ BORINGSSL_PREFIX %+ _EVP_HPKE_KEM_id
+%xdefine _EVP_HPKE_KEM_private_key_len _ %+ BORINGSSL_PREFIX %+ _EVP_HPKE_KEM_private_key_len
+%xdefine _EVP_HPKE_KEM_public_key_len _ %+ BORINGSSL_PREFIX %+ _EVP_HPKE_KEM_public_key_len
 %xdefine _EVP_HPKE_KEY_cleanup _ %+ BORINGSSL_PREFIX %+ _EVP_HPKE_KEY_cleanup
 %xdefine _EVP_HPKE_KEY_copy _ %+ BORINGSSL_PREFIX %+ _EVP_HPKE_KEY_copy
 %xdefine _EVP_HPKE_KEY_free _ %+ BORINGSSL_PREFIX %+ _EVP_HPKE_KEY_free
@@ -1688,7 +1697,6 @@
 %xdefine _USERNOTICE_free _ %+ BORINGSSL_PREFIX %+ _USERNOTICE_free
 %xdefine _USERNOTICE_it _ %+ BORINGSSL_PREFIX %+ _USERNOTICE_it
 %xdefine _USERNOTICE_new _ %+ BORINGSSL_PREFIX %+ _USERNOTICE_new
-%xdefine _UTF8_putc _ %+ BORINGSSL_PREFIX %+ _UTF8_putc
 %xdefine _X25519 _ %+ BORINGSSL_PREFIX %+ _X25519
 %xdefine _X25519_keypair _ %+ BORINGSSL_PREFIX %+ _X25519_keypair
 %xdefine _X25519_public_from_private _ %+ BORINGSSL_PREFIX %+ _X25519_public_from_private
@@ -2535,6 +2543,7 @@
 %xdefine _ec_jacobian_to_affine _ %+ BORINGSSL_PREFIX %+ _ec_jacobian_to_affine
 %xdefine _ec_jacobian_to_affine_batch _ %+ BORINGSSL_PREFIX %+ _ec_jacobian_to_affine_batch
 %xdefine _ec_pkey_meth _ %+ BORINGSSL_PREFIX %+ _ec_pkey_meth
+%xdefine _ec_point_byte_len _ %+ BORINGSSL_PREFIX %+ _ec_point_byte_len
 %xdefine _ec_point_from_uncompressed _ %+ BORINGSSL_PREFIX %+ _ec_point_from_uncompressed
 %xdefine _ec_point_mul_no_self_test _ %+ BORINGSSL_PREFIX %+ _ec_point_mul_no_self_test
 %xdefine _ec_point_mul_scalar _ %+ BORINGSSL_PREFIX %+ _ec_point_mul_scalar
@@ -3350,9 +3359,11 @@
 %xdefine CBB_add_asn1 BORINGSSL_PREFIX %+ _CBB_add_asn1
 %xdefine CBB_add_asn1_bool BORINGSSL_PREFIX %+ _CBB_add_asn1_bool
 %xdefine CBB_add_asn1_int64 BORINGSSL_PREFIX %+ _CBB_add_asn1_int64
+%xdefine CBB_add_asn1_int64_with_tag BORINGSSL_PREFIX %+ _CBB_add_asn1_int64_with_tag
 %xdefine CBB_add_asn1_octet_string BORINGSSL_PREFIX %+ _CBB_add_asn1_octet_string
 %xdefine CBB_add_asn1_oid_from_text BORINGSSL_PREFIX %+ _CBB_add_asn1_oid_from_text
 %xdefine CBB_add_asn1_uint64 BORINGSSL_PREFIX %+ _CBB_add_asn1_uint64
+%xdefine CBB_add_asn1_uint64_with_tag BORINGSSL_PREFIX %+ _CBB_add_asn1_uint64_with_tag
 %xdefine CBB_add_bytes BORINGSSL_PREFIX %+ _CBB_add_bytes
 %xdefine CBB_add_space BORINGSSL_PREFIX %+ _CBB_add_space
 %xdefine CBB_add_u16 BORINGSSL_PREFIX %+ _CBB_add_u16
@@ -3698,9 +3709,13 @@
 %xdefine EC_KEY_new BORINGSSL_PREFIX %+ _EC_KEY_new
 %xdefine EC_KEY_new_by_curve_name BORINGSSL_PREFIX %+ _EC_KEY_new_by_curve_name
 %xdefine EC_KEY_new_method BORINGSSL_PREFIX %+ _EC_KEY_new_method
+%xdefine EC_KEY_oct2key BORINGSSL_PREFIX %+ _EC_KEY_oct2key
+%xdefine EC_KEY_oct2priv BORINGSSL_PREFIX %+ _EC_KEY_oct2priv
 %xdefine EC_KEY_parse_curve_name BORINGSSL_PREFIX %+ _EC_KEY_parse_curve_name
 %xdefine EC_KEY_parse_parameters BORINGSSL_PREFIX %+ _EC_KEY_parse_parameters
 %xdefine EC_KEY_parse_private_key BORINGSSL_PREFIX %+ _EC_KEY_parse_private_key
+%xdefine EC_KEY_priv2buf BORINGSSL_PREFIX %+ _EC_KEY_priv2buf
+%xdefine EC_KEY_priv2oct BORINGSSL_PREFIX %+ _EC_KEY_priv2oct
 %xdefine EC_KEY_set_asn1_flag BORINGSSL_PREFIX %+ _EC_KEY_set_asn1_flag
 %xdefine EC_KEY_set_conv_form BORINGSSL_PREFIX %+ _EC_KEY_set_conv_form
 %xdefine EC_KEY_set_enc_flags BORINGSSL_PREFIX %+ _EC_KEY_set_enc_flags
@@ -3726,6 +3741,7 @@
 %xdefine EC_POINT_mul BORINGSSL_PREFIX %+ _EC_POINT_mul
 %xdefine EC_POINT_new BORINGSSL_PREFIX %+ _EC_POINT_new
 %xdefine EC_POINT_oct2point BORINGSSL_PREFIX %+ _EC_POINT_oct2point
+%xdefine EC_POINT_point2buf BORINGSSL_PREFIX %+ _EC_POINT_point2buf
 %xdefine EC_POINT_point2cbb BORINGSSL_PREFIX %+ _EC_POINT_point2cbb
 %xdefine EC_POINT_point2oct BORINGSSL_PREFIX %+ _EC_POINT_point2oct
 %xdefine EC_POINT_set_affine_coordinates BORINGSSL_PREFIX %+ _EC_POINT_set_affine_coordinates
@@ -3894,6 +3910,8 @@
 %xdefine EVP_HPKE_KDF_id BORINGSSL_PREFIX %+ _EVP_HPKE_KDF_id
 %xdefine EVP_HPKE_KEM_enc_len BORINGSSL_PREFIX %+ _EVP_HPKE_KEM_enc_len
 %xdefine EVP_HPKE_KEM_id BORINGSSL_PREFIX %+ _EVP_HPKE_KEM_id
+%xdefine EVP_HPKE_KEM_private_key_len BORINGSSL_PREFIX %+ _EVP_HPKE_KEM_private_key_len
+%xdefine EVP_HPKE_KEM_public_key_len BORINGSSL_PREFIX %+ _EVP_HPKE_KEM_public_key_len
 %xdefine EVP_HPKE_KEY_cleanup BORINGSSL_PREFIX %+ _EVP_HPKE_KEY_cleanup
 %xdefine EVP_HPKE_KEY_copy BORINGSSL_PREFIX %+ _EVP_HPKE_KEY_copy
 %xdefine EVP_HPKE_KEY_free BORINGSSL_PREFIX %+ _EVP_HPKE_KEY_free
@@ -4574,7 +4592,6 @@
 %xdefine USERNOTICE_free BORINGSSL_PREFIX %+ _USERNOTICE_free
 %xdefine USERNOTICE_it BORINGSSL_PREFIX %+ _USERNOTICE_it
 %xdefine USERNOTICE_new BORINGSSL_PREFIX %+ _USERNOTICE_new
-%xdefine UTF8_putc BORINGSSL_PREFIX %+ _UTF8_putc
 %xdefine X25519 BORINGSSL_PREFIX %+ _X25519
 %xdefine X25519_keypair BORINGSSL_PREFIX %+ _X25519_keypair
 %xdefine X25519_public_from_private BORINGSSL_PREFIX %+ _X25519_public_from_private
@@ -5421,6 +5438,7 @@
 %xdefine ec_jacobian_to_affine BORINGSSL_PREFIX %+ _ec_jacobian_to_affine
 %xdefine ec_jacobian_to_affine_batch BORINGSSL_PREFIX %+ _ec_jacobian_to_affine_batch
 %xdefine ec_pkey_meth BORINGSSL_PREFIX %+ _ec_pkey_meth
+%xdefine ec_point_byte_len BORINGSSL_PREFIX %+ _ec_point_byte_len
 %xdefine ec_point_from_uncompressed BORINGSSL_PREFIX %+ _ec_point_from_uncompressed
 %xdefine ec_point_mul_no_self_test BORINGSSL_PREFIX %+ _ec_point_mul_no_self_test
 %xdefine ec_point_mul_scalar BORINGSSL_PREFIX %+ _ec_point_mul_scalar
