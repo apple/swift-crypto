@@ -106,13 +106,26 @@ extension BoringSSLRSAPublicKey {
         fileprivate init(pemRepresentation: String) throws {
             var pemRepresentation = pemRepresentation
 
-            self.pointer = try pemRepresentation.withUTF8 { utf8Ptr in
-                return try BIOHelper.withReadOnlyMemoryBIO(wrapping: utf8Ptr) { bio in
-                    guard let key = CCryptoBoringSSL_PEM_read_bio_RSA_PUBKEY(bio, nil, nil, nil) else {
-                        throw CryptoKitError.internalBoringSSLError()
+            // There are two encodings for RSA public keys: PKCS#1 and the SPKI form.
+            // The SPKI form is what we support for EC keys, so we try that first, then we
+            // fall back to the PKCS#1 form if that parse fails.
+            do {
+                self.pointer = try pemRepresentation.withUTF8 { utf8Ptr in
+                    return try BIOHelper.withReadOnlyMemoryBIO(wrapping: utf8Ptr) { bio in
+                        guard let key = CCryptoBoringSSL_PEM_read_bio_RSA_PUBKEY(bio, nil, nil, nil) else {
+                            throw CryptoKitError.internalBoringSSLError()
+                        }
+                        return key
                     }
-
-                    return key
+                }
+            } catch {
+                self.pointer = try pemRepresentation.withUTF8 { utf8Ptr in
+                    return try BIOHelper.withReadOnlyMemoryBIO(wrapping: utf8Ptr) { bio in
+                        guard let key = CCryptoBoringSSL_PEM_read_bio_RSAPublicKey(bio, nil, nil, nil) else {
+                            throw CryptoKitError.internalBoringSSLError()
+                        }
+                        return key
+                    }
                 }
             }
         }
@@ -127,12 +140,26 @@ extension BoringSSLRSAPublicKey {
         }
 
         private init<Bytes: ContiguousBytes>(contiguousDerRepresentation: Bytes) throws {
-            self.pointer = try contiguousDerRepresentation.withUnsafeBytes { derPtr in
-                return try BIOHelper.withReadOnlyMemoryBIO(wrapping: derPtr) { bio in
-                    guard let key = CCryptoBoringSSL_d2i_RSA_PUBKEY_bio(bio, nil) else {
-                        throw CryptoKitError.internalBoringSSLError()
+            // There are two encodings for RSA public keys: PKCS#1 and the SPKI form.
+            // The SPKI form is what we support for EC keys, so we try that first, then we
+            // fall back to the PKCS#1 form if that parse fails.
+            do {
+                self.pointer = try contiguousDerRepresentation.withUnsafeBytes { derPtr in
+                    return try BIOHelper.withReadOnlyMemoryBIO(wrapping: derPtr) { bio in
+                        guard let key = CCryptoBoringSSL_d2i_RSA_PUBKEY_bio(bio, nil) else {
+                            throw CryptoKitError.internalBoringSSLError()
+                        }
+                        return key
                     }
-                    return key
+                }
+            } catch {
+                self.pointer = try contiguousDerRepresentation.withUnsafeBytes { derPtr in
+                    return try BIOHelper.withReadOnlyMemoryBIO(wrapping: derPtr) { bio in
+                        guard let key = CCryptoBoringSSL_d2i_RSAPublicKey_bio(bio, nil) else {
+                            throw CryptoKitError.internalBoringSSLError()
+                        }
+                        return key
+                    }
                 }
             }
         }
