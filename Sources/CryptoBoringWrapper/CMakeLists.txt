@@ -21,6 +21,7 @@ target_include_directories(CryptoBoringWrapper PUBLIC
   $<TARGET_PROPERTY:CCryptoBoringSSLShims,INCLUDE_DIRECTORIES>)
 
 target_link_libraries(CryptoBoringWrapper PUBLIC
+  $<$<NOT:$<PLATFORM_ID:Darwin>>:Foundation>
   CCryptoBoringSSL
   CCryptoBoringSSLShims)
 
