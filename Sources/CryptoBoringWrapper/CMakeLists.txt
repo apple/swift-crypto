@@ -12,7 +12,7 @@
 ##
 ##===----------------------------------------------------------------------===##
 
-add_library(CryptoBoringWrapper
+add_library(CryptoBoringWrapper STATIC
   "AEAD/BoringSSLAEAD.swift"
   "CryptoKitErrors_boring.swift")
 
