@@ -30,7 +30,7 @@ extension AES {
     /// - parameter payload: The payload to encrypt. Must be exactly 16 bytes long.
     /// - parameter key: The encryption key to use.
     /// - throws: On invalid parameter sizes.
-    public static func _permute<Payload: MutableCollection>(_ payload: inout Payload, key: SymmetricKey) throws where Payload.Element == UInt8 {
+    public static func permute<Payload: MutableCollection>(_ payload: inout Payload, key: SymmetricKey) throws where Payload.Element == UInt8 {
         return try Self.permuteBlock(&payload, key: key, permutation: .forward)
     }
 
@@ -43,7 +43,7 @@ extension AES {
     /// - parameter payload: The payload to decrypt. Must be exactly 16 bytes long.
     /// - parameter key: The decryption key to use.
     /// - throws: On invalid parameter sizes.
-    public static func _inversePermute<Payload: MutableCollection>(_ payload: inout Payload, key: SymmetricKey) throws where Payload.Element == UInt8 {
+    public static func inversePermute<Payload: MutableCollection>(_ payload: inout Payload, key: SymmetricKey) throws where Payload.Element == UInt8 {
         return try Self.permuteBlock(&payload, key: key, permutation: .backward)
     }
 
