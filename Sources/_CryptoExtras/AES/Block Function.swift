@@ -21,10 +21,28 @@ import Foundation
 extension AES {
     private static let blockSize = 128 / 8
 
+    /// Apply the AES permutation operation in the encryption direction.
+    ///
+    /// This function applies the core AES block operation to `payload` in the encryption direction. Note that this is
+    /// not performing any kind of block cipher mode, and does not authenticate the payload. This is a dangerous primitive
+    /// that should only be used to compose higher-level primitives, and should not be used directly.
+    ///
+    /// - parameter payload: The payload to encrypt. Must be exactly 16 bytes long.
+    /// - parameter key: The encryption key to use.
+    /// - throws: On invalid parameter sizes.
     public static func _permute<Payload: MutableCollection>(_ payload: inout Payload, key: SymmetricKey) throws where Payload.Element == UInt8 {
         return try Self.permuteBlock(&payload, key: key, permutation: .forward)
     }
 
+    /// Apply the AES permutation operation in the decryption direction.
+    ///
+    /// This function applies the core AES block operation to `payload` in the decryption direction. Note that this is
+    /// not performing any kind of block cipher mode, and does not authenticate the payload. This is a dangerous primitive
+    /// that should only be used to compose higher-level primitives, and should not be used directly.
+    ///
+    /// - parameter payload: The payload to decrypt. Must be exactly 16 bytes long.
+    /// - parameter key: The decryption key to use.
+    /// - throws: On invalid parameter sizes.
     public static func _inversePermute<Payload: MutableCollection>(_ payload: inout Payload, key: SymmetricKey) throws where Payload.Element == UInt8 {
         return try Self.permuteBlock(&payload, key: key, permutation: .backward)
     }
