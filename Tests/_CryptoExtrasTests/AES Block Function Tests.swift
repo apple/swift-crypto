@@ -39,14 +39,14 @@ final class AESBlockFunctionTests: XCTestCase {
         // Fast-path
         for (chunk, expected) in zip(Self.nistPlaintextChunks, encryptedChunks) {
             var chunk = chunk
-            try AES._permute(&chunk, key: key)
+            try AES.permute(&chunk, key: key)
             XCTAssertEqual(chunk, expected)
         }
 
         // Slow-path
         for (chunk, expected) in zip(Self.nistPlaintextChunks, encryptedChunks) {
             var block = Block(wrapped: chunk)
-            try AES._permute(&block, key: key)
+            try AES.permute(&block, key: key)
             XCTAssertEqual(Array(block.wrapped), expected)
         }
     }
@@ -66,14 +66,14 @@ final class AESBlockFunctionTests: XCTestCase {
         // Fast-path
         for (chunk, expected) in zip(encryptedChunks, Self.nistPlaintextChunks) {
             var chunk = chunk
-            try AES._inversePermute(&chunk, key: key)
+            try AES.inversePermute(&chunk, key: key)
             XCTAssertEqual(chunk, expected)
         }
 
         // Slow-path
         for (chunk, expected) in zip(encryptedChunks, Self.nistPlaintextChunks) {
             var block = Block(wrapped: chunk)
-            try AES._inversePermute(&block, key: key)
+            try AES.inversePermute(&block, key: key)
             XCTAssertEqual(Array(block.wrapped), expected)
         }
     }
@@ -93,14 +93,14 @@ final class AESBlockFunctionTests: XCTestCase {
         // Fast-path
         for (chunk, expected) in zip(Self.nistPlaintextChunks, encryptedChunks) {
             var chunk = chunk
-            try AES._permute(&chunk, key: key)
+            try AES.permute(&chunk, key: key)
             XCTAssertEqual(chunk, expected)
         }
 
         // Slow-path
         for (chunk, expected) in zip(Self.nistPlaintextChunks, encryptedChunks) {
             var block = Block(wrapped: chunk)
-            try AES._permute(&block, key: key)
+            try AES.permute(&block, key: key)
             XCTAssertEqual(Array(block.wrapped), expected)
         }
     }
@@ -120,14 +120,14 @@ final class AESBlockFunctionTests: XCTestCase {
         // Fast-path
         for (chunk, expected) in zip(encryptedChunks, Self.nistPlaintextChunks) {
             var chunk = chunk
-            try AES._inversePermute(&chunk, key: key)
+            try AES.inversePermute(&chunk, key: key)
             XCTAssertEqual(chunk, expected)
         }
 
         // Slow-path
         for (chunk, expected) in zip(encryptedChunks, Self.nistPlaintextChunks) {
             var block = Block(wrapped: chunk)
-            try AES._inversePermute(&block, key: key)
+            try AES.inversePermute(&block, key: key)
             XCTAssertEqual(Array(block.wrapped), expected)
         }
     }
@@ -149,14 +149,14 @@ final class AESBlockFunctionTests: XCTestCase {
         // Fast-path
         for (chunk, expected) in zip(Self.nistPlaintextChunks, encryptedChunks) {
             var chunk = chunk
-            try AES._permute(&chunk, key: key)
+            try AES.permute(&chunk, key: key)
             XCTAssertEqual(chunk, expected)
         }
 
         // Slow-path
         for (chunk, expected) in zip(Self.nistPlaintextChunks, encryptedChunks) {
             var block = Block(wrapped: chunk)
-            try AES._permute(&block, key: key)
+            try AES.permute(&block, key: key)
             XCTAssertEqual(Array(block.wrapped), expected)
         }
     }
@@ -178,14 +178,14 @@ final class AESBlockFunctionTests: XCTestCase {
         // Fast-path
         for (chunk, expected) in zip(encryptedChunks, Self.nistPlaintextChunks) {
             var chunk = chunk
-            try AES._inversePermute(&chunk, key: key)
+            try AES.inversePermute(&chunk, key: key)
             XCTAssertEqual(chunk, expected)
         }
 
         // Slow-path
         for (chunk, expected) in zip(encryptedChunks, Self.nistPlaintextChunks) {
             var block = Block(wrapped: chunk)
-            try AES._inversePermute(&block, key: key)
+            try AES.inversePermute(&block, key: key)
             XCTAssertEqual(Array(block.wrapped), expected)
         }
     }
@@ -199,13 +199,13 @@ final class AESBlockFunctionTests: XCTestCase {
             var chunk = Array(repeating: UInt8(0), count: blockSize)
 
             // Fast-path
-            XCTAssertThrowsError(try AES._permute(&chunk, key: key))
-            XCTAssertThrowsError(try AES._inversePermute(&chunk, key: key))
+            XCTAssertThrowsError(try AES.permute(&chunk, key: key))
+            XCTAssertThrowsError(try AES.inversePermute(&chunk, key: key))
 
             // Slow-path
             var block = Block(wrapped: chunk)
-            XCTAssertThrowsError(try AES._permute(&block, key: key))
-            XCTAssertThrowsError(try AES._inversePermute(&block, key: key))
+            XCTAssertThrowsError(try AES.permute(&block, key: key))
+            XCTAssertThrowsError(try AES.inversePermute(&block, key: key))
         }
     }
 
@@ -218,13 +218,13 @@ final class AESBlockFunctionTests: XCTestCase {
             let key = SymmetricKey(size: .init(bitCount: keySizeInBits))
 
             // Fast-path
-            XCTAssertThrowsError(try AES._permute(&chunk, key: key))
-            XCTAssertThrowsError(try AES._inversePermute(&chunk, key: key))
+            XCTAssertThrowsError(try AES.permute(&chunk, key: key))
+            XCTAssertThrowsError(try AES.inversePermute(&chunk, key: key))
 
             // Slow-path
             var block = Block(wrapped: chunk)
-            XCTAssertThrowsError(try AES._permute(&block, key: key))
-            XCTAssertThrowsError(try AES._inversePermute(&block, key: key))
+            XCTAssertThrowsError(try AES.permute(&block, key: key))
+            XCTAssertThrowsError(try AES.inversePermute(&block, key: key))
         }
     }
 }
