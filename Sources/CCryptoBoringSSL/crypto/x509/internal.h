@@ -151,10 +151,10 @@ struct x509_st {
   // These contain copies of various extension values
   long ex_pathlen;
   long ex_pcpathlen;
-  unsigned long ex_flags;
-  unsigned long ex_kusage;
-  unsigned long ex_xkusage;
-  unsigned long ex_nscert;
+  uint32_t ex_flags;
+  uint32_t ex_kusage;
+  uint32_t ex_xkusage;
+  uint32_t ex_nscert;
   ASN1_OCTET_STRING *skid;
   AUTHORITY_KEYID *akid;
   X509_POLICY_CACHE *policy_cache;
@@ -369,7 +369,7 @@ struct x509_store_ctx_st {
   CRYPTO_EX_DATA ex_data;
 } /* X509_STORE_CTX */;
 
-ASN1_TYPE *ASN1_generate_v3(const char *str, X509V3_CTX *cnf);
+ASN1_TYPE *ASN1_generate_v3(const char *str, const X509V3_CTX *cnf);
 
 int X509_CERT_AUX_print(BIO *bp, X509_CERT_AUX *x, int indent);
 

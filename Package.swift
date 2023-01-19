@@ -20,7 +20,7 @@
 // Sources/CCryptoBoringSSL directory. The source repository is at
 // https://boringssl.googlesource.com/boringssl.
 //
-// BoringSSL Commit: 0faffc7a30eeb195248ea43056f4848e2a9b1c6d
+// BoringSSL Commit: 45b8d7bbd771cbf7e116db2ba1f1cc7af959497e
 
 import PackageDescription
 

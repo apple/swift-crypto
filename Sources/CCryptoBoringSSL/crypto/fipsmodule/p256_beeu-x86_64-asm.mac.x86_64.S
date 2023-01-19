@@ -9,7 +9,7 @@
 #endif
 #endif
 
-#if defined(__x86_64__) && !defined(OPENSSL_NO_ASM)
+#if defined(__x86_64__) && !defined(OPENSSL_NO_ASM) && defined(__APPLE__)
 #if defined(BORINGSSL_PREFIX)
 #include <CCryptoBoringSSL_boringssl_prefix_symbols_asm.h>
 #endif
@@ -327,6 +327,10 @@ L$beeu_finish:
 
 
 
+#endif
+#if defined(__ELF__)
+// See https://www.airs.com/blog/archives/518.
+.section .note.GNU-stack,"",%progbits
 #endif
 #endif  // defined(__x86_64__) && defined(__APPLE__)
 #if defined(__linux__) && defined(__ELF__)

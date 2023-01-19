@@ -89,14 +89,15 @@ typedef STACK_OF(CONF_VALUE) *(*X509V3_EXT_I2V)(const X509V3_EXT_METHOD *method,
                                                 void *ext,
                                                 STACK_OF(CONF_VALUE) *extlist);
 typedef void *(*X509V3_EXT_V2I)(const X509V3_EXT_METHOD *method,
-                                X509V3_CTX *ctx, STACK_OF(CONF_VALUE) *values);
+                                const X509V3_CTX *ctx,
+                                const STACK_OF(CONF_VALUE) *values);
 typedef char *(*X509V3_EXT_I2S)(const X509V3_EXT_METHOD *method, void *ext);
 typedef void *(*X509V3_EXT_S2I)(const X509V3_EXT_METHOD *method,
-                                X509V3_CTX *ctx, const char *str);
+                                const X509V3_CTX *ctx, const char *str);
 typedef int (*X509V3_EXT_I2R)(const X509V3_EXT_METHOD *method, void *ext,
                               BIO *out, int indent);
 typedef void *(*X509V3_EXT_R2I)(const X509V3_EXT_METHOD *method,
-                                X509V3_CTX *ctx, const char *str);
+                                const X509V3_CTX *ctx, const char *str);
 
 // V3 extension structure
 
@@ -124,26 +125,6 @@ struct v3_ext_method {
   X509V3_EXT_R2I r2i;
 
   void *usr_data;  // Any extension specific data
-};
-
-typedef struct X509V3_CONF_METHOD_st {
-  char *(*get_string)(void *db, const char *section, const char *value);
-  STACK_OF(CONF_VALUE) *(*get_section)(void *db, const char *section);
-  void (*free_string)(void *db, char *string);
-  void (*free_section)(void *db, STACK_OF(CONF_VALUE) *section);
-} X509V3_CONF_METHOD;
-
-// Context specific info
-struct v3_ext_ctx {
-#define CTX_TEST 0x1
-  int flags;
-  X509 *issuer_cert;
-  X509 *subject_cert;
-  X509_REQ *subject_req;
-  X509_CRL *crl;
-  const X509V3_CONF_METHOD *db_meth;
-  void *db;
-  // Maybe more here
 };
 
 DEFINE_STACK_OF(X509V3_EXT_METHOD)
@@ -356,13 +337,6 @@ struct ISSUING_DIST_POINT_st {
 // onlysomereasons present
 #define IDP_REASONS 0x40
 
-#define X509V3_conf_err(val)                                               \
-  ERR_add_error_data(6, "section:", (val)->section, ",name:", (val)->name, \
-                     ",value:", (val)->value);
-
-#define X509V3_set_ctx_test(ctx) \
-  X509V3_set_ctx(ctx, NULL, NULL, NULL, NULL, CTX_TEST)
-#define X509V3_set_ctx_nodb(ctx) (ctx)->db = NULL;
 
 
 // X509_PURPOSE stuff
@@ -490,9 +464,9 @@ DECLARE_ASN1_FUNCTIONS(GENERAL_NAMES)
 OPENSSL_EXPORT STACK_OF(CONF_VALUE) *i2v_GENERAL_NAMES(
     const X509V3_EXT_METHOD *method, GENERAL_NAMES *gen,
     STACK_OF(CONF_VALUE) *extlist);
-OPENSSL_EXPORT GENERAL_NAMES *v2i_GENERAL_NAMES(const X509V3_EXT_METHOD *method,
-                                                X509V3_CTX *ctx,
-                                                STACK_OF(CONF_VALUE) *nval);
+OPENSSL_EXPORT GENERAL_NAMES *v2i_GENERAL_NAMES(
+    const X509V3_EXT_METHOD *method, const X509V3_CTX *ctx,
+    const STACK_OF(CONF_VALUE) *nval);
 
 DECLARE_ASN1_FUNCTIONS_const(OTHERNAME)
 DECLARE_ASN1_FUNCTIONS_const(EDIPARTYNAME)
@@ -510,7 +484,7 @@ OPENSSL_EXPORT int GENERAL_NAME_get0_otherName(const GENERAL_NAME *gen,
 OPENSSL_EXPORT char *i2s_ASN1_OCTET_STRING(const X509V3_EXT_METHOD *method,
                                            const ASN1_OCTET_STRING *ia5);
 OPENSSL_EXPORT ASN1_OCTET_STRING *s2i_ASN1_OCTET_STRING(
-    const X509V3_EXT_METHOD *method, X509V3_CTX *ctx, const char *str);
+    const X509V3_EXT_METHOD *method, const X509V3_CTX *ctx, const char *str);
 
 DECLARE_ASN1_FUNCTIONS_const(EXTENDED_KEY_USAGE)
 OPENSSL_EXPORT int i2a_ACCESS_DESCRIPTION(BIO *bp, const ACCESS_DESCRIPTION *a);
@@ -561,85 +535,148 @@ DECLARE_ASN1_ITEM(POLICY_CONSTRAINTS)
 
 OPENSSL_EXPORT GENERAL_NAME *a2i_GENERAL_NAME(GENERAL_NAME *out,
                                               const X509V3_EXT_METHOD *method,
-                                              X509V3_CTX *ctx, int gen_type,
+                                              const X509V3_CTX *ctx, int gen_type,
                                               const char *value, int is_nc);
 
 OPENSSL_EXPORT GENERAL_NAME *v2i_GENERAL_NAME(const X509V3_EXT_METHOD *method,
-                                              X509V3_CTX *ctx, CONF_VALUE *cnf);
+                                              const X509V3_CTX *ctx,
+                                              const CONF_VALUE *cnf);
 OPENSSL_EXPORT GENERAL_NAME *v2i_GENERAL_NAME_ex(
-    GENERAL_NAME *out, const X509V3_EXT_METHOD *method, X509V3_CTX *ctx,
-    CONF_VALUE *cnf, int is_nc);
+    GENERAL_NAME *out, const X509V3_EXT_METHOD *method, const X509V3_CTX *ctx,
+    const CONF_VALUE *cnf, int is_nc);
 OPENSSL_EXPORT void X509V3_conf_free(CONF_VALUE *val);
 
-// X509V3_EXT_conf_nid contains the only exposed instance of an LHASH in our
-// public headers. The |conf| pointer must be NULL but cryptography.io wraps
-// this function so we cannot, yet, replace the type with a dummy struct.
-OPENSSL_EXPORT X509_EXTENSION *X509V3_EXT_conf_nid(LHASH_OF(CONF_VALUE) *conf,
-                                                   X509V3_CTX *ctx, int ext_nid,
-                                                   const char *value);
 
-OPENSSL_EXPORT X509_EXTENSION *X509V3_EXT_nconf_nid(CONF *conf, X509V3_CTX *ctx,
-                                                    int ext_nid,
-                                                    const char *value);
-OPENSSL_EXPORT X509_EXTENSION *X509V3_EXT_nconf(CONF *conf, X509V3_CTX *ctx,
+// Deprecated config-based extension creation.
+//
+// The following functions allow specifying X.509 extensions using OpenSSL's
+// config file syntax, from the OpenSSL command-line tool. They are retained,
+// for now, for compatibility with legacy software but may be removed in the
+// future. Construct the extensions using the typed C APIs instead.
+//
+// Callers should especially avoid these functions if passing in non-constant
+// values. They use ad-hoc, string-based formats which are prone to injection
+// vulnerabilities. For a CA, this means using them risks misissuance.
+//
+// These functions are not safe to use with untrusted inputs. The string formats
+// may implicitly reference context information and, in OpenSSL (though not
+// BoringSSL), one even allows reading arbitrary files. They additionally see
+// much less testing and review than most of the library and may have bugs
+// including memory leaks or crashes.
+
+// v3_ext_ctx, aka |X509V3_CTX|, contains additional context information for
+// constructing extensions. Some string formats reference additional values in
+// these objects. It must be initialized with both |X509V3_set_ctx| and
+// |X509V3_set_nconf| before use.
+struct v3_ext_ctx {
+  int flags;
+  const X509 *issuer_cert;
+  const X509 *subject_cert;
+  const X509_REQ *subject_req;
+  const X509_CRL *crl;
+  const CONF *db;
+};
+
+#define X509V3_CTX_TEST 0x1
+
+// X509V3_set_ctx partially initializes |ctx| with the specified objects. Some
+// string formats will reference fields in these objects. Each object may be
+// NULL to omit it, in which case those formats cannot be used. |flags| should
+// be zero, unless called via |X509V3_set_ctx_test|.
+//
+// |issuer|, |subject|, |req|, and |crl|, if non-NULL, must outlive |ctx|.
+//
+// WARNING: This function only partially initializes |ctx|. Unless otherwise
+// documented, callers must also call |X509V3_set_nconf| or
+// |X509V3_set_ctx_nodb|.
+OPENSSL_EXPORT void X509V3_set_ctx(X509V3_CTX *ctx, const X509 *issuer,
+                                   const X509 *subject, const X509_REQ *req,
+                                   const X509_CRL *crl, int flags);
+
+// X509V3_set_ctx_test calls |X509V3_set_ctx| without any reference objects and
+// mocks out some features that use them. The resulting extensions may be
+// incomplete and should be discarded. This can be used to partially validate
+// syntax.
+//
+// WARNING: This function only partially initializes |ctx|. Unless otherwise
+// documented, callers must also call |X509V3_set_nconf| or
+// |X509V3_set_ctx_nodb|.
+//
+// TODO(davidben): Can we remove this?
+#define X509V3_set_ctx_test(ctx) \
+  X509V3_set_ctx(ctx, NULL, NULL, NULL, NULL, X509V3_CTX_TEST)
+
+// X509V3_set_nconf partially initializes |ctx| with |conf| as the config
+// database. Some string formats will reference sections in |conf|. |conf| may
+// be NULL, in which case these formats cannot be used. If non-NULL, |conf| must
+// outlive |ctx|.
+//
+// WARNING: This function only partially initializes |ctx|. Callers must also
+// call |X509V3_set_ctx| or |X509V3_set_ctx_test|.
+OPENSSL_EXPORT void X509V3_set_nconf(X509V3_CTX *ctx, const CONF *conf);
+
+// X509V3_set_ctx_nodb calls |X509V3_set_nconf| with no config database.
+#define X509V3_set_ctx_nodb(ctx) X509V3_set_nconf(ctx, NULL)
+
+// X509V3_EXT_nconf constructs an extension of type specified by |name|, and
+// value specified by |value|. It returns a newly-allocated |X509_EXTENSION|
+// object on success, or NULL on error. |conf| and |ctx| specify additional
+// information referenced by some formats. Either |conf| or |ctx| may be NULL,
+// in which case features which use it will be disabled.
+//
+// If non-NULL, |ctx| must be initialized with |X509V3_set_ctx| or
+// |X509V3_set_ctx_test|. This function implicitly calls |X509V3_set_nconf| with
+// |conf|, so it is safe to only call |X509V3_set_ctx|.
+OPENSSL_EXPORT X509_EXTENSION *X509V3_EXT_nconf(const CONF *conf,
+                                                const X509V3_CTX *ctx,
                                                 const char *name,
                                                 const char *value);
-OPENSSL_EXPORT int X509V3_EXT_add_nconf_sk(CONF *conf, X509V3_CTX *ctx,
+
+// X509V3_EXT_nconf_nid behaves like |X509V3_EXT_nconf|, except the extension
+// type is specified as a NID.
+OPENSSL_EXPORT X509_EXTENSION *X509V3_EXT_nconf_nid(const CONF *conf,
+                                                    const X509V3_CTX *ctx,
+                                                    int ext_nid,
+                                                    const char *value);
+
+// X509V3_EXT_conf_nid calls |X509V3_EXT_nconf_nid|. |conf| must be NULL.
+//
+// TODO(davidben): This is the only exposed instance of an LHASH in our public
+// headers. cryptography.io wraps this function so we cannot, yet, replace the
+// type with a dummy struct.
+OPENSSL_EXPORT X509_EXTENSION *X509V3_EXT_conf_nid(LHASH_OF(CONF_VALUE) *conf,
+                                                   const X509V3_CTX *ctx,
+                                                   int ext_nid,
+                                                   const char *value);
+
+// X509V3_EXT_add_nconf_sk looks up the section named |section| in |conf|. For
+// each |CONF_VALUE| in the section, it constructs an extension as in
+// |X509V3_EXT_nconf|, taking |name| and |value| from the |CONF_VALUE|. Each new
+// extension is appended to |*sk|. If |*sk| is non-NULL, and at least one
+// extension is added, it sets |*sk| to a newly-allocated
+// |STACK_OF(X509_EXTENSION)|. It returns one on success and zero on error.
+OPENSSL_EXPORT int X509V3_EXT_add_nconf_sk(const CONF *conf,
+                                           const X509V3_CTX *ctx,
                                            const char *section,
                                            STACK_OF(X509_EXTENSION) **sk);
-OPENSSL_EXPORT int X509V3_EXT_add_nconf(CONF *conf, X509V3_CTX *ctx,
+
+// X509V3_EXT_add_nconf adds extensions to |cert| as in
+// |X509V3_EXT_add_nconf_sk|. It returns one on success and zero on error.
+OPENSSL_EXPORT int X509V3_EXT_add_nconf(const CONF *conf, const X509V3_CTX *ctx,
                                         const char *section, X509 *cert);
-OPENSSL_EXPORT int X509V3_EXT_REQ_add_nconf(CONF *conf, X509V3_CTX *ctx,
+
+// X509V3_EXT_REQ_add_nconf adds extensions to |req| as in
+// |X509V3_EXT_add_nconf_sk|. It returns one on success and zero on error.
+OPENSSL_EXPORT int X509V3_EXT_REQ_add_nconf(const CONF *conf,
+                                            const X509V3_CTX *ctx,
                                             const char *section, X509_REQ *req);
-OPENSSL_EXPORT int X509V3_EXT_CRL_add_nconf(CONF *conf, X509V3_CTX *ctx,
+
+// X509V3_EXT_CRL_add_nconf adds extensions to |crl| as in
+// |X509V3_EXT_add_nconf_sk|. It returns one on success and zero on error.
+OPENSSL_EXPORT int X509V3_EXT_CRL_add_nconf(const CONF *conf,
+                                            const X509V3_CTX *ctx,
                                             const char *section, X509_CRL *crl);
 
-OPENSSL_EXPORT int X509V3_add_value_bool_nf(const char *name, int asn1_bool,
-                                            STACK_OF(CONF_VALUE) **extlist);
-OPENSSL_EXPORT int X509V3_get_value_bool(const CONF_VALUE *value,
-                                         int *asn1_bool);
-OPENSSL_EXPORT int X509V3_get_value_int(const CONF_VALUE *value,
-                                        ASN1_INTEGER **aint);
-OPENSSL_EXPORT void X509V3_set_nconf(X509V3_CTX *ctx, CONF *conf);
-
-OPENSSL_EXPORT char *X509V3_get_string(X509V3_CTX *ctx, const char *name,
-                                       const char *section);
-OPENSSL_EXPORT STACK_OF(CONF_VALUE) *X509V3_get_section(X509V3_CTX *ctx,
-                                                        const char *section);
-OPENSSL_EXPORT void X509V3_string_free(X509V3_CTX *ctx, char *str);
-OPENSSL_EXPORT void X509V3_section_free(X509V3_CTX *ctx,
-                                        STACK_OF(CONF_VALUE) *section);
-OPENSSL_EXPORT void X509V3_set_ctx(X509V3_CTX *ctx, X509 *issuer, X509 *subject,
-                                   X509_REQ *req, X509_CRL *crl, int flags);
-
-// X509V3_add_value appends a |CONF_VALUE| containing |name| and |value| to
-// |*extlist|. It returns one on success and zero on error. If |*extlist| is
-// NULL, it sets |*extlist| to a newly-allocated |STACK_OF(CONF_VALUE)|
-// containing the result. Either |name| or |value| may be NULL to omit the
-// field.
-//
-// On failure, if |*extlist| was NULL, |*extlist| will remain NULL when the
-// function returns.
-OPENSSL_EXPORT int X509V3_add_value(const char *name, const char *value,
-                                    STACK_OF(CONF_VALUE) **extlist);
-
-// X509V3_add_value_uchar behaves like |X509V3_add_value| but takes an
-// |unsigned char| pointer.
-OPENSSL_EXPORT int X509V3_add_value_uchar(const char *name,
-                                          const unsigned char *value,
-                                          STACK_OF(CONF_VALUE) **extlist);
-
-// X509V3_add_value_bool behaves like |X509V3_add_value| but stores the value
-// "TRUE" if |asn1_bool| is non-zero and "FALSE" otherwise.
-OPENSSL_EXPORT int X509V3_add_value_bool(const char *name, int asn1_bool,
-                                         STACK_OF(CONF_VALUE) **extlist);
-
-// X509V3_add_value_bool behaves like |X509V3_add_value| but stores a string
-// representation of |aint|. Note this string representation may be decimal or
-// hexadecimal, depending on the size of |aint|.
-OPENSSL_EXPORT int X509V3_add_value_int(const char *name,
-                                        const ASN1_INTEGER *aint,
-                                        STACK_OF(CONF_VALUE) **extlist);
 
 OPENSSL_EXPORT char *i2s_ASN1_INTEGER(const X509V3_EXT_METHOD *meth,
                                       const ASN1_INTEGER *aint);
@@ -656,7 +693,6 @@ OPENSSL_EXPORT const X509V3_EXT_METHOD *X509V3_EXT_get(
     const X509_EXTENSION *ext);
 OPENSSL_EXPORT const X509V3_EXT_METHOD *X509V3_EXT_get_nid(int nid);
 OPENSSL_EXPORT int X509V3_add_standard_extensions(void);
-OPENSSL_EXPORT STACK_OF(CONF_VALUE) *X509V3_parse_list(const char *line);
 
 // X509V3_EXT_d2i decodes |ext| and returns a pointer to a newly-allocated
 // structure, with type dependent on the type of the extension. It returns NULL
@@ -903,9 +939,6 @@ OPENSSL_EXPORT int X509_check_ip_asc(X509 *x, const char *ipasc,
 
 OPENSSL_EXPORT ASN1_OCTET_STRING *a2i_IPADDRESS(const char *ipasc);
 OPENSSL_EXPORT ASN1_OCTET_STRING *a2i_IPADDRESS_NC(const char *ipasc);
-OPENSSL_EXPORT int X509V3_NAME_from_section(X509_NAME *nm,
-                                            STACK_OF(CONF_VALUE) *dn_sk,
-                                            unsigned long chtype);
 
 // BEGIN ERROR CODES
 // The following lines are auto generated by the script mkerr.pl. Any changes

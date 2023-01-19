@@ -1,3359 +1,3367 @@
 #define BORINGSSL_PREFIX CCryptoBoringSSL
 #if defined(__i386__) && defined(_WIN32)
-// This file is generated from a similarly-named Perl script in the BoringSSL
-// source tree. Do not edit by hand.
+; This file is generated from a similarly-named Perl script in the BoringSSL
+; source tree. Do not edit by hand.
 
-#if defined(__i386__)
-#if defined(BORINGSSL_PREFIX)
-#include <CCryptoBoringSSL_boringssl_prefix_symbols_asm.h>
-#endif
-.text
-.globl	_sha256_block_data_order
-.hidden	_sha256_block_data_order
-.def	_sha256_block_data_order;	.scl	2;	.type	32;	.endef
-.align	16
+%ifdef BORINGSSL_PREFIX
+%include "boringssl_prefix_symbols_nasm.inc"
+%endif
+%ifidn __OUTPUT_FORMAT__, win32
+%ifidn __OUTPUT_FORMAT__,obj
+section	code	use32 class=code align=64
+%elifidn __OUTPUT_FORMAT__,win32
+$@feat.00 equ 1
+section	.text	code align=64
+%else
+section	.text	code
+%endif
+;extern	_OPENSSL_ia32cap_P
+global	_sha256_block_data_order
+align	16
 _sha256_block_data_order:
-.L_sha256_block_data_order_begin:
-	pushl	%ebp
-	pushl	%ebx
-	pushl	%esi
-	pushl	%edi
-	movl	20(%esp),%esi
-	movl	24(%esp),%edi
-	movl	28(%esp),%eax
-	movl	%esp,%ebx
-	call	.L000pic_point
-.L000pic_point:
-	popl	%ebp
-	leal	.L001K256-.L000pic_point(%ebp),%ebp
-	subl	$16,%esp
-	andl	$-64,%esp
-	shll	$6,%eax
-	addl	%edi,%eax
-	movl	%esi,(%esp)
-	movl	%edi,4(%esp)
-	movl	%eax,8(%esp)
-	movl	%ebx,12(%esp)
-	jmp	.L002loop
-.align	16
-.L002loop:
-	movl	(%edi),%eax
-	movl	4(%edi),%ebx
-	movl	8(%edi),%ecx
-	bswap	%eax
-	movl	12(%edi),%edx
-	bswap	%ebx
-	pushl	%eax
-	bswap	%ecx
-	pushl	%ebx
-	bswap	%edx
-	pushl	%ecx
-	pushl	%edx
-	movl	16(%edi),%eax
-	movl	20(%edi),%ebx
-	movl	24(%edi),%ecx
-	bswap	%eax
-	movl	28(%edi),%edx
-	bswap	%ebx
-	pushl	%eax
-	bswap	%ecx
-	pushl	%ebx
-	bswap	%edx
-	pushl	%ecx
-	pushl	%edx
-	movl	32(%edi),%eax
-	movl	36(%edi),%ebx
-	movl	40(%edi),%ecx
-	bswap	%eax
-	movl	44(%edi),%edx
-	bswap	%ebx
-	pushl	%eax
-	bswap	%ecx
-	pushl	%ebx
-	bswap	%edx
-	pushl	%ecx
-	pushl	%edx
-	movl	48(%edi),%eax
-	movl	52(%edi),%ebx
-	movl	56(%edi),%ecx
-	bswap	%eax
-	movl	60(%edi),%edx
-	bswap	%ebx
-	pushl	%eax
-	bswap	%ecx
-	pushl	%ebx
-	bswap	%edx
-	pushl	%ecx
-	pushl	%edx
-	addl	$64,%edi
-	leal	-36(%esp),%esp
-	movl	%edi,104(%esp)
-	movl	(%esi),%eax
-	movl	4(%esi),%ebx
-	movl	8(%esi),%ecx
-	movl	12(%esi),%edi
-	movl	%ebx,8(%esp)
-	xorl	%ecx,%ebx
-	movl	%ecx,12(%esp)
-	movl	%edi,16(%esp)
-	movl	%ebx,(%esp)
-	movl	16(%esi),%edx
-	movl	20(%esi),%ebx
-	movl	24(%esi),%ecx
-	movl	28(%esi),%edi
-	movl	%ebx,24(%esp)
-	movl	%ecx,28(%esp)
-	movl	%edi,32(%esp)
-.align	16
-.L00300_15:
-	movl	%edx,%ecx
-	movl	24(%esp),%esi
-	rorl	$14,%ecx
-	movl	28(%esp),%edi
-	xorl	%edx,%ecx
-	xorl	%edi,%esi
-	movl	96(%esp),%ebx
-	rorl	$5,%ecx
-	andl	%edx,%esi
-	movl	%edx,20(%esp)
-	xorl	%ecx,%edx
-	addl	32(%esp),%ebx
-	xorl	%edi,%esi
-	rorl	$6,%edx
-	movl	%eax,%ecx
-	addl	%esi,%ebx
-	rorl	$9,%ecx
-	addl	%edx,%ebx
-	movl	8(%esp),%edi
-	xorl	%eax,%ecx
-	movl	%eax,4(%esp)
-	leal	-4(%esp),%esp
-	rorl	$11,%ecx
-	movl	(%ebp),%esi
-	xorl	%eax,%ecx
-	movl	20(%esp),%edx
-	xorl	%edi,%eax
-	rorl	$2,%ecx
-	addl	%esi,%ebx
-	movl	%eax,(%esp)
-	addl	%ebx,%edx
-	andl	4(%esp),%eax
-	addl	%ecx,%ebx
-	xorl	%edi,%eax
-	addl	$4,%ebp
-	addl	%ebx,%eax
-	cmpl	$3248222580,%esi
-	jne	.L00300_15
-	movl	156(%esp),%ecx
-	jmp	.L00416_63
-.align	16
-.L00416_63:
-	movl	%ecx,%ebx
-	movl	104(%esp),%esi
-	rorl	$11,%ecx
-	movl	%esi,%edi
-	rorl	$2,%esi
-	xorl	%ebx,%ecx
-	shrl	$3,%ebx
-	rorl	$7,%ecx
-	xorl	%edi,%esi
-	xorl	%ecx,%ebx
-	rorl	$17,%esi
-	addl	160(%esp),%ebx
-	shrl	$10,%edi
-	addl	124(%esp),%ebx
-	movl	%edx,%ecx
-	xorl	%esi,%edi
-	movl	24(%esp),%esi
-	rorl	$14,%ecx
-	addl	%edi,%ebx
-	movl	28(%esp),%edi
-	xorl	%edx,%ecx
-	xorl	%edi,%esi
-	movl	%ebx,96(%esp)
-	rorl	$5,%ecx
-	andl	%edx,%esi
-	movl	%edx,20(%esp)
-	xorl	%ecx,%edx
-	addl	32(%esp),%ebx
-	xorl	%edi,%esi
-	rorl	$6,%edx
-	movl	%eax,%ecx
-	addl	%esi,%ebx
-	rorl	$9,%ecx
-	addl	%edx,%ebx
-	movl	8(%esp),%edi
-	xorl	%eax,%ecx
-	movl	%eax,4(%esp)
-	leal	-4(%esp),%esp
-	rorl	$11,%ecx
-	movl	(%ebp),%esi
-	xorl	%eax,%ecx
-	movl	20(%esp),%edx
-	xorl	%edi,%eax
-	rorl	$2,%ecx
-	addl	%esi,%ebx
-	movl	%eax,(%esp)
-	addl	%ebx,%edx
-	andl	4(%esp),%eax
-	addl	%ecx,%ebx
-	xorl	%edi,%eax
-	movl	156(%esp),%ecx
-	addl	$4,%ebp
-	addl	%ebx,%eax
-	cmpl	$3329325298,%esi
-	jne	.L00416_63
-	movl	356(%esp),%esi
-	movl	8(%esp),%ebx
-	movl	16(%esp),%ecx
-	addl	(%esi),%eax
-	addl	4(%esi),%ebx
-	addl	8(%esi),%edi
-	addl	12(%esi),%ecx
-	movl	%eax,(%esi)
-	movl	%ebx,4(%esi)
-	movl	%edi,8(%esi)
-	movl	%ecx,12(%esi)
-	movl	24(%esp),%eax
-	movl	28(%esp),%ebx
-	movl	32(%esp),%ecx
-	movl	360(%esp),%edi
-	addl	16(%esi),%edx
-	addl	20(%esi),%eax
-	addl	24(%esi),%ebx
-	addl	28(%esi),%ecx
-	movl	%edx,16(%esi)
-	movl	%eax,20(%esi)
-	movl	%ebx,24(%esi)
-	movl	%ecx,28(%esi)
-	leal	356(%esp),%esp
-	subl	$256,%ebp
-	cmpl	8(%esp),%edi
-	jb	.L002loop
-	movl	12(%esp),%esp
-	popl	%edi
-	popl	%esi
-	popl	%ebx
-	popl	%ebp
+L$_sha256_block_data_order_begin:
+	push	ebp
+	push	ebx
+	push	esi
+	push	edi
+	mov	esi,DWORD [20+esp]
+	mov	edi,DWORD [24+esp]
+	mov	eax,DWORD [28+esp]
+	mov	ebx,esp
+	call	L$000pic_point
+L$000pic_point:
+	pop	ebp
+	lea	ebp,[(L$001K256-L$000pic_point)+ebp]
+	sub	esp,16
+	and	esp,-64
+	shl	eax,6
+	add	eax,edi
+	mov	DWORD [esp],esi
+	mov	DWORD [4+esp],edi
+	mov	DWORD [8+esp],eax
+	mov	DWORD [12+esp],ebx
+	jmp	NEAR L$002loop
+align	16
+L$002loop:
+	mov	eax,DWORD [edi]
+	mov	ebx,DWORD [4+edi]
+	mov	ecx,DWORD [8+edi]
+	bswap	eax
+	mov	edx,DWORD [12+edi]
+	bswap	ebx
+	push	eax
+	bswap	ecx
+	push	ebx
+	bswap	edx
+	push	ecx
+	push	edx
+	mov	eax,DWORD [16+edi]
+	mov	ebx,DWORD [20+edi]
+	mov	ecx,DWORD [24+edi]
+	bswap	eax
+	mov	edx,DWORD [28+edi]
+	bswap	ebx
+	push	eax
+	bswap	ecx
+	push	ebx
+	bswap	edx
+	push	ecx
+	push	edx
+	mov	eax,DWORD [32+edi]
+	mov	ebx,DWORD [36+edi]
+	mov	ecx,DWORD [40+edi]
+	bswap	eax
+	mov	edx,DWORD [44+edi]
+	bswap	ebx
+	push	eax
+	bswap	ecx
+	push	ebx
+	bswap	edx
+	push	ecx
+	push	edx
+	mov	eax,DWORD [48+edi]
+	mov	ebx,DWORD [52+edi]
+	mov	ecx,DWORD [56+edi]
+	bswap	eax
+	mov	edx,DWORD [60+edi]
+	bswap	ebx
+	push	eax
+	bswap	ecx
+	push	ebx
+	bswap	edx
+	push	ecx
+	push	edx
+	add	edi,64
+	lea	esp,[esp-36]
+	mov	DWORD [104+esp],edi
+	mov	eax,DWORD [esi]
+	mov	ebx,DWORD [4+esi]
+	mov	ecx,DWORD [8+esi]
+	mov	edi,DWORD [12+esi]
+	mov	DWORD [8+esp],ebx
+	xor	ebx,ecx
+	mov	DWORD [12+esp],ecx
+	mov	DWORD [16+esp],edi
+	mov	DWORD [esp],ebx
+	mov	edx,DWORD [16+esi]
+	mov	ebx,DWORD [20+esi]
+	mov	ecx,DWORD [24+esi]
+	mov	edi,DWORD [28+esi]
+	mov	DWORD [24+esp],ebx
+	mov	DWORD [28+esp],ecx
+	mov	DWORD [32+esp],edi
+align	16
+L$00300_15:
+	mov	ecx,edx
+	mov	esi,DWORD [24+esp]
+	ror	ecx,14
+	mov	edi,DWORD [28+esp]
+	xor	ecx,edx
+	xor	esi,edi
+	mov	ebx,DWORD [96+esp]
+	ror	ecx,5
+	and	esi,edx
+	mov	DWORD [20+esp],edx
+	xor	edx,ecx
+	add	ebx,DWORD [32+esp]
+	xor	esi,edi
+	ror	edx,6
+	mov	ecx,eax
+	add	ebx,esi
+	ror	ecx,9
+	add	ebx,edx
+	mov	edi,DWORD [8+esp]
+	xor	ecx,eax
+	mov	DWORD [4+esp],eax
+	lea	esp,[esp-4]
+	ror	ecx,11
+	mov	esi,DWORD [ebp]
+	xor	ecx,eax
+	mov	edx,DWORD [20+esp]
+	xor	eax,edi
+	ror	ecx,2
+	add	ebx,esi
+	mov	DWORD [esp],eax
+	add	edx,ebx
+	and	eax,DWORD [4+esp]
+	add	ebx,ecx
+	xor	eax,edi
+	add	ebp,4
+	add	eax,ebx
+	cmp	esi,3248222580
+	jne	NEAR L$00300_15
+	mov	ecx,DWORD [156+esp]
+	jmp	NEAR L$00416_63
+align	16
+L$00416_63:
+	mov	ebx,ecx
+	mov	esi,DWORD [104+esp]
+	ror	ecx,11
+	mov	edi,esi
+	ror	esi,2
+	xor	ecx,ebx
+	shr	ebx,3
+	ror	ecx,7
+	xor	esi,edi
+	xor	ebx,ecx
+	ror	esi,17
+	add	ebx,DWORD [160+esp]
+	shr	edi,10
+	add	ebx,DWORD [124+esp]
+	mov	ecx,edx
+	xor	edi,esi
+	mov	esi,DWORD [24+esp]
+	ror	ecx,14
+	add	ebx,edi
+	mov	edi,DWORD [28+esp]
+	xor	ecx,edx
+	xor	esi,edi
+	mov	DWORD [96+esp],ebx
+	ror	ecx,5
+	and	esi,edx
+	mov	DWORD [20+esp],edx
+	xor	edx,ecx
+	add	ebx,DWORD [32+esp]
+	xor	esi,edi
+	ror	edx,6
+	mov	ecx,eax
+	add	ebx,esi
+	ror	ecx,9
+	add	ebx,edx
+	mov	edi,DWORD [8+esp]
+	xor	ecx,eax
+	mov	DWORD [4+esp],eax
+	lea	esp,[esp-4]
+	ror	ecx,11
+	mov	esi,DWORD [ebp]
+	xor	ecx,eax
+	mov	edx,DWORD [20+esp]
+	xor	eax,edi
+	ror	ecx,2
+	add	ebx,esi
+	mov	DWORD [esp],eax
+	add	edx,ebx
+	and	eax,DWORD [4+esp]
+	add	ebx,ecx
+	xor	eax,edi
+	mov	ecx,DWORD [156+esp]
+	add	ebp,4
+	add	eax,ebx
+	cmp	esi,3329325298
+	jne	NEAR L$00416_63
+	mov	esi,DWORD [356+esp]
+	mov	ebx,DWORD [8+esp]
+	mov	ecx,DWORD [16+esp]
+	add	eax,DWORD [esi]
+	add	ebx,DWORD [4+esi]
+	add	edi,DWORD [8+esi]
+	add	ecx,DWORD [12+esi]
+	mov	DWORD [esi],eax
+	mov	DWORD [4+esi],ebx
+	mov	DWORD [8+esi],edi
+	mov	DWORD [12+esi],ecx
+	mov	eax,DWORD [24+esp]
+	mov	ebx,DWORD [28+esp]
+	mov	ecx,DWORD [32+esp]
+	mov	edi,DWORD [360+esp]
+	add	edx,DWORD [16+esi]
+	add	eax,DWORD [20+esi]
+	add	ebx,DWORD [24+esi]
+	add	ecx,DWORD [28+esi]
+	mov	DWORD [16+esi],edx
+	mov	DWORD [20+esi],eax
+	mov	DWORD [24+esi],ebx
+	mov	DWORD [28+esi],ecx
+	lea	esp,[356+esp]
+	sub	ebp,256
+	cmp	edi,DWORD [8+esp]
+	jb	NEAR L$002loop
+	mov	esp,DWORD [12+esp]
+	pop	edi
+	pop	esi
+	pop	ebx
+	pop	ebp
 	ret
-.align	32
-.L005loop_shrd:
-	movl	(%edi),%eax
-	movl	4(%edi),%ebx
-	movl	8(%edi),%ecx
-	bswap	%eax
-	movl	12(%edi),%edx
-	bswap	%ebx
-	pushl	%eax
-	bswap	%ecx
-	pushl	%ebx
-	bswap	%edx
-	pushl	%ecx
-	pushl	%edx
-	movl	16(%edi),%eax
-	movl	20(%edi),%ebx
-	movl	24(%edi),%ecx
-	bswap	%eax
-	movl	28(%edi),%edx
-	bswap	%ebx
-	pushl	%eax
-	bswap	%ecx
-	pushl	%ebx
-	bswap	%edx
-	pushl	%ecx
-	pushl	%edx
-	movl	32(%edi),%eax
-	movl	36(%edi),%ebx
-	movl	40(%edi),%ecx
-	bswap	%eax
-	movl	44(%edi),%edx
-	bswap	%ebx
-	pushl	%eax
-	bswap	%ecx
-	pushl	%ebx
-	bswap	%edx
-	pushl	%ecx
-	pushl	%edx
-	movl	48(%edi),%eax
-	movl	52(%edi),%ebx
-	movl	56(%edi),%ecx
-	bswap	%eax
-	movl	60(%edi),%edx
-	bswap	%ebx
-	pushl	%eax
-	bswap	%ecx
-	pushl	%ebx
-	bswap	%edx
-	pushl	%ecx
-	pushl	%edx
-	addl	$64,%edi
-	leal	-36(%esp),%esp
-	movl	%edi,104(%esp)
-	movl	(%esi),%eax
-	movl	4(%esi),%ebx
-	movl	8(%esi),%ecx
-	movl	12(%esi),%edi
-	movl	%ebx,8(%esp)
-	xorl	%ecx,%ebx
-	movl	%ecx,12(%esp)
-	movl	%edi,16(%esp)
-	movl	%ebx,(%esp)
-	movl	16(%esi),%edx
-	movl	20(%esi),%ebx
-	movl	24(%esi),%ecx
-	movl	28(%esi),%edi
-	movl	%ebx,24(%esp)
-	movl	%ecx,28(%esp)
-	movl	%edi,32(%esp)
-.align	16
-.L00600_15_shrd:
-	movl	%edx,%ecx
-	movl	24(%esp),%esi
-	shrdl	$14,%ecx,%ecx
-	movl	28(%esp),%edi
-	xorl	%edx,%ecx
-	xorl	%edi,%esi
-	movl	96(%esp),%ebx
-	shrdl	$5,%ecx,%ecx
-	andl	%edx,%esi
-	movl	%edx,20(%esp)
-	xorl	%ecx,%edx
-	addl	32(%esp),%ebx
-	xorl	%edi,%esi
-	shrdl	$6,%edx,%edx
-	movl	%eax,%ecx
-	addl	%esi,%ebx
-	shrdl	$9,%ecx,%ecx
-	addl	%edx,%ebx
-	movl	8(%esp),%edi
-	xorl	%eax,%ecx
-	movl	%eax,4(%esp)
-	leal	-4(%esp),%esp
-	shrdl	$11,%ecx,%ecx
-	movl	(%ebp),%esi
-	xorl	%eax,%ecx
-	movl	20(%esp),%edx
-	xorl	%edi,%eax
-	shrdl	$2,%ecx,%ecx
-	addl	%esi,%ebx
-	movl	%eax,(%esp)
-	addl	%ebx,%edx
-	andl	4(%esp),%eax
-	addl	%ecx,%ebx
-	xorl	%edi,%eax
-	addl	$4,%ebp
-	addl	%ebx,%eax
-	cmpl	$3248222580,%esi
-	jne	.L00600_15_shrd
-	movl	156(%esp),%ecx
-	jmp	.L00716_63_shrd
-.align	16
-.L00716_63_shrd:
-	movl	%ecx,%ebx
-	movl	104(%esp),%esi
-	shrdl	$11,%ecx,%ecx
-	movl	%esi,%edi
-	shrdl	$2,%esi,%esi
-	xorl	%ebx,%ecx
-	shrl	$3,%ebx
-	shrdl	$7,%ecx,%ecx
-	xorl	%edi,%esi
-	xorl	%ecx,%ebx
-	shrdl	$17,%esi,%esi
-	addl	160(%esp),%ebx
-	shrl	$10,%edi
-	addl	124(%esp),%ebx
-	movl	%edx,%ecx
-	xorl	%esi,%edi
-	movl	24(%esp),%esi
-	shrdl	$14,%ecx,%ecx
-	addl	%edi,%ebx
-	movl	28(%esp),%edi
-	xorl	%edx,%ecx
-	xorl	%edi,%esi
-	movl	%ebx,96(%esp)
-	shrdl	$5,%ecx,%ecx
-	andl	%edx,%esi
-	movl	%edx,20(%esp)
-	xorl	%ecx,%edx
-	addl	32(%esp),%ebx
-	xorl	%edi,%esi
-	shrdl	$6,%edx,%edx
-	movl	%eax,%ecx
-	addl	%esi,%ebx
-	shrdl	$9,%ecx,%ecx
-	addl	%edx,%ebx
-	movl	8(%esp),%edi
-	xorl	%eax,%ecx
-	movl	%eax,4(%esp)
-	leal	-4(%esp),%esp
-	shrdl	$11,%ecx,%ecx
-	movl	(%ebp),%esi
-	xorl	%eax,%ecx
-	movl	20(%esp),%edx
-	xorl	%edi,%eax
-	shrdl	$2,%ecx,%ecx
-	addl	%esi,%ebx
-	movl	%eax,(%esp)
-	addl	%ebx,%edx
-	andl	4(%esp),%eax
-	addl	%ecx,%ebx
-	xorl	%edi,%eax
-	movl	156(%esp),%ecx
-	addl	$4,%ebp
-	addl	%ebx,%eax
-	cmpl	$3329325298,%esi
-	jne	.L00716_63_shrd
-	movl	356(%esp),%esi
-	movl	8(%esp),%ebx
-	movl	16(%esp),%ecx
-	addl	(%esi),%eax
-	addl	4(%esi),%ebx
-	addl	8(%esi),%edi
-	addl	12(%esi),%ecx
-	movl	%eax,(%esi)
-	movl	%ebx,4(%esi)
-	movl	%edi,8(%esi)
-	movl	%ecx,12(%esi)
-	movl	24(%esp),%eax
-	movl	28(%esp),%ebx
-	movl	32(%esp),%ecx
-	movl	360(%esp),%edi
-	addl	16(%esi),%edx
-	addl	20(%esi),%eax
-	addl	24(%esi),%ebx
-	addl	28(%esi),%ecx
-	movl	%edx,16(%esi)
-	movl	%eax,20(%esi)
-	movl	%ebx,24(%esi)
-	movl	%ecx,28(%esi)
-	leal	356(%esp),%esp
-	subl	$256,%ebp
-	cmpl	8(%esp),%edi
-	jb	.L005loop_shrd
-	movl	12(%esp),%esp
-	popl	%edi
-	popl	%esi
-	popl	%ebx
-	popl	%ebp
+align	32
+L$005loop_shrd:
+	mov	eax,DWORD [edi]
+	mov	ebx,DWORD [4+edi]
+	mov	ecx,DWORD [8+edi]
+	bswap	eax
+	mov	edx,DWORD [12+edi]
+	bswap	ebx
+	push	eax
+	bswap	ecx
+	push	ebx
+	bswap	edx
+	push	ecx
+	push	edx
+	mov	eax,DWORD [16+edi]
+	mov	ebx,DWORD [20+edi]
+	mov	ecx,DWORD [24+edi]
+	bswap	eax
+	mov	edx,DWORD [28+edi]
+	bswap	ebx
+	push	eax
+	bswap	ecx
+	push	ebx
+	bswap	edx
+	push	ecx
+	push	edx
+	mov	eax,DWORD [32+edi]
+	mov	ebx,DWORD [36+edi]
+	mov	ecx,DWORD [40+edi]
+	bswap	eax
+	mov	edx,DWORD [44+edi]
+	bswap	ebx
+	push	eax
+	bswap	ecx
+	push	ebx
+	bswap	edx
+	push	ecx
+	push	edx
+	mov	eax,DWORD [48+edi]
+	mov	ebx,DWORD [52+edi]
+	mov	ecx,DWORD [56+edi]
+	bswap	eax
+	mov	edx,DWORD [60+edi]
+	bswap	ebx
+	push	eax
+	bswap	ecx
+	push	ebx
+	bswap	edx
+	push	ecx
+	push	edx
+	add	edi,64
+	lea	esp,[esp-36]
+	mov	DWORD [104+esp],edi
+	mov	eax,DWORD [esi]
+	mov	ebx,DWORD [4+esi]
+	mov	ecx,DWORD [8+esi]
+	mov	edi,DWORD [12+esi]
+	mov	DWORD [8+esp],ebx
+	xor	ebx,ecx
+	mov	DWORD [12+esp],ecx
+	mov	DWORD [16+esp],edi
+	mov	DWORD [esp],ebx
+	mov	edx,DWORD [16+esi]
+	mov	ebx,DWORD [20+esi]
+	mov	ecx,DWORD [24+esi]
+	mov	edi,DWORD [28+esi]
+	mov	DWORD [24+esp],ebx
+	mov	DWORD [28+esp],ecx
+	mov	DWORD [32+esp],edi
+align	16
+L$00600_15_shrd:
+	mov	ecx,edx
+	mov	esi,DWORD [24+esp]
+	shrd	ecx,ecx,14
+	mov	edi,DWORD [28+esp]
+	xor	ecx,edx
+	xor	esi,edi
+	mov	ebx,DWORD [96+esp]
+	shrd	ecx,ecx,5
+	and	esi,edx
+	mov	DWORD [20+esp],edx
+	xor	edx,ecx
+	add	ebx,DWORD [32+esp]
+	xor	esi,edi
+	shrd	edx,edx,6
+	mov	ecx,eax
+	add	ebx,esi
+	shrd	ecx,ecx,9
+	add	ebx,edx
+	mov	edi,DWORD [8+esp]
+	xor	ecx,eax
+	mov	DWORD [4+esp],eax
+	lea	esp,[esp-4]
+	shrd	ecx,ecx,11
+	mov	esi,DWORD [ebp]
+	xor	ecx,eax
+	mov	edx,DWORD [20+esp]
+	xor	eax,edi
+	shrd	ecx,ecx,2
+	add	ebx,esi
+	mov	DWORD [esp],eax
+	add	edx,ebx
+	and	eax,DWORD [4+esp]
+	add	ebx,ecx
+	xor	eax,edi
+	add	ebp,4
+	add	eax,ebx
+	cmp	esi,3248222580
+	jne	NEAR L$00600_15_shrd
+	mov	ecx,DWORD [156+esp]
+	jmp	NEAR L$00716_63_shrd
+align	16
+L$00716_63_shrd:
+	mov	ebx,ecx
+	mov	esi,DWORD [104+esp]
+	shrd	ecx,ecx,11
+	mov	edi,esi
+	shrd	esi,esi,2
+	xor	ecx,ebx
+	shr	ebx,3
+	shrd	ecx,ecx,7
+	xor	esi,edi
+	xor	ebx,ecx
+	shrd	esi,esi,17
+	add	ebx,DWORD [160+esp]
+	shr	edi,10
+	add	ebx,DWORD [124+esp]
+	mov	ecx,edx
+	xor	edi,esi
+	mov	esi,DWORD [24+esp]
+	shrd	ecx,ecx,14
+	add	ebx,edi
+	mov	edi,DWORD [28+esp]
+	xor	ecx,edx
+	xor	esi,edi
+	mov	DWORD [96+esp],ebx
+	shrd	ecx,ecx,5
+	and	esi,edx
+	mov	DWORD [20+esp],edx
+	xor	edx,ecx
+	add	ebx,DWORD [32+esp]
+	xor	esi,edi
+	shrd	edx,edx,6
+	mov	ecx,eax
+	add	ebx,esi
+	shrd	ecx,ecx,9
+	add	ebx,edx
+	mov	edi,DWORD [8+esp]
+	xor	ecx,eax
+	mov	DWORD [4+esp],eax
+	lea	esp,[esp-4]
+	shrd	ecx,ecx,11
+	mov	esi,DWORD [ebp]
+	xor	ecx,eax
+	mov	edx,DWORD [20+esp]
+	xor	eax,edi
+	shrd	ecx,ecx,2
+	add	ebx,esi
+	mov	DWORD [esp],eax
+	add	edx,ebx
+	and	eax,DWORD [4+esp]
+	add	ebx,ecx
+	xor	eax,edi
+	mov	ecx,DWORD [156+esp]
+	add	ebp,4
+	add	eax,ebx
+	cmp	esi,3329325298
+	jne	NEAR L$00716_63_shrd
+	mov	esi,DWORD [356+esp]
+	mov	ebx,DWORD [8+esp]
+	mov	ecx,DWORD [16+esp]
+	add	eax,DWORD [esi]
+	add	ebx,DWORD [4+esi]
+	add	edi,DWORD [8+esi]
+	add	ecx,DWORD [12+esi]
+	mov	DWORD [esi],eax
+	mov	DWORD [4+esi],ebx
+	mov	DWORD [8+esi],edi
+	mov	DWORD [12+esi],ecx
+	mov	eax,DWORD [24+esp]
+	mov	ebx,DWORD [28+esp]
+	mov	ecx,DWORD [32+esp]
+	mov	edi,DWORD [360+esp]
+	add	edx,DWORD [16+esi]
+	add	eax,DWORD [20+esi]
+	add	ebx,DWORD [24+esi]
+	add	ecx,DWORD [28+esi]
+	mov	DWORD [16+esi],edx
+	mov	DWORD [20+esi],eax
+	mov	DWORD [24+esi],ebx
+	mov	DWORD [28+esi],ecx
+	lea	esp,[356+esp]
+	sub	ebp,256
+	cmp	edi,DWORD [8+esp]
+	jb	NEAR L$005loop_shrd
+	mov	esp,DWORD [12+esp]
+	pop	edi
+	pop	esi
+	pop	ebx
+	pop	ebp
 	ret
-.align	64
-.L001K256:
-.long	1116352408,1899447441,3049323471,3921009573,961987163,1508970993,2453635748,2870763221,3624381080,310598401,607225278,1426881987,1925078388,2162078206,2614888103,3248222580,3835390401,4022224774,264347078,604807628,770255983,1249150122,1555081692,1996064986,2554220882,2821834349,2952996808,3210313671,3336571891,3584528711,113926993,338241895,666307205,773529912,1294757372,1396182291,1695183700,1986661051,2177026350,2456956037,2730485921,2820302411,3259730800,3345764771,3516065817,3600352804,4094571909,275423344,430227734,506948616,659060556,883997877,958139571,1322822218,1537002063,1747873779,1955562222,2024104815,2227730452,2361852424,2428436474,2756734187,3204031479,3329325298
-.long	66051,67438087,134810123,202182159
-.byte	83,72,65,50,53,54,32,98,108,111,99,107,32,116,114,97
-.byte	110,115,102,111,114,109,32,102,111,114,32,120,56,54,44,32
-.byte	67,82,89,80,84,79,71,65,77,83,32,98,121,32,60,97
-.byte	112,112,114,111,64,111,112,101,110,115,115,108,46,111,114,103
-.byte	62,0
-.align	16
-.L008unrolled:
-	leal	-96(%esp),%esp
-	movl	(%esi),%eax
-	movl	4(%esi),%ebp
-	movl	8(%esi),%ecx
-	movl	12(%esi),%ebx
-	movl	%ebp,4(%esp)
-	xorl	%ecx,%ebp
-	movl	%ecx,8(%esp)
-	movl	%ebx,12(%esp)
-	movl	16(%esi),%edx
-	movl	20(%esi),%ebx
-	movl	24(%esi),%ecx
-	movl	28(%esi),%esi
-	movl	%ebx,20(%esp)
-	movl	%ecx,24(%esp)
-	movl	%esi,28(%esp)
-	jmp	.L009grand_loop
-.align	16
-.L009grand_loop:
-	movl	(%edi),%ebx
-	movl	4(%edi),%ecx
-	bswap	%ebx
-	movl	8(%edi),%esi
-	bswap	%ecx
-	movl	%ebx,32(%esp)
-	bswap	%esi
-	movl	%ecx,36(%esp)
-	movl	%esi,40(%esp)
-	movl	12(%edi),%ebx
-	movl	16(%edi),%ecx
-	bswap	%ebx
-	movl	20(%edi),%esi
-	bswap	%ecx
-	movl	%ebx,44(%esp)
-	bswap	%esi
-	movl	%ecx,48(%esp)
-	movl	%esi,52(%esp)
-	movl	24(%edi),%ebx
-	movl	28(%edi),%ecx
-	bswap	%ebx
-	movl	32(%edi),%esi
-	bswap	%ecx
-	movl	%ebx,56(%esp)
-	bswap	%esi
-	movl	%ecx,60(%esp)
-	movl	%esi,64(%esp)
-	movl	36(%edi),%ebx
-	movl	40(%edi),%ecx
-	bswap	%ebx
-	movl	44(%edi),%esi
-	bswap	%ecx
-	movl	%ebx,68(%esp)
-	bswap	%esi
-	movl	%ecx,72(%esp)
-	movl	%esi,76(%esp)
-	movl	48(%edi),%ebx
-	movl	52(%edi),%ecx
-	bswap	%ebx
-	movl	56(%edi),%esi
-	bswap	%ecx
-	movl	%ebx,80(%esp)
-	bswap	%esi
-	movl	%ecx,84(%esp)
-	movl	%esi,88(%esp)
-	movl	60(%edi),%ebx
-	addl	$64,%edi
-	bswap	%ebx
-	movl	%edi,100(%esp)
-	movl	%ebx,92(%esp)
-	movl	%edx,%ecx
-	movl	20(%esp),%esi
-	rorl	$14,%edx
-	movl	24(%esp),%edi
-	xorl	%ecx,%edx
-	movl	32(%esp),%ebx
-	xorl	%edi,%esi
-	rorl	$5,%edx
-	andl	%ecx,%esi
-	movl	%ecx,16(%esp)
-	xorl	%ecx,%edx
-	addl	28(%esp),%ebx
-	xorl	%esi,%edi
-	rorl	$6,%edx
-	movl	%eax,%ecx
-	addl	%edi,%ebx
-	rorl	$9,%ecx
-	movl	%eax,%esi
-	movl	4(%esp),%edi
-	xorl	%eax,%ecx
-	movl	%eax,(%esp)
-	xorl	%edi,%eax
-	rorl	$11,%ecx
-	andl	%eax,%ebp
-	leal	1116352408(%ebx,%edx,1),%edx
-	xorl	%esi,%ecx
-	xorl	%edi,%ebp
-	rorl	$2,%ecx
-	addl	%edx,%ebp
-	addl	12(%esp),%edx
-	addl	%ecx,%ebp
-	movl	%edx,%esi
-	movl	16(%esp),%ecx
-	rorl	$14,%edx
-	movl	20(%esp),%edi
-	xorl	%esi,%edx
-	movl	36(%esp),%ebx
-	xorl	%edi,%ecx
-	rorl	$5,%edx
-	andl	%esi,%ecx
-	movl	%esi,12(%esp)
-	xorl	%esi,%edx
-	addl	24(%esp),%ebx
-	xorl	%ecx,%edi
-	rorl	$6,%edx
-	movl	%ebp,%esi
-	addl	%edi,%ebx
-	rorl	$9,%esi
-	movl	%ebp,%ecx
-	movl	(%esp),%edi
-	xorl	%ebp,%esi
-	movl	%ebp,28(%esp)
-	xorl	%edi,%ebp
-	rorl	$11,%esi
-	andl	%ebp,%eax
-	leal	1899447441(%ebx,%edx,1),%edx
-	xorl	%ecx,%esi
-	xorl	%edi,%eax
-	rorl	$2,%esi
-	addl	%edx,%eax
-	addl	8(%esp),%edx
-	addl	%esi,%eax
-	movl	%edx,%ecx
-	movl	12(%esp),%esi
-	rorl	$14,%edx
-	movl	16(%esp),%edi
-	xorl	%ecx,%edx
-	movl	40(%esp),%ebx
-	xorl	%edi,%esi
-	rorl	$5,%edx
-	andl	%ecx,%esi
-	movl	%ecx,8(%esp)
-	xorl	%ecx,%edx
-	addl	20(%esp),%ebx
-	xorl	%esi,%edi
-	rorl	$6,%edx
-	movl	%eax,%ecx
-	addl	%edi,%ebx
-	rorl	$9,%ecx
-	movl	%eax,%esi
-	movl	28(%esp),%edi
-	xorl	%eax,%ecx
-	movl	%eax,24(%esp)
-	xorl	%edi,%eax
-	rorl	$11,%ecx
-	andl	%eax,%ebp
-	leal	3049323471(%ebx,%edx,1),%edx
-	xorl	%esi,%ecx
-	xorl	%edi,%ebp
-	rorl	$2,%ecx
-	addl	%edx,%ebp
-	addl	4(%esp),%edx
-	addl	%ecx,%ebp
-	movl	%edx,%esi
-	movl	8(%esp),%ecx
-	rorl	$14,%edx
-	movl	12(%esp),%edi
-	xorl	%esi,%edx
-	movl	44(%esp),%ebx
-	xorl	%edi,%ecx
-	rorl	$5,%edx
-	andl	%esi,%ecx
-	movl	%esi,4(%esp)
-	xorl	%esi,%edx
-	addl	16(%esp),%ebx
-	xorl	%ecx,%edi
-	rorl	$6,%edx
-	movl	%ebp,%esi
-	addl	%edi,%ebx
-	rorl	$9,%esi
-	movl	%ebp,%ecx
-	movl	24(%esp),%edi
-	xorl	%ebp,%esi
-	movl	%ebp,20(%esp)
-	xorl	%edi,%ebp
-	rorl	$11,%esi
-	andl	%ebp,%eax
-	leal	3921009573(%ebx,%edx,1),%edx
-	xorl	%ecx,%esi
-	xorl	%edi,%eax
-	rorl	$2,%esi
-	addl	%edx,%eax
-	addl	(%esp),%edx
-	addl	%esi,%eax
-	movl	%edx,%ecx
-	movl	4(%esp),%esi
-	rorl	$14,%edx
-	movl	8(%esp),%edi
-	xorl	%ecx,%edx
-	movl	48(%esp),%ebx
-	xorl	%edi,%esi
-	rorl	$5,%edx
-	andl	%ecx,%esi
-	movl	%ecx,(%esp)
-	xorl	%ecx,%edx
-	addl	12(%esp),%ebx
-	xorl	%esi,%edi
-	rorl	$6,%edx
-	movl	%eax,%ecx
-	addl	%edi,%ebx
-	rorl	$9,%ecx
-	movl	%eax,%esi
-	movl	20(%esp),%edi
-	xorl	%eax,%ecx
-	movl	%eax,16(%esp)
-	xorl	%edi,%eax
-	rorl	$11,%ecx
-	andl	%eax,%ebp
-	leal	961987163(%ebx,%edx,1),%edx
-	xorl	%esi,%ecx
-	xorl	%edi,%ebp
-	rorl	$2,%ecx
-	addl	%edx,%ebp
-	addl	28(%esp),%edx
-	addl	%ecx,%ebp
-	movl	%edx,%esi
-	movl	(%esp),%ecx
-	rorl	$14,%edx
-	movl	4(%esp),%edi
-	xorl	%esi,%edx
-	movl	52(%esp),%ebx
-	xorl	%edi,%ecx
-	rorl	$5,%edx
-	andl	%esi,%ecx
-	movl	%esi,28(%esp)
-	xorl	%esi,%edx
-	addl	8(%esp),%ebx
-	xorl	%ecx,%edi
-	rorl	$6,%edx
-	movl	%ebp,%esi
-	addl	%edi,%ebx
-	rorl	$9,%esi
-	movl	%ebp,%ecx
-	movl	16(%esp),%edi
-	xorl	%ebp,%esi
-	movl	%ebp,12(%esp)
-	xorl	%edi,%ebp
-	rorl	$11,%esi
-	andl	%ebp,%eax
-	leal	1508970993(%ebx,%edx,1),%edx
-	xorl	%ecx,%esi
-	xorl	%edi,%eax
-	rorl	$2,%esi
-	addl	%edx,%eax
-	addl	24(%esp),%edx
-	addl	%esi,%eax
-	movl	%edx,%ecx
-	movl	28(%esp),%esi
-	rorl	$14,%edx
-	movl	(%esp),%edi
-	xorl	%ecx,%edx
-	movl	56(%esp),%ebx
-	xorl	%edi,%esi
-	rorl	$5,%edx
-	andl	%ecx,%esi
-	movl	%ecx,24(%esp)
-	xorl	%ecx,%edx
-	addl	4(%esp),%ebx
-	xorl	%esi,%edi
-	rorl	$6,%edx
-	movl	%eax,%ecx
-	addl	%edi,%ebx
-	rorl	$9,%ecx
-	movl	%eax,%esi
-	movl	12(%esp),%edi
-	xorl	%eax,%ecx
-	movl	%eax,8(%esp)
-	xorl	%edi,%eax
-	rorl	$11,%ecx
-	andl	%eax,%ebp
-	leal	2453635748(%ebx,%edx,1),%edx
-	xorl	%esi,%ecx
-	xorl	%edi,%ebp
-	rorl	$2,%ecx
-	addl	%edx,%ebp
-	addl	20(%esp),%edx
-	addl	%ecx,%ebp
-	movl	%edx,%esi
-	movl	24(%esp),%ecx
-	rorl	$14,%edx
-	movl	28(%esp),%edi
-	xorl	%esi,%edx
-	movl	60(%esp),%ebx
-	xorl	%edi,%ecx
-	rorl	$5,%edx
-	andl	%esi,%ecx
-	movl	%esi,20(%esp)
-	xorl	%esi,%edx
-	addl	(%esp),%ebx
-	xorl	%ecx,%edi
-	rorl	$6,%edx
-	movl	%ebp,%esi
-	addl	%edi,%ebx
-	rorl	$9,%esi
-	movl	%ebp,%ecx
-	movl	8(%esp),%edi
-	xorl	%ebp,%esi
-	movl	%ebp,4(%esp)
-	xorl	%edi,%ebp
-	rorl	$11,%esi
-	andl	%ebp,%eax
-	leal	2870763221(%ebx,%edx,1),%edx
-	xorl	%ecx,%esi
-	xorl	%edi,%eax
-	rorl	$2,%esi
-	addl	%edx,%eax
-	addl	16(%esp),%edx
-	addl	%esi,%eax
-	movl	%edx,%ecx
-	movl	20(%esp),%esi
-	rorl	$14,%edx
-	movl	24(%esp),%edi
-	xorl	%ecx,%edx
-	movl	64(%esp),%ebx
-	xorl	%edi,%esi
-	rorl	$5,%edx
-	andl	%ecx,%esi
-	movl	%ecx,16(%esp)
-	xorl	%ecx,%edx
-	addl	28(%esp),%ebx
-	xorl	%esi,%edi
-	rorl	$6,%edx
-	movl	%eax,%ecx
-	addl	%edi,%ebx
-	rorl	$9,%ecx
-	movl	%eax,%esi
-	movl	4(%esp),%edi
-	xorl	%eax,%ecx
-	movl	%eax,(%esp)
-	xorl	%edi,%eax
-	rorl	$11,%ecx
-	andl	%eax,%ebp
-	leal	3624381080(%ebx,%edx,1),%edx
-	xorl	%esi,%ecx
-	xorl	%edi,%ebp
-	rorl	$2,%ecx
-	addl	%edx,%ebp
-	addl	12(%esp),%edx
-	addl	%ecx,%ebp
-	movl	%edx,%esi
-	movl	16(%esp),%ecx
-	rorl	$14,%edx
-	movl	20(%esp),%edi
-	xorl	%esi,%edx
-	movl	68(%esp),%ebx
-	xorl	%edi,%ecx
-	rorl	$5,%edx
-	andl	%esi,%ecx
-	movl	%esi,12(%esp)
-	xorl	%esi,%edx
-	addl	24(%esp),%ebx
-	xorl	%ecx,%edi
-	rorl	$6,%edx
-	movl	%ebp,%esi
-	addl	%edi,%ebx
-	rorl	$9,%esi
-	movl	%ebp,%ecx
-	movl	(%esp),%edi
-	xorl	%ebp,%esi
-	movl	%ebp,28(%esp)
-	xorl	%edi,%ebp
-	rorl	$11,%esi
-	andl	%ebp,%eax
-	leal	310598401(%ebx,%edx,1),%edx
-	xorl	%ecx,%esi
-	xorl	%edi,%eax
-	rorl	$2,%esi
-	addl	%edx,%eax
-	addl	8(%esp),%edx
-	addl	%esi,%eax
-	movl	%edx,%ecx
-	movl	12(%esp),%esi
-	rorl	$14,%edx
-	movl	16(%esp),%edi
-	xorl	%ecx,%edx
-	movl	72(%esp),%ebx
-	xorl	%edi,%esi
-	rorl	$5,%edx
-	andl	%ecx,%esi
-	movl	%ecx,8(%esp)
-	xorl	%ecx,%edx
-	addl	20(%esp),%ebx
-	xorl	%esi,%edi
-	rorl	$6,%edx
-	movl	%eax,%ecx
-	addl	%edi,%ebx
-	rorl	$9,%ecx
-	movl	%eax,%esi
-	movl	28(%esp),%edi
-	xorl	%eax,%ecx
-	movl	%eax,24(%esp)
-	xorl	%edi,%eax
-	rorl	$11,%ecx
-	andl	%eax,%ebp
-	leal	607225278(%ebx,%edx,1),%edx
-	xorl	%esi,%ecx
-	xorl	%edi,%ebp
-	rorl	$2,%ecx
-	addl	%edx,%ebp
-	addl	4(%esp),%edx
-	addl	%ecx,%ebp
-	movl	%edx,%esi
-	movl	8(%esp),%ecx
-	rorl	$14,%edx
-	movl	12(%esp),%edi
-	xorl	%esi,%edx
-	movl	76(%esp),%ebx
-	xorl	%edi,%ecx
-	rorl	$5,%edx
-	andl	%esi,%ecx
-	movl	%esi,4(%esp)
-	xorl	%esi,%edx
-	addl	16(%esp),%ebx
-	xorl	%ecx,%edi
-	rorl	$6,%edx
-	movl	%ebp,%esi
-	addl	%edi,%ebx
-	rorl	$9,%esi
-	movl	%ebp,%ecx
-	movl	24(%esp),%edi
-	xorl	%ebp,%esi
-	movl	%ebp,20(%esp)
-	xorl	%edi,%ebp
-	rorl	$11,%esi
-	andl	%ebp,%eax
-	leal	1426881987(%ebx,%edx,1),%edx
-	xorl	%ecx,%esi
-	xorl	%edi,%eax
-	rorl	$2,%esi
-	addl	%edx,%eax
-	addl	(%esp),%edx
-	addl	%esi,%eax
-	movl	%edx,%ecx
-	movl	4(%esp),%esi
-	rorl	$14,%edx
-	movl	8(%esp),%edi
-	xorl	%ecx,%edx
-	movl	80(%esp),%ebx
-	xorl	%edi,%esi
-	rorl	$5,%edx
-	andl	%ecx,%esi
-	movl	%ecx,(%esp)
-	xorl	%ecx,%edx
-	addl	12(%esp),%ebx
-	xorl	%esi,%edi
-	rorl	$6,%edx
-	movl	%eax,%ecx
-	addl	%edi,%ebx
-	rorl	$9,%ecx
-	movl	%eax,%esi
-	movl	20(%esp),%edi
-	xorl	%eax,%ecx
-	movl	%eax,16(%esp)
-	xorl	%edi,%eax
-	rorl	$11,%ecx
-	andl	%eax,%ebp
-	leal	1925078388(%ebx,%edx,1),%edx
-	xorl	%esi,%ecx
-	xorl	%edi,%ebp
-	rorl	$2,%ecx
-	addl	%edx,%ebp
-	addl	28(%esp),%edx
-	addl	%ecx,%ebp
-	movl	%edx,%esi
-	movl	(%esp),%ecx
-	rorl	$14,%edx
-	movl	4(%esp),%edi
-	xorl	%esi,%edx
-	movl	84(%esp),%ebx
-	xorl	%edi,%ecx
-	rorl	$5,%edx
-	andl	%esi,%ecx
-	movl	%esi,28(%esp)
-	xorl	%esi,%edx
-	addl	8(%esp),%ebx
-	xorl	%ecx,%edi
-	rorl	$6,%edx
-	movl	%ebp,%esi
-	addl	%edi,%ebx
-	rorl	$9,%esi
-	movl	%ebp,%ecx
-	movl	16(%esp),%edi
-	xorl	%ebp,%esi
-	movl	%ebp,12(%esp)
-	xorl	%edi,%ebp
-	rorl	$11,%esi
-	andl	%ebp,%eax
-	leal	2162078206(%ebx,%edx,1),%edx
-	xorl	%ecx,%esi
-	xorl	%edi,%eax
-	rorl	$2,%esi
-	addl	%edx,%eax
-	addl	24(%esp),%edx
-	addl	%esi,%eax
-	movl	%edx,%ecx
-	movl	28(%esp),%esi
-	rorl	$14,%edx
-	movl	(%esp),%edi
-	xorl	%ecx,%edx
-	movl	88(%esp),%ebx
-	xorl	%edi,%esi
-	rorl	$5,%edx
-	andl	%ecx,%esi
-	movl	%ecx,24(%esp)
-	xorl	%ecx,%edx
-	addl	4(%esp),%ebx
-	xorl	%esi,%edi
-	rorl	$6,%edx
-	movl	%eax,%ecx
-	addl	%edi,%ebx
-	rorl	$9,%ecx
-	movl	%eax,%esi
-	movl	12(%esp),%edi
-	xorl	%eax,%ecx
-	movl	%eax,8(%esp)
-	xorl	%edi,%eax
-	rorl	$11,%ecx
-	andl	%eax,%ebp
-	leal	2614888103(%ebx,%edx,1),%edx
-	xorl	%esi,%ecx
-	xorl	%edi,%ebp
-	rorl	$2,%ecx
-	addl	%edx,%ebp
-	addl	20(%esp),%edx
-	addl	%ecx,%ebp
-	movl	%edx,%esi
-	movl	24(%esp),%ecx
-	rorl	$14,%edx
-	movl	28(%esp),%edi
-	xorl	%esi,%edx
-	movl	92(%esp),%ebx
-	xorl	%edi,%ecx
-	rorl	$5,%edx
-	andl	%esi,%ecx
-	movl	%esi,20(%esp)
-	xorl	%esi,%edx
-	addl	(%esp),%ebx
-	xorl	%ecx,%edi
-	rorl	$6,%edx
-	movl	%ebp,%esi
-	addl	%edi,%ebx
-	rorl	$9,%esi
-	movl	%ebp,%ecx
-	movl	8(%esp),%edi
-	xorl	%ebp,%esi
-	movl	%ebp,4(%esp)
-	xorl	%edi,%ebp
-	rorl	$11,%esi
-	andl	%ebp,%eax
-	leal	3248222580(%ebx,%edx,1),%edx
-	xorl	%ecx,%esi
-	xorl	%edi,%eax
-	movl	36(%esp),%ecx
-	rorl	$2,%esi
-	addl	%edx,%eax
-	addl	16(%esp),%edx
-	addl	%esi,%eax
-	movl	88(%esp),%esi
-	movl	%ecx,%ebx
-	rorl	$11,%ecx
-	movl	%esi,%edi
-	rorl	$2,%esi
-	xorl	%ebx,%ecx
-	shrl	$3,%ebx
-	rorl	$7,%ecx
-	xorl	%edi,%esi
-	xorl	%ecx,%ebx
-	rorl	$17,%esi
-	addl	32(%esp),%ebx
-	shrl	$10,%edi
-	addl	68(%esp),%ebx
-	movl	%edx,%ecx
-	xorl	%esi,%edi
-	movl	20(%esp),%esi
-	rorl	$14,%edx
-	addl	%edi,%ebx
-	movl	24(%esp),%edi
-	xorl	%ecx,%edx
-	movl	%ebx,32(%esp)
-	xorl	%edi,%esi
-	rorl	$5,%edx
-	andl	%ecx,%esi
-	movl	%ecx,16(%esp)
-	xorl	%ecx,%edx
-	addl	28(%esp),%ebx
-	xorl	%esi,%edi
-	rorl	$6,%edx
-	movl	%eax,%ecx
-	addl	%edi,%ebx
-	rorl	$9,%ecx
-	movl	%eax,%esi
-	movl	4(%esp),%edi
-	xorl	%eax,%ecx
-	movl	%eax,(%esp)
-	xorl	%edi,%eax
-	rorl	$11,%ecx
-	andl	%eax,%ebp
-	leal	3835390401(%ebx,%edx,1),%edx
-	xorl	%esi,%ecx
-	xorl	%edi,%ebp
-	movl	40(%esp),%esi
-	rorl	$2,%ecx
-	addl	%edx,%ebp
-	addl	12(%esp),%edx
-	addl	%ecx,%ebp
-	movl	92(%esp),%ecx
-	movl	%esi,%ebx
-	rorl	$11,%esi
-	movl	%ecx,%edi
-	rorl	$2,%ecx
-	xorl	%ebx,%esi
-	shrl	$3,%ebx
-	rorl	$7,%esi
-	xorl	%edi,%ecx
-	xorl	%esi,%ebx
-	rorl	$17,%ecx
-	addl	36(%esp),%ebx
-	shrl	$10,%edi
-	addl	72(%esp),%ebx
-	movl	%edx,%esi
-	xorl	%ecx,%edi
-	movl	16(%esp),%ecx
-	rorl	$14,%edx
-	addl	%edi,%ebx
-	movl	20(%esp),%edi
-	xorl	%esi,%edx
-	movl	%ebx,36(%esp)
-	xorl	%edi,%ecx
-	rorl	$5,%edx
-	andl	%esi,%ecx
-	movl	%esi,12(%esp)
-	xorl	%esi,%edx
-	addl	24(%esp),%ebx
-	xorl	%ecx,%edi
-	rorl	$6,%edx
-	movl	%ebp,%esi
-	addl	%edi,%ebx
-	rorl	$9,%esi
-	movl	%ebp,%ecx
-	movl	(%esp),%edi
-	xorl	%ebp,%esi
-	movl	%ebp,28(%esp)
-	xorl	%edi,%ebp
-	rorl	$11,%esi
-	andl	%ebp,%eax
-	leal	4022224774(%ebx,%edx,1),%edx
-	xorl	%ecx,%esi
-	xorl	%edi,%eax
-	movl	44(%esp),%ecx
-	rorl	$2,%esi
-	addl	%edx,%eax
-	addl	8(%esp),%edx
-	addl	%esi,%eax
-	movl	32(%esp),%esi
-	movl	%ecx,%ebx
-	rorl	$11,%ecx
-	movl	%esi,%edi
-	rorl	$2,%esi
-	xorl	%ebx,%ecx
-	shrl	$3,%ebx
-	rorl	$7,%ecx
-	xorl	%edi,%esi
-	xorl	%ecx,%ebx
-	rorl	$17,%esi
-	addl	40(%esp),%ebx
-	shrl	$10,%edi
-	addl	76(%esp),%ebx
-	movl	%edx,%ecx
-	xorl	%esi,%edi
-	movl	12(%esp),%esi
-	rorl	$14,%edx
-	addl	%edi,%ebx
-	movl	16(%esp),%edi
-	xorl	%ecx,%edx
-	movl	%ebx,40(%esp)
-	xorl	%edi,%esi
-	rorl	$5,%edx
-	andl	%ecx,%esi
-	movl	%ecx,8(%esp)
-	xorl	%ecx,%edx
-	addl	20(%esp),%ebx
-	xorl	%esi,%edi
-	rorl	$6,%edx
-	movl	%eax,%ecx
-	addl	%edi,%ebx
-	rorl	$9,%ecx
-	movl	%eax,%esi
-	movl	28(%esp),%edi
-	xorl	%eax,%ecx
-	movl	%eax,24(%esp)
-	xorl	%edi,%eax
-	rorl	$11,%ecx
-	andl	%eax,%ebp
-	leal	264347078(%ebx,%edx,1),%edx
-	xorl	%esi,%ecx
-	xorl	%edi,%ebp
-	movl	48(%esp),%esi
-	rorl	$2,%ecx
-	addl	%edx,%ebp
-	addl	4(%esp),%edx
-	addl	%ecx,%ebp
-	movl	36(%esp),%ecx
-	movl	%esi,%ebx
-	rorl	$11,%esi
-	movl	%ecx,%edi
-	rorl	$2,%ecx
-	xorl	%ebx,%esi
-	shrl	$3,%ebx
-	rorl	$7,%esi
-	xorl	%edi,%ecx
-	xorl	%esi,%ebx
-	rorl	$17,%ecx
-	addl	44(%esp),%ebx
-	shrl	$10,%edi
-	addl	80(%esp),%ebx
-	movl	%edx,%esi
-	xorl	%ecx,%edi
-	movl	8(%esp),%ecx
-	rorl	$14,%edx
-	addl	%edi,%ebx
-	movl	12(%esp),%edi
-	xorl	%esi,%edx
-	movl	%ebx,44(%esp)
-	xorl	%edi,%ecx
-	rorl	$5,%edx
-	andl	%esi,%ecx
-	movl	%esi,4(%esp)
-	xorl	%esi,%edx
-	addl	16(%esp),%ebx
-	xorl	%ecx,%edi
-	rorl	$6,%edx
-	movl	%ebp,%esi
-	addl	%edi,%ebx
-	rorl	$9,%esi
-	movl	%ebp,%ecx
-	movl	24(%esp),%edi
-	xorl	%ebp,%esi
-	movl	%ebp,20(%esp)
-	xorl	%edi,%ebp
-	rorl	$11,%esi
-	andl	%ebp,%eax
-	leal	604807628(%ebx,%edx,1),%edx
-	xorl	%ecx,%esi
-	xorl	%edi,%eax
-	movl	52(%esp),%ecx
-	rorl	$2,%esi
-	addl	%edx,%eax
-	addl	(%esp),%edx
-	addl	%esi,%eax
-	movl	40(%esp),%esi
-	movl	%ecx,%ebx
-	rorl	$11,%ecx
-	movl	%esi,%edi
-	rorl	$2,%esi
-	xorl	%ebx,%ecx
-	shrl	$3,%ebx
-	rorl	$7,%ecx
-	xorl	%edi,%esi
-	xorl	%ecx,%ebx
-	rorl	$17,%esi
-	addl	48(%esp),%ebx
-	shrl	$10,%edi
-	addl	84(%esp),%ebx
-	movl	%edx,%ecx
-	xorl	%esi,%edi
-	movl	4(%esp),%esi
-	rorl	$14,%edx
-	addl	%edi,%ebx
-	movl	8(%esp),%edi
-	xorl	%ecx,%edx
-	movl	%ebx,48(%esp)
-	xorl	%edi,%esi
-	rorl	$5,%edx
-	andl	%ecx,%esi
-	movl	%ecx,(%esp)
-	xorl	%ecx,%edx
-	addl	12(%esp),%ebx
-	xorl	%esi,%edi
-	rorl	$6,%edx
-	movl	%eax,%ecx
-	addl	%edi,%ebx
-	rorl	$9,%ecx
-	movl	%eax,%esi
-	movl	20(%esp),%edi
-	xorl	%eax,%ecx
-	movl	%eax,16(%esp)
-	xorl	%edi,%eax
-	rorl	$11,%ecx
-	andl	%eax,%ebp
-	leal	770255983(%ebx,%edx,1),%edx
-	xorl	%esi,%ecx
-	xorl	%edi,%ebp
-	movl	56(%esp),%esi
-	rorl	$2,%ecx
-	addl	%edx,%ebp
-	addl	28(%esp),%edx
-	addl	%ecx,%ebp
-	movl	44(%esp),%ecx
-	movl	%esi,%ebx
-	rorl	$11,%esi
-	movl	%ecx,%edi
-	rorl	$2,%ecx
-	xorl	%ebx,%esi
-	shrl	$3,%ebx
-	rorl	$7,%esi
-	xorl	%edi,%ecx
-	xorl	%esi,%ebx
-	rorl	$17,%ecx
-	addl	52(%esp),%ebx
-	shrl	$10,%edi
-	addl	88(%esp),%ebx
-	movl	%edx,%esi
-	xorl	%ecx,%edi
-	movl	(%esp),%ecx
-	rorl	$14,%edx
-	addl	%edi,%ebx
-	movl	4(%esp),%edi
-	xorl	%esi,%edx
-	movl	%ebx,52(%esp)
-	xorl	%edi,%ecx
-	rorl	$5,%edx
-	andl	%esi,%ecx
-	movl	%esi,28(%esp)
-	xorl	%esi,%edx
-	addl	8(%esp),%ebx
-	xorl	%ecx,%edi
-	rorl	$6,%edx
-	movl	%ebp,%esi
-	addl	%edi,%ebx
-	rorl	$9,%esi
-	movl	%ebp,%ecx
-	movl	16(%esp),%edi
-	xorl	%ebp,%esi
-	movl	%ebp,12(%esp)
-	xorl	%edi,%ebp
-	rorl	$11,%esi
-	andl	%ebp,%eax
-	leal	1249150122(%ebx,%edx,1),%edx
-	xorl	%ecx,%esi
-	xorl	%edi,%eax
-	movl	60(%esp),%ecx
-	rorl	$2,%esi
-	addl	%edx,%eax
-	addl	24(%esp),%edx
-	addl	%esi,%eax
-	movl	48(%esp),%esi
-	movl	%ecx,%ebx
-	rorl	$11,%ecx
-	movl	%esi,%edi
-	rorl	$2,%esi
-	xorl	%ebx,%ecx
-	shrl	$3,%ebx
-	rorl	$7,%ecx
-	xorl	%edi,%esi
-	xorl	%ecx,%ebx
-	rorl	$17,%esi
-	addl	56(%esp),%ebx
-	shrl	$10,%edi
-	addl	92(%esp),%ebx
-	movl	%edx,%ecx
-	xorl	%esi,%edi
-	movl	28(%esp),%esi
-	rorl	$14,%edx
-	addl	%edi,%ebx
-	movl	(%esp),%edi
-	xorl	%ecx,%edx
-	movl	%ebx,56(%esp)
-	xorl	%edi,%esi
-	rorl	$5,%edx
-	andl	%ecx,%esi
-	movl	%ecx,24(%esp)
-	xorl	%ecx,%edx
-	addl	4(%esp),%ebx
-	xorl	%esi,%edi
-	rorl	$6,%edx
-	movl	%eax,%ecx
-	addl	%edi,%ebx
-	rorl	$9,%ecx
-	movl	%eax,%esi
-	movl	12(%esp),%edi
-	xorl	%eax,%ecx
-	movl	%eax,8(%esp)
-	xorl	%edi,%eax
-	rorl	$11,%ecx
-	andl	%eax,%ebp
-	leal	1555081692(%ebx,%edx,1),%edx
-	xorl	%esi,%ecx
-	xorl	%edi,%ebp
-	movl	64(%esp),%esi
-	rorl	$2,%ecx
-	addl	%edx,%ebp
-	addl	20(%esp),%edx
-	addl	%ecx,%ebp
-	movl	52(%esp),%ecx
-	movl	%esi,%ebx
-	rorl	$11,%esi
-	movl	%ecx,%edi
-	rorl	$2,%ecx
-	xorl	%ebx,%esi
-	shrl	$3,%ebx
-	rorl	$7,%esi
-	xorl	%edi,%ecx
-	xorl	%esi,%ebx
-	rorl	$17,%ecx
-	addl	60(%esp),%ebx
-	shrl	$10,%edi
-	addl	32(%esp),%ebx
-	movl	%edx,%esi
-	xorl	%ecx,%edi
-	movl	24(%esp),%ecx
-	rorl	$14,%edx
-	addl	%edi,%ebx
-	movl	28(%esp),%edi
-	xorl	%esi,%edx
-	movl	%ebx,60(%esp)
-	xorl	%edi,%ecx
-	rorl	$5,%edx
-	andl	%esi,%ecx
-	movl	%esi,20(%esp)
-	xorl	%esi,%edx
-	addl	(%esp),%ebx
-	xorl	%ecx,%edi
-	rorl	$6,%edx
-	movl	%ebp,%esi
-	addl	%edi,%ebx
-	rorl	$9,%esi
-	movl	%ebp,%ecx
-	movl	8(%esp),%edi
-	xorl	%ebp,%esi
-	movl	%ebp,4(%esp)
-	xorl	%edi,%ebp
-	rorl	$11,%esi
-	andl	%ebp,%eax
-	leal	1996064986(%ebx,%edx,1),%edx
-	xorl	%ecx,%esi
-	xorl	%edi,%eax
-	movl	68(%esp),%ecx
-	rorl	$2,%esi
-	addl	%edx,%eax
-	addl	16(%esp),%edx
-	addl	%esi,%eax
-	movl	56(%esp),%esi
-	movl	%ecx,%ebx
-	rorl	$11,%ecx
-	movl	%esi,%edi
-	rorl	$2,%esi
-	xorl	%ebx,%ecx
-	shrl	$3,%ebx
-	rorl	$7,%ecx
-	xorl	%edi,%esi
-	xorl	%ecx,%ebx
-	rorl	$17,%esi
-	addl	64(%esp),%ebx
-	shrl	$10,%edi
-	addl	36(%esp),%ebx
-	movl	%edx,%ecx
-	xorl	%esi,%edi
-	movl	20(%esp),%esi
-	rorl	$14,%edx
-	addl	%edi,%ebx
-	movl	24(%esp),%edi
-	xorl	%ecx,%edx
-	movl	%ebx,64(%esp)
-	xorl	%edi,%esi
-	rorl	$5,%edx
-	andl	%ecx,%esi
-	movl	%ecx,16(%esp)
-	xorl	%ecx,%edx
-	addl	28(%esp),%ebx
-	xorl	%esi,%edi
-	rorl	$6,%edx
-	movl	%eax,%ecx
-	addl	%edi,%ebx
-	rorl	$9,%ecx
-	movl	%eax,%esi
-	movl	4(%esp),%edi
-	xorl	%eax,%ecx
-	movl	%eax,(%esp)
-	xorl	%edi,%eax
-	rorl	$11,%ecx
-	andl	%eax,%ebp
-	leal	2554220882(%ebx,%edx,1),%edx
-	xorl	%esi,%ecx
-	xorl	%edi,%ebp
-	movl	72(%esp),%esi
-	rorl	$2,%ecx
-	addl	%edx,%ebp
-	addl	12(%esp),%edx
-	addl	%ecx,%ebp
-	movl	60(%esp),%ecx
-	movl	%esi,%ebx
-	rorl	$11,%esi
-	movl	%ecx,%edi
-	rorl	$2,%ecx
-	xorl	%ebx,%esi
-	shrl	$3,%ebx
-	rorl	$7,%esi
-	xorl	%edi,%ecx
-	xorl	%esi,%ebx
-	rorl	$17,%ecx
-	addl	68(%esp),%ebx
-	shrl	$10,%edi
-	addl	40(%esp),%ebx
-	movl	%edx,%esi
-	xorl	%ecx,%edi
-	movl	16(%esp),%ecx
-	rorl	$14,%edx
-	addl	%edi,%ebx
-	movl	20(%esp),%edi
-	xorl	%esi,%edx
-	movl	%ebx,68(%esp)
-	xorl	%edi,%ecx
-	rorl	$5,%edx
-	andl	%esi,%ecx
-	movl	%esi,12(%esp)
-	xorl	%esi,%edx
-	addl	24(%esp),%ebx
-	xorl	%ecx,%edi
-	rorl	$6,%edx
-	movl	%ebp,%esi
-	addl	%edi,%ebx
-	rorl	$9,%esi
-	movl	%ebp,%ecx
-	movl	(%esp),%edi
-	xorl	%ebp,%esi
-	movl	%ebp,28(%esp)
-	xorl	%edi,%ebp
-	rorl	$11,%esi
-	andl	%ebp,%eax
-	leal	2821834349(%ebx,%edx,1),%edx
-	xorl	%ecx,%esi
-	xorl	%edi,%eax
-	movl	76(%esp),%ecx
-	rorl	$2,%esi
-	addl	%edx,%eax
-	addl	8(%esp),%edx
-	addl	%esi,%eax
-	movl	64(%esp),%esi
-	movl	%ecx,%ebx
-	rorl	$11,%ecx
-	movl	%esi,%edi
-	rorl	$2,%esi
-	xorl	%ebx,%ecx
-	shrl	$3,%ebx
-	rorl	$7,%ecx
-	xorl	%edi,%esi
-	xorl	%ecx,%ebx
-	rorl	$17,%esi
-	addl	72(%esp),%ebx
-	shrl	$10,%edi
-	addl	44(%esp),%ebx
-	movl	%edx,%ecx
-	xorl	%esi,%edi
-	movl	12(%esp),%esi
-	rorl	$14,%edx
-	addl	%edi,%ebx
-	movl	16(%esp),%edi
-	xorl	%ecx,%edx
-	movl	%ebx,72(%esp)
-	xorl	%edi,%esi
-	rorl	$5,%edx
-	andl	%ecx,%esi
-	movl	%ecx,8(%esp)
-	xorl	%ecx,%edx
-	addl	20(%esp),%ebx
-	xorl	%esi,%edi
-	rorl	$6,%edx
-	movl	%eax,%ecx
-	addl	%edi,%ebx
-	rorl	$9,%ecx
-	movl	%eax,%esi
-	movl	28(%esp),%edi
-	xorl	%eax,%ecx
-	movl	%eax,24(%esp)
-	xorl	%edi,%eax
-	rorl	$11,%ecx
-	andl	%eax,%ebp
-	leal	2952996808(%ebx,%edx,1),%edx
-	xorl	%esi,%ecx
-	xorl	%edi,%ebp
-	movl	80(%esp),%esi
-	rorl	$2,%ecx
-	addl	%edx,%ebp
-	addl	4(%esp),%edx
-	addl	%ecx,%ebp
-	movl	68(%esp),%ecx
-	movl	%esi,%ebx
-	rorl	$11,%esi
-	movl	%ecx,%edi
-	rorl	$2,%ecx
-	xorl	%ebx,%esi
-	shrl	$3,%ebx
-	rorl	$7,%esi
-	xorl	%edi,%ecx
-	xorl	%esi,%ebx
-	rorl	$17,%ecx
-	addl	76(%esp),%ebx
-	shrl	$10,%edi
-	addl	48(%esp),%ebx
-	movl	%edx,%esi
-	xorl	%ecx,%edi
-	movl	8(%esp),%ecx
-	rorl	$14,%edx
-	addl	%edi,%ebx
-	movl	12(%esp),%edi
-	xorl	%esi,%edx
-	movl	%ebx,76(%esp)
-	xorl	%edi,%ecx
-	rorl	$5,%edx
-	andl	%esi,%ecx
-	movl	%esi,4(%esp)
-	xorl	%esi,%edx
-	addl	16(%esp),%ebx
-	xorl	%ecx,%edi
-	rorl	$6,%edx
-	movl	%ebp,%esi
-	addl	%edi,%ebx
-	rorl	$9,%esi
-	movl	%ebp,%ecx
-	movl	24(%esp),%edi
-	xorl	%ebp,%esi
-	movl	%ebp,20(%esp)
-	xorl	%edi,%ebp
-	rorl	$11,%esi
-	andl	%ebp,%eax
-	leal	3210313671(%ebx,%edx,1),%edx
-	xorl	%ecx,%esi
-	xorl	%edi,%eax
-	movl	84(%esp),%ecx
-	rorl	$2,%esi
-	addl	%edx,%eax
-	addl	(%esp),%edx
-	addl	%esi,%eax
-	movl	72(%esp),%esi
-	movl	%ecx,%ebx
-	rorl	$11,%ecx
-	movl	%esi,%edi
-	rorl	$2,%esi
-	xorl	%ebx,%ecx
-	shrl	$3,%ebx
-	rorl	$7,%ecx
-	xorl	%edi,%esi
-	xorl	%ecx,%ebx
-	rorl	$17,%esi
-	addl	80(%esp),%ebx
-	shrl	$10,%edi
-	addl	52(%esp),%ebx
-	movl	%edx,%ecx
-	xorl	%esi,%edi
-	movl	4(%esp),%esi
-	rorl	$14,%edx
-	addl	%edi,%ebx
-	movl	8(%esp),%edi
-	xorl	%ecx,%edx
-	movl	%ebx,80(%esp)
-	xorl	%edi,%esi
-	rorl	$5,%edx
-	andl	%ecx,%esi
-	movl	%ecx,(%esp)
-	xorl	%ecx,%edx
-	addl	12(%esp),%ebx
-	xorl	%esi,%edi
-	rorl	$6,%edx
-	movl	%eax,%ecx
-	addl	%edi,%ebx
-	rorl	$9,%ecx
-	movl	%eax,%esi
-	movl	20(%esp),%edi
-	xorl	%eax,%ecx
-	movl	%eax,16(%esp)
-	xorl	%edi,%eax
-	rorl	$11,%ecx
-	andl	%eax,%ebp
-	leal	3336571891(%ebx,%edx,1),%edx
-	xorl	%esi,%ecx
-	xorl	%edi,%ebp
-	movl	88(%esp),%esi
-	rorl	$2,%ecx
-	addl	%edx,%ebp
-	addl	28(%esp),%edx
-	addl	%ecx,%ebp
-	movl	76(%esp),%ecx
-	movl	%esi,%ebx
-	rorl	$11,%esi
-	movl	%ecx,%edi
-	rorl	$2,%ecx
-	xorl	%ebx,%esi
-	shrl	$3,%ebx
-	rorl	$7,%esi
-	xorl	%edi,%ecx
-	xorl	%esi,%ebx
-	rorl	$17,%ecx
-	addl	84(%esp),%ebx
-	shrl	$10,%edi
-	addl	56(%esp),%ebx
-	movl	%edx,%esi
-	xorl	%ecx,%edi
-	movl	(%esp),%ecx
-	rorl	$14,%edx
-	addl	%edi,%ebx
-	movl	4(%esp),%edi
-	xorl	%esi,%edx
-	movl	%ebx,84(%esp)
-	xorl	%edi,%ecx
-	rorl	$5,%edx
-	andl	%esi,%ecx
-	movl	%esi,28(%esp)
-	xorl	%esi,%edx
-	addl	8(%esp),%ebx
-	xorl	%ecx,%edi
-	rorl	$6,%edx
-	movl	%ebp,%esi
-	addl	%edi,%ebx
-	rorl	$9,%esi
-	movl	%ebp,%ecx
-	movl	16(%esp),%edi
-	xorl	%ebp,%esi
-	movl	%ebp,12(%esp)
-	xorl	%edi,%ebp
-	rorl	$11,%esi
-	andl	%ebp,%eax
-	leal	3584528711(%ebx,%edx,1),%edx
-	xorl	%ecx,%esi
-	xorl	%edi,%eax
-	movl	92(%esp),%ecx
-	rorl	$2,%esi
-	addl	%edx,%eax
-	addl	24(%esp),%edx
-	addl	%esi,%eax
-	movl	80(%esp),%esi
-	movl	%ecx,%ebx
-	rorl	$11,%ecx
-	movl	%esi,%edi
-	rorl	$2,%esi
-	xorl	%ebx,%ecx
-	shrl	$3,%ebx
-	rorl	$7,%ecx
-	xorl	%edi,%esi
-	xorl	%ecx,%ebx
-	rorl	$17,%esi
-	addl	88(%esp),%ebx
-	shrl	$10,%edi
-	addl	60(%esp),%ebx
-	movl	%edx,%ecx
-	xorl	%esi,%edi
-	movl	28(%esp),%esi
-	rorl	$14,%edx
-	addl	%edi,%ebx
-	movl	(%esp),%edi
-	xorl	%ecx,%edx
-	movl	%ebx,88(%esp)
-	xorl	%edi,%esi
-	rorl	$5,%edx
-	andl	%ecx,%esi
-	movl	%ecx,24(%esp)
-	xorl	%ecx,%edx
-	addl	4(%esp),%ebx
-	xorl	%esi,%edi
-	rorl	$6,%edx
-	movl	%eax,%ecx
-	addl	%edi,%ebx
-	rorl	$9,%ecx
-	movl	%eax,%esi
-	movl	12(%esp),%edi
-	xorl	%eax,%ecx
-	movl	%eax,8(%esp)
-	xorl	%edi,%eax
-	rorl	$11,%ecx
-	andl	%eax,%ebp
-	leal	113926993(%ebx,%edx,1),%edx
-	xorl	%esi,%ecx
-	xorl	%edi,%ebp
-	movl	32(%esp),%esi
-	rorl	$2,%ecx
-	addl	%edx,%ebp
-	addl	20(%esp),%edx
-	addl	%ecx,%ebp
-	movl	84(%esp),%ecx
-	movl	%esi,%ebx
-	rorl	$11,%esi
-	movl	%ecx,%edi
-	rorl	$2,%ecx
-	xorl	%ebx,%esi
-	shrl	$3,%ebx
-	rorl	$7,%esi
-	xorl	%edi,%ecx
-	xorl	%esi,%ebx
-	rorl	$17,%ecx
-	addl	92(%esp),%ebx
-	shrl	$10,%edi
-	addl	64(%esp),%ebx
-	movl	%edx,%esi
-	xorl	%ecx,%edi
-	movl	24(%esp),%ecx
-	rorl	$14,%edx
-	addl	%edi,%ebx
-	movl	28(%esp),%edi
-	xorl	%esi,%edx
-	movl	%ebx,92(%esp)
-	xorl	%edi,%ecx
-	rorl	$5,%edx
-	andl	%esi,%ecx
-	movl	%esi,20(%esp)
-	xorl	%esi,%edx
-	addl	(%esp),%ebx
-	xorl	%ecx,%edi
-	rorl	$6,%edx
-	movl	%ebp,%esi
-	addl	%edi,%ebx
-	rorl	$9,%esi
-	movl	%ebp,%ecx
-	movl	8(%esp),%edi
-	xorl	%ebp,%esi
-	movl	%ebp,4(%esp)
-	xorl	%edi,%ebp
-	rorl	$11,%esi
-	andl	%ebp,%eax
-	leal	338241895(%ebx,%edx,1),%edx
-	xorl	%ecx,%esi
-	xorl	%edi,%eax
-	movl	36(%esp),%ecx
-	rorl	$2,%esi
-	addl	%edx,%eax
-	addl	16(%esp),%edx
-	addl	%esi,%eax
-	movl	88(%esp),%esi
-	movl	%ecx,%ebx
-	rorl	$11,%ecx
-	movl	%esi,%edi
-	rorl	$2,%esi
-	xorl	%ebx,%ecx
-	shrl	$3,%ebx
-	rorl	$7,%ecx
-	xorl	%edi,%esi
-	xorl	%ecx,%ebx
-	rorl	$17,%esi
-	addl	32(%esp),%ebx
-	shrl	$10,%edi
-	addl	68(%esp),%ebx
-	movl	%edx,%ecx
-	xorl	%esi,%edi
-	movl	20(%esp),%esi
-	rorl	$14,%edx
-	addl	%edi,%ebx
-	movl	24(%esp),%edi
-	xorl	%ecx,%edx
-	movl	%ebx,32(%esp)
-	xorl	%edi,%esi
-	rorl	$5,%edx
-	andl	%ecx,%esi
-	movl	%ecx,16(%esp)
-	xorl	%ecx,%edx
-	addl	28(%esp),%ebx
-	xorl	%esi,%edi
-	rorl	$6,%edx
-	movl	%eax,%ecx
-	addl	%edi,%ebx
-	rorl	$9,%ecx
-	movl	%eax,%esi
-	movl	4(%esp),%edi
-	xorl	%eax,%ecx
-	movl	%eax,(%esp)
-	xorl	%edi,%eax
-	rorl	$11,%ecx
-	andl	%eax,%ebp
-	leal	666307205(%ebx,%edx,1),%edx
-	xorl	%esi,%ecx
-	xorl	%edi,%ebp
-	movl	40(%esp),%esi
-	rorl	$2,%ecx
-	addl	%edx,%ebp
-	addl	12(%esp),%edx
-	addl	%ecx,%ebp
-	movl	92(%esp),%ecx
-	movl	%esi,%ebx
-	rorl	$11,%esi
-	movl	%ecx,%edi
-	rorl	$2,%ecx
-	xorl	%ebx,%esi
-	shrl	$3,%ebx
-	rorl	$7,%esi
-	xorl	%edi,%ecx
-	xorl	%esi,%ebx
-	rorl	$17,%ecx
-	addl	36(%esp),%ebx
-	shrl	$10,%edi
-	addl	72(%esp),%ebx
-	movl	%edx,%esi
-	xorl	%ecx,%edi
-	movl	16(%esp),%ecx
-	rorl	$14,%edx
-	addl	%edi,%ebx
-	movl	20(%esp),%edi
-	xorl	%esi,%edx
-	movl	%ebx,36(%esp)
-	xorl	%edi,%ecx
-	rorl	$5,%edx
-	andl	%esi,%ecx
-	movl	%esi,12(%esp)
-	xorl	%esi,%edx
-	addl	24(%esp),%ebx
-	xorl	%ecx,%edi
-	rorl	$6,%edx
-	movl	%ebp,%esi
-	addl	%edi,%ebx
-	rorl	$9,%esi
-	movl	%ebp,%ecx
-	movl	(%esp),%edi
-	xorl	%ebp,%esi
-	movl	%ebp,28(%esp)
-	xorl	%edi,%ebp
-	rorl	$11,%esi
-	andl	%ebp,%eax
-	leal	773529912(%ebx,%edx,1),%edx
-	xorl	%ecx,%esi
-	xorl	%edi,%eax
-	movl	44(%esp),%ecx
-	rorl	$2,%esi
-	addl	%edx,%eax
-	addl	8(%esp),%edx
-	addl	%esi,%eax
-	movl	32(%esp),%esi
-	movl	%ecx,%ebx
-	rorl	$11,%ecx
-	movl	%esi,%edi
-	rorl	$2,%esi
-	xorl	%ebx,%ecx
-	shrl	$3,%ebx
-	rorl	$7,%ecx
-	xorl	%edi,%esi
-	xorl	%ecx,%ebx
-	rorl	$17,%esi
-	addl	40(%esp),%ebx
-	shrl	$10,%edi
-	addl	76(%esp),%ebx
-	movl	%edx,%ecx
-	xorl	%esi,%edi
-	movl	12(%esp),%esi
-	rorl	$14,%edx
-	addl	%edi,%ebx
-	movl	16(%esp),%edi
-	xorl	%ecx,%edx
-	movl	%ebx,40(%esp)
-	xorl	%edi,%esi
-	rorl	$5,%edx
-	andl	%ecx,%esi
-	movl	%ecx,8(%esp)
-	xorl	%ecx,%edx
-	addl	20(%esp),%ebx
-	xorl	%esi,%edi
-	rorl	$6,%edx
-	movl	%eax,%ecx
-	addl	%edi,%ebx
-	rorl	$9,%ecx
-	movl	%eax,%esi
-	movl	28(%esp),%edi
-	xorl	%eax,%ecx
-	movl	%eax,24(%esp)
-	xorl	%edi,%eax
-	rorl	$11,%ecx
-	andl	%eax,%ebp
-	leal	1294757372(%ebx,%edx,1),%edx
-	xorl	%esi,%ecx
-	xorl	%edi,%ebp
-	movl	48(%esp),%esi
-	rorl	$2,%ecx
-	addl	%edx,%ebp
-	addl	4(%esp),%edx
-	addl	%ecx,%ebp
-	movl	36(%esp),%ecx
-	movl	%esi,%ebx
-	rorl	$11,%esi
-	movl	%ecx,%edi
-	rorl	$2,%ecx
-	xorl	%ebx,%esi
-	shrl	$3,%ebx
-	rorl	$7,%esi
-	xorl	%edi,%ecx
-	xorl	%esi,%ebx
-	rorl	$17,%ecx
-	addl	44(%esp),%ebx
-	shrl	$10,%edi
-	addl	80(%esp),%ebx
-	movl	%edx,%esi
-	xorl	%ecx,%edi
-	movl	8(%esp),%ecx
-	rorl	$14,%edx
-	addl	%edi,%ebx
-	movl	12(%esp),%edi
-	xorl	%esi,%edx
-	movl	%ebx,44(%esp)
-	xorl	%edi,%ecx
-	rorl	$5,%edx
-	andl	%esi,%ecx
-	movl	%esi,4(%esp)
-	xorl	%esi,%edx
-	addl	16(%esp),%ebx
-	xorl	%ecx,%edi
-	rorl	$6,%edx
-	movl	%ebp,%esi
-	addl	%edi,%ebx
-	rorl	$9,%esi
-	movl	%ebp,%ecx
-	movl	24(%esp),%edi
-	xorl	%ebp,%esi
-	movl	%ebp,20(%esp)
-	xorl	%edi,%ebp
-	rorl	$11,%esi
-	andl	%ebp,%eax
-	leal	1396182291(%ebx,%edx,1),%edx
-	xorl	%ecx,%esi
-	xorl	%edi,%eax
-	movl	52(%esp),%ecx
-	rorl	$2,%esi
-	addl	%edx,%eax
-	addl	(%esp),%edx
-	addl	%esi,%eax
-	movl	40(%esp),%esi
-	movl	%ecx,%ebx
-	rorl	$11,%ecx
-	movl	%esi,%edi
-	rorl	$2,%esi
-	xorl	%ebx,%ecx
-	shrl	$3,%ebx
-	rorl	$7,%ecx
-	xorl	%edi,%esi
-	xorl	%ecx,%ebx
-	rorl	$17,%esi
-	addl	48(%esp),%ebx
-	shrl	$10,%edi
-	addl	84(%esp),%ebx
-	movl	%edx,%ecx
-	xorl	%esi,%edi
-	movl	4(%esp),%esi
-	rorl	$14,%edx
-	addl	%edi,%ebx
-	movl	8(%esp),%edi
-	xorl	%ecx,%edx
-	movl	%ebx,48(%esp)
-	xorl	%edi,%esi
-	rorl	$5,%edx
-	andl	%ecx,%esi
-	movl	%ecx,(%esp)
-	xorl	%ecx,%edx
-	addl	12(%esp),%ebx
-	xorl	%esi,%edi
-	rorl	$6,%edx
-	movl	%eax,%ecx
-	addl	%edi,%ebx
-	rorl	$9,%ecx
-	movl	%eax,%esi
-	movl	20(%esp),%edi
-	xorl	%eax,%ecx
-	movl	%eax,16(%esp)
-	xorl	%edi,%eax
-	rorl	$11,%ecx
-	andl	%eax,%ebp
-	leal	1695183700(%ebx,%edx,1),%edx
-	xorl	%esi,%ecx
-	xorl	%edi,%ebp
-	movl	56(%esp),%esi
-	rorl	$2,%ecx
-	addl	%edx,%ebp
-	addl	28(%esp),%edx
-	addl	%ecx,%ebp
-	movl	44(%esp),%ecx
-	movl	%esi,%ebx
-	rorl	$11,%esi
-	movl	%ecx,%edi
-	rorl	$2,%ecx
-	xorl	%ebx,%esi
-	shrl	$3,%ebx
-	rorl	$7,%esi
-	xorl	%edi,%ecx
-	xorl	%esi,%ebx
-	rorl	$17,%ecx
-	addl	52(%esp),%ebx
-	shrl	$10,%edi
-	addl	88(%esp),%ebx
-	movl	%edx,%esi
-	xorl	%ecx,%edi
-	movl	(%esp),%ecx
-	rorl	$14,%edx
-	addl	%edi,%ebx
-	movl	4(%esp),%edi
-	xorl	%esi,%edx
-	movl	%ebx,52(%esp)
-	xorl	%edi,%ecx
-	rorl	$5,%edx
-	andl	%esi,%ecx
-	movl	%esi,28(%esp)
-	xorl	%esi,%edx
-	addl	8(%esp),%ebx
-	xorl	%ecx,%edi
-	rorl	$6,%edx
-	movl	%ebp,%esi
-	addl	%edi,%ebx
-	rorl	$9,%esi
-	movl	%ebp,%ecx
-	movl	16(%esp),%edi
-	xorl	%ebp,%esi
-	movl	%ebp,12(%esp)
-	xorl	%edi,%ebp
-	rorl	$11,%esi
-	andl	%ebp,%eax
-	leal	1986661051(%ebx,%edx,1),%edx
-	xorl	%ecx,%esi
-	xorl	%edi,%eax
-	movl	60(%esp),%ecx
-	rorl	$2,%esi
-	addl	%edx,%eax
-	addl	24(%esp),%edx
-	addl	%esi,%eax
-	movl	48(%esp),%esi
-	movl	%ecx,%ebx
-	rorl	$11,%ecx
-	movl	%esi,%edi
-	rorl	$2,%esi
-	xorl	%ebx,%ecx
-	shrl	$3,%ebx
-	rorl	$7,%ecx
-	xorl	%edi,%esi
-	xorl	%ecx,%ebx
-	rorl	$17,%esi
-	addl	56(%esp),%ebx
-	shrl	$10,%edi
-	addl	92(%esp),%ebx
-	movl	%edx,%ecx
-	xorl	%esi,%edi
-	movl	28(%esp),%esi
-	rorl	$14,%edx
-	addl	%edi,%ebx
-	movl	(%esp),%edi
-	xorl	%ecx,%edx
-	movl	%ebx,56(%esp)
-	xorl	%edi,%esi
-	rorl	$5,%edx
-	andl	%ecx,%esi
-	movl	%ecx,24(%esp)
-	xorl	%ecx,%edx
-	addl	4(%esp),%ebx
-	xorl	%esi,%edi
-	rorl	$6,%edx
-	movl	%eax,%ecx
-	addl	%edi,%ebx
-	rorl	$9,%ecx
-	movl	%eax,%esi
-	movl	12(%esp),%edi
-	xorl	%eax,%ecx
-	movl	%eax,8(%esp)
-	xorl	%edi,%eax
-	rorl	$11,%ecx
-	andl	%eax,%ebp
-	leal	2177026350(%ebx,%edx,1),%edx
-	xorl	%esi,%ecx
-	xorl	%edi,%ebp
-	movl	64(%esp),%esi
-	rorl	$2,%ecx
-	addl	%edx,%ebp
-	addl	20(%esp),%edx
-	addl	%ecx,%ebp
-	movl	52(%esp),%ecx
-	movl	%esi,%ebx
-	rorl	$11,%esi
-	movl	%ecx,%edi
-	rorl	$2,%ecx
-	xorl	%ebx,%esi
-	shrl	$3,%ebx
-	rorl	$7,%esi
-	xorl	%edi,%ecx
-	xorl	%esi,%ebx
-	rorl	$17,%ecx
-	addl	60(%esp),%ebx
-	shrl	$10,%edi
-	addl	32(%esp),%ebx
-	movl	%edx,%esi
-	xorl	%ecx,%edi
-	movl	24(%esp),%ecx
-	rorl	$14,%edx
-	addl	%edi,%ebx
-	movl	28(%esp),%edi
-	xorl	%esi,%edx
-	movl	%ebx,60(%esp)
-	xorl	%edi,%ecx
-	rorl	$5,%edx
-	andl	%esi,%ecx
-	movl	%esi,20(%esp)
-	xorl	%esi,%edx
-	addl	(%esp),%ebx
-	xorl	%ecx,%edi
-	rorl	$6,%edx
-	movl	%ebp,%esi
-	addl	%edi,%ebx
-	rorl	$9,%esi
-	movl	%ebp,%ecx
-	movl	8(%esp),%edi
-	xorl	%ebp,%esi
-	movl	%ebp,4(%esp)
-	xorl	%edi,%ebp
-	rorl	$11,%esi
-	andl	%ebp,%eax
-	leal	2456956037(%ebx,%edx,1),%edx
-	xorl	%ecx,%esi
-	xorl	%edi,%eax
-	movl	68(%esp),%ecx
-	rorl	$2,%esi
-	addl	%edx,%eax
-	addl	16(%esp),%edx
-	addl	%esi,%eax
-	movl	56(%esp),%esi
-	movl	%ecx,%ebx
-	rorl	$11,%ecx
-	movl	%esi,%edi
-	rorl	$2,%esi
-	xorl	%ebx,%ecx
-	shrl	$3,%ebx
-	rorl	$7,%ecx
-	xorl	%edi,%esi
-	xorl	%ecx,%ebx
-	rorl	$17,%esi
-	addl	64(%esp),%ebx
-	shrl	$10,%edi
-	addl	36(%esp),%ebx
-	movl	%edx,%ecx
-	xorl	%esi,%edi
-	movl	20(%esp),%esi
-	rorl	$14,%edx
-	addl	%edi,%ebx
-	movl	24(%esp),%edi
-	xorl	%ecx,%edx
-	movl	%ebx,64(%esp)
-	xorl	%edi,%esi
-	rorl	$5,%edx
-	andl	%ecx,%esi
-	movl	%ecx,16(%esp)
-	xorl	%ecx,%edx
-	addl	28(%esp),%ebx
-	xorl	%esi,%edi
-	rorl	$6,%edx
-	movl	%eax,%ecx
-	addl	%edi,%ebx
-	rorl	$9,%ecx
-	movl	%eax,%esi
-	movl	4(%esp),%edi
-	xorl	%eax,%ecx
-	movl	%eax,(%esp)
-	xorl	%edi,%eax
-	rorl	$11,%ecx
-	andl	%eax,%ebp
-	leal	2730485921(%ebx,%edx,1),%edx
-	xorl	%esi,%ecx
-	xorl	%edi,%ebp
-	movl	72(%esp),%esi
-	rorl	$2,%ecx
-	addl	%edx,%ebp
-	addl	12(%esp),%edx
-	addl	%ecx,%ebp
-	movl	60(%esp),%ecx
-	movl	%esi,%ebx
-	rorl	$11,%esi
-	movl	%ecx,%edi
-	rorl	$2,%ecx
-	xorl	%ebx,%esi
-	shrl	$3,%ebx
-	rorl	$7,%esi
-	xorl	%edi,%ecx
-	xorl	%esi,%ebx
-	rorl	$17,%ecx
-	addl	68(%esp),%ebx
-	shrl	$10,%edi
-	addl	40(%esp),%ebx
-	movl	%edx,%esi
-	xorl	%ecx,%edi
-	movl	16(%esp),%ecx
-	rorl	$14,%edx
-	addl	%edi,%ebx
-	movl	20(%esp),%edi
-	xorl	%esi,%edx
-	movl	%ebx,68(%esp)
-	xorl	%edi,%ecx
-	rorl	$5,%edx
-	andl	%esi,%ecx
-	movl	%esi,12(%esp)
-	xorl	%esi,%edx
-	addl	24(%esp),%ebx
-	xorl	%ecx,%edi
-	rorl	$6,%edx
-	movl	%ebp,%esi
-	addl	%edi,%ebx
-	rorl	$9,%esi
-	movl	%ebp,%ecx
-	movl	(%esp),%edi
-	xorl	%ebp,%esi
-	movl	%ebp,28(%esp)
-	xorl	%edi,%ebp
-	rorl	$11,%esi
-	andl	%ebp,%eax
-	leal	2820302411(%ebx,%edx,1),%edx
-	xorl	%ecx,%esi
-	xorl	%edi,%eax
-	movl	76(%esp),%ecx
-	rorl	$2,%esi
-	addl	%edx,%eax
-	addl	8(%esp),%edx
-	addl	%esi,%eax
-	movl	64(%esp),%esi
-	movl	%ecx,%ebx
-	rorl	$11,%ecx
-	movl	%esi,%edi
-	rorl	$2,%esi
-	xorl	%ebx,%ecx
-	shrl	$3,%ebx
-	rorl	$7,%ecx
-	xorl	%edi,%esi
-	xorl	%ecx,%ebx
-	rorl	$17,%esi
-	addl	72(%esp),%ebx
-	shrl	$10,%edi
-	addl	44(%esp),%ebx
-	movl	%edx,%ecx
-	xorl	%esi,%edi
-	movl	12(%esp),%esi
-	rorl	$14,%edx
-	addl	%edi,%ebx
-	movl	16(%esp),%edi
-	xorl	%ecx,%edx
-	movl	%ebx,72(%esp)
-	xorl	%edi,%esi
-	rorl	$5,%edx
-	andl	%ecx,%esi
-	movl	%ecx,8(%esp)
-	xorl	%ecx,%edx
-	addl	20(%esp),%ebx
-	xorl	%esi,%edi
-	rorl	$6,%edx
-	movl	%eax,%ecx
-	addl	%edi,%ebx
-	rorl	$9,%ecx
-	movl	%eax,%esi
-	movl	28(%esp),%edi
-	xorl	%eax,%ecx
-	movl	%eax,24(%esp)
-	xorl	%edi,%eax
-	rorl	$11,%ecx
-	andl	%eax,%ebp
-	leal	3259730800(%ebx,%edx,1),%edx
-	xorl	%esi,%ecx
-	xorl	%edi,%ebp
-	movl	80(%esp),%esi
-	rorl	$2,%ecx
-	addl	%edx,%ebp
-	addl	4(%esp),%edx
-	addl	%ecx,%ebp
-	movl	68(%esp),%ecx
-	movl	%esi,%ebx
-	rorl	$11,%esi
-	movl	%ecx,%edi
-	rorl	$2,%ecx
-	xorl	%ebx,%esi
-	shrl	$3,%ebx
-	rorl	$7,%esi
-	xorl	%edi,%ecx
-	xorl	%esi,%ebx
-	rorl	$17,%ecx
-	addl	76(%esp),%ebx
-	shrl	$10,%edi
-	addl	48(%esp),%ebx
-	movl	%edx,%esi
-	xorl	%ecx,%edi
-	movl	8(%esp),%ecx
-	rorl	$14,%edx
-	addl	%edi,%ebx
-	movl	12(%esp),%edi
-	xorl	%esi,%edx
-	movl	%ebx,76(%esp)
-	xorl	%edi,%ecx
-	rorl	$5,%edx
-	andl	%esi,%ecx
-	movl	%esi,4(%esp)
-	xorl	%esi,%edx
-	addl	16(%esp),%ebx
-	xorl	%ecx,%edi
-	rorl	$6,%edx
-	movl	%ebp,%esi
-	addl	%edi,%ebx
-	rorl	$9,%esi
-	movl	%ebp,%ecx
-	movl	24(%esp),%edi
-	xorl	%ebp,%esi
-	movl	%ebp,20(%esp)
-	xorl	%edi,%ebp
-	rorl	$11,%esi
-	andl	%ebp,%eax
-	leal	3345764771(%ebx,%edx,1),%edx
-	xorl	%ecx,%esi
-	xorl	%edi,%eax
-	movl	84(%esp),%ecx
-	rorl	$2,%esi
-	addl	%edx,%eax
-	addl	(%esp),%edx
-	addl	%esi,%eax
-	movl	72(%esp),%esi
-	movl	%ecx,%ebx
-	rorl	$11,%ecx
-	movl	%esi,%edi
-	rorl	$2,%esi
-	xorl	%ebx,%ecx
-	shrl	$3,%ebx
-	rorl	$7,%ecx
-	xorl	%edi,%esi
-	xorl	%ecx,%ebx
-	rorl	$17,%esi
-	addl	80(%esp),%ebx
-	shrl	$10,%edi
-	addl	52(%esp),%ebx
-	movl	%edx,%ecx
-	xorl	%esi,%edi
-	movl	4(%esp),%esi
-	rorl	$14,%edx
-	addl	%edi,%ebx
-	movl	8(%esp),%edi
-	xorl	%ecx,%edx
-	movl	%ebx,80(%esp)
-	xorl	%edi,%esi
-	rorl	$5,%edx
-	andl	%ecx,%esi
-	movl	%ecx,(%esp)
-	xorl	%ecx,%edx
-	addl	12(%esp),%ebx
-	xorl	%esi,%edi
-	rorl	$6,%edx
-	movl	%eax,%ecx
-	addl	%edi,%ebx
-	rorl	$9,%ecx
-	movl	%eax,%esi
-	movl	20(%esp),%edi
-	xorl	%eax,%ecx
-	movl	%eax,16(%esp)
-	xorl	%edi,%eax
-	rorl	$11,%ecx
-	andl	%eax,%ebp
-	leal	3516065817(%ebx,%edx,1),%edx
-	xorl	%esi,%ecx
-	xorl	%edi,%ebp
-	movl	88(%esp),%esi
-	rorl	$2,%ecx
-	addl	%edx,%ebp
-	addl	28(%esp),%edx
-	addl	%ecx,%ebp
-	movl	76(%esp),%ecx
-	movl	%esi,%ebx
-	rorl	$11,%esi
-	movl	%ecx,%edi
-	rorl	$2,%ecx
-	xorl	%ebx,%esi
-	shrl	$3,%ebx
-	rorl	$7,%esi
-	xorl	%edi,%ecx
-	xorl	%esi,%ebx
-	rorl	$17,%ecx
-	addl	84(%esp),%ebx
-	shrl	$10,%edi
-	addl	56(%esp),%ebx
-	movl	%edx,%esi
-	xorl	%ecx,%edi
-	movl	(%esp),%ecx
-	rorl	$14,%edx
-	addl	%edi,%ebx
-	movl	4(%esp),%edi
-	xorl	%esi,%edx
-	movl	%ebx,84(%esp)
-	xorl	%edi,%ecx
-	rorl	$5,%edx
-	andl	%esi,%ecx
-	movl	%esi,28(%esp)
-	xorl	%esi,%edx
-	addl	8(%esp),%ebx
-	xorl	%ecx,%edi
-	rorl	$6,%edx
-	movl	%ebp,%esi
-	addl	%edi,%ebx
-	rorl	$9,%esi
-	movl	%ebp,%ecx
-	movl	16(%esp),%edi
-	xorl	%ebp,%esi
-	movl	%ebp,12(%esp)
-	xorl	%edi,%ebp
-	rorl	$11,%esi
-	andl	%ebp,%eax
-	leal	3600352804(%ebx,%edx,1),%edx
-	xorl	%ecx,%esi
-	xorl	%edi,%eax
-	movl	92(%esp),%ecx
-	rorl	$2,%esi
-	addl	%edx,%eax
-	addl	24(%esp),%edx
-	addl	%esi,%eax
-	movl	80(%esp),%esi
-	movl	%ecx,%ebx
-	rorl	$11,%ecx
-	movl	%esi,%edi
-	rorl	$2,%esi
-	xorl	%ebx,%ecx
-	shrl	$3,%ebx
-	rorl	$7,%ecx
-	xorl	%edi,%esi
-	xorl	%ecx,%ebx
-	rorl	$17,%esi
-	addl	88(%esp),%ebx
-	shrl	$10,%edi
-	addl	60(%esp),%ebx
-	movl	%edx,%ecx
-	xorl	%esi,%edi
-	movl	28(%esp),%esi
-	rorl	$14,%edx
-	addl	%edi,%ebx
-	movl	(%esp),%edi
-	xorl	%ecx,%edx
-	movl	%ebx,88(%esp)
-	xorl	%edi,%esi
-	rorl	$5,%edx
-	andl	%ecx,%esi
-	movl	%ecx,24(%esp)
-	xorl	%ecx,%edx
-	addl	4(%esp),%ebx
-	xorl	%esi,%edi
-	rorl	$6,%edx
-	movl	%eax,%ecx
-	addl	%edi,%ebx
-	rorl	$9,%ecx
-	movl	%eax,%esi
-	movl	12(%esp),%edi
-	xorl	%eax,%ecx
-	movl	%eax,8(%esp)
-	xorl	%edi,%eax
-	rorl	$11,%ecx
-	andl	%eax,%ebp
-	leal	4094571909(%ebx,%edx,1),%edx
-	xorl	%esi,%ecx
-	xorl	%edi,%ebp
-	movl	32(%esp),%esi
-	rorl	$2,%ecx
-	addl	%edx,%ebp
-	addl	20(%esp),%edx
-	addl	%ecx,%ebp
-	movl	84(%esp),%ecx
-	movl	%esi,%ebx
-	rorl	$11,%esi
-	movl	%ecx,%edi
-	rorl	$2,%ecx
-	xorl	%ebx,%esi
-	shrl	$3,%ebx
-	rorl	$7,%esi
-	xorl	%edi,%ecx
-	xorl	%esi,%ebx
-	rorl	$17,%ecx
-	addl	92(%esp),%ebx
-	shrl	$10,%edi
-	addl	64(%esp),%ebx
-	movl	%edx,%esi
-	xorl	%ecx,%edi
-	movl	24(%esp),%ecx
-	rorl	$14,%edx
-	addl	%edi,%ebx
-	movl	28(%esp),%edi
-	xorl	%esi,%edx
-	movl	%ebx,92(%esp)
-	xorl	%edi,%ecx
-	rorl	$5,%edx
-	andl	%esi,%ecx
-	movl	%esi,20(%esp)
-	xorl	%esi,%edx
-	addl	(%esp),%ebx
-	xorl	%ecx,%edi
-	rorl	$6,%edx
-	movl	%ebp,%esi
-	addl	%edi,%ebx
-	rorl	$9,%esi
-	movl	%ebp,%ecx
-	movl	8(%esp),%edi
-	xorl	%ebp,%esi
-	movl	%ebp,4(%esp)
-	xorl	%edi,%ebp
-	rorl	$11,%esi
-	andl	%ebp,%eax
-	leal	275423344(%ebx,%edx,1),%edx
-	xorl	%ecx,%esi
-	xorl	%edi,%eax
-	movl	36(%esp),%ecx
-	rorl	$2,%esi
-	addl	%edx,%eax
-	addl	16(%esp),%edx
-	addl	%esi,%eax
-	movl	88(%esp),%esi
-	movl	%ecx,%ebx
-	rorl	$11,%ecx
-	movl	%esi,%edi
-	rorl	$2,%esi
-	xorl	%ebx,%ecx
-	shrl	$3,%ebx
-	rorl	$7,%ecx
-	xorl	%edi,%esi
-	xorl	%ecx,%ebx
-	rorl	$17,%esi
-	addl	32(%esp),%ebx
-	shrl	$10,%edi
-	addl	68(%esp),%ebx
-	movl	%edx,%ecx
-	xorl	%esi,%edi
-	movl	20(%esp),%esi
-	rorl	$14,%edx
-	addl	%edi,%ebx
-	movl	24(%esp),%edi
-	xorl	%ecx,%edx
-	movl	%ebx,32(%esp)
-	xorl	%edi,%esi
-	rorl	$5,%edx
-	andl	%ecx,%esi
-	movl	%ecx,16(%esp)
-	xorl	%ecx,%edx
-	addl	28(%esp),%ebx
-	xorl	%esi,%edi
-	rorl	$6,%edx
-	movl	%eax,%ecx
-	addl	%edi,%ebx
-	rorl	$9,%ecx
-	movl	%eax,%esi
-	movl	4(%esp),%edi
-	xorl	%eax,%ecx
-	movl	%eax,(%esp)
-	xorl	%edi,%eax
-	rorl	$11,%ecx
-	andl	%eax,%ebp
-	leal	430227734(%ebx,%edx,1),%edx
-	xorl	%esi,%ecx
-	xorl	%edi,%ebp
-	movl	40(%esp),%esi
-	rorl	$2,%ecx
-	addl	%edx,%ebp
-	addl	12(%esp),%edx
-	addl	%ecx,%ebp
-	movl	92(%esp),%ecx
-	movl	%esi,%ebx
-	rorl	$11,%esi
-	movl	%ecx,%edi
-	rorl	$2,%ecx
-	xorl	%ebx,%esi
-	shrl	$3,%ebx
-	rorl	$7,%esi
-	xorl	%edi,%ecx
-	xorl	%esi,%ebx
-	rorl	$17,%ecx
-	addl	36(%esp),%ebx
-	shrl	$10,%edi
-	addl	72(%esp),%ebx
-	movl	%edx,%esi
-	xorl	%ecx,%edi
-	movl	16(%esp),%ecx
-	rorl	$14,%edx
-	addl	%edi,%ebx
-	movl	20(%esp),%edi
-	xorl	%esi,%edx
-	movl	%ebx,36(%esp)
-	xorl	%edi,%ecx
-	rorl	$5,%edx
-	andl	%esi,%ecx
-	movl	%esi,12(%esp)
-	xorl	%esi,%edx
-	addl	24(%esp),%ebx
-	xorl	%ecx,%edi
-	rorl	$6,%edx
-	movl	%ebp,%esi
-	addl	%edi,%ebx
-	rorl	$9,%esi
-	movl	%ebp,%ecx
-	movl	(%esp),%edi
-	xorl	%ebp,%esi
-	movl	%ebp,28(%esp)
-	xorl	%edi,%ebp
-	rorl	$11,%esi
-	andl	%ebp,%eax
-	leal	506948616(%ebx,%edx,1),%edx
-	xorl	%ecx,%esi
-	xorl	%edi,%eax
-	movl	44(%esp),%ecx
-	rorl	$2,%esi
-	addl	%edx,%eax
-	addl	8(%esp),%edx
-	addl	%esi,%eax
-	movl	32(%esp),%esi
-	movl	%ecx,%ebx
-	rorl	$11,%ecx
-	movl	%esi,%edi
-	rorl	$2,%esi
-	xorl	%ebx,%ecx
-	shrl	$3,%ebx
-	rorl	$7,%ecx
-	xorl	%edi,%esi
-	xorl	%ecx,%ebx
-	rorl	$17,%esi
-	addl	40(%esp),%ebx
-	shrl	$10,%edi
-	addl	76(%esp),%ebx
-	movl	%edx,%ecx
-	xorl	%esi,%edi
-	movl	12(%esp),%esi
-	rorl	$14,%edx
-	addl	%edi,%ebx
-	movl	16(%esp),%edi
-	xorl	%ecx,%edx
-	movl	%ebx,40(%esp)
-	xorl	%edi,%esi
-	rorl	$5,%edx
-	andl	%ecx,%esi
-	movl	%ecx,8(%esp)
-	xorl	%ecx,%edx
-	addl	20(%esp),%ebx
-	xorl	%esi,%edi
-	rorl	$6,%edx
-	movl	%eax,%ecx
-	addl	%edi,%ebx
-	rorl	$9,%ecx
-	movl	%eax,%esi
-	movl	28(%esp),%edi
-	xorl	%eax,%ecx
-	movl	%eax,24(%esp)
-	xorl	%edi,%eax
-	rorl	$11,%ecx
-	andl	%eax,%ebp
-	leal	659060556(%ebx,%edx,1),%edx
-	xorl	%esi,%ecx
-	xorl	%edi,%ebp
-	movl	48(%esp),%esi
-	rorl	$2,%ecx
-	addl	%edx,%ebp
-	addl	4(%esp),%edx
-	addl	%ecx,%ebp
-	movl	36(%esp),%ecx
-	movl	%esi,%ebx
-	rorl	$11,%esi
-	movl	%ecx,%edi
-	rorl	$2,%ecx
-	xorl	%ebx,%esi
-	shrl	$3,%ebx
-	rorl	$7,%esi
-	xorl	%edi,%ecx
-	xorl	%esi,%ebx
-	rorl	$17,%ecx
-	addl	44(%esp),%ebx
-	shrl	$10,%edi
-	addl	80(%esp),%ebx
-	movl	%edx,%esi
-	xorl	%ecx,%edi
-	movl	8(%esp),%ecx
-	rorl	$14,%edx
-	addl	%edi,%ebx
-	movl	12(%esp),%edi
-	xorl	%esi,%edx
-	movl	%ebx,44(%esp)
-	xorl	%edi,%ecx
-	rorl	$5,%edx
-	andl	%esi,%ecx
-	movl	%esi,4(%esp)
-	xorl	%esi,%edx
-	addl	16(%esp),%ebx
-	xorl	%ecx,%edi
-	rorl	$6,%edx
-	movl	%ebp,%esi
-	addl	%edi,%ebx
-	rorl	$9,%esi
-	movl	%ebp,%ecx
-	movl	24(%esp),%edi
-	xorl	%ebp,%esi
-	movl	%ebp,20(%esp)
-	xorl	%edi,%ebp
-	rorl	$11,%esi
-	andl	%ebp,%eax
-	leal	883997877(%ebx,%edx,1),%edx
-	xorl	%ecx,%esi
-	xorl	%edi,%eax
-	movl	52(%esp),%ecx
-	rorl	$2,%esi
-	addl	%edx,%eax
-	addl	(%esp),%edx
-	addl	%esi,%eax
-	movl	40(%esp),%esi
-	movl	%ecx,%ebx
-	rorl	$11,%ecx
-	movl	%esi,%edi
-	rorl	$2,%esi
-	xorl	%ebx,%ecx
-	shrl	$3,%ebx
-	rorl	$7,%ecx
-	xorl	%edi,%esi
-	xorl	%ecx,%ebx
-	rorl	$17,%esi
-	addl	48(%esp),%ebx
-	shrl	$10,%edi
-	addl	84(%esp),%ebx
-	movl	%edx,%ecx
-	xorl	%esi,%edi
-	movl	4(%esp),%esi
-	rorl	$14,%edx
-	addl	%edi,%ebx
-	movl	8(%esp),%edi
-	xorl	%ecx,%edx
-	movl	%ebx,48(%esp)
-	xorl	%edi,%esi
-	rorl	$5,%edx
-	andl	%ecx,%esi
-	movl	%ecx,(%esp)
-	xorl	%ecx,%edx
-	addl	12(%esp),%ebx
-	xorl	%esi,%edi
-	rorl	$6,%edx
-	movl	%eax,%ecx
-	addl	%edi,%ebx
-	rorl	$9,%ecx
-	movl	%eax,%esi
-	movl	20(%esp),%edi
-	xorl	%eax,%ecx
-	movl	%eax,16(%esp)
-	xorl	%edi,%eax
-	rorl	$11,%ecx
-	andl	%eax,%ebp
-	leal	958139571(%ebx,%edx,1),%edx
-	xorl	%esi,%ecx
-	xorl	%edi,%ebp
-	movl	56(%esp),%esi
-	rorl	$2,%ecx
-	addl	%edx,%ebp
-	addl	28(%esp),%edx
-	addl	%ecx,%ebp
-	movl	44(%esp),%ecx
-	movl	%esi,%ebx
-	rorl	$11,%esi
-	movl	%ecx,%edi
-	rorl	$2,%ecx
-	xorl	%ebx,%esi
-	shrl	$3,%ebx
-	rorl	$7,%esi
-	xorl	%edi,%ecx
-	xorl	%esi,%ebx
-	rorl	$17,%ecx
-	addl	52(%esp),%ebx
-	shrl	$10,%edi
-	addl	88(%esp),%ebx
-	movl	%edx,%esi
-	xorl	%ecx,%edi
-	movl	(%esp),%ecx
-	rorl	$14,%edx
-	addl	%edi,%ebx
-	movl	4(%esp),%edi
-	xorl	%esi,%edx
-	movl	%ebx,52(%esp)
-	xorl	%edi,%ecx
-	rorl	$5,%edx
-	andl	%esi,%ecx
-	movl	%esi,28(%esp)
-	xorl	%esi,%edx
-	addl	8(%esp),%ebx
-	xorl	%ecx,%edi
-	rorl	$6,%edx
-	movl	%ebp,%esi
-	addl	%edi,%ebx
-	rorl	$9,%esi
-	movl	%ebp,%ecx
-	movl	16(%esp),%edi
-	xorl	%ebp,%esi
-	movl	%ebp,12(%esp)
-	xorl	%edi,%ebp
-	rorl	$11,%esi
-	andl	%ebp,%eax
-	leal	1322822218(%ebx,%edx,1),%edx
-	xorl	%ecx,%esi
-	xorl	%edi,%eax
-	movl	60(%esp),%ecx
-	rorl	$2,%esi
-	addl	%edx,%eax
-	addl	24(%esp),%edx
-	addl	%esi,%eax
-	movl	48(%esp),%esi
-	movl	%ecx,%ebx
-	rorl	$11,%ecx
-	movl	%esi,%edi
-	rorl	$2,%esi
-	xorl	%ebx,%ecx
-	shrl	$3,%ebx
-	rorl	$7,%ecx
-	xorl	%edi,%esi
-	xorl	%ecx,%ebx
-	rorl	$17,%esi
-	addl	56(%esp),%ebx
-	shrl	$10,%edi
-	addl	92(%esp),%ebx
-	movl	%edx,%ecx
-	xorl	%esi,%edi
-	movl	28(%esp),%esi
-	rorl	$14,%edx
-	addl	%edi,%ebx
-	movl	(%esp),%edi
-	xorl	%ecx,%edx
-	movl	%ebx,56(%esp)
-	xorl	%edi,%esi
-	rorl	$5,%edx
-	andl	%ecx,%esi
-	movl	%ecx,24(%esp)
-	xorl	%ecx,%edx
-	addl	4(%esp),%ebx
-	xorl	%esi,%edi
-	rorl	$6,%edx
-	movl	%eax,%ecx
-	addl	%edi,%ebx
-	rorl	$9,%ecx
-	movl	%eax,%esi
-	movl	12(%esp),%edi
-	xorl	%eax,%ecx
-	movl	%eax,8(%esp)
-	xorl	%edi,%eax
-	rorl	$11,%ecx
-	andl	%eax,%ebp
-	leal	1537002063(%ebx,%edx,1),%edx
-	xorl	%esi,%ecx
-	xorl	%edi,%ebp
-	movl	64(%esp),%esi
-	rorl	$2,%ecx
-	addl	%edx,%ebp
-	addl	20(%esp),%edx
-	addl	%ecx,%ebp
-	movl	52(%esp),%ecx
-	movl	%esi,%ebx
-	rorl	$11,%esi
-	movl	%ecx,%edi
-	rorl	$2,%ecx
-	xorl	%ebx,%esi
-	shrl	$3,%ebx
-	rorl	$7,%esi
-	xorl	%edi,%ecx
-	xorl	%esi,%ebx
-	rorl	$17,%ecx
-	addl	60(%esp),%ebx
-	shrl	$10,%edi
-	addl	32(%esp),%ebx
-	movl	%edx,%esi
-	xorl	%ecx,%edi
-	movl	24(%esp),%ecx
-	rorl	$14,%edx
-	addl	%edi,%ebx
-	movl	28(%esp),%edi
-	xorl	%esi,%edx
-	movl	%ebx,60(%esp)
-	xorl	%edi,%ecx
-	rorl	$5,%edx
-	andl	%esi,%ecx
-	movl	%esi,20(%esp)
-	xorl	%esi,%edx
-	addl	(%esp),%ebx
-	xorl	%ecx,%edi
-	rorl	$6,%edx
-	movl	%ebp,%esi
-	addl	%edi,%ebx
-	rorl	$9,%esi
-	movl	%ebp,%ecx
-	movl	8(%esp),%edi
-	xorl	%ebp,%esi
-	movl	%ebp,4(%esp)
-	xorl	%edi,%ebp
-	rorl	$11,%esi
-	andl	%ebp,%eax
-	leal	1747873779(%ebx,%edx,1),%edx
-	xorl	%ecx,%esi
-	xorl	%edi,%eax
-	movl	68(%esp),%ecx
-	rorl	$2,%esi
-	addl	%edx,%eax
-	addl	16(%esp),%edx
-	addl	%esi,%eax
-	movl	56(%esp),%esi
-	movl	%ecx,%ebx
-	rorl	$11,%ecx
-	movl	%esi,%edi
-	rorl	$2,%esi
-	xorl	%ebx,%ecx
-	shrl	$3,%ebx
-	rorl	$7,%ecx
-	xorl	%edi,%esi
-	xorl	%ecx,%ebx
-	rorl	$17,%esi
-	addl	64(%esp),%ebx
-	shrl	$10,%edi
-	addl	36(%esp),%ebx
-	movl	%edx,%ecx
-	xorl	%esi,%edi
-	movl	20(%esp),%esi
-	rorl	$14,%edx
-	addl	%edi,%ebx
-	movl	24(%esp),%edi
-	xorl	%ecx,%edx
-	movl	%ebx,64(%esp)
-	xorl	%edi,%esi
-	rorl	$5,%edx
-	andl	%ecx,%esi
-	movl	%ecx,16(%esp)
-	xorl	%ecx,%edx
-	addl	28(%esp),%ebx
-	xorl	%esi,%edi
-	rorl	$6,%edx
-	movl	%eax,%ecx
-	addl	%edi,%ebx
-	rorl	$9,%ecx
-	movl	%eax,%esi
-	movl	4(%esp),%edi
-	xorl	%eax,%ecx
-	movl	%eax,(%esp)
-	xorl	%edi,%eax
-	rorl	$11,%ecx
-	andl	%eax,%ebp
-	leal	1955562222(%ebx,%edx,1),%edx
-	xorl	%esi,%ecx
-	xorl	%edi,%ebp
-	movl	72(%esp),%esi
-	rorl	$2,%ecx
-	addl	%edx,%ebp
-	addl	12(%esp),%edx
-	addl	%ecx,%ebp
-	movl	60(%esp),%ecx
-	movl	%esi,%ebx
-	rorl	$11,%esi
-	movl	%ecx,%edi
-	rorl	$2,%ecx
-	xorl	%ebx,%esi
-	shrl	$3,%ebx
-	rorl	$7,%esi
-	xorl	%edi,%ecx
-	xorl	%esi,%ebx
-	rorl	$17,%ecx
-	addl	68(%esp),%ebx
-	shrl	$10,%edi
-	addl	40(%esp),%ebx
-	movl	%edx,%esi
-	xorl	%ecx,%edi
-	movl	16(%esp),%ecx
-	rorl	$14,%edx
-	addl	%edi,%ebx
-	movl	20(%esp),%edi
-	xorl	%esi,%edx
-	movl	%ebx,68(%esp)
-	xorl	%edi,%ecx
-	rorl	$5,%edx
-	andl	%esi,%ecx
-	movl	%esi,12(%esp)
-	xorl	%esi,%edx
-	addl	24(%esp),%ebx
-	xorl	%ecx,%edi
-	rorl	$6,%edx
-	movl	%ebp,%esi
-	addl	%edi,%ebx
-	rorl	$9,%esi
-	movl	%ebp,%ecx
-	movl	(%esp),%edi
-	xorl	%ebp,%esi
-	movl	%ebp,28(%esp)
-	xorl	%edi,%ebp
-	rorl	$11,%esi
-	andl	%ebp,%eax
-	leal	2024104815(%ebx,%edx,1),%edx
-	xorl	%ecx,%esi
-	xorl	%edi,%eax
-	movl	76(%esp),%ecx
-	rorl	$2,%esi
-	addl	%edx,%eax
-	addl	8(%esp),%edx
-	addl	%esi,%eax
-	movl	64(%esp),%esi
-	movl	%ecx,%ebx
-	rorl	$11,%ecx
-	movl	%esi,%edi
-	rorl	$2,%esi
-	xorl	%ebx,%ecx
-	shrl	$3,%ebx
-	rorl	$7,%ecx
-	xorl	%edi,%esi
-	xorl	%ecx,%ebx
-	rorl	$17,%esi
-	addl	72(%esp),%ebx
-	shrl	$10,%edi
-	addl	44(%esp),%ebx
-	movl	%edx,%ecx
-	xorl	%esi,%edi
-	movl	12(%esp),%esi
-	rorl	$14,%edx
-	addl	%edi,%ebx
-	movl	16(%esp),%edi
-	xorl	%ecx,%edx
-	movl	%ebx,72(%esp)
-	xorl	%edi,%esi
-	rorl	$5,%edx
-	andl	%ecx,%esi
-	movl	%ecx,8(%esp)
-	xorl	%ecx,%edx
-	addl	20(%esp),%ebx
-	xorl	%esi,%edi
-	rorl	$6,%edx
-	movl	%eax,%ecx
-	addl	%edi,%ebx
-	rorl	$9,%ecx
-	movl	%eax,%esi
-	movl	28(%esp),%edi
-	xorl	%eax,%ecx
-	movl	%eax,24(%esp)
-	xorl	%edi,%eax
-	rorl	$11,%ecx
-	andl	%eax,%ebp
-	leal	2227730452(%ebx,%edx,1),%edx
-	xorl	%esi,%ecx
-	xorl	%edi,%ebp
-	movl	80(%esp),%esi
-	rorl	$2,%ecx
-	addl	%edx,%ebp
-	addl	4(%esp),%edx
-	addl	%ecx,%ebp
-	movl	68(%esp),%ecx
-	movl	%esi,%ebx
-	rorl	$11,%esi
-	movl	%ecx,%edi
-	rorl	$2,%ecx
-	xorl	%ebx,%esi
-	shrl	$3,%ebx
-	rorl	$7,%esi
-	xorl	%edi,%ecx
-	xorl	%esi,%ebx
-	rorl	$17,%ecx
-	addl	76(%esp),%ebx
-	shrl	$10,%edi
-	addl	48(%esp),%ebx
-	movl	%edx,%esi
-	xorl	%ecx,%edi
-	movl	8(%esp),%ecx
-	rorl	$14,%edx
-	addl	%edi,%ebx
-	movl	12(%esp),%edi
-	xorl	%esi,%edx
-	movl	%ebx,76(%esp)
-	xorl	%edi,%ecx
-	rorl	$5,%edx
-	andl	%esi,%ecx
-	movl	%esi,4(%esp)
-	xorl	%esi,%edx
-	addl	16(%esp),%ebx
-	xorl	%ecx,%edi
-	rorl	$6,%edx
-	movl	%ebp,%esi
-	addl	%edi,%ebx
-	rorl	$9,%esi
-	movl	%ebp,%ecx
-	movl	24(%esp),%edi
-	xorl	%ebp,%esi
-	movl	%ebp,20(%esp)
-	xorl	%edi,%ebp
-	rorl	$11,%esi
-	andl	%ebp,%eax
-	leal	2361852424(%ebx,%edx,1),%edx
-	xorl	%ecx,%esi
-	xorl	%edi,%eax
-	movl	84(%esp),%ecx
-	rorl	$2,%esi
-	addl	%edx,%eax
-	addl	(%esp),%edx
-	addl	%esi,%eax
-	movl	72(%esp),%esi
-	movl	%ecx,%ebx
-	rorl	$11,%ecx
-	movl	%esi,%edi
-	rorl	$2,%esi
-	xorl	%ebx,%ecx
-	shrl	$3,%ebx
-	rorl	$7,%ecx
-	xorl	%edi,%esi
-	xorl	%ecx,%ebx
-	rorl	$17,%esi
-	addl	80(%esp),%ebx
-	shrl	$10,%edi
-	addl	52(%esp),%ebx
-	movl	%edx,%ecx
-	xorl	%esi,%edi
-	movl	4(%esp),%esi
-	rorl	$14,%edx
-	addl	%edi,%ebx
-	movl	8(%esp),%edi
-	xorl	%ecx,%edx
-	movl	%ebx,80(%esp)
-	xorl	%edi,%esi
-	rorl	$5,%edx
-	andl	%ecx,%esi
-	movl	%ecx,(%esp)
-	xorl	%ecx,%edx
-	addl	12(%esp),%ebx
-	xorl	%esi,%edi
-	rorl	$6,%edx
-	movl	%eax,%ecx
-	addl	%edi,%ebx
-	rorl	$9,%ecx
-	movl	%eax,%esi
-	movl	20(%esp),%edi
-	xorl	%eax,%ecx
-	movl	%eax,16(%esp)
-	xorl	%edi,%eax
-	rorl	$11,%ecx
-	andl	%eax,%ebp
-	leal	2428436474(%ebx,%edx,1),%edx
-	xorl	%esi,%ecx
-	xorl	%edi,%ebp
-	movl	88(%esp),%esi
-	rorl	$2,%ecx
-	addl	%edx,%ebp
-	addl	28(%esp),%edx
-	addl	%ecx,%ebp
-	movl	76(%esp),%ecx
-	movl	%esi,%ebx
-	rorl	$11,%esi
-	movl	%ecx,%edi
-	rorl	$2,%ecx
-	xorl	%ebx,%esi
-	shrl	$3,%ebx
-	rorl	$7,%esi
-	xorl	%edi,%ecx
-	xorl	%esi,%ebx
-	rorl	$17,%ecx
-	addl	84(%esp),%ebx
-	shrl	$10,%edi
-	addl	56(%esp),%ebx
-	movl	%edx,%esi
-	xorl	%ecx,%edi
-	movl	(%esp),%ecx
-	rorl	$14,%edx
-	addl	%edi,%ebx
-	movl	4(%esp),%edi
-	xorl	%esi,%edx
-	movl	%ebx,84(%esp)
-	xorl	%edi,%ecx
-	rorl	$5,%edx
-	andl	%esi,%ecx
-	movl	%esi,28(%esp)
-	xorl	%esi,%edx
-	addl	8(%esp),%ebx
-	xorl	%ecx,%edi
-	rorl	$6,%edx
-	movl	%ebp,%esi
-	addl	%edi,%ebx
-	rorl	$9,%esi
-	movl	%ebp,%ecx
-	movl	16(%esp),%edi
-	xorl	%ebp,%esi
-	movl	%ebp,12(%esp)
-	xorl	%edi,%ebp
-	rorl	$11,%esi
-	andl	%ebp,%eax
-	leal	2756734187(%ebx,%edx,1),%edx
-	xorl	%ecx,%esi
-	xorl	%edi,%eax
-	movl	92(%esp),%ecx
-	rorl	$2,%esi
-	addl	%edx,%eax
-	addl	24(%esp),%edx
-	addl	%esi,%eax
-	movl	80(%esp),%esi
-	movl	%ecx,%ebx
-	rorl	$11,%ecx
-	movl	%esi,%edi
-	rorl	$2,%esi
-	xorl	%ebx,%ecx
-	shrl	$3,%ebx
-	rorl	$7,%ecx
-	xorl	%edi,%esi
-	xorl	%ecx,%ebx
-	rorl	$17,%esi
-	addl	88(%esp),%ebx
-	shrl	$10,%edi
-	addl	60(%esp),%ebx
-	movl	%edx,%ecx
-	xorl	%esi,%edi
-	movl	28(%esp),%esi
-	rorl	$14,%edx
-	addl	%edi,%ebx
-	movl	(%esp),%edi
-	xorl	%ecx,%edx
-	xorl	%edi,%esi
-	rorl	$5,%edx
-	andl	%ecx,%esi
-	movl	%ecx,24(%esp)
-	xorl	%ecx,%edx
-	addl	4(%esp),%ebx
-	xorl	%esi,%edi
-	rorl	$6,%edx
-	movl	%eax,%ecx
-	addl	%edi,%ebx
-	rorl	$9,%ecx
-	movl	%eax,%esi
-	movl	12(%esp),%edi
-	xorl	%eax,%ecx
-	movl	%eax,8(%esp)
-	xorl	%edi,%eax
-	rorl	$11,%ecx
-	andl	%eax,%ebp
-	leal	3204031479(%ebx,%edx,1),%edx
-	xorl	%esi,%ecx
-	xorl	%edi,%ebp
-	movl	32(%esp),%esi
-	rorl	$2,%ecx
-	addl	%edx,%ebp
-	addl	20(%esp),%edx
-	addl	%ecx,%ebp
-	movl	84(%esp),%ecx
-	movl	%esi,%ebx
-	rorl	$11,%esi
-	movl	%ecx,%edi
-	rorl	$2,%ecx
-	xorl	%ebx,%esi
-	shrl	$3,%ebx
-	rorl	$7,%esi
-	xorl	%edi,%ecx
-	xorl	%esi,%ebx
-	rorl	$17,%ecx
-	addl	92(%esp),%ebx
-	shrl	$10,%edi
-	addl	64(%esp),%ebx
-	movl	%edx,%esi
-	xorl	%ecx,%edi
-	movl	24(%esp),%ecx
-	rorl	$14,%edx
-	addl	%edi,%ebx
-	movl	28(%esp),%edi
-	xorl	%esi,%edx
-	xorl	%edi,%ecx
-	rorl	$5,%edx
-	andl	%esi,%ecx
-	movl	%esi,20(%esp)
-	xorl	%esi,%edx
-	addl	(%esp),%ebx
-	xorl	%ecx,%edi
-	rorl	$6,%edx
-	movl	%ebp,%esi
-	addl	%edi,%ebx
-	rorl	$9,%esi
-	movl	%ebp,%ecx
-	movl	8(%esp),%edi
-	xorl	%ebp,%esi
-	movl	%ebp,4(%esp)
-	xorl	%edi,%ebp
-	rorl	$11,%esi
-	andl	%ebp,%eax
-	leal	3329325298(%ebx,%edx,1),%edx
-	xorl	%ecx,%esi
-	xorl	%edi,%eax
-	rorl	$2,%esi
-	addl	%edx,%eax
-	addl	16(%esp),%edx
-	addl	%esi,%eax
-	movl	96(%esp),%esi
-	xorl	%edi,%ebp
-	movl	12(%esp),%ecx
-	addl	(%esi),%eax
-	addl	4(%esi),%ebp
-	addl	8(%esi),%edi
-	addl	12(%esi),%ecx
-	movl	%eax,(%esi)
-	movl	%ebp,4(%esi)
-	movl	%edi,8(%esi)
-	movl	%ecx,12(%esi)
-	movl	%ebp,4(%esp)
-	xorl	%edi,%ebp
-	movl	%edi,8(%esp)
-	movl	%ecx,12(%esp)
-	movl	20(%esp),%edi
-	movl	24(%esp),%ebx
-	movl	28(%esp),%ecx
-	addl	16(%esi),%edx
-	addl	20(%esi),%edi
-	addl	24(%esi),%ebx
-	addl	28(%esi),%ecx
-	movl	%edx,16(%esi)
-	movl	%edi,20(%esi)
-	movl	%ebx,24(%esi)
-	movl	%ecx,28(%esi)
-	movl	%edi,20(%esp)
-	movl	100(%esp),%edi
-	movl	%ebx,24(%esp)
-	movl	%ecx,28(%esp)
-	cmpl	104(%esp),%edi
-	jb	.L009grand_loop
-	movl	108(%esp),%esp
-	popl	%edi
-	popl	%esi
-	popl	%ebx
-	popl	%ebp
+align	64
+L$001K256:
+dd	1116352408,1899447441,3049323471,3921009573,961987163,1508970993,2453635748,2870763221,3624381080,310598401,607225278,1426881987,1925078388,2162078206,2614888103,3248222580,3835390401,4022224774,264347078,604807628,770255983,1249150122,1555081692,1996064986,2554220882,2821834349,2952996808,3210313671,3336571891,3584528711,113926993,338241895,666307205,773529912,1294757372,1396182291,1695183700,1986661051,2177026350,2456956037,2730485921,2820302411,3259730800,3345764771,3516065817,3600352804,4094571909,275423344,430227734,506948616,659060556,883997877,958139571,1322822218,1537002063,1747873779,1955562222,2024104815,2227730452,2361852424,2428436474,2756734187,3204031479,3329325298
+dd	66051,67438087,134810123,202182159
+db	83,72,65,50,53,54,32,98,108,111,99,107,32,116,114,97
+db	110,115,102,111,114,109,32,102,111,114,32,120,56,54,44,32
+db	67,82,89,80,84,79,71,65,77,83,32,98,121,32,60,97
+db	112,112,114,111,64,111,112,101,110,115,115,108,46,111,114,103
+db	62,0
+align	16
+L$008unrolled:
+	lea	esp,[esp-96]
+	mov	eax,DWORD [esi]
+	mov	ebp,DWORD [4+esi]
+	mov	ecx,DWORD [8+esi]
+	mov	ebx,DWORD [12+esi]
+	mov	DWORD [4+esp],ebp
+	xor	ebp,ecx
+	mov	DWORD [8+esp],ecx
+	mov	DWORD [12+esp],ebx
+	mov	edx,DWORD [16+esi]
+	mov	ebx,DWORD [20+esi]
+	mov	ecx,DWORD [24+esi]
+	mov	esi,DWORD [28+esi]
+	mov	DWORD [20+esp],ebx
+	mov	DWORD [24+esp],ecx
+	mov	DWORD [28+esp],esi
+	jmp	NEAR L$009grand_loop
+align	16
+L$009grand_loop:
+	mov	ebx,DWORD [edi]
+	mov	ecx,DWORD [4+edi]
+	bswap	ebx
+	mov	esi,DWORD [8+edi]
+	bswap	ecx
+	mov	DWORD [32+esp],ebx
+	bswap	esi
+	mov	DWORD [36+esp],ecx
+	mov	DWORD [40+esp],esi
+	mov	ebx,DWORD [12+edi]
+	mov	ecx,DWORD [16+edi]
+	bswap	ebx
+	mov	esi,DWORD [20+edi]
+	bswap	ecx
+	mov	DWORD [44+esp],ebx
+	bswap	esi
+	mov	DWORD [48+esp],ecx
+	mov	DWORD [52+esp],esi
+	mov	ebx,DWORD [24+edi]
+	mov	ecx,DWORD [28+edi]
+	bswap	ebx
+	mov	esi,DWORD [32+edi]
+	bswap	ecx
+	mov	DWORD [56+esp],ebx
+	bswap	esi
+	mov	DWORD [60+esp],ecx
+	mov	DWORD [64+esp],esi
+	mov	ebx,DWORD [36+edi]
+	mov	ecx,DWORD [40+edi]
+	bswap	ebx
+	mov	esi,DWORD [44+edi]
+	bswap	ecx
+	mov	DWORD [68+esp],ebx
+	bswap	esi
+	mov	DWORD [72+esp],ecx
+	mov	DWORD [76+esp],esi
+	mov	ebx,DWORD [48+edi]
+	mov	ecx,DWORD [52+edi]
+	bswap	ebx
+	mov	esi,DWORD [56+edi]
+	bswap	ecx
+	mov	DWORD [80+esp],ebx
+	bswap	esi
+	mov	DWORD [84+esp],ecx
+	mov	DWORD [88+esp],esi
+	mov	ebx,DWORD [60+edi]
+	add	edi,64
+	bswap	ebx
+	mov	DWORD [100+esp],edi
+	mov	DWORD [92+esp],ebx
+	mov	ecx,edx
+	mov	esi,DWORD [20+esp]
+	ror	edx,14
+	mov	edi,DWORD [24+esp]
+	xor	edx,ecx
+	mov	ebx,DWORD [32+esp]
+	xor	esi,edi
+	ror	edx,5
+	and	esi,ecx
+	mov	DWORD [16+esp],ecx
+	xor	edx,ecx
+	add	ebx,DWORD [28+esp]
+	xor	edi,esi
+	ror	edx,6
+	mov	ecx,eax
+	add	ebx,edi
+	ror	ecx,9
+	mov	esi,eax
+	mov	edi,DWORD [4+esp]
+	xor	ecx,eax
+	mov	DWORD [esp],eax
+	xor	eax,edi
+	ror	ecx,11
+	and	ebp,eax
+	lea	edx,[1116352408+edx*1+ebx]
+	xor	ecx,esi
+	xor	ebp,edi
+	ror	ecx,2
+	add	ebp,edx
+	add	edx,DWORD [12+esp]
+	add	ebp,ecx
+	mov	esi,edx
+	mov	ecx,DWORD [16+esp]
+	ror	edx,14
+	mov	edi,DWORD [20+esp]
+	xor	edx,esi
+	mov	ebx,DWORD [36+esp]
+	xor	ecx,edi
+	ror	edx,5
+	and	ecx,esi
+	mov	DWORD [12+esp],esi
+	xor	edx,esi
+	add	ebx,DWORD [24+esp]
+	xor	edi,ecx
+	ror	edx,6
+	mov	esi,ebp
+	add	ebx,edi
+	ror	esi,9
+	mov	ecx,ebp
+	mov	edi,DWORD [esp]
+	xor	esi,ebp
+	mov	DWORD [28+esp],ebp
+	xor	ebp,edi
+	ror	esi,11
+	and	eax,ebp
+	lea	edx,[1899447441+edx*1+ebx]
+	xor	esi,ecx
+	xor	eax,edi
+	ror	esi,2
+	add	eax,edx
+	add	edx,DWORD [8+esp]
+	add	eax,esi
+	mov	ecx,edx
+	mov	esi,DWORD [12+esp]
+	ror	edx,14
+	mov	edi,DWORD [16+esp]
+	xor	edx,ecx
+	mov	ebx,DWORD [40+esp]
+	xor	esi,edi
+	ror	edx,5
+	and	esi,ecx
+	mov	DWORD [8+esp],ecx
+	xor	edx,ecx
+	add	ebx,DWORD [20+esp]
+	xor	edi,esi
+	ror	edx,6
+	mov	ecx,eax
+	add	ebx,edi
+	ror	ecx,9
+	mov	esi,eax
+	mov	edi,DWORD [28+esp]
+	xor	ecx,eax
+	mov	DWORD [24+esp],eax
+	xor	eax,edi
+	ror	ecx,11
+	and	ebp,eax
+	lea	edx,[3049323471+edx*1+ebx]
+	xor	ecx,esi
+	xor	ebp,edi
+	ror	ecx,2
+	add	ebp,edx
+	add	edx,DWORD [4+esp]
+	add	ebp,ecx
+	mov	esi,edx
+	mov	ecx,DWORD [8+esp]
+	ror	edx,14
+	mov	edi,DWORD [12+esp]
+	xor	edx,esi
+	mov	ebx,DWORD [44+esp]
+	xor	ecx,edi
+	ror	edx,5
+	and	ecx,esi
+	mov	DWORD [4+esp],esi
+	xor	edx,esi
+	add	ebx,DWORD [16+esp]
+	xor	edi,ecx
+	ror	edx,6
+	mov	esi,ebp
+	add	ebx,edi
+	ror	esi,9
+	mov	ecx,ebp
+	mov	edi,DWORD [24+esp]
+	xor	esi,ebp
+	mov	DWORD [20+esp],ebp
+	xor	ebp,edi
+	ror	esi,11
+	and	eax,ebp
+	lea	edx,[3921009573+edx*1+ebx]
+	xor	esi,ecx
+	xor	eax,edi
+	ror	esi,2
+	add	eax,edx
+	add	edx,DWORD [esp]
+	add	eax,esi
+	mov	ecx,edx
+	mov	esi,DWORD [4+esp]
+	ror	edx,14
+	mov	edi,DWORD [8+esp]
+	xor	edx,ecx
+	mov	ebx,DWORD [48+esp]
+	xor	esi,edi
+	ror	edx,5
+	and	esi,ecx
+	mov	DWORD [esp],ecx
+	xor	edx,ecx
+	add	ebx,DWORD [12+esp]
+	xor	edi,esi
+	ror	edx,6
+	mov	ecx,eax
+	add	ebx,edi
+	ror	ecx,9
+	mov	esi,eax
+	mov	edi,DWORD [20+esp]
+	xor	ecx,eax
+	mov	DWORD [16+esp],eax
+	xor	eax,edi
+	ror	ecx,11
+	and	ebp,eax
+	lea	edx,[961987163+edx*1+ebx]
+	xor	ecx,esi
+	xor	ebp,edi
+	ror	ecx,2
+	add	ebp,edx
+	add	edx,DWORD [28+esp]
+	add	ebp,ecx
+	mov	esi,edx
+	mov	ecx,DWORD [esp]
+	ror	edx,14
+	mov	edi,DWORD [4+esp]
+	xor	edx,esi
+	mov	ebx,DWORD [52+esp]
+	xor	ecx,edi
+	ror	edx,5
+	and	ecx,esi
+	mov	DWORD [28+esp],esi
+	xor	edx,esi
+	add	ebx,DWORD [8+esp]
+	xor	edi,ecx
+	ror	edx,6
+	mov	esi,ebp
+	add	ebx,edi
+	ror	esi,9
+	mov	ecx,ebp
+	mov	edi,DWORD [16+esp]
+	xor	esi,ebp
+	mov	DWORD [12+esp],ebp
+	xor	ebp,edi
+	ror	esi,11
+	and	eax,ebp
+	lea	edx,[1508970993+edx*1+ebx]
+	xor	esi,ecx
+	xor	eax,edi
+	ror	esi,2
+	add	eax,edx
+	add	edx,DWORD [24+esp]
+	add	eax,esi
+	mov	ecx,edx
+	mov	esi,DWORD [28+esp]
+	ror	edx,14
+	mov	edi,DWORD [esp]
+	xor	edx,ecx
+	mov	ebx,DWORD [56+esp]
+	xor	esi,edi
+	ror	edx,5
+	and	esi,ecx
+	mov	DWORD [24+esp],ecx
+	xor	edx,ecx
+	add	ebx,DWORD [4+esp]
+	xor	edi,esi
+	ror	edx,6
+	mov	ecx,eax
+	add	ebx,edi
+	ror	ecx,9
+	mov	esi,eax
+	mov	edi,DWORD [12+esp]
+	xor	ecx,eax
+	mov	DWORD [8+esp],eax
+	xor	eax,edi
+	ror	ecx,11
+	and	ebp,eax
+	lea	edx,[2453635748+edx*1+ebx]
+	xor	ecx,esi
+	xor	ebp,edi
+	ror	ecx,2
+	add	ebp,edx
+	add	edx,DWORD [20+esp]
+	add	ebp,ecx
+	mov	esi,edx
+	mov	ecx,DWORD [24+esp]
+	ror	edx,14
+	mov	edi,DWORD [28+esp]
+	xor	edx,esi
+	mov	ebx,DWORD [60+esp]
+	xor	ecx,edi
+	ror	edx,5
+	and	ecx,esi
+	mov	DWORD [20+esp],esi
+	xor	edx,esi
+	add	ebx,DWORD [esp]
+	xor	edi,ecx
+	ror	edx,6
+	mov	esi,ebp
+	add	ebx,edi
+	ror	esi,9
+	mov	ecx,ebp
+	mov	edi,DWORD [8+esp]
+	xor	esi,ebp
+	mov	DWORD [4+esp],ebp
+	xor	ebp,edi
+	ror	esi,11
+	and	eax,ebp
+	lea	edx,[2870763221+edx*1+ebx]
+	xor	esi,ecx
+	xor	eax,edi
+	ror	esi,2
+	add	eax,edx
+	add	edx,DWORD [16+esp]
+	add	eax,esi
+	mov	ecx,edx
+	mov	esi,DWORD [20+esp]
+	ror	edx,14
+	mov	edi,DWORD [24+esp]
+	xor	edx,ecx
+	mov	ebx,DWORD [64+esp]
+	xor	esi,edi
+	ror	edx,5
+	and	esi,ecx
+	mov	DWORD [16+esp],ecx
+	xor	edx,ecx
+	add	ebx,DWORD [28+esp]
+	xor	edi,esi
+	ror	edx,6
+	mov	ecx,eax
+	add	ebx,edi
+	ror	ecx,9
+	mov	esi,eax
+	mov	edi,DWORD [4+esp]
+	xor	ecx,eax
+	mov	DWORD [esp],eax
+	xor	eax,edi
+	ror	ecx,11
+	and	ebp,eax
+	lea	edx,[3624381080+edx*1+ebx]
+	xor	ecx,esi
+	xor	ebp,edi
+	ror	ecx,2
+	add	ebp,edx
+	add	edx,DWORD [12+esp]
+	add	ebp,ecx
+	mov	esi,edx
+	mov	ecx,DWORD [16+esp]
+	ror	edx,14
+	mov	edi,DWORD [20+esp]
+	xor	edx,esi
+	mov	ebx,DWORD [68+esp]
+	xor	ecx,edi
+	ror	edx,5
+	and	ecx,esi
+	mov	DWORD [12+esp],esi
+	xor	edx,esi
+	add	ebx,DWORD [24+esp]
+	xor	edi,ecx
+	ror	edx,6
+	mov	esi,ebp
+	add	ebx,edi
+	ror	esi,9
+	mov	ecx,ebp
+	mov	edi,DWORD [esp]
+	xor	esi,ebp
+	mov	DWORD [28+esp],ebp
+	xor	ebp,edi
+	ror	esi,11
+	and	eax,ebp
+	lea	edx,[310598401+edx*1+ebx]
+	xor	esi,ecx
+	xor	eax,edi
+	ror	esi,2
+	add	eax,edx
+	add	edx,DWORD [8+esp]
+	add	eax,esi
+	mov	ecx,edx
+	mov	esi,DWORD [12+esp]
+	ror	edx,14
+	mov	edi,DWORD [16+esp]
+	xor	edx,ecx
+	mov	ebx,DWORD [72+esp]
+	xor	esi,edi
+	ror	edx,5
+	and	esi,ecx
+	mov	DWORD [8+esp],ecx
+	xor	edx,ecx
+	add	ebx,DWORD [20+esp]
+	xor	edi,esi
+	ror	edx,6
+	mov	ecx,eax
+	add	ebx,edi
+	ror	ecx,9
+	mov	esi,eax
+	mov	edi,DWORD [28+esp]
+	xor	ecx,eax
+	mov	DWORD [24+esp],eax
+	xor	eax,edi
+	ror	ecx,11
+	and	ebp,eax
+	lea	edx,[607225278+edx*1+ebx]
+	xor	ecx,esi
+	xor	ebp,edi
+	ror	ecx,2
+	add	ebp,edx
+	add	edx,DWORD [4+esp]
+	add	ebp,ecx
+	mov	esi,edx
+	mov	ecx,DWORD [8+esp]
+	ror	edx,14
+	mov	edi,DWORD [12+esp]
+	xor	edx,esi
+	mov	ebx,DWORD [76+esp]
+	xor	ecx,edi
+	ror	edx,5
+	and	ecx,esi
+	mov	DWORD [4+esp],esi
+	xor	edx,esi
+	add	ebx,DWORD [16+esp]
+	xor	edi,ecx
+	ror	edx,6
+	mov	esi,ebp
+	add	ebx,edi
+	ror	esi,9
+	mov	ecx,ebp
+	mov	edi,DWORD [24+esp]
+	xor	esi,ebp
+	mov	DWORD [20+esp],ebp
+	xor	ebp,edi
+	ror	esi,11
+	and	eax,ebp
+	lea	edx,[1426881987+edx*1+ebx]
+	xor	esi,ecx
+	xor	eax,edi
+	ror	esi,2
+	add	eax,edx
+	add	edx,DWORD [esp]
+	add	eax,esi
+	mov	ecx,edx
+	mov	esi,DWORD [4+esp]
+	ror	edx,14
+	mov	edi,DWORD [8+esp]
+	xor	edx,ecx
+	mov	ebx,DWORD [80+esp]
+	xor	esi,edi
+	ror	edx,5
+	and	esi,ecx
+	mov	DWORD [esp],ecx
+	xor	edx,ecx
+	add	ebx,DWORD [12+esp]
+	xor	edi,esi
+	ror	edx,6
+	mov	ecx,eax
+	add	ebx,edi
+	ror	ecx,9
+	mov	esi,eax
+	mov	edi,DWORD [20+esp]
+	xor	ecx,eax
+	mov	DWORD [16+esp],eax
+	xor	eax,edi
+	ror	ecx,11
+	and	ebp,eax
+	lea	edx,[1925078388+edx*1+ebx]
+	xor	ecx,esi
+	xor	ebp,edi
+	ror	ecx,2
+	add	ebp,edx
+	add	edx,DWORD [28+esp]
+	add	ebp,ecx
+	mov	esi,edx
+	mov	ecx,DWORD [esp]
+	ror	edx,14
+	mov	edi,DWORD [4+esp]
+	xor	edx,esi
+	mov	ebx,DWORD [84+esp]
+	xor	ecx,edi
+	ror	edx,5
+	and	ecx,esi
+	mov	DWORD [28+esp],esi
+	xor	edx,esi
+	add	ebx,DWORD [8+esp]
+	xor	edi,ecx
+	ror	edx,6
+	mov	esi,ebp
+	add	ebx,edi
+	ror	esi,9
+	mov	ecx,ebp
+	mov	edi,DWORD [16+esp]
+	xor	esi,ebp
+	mov	DWORD [12+esp],ebp
+	xor	ebp,edi
+	ror	esi,11
+	and	eax,ebp
+	lea	edx,[2162078206+edx*1+ebx]
+	xor	esi,ecx
+	xor	eax,edi
+	ror	esi,2
+	add	eax,edx
+	add	edx,DWORD [24+esp]
+	add	eax,esi
+	mov	ecx,edx
+	mov	esi,DWORD [28+esp]
+	ror	edx,14
+	mov	edi,DWORD [esp]
+	xor	edx,ecx
+	mov	ebx,DWORD [88+esp]
+	xor	esi,edi
+	ror	edx,5
+	and	esi,ecx
+	mov	DWORD [24+esp],ecx
+	xor	edx,ecx
+	add	ebx,DWORD [4+esp]
+	xor	edi,esi
+	ror	edx,6
+	mov	ecx,eax
+	add	ebx,edi
+	ror	ecx,9
+	mov	esi,eax
+	mov	edi,DWORD [12+esp]
+	xor	ecx,eax
+	mov	DWORD [8+esp],eax
+	xor	eax,edi
+	ror	ecx,11
+	and	ebp,eax
+	lea	edx,[2614888103+edx*1+ebx]
+	xor	ecx,esi
+	xor	ebp,edi
+	ror	ecx,2
+	add	ebp,edx
+	add	edx,DWORD [20+esp]
+	add	ebp,ecx
+	mov	esi,edx
+	mov	ecx,DWORD [24+esp]
+	ror	edx,14
+	mov	edi,DWORD [28+esp]
+	xor	edx,esi
+	mov	ebx,DWORD [92+esp]
+	xor	ecx,edi
+	ror	edx,5
+	and	ecx,esi
+	mov	DWORD [20+esp],esi
+	xor	edx,esi
+	add	ebx,DWORD [esp]
+	xor	edi,ecx
+	ror	edx,6
+	mov	esi,ebp
+	add	ebx,edi
+	ror	esi,9
+	mov	ecx,ebp
+	mov	edi,DWORD [8+esp]
+	xor	esi,ebp
+	mov	DWORD [4+esp],ebp
+	xor	ebp,edi
+	ror	esi,11
+	and	eax,ebp
+	lea	edx,[3248222580+edx*1+ebx]
+	xor	esi,ecx
+	xor	eax,edi
+	mov	ecx,DWORD [36+esp]
+	ror	esi,2
+	add	eax,edx
+	add	edx,DWORD [16+esp]
+	add	eax,esi
+	mov	esi,DWORD [88+esp]
+	mov	ebx,ecx
+	ror	ecx,11
+	mov	edi,esi
+	ror	esi,2
+	xor	ecx,ebx
+	shr	ebx,3
+	ror	ecx,7
+	xor	esi,edi
+	xor	ebx,ecx
+	ror	esi,17
+	add	ebx,DWORD [32+esp]
+	shr	edi,10
+	add	ebx,DWORD [68+esp]
+	mov	ecx,edx
+	xor	edi,esi
+	mov	esi,DWORD [20+esp]
+	ror	edx,14
+	add	ebx,edi
+	mov	edi,DWORD [24+esp]
+	xor	edx,ecx
+	mov	DWORD [32+esp],ebx
+	xor	esi,edi
+	ror	edx,5
+	and	esi,ecx
+	mov	DWORD [16+esp],ecx
+	xor	edx,ecx
+	add	ebx,DWORD [28+esp]
+	xor	edi,esi
+	ror	edx,6
+	mov	ecx,eax
+	add	ebx,edi
+	ror	ecx,9
+	mov	esi,eax
+	mov	edi,DWORD [4+esp]
+	xor	ecx,eax
+	mov	DWORD [esp],eax
+	xor	eax,edi
+	ror	ecx,11
+	and	ebp,eax
+	lea	edx,[3835390401+edx*1+ebx]
+	xor	ecx,esi
+	xor	ebp,edi
+	mov	esi,DWORD [40+esp]
+	ror	ecx,2
+	add	ebp,edx
+	add	edx,DWORD [12+esp]
+	add	ebp,ecx
+	mov	ecx,DWORD [92+esp]
+	mov	ebx,esi
+	ror	esi,11
+	mov	edi,ecx
+	ror	ecx,2
+	xor	esi,ebx
+	shr	ebx,3
+	ror	esi,7
+	xor	ecx,edi
+	xor	ebx,esi
+	ror	ecx,17
+	add	ebx,DWORD [36+esp]
+	shr	edi,10
+	add	ebx,DWORD [72+esp]
+	mov	esi,edx
+	xor	edi,ecx
+	mov	ecx,DWORD [16+esp]
+	ror	edx,14
+	add	ebx,edi
+	mov	edi,DWORD [20+esp]
+	xor	edx,esi
+	mov	DWORD [36+esp],ebx
+	xor	ecx,edi
+	ror	edx,5
+	and	ecx,esi
+	mov	DWORD [12+esp],esi
+	xor	edx,esi
+	add	ebx,DWORD [24+esp]
+	xor	edi,ecx
+	ror	edx,6
+	mov	esi,ebp
+	add	ebx,edi
+	ror	esi,9
+	mov	ecx,ebp
+	mov	edi,DWORD [esp]
+	xor	esi,ebp
+	mov	DWORD [28+esp],ebp
+	xor	ebp,edi
+	ror	esi,11
+	and	eax,ebp
+	lea	edx,[4022224774+edx*1+ebx]
+	xor	esi,ecx
+	xor	eax,edi
+	mov	ecx,DWORD [44+esp]
+	ror	esi,2
+	add	eax,edx
+	add	edx,DWORD [8+esp]
+	add	eax,esi
+	mov	esi,DWORD [32+esp]
+	mov	ebx,ecx
+	ror	ecx,11
+	mov	edi,esi
+	ror	esi,2
+	xor	ecx,ebx
+	shr	ebx,3
+	ror	ecx,7
+	xor	esi,edi
+	xor	ebx,ecx
+	ror	esi,17
+	add	ebx,DWORD [40+esp]
+	shr	edi,10
+	add	ebx,DWORD [76+esp]
+	mov	ecx,edx
+	xor	edi,esi
+	mov	esi,DWORD [12+esp]
+	ror	edx,14
+	add	ebx,edi
+	mov	edi,DWORD [16+esp]
+	xor	edx,ecx
+	mov	DWORD [40+esp],ebx
+	xor	esi,edi
+	ror	edx,5
+	and	esi,ecx
+	mov	DWORD [8+esp],ecx
+	xor	edx,ecx
+	add	ebx,DWORD [20+esp]
+	xor	edi,esi
+	ror	edx,6
+	mov	ecx,eax
+	add	ebx,edi
+	ror	ecx,9
+	mov	esi,eax
+	mov	edi,DWORD [28+esp]
+	xor	ecx,eax
+	mov	DWORD [24+esp],eax
+	xor	eax,edi
+	ror	ecx,11
+	and	ebp,eax
+	lea	edx,[264347078+edx*1+ebx]
+	xor	ecx,esi
+	xor	ebp,edi
+	mov	esi,DWORD [48+esp]
+	ror	ecx,2
+	add	ebp,edx
+	add	edx,DWORD [4+esp]
+	add	ebp,ecx
+	mov	ecx,DWORD [36+esp]
+	mov	ebx,esi
+	ror	esi,11
+	mov	edi,ecx
+	ror	ecx,2
+	xor	esi,ebx
+	shr	ebx,3
+	ror	esi,7
+	xor	ecx,edi
+	xor	ebx,esi
+	ror	ecx,17
+	add	ebx,DWORD [44+esp]
+	shr	edi,10
+	add	ebx,DWORD [80+esp]
+	mov	esi,edx
+	xor	edi,ecx
+	mov	ecx,DWORD [8+esp]
+	ror	edx,14
+	add	ebx,edi
+	mov	edi,DWORD [12+esp]
+	xor	edx,esi
+	mov	DWORD [44+esp],ebx
+	xor	ecx,edi
+	ror	edx,5
+	and	ecx,esi
+	mov	DWORD [4+esp],esi
+	xor	edx,esi
+	add	ebx,DWORD [16+esp]
+	xor	edi,ecx
+	ror	edx,6
+	mov	esi,ebp
+	add	ebx,edi
+	ror	esi,9
+	mov	ecx,ebp
+	mov	edi,DWORD [24+esp]
+	xor	esi,ebp
+	mov	DWORD [20+esp],ebp
+	xor	ebp,edi
+	ror	esi,11
+	and	eax,ebp
+	lea	edx,[604807628+edx*1+ebx]
+	xor	esi,ecx
+	xor	eax,edi
+	mov	ecx,DWORD [52+esp]
+	ror	esi,2
+	add	eax,edx
+	add	edx,DWORD [esp]
+	add	eax,esi
+	mov	esi,DWORD [40+esp]
+	mov	ebx,ecx
+	ror	ecx,11
+	mov	edi,esi
+	ror	esi,2
+	xor	ecx,ebx
+	shr	ebx,3
+	ror	ecx,7
+	xor	esi,edi
+	xor	ebx,ecx
+	ror	esi,17
+	add	ebx,DWORD [48+esp]
+	shr	edi,10
+	add	ebx,DWORD [84+esp]
+	mov	ecx,edx
+	xor	edi,esi
+	mov	esi,DWORD [4+esp]
+	ror	edx,14
+	add	ebx,edi
+	mov	edi,DWORD [8+esp]
+	xor	edx,ecx
+	mov	DWORD [48+esp],ebx
+	xor	esi,edi
+	ror	edx,5
+	and	esi,ecx
+	mov	DWORD [esp],ecx
+	xor	edx,ecx
+	add	ebx,DWORD [12+esp]
+	xor	edi,esi
+	ror	edx,6
+	mov	ecx,eax
+	add	ebx,edi
+	ror	ecx,9
+	mov	esi,eax
+	mov	edi,DWORD [20+esp]
+	xor	ecx,eax
+	mov	DWORD [16+esp],eax
+	xor	eax,edi
+	ror	ecx,11
+	and	ebp,eax
+	lea	edx,[770255983+edx*1+ebx]
+	xor	ecx,esi
+	xor	ebp,edi
+	mov	esi,DWORD [56+esp]
+	ror	ecx,2
+	add	ebp,edx
+	add	edx,DWORD [28+esp]
+	add	ebp,ecx
+	mov	ecx,DWORD [44+esp]
+	mov	ebx,esi
+	ror	esi,11
+	mov	edi,ecx
+	ror	ecx,2
+	xor	esi,ebx
+	shr	ebx,3
+	ror	esi,7
+	xor	ecx,edi
+	xor	ebx,esi
+	ror	ecx,17
+	add	ebx,DWORD [52+esp]
+	shr	edi,10
+	add	ebx,DWORD [88+esp]
+	mov	esi,edx
+	xor	edi,ecx
+	mov	ecx,DWORD [esp]
+	ror	edx,14
+	add	ebx,edi
+	mov	edi,DWORD [4+esp]
+	xor	edx,esi
+	mov	DWORD [52+esp],ebx
+	xor	ecx,edi
+	ror	edx,5
+	and	ecx,esi
+	mov	DWORD [28+esp],esi
+	xor	edx,esi
+	add	ebx,DWORD [8+esp]
+	xor	edi,ecx
+	ror	edx,6
+	mov	esi,ebp
+	add	ebx,edi
+	ror	esi,9
+	mov	ecx,ebp
+	mov	edi,DWORD [16+esp]
+	xor	esi,ebp
+	mov	DWORD [12+esp],ebp
+	xor	ebp,edi
+	ror	esi,11
+	and	eax,ebp
+	lea	edx,[1249150122+edx*1+ebx]
+	xor	esi,ecx
+	xor	eax,edi
+	mov	ecx,DWORD [60+esp]
+	ror	esi,2
+	add	eax,edx
+	add	edx,DWORD [24+esp]
+	add	eax,esi
+	mov	esi,DWORD [48+esp]
+	mov	ebx,ecx
+	ror	ecx,11
+	mov	edi,esi
+	ror	esi,2
+	xor	ecx,ebx
+	shr	ebx,3
+	ror	ecx,7
+	xor	esi,edi
+	xor	ebx,ecx
+	ror	esi,17
+	add	ebx,DWORD [56+esp]
+	shr	edi,10
+	add	ebx,DWORD [92+esp]
+	mov	ecx,edx
+	xor	edi,esi
+	mov	esi,DWORD [28+esp]
+	ror	edx,14
+	add	ebx,edi
+	mov	edi,DWORD [esp]
+	xor	edx,ecx
+	mov	DWORD [56+esp],ebx
+	xor	esi,edi
+	ror	edx,5
+	and	esi,ecx
+	mov	DWORD [24+esp],ecx
+	xor	edx,ecx
+	add	ebx,DWORD [4+esp]
+	xor	edi,esi
+	ror	edx,6
+	mov	ecx,eax
+	add	ebx,edi
+	ror	ecx,9
+	mov	esi,eax
+	mov	edi,DWORD [12+esp]
+	xor	ecx,eax
+	mov	DWORD [8+esp],eax
+	xor	eax,edi
+	ror	ecx,11
+	and	ebp,eax
+	lea	edx,[1555081692+edx*1+ebx]
+	xor	ecx,esi
+	xor	ebp,edi
+	mov	esi,DWORD [64+esp]
+	ror	ecx,2
+	add	ebp,edx
+	add	edx,DWORD [20+esp]
+	add	ebp,ecx
+	mov	ecx,DWORD [52+esp]
+	mov	ebx,esi
+	ror	esi,11
+	mov	edi,ecx
+	ror	ecx,2
+	xor	esi,ebx
+	shr	ebx,3
+	ror	esi,7
+	xor	ecx,edi
+	xor	ebx,esi
+	ror	ecx,17
+	add	ebx,DWORD [60+esp]
+	shr	edi,10
+	add	ebx,DWORD [32+esp]
+	mov	esi,edx
+	xor	edi,ecx
+	mov	ecx,DWORD [24+esp]
+	ror	edx,14
+	add	ebx,edi
+	mov	edi,DWORD [28+esp]
+	xor	edx,esi
+	mov	DWORD [60+esp],ebx
+	xor	ecx,edi
+	ror	edx,5
+	and	ecx,esi
+	mov	DWORD [20+esp],esi
+	xor	edx,esi
+	add	ebx,DWORD [esp]
+	xor	edi,ecx
+	ror	edx,6
+	mov	esi,ebp
+	add	ebx,edi
+	ror	esi,9
+	mov	ecx,ebp
+	mov	edi,DWORD [8+esp]
+	xor	esi,ebp
+	mov	DWORD [4+esp],ebp
+	xor	ebp,edi
+	ror	esi,11
+	and	eax,ebp
+	lea	edx,[1996064986+edx*1+ebx]
+	xor	esi,ecx
+	xor	eax,edi
+	mov	ecx,DWORD [68+esp]
+	ror	esi,2
+	add	eax,edx
+	add	edx,DWORD [16+esp]
+	add	eax,esi
+	mov	esi,DWORD [56+esp]
+	mov	ebx,ecx
+	ror	ecx,11
+	mov	edi,esi
+	ror	esi,2
+	xor	ecx,ebx
+	shr	ebx,3
+	ror	ecx,7
+	xor	esi,edi
+	xor	ebx,ecx
+	ror	esi,17
+	add	ebx,DWORD [64+esp]
+	shr	edi,10
+	add	ebx,DWORD [36+esp]
+	mov	ecx,edx
+	xor	edi,esi
+	mov	esi,DWORD [20+esp]
+	ror	edx,14
+	add	ebx,edi
+	mov	edi,DWORD [24+esp]
+	xor	edx,ecx
+	mov	DWORD [64+esp],ebx
+	xor	esi,edi
+	ror	edx,5
+	and	esi,ecx
+	mov	DWORD [16+esp],ecx
+	xor	edx,ecx
+	add	ebx,DWORD [28+esp]
+	xor	edi,esi
+	ror	edx,6
+	mov	ecx,eax
+	add	ebx,edi
+	ror	ecx,9
+	mov	esi,eax
+	mov	edi,DWORD [4+esp]
+	xor	ecx,eax
+	mov	DWORD [esp],eax
+	xor	eax,edi
+	ror	ecx,11
+	and	ebp,eax
+	lea	edx,[2554220882+edx*1+ebx]
+	xor	ecx,esi
+	xor	ebp,edi
+	mov	esi,DWORD [72+esp]
+	ror	ecx,2
+	add	ebp,edx
+	add	edx,DWORD [12+esp]
+	add	ebp,ecx
+	mov	ecx,DWORD [60+esp]
+	mov	ebx,esi
+	ror	esi,11
+	mov	edi,ecx
+	ror	ecx,2
+	xor	esi,ebx
+	shr	ebx,3
+	ror	esi,7
+	xor	ecx,edi
+	xor	ebx,esi
+	ror	ecx,17
+	add	ebx,DWORD [68+esp]
+	shr	edi,10
+	add	ebx,DWORD [40+esp]
+	mov	esi,edx
+	xor	edi,ecx
+	mov	ecx,DWORD [16+esp]
+	ror	edx,14
+	add	ebx,edi
+	mov	edi,DWORD [20+esp]
+	xor	edx,esi
+	mov	DWORD [68+esp],ebx
+	xor	ecx,edi
+	ror	edx,5
+	and	ecx,esi
+	mov	DWORD [12+esp],esi
+	xor	edx,esi
+	add	ebx,DWORD [24+esp]
+	xor	edi,ecx
+	ror	edx,6
+	mov	esi,ebp
+	add	ebx,edi
+	ror	esi,9
+	mov	ecx,ebp
+	mov	edi,DWORD [esp]
+	xor	esi,ebp
+	mov	DWORD [28+esp],ebp
+	xor	ebp,edi
+	ror	esi,11
+	and	eax,ebp
+	lea	edx,[2821834349+edx*1+ebx]
+	xor	esi,ecx
+	xor	eax,edi
+	mov	ecx,DWORD [76+esp]
+	ror	esi,2
+	add	eax,edx
+	add	edx,DWORD [8+esp]
+	add	eax,esi
+	mov	esi,DWORD [64+esp]
+	mov	ebx,ecx
+	ror	ecx,11
+	mov	edi,esi
+	ror	esi,2
+	xor	ecx,ebx
+	shr	ebx,3
+	ror	ecx,7
+	xor	esi,edi
+	xor	ebx,ecx
+	ror	esi,17
+	add	ebx,DWORD [72+esp]
+	shr	edi,10
+	add	ebx,DWORD [44+esp]
+	mov	ecx,edx
+	xor	edi,esi
+	mov	esi,DWORD [12+esp]
+	ror	edx,14
+	add	ebx,edi
+	mov	edi,DWORD [16+esp]
+	xor	edx,ecx
+	mov	DWORD [72+esp],ebx
+	xor	esi,edi
+	ror	edx,5
+	and	esi,ecx
+	mov	DWORD [8+esp],ecx
+	xor	edx,ecx
+	add	ebx,DWORD [20+esp]
+	xor	edi,esi
+	ror	edx,6
+	mov	ecx,eax
+	add	ebx,edi
+	ror	ecx,9
+	mov	esi,eax
+	mov	edi,DWORD [28+esp]
+	xor	ecx,eax
+	mov	DWORD [24+esp],eax
+	xor	eax,edi
+	ror	ecx,11
+	and	ebp,eax
+	lea	edx,[2952996808+edx*1+ebx]
+	xor	ecx,esi
+	xor	ebp,edi
+	mov	esi,DWORD [80+esp]
+	ror	ecx,2
+	add	ebp,edx
+	add	edx,DWORD [4+esp]
+	add	ebp,ecx
+	mov	ecx,DWORD [68+esp]
+	mov	ebx,esi
+	ror	esi,11
+	mov	edi,ecx
+	ror	ecx,2
+	xor	esi,ebx
+	shr	ebx,3
+	ror	esi,7
+	xor	ecx,edi
+	xor	ebx,esi
+	ror	ecx,17
+	add	ebx,DWORD [76+esp]
+	shr	edi,10
+	add	ebx,DWORD [48+esp]
+	mov	esi,edx
+	xor	edi,ecx
+	mov	ecx,DWORD [8+esp]
+	ror	edx,14
+	add	ebx,edi
+	mov	edi,DWORD [12+esp]
+	xor	edx,esi
+	mov	DWORD [76+esp],ebx
+	xor	ecx,edi
+	ror	edx,5
+	and	ecx,esi
+	mov	DWORD [4+esp],esi
+	xor	edx,esi
+	add	ebx,DWORD [16+esp]
+	xor	edi,ecx
+	ror	edx,6
+	mov	esi,ebp
+	add	ebx,edi
+	ror	esi,9
+	mov	ecx,ebp
+	mov	edi,DWORD [24+esp]
+	xor	esi,ebp
+	mov	DWORD [20+esp],ebp
+	xor	ebp,edi
+	ror	esi,11
+	and	eax,ebp
+	lea	edx,[3210313671+edx*1+ebx]
+	xor	esi,ecx
+	xor	eax,edi
+	mov	ecx,DWORD [84+esp]
+	ror	esi,2
+	add	eax,edx
+	add	edx,DWORD [esp]
+	add	eax,esi
+	mov	esi,DWORD [72+esp]
+	mov	ebx,ecx
+	ror	ecx,11
+	mov	edi,esi
+	ror	esi,2
+	xor	ecx,ebx
+	shr	ebx,3
+	ror	ecx,7
+	xor	esi,edi
+	xor	ebx,ecx
+	ror	esi,17
+	add	ebx,DWORD [80+esp]
+	shr	edi,10
+	add	ebx,DWORD [52+esp]
+	mov	ecx,edx
+	xor	edi,esi
+	mov	esi,DWORD [4+esp]
+	ror	edx,14
+	add	ebx,edi
+	mov	edi,DWORD [8+esp]
+	xor	edx,ecx
+	mov	DWORD [80+esp],ebx
+	xor	esi,edi
+	ror	edx,5
+	and	esi,ecx
+	mov	DWORD [esp],ecx
+	xor	edx,ecx
+	add	ebx,DWORD [12+esp]
+	xor	edi,esi
+	ror	edx,6
+	mov	ecx,eax
+	add	ebx,edi
+	ror	ecx,9
+	mov	esi,eax
+	mov	edi,DWORD [20+esp]
+	xor	ecx,eax
+	mov	DWORD [16+esp],eax
+	xor	eax,edi
+	ror	ecx,11
+	and	ebp,eax
+	lea	edx,[3336571891+edx*1+ebx]
+	xor	ecx,esi
+	xor	ebp,edi
+	mov	esi,DWORD [88+esp]
+	ror	ecx,2
+	add	ebp,edx
+	add	edx,DWORD [28+esp]
+	add	ebp,ecx
+	mov	ecx,DWORD [76+esp]
+	mov	ebx,esi
+	ror	esi,11
+	mov	edi,ecx
+	ror	ecx,2
+	xor	esi,ebx
+	shr	ebx,3
+	ror	esi,7
+	xor	ecx,edi
+	xor	ebx,esi
+	ror	ecx,17
+	add	ebx,DWORD [84+esp]
+	shr	edi,10
+	add	ebx,DWORD [56+esp]
+	mov	esi,edx
+	xor	edi,ecx
+	mov	ecx,DWORD [esp]
+	ror	edx,14
+	add	ebx,edi
+	mov	edi,DWORD [4+esp]
+	xor	edx,esi
+	mov	DWORD [84+esp],ebx
+	xor	ecx,edi
+	ror	edx,5
+	and	ecx,esi
+	mov	DWORD [28+esp],esi
+	xor	edx,esi
+	add	ebx,DWORD [8+esp]
+	xor	edi,ecx
+	ror	edx,6
+	mov	esi,ebp
+	add	ebx,edi
+	ror	esi,9
+	mov	ecx,ebp
+	mov	edi,DWORD [16+esp]
+	xor	esi,ebp
+	mov	DWORD [12+esp],ebp
+	xor	ebp,edi
+	ror	esi,11
+	and	eax,ebp
+	lea	edx,[3584528711+edx*1+ebx]
+	xor	esi,ecx
+	xor	eax,edi
+	mov	ecx,DWORD [92+esp]
+	ror	esi,2
+	add	eax,edx
+	add	edx,DWORD [24+esp]
+	add	eax,esi
+	mov	esi,DWORD [80+esp]
+	mov	ebx,ecx
+	ror	ecx,11
+	mov	edi,esi
+	ror	esi,2
+	xor	ecx,ebx
+	shr	ebx,3
+	ror	ecx,7
+	xor	esi,edi
+	xor	ebx,ecx
+	ror	esi,17
+	add	ebx,DWORD [88+esp]
+	shr	edi,10
+	add	ebx,DWORD [60+esp]
+	mov	ecx,edx
+	xor	edi,esi
+	mov	esi,DWORD [28+esp]
+	ror	edx,14
+	add	ebx,edi
+	mov	edi,DWORD [esp]
+	xor	edx,ecx
+	mov	DWORD [88+esp],ebx
+	xor	esi,edi
+	ror	edx,5
+	and	esi,ecx
+	mov	DWORD [24+esp],ecx
+	xor	edx,ecx
+	add	ebx,DWORD [4+esp]
+	xor	edi,esi
+	ror	edx,6
+	mov	ecx,eax
+	add	ebx,edi
+	ror	ecx,9
+	mov	esi,eax
+	mov	edi,DWORD [12+esp]
+	xor	ecx,eax
+	mov	DWORD [8+esp],eax
+	xor	eax,edi
+	ror	ecx,11
+	and	ebp,eax
+	lea	edx,[113926993+edx*1+ebx]
+	xor	ecx,esi
+	xor	ebp,edi
+	mov	esi,DWORD [32+esp]
+	ror	ecx,2
+	add	ebp,edx
+	add	edx,DWORD [20+esp]
+	add	ebp,ecx
+	mov	ecx,DWORD [84+esp]
+	mov	ebx,esi
+	ror	esi,11
+	mov	edi,ecx
+	ror	ecx,2
+	xor	esi,ebx
+	shr	ebx,3
+	ror	esi,7
+	xor	ecx,edi
+	xor	ebx,esi
+	ror	ecx,17
+	add	ebx,DWORD [92+esp]
+	shr	edi,10
+	add	ebx,DWORD [64+esp]
+	mov	esi,edx
+	xor	edi,ecx
+	mov	ecx,DWORD [24+esp]
+	ror	edx,14
+	add	ebx,edi
+	mov	edi,DWORD [28+esp]
+	xor	edx,esi
+	mov	DWORD [92+esp],ebx
+	xor	ecx,edi
+	ror	edx,5
+	and	ecx,esi
+	mov	DWORD [20+esp],esi
+	xor	edx,esi
+	add	ebx,DWORD [esp]
+	xor	edi,ecx
+	ror	edx,6
+	mov	esi,ebp
+	add	ebx,edi
+	ror	esi,9
+	mov	ecx,ebp
+	mov	edi,DWORD [8+esp]
+	xor	esi,ebp
+	mov	DWORD [4+esp],ebp
+	xor	ebp,edi
+	ror	esi,11
+	and	eax,ebp
+	lea	edx,[338241895+edx*1+ebx]
+	xor	esi,ecx
+	xor	eax,edi
+	mov	ecx,DWORD [36+esp]
+	ror	esi,2
+	add	eax,edx
+	add	edx,DWORD [16+esp]
+	add	eax,esi
+	mov	esi,DWORD [88+esp]
+	mov	ebx,ecx
+	ror	ecx,11
+	mov	edi,esi
+	ror	esi,2
+	xor	ecx,ebx
+	shr	ebx,3
+	ror	ecx,7
+	xor	esi,edi
+	xor	ebx,ecx
+	ror	esi,17
+	add	ebx,DWORD [32+esp]
+	shr	edi,10
+	add	ebx,DWORD [68+esp]
+	mov	ecx,edx
+	xor	edi,esi
+	mov	esi,DWORD [20+esp]
+	ror	edx,14
+	add	ebx,edi
+	mov	edi,DWORD [24+esp]
+	xor	edx,ecx
+	mov	DWORD [32+esp],ebx
+	xor	esi,edi
+	ror	edx,5
+	and	esi,ecx
+	mov	DWORD [16+esp],ecx
+	xor	edx,ecx
+	add	ebx,DWORD [28+esp]
+	xor	edi,esi
+	ror	edx,6
+	mov	ecx,eax
+	add	ebx,edi
+	ror	ecx,9
+	mov	esi,eax
+	mov	edi,DWORD [4+esp]
+	xor	ecx,eax
+	mov	DWORD [esp],eax
+	xor	eax,edi
+	ror	ecx,11
+	and	ebp,eax
+	lea	edx,[666307205+edx*1+ebx]
+	xor	ecx,esi
+	xor	ebp,edi
+	mov	esi,DWORD [40+esp]
+	ror	ecx,2
+	add	ebp,edx
+	add	edx,DWORD [12+esp]
+	add	ebp,ecx
+	mov	ecx,DWORD [92+esp]
+	mov	ebx,esi
+	ror	esi,11
+	mov	edi,ecx
+	ror	ecx,2
+	xor	esi,ebx
+	shr	ebx,3
+	ror	esi,7
+	xor	ecx,edi
+	xor	ebx,esi
+	ror	ecx,17
+	add	ebx,DWORD [36+esp]
+	shr	edi,10
+	add	ebx,DWORD [72+esp]
+	mov	esi,edx
+	xor	edi,ecx
+	mov	ecx,DWORD [16+esp]
+	ror	edx,14
+	add	ebx,edi
+	mov	edi,DWORD [20+esp]
+	xor	edx,esi
+	mov	DWORD [36+esp],ebx
+	xor	ecx,edi
+	ror	edx,5
+	and	ecx,esi
+	mov	DWORD [12+esp],esi
+	xor	edx,esi
+	add	ebx,DWORD [24+esp]
+	xor	edi,ecx
+	ror	edx,6
+	mov	esi,ebp
+	add	ebx,edi
+	ror	esi,9
+	mov	ecx,ebp
+	mov	edi,DWORD [esp]
+	xor	esi,ebp
+	mov	DWORD [28+esp],ebp
+	xor	ebp,edi
+	ror	esi,11
+	and	eax,ebp
+	lea	edx,[773529912+edx*1+ebx]
+	xor	esi,ecx
+	xor	eax,edi
+	mov	ecx,DWORD [44+esp]
+	ror	esi,2
+	add	eax,edx
+	add	edx,DWORD [8+esp]
+	add	eax,esi
+	mov	esi,DWORD [32+esp]
+	mov	ebx,ecx
+	ror	ecx,11
+	mov	edi,esi
+	ror	esi,2
+	xor	ecx,ebx
+	shr	ebx,3
+	ror	ecx,7
+	xor	esi,edi
+	xor	ebx,ecx
+	ror	esi,17
+	add	ebx,DWORD [40+esp]
+	shr	edi,10
+	add	ebx,DWORD [76+esp]
+	mov	ecx,edx
+	xor	edi,esi
+	mov	esi,DWORD [12+esp]
+	ror	edx,14
+	add	ebx,edi
+	mov	edi,DWORD [16+esp]
+	xor	edx,ecx
+	mov	DWORD [40+esp],ebx
+	xor	esi,edi
+	ror	edx,5
+	and	esi,ecx
+	mov	DWORD [8+esp],ecx
+	xor	edx,ecx
+	add	ebx,DWORD [20+esp]
+	xor	edi,esi
+	ror	edx,6
+	mov	ecx,eax
+	add	ebx,edi
+	ror	ecx,9
+	mov	esi,eax
+	mov	edi,DWORD [28+esp]
+	xor	ecx,eax
+	mov	DWORD [24+esp],eax
+	xor	eax,edi
+	ror	ecx,11
+	and	ebp,eax
+	lea	edx,[1294757372+edx*1+ebx]
+	xor	ecx,esi
+	xor	ebp,edi
+	mov	esi,DWORD [48+esp]
+	ror	ecx,2
+	add	ebp,edx
+	add	edx,DWORD [4+esp]
+	add	ebp,ecx
+	mov	ecx,DWORD [36+esp]
+	mov	ebx,esi
+	ror	esi,11
+	mov	edi,ecx
+	ror	ecx,2
+	xor	esi,ebx
+	shr	ebx,3
+	ror	esi,7
+	xor	ecx,edi
+	xor	ebx,esi
+	ror	ecx,17
+	add	ebx,DWORD [44+esp]
+	shr	edi,10
+	add	ebx,DWORD [80+esp]
+	mov	esi,edx
+	xor	edi,ecx
+	mov	ecx,DWORD [8+esp]
+	ror	edx,14
+	add	ebx,edi
+	mov	edi,DWORD [12+esp]
+	xor	edx,esi
+	mov	DWORD [44+esp],ebx
+	xor	ecx,edi
+	ror	edx,5
+	and	ecx,esi
+	mov	DWORD [4+esp],esi
+	xor	edx,esi
+	add	ebx,DWORD [16+esp]
+	xor	edi,ecx
+	ror	edx,6
+	mov	esi,ebp
+	add	ebx,edi
+	ror	esi,9
+	mov	ecx,ebp
+	mov	edi,DWORD [24+esp]
+	xor	esi,ebp
+	mov	DWORD [20+esp],ebp
+	xor	ebp,edi
+	ror	esi,11
+	and	eax,ebp
+	lea	edx,[1396182291+edx*1+ebx]
+	xor	esi,ecx
+	xor	eax,edi
+	mov	ecx,DWORD [52+esp]
+	ror	esi,2
+	add	eax,edx
+	add	edx,DWORD [esp]
+	add	eax,esi
+	mov	esi,DWORD [40+esp]
+	mov	ebx,ecx
+	ror	ecx,11
+	mov	edi,esi
+	ror	esi,2
+	xor	ecx,ebx
+	shr	ebx,3
+	ror	ecx,7
+	xor	esi,edi
+	xor	ebx,ecx
+	ror	esi,17
+	add	ebx,DWORD [48+esp]
+	shr	edi,10
+	add	ebx,DWORD [84+esp]
+	mov	ecx,edx
+	xor	edi,esi
+	mov	esi,DWORD [4+esp]
+	ror	edx,14
+	add	ebx,edi
+	mov	edi,DWORD [8+esp]
+	xor	edx,ecx
+	mov	DWORD [48+esp],ebx
+	xor	esi,edi
+	ror	edx,5
+	and	esi,ecx
+	mov	DWORD [esp],ecx
+	xor	edx,ecx
+	add	ebx,DWORD [12+esp]
+	xor	edi,esi
+	ror	edx,6
+	mov	ecx,eax
+	add	ebx,edi
+	ror	ecx,9
+	mov	esi,eax
+	mov	edi,DWORD [20+esp]
+	xor	ecx,eax
+	mov	DWORD [16+esp],eax
+	xor	eax,edi
+	ror	ecx,11
+	and	ebp,eax
+	lea	edx,[1695183700+edx*1+ebx]
+	xor	ecx,esi
+	xor	ebp,edi
+	mov	esi,DWORD [56+esp]
+	ror	ecx,2
+	add	ebp,edx
+	add	edx,DWORD [28+esp]
+	add	ebp,ecx
+	mov	ecx,DWORD [44+esp]
+	mov	ebx,esi
+	ror	esi,11
+	mov	edi,ecx
+	ror	ecx,2
+	xor	esi,ebx
+	shr	ebx,3
+	ror	esi,7
+	xor	ecx,edi
+	xor	ebx,esi
+	ror	ecx,17
+	add	ebx,DWORD [52+esp]
+	shr	edi,10
+	add	ebx,DWORD [88+esp]
+	mov	esi,edx
+	xor	edi,ecx
+	mov	ecx,DWORD [esp]
+	ror	edx,14
+	add	ebx,edi
+	mov	edi,DWORD [4+esp]
+	xor	edx,esi
+	mov	DWORD [52+esp],ebx
+	xor	ecx,edi
+	ror	edx,5
+	and	ecx,esi
+	mov	DWORD [28+esp],esi
+	xor	edx,esi
+	add	ebx,DWORD [8+esp]
+	xor	edi,ecx
+	ror	edx,6
+	mov	esi,ebp
+	add	ebx,edi
+	ror	esi,9
+	mov	ecx,ebp
+	mov	edi,DWORD [16+esp]
+	xor	esi,ebp
+	mov	DWORD [12+esp],ebp
+	xor	ebp,edi
+	ror	esi,11
+	and	eax,ebp
+	lea	edx,[1986661051+edx*1+ebx]
+	xor	esi,ecx
+	xor	eax,edi
+	mov	ecx,DWORD [60+esp]
+	ror	esi,2
+	add	eax,edx
+	add	edx,DWORD [24+esp]
+	add	eax,esi
+	mov	esi,DWORD [48+esp]
+	mov	ebx,ecx
+	ror	ecx,11
+	mov	edi,esi
+	ror	esi,2
+	xor	ecx,ebx
+	shr	ebx,3
+	ror	ecx,7
+	xor	esi,edi
+	xor	ebx,ecx
+	ror	esi,17
+	add	ebx,DWORD [56+esp]
+	shr	edi,10
+	add	ebx,DWORD [92+esp]
+	mov	ecx,edx
+	xor	edi,esi
+	mov	esi,DWORD [28+esp]
+	ror	edx,14
+	add	ebx,edi
+	mov	edi,DWORD [esp]
+	xor	edx,ecx
+	mov	DWORD [56+esp],ebx
+	xor	esi,edi
+	ror	edx,5
+	and	esi,ecx
+	mov	DWORD [24+esp],ecx
+	xor	edx,ecx
+	add	ebx,DWORD [4+esp]
+	xor	edi,esi
+	ror	edx,6
+	mov	ecx,eax
+	add	ebx,edi
+	ror	ecx,9
+	mov	esi,eax
+	mov	edi,DWORD [12+esp]
+	xor	ecx,eax
+	mov	DWORD [8+esp],eax
+	xor	eax,edi
+	ror	ecx,11
+	and	ebp,eax
+	lea	edx,[2177026350+edx*1+ebx]
+	xor	ecx,esi
+	xor	ebp,edi
+	mov	esi,DWORD [64+esp]
+	ror	ecx,2
+	add	ebp,edx
+	add	edx,DWORD [20+esp]
+	add	ebp,ecx
+	mov	ecx,DWORD [52+esp]
+	mov	ebx,esi
+	ror	esi,11
+	mov	edi,ecx
+	ror	ecx,2
+	xor	esi,ebx
+	shr	ebx,3
+	ror	esi,7
+	xor	ecx,edi
+	xor	ebx,esi
+	ror	ecx,17
+	add	ebx,DWORD [60+esp]
+	shr	edi,10
+	add	ebx,DWORD [32+esp]
+	mov	esi,edx
+	xor	edi,ecx
+	mov	ecx,DWORD [24+esp]
+	ror	edx,14
+	add	ebx,edi
+	mov	edi,DWORD [28+esp]
+	xor	edx,esi
+	mov	DWORD [60+esp],ebx
+	xor	ecx,edi
+	ror	edx,5
+	and	ecx,esi
+	mov	DWORD [20+esp],esi
+	xor	edx,esi
+	add	ebx,DWORD [esp]
+	xor	edi,ecx
+	ror	edx,6
+	mov	esi,ebp
+	add	ebx,edi
+	ror	esi,9
+	mov	ecx,ebp
+	mov	edi,DWORD [8+esp]
+	xor	esi,ebp
+	mov	DWORD [4+esp],ebp
+	xor	ebp,edi
+	ror	esi,11
+	and	eax,ebp
+	lea	edx,[2456956037+edx*1+ebx]
+	xor	esi,ecx
+	xor	eax,edi
+	mov	ecx,DWORD [68+esp]
+	ror	esi,2
+	add	eax,edx
+	add	edx,DWORD [16+esp]
+	add	eax,esi
+	mov	esi,DWORD [56+esp]
+	mov	ebx,ecx
+	ror	ecx,11
+	mov	edi,esi
+	ror	esi,2
+	xor	ecx,ebx
+	shr	ebx,3
+	ror	ecx,7
+	xor	esi,edi
+	xor	ebx,ecx
+	ror	esi,17
+	add	ebx,DWORD [64+esp]
+	shr	edi,10
+	add	ebx,DWORD [36+esp]
+	mov	ecx,edx
+	xor	edi,esi
+	mov	esi,DWORD [20+esp]
+	ror	edx,14
+	add	ebx,edi
+	mov	edi,DWORD [24+esp]
+	xor	edx,ecx
+	mov	DWORD [64+esp],ebx
+	xor	esi,edi
+	ror	edx,5
+	and	esi,ecx
+	mov	DWORD [16+esp],ecx
+	xor	edx,ecx
+	add	ebx,DWORD [28+esp]
+	xor	edi,esi
+	ror	edx,6
+	mov	ecx,eax
+	add	ebx,edi
+	ror	ecx,9
+	mov	esi,eax
+	mov	edi,DWORD [4+esp]
+	xor	ecx,eax
+	mov	DWORD [esp],eax
+	xor	eax,edi
+	ror	ecx,11
+	and	ebp,eax
+	lea	edx,[2730485921+edx*1+ebx]
+	xor	ecx,esi
+	xor	ebp,edi
+	mov	esi,DWORD [72+esp]
+	ror	ecx,2
+	add	ebp,edx
+	add	edx,DWORD [12+esp]
+	add	ebp,ecx
+	mov	ecx,DWORD [60+esp]
+	mov	ebx,esi
+	ror	esi,11
+	mov	edi,ecx
+	ror	ecx,2
+	xor	esi,ebx
+	shr	ebx,3
+	ror	esi,7
+	xor	ecx,edi
+	xor	ebx,esi
+	ror	ecx,17
+	add	ebx,DWORD [68+esp]
+	shr	edi,10
+	add	ebx,DWORD [40+esp]
+	mov	esi,edx
+	xor	edi,ecx
+	mov	ecx,DWORD [16+esp]
+	ror	edx,14
+	add	ebx,edi
+	mov	edi,DWORD [20+esp]
+	xor	edx,esi
+	mov	DWORD [68+esp],ebx
+	xor	ecx,edi
+	ror	edx,5
+	and	ecx,esi
+	mov	DWORD [12+esp],esi
+	xor	edx,esi
+	add	ebx,DWORD [24+esp]
+	xor	edi,ecx
+	ror	edx,6
+	mov	esi,ebp
+	add	ebx,edi
+	ror	esi,9
+	mov	ecx,ebp
+	mov	edi,DWORD [esp]
+	xor	esi,ebp
+	mov	DWORD [28+esp],ebp
+	xor	ebp,edi
+	ror	esi,11
+	and	eax,ebp
+	lea	edx,[2820302411+edx*1+ebx]
+	xor	esi,ecx
+	xor	eax,edi
+	mov	ecx,DWORD [76+esp]
+	ror	esi,2
+	add	eax,edx
+	add	edx,DWORD [8+esp]
+	add	eax,esi
+	mov	esi,DWORD [64+esp]
+	mov	ebx,ecx
+	ror	ecx,11
+	mov	edi,esi
+	ror	esi,2
+	xor	ecx,ebx
+	shr	ebx,3
+	ror	ecx,7
+	xor	esi,edi
+	xor	ebx,ecx
+	ror	esi,17
+	add	ebx,DWORD [72+esp]
+	shr	edi,10
+	add	ebx,DWORD [44+esp]
+	mov	ecx,edx
+	xor	edi,esi
+	mov	esi,DWORD [12+esp]
+	ror	edx,14
+	add	ebx,edi
+	mov	edi,DWORD [16+esp]
+	xor	edx,ecx
+	mov	DWORD [72+esp],ebx
+	xor	esi,edi
+	ror	edx,5
+	and	esi,ecx
+	mov	DWORD [8+esp],ecx
+	xor	edx,ecx
+	add	ebx,DWORD [20+esp]
+	xor	edi,esi
+	ror	edx,6
+	mov	ecx,eax
+	add	ebx,edi
+	ror	ecx,9
+	mov	esi,eax
+	mov	edi,DWORD [28+esp]
+	xor	ecx,eax
+	mov	DWORD [24+esp],eax
+	xor	eax,edi
+	ror	ecx,11
+	and	ebp,eax
+	lea	edx,[3259730800+edx*1+ebx]
+	xor	ecx,esi
+	xor	ebp,edi
+	mov	esi,DWORD [80+esp]
+	ror	ecx,2
+	add	ebp,edx
+	add	edx,DWORD [4+esp]
+	add	ebp,ecx
+	mov	ecx,DWORD [68+esp]
+	mov	ebx,esi
+	ror	esi,11
+	mov	edi,ecx
+	ror	ecx,2
+	xor	esi,ebx
+	shr	ebx,3
+	ror	esi,7
+	xor	ecx,edi
+	xor	ebx,esi
+	ror	ecx,17
+	add	ebx,DWORD [76+esp]
+	shr	edi,10
+	add	ebx,DWORD [48+esp]
+	mov	esi,edx
+	xor	edi,ecx
+	mov	ecx,DWORD [8+esp]
+	ror	edx,14
+	add	ebx,edi
+	mov	edi,DWORD [12+esp]
+	xor	edx,esi
+	mov	DWORD [76+esp],ebx
+	xor	ecx,edi
+	ror	edx,5
+	and	ecx,esi
+	mov	DWORD [4+esp],esi
+	xor	edx,esi
+	add	ebx,DWORD [16+esp]
+	xor	edi,ecx
+	ror	edx,6
+	mov	esi,ebp
+	add	ebx,edi
+	ror	esi,9
+	mov	ecx,ebp
+	mov	edi,DWORD [24+esp]
+	xor	esi,ebp
+	mov	DWORD [20+esp],ebp
+	xor	ebp,edi
+	ror	esi,11
+	and	eax,ebp
+	lea	edx,[3345764771+edx*1+ebx]
+	xor	esi,ecx
+	xor	eax,edi
+	mov	ecx,DWORD [84+esp]
+	ror	esi,2
+	add	eax,edx
+	add	edx,DWORD [esp]
+	add	eax,esi
+	mov	esi,DWORD [72+esp]
+	mov	ebx,ecx
+	ror	ecx,11
+	mov	edi,esi
+	ror	esi,2
+	xor	ecx,ebx
+	shr	ebx,3
+	ror	ecx,7
+	xor	esi,edi
+	xor	ebx,ecx
+	ror	esi,17
+	add	ebx,DWORD [80+esp]
+	shr	edi,10
+	add	ebx,DWORD [52+esp]
+	mov	ecx,edx
+	xor	edi,esi
+	mov	esi,DWORD [4+esp]
+	ror	edx,14
+	add	ebx,edi
+	mov	edi,DWORD [8+esp]
+	xor	edx,ecx
+	mov	DWORD [80+esp],ebx
+	xor	esi,edi
+	ror	edx,5
+	and	esi,ecx
+	mov	DWORD [esp],ecx
+	xor	edx,ecx
+	add	ebx,DWORD [12+esp]
+	xor	edi,esi
+	ror	edx,6
+	mov	ecx,eax
+	add	ebx,edi
+	ror	ecx,9
+	mov	esi,eax
+	mov	edi,DWORD [20+esp]
+	xor	ecx,eax
+	mov	DWORD [16+esp],eax
+	xor	eax,edi
+	ror	ecx,11
+	and	ebp,eax
+	lea	edx,[3516065817+edx*1+ebx]
+	xor	ecx,esi
+	xor	ebp,edi
+	mov	esi,DWORD [88+esp]
+	ror	ecx,2
+	add	ebp,edx
+	add	edx,DWORD [28+esp]
+	add	ebp,ecx
+	mov	ecx,DWORD [76+esp]
+	mov	ebx,esi
+	ror	esi,11
+	mov	edi,ecx
+	ror	ecx,2
+	xor	esi,ebx
+	shr	ebx,3
+	ror	esi,7
+	xor	ecx,edi
+	xor	ebx,esi
+	ror	ecx,17
+	add	ebx,DWORD [84+esp]
+	shr	edi,10
+	add	ebx,DWORD [56+esp]
+	mov	esi,edx
+	xor	edi,ecx
+	mov	ecx,DWORD [esp]
+	ror	edx,14
+	add	ebx,edi
+	mov	edi,DWORD [4+esp]
+	xor	edx,esi
+	mov	DWORD [84+esp],ebx
+	xor	ecx,edi
+	ror	edx,5
+	and	ecx,esi
+	mov	DWORD [28+esp],esi
+	xor	edx,esi
+	add	ebx,DWORD [8+esp]
+	xor	edi,ecx
+	ror	edx,6
+	mov	esi,ebp
+	add	ebx,edi
+	ror	esi,9
+	mov	ecx,ebp
+	mov	edi,DWORD [16+esp]
+	xor	esi,ebp
+	mov	DWORD [12+esp],ebp
+	xor	ebp,edi
+	ror	esi,11
+	and	eax,ebp
+	lea	edx,[3600352804+edx*1+ebx]
+	xor	esi,ecx
+	xor	eax,edi
+	mov	ecx,DWORD [92+esp]
+	ror	esi,2
+	add	eax,edx
+	add	edx,DWORD [24+esp]
+	add	eax,esi
+	mov	esi,DWORD [80+esp]
+	mov	ebx,ecx
+	ror	ecx,11
+	mov	edi,esi
+	ror	esi,2
+	xor	ecx,ebx
+	shr	ebx,3
+	ror	ecx,7
+	xor	esi,edi
+	xor	ebx,ecx
+	ror	esi,17
+	add	ebx,DWORD [88+esp]
+	shr	edi,10
+	add	ebx,DWORD [60+esp]
+	mov	ecx,edx
+	xor	edi,esi
+	mov	esi,DWORD [28+esp]
+	ror	edx,14
+	add	ebx,edi
+	mov	edi,DWORD [esp]
+	xor	edx,ecx
+	mov	DWORD [88+esp],ebx
+	xor	esi,edi
+	ror	edx,5
+	and	esi,ecx
+	mov	DWORD [24+esp],ecx
+	xor	edx,ecx
+	add	ebx,DWORD [4+esp]
+	xor	edi,esi
+	ror	edx,6
+	mov	ecx,eax
+	add	ebx,edi
+	ror	ecx,9
+	mov	esi,eax
+	mov	edi,DWORD [12+esp]
+	xor	ecx,eax
+	mov	DWORD [8+esp],eax
+	xor	eax,edi
+	ror	ecx,11
+	and	ebp,eax
+	lea	edx,[4094571909+edx*1+ebx]
+	xor	ecx,esi
+	xor	ebp,edi
+	mov	esi,DWORD [32+esp]
+	ror	ecx,2
+	add	ebp,edx
+	add	edx,DWORD [20+esp]
+	add	ebp,ecx
+	mov	ecx,DWORD [84+esp]
+	mov	ebx,esi
+	ror	esi,11
+	mov	edi,ecx
+	ror	ecx,2
+	xor	esi,ebx
+	shr	ebx,3
+	ror	esi,7
+	xor	ecx,edi
+	xor	ebx,esi
+	ror	ecx,17
+	add	ebx,DWORD [92+esp]
+	shr	edi,10
+	add	ebx,DWORD [64+esp]
+	mov	esi,edx
+	xor	edi,ecx
+	mov	ecx,DWORD [24+esp]
+	ror	edx,14
+	add	ebx,edi
+	mov	edi,DWORD [28+esp]
+	xor	edx,esi
+	mov	DWORD [92+esp],ebx
+	xor	ecx,edi
+	ror	edx,5
+	and	ecx,esi
+	mov	DWORD [20+esp],esi
+	xor	edx,esi
+	add	ebx,DWORD [esp]
+	xor	edi,ecx
+	ror	edx,6
+	mov	esi,ebp
+	add	ebx,edi
+	ror	esi,9
+	mov	ecx,ebp
+	mov	edi,DWORD [8+esp]
+	xor	esi,ebp
+	mov	DWORD [4+esp],ebp
+	xor	ebp,edi
+	ror	esi,11
+	and	eax,ebp
+	lea	edx,[275423344+edx*1+ebx]
+	xor	esi,ecx
+	xor	eax,edi
+	mov	ecx,DWORD [36+esp]
+	ror	esi,2
+	add	eax,edx
+	add	edx,DWORD [16+esp]
+	add	eax,esi
+	mov	esi,DWORD [88+esp]
+	mov	ebx,ecx
+	ror	ecx,11
+	mov	edi,esi
+	ror	esi,2
+	xor	ecx,ebx
+	shr	ebx,3
+	ror	ecx,7
+	xor	esi,edi
+	xor	ebx,ecx
+	ror	esi,17
+	add	ebx,DWORD [32+esp]
+	shr	edi,10
+	add	ebx,DWORD [68+esp]
+	mov	ecx,edx
+	xor	edi,esi
+	mov	esi,DWORD [20+esp]
+	ror	edx,14
+	add	ebx,edi
+	mov	edi,DWORD [24+esp]
+	xor	edx,ecx
+	mov	DWORD [32+esp],ebx
+	xor	esi,edi
+	ror	edx,5
+	and	esi,ecx
+	mov	DWORD [16+esp],ecx
+	xor	edx,ecx
+	add	ebx,DWORD [28+esp]
+	xor	edi,esi
+	ror	edx,6
+	mov	ecx,eax
+	add	ebx,edi
+	ror	ecx,9
+	mov	esi,eax
+	mov	edi,DWORD [4+esp]
+	xor	ecx,eax
+	mov	DWORD [esp],eax
+	xor	eax,edi
+	ror	ecx,11
+	and	ebp,eax
+	lea	edx,[430227734+edx*1+ebx]
+	xor	ecx,esi
+	xor	ebp,edi
+	mov	esi,DWORD [40+esp]
+	ror	ecx,2
+	add	ebp,edx
+	add	edx,DWORD [12+esp]
+	add	ebp,ecx
+	mov	ecx,DWORD [92+esp]
+	mov	ebx,esi
+	ror	esi,11
+	mov	edi,ecx
+	ror	ecx,2
+	xor	esi,ebx
+	shr	ebx,3
+	ror	esi,7
+	xor	ecx,edi
+	xor	ebx,esi
+	ror	ecx,17
+	add	ebx,DWORD [36+esp]
+	shr	edi,10
+	add	ebx,DWORD [72+esp]
+	mov	esi,edx
+	xor	edi,ecx
+	mov	ecx,DWORD [16+esp]
+	ror	edx,14
+	add	ebx,edi
+	mov	edi,DWORD [20+esp]
+	xor	edx,esi
+	mov	DWORD [36+esp],ebx
+	xor	ecx,edi
+	ror	edx,5
+	and	ecx,esi
+	mov	DWORD [12+esp],esi
+	xor	edx,esi
+	add	ebx,DWORD [24+esp]
+	xor	edi,ecx
+	ror	edx,6
+	mov	esi,ebp
+	add	ebx,edi
+	ror	esi,9
+	mov	ecx,ebp
+	mov	edi,DWORD [esp]
+	xor	esi,ebp
+	mov	DWORD [28+esp],ebp
+	xor	ebp,edi
+	ror	esi,11
+	and	eax,ebp
+	lea	edx,[506948616+edx*1+ebx]
+	xor	esi,ecx
+	xor	eax,edi
+	mov	ecx,DWORD [44+esp]
+	ror	esi,2
+	add	eax,edx
+	add	edx,DWORD [8+esp]
+	add	eax,esi
+	mov	esi,DWORD [32+esp]
+	mov	ebx,ecx
+	ror	ecx,11
+	mov	edi,esi
+	ror	esi,2
+	xor	ecx,ebx
+	shr	ebx,3
+	ror	ecx,7
+	xor	esi,edi
+	xor	ebx,ecx
+	ror	esi,17
+	add	ebx,DWORD [40+esp]
+	shr	edi,10
+	add	ebx,DWORD [76+esp]
+	mov	ecx,edx
+	xor	edi,esi
+	mov	esi,DWORD [12+esp]
+	ror	edx,14
+	add	ebx,edi
+	mov	edi,DWORD [16+esp]
+	xor	edx,ecx
+	mov	DWORD [40+esp],ebx
+	xor	esi,edi
+	ror	edx,5
+	and	esi,ecx
+	mov	DWORD [8+esp],ecx
+	xor	edx,ecx
+	add	ebx,DWORD [20+esp]
+	xor	edi,esi
+	ror	edx,6
+	mov	ecx,eax
+	add	ebx,edi
+	ror	ecx,9
+	mov	esi,eax
+	mov	edi,DWORD [28+esp]
+	xor	ecx,eax
+	mov	DWORD [24+esp],eax
+	xor	eax,edi
+	ror	ecx,11
+	and	ebp,eax
+	lea	edx,[659060556+edx*1+ebx]
+	xor	ecx,esi
+	xor	ebp,edi
+	mov	esi,DWORD [48+esp]
+	ror	ecx,2
+	add	ebp,edx
+	add	edx,DWORD [4+esp]
+	add	ebp,ecx
+	mov	ecx,DWORD [36+esp]
+	mov	ebx,esi
+	ror	esi,11
+	mov	edi,ecx
+	ror	ecx,2
+	xor	esi,ebx
+	shr	ebx,3
+	ror	esi,7
+	xor	ecx,edi
+	xor	ebx,esi
+	ror	ecx,17
+	add	ebx,DWORD [44+esp]
+	shr	edi,10
+	add	ebx,DWORD [80+esp]
+	mov	esi,edx
+	xor	edi,ecx
+	mov	ecx,DWORD [8+esp]
+	ror	edx,14
+	add	ebx,edi
+	mov	edi,DWORD [12+esp]
+	xor	edx,esi
+	mov	DWORD [44+esp],ebx
+	xor	ecx,edi
+	ror	edx,5
+	and	ecx,esi
+	mov	DWORD [4+esp],esi
+	xor	edx,esi
+	add	ebx,DWORD [16+esp]
+	xor	edi,ecx
+	ror	edx,6
+	mov	esi,ebp
+	add	ebx,edi
+	ror	esi,9
+	mov	ecx,ebp
+	mov	edi,DWORD [24+esp]
+	xor	esi,ebp
+	mov	DWORD [20+esp],ebp
+	xor	ebp,edi
+	ror	esi,11
+	and	eax,ebp
+	lea	edx,[883997877+edx*1+ebx]
+	xor	esi,ecx
+	xor	eax,edi
+	mov	ecx,DWORD [52+esp]
+	ror	esi,2
+	add	eax,edx
+	add	edx,DWORD [esp]
+	add	eax,esi
+	mov	esi,DWORD [40+esp]
+	mov	ebx,ecx
+	ror	ecx,11
+	mov	edi,esi
+	ror	esi,2
+	xor	ecx,ebx
+	shr	ebx,3
+	ror	ecx,7
+	xor	esi,edi
+	xor	ebx,ecx
+	ror	esi,17
+	add	ebx,DWORD [48+esp]
+	shr	edi,10
+	add	ebx,DWORD [84+esp]
+	mov	ecx,edx
+	xor	edi,esi
+	mov	esi,DWORD [4+esp]
+	ror	edx,14
+	add	ebx,edi
+	mov	edi,DWORD [8+esp]
+	xor	edx,ecx
+	mov	DWORD [48+esp],ebx
+	xor	esi,edi
+	ror	edx,5
+	and	esi,ecx
+	mov	DWORD [esp],ecx
+	xor	edx,ecx
+	add	ebx,DWORD [12+esp]
+	xor	edi,esi
+	ror	edx,6
+	mov	ecx,eax
+	add	ebx,edi
+	ror	ecx,9
+	mov	esi,eax
+	mov	edi,DWORD [20+esp]
+	xor	ecx,eax
+	mov	DWORD [16+esp],eax
+	xor	eax,edi
+	ror	ecx,11
+	and	ebp,eax
+	lea	edx,[958139571+edx*1+ebx]
+	xor	ecx,esi
+	xor	ebp,edi
+	mov	esi,DWORD [56+esp]
+	ror	ecx,2
+	add	ebp,edx
+	add	edx,DWORD [28+esp]
+	add	ebp,ecx
+	mov	ecx,DWORD [44+esp]
+	mov	ebx,esi
+	ror	esi,11
+	mov	edi,ecx
+	ror	ecx,2
+	xor	esi,ebx
+	shr	ebx,3
+	ror	esi,7
+	xor	ecx,edi
+	xor	ebx,esi
+	ror	ecx,17
+	add	ebx,DWORD [52+esp]
+	shr	edi,10
+	add	ebx,DWORD [88+esp]
+	mov	esi,edx
+	xor	edi,ecx
+	mov	ecx,DWORD [esp]
+	ror	edx,14
+	add	ebx,edi
+	mov	edi,DWORD [4+esp]
+	xor	edx,esi
+	mov	DWORD [52+esp],ebx
+	xor	ecx,edi
+	ror	edx,5
+	and	ecx,esi
+	mov	DWORD [28+esp],esi
+	xor	edx,esi
+	add	ebx,DWORD [8+esp]
+	xor	edi,ecx
+	ror	edx,6
+	mov	esi,ebp
+	add	ebx,edi
+	ror	esi,9
+	mov	ecx,ebp
+	mov	edi,DWORD [16+esp]
+	xor	esi,ebp
+	mov	DWORD [12+esp],ebp
+	xor	ebp,edi
+	ror	esi,11
+	and	eax,ebp
+	lea	edx,[1322822218+edx*1+ebx]
+	xor	esi,ecx
+	xor	eax,edi
+	mov	ecx,DWORD [60+esp]
+	ror	esi,2
+	add	eax,edx
+	add	edx,DWORD [24+esp]
+	add	eax,esi
+	mov	esi,DWORD [48+esp]
+	mov	ebx,ecx
+	ror	ecx,11
+	mov	edi,esi
+	ror	esi,2
+	xor	ecx,ebx
+	shr	ebx,3
+	ror	ecx,7
+	xor	esi,edi
+	xor	ebx,ecx
+	ror	esi,17
+	add	ebx,DWORD [56+esp]
+	shr	edi,10
+	add	ebx,DWORD [92+esp]
+	mov	ecx,edx
+	xor	edi,esi
+	mov	esi,DWORD [28+esp]
+	ror	edx,14
+	add	ebx,edi
+	mov	edi,DWORD [esp]
+	xor	edx,ecx
+	mov	DWORD [56+esp],ebx
+	xor	esi,edi
+	ror	edx,5
+	and	esi,ecx
+	mov	DWORD [24+esp],ecx
+	xor	edx,ecx
+	add	ebx,DWORD [4+esp]
+	xor	edi,esi
+	ror	edx,6
+	mov	ecx,eax
+	add	ebx,edi
+	ror	ecx,9
+	mov	esi,eax
+	mov	edi,DWORD [12+esp]
+	xor	ecx,eax
+	mov	DWORD [8+esp],eax
+	xor	eax,edi
+	ror	ecx,11
+	and	ebp,eax
+	lea	edx,[1537002063+edx*1+ebx]
+	xor	ecx,esi
+	xor	ebp,edi
+	mov	esi,DWORD [64+esp]
+	ror	ecx,2
+	add	ebp,edx
+	add	edx,DWORD [20+esp]
+	add	ebp,ecx
+	mov	ecx,DWORD [52+esp]
+	mov	ebx,esi
+	ror	esi,11
+	mov	edi,ecx
+	ror	ecx,2
+	xor	esi,ebx
+	shr	ebx,3
+	ror	esi,7
+	xor	ecx,edi
+	xor	ebx,esi
+	ror	ecx,17
+	add	ebx,DWORD [60+esp]
+	shr	edi,10
+	add	ebx,DWORD [32+esp]
+	mov	esi,edx
+	xor	edi,ecx
+	mov	ecx,DWORD [24+esp]
+	ror	edx,14
+	add	ebx,edi
+	mov	edi,DWORD [28+esp]
+	xor	edx,esi
+	mov	DWORD [60+esp],ebx
+	xor	ecx,edi
+	ror	edx,5
+	and	ecx,esi
+	mov	DWORD [20+esp],esi
+	xor	edx,esi
+	add	ebx,DWORD [esp]
+	xor	edi,ecx
+	ror	edx,6
+	mov	esi,ebp
+	add	ebx,edi
+	ror	esi,9
+	mov	ecx,ebp
+	mov	edi,DWORD [8+esp]
+	xor	esi,ebp
+	mov	DWORD [4+esp],ebp
+	xor	ebp,edi
+	ror	esi,11
+	and	eax,ebp
+	lea	edx,[1747873779+edx*1+ebx]
+	xor	esi,ecx
+	xor	eax,edi
+	mov	ecx,DWORD [68+esp]
+	ror	esi,2
+	add	eax,edx
+	add	edx,DWORD [16+esp]
+	add	eax,esi
+	mov	esi,DWORD [56+esp]
+	mov	ebx,ecx
+	ror	ecx,11
+	mov	edi,esi
+	ror	esi,2
+	xor	ecx,ebx
+	shr	ebx,3
+	ror	ecx,7
+	xor	esi,edi
+	xor	ebx,ecx
+	ror	esi,17
+	add	ebx,DWORD [64+esp]
+	shr	edi,10
+	add	ebx,DWORD [36+esp]
+	mov	ecx,edx
+	xor	edi,esi
+	mov	esi,DWORD [20+esp]
+	ror	edx,14
+	add	ebx,edi
+	mov	edi,DWORD [24+esp]
+	xor	edx,ecx
+	mov	DWORD [64+esp],ebx
+	xor	esi,edi
+	ror	edx,5
+	and	esi,ecx
+	mov	DWORD [16+esp],ecx
+	xor	edx,ecx
+	add	ebx,DWORD [28+esp]
+	xor	edi,esi
+	ror	edx,6
+	mov	ecx,eax
+	add	ebx,edi
+	ror	ecx,9
+	mov	esi,eax
+	mov	edi,DWORD [4+esp]
+	xor	ecx,eax
+	mov	DWORD [esp],eax
+	xor	eax,edi
+	ror	ecx,11
+	and	ebp,eax
+	lea	edx,[1955562222+edx*1+ebx]
+	xor	ecx,esi
+	xor	ebp,edi
+	mov	esi,DWORD [72+esp]
+	ror	ecx,2
+	add	ebp,edx
+	add	edx,DWORD [12+esp]
+	add	ebp,ecx
+	mov	ecx,DWORD [60+esp]
+	mov	ebx,esi
+	ror	esi,11
+	mov	edi,ecx
+	ror	ecx,2
+	xor	esi,ebx
+	shr	ebx,3
+	ror	esi,7
+	xor	ecx,edi
+	xor	ebx,esi
+	ror	ecx,17
+	add	ebx,DWORD [68+esp]
+	shr	edi,10
+	add	ebx,DWORD [40+esp]
+	mov	esi,edx
+	xor	edi,ecx
+	mov	ecx,DWORD [16+esp]
+	ror	edx,14
+	add	ebx,edi
+	mov	edi,DWORD [20+esp]
+	xor	edx,esi
+	mov	DWORD [68+esp],ebx
+	xor	ecx,edi
+	ror	edx,5
+	and	ecx,esi
+	mov	DWORD [12+esp],esi
+	xor	edx,esi
+	add	ebx,DWORD [24+esp]
+	xor	edi,ecx
+	ror	edx,6
+	mov	esi,ebp
+	add	ebx,edi
+	ror	esi,9
+	mov	ecx,ebp
+	mov	edi,DWORD [esp]
+	xor	esi,ebp
+	mov	DWORD [28+esp],ebp
+	xor	ebp,edi
+	ror	esi,11
+	and	eax,ebp
+	lea	edx,[2024104815+edx*1+ebx]
+	xor	esi,ecx
+	xor	eax,edi
+	mov	ecx,DWORD [76+esp]
+	ror	esi,2
+	add	eax,edx
+	add	edx,DWORD [8+esp]
+	add	eax,esi
+	mov	esi,DWORD [64+esp]
+	mov	ebx,ecx
+	ror	ecx,11
+	mov	edi,esi
+	ror	esi,2
+	xor	ecx,ebx
+	shr	ebx,3
+	ror	ecx,7
+	xor	esi,edi
+	xor	ebx,ecx
+	ror	esi,17
+	add	ebx,DWORD [72+esp]
+	shr	edi,10
+	add	ebx,DWORD [44+esp]
+	mov	ecx,edx
+	xor	edi,esi
+	mov	esi,DWORD [12+esp]
+	ror	edx,14
+	add	ebx,edi
+	mov	edi,DWORD [16+esp]
+	xor	edx,ecx
+	mov	DWORD [72+esp],ebx
+	xor	esi,edi
+	ror	edx,5
+	and	esi,ecx
+	mov	DWORD [8+esp],ecx
+	xor	edx,ecx
+	add	ebx,DWORD [20+esp]
+	xor	edi,esi
+	ror	edx,6
+	mov	ecx,eax
+	add	ebx,edi
+	ror	ecx,9
+	mov	esi,eax
+	mov	edi,DWORD [28+esp]
+	xor	ecx,eax
+	mov	DWORD [24+esp],eax
+	xor	eax,edi
+	ror	ecx,11
+	and	ebp,eax
+	lea	edx,[2227730452+edx*1+ebx]
+	xor	ecx,esi
+	xor	ebp,edi
+	mov	esi,DWORD [80+esp]
+	ror	ecx,2
+	add	ebp,edx
+	add	edx,DWORD [4+esp]
+	add	ebp,ecx
+	mov	ecx,DWORD [68+esp]
+	mov	ebx,esi
+	ror	esi,11
+	mov	edi,ecx
+	ror	ecx,2
+	xor	esi,ebx
+	shr	ebx,3
+	ror	esi,7
+	xor	ecx,edi
+	xor	ebx,esi
+	ror	ecx,17
+	add	ebx,DWORD [76+esp]
+	shr	edi,10
+	add	ebx,DWORD [48+esp]
+	mov	esi,edx
+	xor	edi,ecx
+	mov	ecx,DWORD [8+esp]
+	ror	edx,14
+	add	ebx,edi
+	mov	edi,DWORD [12+esp]
+	xor	edx,esi
+	mov	DWORD [76+esp],ebx
+	xor	ecx,edi
+	ror	edx,5
+	and	ecx,esi
+	mov	DWORD [4+esp],esi
+	xor	edx,esi
+	add	ebx,DWORD [16+esp]
+	xor	edi,ecx
+	ror	edx,6
+	mov	esi,ebp
+	add	ebx,edi
+	ror	esi,9
+	mov	ecx,ebp
+	mov	edi,DWORD [24+esp]
+	xor	esi,ebp
+	mov	DWORD [20+esp],ebp
+	xor	ebp,edi
+	ror	esi,11
+	and	eax,ebp
+	lea	edx,[2361852424+edx*1+ebx]
+	xor	esi,ecx
+	xor	eax,edi
+	mov	ecx,DWORD [84+esp]
+	ror	esi,2
+	add	eax,edx
+	add	edx,DWORD [esp]
+	add	eax,esi
+	mov	esi,DWORD [72+esp]
+	mov	ebx,ecx
+	ror	ecx,11
+	mov	edi,esi
+	ror	esi,2
+	xor	ecx,ebx
+	shr	ebx,3
+	ror	ecx,7
+	xor	esi,edi
+	xor	ebx,ecx
+	ror	esi,17
+	add	ebx,DWORD [80+esp]
+	shr	edi,10
+	add	ebx,DWORD [52+esp]
+	mov	ecx,edx
+	xor	edi,esi
+	mov	esi,DWORD [4+esp]
+	ror	edx,14
+	add	ebx,edi
+	mov	edi,DWORD [8+esp]
+	xor	edx,ecx
+	mov	DWORD [80+esp],ebx
+	xor	esi,edi
+	ror	edx,5
+	and	esi,ecx
+	mov	DWORD [esp],ecx
+	xor	edx,ecx
+	add	ebx,DWORD [12+esp]
+	xor	edi,esi
+	ror	edx,6
+	mov	ecx,eax
+	add	ebx,edi
+	ror	ecx,9
+	mov	esi,eax
+	mov	edi,DWORD [20+esp]
+	xor	ecx,eax
+	mov	DWORD [16+esp],eax
+	xor	eax,edi
+	ror	ecx,11
+	and	ebp,eax
+	lea	edx,[2428436474+edx*1+ebx]
+	xor	ecx,esi
+	xor	ebp,edi
+	mov	esi,DWORD [88+esp]
+	ror	ecx,2
+	add	ebp,edx
+	add	edx,DWORD [28+esp]
+	add	ebp,ecx
+	mov	ecx,DWORD [76+esp]
+	mov	ebx,esi
+	ror	esi,11
+	mov	edi,ecx
+	ror	ecx,2
+	xor	esi,ebx
+	shr	ebx,3
+	ror	esi,7
+	xor	ecx,edi
+	xor	ebx,esi
+	ror	ecx,17
+	add	ebx,DWORD [84+esp]
+	shr	edi,10
+	add	ebx,DWORD [56+esp]
+	mov	esi,edx
+	xor	edi,ecx
+	mov	ecx,DWORD [esp]
+	ror	edx,14
+	add	ebx,edi
+	mov	edi,DWORD [4+esp]
+	xor	edx,esi
+	mov	DWORD [84+esp],ebx
+	xor	ecx,edi
+	ror	edx,5
+	and	ecx,esi
+	mov	DWORD [28+esp],esi
+	xor	edx,esi
+	add	ebx,DWORD [8+esp]
+	xor	edi,ecx
+	ror	edx,6
+	mov	esi,ebp
+	add	ebx,edi
+	ror	esi,9
+	mov	ecx,ebp
+	mov	edi,DWORD [16+esp]
+	xor	esi,ebp
+	mov	DWORD [12+esp],ebp
+	xor	ebp,edi
+	ror	esi,11
+	and	eax,ebp
+	lea	edx,[2756734187+edx*1+ebx]
+	xor	esi,ecx
+	xor	eax,edi
+	mov	ecx,DWORD [92+esp]
+	ror	esi,2
+	add	eax,edx
+	add	edx,DWORD [24+esp]
+	add	eax,esi
+	mov	esi,DWORD [80+esp]
+	mov	ebx,ecx
+	ror	ecx,11
+	mov	edi,esi
+	ror	esi,2
+	xor	ecx,ebx
+	shr	ebx,3
+	ror	ecx,7
+	xor	esi,edi
+	xor	ebx,ecx
+	ror	esi,17
+	add	ebx,DWORD [88+esp]
+	shr	edi,10
+	add	ebx,DWORD [60+esp]
+	mov	ecx,edx
+	xor	edi,esi
+	mov	esi,DWORD [28+esp]
+	ror	edx,14
+	add	ebx,edi
+	mov	edi,DWORD [esp]
+	xor	edx,ecx
+	xor	esi,edi
+	ror	edx,5
+	and	esi,ecx
+	mov	DWORD [24+esp],ecx
+	xor	edx,ecx
+	add	ebx,DWORD [4+esp]
+	xor	edi,esi
+	ror	edx,6
+	mov	ecx,eax
+	add	ebx,edi
+	ror	ecx,9
+	mov	esi,eax
+	mov	edi,DWORD [12+esp]
+	xor	ecx,eax
+	mov	DWORD [8+esp],eax
+	xor	eax,edi
+	ror	ecx,11
+	and	ebp,eax
+	lea	edx,[3204031479+edx*1+ebx]
+	xor	ecx,esi
+	xor	ebp,edi
+	mov	esi,DWORD [32+esp]
+	ror	ecx,2
+	add	ebp,edx
+	add	edx,DWORD [20+esp]
+	add	ebp,ecx
+	mov	ecx,DWORD [84+esp]
+	mov	ebx,esi
+	ror	esi,11
+	mov	edi,ecx
+	ror	ecx,2
+	xor	esi,ebx
+	shr	ebx,3
+	ror	esi,7
+	xor	ecx,edi
+	xor	ebx,esi
+	ror	ecx,17
+	add	ebx,DWORD [92+esp]
+	shr	edi,10
+	add	ebx,DWORD [64+esp]
+	mov	esi,edx
+	xor	edi,ecx
+	mov	ecx,DWORD [24+esp]
+	ror	edx,14
+	add	ebx,edi
+	mov	edi,DWORD [28+esp]
+	xor	edx,esi
+	xor	ecx,edi
+	ror	edx,5
+	and	ecx,esi
+	mov	DWORD [20+esp],esi
+	xor	edx,esi
+	add	ebx,DWORD [esp]
+	xor	edi,ecx
+	ror	edx,6
+	mov	esi,ebp
+	add	ebx,edi
+	ror	esi,9
+	mov	ecx,ebp
+	mov	edi,DWORD [8+esp]
+	xor	esi,ebp
+	mov	DWORD [4+esp],ebp
+	xor	ebp,edi
+	ror	esi,11
+	and	eax,ebp
+	lea	edx,[3329325298+edx*1+ebx]
+	xor	esi,ecx
+	xor	eax,edi
+	ror	esi,2
+	add	eax,edx
+	add	edx,DWORD [16+esp]
+	add	eax,esi
+	mov	esi,DWORD [96+esp]
+	xor	ebp,edi
+	mov	ecx,DWORD [12+esp]
+	add	eax,DWORD [esi]
+	add	ebp,DWORD [4+esi]
+	add	edi,DWORD [8+esi]
+	add	ecx,DWORD [12+esi]
+	mov	DWORD [esi],eax
+	mov	DWORD [4+esi],ebp
+	mov	DWORD [8+esi],edi
+	mov	DWORD [12+esi],ecx
+	mov	DWORD [4+esp],ebp
+	xor	ebp,edi
+	mov	DWORD [8+esp],edi
+	mov	DWORD [12+esp],ecx
+	mov	edi,DWORD [20+esp]
+	mov	ebx,DWORD [24+esp]
+	mov	ecx,DWORD [28+esp]
+	add	edx,DWORD [16+esi]
+	add	edi,DWORD [20+esi]
+	add	ebx,DWORD [24+esi]
+	add	ecx,DWORD [28+esi]
+	mov	DWORD [16+esi],edx
+	mov	DWORD [20+esi],edi
+	mov	DWORD [24+esi],ebx
+	mov	DWORD [28+esi],ecx
+	mov	DWORD [20+esp],edi
+	mov	edi,DWORD [100+esp]
+	mov	DWORD [24+esp],ebx
+	mov	DWORD [28+esp],ecx
+	cmp	edi,DWORD [104+esp]
+	jb	NEAR L$009grand_loop
+	mov	esp,DWORD [108+esp]
+	pop	edi
+	pop	esi
+	pop	ebx
+	pop	ebp
 	ret
-#endif
+segment	.bss
+common	_OPENSSL_ia32cap_P 16
+%endif
 #endif  // defined(__i386__) && defined(_WIN32)
 #if defined(__linux__) && defined(__ELF__)
 .section .note.GNU-stack,"",%progbits

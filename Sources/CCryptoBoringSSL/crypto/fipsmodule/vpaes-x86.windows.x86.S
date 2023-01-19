@@ -1,699 +1,681 @@
 #define BORINGSSL_PREFIX CCryptoBoringSSL
 #if defined(__i386__) && defined(_WIN32)
-// This file is generated from a similarly-named Perl script in the BoringSSL
-// source tree. Do not edit by hand.
+; This file is generated from a similarly-named Perl script in the BoringSSL
+; source tree. Do not edit by hand.
 
-#if defined(__i386__)
-#if defined(BORINGSSL_PREFIX)
-#include <CCryptoBoringSSL_boringssl_prefix_symbols_asm.h>
-#endif
-.text
-#ifdef BORINGSSL_DISPATCH_TEST
-#endif
-.align	64
-.L_vpaes_consts:
-.long	218628480,235210255,168496130,67568393
-.long	252381056,17041926,33884169,51187212
-.long	252645135,252645135,252645135,252645135
-.long	1512730624,3266504856,1377990664,3401244816
-.long	830229760,1275146365,2969422977,3447763452
-.long	3411033600,2979783055,338359620,2782886510
-.long	4209124096,907596821,221174255,1006095553
-.long	191964160,3799684038,3164090317,1589111125
-.long	182528256,1777043520,2877432650,3265356744
-.long	1874708224,3503451415,3305285752,363511674
-.long	1606117888,3487855781,1093350906,2384367825
-.long	197121,67569157,134941193,202313229
-.long	67569157,134941193,202313229,197121
-.long	134941193,202313229,197121,67569157
-.long	202313229,197121,67569157,134941193
-.long	33619971,100992007,168364043,235736079
-.long	235736079,33619971,100992007,168364043
-.long	168364043,235736079,33619971,100992007
-.long	100992007,168364043,235736079,33619971
-.long	50462976,117835012,185207048,252579084
-.long	252314880,51251460,117574920,184942860
-.long	184682752,252054788,50987272,118359308
-.long	118099200,185467140,251790600,50727180
-.long	2946363062,528716217,1300004225,1881839624
-.long	1532713819,1532713819,1532713819,1532713819
-.long	3602276352,4288629033,3737020424,4153884961
-.long	1354558464,32357713,2958822624,3775749553
-.long	1201988352,132424512,1572796698,503232858
-.long	2213177600,1597421020,4103937655,675398315
-.long	2749646592,4273543773,1511898873,121693092
-.long	3040248576,1103263732,2871565598,1608280554
-.long	2236667136,2588920351,482954393,64377734
-.long	3069987328,291237287,2117370568,3650299247
-.long	533321216,3573750986,2572112006,1401264716
-.long	1339849704,2721158661,548607111,3445553514
-.long	2128193280,3054596040,2183486460,1257083700
-.long	655635200,1165381986,3923443150,2344132524
-.long	190078720,256924420,290342170,357187870
-.long	1610966272,2263057382,4103205268,309794674
-.long	2592527872,2233205587,1335446729,3402964816
-.long	3973531904,3225098121,3002836325,1918774430
-.long	3870401024,2102906079,2284471353,4117666579
-.long	617007872,1021508343,366931923,691083277
-.long	2528395776,3491914898,2968704004,1613121270
-.long	3445188352,3247741094,844474987,4093578302
-.long	651481088,1190302358,1689581232,574775300
-.long	4289380608,206939853,2555985458,2489840491
-.long	2130264064,327674451,3566485037,3349835193
-.long	2470714624,316102159,3636825756,3393945945
-.byte	86,101,99,116,111,114,32,80,101,114,109,117,116,97,116,105
-.byte	111,110,32,65,69,83,32,102,111,114,32,120,56,54,47,83
-.byte	83,83,69,51,44,32,77,105,107,101,32,72,97,109,98,117
-.byte	114,103,32,40,83,116,97,110,102,111,114,100,32,85,110,105
-.byte	118,101,114,115,105,116,121,41,0
-.align	64
-.hidden	__vpaes_preheat
-.def	__vpaes_preheat;	.scl	3;	.type	32;	.endef
-.align	16
+%ifdef BORINGSSL_PREFIX
+%include "boringssl_prefix_symbols_nasm.inc"
+%endif
+%ifidn __OUTPUT_FORMAT__, win32
+%ifidn __OUTPUT_FORMAT__,obj
+section	code	use32 class=code align=64
+%elifidn __OUTPUT_FORMAT__,win32
+$@feat.00 equ 1
+section	.text	code align=64
+%else
+section	.text	code
+%endif
+%ifdef BORINGSSL_DISPATCH_TEST
+extern	_BORINGSSL_function_hit
+%endif
+align	64
+L$_vpaes_consts:
+dd	218628480,235210255,168496130,67568393
+dd	252381056,17041926,33884169,51187212
+dd	252645135,252645135,252645135,252645135
+dd	1512730624,3266504856,1377990664,3401244816
+dd	830229760,1275146365,2969422977,3447763452
+dd	3411033600,2979783055,338359620,2782886510
+dd	4209124096,907596821,221174255,1006095553
+dd	191964160,3799684038,3164090317,1589111125
+dd	182528256,1777043520,2877432650,3265356744
+dd	1874708224,3503451415,3305285752,363511674
+dd	1606117888,3487855781,1093350906,2384367825
+dd	197121,67569157,134941193,202313229
+dd	67569157,134941193,202313229,197121
+dd	134941193,202313229,197121,67569157
+dd	202313229,197121,67569157,134941193
+dd	33619971,100992007,168364043,235736079
+dd	235736079,33619971,100992007,168364043
+dd	168364043,235736079,33619971,100992007
+dd	100992007,168364043,235736079,33619971
+dd	50462976,117835012,185207048,252579084
+dd	252314880,51251460,117574920,184942860
+dd	184682752,252054788,50987272,118359308
+dd	118099200,185467140,251790600,50727180
+dd	2946363062,528716217,1300004225,1881839624
+dd	1532713819,1532713819,1532713819,1532713819
+dd	3602276352,4288629033,3737020424,4153884961
+dd	1354558464,32357713,2958822624,3775749553
+dd	1201988352,132424512,1572796698,503232858
+dd	2213177600,1597421020,4103937655,675398315
+dd	2749646592,4273543773,1511898873,121693092
+dd	3040248576,1103263732,2871565598,1608280554
+dd	2236667136,2588920351,482954393,64377734
+dd	3069987328,291237287,2117370568,3650299247
+dd	533321216,3573750986,2572112006,1401264716
+dd	1339849704,2721158661,548607111,3445553514
+dd	2128193280,3054596040,2183486460,1257083700
+dd	655635200,1165381986,3923443150,2344132524
+dd	190078720,256924420,290342170,357187870
+dd	1610966272,2263057382,4103205268,309794674
+dd	2592527872,2233205587,1335446729,3402964816
+dd	3973531904,3225098121,3002836325,1918774430
+dd	3870401024,2102906079,2284471353,4117666579
+dd	617007872,1021508343,366931923,691083277
+dd	2528395776,3491914898,2968704004,1613121270
+dd	3445188352,3247741094,844474987,4093578302
+dd	651481088,1190302358,1689581232,574775300
+dd	4289380608,206939853,2555985458,2489840491
+dd	2130264064,327674451,3566485037,3349835193
+dd	2470714624,316102159,3636825756,3393945945
+db	86,101,99,116,111,114,32,80,101,114,109,117,116,97,116,105
+db	111,110,32,65,69,83,32,102,111,114,32,120,56,54,47,83
+db	83,83,69,51,44,32,77,105,107,101,32,72,97,109,98,117
+db	114,103,32,40,83,116,97,110,102,111,114,100,32,85,110,105
+db	118,101,114,115,105,116,121,41,0
+align	64
+align	16
 __vpaes_preheat:
-	addl	(%esp),%ebp
-	movdqa	-48(%ebp),%xmm7
-	movdqa	-16(%ebp),%xmm6
+	add	ebp,DWORD [esp]
+	movdqa	xmm7,[ebp-48]
+	movdqa	xmm6,[ebp-16]
 	ret
-.hidden	__vpaes_encrypt_core
-.def	__vpaes_encrypt_core;	.scl	3;	.type	32;	.endef
-.align	16
+align	16
 __vpaes_encrypt_core:
-	movl	$16,%ecx
-	movl	240(%edx),%eax
-	movdqa	%xmm6,%xmm1
-	movdqa	(%ebp),%xmm2
-	pandn	%xmm0,%xmm1
-	pand	%xmm6,%xmm0
-	movdqu	(%edx),%xmm5
-.byte	102,15,56,0,208
-	movdqa	16(%ebp),%xmm0
-	pxor	%xmm5,%xmm2
-	psrld	$4,%xmm1
-	addl	$16,%edx
-.byte	102,15,56,0,193
-	leal	192(%ebp),%ebx
-	pxor	%xmm2,%xmm0
-	jmp	.L000enc_entry
-.align	16
-.L001enc_loop:
-	movdqa	32(%ebp),%xmm4
-	movdqa	48(%ebp),%xmm0
-.byte	102,15,56,0,226
-.byte	102,15,56,0,195
-	pxor	%xmm5,%xmm4
-	movdqa	64(%ebp),%xmm5
-	pxor	%xmm4,%xmm0
-	movdqa	-64(%ebx,%ecx,1),%xmm1
-.byte	102,15,56,0,234
-	movdqa	80(%ebp),%xmm2
-	movdqa	(%ebx,%ecx,1),%xmm4
-.byte	102,15,56,0,211
-	movdqa	%xmm0,%xmm3
-	pxor	%xmm5,%xmm2
-.byte	102,15,56,0,193
-	addl	$16,%edx
-	pxor	%xmm2,%xmm0
-.byte	102,15,56,0,220
-	addl	$16,%ecx
-	pxor	%xmm0,%xmm3
-.byte	102,15,56,0,193
-	andl	$48,%ecx
-	subl	$1,%eax
-	pxor	%xmm3,%xmm0
-.L000enc_entry:
-	movdqa	%xmm6,%xmm1
-	movdqa	-32(%ebp),%xmm5
-	pandn	%xmm0,%xmm1
-	psrld	$4,%xmm1
-	pand	%xmm6,%xmm0
-.byte	102,15,56,0,232
-	movdqa	%xmm7,%xmm3
-	pxor	%xmm1,%xmm0
-.byte	102,15,56,0,217
-	movdqa	%xmm7,%xmm4
-	pxor	%xmm5,%xmm3
-.byte	102,15,56,0,224
-	movdqa	%xmm7,%xmm2
-	pxor	%xmm5,%xmm4
-.byte	102,15,56,0,211
-	movdqa	%xmm7,%xmm3
-	pxor	%xmm0,%xmm2
-.byte	102,15,56,0,220
-	movdqu	(%edx),%xmm5
-	pxor	%xmm1,%xmm3
-	jnz	.L001enc_loop
-	movdqa	96(%ebp),%xmm4
-	movdqa	112(%ebp),%xmm0
-.byte	102,15,56,0,226
-	pxor	%xmm5,%xmm4
-.byte	102,15,56,0,195
-	movdqa	64(%ebx,%ecx,1),%xmm1
-	pxor	%xmm4,%xmm0
-.byte	102,15,56,0,193
+	mov	ecx,16
+	mov	eax,DWORD [240+edx]
+	movdqa	xmm1,xmm6
+	movdqa	xmm2,[ebp]
+	pandn	xmm1,xmm0
+	pand	xmm0,xmm6
+	movdqu	xmm5,[edx]
+db	102,15,56,0,208
+	movdqa	xmm0,[16+ebp]
+	pxor	xmm2,xmm5
+	psrld	xmm1,4
+	add	edx,16
+db	102,15,56,0,193
+	lea	ebx,[192+ebp]
+	pxor	xmm0,xmm2
+	jmp	NEAR L$000enc_entry
+align	16
+L$001enc_loop:
+	movdqa	xmm4,[32+ebp]
+	movdqa	xmm0,[48+ebp]
+db	102,15,56,0,226
+db	102,15,56,0,195
+	pxor	xmm4,xmm5
+	movdqa	xmm5,[64+ebp]
+	pxor	xmm0,xmm4
+	movdqa	xmm1,[ecx*1+ebx-64]
+db	102,15,56,0,234
+	movdqa	xmm2,[80+ebp]
+	movdqa	xmm4,[ecx*1+ebx]
+db	102,15,56,0,211
+	movdqa	xmm3,xmm0
+	pxor	xmm2,xmm5
+db	102,15,56,0,193
+	add	edx,16
+	pxor	xmm0,xmm2
+db	102,15,56,0,220
+	add	ecx,16
+	pxor	xmm3,xmm0
+db	102,15,56,0,193
+	and	ecx,48
+	sub	eax,1
+	pxor	xmm0,xmm3
+L$000enc_entry:
+	movdqa	xmm1,xmm6
+	movdqa	xmm5,[ebp-32]
+	pandn	xmm1,xmm0
+	psrld	xmm1,4
+	pand	xmm0,xmm6
+db	102,15,56,0,232
+	movdqa	xmm3,xmm7
+	pxor	xmm0,xmm1
+db	102,15,56,0,217
+	movdqa	xmm4,xmm7
+	pxor	xmm3,xmm5
+db	102,15,56,0,224
+	movdqa	xmm2,xmm7
+	pxor	xmm4,xmm5
+db	102,15,56,0,211
+	movdqa	xmm3,xmm7
+	pxor	xmm2,xmm0
+db	102,15,56,0,220
+	movdqu	xmm5,[edx]
+	pxor	xmm3,xmm1
+	jnz	NEAR L$001enc_loop
+	movdqa	xmm4,[96+ebp]
+	movdqa	xmm0,[112+ebp]
+db	102,15,56,0,226
+	pxor	xmm4,xmm5
+db	102,15,56,0,195
+	movdqa	xmm1,[64+ecx*1+ebx]
+	pxor	xmm0,xmm4
+db	102,15,56,0,193
 	ret
-.hidden	__vpaes_decrypt_core
-.def	__vpaes_decrypt_core;	.scl	3;	.type	32;	.endef
-.align	16
+align	16
 __vpaes_decrypt_core:
-	leal	608(%ebp),%ebx
-	movl	240(%edx),%eax
-	movdqa	%xmm6,%xmm1
-	movdqa	-64(%ebx),%xmm2
-	pandn	%xmm0,%xmm1
-	movl	%eax,%ecx
-	psrld	$4,%xmm1
-	movdqu	(%edx),%xmm5
-	shll	$4,%ecx
-	pand	%xmm6,%xmm0
-.byte	102,15,56,0,208
-	movdqa	-48(%ebx),%xmm0
-	xorl	$48,%ecx
-.byte	102,15,56,0,193
-	andl	$48,%ecx
-	pxor	%xmm5,%xmm2
-	movdqa	176(%ebp),%xmm5
-	pxor	%xmm2,%xmm0
-	addl	$16,%edx
-	leal	-352(%ebx,%ecx,1),%ecx
-	jmp	.L002dec_entry
-.align	16
-.L003dec_loop:
-	movdqa	-32(%ebx),%xmm4
-	movdqa	-16(%ebx),%xmm1
-.byte	102,15,56,0,226
-.byte	102,15,56,0,203
-	pxor	%xmm4,%xmm0
-	movdqa	(%ebx),%xmm4
-	pxor	%xmm1,%xmm0
-	movdqa	16(%ebx),%xmm1
-.byte	102,15,56,0,226
-.byte	102,15,56,0,197
-.byte	102,15,56,0,203
-	pxor	%xmm4,%xmm0
-	movdqa	32(%ebx),%xmm4
-	pxor	%xmm1,%xmm0
-	movdqa	48(%ebx),%xmm1
-.byte	102,15,56,0,226
-.byte	102,15,56,0,197
-.byte	102,15,56,0,203
-	pxor	%xmm4,%xmm0
-	movdqa	64(%ebx),%xmm4
-	pxor	%xmm1,%xmm0
-	movdqa	80(%ebx),%xmm1
-.byte	102,15,56,0,226
-.byte	102,15,56,0,197
-.byte	102,15,56,0,203
-	pxor	%xmm4,%xmm0
-	addl	$16,%edx
-.byte	102,15,58,15,237,12
-	pxor	%xmm1,%xmm0
-	subl	$1,%eax
-.L002dec_entry:
-	movdqa	%xmm6,%xmm1
-	movdqa	-32(%ebp),%xmm2
-	pandn	%xmm0,%xmm1
-	pand	%xmm6,%xmm0
-	psrld	$4,%xmm1
-.byte	102,15,56,0,208
-	movdqa	%xmm7,%xmm3
-	pxor	%xmm1,%xmm0
-.byte	102,15,56,0,217
-	movdqa	%xmm7,%xmm4
-	pxor	%xmm2,%xmm3
-.byte	102,15,56,0,224
-	pxor	%xmm2,%xmm4
-	movdqa	%xmm7,%xmm2
-.byte	102,15,56,0,211
-	movdqa	%xmm7,%xmm3
-	pxor	%xmm0,%xmm2
-.byte	102,15,56,0,220
-	movdqu	(%edx),%xmm0
-	pxor	%xmm1,%xmm3
-	jnz	.L003dec_loop
-	movdqa	96(%ebx),%xmm4
-.byte	102,15,56,0,226
-	pxor	%xmm0,%xmm4
-	movdqa	112(%ebx),%xmm0
-	movdqa	(%ecx),%xmm2
-.byte	102,15,56,0,195
-	pxor	%xmm4,%xmm0
-.byte	102,15,56,0,194
+	lea	ebx,[608+ebp]
+	mov	eax,DWORD [240+edx]
+	movdqa	xmm1,xmm6
+	movdqa	xmm2,[ebx-64]
+	pandn	xmm1,xmm0
+	mov	ecx,eax
+	psrld	xmm1,4
+	movdqu	xmm5,[edx]
+	shl	ecx,4
+	pand	xmm0,xmm6
+db	102,15,56,0,208
+	movdqa	xmm0,[ebx-48]
+	xor	ecx,48
+db	102,15,56,0,193
+	and	ecx,48
+	pxor	xmm2,xmm5
+	movdqa	xmm5,[176+ebp]
+	pxor	xmm0,xmm2
+	add	edx,16
+	lea	ecx,[ecx*1+ebx-352]
+	jmp	NEAR L$002dec_entry
+align	16
+L$003dec_loop:
+	movdqa	xmm4,[ebx-32]
+	movdqa	xmm1,[ebx-16]
+db	102,15,56,0,226
+db	102,15,56,0,203
+	pxor	xmm0,xmm4
+	movdqa	xmm4,[ebx]
+	pxor	xmm0,xmm1
+	movdqa	xmm1,[16+ebx]
+db	102,15,56,0,226
+db	102,15,56,0,197
+db	102,15,56,0,203
+	pxor	xmm0,xmm4
+	movdqa	xmm4,[32+ebx]
+	pxor	xmm0,xmm1
+	movdqa	xmm1,[48+ebx]
+db	102,15,56,0,226
+db	102,15,56,0,197
+db	102,15,56,0,203
+	pxor	xmm0,xmm4
+	movdqa	xmm4,[64+ebx]
+	pxor	xmm0,xmm1
+	movdqa	xmm1,[80+ebx]
+db	102,15,56,0,226
+db	102,15,56,0,197
+db	102,15,56,0,203
+	pxor	xmm0,xmm4
+	add	edx,16
+db	102,15,58,15,237,12
+	pxor	xmm0,xmm1
+	sub	eax,1
+L$002dec_entry:
+	movdqa	xmm1,xmm6
+	movdqa	xmm2,[ebp-32]
+	pandn	xmm1,xmm0
+	pand	xmm0,xmm6
+	psrld	xmm1,4
+db	102,15,56,0,208
+	movdqa	xmm3,xmm7
+	pxor	xmm0,xmm1
+db	102,15,56,0,217
+	movdqa	xmm4,xmm7
+	pxor	xmm3,xmm2
+db	102,15,56,0,224
+	pxor	xmm4,xmm2
+	movdqa	xmm2,xmm7
+db	102,15,56,0,211
+	movdqa	xmm3,xmm7
+	pxor	xmm2,xmm0
+db	102,15,56,0,220
+	movdqu	xmm0,[edx]
+	pxor	xmm3,xmm1
+	jnz	NEAR L$003dec_loop
+	movdqa	xmm4,[96+ebx]
+db	102,15,56,0,226
+	pxor	xmm4,xmm0
+	movdqa	xmm0,[112+ebx]
+	movdqa	xmm2,[ecx]
+db	102,15,56,0,195
+	pxor	xmm0,xmm4
+db	102,15,56,0,194
 	ret
-.hidden	__vpaes_schedule_core
-.def	__vpaes_schedule_core;	.scl	3;	.type	32;	.endef
-.align	16
+align	16
 __vpaes_schedule_core:
-	addl	(%esp),%ebp
-	movdqu	(%esi),%xmm0
-	movdqa	320(%ebp),%xmm2
-	movdqa	%xmm0,%xmm3
-	leal	(%ebp),%ebx
-	movdqa	%xmm2,4(%esp)
+	add	ebp,DWORD [esp]
+	movdqu	xmm0,[esi]
+	movdqa	xmm2,[320+ebp]
+	movdqa	xmm3,xmm0
+	lea	ebx,[ebp]
+	movdqa	[4+esp],xmm2
 	call	__vpaes_schedule_transform
-	movdqa	%xmm0,%xmm7
-	testl	%edi,%edi
-	jnz	.L004schedule_am_decrypting
-	movdqu	%xmm0,(%edx)
-	jmp	.L005schedule_go
-.L004schedule_am_decrypting:
-	movdqa	256(%ebp,%ecx,1),%xmm1
-.byte	102,15,56,0,217
-	movdqu	%xmm3,(%edx)
-	xorl	$48,%ecx
-.L005schedule_go:
-	cmpl	$192,%eax
-	ja	.L006schedule_256
-	je	.L007schedule_192
-.L008schedule_128:
-	movl	$10,%eax
-.L009loop_schedule_128:
+	movdqa	xmm7,xmm0
+	test	edi,edi
+	jnz	NEAR L$004schedule_am_decrypting
+	movdqu	[edx],xmm0
+	jmp	NEAR L$005schedule_go
+L$004schedule_am_decrypting:
+	movdqa	xmm1,[256+ecx*1+ebp]
+db	102,15,56,0,217
+	movdqu	[edx],xmm3
+	xor	ecx,48
+L$005schedule_go:
+	cmp	eax,192
+	ja	NEAR L$006schedule_256
+	je	NEAR L$007schedule_192
+L$008schedule_128:
+	mov	eax,10
+L$009loop_schedule_128:
 	call	__vpaes_schedule_round
-	decl	%eax
-	jz	.L010schedule_mangle_last
+	dec	eax
+	jz	NEAR L$010schedule_mangle_last
 	call	__vpaes_schedule_mangle
-	jmp	.L009loop_schedule_128
-.align	16
-.L007schedule_192:
-	movdqu	8(%esi),%xmm0
+	jmp	NEAR L$009loop_schedule_128
+align	16
+L$007schedule_192:
+	movdqu	xmm0,[8+esi]
 	call	__vpaes_schedule_transform
-	movdqa	%xmm0,%xmm6
-	pxor	%xmm4,%xmm4
-	movhlps	%xmm4,%xmm6
-	movl	$4,%eax
-.L011loop_schedule_192:
+	movdqa	xmm6,xmm0
+	pxor	xmm4,xmm4
+	movhlps	xmm6,xmm4
+	mov	eax,4
+L$011loop_schedule_192:
 	call	__vpaes_schedule_round
-.byte	102,15,58,15,198,8
+db	102,15,58,15,198,8
 	call	__vpaes_schedule_mangle
 	call	__vpaes_schedule_192_smear
 	call	__vpaes_schedule_mangle
 	call	__vpaes_schedule_round
-	decl	%eax
-	jz	.L010schedule_mangle_last
+	dec	eax
+	jz	NEAR L$010schedule_mangle_last
 	call	__vpaes_schedule_mangle
 	call	__vpaes_schedule_192_smear
-	jmp	.L011loop_schedule_192
-.align	16
-.L006schedule_256:
-	movdqu	16(%esi),%xmm0
+	jmp	NEAR L$011loop_schedule_192
+align	16
+L$006schedule_256:
+	movdqu	xmm0,[16+esi]
 	call	__vpaes_schedule_transform
-	movl	$7,%eax
-.L012loop_schedule_256:
+	mov	eax,7
+L$012loop_schedule_256:
 	call	__vpaes_schedule_mangle
-	movdqa	%xmm0,%xmm6
+	movdqa	xmm6,xmm0
 	call	__vpaes_schedule_round
-	decl	%eax
-	jz	.L010schedule_mangle_last
+	dec	eax
+	jz	NEAR L$010schedule_mangle_last
 	call	__vpaes_schedule_mangle
-	pshufd	$255,%xmm0,%xmm0
-	movdqa	%xmm7,20(%esp)
-	movdqa	%xmm6,%xmm7
-	call	.L_vpaes_schedule_low_round
-	movdqa	20(%esp),%xmm7
-	jmp	.L012loop_schedule_256
-.align	16
-.L010schedule_mangle_last:
-	leal	384(%ebp),%ebx
-	testl	%edi,%edi
-	jnz	.L013schedule_mangle_last_dec
-	movdqa	256(%ebp,%ecx,1),%xmm1
-.byte	102,15,56,0,193
-	leal	352(%ebp),%ebx
-	addl	$32,%edx
-.L013schedule_mangle_last_dec:
-	addl	$-16,%edx
-	pxor	336(%ebp),%xmm0
+	pshufd	xmm0,xmm0,255
+	movdqa	[20+esp],xmm7
+	movdqa	xmm7,xmm6
+	call	L$_vpaes_schedule_low_round
+	movdqa	xmm7,[20+esp]
+	jmp	NEAR L$012loop_schedule_256
+align	16
+L$010schedule_mangle_last:
+	lea	ebx,[384+ebp]
+	test	edi,edi
+	jnz	NEAR L$013schedule_mangle_last_dec
+	movdqa	xmm1,[256+ecx*1+ebp]
+db	102,15,56,0,193
+	lea	ebx,[352+ebp]
+	add	edx,32
+L$013schedule_mangle_last_dec:
+	add	edx,-16
+	pxor	xmm0,[336+ebp]
 	call	__vpaes_schedule_transform
-	movdqu	%xmm0,(%edx)
-	pxor	%xmm0,%xmm0
-	pxor	%xmm1,%xmm1
-	pxor	%xmm2,%xmm2
-	pxor	%xmm3,%xmm3
-	pxor	%xmm4,%xmm4
-	pxor	%xmm5,%xmm5
-	pxor	%xmm6,%xmm6
-	pxor	%xmm7,%xmm7
+	movdqu	[edx],xmm0
+	pxor	xmm0,xmm0
+	pxor	xmm1,xmm1
+	pxor	xmm2,xmm2
+	pxor	xmm3,xmm3
+	pxor	xmm4,xmm4
+	pxor	xmm5,xmm5
+	pxor	xmm6,xmm6
+	pxor	xmm7,xmm7
 	ret
-.hidden	__vpaes_schedule_192_smear
-.def	__vpaes_schedule_192_smear;	.scl	3;	.type	32;	.endef
-.align	16
+align	16
 __vpaes_schedule_192_smear:
-	pshufd	$128,%xmm6,%xmm1
-	pshufd	$254,%xmm7,%xmm0
-	pxor	%xmm1,%xmm6
-	pxor	%xmm1,%xmm1
-	pxor	%xmm0,%xmm6
-	movdqa	%xmm6,%xmm0
-	movhlps	%xmm1,%xmm6
+	pshufd	xmm1,xmm6,128
+	pshufd	xmm0,xmm7,254
+	pxor	xmm6,xmm1
+	pxor	xmm1,xmm1
+	pxor	xmm6,xmm0
+	movdqa	xmm0,xmm6
+	movhlps	xmm6,xmm1
 	ret
-.hidden	__vpaes_schedule_round
-.def	__vpaes_schedule_round;	.scl	3;	.type	32;	.endef
-.align	16
+align	16
 __vpaes_schedule_round:
-	movdqa	8(%esp),%xmm2
-	pxor	%xmm1,%xmm1
-.byte	102,15,58,15,202,15
-.byte	102,15,58,15,210,15
-	pxor	%xmm1,%xmm7
-	pshufd	$255,%xmm0,%xmm0
-.byte	102,15,58,15,192,1
-	movdqa	%xmm2,8(%esp)
-.L_vpaes_schedule_low_round:
-	movdqa	%xmm7,%xmm1
-	pslldq	$4,%xmm7
-	pxor	%xmm1,%xmm7
-	movdqa	%xmm7,%xmm1
-	pslldq	$8,%xmm7
-	pxor	%xmm1,%xmm7
-	pxor	336(%ebp),%xmm7
-	movdqa	-16(%ebp),%xmm4
-	movdqa	-48(%ebp),%xmm5
-	movdqa	%xmm4,%xmm1
-	pandn	%xmm0,%xmm1
-	psrld	$4,%xmm1
-	pand	%xmm4,%xmm0
-	movdqa	-32(%ebp),%xmm2
-.byte	102,15,56,0,208
-	pxor	%xmm1,%xmm0
-	movdqa	%xmm5,%xmm3
-.byte	102,15,56,0,217
-	pxor	%xmm2,%xmm3
-	movdqa	%xmm5,%xmm4
-.byte	102,15,56,0,224
-	pxor	%xmm2,%xmm4
-	movdqa	%xmm5,%xmm2
-.byte	102,15,56,0,211
-	pxor	%xmm0,%xmm2
-	movdqa	%xmm5,%xmm3
-.byte	102,15,56,0,220
-	pxor	%xmm1,%xmm3
-	movdqa	32(%ebp),%xmm4
-.byte	102,15,56,0,226
-	movdqa	48(%ebp),%xmm0
-.byte	102,15,56,0,195
-	pxor	%xmm4,%xmm0
-	pxor	%xmm7,%xmm0
-	movdqa	%xmm0,%xmm7
+	movdqa	xmm2,[8+esp]
+	pxor	xmm1,xmm1
+db	102,15,58,15,202,15
+db	102,15,58,15,210,15
+	pxor	xmm7,xmm1
+	pshufd	xmm0,xmm0,255
+db	102,15,58,15,192,1
+	movdqa	[8+esp],xmm2
+L$_vpaes_schedule_low_round:
+	movdqa	xmm1,xmm7
+	pslldq	xmm7,4
+	pxor	xmm7,xmm1
+	movdqa	xmm1,xmm7
+	pslldq	xmm7,8
+	pxor	xmm7,xmm1
+	pxor	xmm7,[336+ebp]
+	movdqa	xmm4,[ebp-16]
+	movdqa	xmm5,[ebp-48]
+	movdqa	xmm1,xmm4
+	pandn	xmm1,xmm0
+	psrld	xmm1,4
+	pand	xmm0,xmm4
+	movdqa	xmm2,[ebp-32]
+db	102,15,56,0,208
+	pxor	xmm0,xmm1
+	movdqa	xmm3,xmm5
+db	102,15,56,0,217
+	pxor	xmm3,xmm2
+	movdqa	xmm4,xmm5
+db	102,15,56,0,224
+	pxor	xmm4,xmm2
+	movdqa	xmm2,xmm5
+db	102,15,56,0,211
+	pxor	xmm2,xmm0
+	movdqa	xmm3,xmm5
+db	102,15,56,0,220
+	pxor	xmm3,xmm1
+	movdqa	xmm4,[32+ebp]
+db	102,15,56,0,226
+	movdqa	xmm0,[48+ebp]
+db	102,15,56,0,195
+	pxor	xmm0,xmm4
+	pxor	xmm0,xmm7
+	movdqa	xmm7,xmm0
 	ret
-.hidden	__vpaes_schedule_transform
-.def	__vpaes_schedule_transform;	.scl	3;	.type	32;	.endef
-.align	16
+align	16
 __vpaes_schedule_transform:
-	movdqa	-16(%ebp),%xmm2
-	movdqa	%xmm2,%xmm1
-	pandn	%xmm0,%xmm1
-	psrld	$4,%xmm1
-	pand	%xmm2,%xmm0
-	movdqa	(%ebx),%xmm2
-.byte	102,15,56,0,208
-	movdqa	16(%ebx),%xmm0
-.byte	102,15,56,0,193
-	pxor	%xmm2,%xmm0
+	movdqa	xmm2,[ebp-16]
+	movdqa	xmm1,xmm2
+	pandn	xmm1,xmm0
+	psrld	xmm1,4
+	pand	xmm0,xmm2
+	movdqa	xmm2,[ebx]
+db	102,15,56,0,208
+	movdqa	xmm0,[16+ebx]
+db	102,15,56,0,193
+	pxor	xmm0,xmm2
 	ret
-.hidden	__vpaes_schedule_mangle
-.def	__vpaes_schedule_mangle;	.scl	3;	.type	32;	.endef
-.align	16
+align	16
 __vpaes_schedule_mangle:
-	movdqa	%xmm0,%xmm4
-	movdqa	128(%ebp),%xmm5
-	testl	%edi,%edi
-	jnz	.L014schedule_mangle_dec
-	addl	$16,%edx
-	pxor	336(%ebp),%xmm4
-.byte	102,15,56,0,229
-	movdqa	%xmm4,%xmm3
-.byte	102,15,56,0,229
-	pxor	%xmm4,%xmm3
-.byte	102,15,56,0,229
-	pxor	%xmm4,%xmm3
-	jmp	.L015schedule_mangle_both
-.align	16
-.L014schedule_mangle_dec:
-	movdqa	-16(%ebp),%xmm2
-	leal	416(%ebp),%esi
-	movdqa	%xmm2,%xmm1
-	pandn	%xmm4,%xmm1
-	psrld	$4,%xmm1
-	pand	%xmm2,%xmm4
-	movdqa	(%esi),%xmm2
-.byte	102,15,56,0,212
-	movdqa	16(%esi),%xmm3
-.byte	102,15,56,0,217
-	pxor	%xmm2,%xmm3
-.byte	102,15,56,0,221
-	movdqa	32(%esi),%xmm2
-.byte	102,15,56,0,212
-	pxor	%xmm3,%xmm2
-	movdqa	48(%esi),%xmm3
-.byte	102,15,56,0,217
-	pxor	%xmm2,%xmm3
-.byte	102,15,56,0,221
-	movdqa	64(%esi),%xmm2
-.byte	102,15,56,0,212
-	pxor	%xmm3,%xmm2
-	movdqa	80(%esi),%xmm3
-.byte	102,15,56,0,217
-	pxor	%xmm2,%xmm3
-.byte	102,15,56,0,221
-	movdqa	96(%esi),%xmm2
-.byte	102,15,56,0,212
-	pxor	%xmm3,%xmm2
-	movdqa	112(%esi),%xmm3
-.byte	102,15,56,0,217
-	pxor	%xmm2,%xmm3
-	addl	$-16,%edx
-.L015schedule_mangle_both:
-	movdqa	256(%ebp,%ecx,1),%xmm1
-.byte	102,15,56,0,217
-	addl	$-16,%ecx
-	andl	$48,%ecx
-	movdqu	%xmm3,(%edx)
+	movdqa	xmm4,xmm0
+	movdqa	xmm5,[128+ebp]
+	test	edi,edi
+	jnz	NEAR L$014schedule_mangle_dec
+	add	edx,16
+	pxor	xmm4,[336+ebp]
+db	102,15,56,0,229
+	movdqa	xmm3,xmm4
+db	102,15,56,0,229
+	pxor	xmm3,xmm4
+db	102,15,56,0,229
+	pxor	xmm3,xmm4
+	jmp	NEAR L$015schedule_mangle_both
+align	16
+L$014schedule_mangle_dec:
+	movdqa	xmm2,[ebp-16]
+	lea	esi,[416+ebp]
+	movdqa	xmm1,xmm2
+	pandn	xmm1,xmm4
+	psrld	xmm1,4
+	pand	xmm4,xmm2
+	movdqa	xmm2,[esi]
+db	102,15,56,0,212
+	movdqa	xmm3,[16+esi]
+db	102,15,56,0,217
+	pxor	xmm3,xmm2
+db	102,15,56,0,221
+	movdqa	xmm2,[32+esi]
+db	102,15,56,0,212
+	pxor	xmm2,xmm3
+	movdqa	xmm3,[48+esi]
+db	102,15,56,0,217
+	pxor	xmm3,xmm2
+db	102,15,56,0,221
+	movdqa	xmm2,[64+esi]
+db	102,15,56,0,212
+	pxor	xmm2,xmm3
+	movdqa	xmm3,[80+esi]
+db	102,15,56,0,217
+	pxor	xmm3,xmm2
+db	102,15,56,0,221
+	movdqa	xmm2,[96+esi]
+db	102,15,56,0,212
+	pxor	xmm2,xmm3
+	movdqa	xmm3,[112+esi]
+db	102,15,56,0,217
+	pxor	xmm3,xmm2
+	add	edx,-16
+L$015schedule_mangle_both:
+	movdqa	xmm1,[256+ecx*1+ebp]
+db	102,15,56,0,217
+	add	ecx,-16
+	and	ecx,48
+	movdqu	[edx],xmm3
 	ret
-.globl	_vpaes_set_encrypt_key
-.hidden	_vpaes_set_encrypt_key
-.def	_vpaes_set_encrypt_key;	.scl	2;	.type	32;	.endef
-.align	16
+global	_vpaes_set_encrypt_key
+align	16
 _vpaes_set_encrypt_key:
-.L_vpaes_set_encrypt_key_begin:
-	pushl	%ebp
-	pushl	%ebx
-	pushl	%esi
-	pushl	%edi
-#ifdef BORINGSSL_DISPATCH_TEST
-	pushl	%ebx
-	pushl	%edx
-	call	.L016pic
-.L016pic:
-	popl	%ebx
-	leal	_BORINGSSL_function_hit+5-.L016pic(%ebx),%ebx
-	movl	$1,%edx
-	movb	%dl,(%ebx)
-	popl	%edx
-	popl	%ebx
-#endif
-	movl	20(%esp),%esi
-	leal	-56(%esp),%ebx
-	movl	24(%esp),%eax
-	andl	$-16,%ebx
-	movl	28(%esp),%edx
-	xchgl	%esp,%ebx
-	movl	%ebx,48(%esp)
-	movl	%eax,%ebx
-	shrl	$5,%ebx
-	addl	$5,%ebx
-	movl	%ebx,240(%edx)
-	movl	$48,%ecx
-	movl	$0,%edi
-	leal	.L_vpaes_consts+0x30-.L017pic_point,%ebp
+L$_vpaes_set_encrypt_key_begin:
+	push	ebp
+	push	ebx
+	push	esi
+	push	edi
+%ifdef BORINGSSL_DISPATCH_TEST
+	push	ebx
+	push	edx
+	call	L$016pic
+L$016pic:
+	pop	ebx
+	lea	ebx,[(_BORINGSSL_function_hit+5-L$016pic)+ebx]
+	mov	edx,1
+	mov	BYTE [ebx],dl
+	pop	edx
+	pop	ebx
+%endif
+	mov	esi,DWORD [20+esp]
+	lea	ebx,[esp-56]
+	mov	eax,DWORD [24+esp]
+	and	ebx,-16
+	mov	edx,DWORD [28+esp]
+	xchg	ebx,esp
+	mov	DWORD [48+esp],ebx
+	mov	ebx,eax
+	shr	ebx,5
+	add	ebx,5
+	mov	DWORD [240+edx],ebx
+	mov	ecx,48
+	mov	edi,0
+	lea	ebp,[(L$_vpaes_consts+0x30-L$017pic_point)]
 	call	__vpaes_schedule_core
-.L017pic_point:
-	movl	48(%esp),%esp
-	xorl	%eax,%eax
-	popl	%edi
-	popl	%esi
-	popl	%ebx
-	popl	%ebp
+L$017pic_point:
+	mov	esp,DWORD [48+esp]
+	xor	eax,eax
+	pop	edi
+	pop	esi
+	pop	ebx
+	pop	ebp
 	ret
-.globl	_vpaes_set_decrypt_key
-.hidden	_vpaes_set_decrypt_key
-.def	_vpaes_set_decrypt_key;	.scl	2;	.type	32;	.endef
-.align	16
+global	_vpaes_set_decrypt_key
+align	16
 _vpaes_set_decrypt_key:
-.L_vpaes_set_decrypt_key_begin:
-	pushl	%ebp
-	pushl	%ebx
-	pushl	%esi
-	pushl	%edi
-	movl	20(%esp),%esi
-	leal	-56(%esp),%ebx
-	movl	24(%esp),%eax
-	andl	$-16,%ebx
-	movl	28(%esp),%edx
-	xchgl	%esp,%ebx
-	movl	%ebx,48(%esp)
-	movl	%eax,%ebx
-	shrl	$5,%ebx
-	addl	$5,%ebx
-	movl	%ebx,240(%edx)
-	shll	$4,%ebx
-	leal	16(%edx,%ebx,1),%edx
-	movl	$1,%edi
-	movl	%eax,%ecx
-	shrl	$1,%ecx
-	andl	$32,%ecx
-	xorl	$32,%ecx
-	leal	.L_vpaes_consts+0x30-.L018pic_point,%ebp
+L$_vpaes_set_decrypt_key_begin:
+	push	ebp
+	push	ebx
+	push	esi
+	push	edi
+	mov	esi,DWORD [20+esp]
+	lea	ebx,[esp-56]
+	mov	eax,DWORD [24+esp]
+	and	ebx,-16
+	mov	edx,DWORD [28+esp]
+	xchg	ebx,esp
+	mov	DWORD [48+esp],ebx
+	mov	ebx,eax
+	shr	ebx,5
+	add	ebx,5
+	mov	DWORD [240+edx],ebx
+	shl	ebx,4
+	lea	edx,[16+ebx*1+edx]
+	mov	edi,1
+	mov	ecx,eax
+	shr	ecx,1
+	and	ecx,32
+	xor	ecx,32
+	lea	ebp,[(L$_vpaes_consts+0x30-L$018pic_point)]
 	call	__vpaes_schedule_core
-.L018pic_point:
-	movl	48(%esp),%esp
-	xorl	%eax,%eax
-	popl	%edi
-	popl	%esi
-	popl	%ebx
-	popl	%ebp
+L$018pic_point:
+	mov	esp,DWORD [48+esp]
+	xor	eax,eax
+	pop	edi
+	pop	esi
+	pop	ebx
+	pop	ebp
 	ret
-.globl	_vpaes_encrypt
-.hidden	_vpaes_encrypt
-.def	_vpaes_encrypt;	.scl	2;	.type	32;	.endef
-.align	16
+global	_vpaes_encrypt
+align	16
 _vpaes_encrypt:
-.L_vpaes_encrypt_begin:
-	pushl	%ebp
-	pushl	%ebx
-	pushl	%esi
-	pushl	%edi
-#ifdef BORINGSSL_DISPATCH_TEST
-	pushl	%ebx
-	pushl	%edx
-	call	.L019pic
-.L019pic:
-	popl	%ebx
-	leal	_BORINGSSL_function_hit+4-.L019pic(%ebx),%ebx
-	movl	$1,%edx
-	movb	%dl,(%ebx)
-	popl	%edx
-	popl	%ebx
-#endif
-	leal	.L_vpaes_consts+0x30-.L020pic_point,%ebp
+L$_vpaes_encrypt_begin:
+	push	ebp
+	push	ebx
+	push	esi
+	push	edi
+%ifdef BORINGSSL_DISPATCH_TEST
+	push	ebx
+	push	edx
+	call	L$019pic
+L$019pic:
+	pop	ebx
+	lea	ebx,[(_BORINGSSL_function_hit+4-L$019pic)+ebx]
+	mov	edx,1
+	mov	BYTE [ebx],dl
+	pop	edx
+	pop	ebx
+%endif
+	lea	ebp,[(L$_vpaes_consts+0x30-L$020pic_point)]
 	call	__vpaes_preheat
-.L020pic_point:
-	movl	20(%esp),%esi
-	leal	-56(%esp),%ebx
-	movl	24(%esp),%edi
-	andl	$-16,%ebx
-	movl	28(%esp),%edx
-	xchgl	%esp,%ebx
-	movl	%ebx,48(%esp)
-	movdqu	(%esi),%xmm0
+L$020pic_point:
+	mov	esi,DWORD [20+esp]
+	lea	ebx,[esp-56]
+	mov	edi,DWORD [24+esp]
+	and	ebx,-16
+	mov	edx,DWORD [28+esp]
+	xchg	ebx,esp
+	mov	DWORD [48+esp],ebx
+	movdqu	xmm0,[esi]
 	call	__vpaes_encrypt_core
-	movdqu	%xmm0,(%edi)
-	movl	48(%esp),%esp
-	popl	%edi
-	popl	%esi
-	popl	%ebx
-	popl	%ebp
+	movdqu	[edi],xmm0
+	mov	esp,DWORD [48+esp]
+	pop	edi
+	pop	esi
+	pop	ebx
+	pop	ebp
 	ret
-.globl	_vpaes_decrypt
-.hidden	_vpaes_decrypt
-.def	_vpaes_decrypt;	.scl	2;	.type	32;	.endef
-.align	16
+global	_vpaes_decrypt
+align	16
 _vpaes_decrypt:
-.L_vpaes_decrypt_begin:
-	pushl	%ebp
-	pushl	%ebx
-	pushl	%esi
-	pushl	%edi
-	leal	.L_vpaes_consts+0x30-.L021pic_point,%ebp
+L$_vpaes_decrypt_begin:
+	push	ebp
+	push	ebx
+	push	esi
+	push	edi
+	lea	ebp,[(L$_vpaes_consts+0x30-L$021pic_point)]
 	call	__vpaes_preheat
-.L021pic_point:
-	movl	20(%esp),%esi
-	leal	-56(%esp),%ebx
-	movl	24(%esp),%edi
-	andl	$-16,%ebx
-	movl	28(%esp),%edx
-	xchgl	%esp,%ebx
-	movl	%ebx,48(%esp)
-	movdqu	(%esi),%xmm0
+L$021pic_point:
+	mov	esi,DWORD [20+esp]
+	lea	ebx,[esp-56]
+	mov	edi,DWORD [24+esp]
+	and	ebx,-16
+	mov	edx,DWORD [28+esp]
+	xchg	ebx,esp
+	mov	DWORD [48+esp],ebx
+	movdqu	xmm0,[esi]
 	call	__vpaes_decrypt_core
-	movdqu	%xmm0,(%edi)
-	movl	48(%esp),%esp
-	popl	%edi
-	popl	%esi
-	popl	%ebx
-	popl	%ebp
+	movdqu	[edi],xmm0
+	mov	esp,DWORD [48+esp]
+	pop	edi
+	pop	esi
+	pop	ebx
+	pop	ebp
 	ret
-.globl	_vpaes_cbc_encrypt
-.hidden	_vpaes_cbc_encrypt
-.def	_vpaes_cbc_encrypt;	.scl	2;	.type	32;	.endef
-.align	16
+global	_vpaes_cbc_encrypt
+align	16
 _vpaes_cbc_encrypt:
-.L_vpaes_cbc_encrypt_begin:
-	pushl	%ebp
-	pushl	%ebx
-	pushl	%esi
-	pushl	%edi
-	movl	20(%esp),%esi
-	movl	24(%esp),%edi
-	movl	28(%esp),%eax
-	movl	32(%esp),%edx
-	subl	$16,%eax
-	jc	.L022cbc_abort
-	leal	-56(%esp),%ebx
-	movl	36(%esp),%ebp
-	andl	$-16,%ebx
-	movl	40(%esp),%ecx
-	xchgl	%esp,%ebx
-	movdqu	(%ebp),%xmm1
-	subl	%esi,%edi
-	movl	%ebx,48(%esp)
-	movl	%edi,(%esp)
-	movl	%edx,4(%esp)
-	movl	%ebp,8(%esp)
-	movl	%eax,%edi
-	leal	.L_vpaes_consts+0x30-.L023pic_point,%ebp
+L$_vpaes_cbc_encrypt_begin:
+	push	ebp
+	push	ebx
+	push	esi
+	push	edi
+	mov	esi,DWORD [20+esp]
+	mov	edi,DWORD [24+esp]
+	mov	eax,DWORD [28+esp]
+	mov	edx,DWORD [32+esp]
+	sub	eax,16
+	jc	NEAR L$022cbc_abort
+	lea	ebx,[esp-56]
+	mov	ebp,DWORD [36+esp]
+	and	ebx,-16
+	mov	ecx,DWORD [40+esp]
+	xchg	ebx,esp
+	movdqu	xmm1,[ebp]
+	sub	edi,esi
+	mov	DWORD [48+esp],ebx
+	mov	DWORD [esp],edi
+	mov	DWORD [4+esp],edx
+	mov	DWORD [8+esp],ebp
+	mov	edi,eax
+	lea	ebp,[(L$_vpaes_consts+0x30-L$023pic_point)]
 	call	__vpaes_preheat
-.L023pic_point:
-	cmpl	$0,%ecx
-	je	.L024cbc_dec_loop
-	jmp	.L025cbc_enc_loop
-.align	16
-.L025cbc_enc_loop:
-	movdqu	(%esi),%xmm0
-	pxor	%xmm1,%xmm0
+L$023pic_point:
+	cmp	ecx,0
+	je	NEAR L$024cbc_dec_loop
+	jmp	NEAR L$025cbc_enc_loop
+align	16
+L$025cbc_enc_loop:
+	movdqu	xmm0,[esi]
+	pxor	xmm0,xmm1
 	call	__vpaes_encrypt_core
-	movl	(%esp),%ebx
-	movl	4(%esp),%edx
-	movdqa	%xmm0,%xmm1
-	movdqu	%xmm0,(%ebx,%esi,1)
-	leal	16(%esi),%esi
-	subl	$16,%edi
-	jnc	.L025cbc_enc_loop
-	jmp	.L026cbc_done
-.align	16
-.L024cbc_dec_loop:
-	movdqu	(%esi),%xmm0
-	movdqa	%xmm1,16(%esp)
-	movdqa	%xmm0,32(%esp)
+	mov	ebx,DWORD [esp]
+	mov	edx,DWORD [4+esp]
+	movdqa	xmm1,xmm0
+	movdqu	[esi*1+ebx],xmm0
+	lea	esi,[16+esi]
+	sub	edi,16
+	jnc	NEAR L$025cbc_enc_loop
+	jmp	NEAR L$026cbc_done
+align	16
+L$024cbc_dec_loop:
+	movdqu	xmm0,[esi]
+	movdqa	[16+esp],xmm1
+	movdqa	[32+esp],xmm0
 	call	__vpaes_decrypt_core
-	movl	(%esp),%ebx
-	movl	4(%esp),%edx
-	pxor	16(%esp),%xmm0
-	movdqa	32(%esp),%xmm1
-	movdqu	%xmm0,(%ebx,%esi,1)
-	leal	16(%esi),%esi
-	subl	$16,%edi
-	jnc	.L024cbc_dec_loop
-.L026cbc_done:
-	movl	8(%esp),%ebx
-	movl	48(%esp),%esp
-	movdqu	%xmm1,(%ebx)
-.L022cbc_abort:
-	popl	%edi
-	popl	%esi
-	popl	%ebx
-	popl	%ebp
+	mov	ebx,DWORD [esp]
+	mov	edx,DWORD [4+esp]
+	pxor	xmm0,[16+esp]
+	movdqa	xmm1,[32+esp]
+	movdqu	[esi*1+ebx],xmm0
+	lea	esi,[16+esi]
+	sub	edi,16
+	jnc	NEAR L$024cbc_dec_loop
+L$026cbc_done:
+	mov	ebx,DWORD [8+esp]
+	mov	esp,DWORD [48+esp]
+	movdqu	[ebx],xmm1
+L$022cbc_abort:
+	pop	edi
+	pop	esi
+	pop	ebx
+	pop	ebp
 	ret
-#endif
+%endif
 #endif  // defined(__i386__) && defined(_WIN32)
 #if defined(__linux__) && defined(__ELF__)
 .section .note.GNU-stack,"",%progbits

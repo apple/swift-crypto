@@ -1,4 +1,3 @@
-/* v3_pcons.c */
 /*
  * Written by Dr Stephen N Henson (steve@openssl.org) for the OpenSSL
  * project.
@@ -65,12 +64,15 @@
 #include <CCryptoBoringSSL_obj.h>
 #include <CCryptoBoringSSL_x509v3.h>
 
+#include "internal.h"
+
+
 static STACK_OF(CONF_VALUE) *i2v_POLICY_CONSTRAINTS(
     const X509V3_EXT_METHOD *method, void *bcons,
     STACK_OF(CONF_VALUE) *extlist);
 static void *v2i_POLICY_CONSTRAINTS(const X509V3_EXT_METHOD *method,
-                                    X509V3_CTX *ctx,
-                                    STACK_OF(CONF_VALUE) *values);
+                                    const X509V3_CTX *ctx,
+                                    const STACK_OF(CONF_VALUE) *values);
 
 const X509V3_EXT_METHOD v3_policy_constraints = {
     NID_policy_constraints,
@@ -97,7 +99,7 @@ IMPLEMENT_ASN1_ALLOC_FUNCTIONS(POLICY_CONSTRAINTS)
 
 static STACK_OF(CONF_VALUE) *i2v_POLICY_CONSTRAINTS(
     const X509V3_EXT_METHOD *method, void *a, STACK_OF(CONF_VALUE) *extlist) {
-  POLICY_CONSTRAINTS *pcons = a;
+  const POLICY_CONSTRAINTS *pcons = a;
   X509V3_add_value_int("Require Explicit Policy", pcons->requireExplicitPolicy,
                        &extlist);
   X509V3_add_value_int("Inhibit Policy Mapping", pcons->inhibitPolicyMapping,
@@ -106,17 +108,15 @@ static STACK_OF(CONF_VALUE) *i2v_POLICY_CONSTRAINTS(
 }
 
 static void *v2i_POLICY_CONSTRAINTS(const X509V3_EXT_METHOD *method,
-                                    X509V3_CTX *ctx,
-                                    STACK_OF(CONF_VALUE) *values) {
+                                    const X509V3_CTX *ctx,
+                                    const STACK_OF(CONF_VALUE) *values) {
   POLICY_CONSTRAINTS *pcons = NULL;
-  CONF_VALUE *val;
-  size_t i;
   if (!(pcons = POLICY_CONSTRAINTS_new())) {
     OPENSSL_PUT_ERROR(X509V3, ERR_R_MALLOC_FAILURE);
     return NULL;
   }
-  for (i = 0; i < sk_CONF_VALUE_num(values); i++) {
-    val = sk_CONF_VALUE_value(values, i);
+  for (size_t i = 0; i < sk_CONF_VALUE_num(values); i++) {
+    const CONF_VALUE *val = sk_CONF_VALUE_value(values, i);
     if (!strcmp(val->name, "requireExplicitPolicy")) {
       if (!X509V3_get_value_int(val, &pcons->requireExplicitPolicy)) {
         goto err;
