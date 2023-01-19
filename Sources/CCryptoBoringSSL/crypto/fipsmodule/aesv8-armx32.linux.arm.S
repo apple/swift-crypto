@@ -10,8 +10,7 @@
 #define OPENSSL_NO_ASM
 #endif
 
-#if !defined(OPENSSL_NO_ASM)
-#if defined(__arm__)
+#if !defined(OPENSSL_NO_ASM) && defined(__ARMEL__) && defined(__ELF__)
 #if defined(BORINGSSL_PREFIX)
 #include <CCryptoBoringSSL_boringssl_prefix_symbols_asm.h>
 #endif
@@ -797,9 +796,11 @@ aes_hw_ctr32_encrypt_blocks:
 	ldmia	sp!,{r4,r5,r6,r7,r8,r9,r10,pc}
 .size	aes_hw_ctr32_encrypt_blocks,.-aes_hw_ctr32_encrypt_blocks
 #endif
+#endif  // !OPENSSL_NO_ASM && defined(__ARMEL__) && defined(__ELF__)
+#if defined(__ELF__)
+// See https://www.airs.com/blog/archives/518.
+.section .note.GNU-stack,"",%progbits
 #endif
-#endif  // !OPENSSL_NO_ASM
-.section	.note.GNU-stack,"",%progbits
 #endif  // defined(__arm__) && defined(__linux__)
 #if defined(__linux__) && defined(__ELF__)
 .section .note.GNU-stack,"",%progbits

@@ -334,6 +334,19 @@ enum ssl_verify_result_t BORINGSSL_ENUM_INT;
 #define BORINGSSL_ENUM_INT
 #endif
 
+// ossl_ssize_t is a signed type which is large enough to fit the size of any
+// valid memory allocation. We prefer using |size_t|, but sometimes we need a
+// signed type for OpenSSL API compatibility. This type can be used in such
+// cases to avoid overflow.
+//
+// Not all |size_t| values fit in |ossl_ssize_t|, but all |size_t| values that
+// are sizes of or indices into C objects, can be converted without overflow.
+typedef ptrdiff_t ossl_ssize_t;
+
+// CBS_ASN1_TAG is the type used by |CBS| and |CBB| for ASN.1 tags. See that
+// header for details. This type is defined in base.h as a forward declaration.
+typedef uint32_t CBS_ASN1_TAG;
+
 // CRYPTO_THREADID is a dummy value.
 typedef int CRYPTO_THREADID;
 

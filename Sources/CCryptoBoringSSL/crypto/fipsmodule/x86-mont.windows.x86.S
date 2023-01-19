@@ -1,367 +1,372 @@
 #define BORINGSSL_PREFIX CCryptoBoringSSL
 #if defined(__i386__) && defined(_WIN32)
-// This file is generated from a similarly-named Perl script in the BoringSSL
-// source tree. Do not edit by hand.
+; This file is generated from a similarly-named Perl script in the BoringSSL
+; source tree. Do not edit by hand.
 
-#if defined(__i386__)
-#if defined(BORINGSSL_PREFIX)
-#include <CCryptoBoringSSL_boringssl_prefix_symbols_asm.h>
-#endif
-.text
-.globl	_bn_mul_mont
-.hidden	_bn_mul_mont
-.def	_bn_mul_mont;	.scl	2;	.type	32;	.endef
-.align	16
+%ifdef BORINGSSL_PREFIX
+%include "boringssl_prefix_symbols_nasm.inc"
+%endif
+%ifidn __OUTPUT_FORMAT__, win32
+%ifidn __OUTPUT_FORMAT__,obj
+section	code	use32 class=code align=64
+%elifidn __OUTPUT_FORMAT__,win32
+$@feat.00 equ 1
+section	.text	code align=64
+%else
+section	.text	code
+%endif
+global	_bn_mul_mont
+align	16
 _bn_mul_mont:
-.L_bn_mul_mont_begin:
-	pushl	%ebp
-	pushl	%ebx
-	pushl	%esi
-	pushl	%edi
-	xorl	%eax,%eax
-	movl	40(%esp),%edi
-	cmpl	$4,%edi
-	jl	.L000just_leave
-	leal	20(%esp),%esi
-	leal	24(%esp),%edx
-	addl	$2,%edi
-	negl	%edi
-	leal	-32(%esp,%edi,4),%ebp
-	negl	%edi
-	movl	%ebp,%eax
-	subl	%edx,%eax
-	andl	$2047,%eax
-	subl	%eax,%ebp
-	xorl	%ebp,%edx
-	andl	$2048,%edx
-	xorl	$2048,%edx
-	subl	%edx,%ebp
-	andl	$-64,%ebp
-	movl	%esp,%eax
-	subl	%ebp,%eax
-	andl	$-4096,%eax
-	movl	%esp,%edx
-	leal	(%ebp,%eax,1),%esp
-	movl	(%esp),%eax
-	cmpl	%ebp,%esp
-	ja	.L001page_walk
-	jmp	.L002page_walk_done
-.align	16
-.L001page_walk:
-	leal	-4096(%esp),%esp
-	movl	(%esp),%eax
-	cmpl	%ebp,%esp
-	ja	.L001page_walk
-.L002page_walk_done:
-	movl	(%esi),%eax
-	movl	4(%esi),%ebx
-	movl	8(%esi),%ecx
-	movl	12(%esi),%ebp
-	movl	16(%esi),%esi
-	movl	(%esi),%esi
-	movl	%eax,4(%esp)
-	movl	%ebx,8(%esp)
-	movl	%ecx,12(%esp)
-	movl	%ebp,16(%esp)
-	movl	%esi,20(%esp)
-	leal	-3(%edi),%ebx
-	movl	%edx,24(%esp)
-	movl	8(%esp),%esi
-	leal	1(%ebx),%ebp
-	movl	12(%esp),%edi
-	xorl	%ecx,%ecx
-	movl	%esi,%edx
-	andl	$1,%ebp
-	subl	%edi,%edx
-	leal	4(%edi,%ebx,4),%eax
-	orl	%edx,%ebp
-	movl	(%edi),%edi
-	jz	.L003bn_sqr_mont
-	movl	%eax,28(%esp)
-	movl	(%esi),%eax
-	xorl	%edx,%edx
-.align	16
-.L004mull:
-	movl	%edx,%ebp
-	mull	%edi
-	addl	%eax,%ebp
-	leal	1(%ecx),%ecx
-	adcl	$0,%edx
-	movl	(%esi,%ecx,4),%eax
-	cmpl	%ebx,%ecx
-	movl	%ebp,28(%esp,%ecx,4)
-	jl	.L004mull
-	movl	%edx,%ebp
-	mull	%edi
-	movl	20(%esp),%edi
-	addl	%ebp,%eax
-	movl	16(%esp),%esi
-	adcl	$0,%edx
-	imull	32(%esp),%edi
-	movl	%eax,32(%esp,%ebx,4)
-	xorl	%ecx,%ecx
-	movl	%edx,36(%esp,%ebx,4)
-	movl	%ecx,40(%esp,%ebx,4)
-	movl	(%esi),%eax
-	mull	%edi
-	addl	32(%esp),%eax
-	movl	4(%esi),%eax
-	adcl	$0,%edx
-	incl	%ecx
-	jmp	.L0052ndmadd
-.align	16
-.L0061stmadd:
-	movl	%edx,%ebp
-	mull	%edi
-	addl	32(%esp,%ecx,4),%ebp
-	leal	1(%ecx),%ecx
-	adcl	$0,%edx
-	addl	%eax,%ebp
-	movl	(%esi,%ecx,4),%eax
-	adcl	$0,%edx
-	cmpl	%ebx,%ecx
-	movl	%ebp,28(%esp,%ecx,4)
-	jl	.L0061stmadd
-	movl	%edx,%ebp
-	mull	%edi
-	addl	32(%esp,%ebx,4),%eax
-	movl	20(%esp),%edi
-	adcl	$0,%edx
-	movl	16(%esp),%esi
-	addl	%eax,%ebp
-	adcl	$0,%edx
-	imull	32(%esp),%edi
-	xorl	%ecx,%ecx
-	addl	36(%esp,%ebx,4),%edx
-	movl	%ebp,32(%esp,%ebx,4)
-	adcl	$0,%ecx
-	movl	(%esi),%eax
-	movl	%edx,36(%esp,%ebx,4)
-	movl	%ecx,40(%esp,%ebx,4)
-	mull	%edi
-	addl	32(%esp),%eax
-	movl	4(%esi),%eax
-	adcl	$0,%edx
-	movl	$1,%ecx
-.align	16
-.L0052ndmadd:
-	movl	%edx,%ebp
-	mull	%edi
-	addl	32(%esp,%ecx,4),%ebp
-	leal	1(%ecx),%ecx
-	adcl	$0,%edx
-	addl	%eax,%ebp
-	movl	(%esi,%ecx,4),%eax
-	adcl	$0,%edx
-	cmpl	%ebx,%ecx
-	movl	%ebp,24(%esp,%ecx,4)
-	jl	.L0052ndmadd
-	movl	%edx,%ebp
-	mull	%edi
-	addl	32(%esp,%ebx,4),%ebp
-	adcl	$0,%edx
-	addl	%eax,%ebp
-	adcl	$0,%edx
-	movl	%ebp,28(%esp,%ebx,4)
-	xorl	%eax,%eax
-	movl	12(%esp),%ecx
-	addl	36(%esp,%ebx,4),%edx
-	adcl	40(%esp,%ebx,4),%eax
-	leal	4(%ecx),%ecx
-	movl	%edx,32(%esp,%ebx,4)
-	cmpl	28(%esp),%ecx
-	movl	%eax,36(%esp,%ebx,4)
-	je	.L007common_tail
-	movl	(%ecx),%edi
-	movl	8(%esp),%esi
-	movl	%ecx,12(%esp)
-	xorl	%ecx,%ecx
-	xorl	%edx,%edx
-	movl	(%esi),%eax
-	jmp	.L0061stmadd
-.align	16
-.L003bn_sqr_mont:
-	movl	%ebx,(%esp)
-	movl	%ecx,12(%esp)
-	movl	%edi,%eax
-	mull	%edi
-	movl	%eax,32(%esp)
-	movl	%edx,%ebx
-	shrl	$1,%edx
-	andl	$1,%ebx
-	incl	%ecx
-.align	16
-.L008sqr:
-	movl	(%esi,%ecx,4),%eax
-	movl	%edx,%ebp
-	mull	%edi
-	addl	%ebp,%eax
-	leal	1(%ecx),%ecx
-	adcl	$0,%edx
-	leal	(%ebx,%eax,2),%ebp
-	shrl	$31,%eax
-	cmpl	(%esp),%ecx
-	movl	%eax,%ebx
-	movl	%ebp,28(%esp,%ecx,4)
-	jl	.L008sqr
-	movl	(%esi,%ecx,4),%eax
-	movl	%edx,%ebp
-	mull	%edi
-	addl	%ebp,%eax
-	movl	20(%esp),%edi
-	adcl	$0,%edx
-	movl	16(%esp),%esi
-	leal	(%ebx,%eax,2),%ebp
-	imull	32(%esp),%edi
-	shrl	$31,%eax
-	movl	%ebp,32(%esp,%ecx,4)
-	leal	(%eax,%edx,2),%ebp
-	movl	(%esi),%eax
-	shrl	$31,%edx
-	movl	%ebp,36(%esp,%ecx,4)
-	movl	%edx,40(%esp,%ecx,4)
-	mull	%edi
-	addl	32(%esp),%eax
-	movl	%ecx,%ebx
-	adcl	$0,%edx
-	movl	4(%esi),%eax
-	movl	$1,%ecx
-.align	16
-.L0093rdmadd:
-	movl	%edx,%ebp
-	mull	%edi
-	addl	32(%esp,%ecx,4),%ebp
-	adcl	$0,%edx
-	addl	%eax,%ebp
-	movl	4(%esi,%ecx,4),%eax
-	adcl	$0,%edx
-	movl	%ebp,28(%esp,%ecx,4)
-	movl	%edx,%ebp
-	mull	%edi
-	addl	36(%esp,%ecx,4),%ebp
-	leal	2(%ecx),%ecx
-	adcl	$0,%edx
-	addl	%eax,%ebp
-	movl	(%esi,%ecx,4),%eax
-	adcl	$0,%edx
-	cmpl	%ebx,%ecx
-	movl	%ebp,24(%esp,%ecx,4)
-	jl	.L0093rdmadd
-	movl	%edx,%ebp
-	mull	%edi
-	addl	32(%esp,%ebx,4),%ebp
-	adcl	$0,%edx
-	addl	%eax,%ebp
-	adcl	$0,%edx
-	movl	%ebp,28(%esp,%ebx,4)
-	movl	12(%esp),%ecx
-	xorl	%eax,%eax
-	movl	8(%esp),%esi
-	addl	36(%esp,%ebx,4),%edx
-	adcl	40(%esp,%ebx,4),%eax
-	movl	%edx,32(%esp,%ebx,4)
-	cmpl	%ebx,%ecx
-	movl	%eax,36(%esp,%ebx,4)
-	je	.L007common_tail
-	movl	4(%esi,%ecx,4),%edi
-	leal	1(%ecx),%ecx
-	movl	%edi,%eax
-	movl	%ecx,12(%esp)
-	mull	%edi
-	addl	32(%esp,%ecx,4),%eax
-	adcl	$0,%edx
-	movl	%eax,32(%esp,%ecx,4)
-	xorl	%ebp,%ebp
-	cmpl	%ebx,%ecx
-	leal	1(%ecx),%ecx
-	je	.L010sqrlast
-	movl	%edx,%ebx
-	shrl	$1,%edx
-	andl	$1,%ebx
-.align	16
-.L011sqradd:
-	movl	(%esi,%ecx,4),%eax
-	movl	%edx,%ebp
-	mull	%edi
-	addl	%ebp,%eax
-	leal	(%eax,%eax,1),%ebp
-	adcl	$0,%edx
-	shrl	$31,%eax
-	addl	32(%esp,%ecx,4),%ebp
-	leal	1(%ecx),%ecx
-	adcl	$0,%eax
-	addl	%ebx,%ebp
-	adcl	$0,%eax
-	cmpl	(%esp),%ecx
-	movl	%ebp,28(%esp,%ecx,4)
-	movl	%eax,%ebx
-	jle	.L011sqradd
-	movl	%edx,%ebp
-	addl	%edx,%edx
-	shrl	$31,%ebp
-	addl	%ebx,%edx
-	adcl	$0,%ebp
-.L010sqrlast:
-	movl	20(%esp),%edi
-	movl	16(%esp),%esi
-	imull	32(%esp),%edi
-	addl	32(%esp,%ecx,4),%edx
-	movl	(%esi),%eax
-	adcl	$0,%ebp
-	movl	%edx,32(%esp,%ecx,4)
-	movl	%ebp,36(%esp,%ecx,4)
-	mull	%edi
-	addl	32(%esp),%eax
-	leal	-1(%ecx),%ebx
-	adcl	$0,%edx
-	movl	$1,%ecx
-	movl	4(%esi),%eax
-	jmp	.L0093rdmadd
-.align	16
-.L007common_tail:
-	movl	16(%esp),%ebp
-	movl	4(%esp),%edi
-	leal	32(%esp),%esi
-	movl	(%esi),%eax
-	movl	%ebx,%ecx
-	xorl	%edx,%edx
-.align	16
-.L012sub:
-	sbbl	(%ebp,%edx,4),%eax
-	movl	%eax,(%edi,%edx,4)
-	decl	%ecx
-	movl	4(%esi,%edx,4),%eax
-	leal	1(%edx),%edx
-	jge	.L012sub
-	sbbl	$0,%eax
-	movl	$-1,%edx
-	xorl	%eax,%edx
-	jmp	.L013copy
-.align	16
-.L013copy:
-	movl	32(%esp,%ebx,4),%esi
-	movl	(%edi,%ebx,4),%ebp
-	movl	%ecx,32(%esp,%ebx,4)
-	andl	%eax,%esi
-	andl	%edx,%ebp
-	orl	%esi,%ebp
-	movl	%ebp,(%edi,%ebx,4)
-	decl	%ebx
-	jge	.L013copy
-	movl	24(%esp),%esp
-	movl	$1,%eax
-.L000just_leave:
-	popl	%edi
-	popl	%esi
-	popl	%ebx
-	popl	%ebp
+L$_bn_mul_mont_begin:
+	push	ebp
+	push	ebx
+	push	esi
+	push	edi
+	xor	eax,eax
+	mov	edi,DWORD [40+esp]
+	cmp	edi,4
+	jl	NEAR L$000just_leave
+	lea	esi,[20+esp]
+	lea	edx,[24+esp]
+	add	edi,2
+	neg	edi
+	lea	ebp,[edi*4+esp-32]
+	neg	edi
+	mov	eax,ebp
+	sub	eax,edx
+	and	eax,2047
+	sub	ebp,eax
+	xor	edx,ebp
+	and	edx,2048
+	xor	edx,2048
+	sub	ebp,edx
+	and	ebp,-64
+	mov	eax,esp
+	sub	eax,ebp
+	and	eax,-4096
+	mov	edx,esp
+	lea	esp,[eax*1+ebp]
+	mov	eax,DWORD [esp]
+	cmp	esp,ebp
+	ja	NEAR L$001page_walk
+	jmp	NEAR L$002page_walk_done
+align	16
+L$001page_walk:
+	lea	esp,[esp-4096]
+	mov	eax,DWORD [esp]
+	cmp	esp,ebp
+	ja	NEAR L$001page_walk
+L$002page_walk_done:
+	mov	eax,DWORD [esi]
+	mov	ebx,DWORD [4+esi]
+	mov	ecx,DWORD [8+esi]
+	mov	ebp,DWORD [12+esi]
+	mov	esi,DWORD [16+esi]
+	mov	esi,DWORD [esi]
+	mov	DWORD [4+esp],eax
+	mov	DWORD [8+esp],ebx
+	mov	DWORD [12+esp],ecx
+	mov	DWORD [16+esp],ebp
+	mov	DWORD [20+esp],esi
+	lea	ebx,[edi-3]
+	mov	DWORD [24+esp],edx
+	mov	esi,DWORD [8+esp]
+	lea	ebp,[1+ebx]
+	mov	edi,DWORD [12+esp]
+	xor	ecx,ecx
+	mov	edx,esi
+	and	ebp,1
+	sub	edx,edi
+	lea	eax,[4+ebx*4+edi]
+	or	ebp,edx
+	mov	edi,DWORD [edi]
+	jz	NEAR L$003bn_sqr_mont
+	mov	DWORD [28+esp],eax
+	mov	eax,DWORD [esi]
+	xor	edx,edx
+align	16
+L$004mull:
+	mov	ebp,edx
+	mul	edi
+	add	ebp,eax
+	lea	ecx,[1+ecx]
+	adc	edx,0
+	mov	eax,DWORD [ecx*4+esi]
+	cmp	ecx,ebx
+	mov	DWORD [28+ecx*4+esp],ebp
+	jl	NEAR L$004mull
+	mov	ebp,edx
+	mul	edi
+	mov	edi,DWORD [20+esp]
+	add	eax,ebp
+	mov	esi,DWORD [16+esp]
+	adc	edx,0
+	imul	edi,DWORD [32+esp]
+	mov	DWORD [32+ebx*4+esp],eax
+	xor	ecx,ecx
+	mov	DWORD [36+ebx*4+esp],edx
+	mov	DWORD [40+ebx*4+esp],ecx
+	mov	eax,DWORD [esi]
+	mul	edi
+	add	eax,DWORD [32+esp]
+	mov	eax,DWORD [4+esi]
+	adc	edx,0
+	inc	ecx
+	jmp	NEAR L$0052ndmadd
+align	16
+L$0061stmadd:
+	mov	ebp,edx
+	mul	edi
+	add	ebp,DWORD [32+ecx*4+esp]
+	lea	ecx,[1+ecx]
+	adc	edx,0
+	add	ebp,eax
+	mov	eax,DWORD [ecx*4+esi]
+	adc	edx,0
+	cmp	ecx,ebx
+	mov	DWORD [28+ecx*4+esp],ebp
+	jl	NEAR L$0061stmadd
+	mov	ebp,edx
+	mul	edi
+	add	eax,DWORD [32+ebx*4+esp]
+	mov	edi,DWORD [20+esp]
+	adc	edx,0
+	mov	esi,DWORD [16+esp]
+	add	ebp,eax
+	adc	edx,0
+	imul	edi,DWORD [32+esp]
+	xor	ecx,ecx
+	add	edx,DWORD [36+ebx*4+esp]
+	mov	DWORD [32+ebx*4+esp],ebp
+	adc	ecx,0
+	mov	eax,DWORD [esi]
+	mov	DWORD [36+ebx*4+esp],edx
+	mov	DWORD [40+ebx*4+esp],ecx
+	mul	edi
+	add	eax,DWORD [32+esp]
+	mov	eax,DWORD [4+esi]
+	adc	edx,0
+	mov	ecx,1
+align	16
+L$0052ndmadd:
+	mov	ebp,edx
+	mul	edi
+	add	ebp,DWORD [32+ecx*4+esp]
+	lea	ecx,[1+ecx]
+	adc	edx,0
+	add	ebp,eax
+	mov	eax,DWORD [ecx*4+esi]
+	adc	edx,0
+	cmp	ecx,ebx
+	mov	DWORD [24+ecx*4+esp],ebp
+	jl	NEAR L$0052ndmadd
+	mov	ebp,edx
+	mul	edi
+	add	ebp,DWORD [32+ebx*4+esp]
+	adc	edx,0
+	add	ebp,eax
+	adc	edx,0
+	mov	DWORD [28+ebx*4+esp],ebp
+	xor	eax,eax
+	mov	ecx,DWORD [12+esp]
+	add	edx,DWORD [36+ebx*4+esp]
+	adc	eax,DWORD [40+ebx*4+esp]
+	lea	ecx,[4+ecx]
+	mov	DWORD [32+ebx*4+esp],edx
+	cmp	ecx,DWORD [28+esp]
+	mov	DWORD [36+ebx*4+esp],eax
+	je	NEAR L$007common_tail
+	mov	edi,DWORD [ecx]
+	mov	esi,DWORD [8+esp]
+	mov	DWORD [12+esp],ecx
+	xor	ecx,ecx
+	xor	edx,edx
+	mov	eax,DWORD [esi]
+	jmp	NEAR L$0061stmadd
+align	16
+L$003bn_sqr_mont:
+	mov	DWORD [esp],ebx
+	mov	DWORD [12+esp],ecx
+	mov	eax,edi
+	mul	edi
+	mov	DWORD [32+esp],eax
+	mov	ebx,edx
+	shr	edx,1
+	and	ebx,1
+	inc	ecx
+align	16
+L$008sqr:
+	mov	eax,DWORD [ecx*4+esi]
+	mov	ebp,edx
+	mul	edi
+	add	eax,ebp
+	lea	ecx,[1+ecx]
+	adc	edx,0
+	lea	ebp,[eax*2+ebx]
+	shr	eax,31
+	cmp	ecx,DWORD [esp]
+	mov	ebx,eax
+	mov	DWORD [28+ecx*4+esp],ebp
+	jl	NEAR L$008sqr
+	mov	eax,DWORD [ecx*4+esi]
+	mov	ebp,edx
+	mul	edi
+	add	eax,ebp
+	mov	edi,DWORD [20+esp]
+	adc	edx,0
+	mov	esi,DWORD [16+esp]
+	lea	ebp,[eax*2+ebx]
+	imul	edi,DWORD [32+esp]
+	shr	eax,31
+	mov	DWORD [32+ecx*4+esp],ebp
+	lea	ebp,[edx*2+eax]
+	mov	eax,DWORD [esi]
+	shr	edx,31
+	mov	DWORD [36+ecx*4+esp],ebp
+	mov	DWORD [40+ecx*4+esp],edx
+	mul	edi
+	add	eax,DWORD [32+esp]
+	mov	ebx,ecx
+	adc	edx,0
+	mov	eax,DWORD [4+esi]
+	mov	ecx,1
+align	16
+L$0093rdmadd:
+	mov	ebp,edx
+	mul	edi
+	add	ebp,DWORD [32+ecx*4+esp]
+	adc	edx,0
+	add	ebp,eax
+	mov	eax,DWORD [4+ecx*4+esi]
+	adc	edx,0
+	mov	DWORD [28+ecx*4+esp],ebp
+	mov	ebp,edx
+	mul	edi
+	add	ebp,DWORD [36+ecx*4+esp]
+	lea	ecx,[2+ecx]
+	adc	edx,0
+	add	ebp,eax
+	mov	eax,DWORD [ecx*4+esi]
+	adc	edx,0
+	cmp	ecx,ebx
+	mov	DWORD [24+ecx*4+esp],ebp
+	jl	NEAR L$0093rdmadd
+	mov	ebp,edx
+	mul	edi
+	add	ebp,DWORD [32+ebx*4+esp]
+	adc	edx,0
+	add	ebp,eax
+	adc	edx,0
+	mov	DWORD [28+ebx*4+esp],ebp
+	mov	ecx,DWORD [12+esp]
+	xor	eax,eax
+	mov	esi,DWORD [8+esp]
+	add	edx,DWORD [36+ebx*4+esp]
+	adc	eax,DWORD [40+ebx*4+esp]
+	mov	DWORD [32+ebx*4+esp],edx
+	cmp	ecx,ebx
+	mov	DWORD [36+ebx*4+esp],eax
+	je	NEAR L$007common_tail
+	mov	edi,DWORD [4+ecx*4+esi]
+	lea	ecx,[1+ecx]
+	mov	eax,edi
+	mov	DWORD [12+esp],ecx
+	mul	edi
+	add	eax,DWORD [32+ecx*4+esp]
+	adc	edx,0
+	mov	DWORD [32+ecx*4+esp],eax
+	xor	ebp,ebp
+	cmp	ecx,ebx
+	lea	ecx,[1+ecx]
+	je	NEAR L$010sqrlast
+	mov	ebx,edx
+	shr	edx,1
+	and	ebx,1
+align	16
+L$011sqradd:
+	mov	eax,DWORD [ecx*4+esi]
+	mov	ebp,edx
+	mul	edi
+	add	eax,ebp
+	lea	ebp,[eax*1+eax]
+	adc	edx,0
+	shr	eax,31
+	add	ebp,DWORD [32+ecx*4+esp]
+	lea	ecx,[1+ecx]
+	adc	eax,0
+	add	ebp,ebx
+	adc	eax,0
+	cmp	ecx,DWORD [esp]
+	mov	DWORD [28+ecx*4+esp],ebp
+	mov	ebx,eax
+	jle	NEAR L$011sqradd
+	mov	ebp,edx
+	add	edx,edx
+	shr	ebp,31
+	add	edx,ebx
+	adc	ebp,0
+L$010sqrlast:
+	mov	edi,DWORD [20+esp]
+	mov	esi,DWORD [16+esp]
+	imul	edi,DWORD [32+esp]
+	add	edx,DWORD [32+ecx*4+esp]
+	mov	eax,DWORD [esi]
+	adc	ebp,0
+	mov	DWORD [32+ecx*4+esp],edx
+	mov	DWORD [36+ecx*4+esp],ebp
+	mul	edi
+	add	eax,DWORD [32+esp]
+	lea	ebx,[ecx-1]
+	adc	edx,0
+	mov	ecx,1
+	mov	eax,DWORD [4+esi]
+	jmp	NEAR L$0093rdmadd
+align	16
+L$007common_tail:
+	mov	ebp,DWORD [16+esp]
+	mov	edi,DWORD [4+esp]
+	lea	esi,[32+esp]
+	mov	eax,DWORD [esi]
+	mov	ecx,ebx
+	xor	edx,edx
+align	16
+L$012sub:
+	sbb	eax,DWORD [edx*4+ebp]
+	mov	DWORD [edx*4+edi],eax
+	dec	ecx
+	mov	eax,DWORD [4+edx*4+esi]
+	lea	edx,[1+edx]
+	jge	NEAR L$012sub
+	sbb	eax,0
+	mov	edx,-1
+	xor	edx,eax
+	jmp	NEAR L$013copy
+align	16
+L$013copy:
+	mov	esi,DWORD [32+ebx*4+esp]
+	mov	ebp,DWORD [ebx*4+edi]
+	mov	DWORD [32+ebx*4+esp],ecx
+	and	esi,eax
+	and	ebp,edx
+	or	ebp,esi
+	mov	DWORD [ebx*4+edi],ebp
+	dec	ebx
+	jge	NEAR L$013copy
+	mov	esp,DWORD [24+esp]
+	mov	eax,1
+L$000just_leave:
+	pop	edi
+	pop	esi
+	pop	ebx
+	pop	ebp
 	ret
-.byte	77,111,110,116,103,111,109,101,114,121,32,77,117,108,116,105
-.byte	112,108,105,99,97,116,105,111,110,32,102,111,114,32,120,56
-.byte	54,44,32,67,82,89,80,84,79,71,65,77,83,32,98,121
-.byte	32,60,97,112,112,114,111,64,111,112,101,110,115,115,108,46
-.byte	111,114,103,62,0
-#endif
+db	77,111,110,116,103,111,109,101,114,121,32,77,117,108,116,105
+db	112,108,105,99,97,116,105,111,110,32,102,111,114,32,120,56
+db	54,44,32,67,82,89,80,84,79,71,65,77,83,32,98,121
+db	32,60,97,112,112,114,111,64,111,112,101,110,115,115,108,46
+db	111,114,103,62,0
+%endif
 #endif  // defined(__i386__) && defined(_WIN32)
 #if defined(__linux__) && defined(__ELF__)
 .section .note.GNU-stack,"",%progbits

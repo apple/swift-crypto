@@ -109,6 +109,7 @@
 #include <CCryptoBoringSSL_bn.h>
 
 #include <assert.h>
+#include <limits.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -396,7 +397,7 @@ err:
 //
 // (with draws in between).  Very small exponents are often selected
 // with low Hamming weight, so we use  w = 1  for b <= 23.
-static int BN_window_bits_for_exponent_size(int b) {
+static int BN_window_bits_for_exponent_size(size_t b) {
   if (b > 671) {
     return 6;
   }
@@ -721,12 +722,14 @@ err:
 void bn_mod_exp_mont_small(BN_ULONG *r, const BN_ULONG *a, size_t num,
                            const BN_ULONG *p, size_t num_p,
                            const BN_MONT_CTX *mont) {
-  if (num != (size_t)mont->N.width || num > BN_SMALL_MAX_WORDS) {
+  if (num != (size_t)mont->N.width || num > BN_SMALL_MAX_WORDS ||
+      num_p > ((size_t)-1) / BN_BITS2) {
     abort();
   }
   assert(BN_is_odd(&mont->N));
 
-  // Count the number of bits in |p|. Note this function treats |p| as public.
+  // Count the number of bits in |p|, skipping leading zeros. Note this function
+  // treats |p| as public.
   while (num_p != 0 && p[num_p - 1] == 0) {
     num_p--;
   }
@@ -734,7 +737,7 @@ void bn_mod_exp_mont_small(BN_ULONG *r, const BN_ULONG *a, size_t num,
     bn_from_montgomery_small(r, num, mont->RR.d, num, mont);
     return;
   }
-  unsigned bits = BN_num_bits_word(p[num_p - 1]) + (num_p - 1) * BN_BITS2;
+  size_t bits = BN_num_bits_word(p[num_p - 1]) + (num_p - 1) * BN_BITS2;
   assert(bits != 0);
 
   // We exponentiate by looking at sliding windows of the exponent and
@@ -758,7 +761,7 @@ void bn_mod_exp_mont_small(BN_ULONG *r, const BN_ULONG *a, size_t num,
   // |p| is non-zero, so at least one window is non-zero. To save some
   // multiplications, defer initializing |r| until then.
   int r_is_one = 1;
-  unsigned wstart = bits - 1;  // The top bit of the window.
+  size_t wstart = bits - 1;  // The top bit of the window.
   for (;;) {
     if (!bn_is_bit_set_words(p, num_p, wstart)) {
       if (!r_is_one) {
@@ -858,40 +861,15 @@ static int copy_from_prebuf(BIGNUM *b, int top, const BN_ULONG *table, int idx,
   return 1;
 }
 
-#define MOD_EXP_CTIME_MIN_CACHE_LINE_MASK \
-  (MOD_EXP_CTIME_MIN_CACHE_LINE_WIDTH - 1)
-
 // Window sizes optimized for fixed window size modular exponentiation
 // algorithm (BN_mod_exp_mont_consttime).
 //
-// To achieve the security goals of BN_mode_exp_mont_consttime, the maximum
-// size of the window must not exceed
-// log_2(MOD_EXP_CTIME_MIN_CACHE_LINE_WIDTH).
-//
-// Window size thresholds are defined for cache line sizes of 32 and 64, cache
-// line sizes where log_2(32)=5 and log_2(64)=6 respectively. A window size of
-// 7 should only be used on processors that have a 128 byte or greater cache
-// line size.
-#if MOD_EXP_CTIME_MIN_CACHE_LINE_WIDTH == 64
-
+// TODO(davidben): These window sizes were originally set for 64-byte cache
+// lines with a cache-line-dependent constant-time mitigation. They can probably
+// be revised now that our implementation is no longer cache-time-dependent.
 #define BN_window_bits_for_ctime_exponent_size(b) \
   ((b) > 937 ? 6 : (b) > 306 ? 5 : (b) > 89 ? 4 : (b) > 22 ? 3 : 1)
-#define BN_MAX_WINDOW_BITS_FOR_CTIME_EXPONENT_SIZE (6)
-
-#elif MOD_EXP_CTIME_MIN_CACHE_LINE_WIDTH == 32
-
-#define BN_window_bits_for_ctime_exponent_size(b) \
-  ((b) > 306 ? 5 : (b) > 89 ? 4 : (b) > 22 ? 3 : 1)
-#define BN_MAX_WINDOW_BITS_FOR_CTIME_EXPONENT_SIZE (5)
-
-#endif
-
-// Given a pointer value, compute the next address that is a cache line
-// multiple.
-#define MOD_EXP_CTIME_ALIGN(x_)          \
-  ((unsigned char *)(x_) +               \
-   (MOD_EXP_CTIME_MIN_CACHE_LINE_WIDTH - \
-    (((size_t)(x_)) & (MOD_EXP_CTIME_MIN_CACHE_LINE_MASK))))
+#define BN_MAX_MOD_EXP_CTIME_WINDOW (6)
 
 // This variant of |BN_mod_exp_mont| uses fixed windows and fixed memory access
 // patterns to protect secret exponents (cf. the hyper-threading timing attacks
@@ -900,14 +878,12 @@ static int copy_from_prebuf(BIGNUM *b, int top, const BN_ULONG *table, int idx,
 int BN_mod_exp_mont_consttime(BIGNUM *rr, const BIGNUM *a, const BIGNUM *p,
                               const BIGNUM *m, BN_CTX *ctx,
                               const BN_MONT_CTX *mont) {
-  int i, ret = 0, window, wvalue;
+  int i, ret = 0, wvalue;
   BN_MONT_CTX *new_mont = NULL;
 
-  int numPowers;
-  unsigned char *powerbufFree = NULL;
-  int powerbufLen = 0;
+  unsigned char *powerbuf_free = NULL;
+  size_t powerbuf_len = 0;
   BN_ULONG *powerbuf = NULL;
-  BIGNUM tmp, am;
 
   if (!BN_is_odd(m)) {
     OPENSSL_PUT_ERROR(BN, BN_R_CALLED_WITH_EVEN_MODULUS);
@@ -953,8 +929,7 @@ int BN_mod_exp_mont_consttime(BIGNUM *rr, const BIGNUM *a, const BIGNUM *p,
   // paths. If we were to use separate static buffers for each then there is
   // some chance that both large buffers would be allocated on the stack,
   // causing the stack space requirement to be truly huge (~10KB).
-  alignas(MOD_EXP_CTIME_MIN_CACHE_LINE_WIDTH) BN_ULONG
-    storage[MOD_EXP_CTIME_STORAGE_LEN];
+  alignas(MOD_EXP_CTIME_ALIGN) BN_ULONG storage[MOD_EXP_CTIME_STORAGE_LEN];
 #endif
 #if defined(RSAZ_ENABLED)
   // If the size of the operands allow it, perform the optimized RSAZ
@@ -975,41 +950,49 @@ int BN_mod_exp_mont_consttime(BIGNUM *rr, const BIGNUM *a, const BIGNUM *p,
 #endif
 
   // Get the window size to use with size of p.
-  window = BN_window_bits_for_ctime_exponent_size(bits);
+  int window = BN_window_bits_for_ctime_exponent_size(bits);
+  assert(window <= BN_MAX_MOD_EXP_CTIME_WINDOW);
+
+  // Calculating |powerbuf_len| below cannot overflow because of the bound on
+  // Montgomery reduction.
+  assert((size_t)top <= BN_MONTGOMERY_MAX_WORDS);
+  static_assert(
+      BN_MONTGOMERY_MAX_WORDS <=
+          INT_MAX / sizeof(BN_ULONG) / ((1 << BN_MAX_MOD_EXP_CTIME_WINDOW) + 3),
+      "powerbuf_len may overflow");
+
 #if defined(OPENSSL_BN_ASM_MONT5)
   if (window >= 5) {
     window = 5;  // ~5% improvement for RSA2048 sign, and even for RSA4096
     // Reserve space for the |mont->N| copy.
-    powerbufLen += top * sizeof(mont->N.d[0]);
+    powerbuf_len += top * sizeof(mont->N.d[0]);
   }
 #endif
 
   // Allocate a buffer large enough to hold all of the pre-computed
   // powers of |am|, |am| itself, and |tmp|.
-  numPowers = 1 << window;
-  powerbufLen +=
-      sizeof(m->d[0]) *
-      (top * numPowers + ((2 * top) > numPowers ? (2 * top) : numPowers));
+  int num_powers = 1 << window;
+  powerbuf_len += sizeof(m->d[0]) * top * (num_powers + 2);
 
 #if defined(OPENSSL_BN_ASM_MONT5)
-  if ((size_t)powerbufLen <= sizeof(storage)) {
+  if (powerbuf_len <= sizeof(storage)) {
     powerbuf = storage;
   }
   // |storage| is more than large enough to handle 1024-bit inputs.
   assert(powerbuf != NULL || top * BN_BITS2 > 1024);
 #endif
   if (powerbuf == NULL) {
-    powerbufFree =
-        OPENSSL_malloc(powerbufLen + MOD_EXP_CTIME_MIN_CACHE_LINE_WIDTH);
-    if (powerbufFree == NULL) {
+    powerbuf_free = OPENSSL_malloc(powerbuf_len + MOD_EXP_CTIME_ALIGN);
+    if (powerbuf_free == NULL) {
       goto err;
     }
-    powerbuf = (BN_ULONG *)MOD_EXP_CTIME_ALIGN(powerbufFree);
+    powerbuf = align_pointer(powerbuf_free, MOD_EXP_CTIME_ALIGN);
   }
-  OPENSSL_memset(powerbuf, 0, powerbufLen);
+  OPENSSL_memset(powerbuf, 0, powerbuf_len);
 
   // Place |tmp| and |am| right after powers table.
-  tmp.d = powerbuf + top * numPowers;
+  BIGNUM tmp, am;
+  tmp.d = powerbuf + top * num_powers;
   am.d = tmp.d + top;
   tmp.width = am.width = 0;
   tmp.dmax = am.dmax = top;
@@ -1158,7 +1141,7 @@ int BN_mod_exp_mont_consttime(BIGNUM *rr, const BIGNUM *a, const BIGNUM *p,
 
       copy_to_prebuf(&tmp, top, powerbuf, 2, window);
 
-      for (i = 3; i < numPowers; i++) {
+      for (i = 3; i < num_powers; i++) {
         // Calculate a^i = a^(i-1) * a
         if (!BN_mod_mul_montgomery(&tmp, &am, &tmp, mont, ctx)) {
           goto err;
@@ -1213,11 +1196,11 @@ int BN_mod_exp_mont_consttime(BIGNUM *rr, const BIGNUM *a, const BIGNUM *p,
 
 err:
   BN_MONT_CTX_free(new_mont);
-  if (powerbuf != NULL && powerbufFree == NULL) {
-    OPENSSL_cleanse(powerbuf, powerbufLen);
+  if (powerbuf != NULL && powerbuf_free == NULL) {
+    OPENSSL_cleanse(powerbuf, powerbuf_len);
   }
-  OPENSSL_free(powerbufFree);
-  return (ret);
+  OPENSSL_free(powerbuf_free);
+  return ret;
 }
 
 int BN_mod_exp_mont_word(BIGNUM *rr, BN_ULONG a, const BIGNUM *p,

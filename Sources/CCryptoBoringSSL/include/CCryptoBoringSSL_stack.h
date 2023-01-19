@@ -120,7 +120,7 @@ typedef void (*sk_SAMPLE_free_func)(SAMPLE *);
 
 // sk_SAMPLE_copy_func is a callback to copy an element in a stack. It should
 // return the copy or NULL on error.
-typedef SAMPLE *(*sk_SAMPLE_copy_func)(SAMPLE *);
+typedef SAMPLE *(*sk_SAMPLE_copy_func)(const SAMPLE *);
 
 // sk_SAMPLE_cmp_func is a callback to compare |*a| to |*b|. It should return a
 // value < 0, 0, or > 0 if |*a| is less than, equal to, or greater than |*b|,
@@ -177,6 +177,17 @@ SAMPLE *sk_SAMPLE_delete(STACK_OF(SAMPLE) *sk, size_t where);
 // pointer equality. If an instance of |p| is found then |p| is returned,
 // otherwise it returns NULL.
 SAMPLE *sk_SAMPLE_delete_ptr(STACK_OF(SAMPLE) *sk, const SAMPLE *p);
+
+// sk_SAMPLE_delete_if_func is the callback function for |sk_SAMPLE_delete_if|.
+// It should return one to remove |p| and zero to keep it.
+typedef int (*sk_SAMPLE_delete_if_func)(SAMPLE *p, void *data);
+
+// sk_SAMPLE_delete_if calls |func| with each element of |sk| and removes the
+// entries where |func| returned one. This function does not free or return
+// removed pointers so, if |sk| owns its contents, |func| should release the
+// pointers prior to returning one.
+void sk_SAMPLE_delete_if(STACK_OF(SAMPLE) *sk, sk_SAMPLE_delete_if_func func,
+                         void *data);
 
 // sk_SAMPLE_find find the first value in |sk| equal to |p|. |sk|'s comparison
 // function determines equality, or pointer equality if |sk| has no comparison
@@ -244,9 +255,9 @@ STACK_OF(SAMPLE) *sk_SAMPLE_deep_copy(const STACK_OF(SAMPLE) *sk,
 typedef void (*OPENSSL_sk_free_func)(void *ptr);
 
 // OPENSSL_sk_copy_func is a function that copies an element in a stack. Note
-// its actual type is T *(*)(T *) for some T. Low-level |sk_*| functions will be
-// passed a type-specific wrapper to call it correctly.
-typedef void *(*OPENSSL_sk_copy_func)(void *ptr);
+// its actual type is T *(*)(const T *) for some T. Low-level |sk_*| functions
+// will be passed a type-specific wrapper to call it correctly.
+typedef void *(*OPENSSL_sk_copy_func)(const void *ptr);
 
 // OPENSSL_sk_cmp_func is a comparison function that returns a value < 0, 0 or >
 // 0 if |*a| is less than, equal to or greater than |*b|, respectively.  Note
@@ -256,17 +267,24 @@ typedef void *(*OPENSSL_sk_copy_func)(void *ptr);
 // Note its actual type is |int (*)(const T **a, const T **b)|. Low-level |sk_*|
 // functions will be passed a type-specific wrapper to call it correctly.
 //
-// TODO(davidben): This type should be |const T *const *|. It is already fixed
-// in OpenSSL 1.1.1, so hopefully we can fix this compatibly.
+// TODO(https://crbug.com/boringssl/498): This type should be
+// |const T *const *|. It is already fixed in OpenSSL 1.1.1, so hopefully we can
+// fix this compatibly.
 typedef int (*OPENSSL_sk_cmp_func)(const void **a, const void **b);
+
+// OPENSSL_sk_delete_if_func is the generic version of
+// |sk_SAMPLE_delete_if_func|.
+typedef int (*OPENSSL_sk_delete_if_func)(void *obj, void *data);
 
 // The following function types call the above type-erased signatures with the
 // true types.
 typedef void (*OPENSSL_sk_call_free_func)(OPENSSL_sk_free_func, void *);
-typedef void *(*OPENSSL_sk_call_copy_func)(OPENSSL_sk_copy_func, void *);
+typedef void *(*OPENSSL_sk_call_copy_func)(OPENSSL_sk_copy_func, const void *);
 typedef int (*OPENSSL_sk_call_cmp_func)(OPENSSL_sk_cmp_func,
                                         const void *const *,
                                         const void *const *);
+typedef int (*OPENSSL_sk_call_delete_if_func)(OPENSSL_sk_delete_if_func, void *,
+                                              void *);
 
 // stack_st contains an array of pointers. It is not designed to be used
 // directly, rather the wrapper macros should be used.
@@ -300,6 +318,9 @@ OPENSSL_EXPORT void sk_pop_free_ex(_STACK *sk,
 OPENSSL_EXPORT size_t sk_insert(_STACK *sk, void *p, size_t where);
 OPENSSL_EXPORT void *sk_delete(_STACK *sk, size_t where);
 OPENSSL_EXPORT void *sk_delete_ptr(_STACK *sk, const void *p);
+OPENSSL_EXPORT void sk_delete_if(_STACK *sk,
+                                 OPENSSL_sk_call_delete_if_func call_func,
+                                 OPENSSL_sk_delete_if_func func, void *data);
 OPENSSL_EXPORT int sk_find(const _STACK *sk, size_t *out_index, const void *p,
                            OPENSSL_sk_call_cmp_func call_cmp_func);
 OPENSSL_EXPORT void *sk_shift(_STACK *sk);
@@ -365,8 +386,9 @@ BSSL_NAMESPACE_END
   DECLARE_STACK_OF(name)                                                      \
                                                                               \
   typedef void (*sk_##name##_free_func)(ptrtype);                             \
-  typedef ptrtype (*sk_##name##_copy_func)(ptrtype);                          \
-  typedef int (*sk_##name##_cmp_func)(constptrtype *a, constptrtype *b);      \
+  typedef ptrtype (*sk_##name##_copy_func)(constptrtype);                     \
+  typedef int (*sk_##name##_cmp_func)(constptrtype *, constptrtype *);        \
+  typedef int (*sk_##name##_delete_if_func)(ptrtype, void *);                 \
                                                                               \
   OPENSSL_INLINE void sk_##name##_call_free_func(                             \
       OPENSSL_sk_free_func free_func, void *ptr) {                            \
@@ -374,8 +396,8 @@ BSSL_NAMESPACE_END
   }                                                                           \
                                                                               \
   OPENSSL_INLINE void *sk_##name##_call_copy_func(                            \
-      OPENSSL_sk_copy_func copy_func, void *ptr) {                            \
-    return (void *)((sk_##name##_copy_func)copy_func)((ptrtype)ptr);          \
+      OPENSSL_sk_copy_func copy_func, const void *ptr) {                      \
+    return (void *)((sk_##name##_copy_func)copy_func)((constptrtype)ptr);     \
   }                                                                           \
                                                                               \
   OPENSSL_INLINE int sk_##name##_call_cmp_func(OPENSSL_sk_cmp_func cmp_func,  \
@@ -387,6 +409,11 @@ BSSL_NAMESPACE_END
     constptrtype a_ptr = (constptrtype)*a;                                    \
     constptrtype b_ptr = (constptrtype)*b;                                    \
     return ((sk_##name##_cmp_func)cmp_func)(&a_ptr, &b_ptr);                  \
+  }                                                                           \
+                                                                              \
+  OPENSSL_INLINE int sk_##name##_call_delete_if_func(                         \
+      OPENSSL_sk_delete_if_func func, void *obj, void *data) {                \
+    return ((sk_##name##_delete_if_func)func)((ptrtype)obj, data);            \
   }                                                                           \
                                                                               \
   OPENSSL_INLINE STACK_OF(name) *sk_##name##_new(sk_##name##_cmp_func comp) { \
@@ -438,6 +465,12 @@ BSSL_NAMESPACE_END
   OPENSSL_INLINE ptrtype sk_##name##_delete_ptr(STACK_OF(name) *sk,           \
                                                 constptrtype p) {             \
     return (ptrtype)sk_delete_ptr((_STACK *)sk, (const void *)p);             \
+  }                                                                           \
+                                                                              \
+  OPENSSL_INLINE void sk_##name##_delete_if(                                  \
+      STACK_OF(name) *sk, sk_##name##_delete_if_func func, void *data) {      \
+    sk_delete_if((_STACK *)sk, sk_##name##_call_delete_if_func,               \
+                 (OPENSSL_sk_delete_if_func)func, data);                      \
   }                                                                           \
                                                                               \
   OPENSSL_INLINE int sk_##name##_find(const STACK_OF(name) *sk,               \

@@ -1,4 +1,3 @@
-/* crypto/asn1/x_x509.c */
 /* Copyright (C) 1995-1998 Eric Young (eay@cryptsoft.com)
  * All rights reserved.
  *
@@ -68,6 +67,7 @@
 #include <CCryptoBoringSSL_x509.h>
 #include <CCryptoBoringSSL_x509v3.h>
 
+#include "../asn1/internal.h"
 #include "../internal.h"
 #include "internal.h"
 
@@ -329,7 +329,7 @@ int i2d_X509_AUX(X509 *a, unsigned char **pp) {
 }
 
 int i2d_re_X509_tbs(X509 *x509, unsigned char **outp) {
-  x509->cert_info->enc.modified = 1;
+  asn1_encoding_clear(&x509->cert_info->enc);
   return i2d_X509_CINF(x509->cert_info, outp);
 }
 

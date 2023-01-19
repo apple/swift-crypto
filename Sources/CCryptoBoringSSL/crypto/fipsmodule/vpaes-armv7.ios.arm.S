@@ -10,7 +10,7 @@
 #define OPENSSL_NO_ASM
 #endif
 
-#if !defined(OPENSSL_NO_ASM)
+#if !defined(OPENSSL_NO_ASM) && defined(__ARMEL__) && defined(__APPLE__)
 #if defined(BORINGSSL_PREFIX)
 #include <CCryptoBoringSSL_boringssl_prefix_symbols_asm.h>
 #endif
@@ -1264,7 +1264,11 @@ Lctr32_done:
 	vldmia	sp!, {d8,d9,d10,d11,d12,d13,d14,d15}
 	ldmia	sp!, {r7,r8,r9,r10,r11, pc}	@ return
 
-#endif  // !OPENSSL_NO_ASM
+#endif  // !OPENSSL_NO_ASM && defined(__ARMEL__) && defined(__APPLE__)
+#if defined(__ELF__)
+// See https://www.airs.com/blog/archives/518.
+.section .note.GNU-stack,"",%progbits
+#endif
 #endif  // defined(__arm__) && defined(__APPLE__)
 #if defined(__linux__) && defined(__ELF__)
 .section .note.GNU-stack,"",%progbits

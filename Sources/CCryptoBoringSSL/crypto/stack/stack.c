@@ -212,7 +212,7 @@ void *sk_delete(_STACK *sk, size_t where) {
 
   if (where != sk->num - 1) {
     OPENSSL_memmove(&sk->data[where], &sk->data[where + 1],
-            sizeof(void *) * (sk->num - where - 1));
+                    sizeof(void *) * (sk->num - where - 1));
   }
 
   sk->num--;
@@ -231,6 +231,22 @@ void *sk_delete_ptr(_STACK *sk, const void *p) {
   }
 
   return NULL;
+}
+
+void sk_delete_if(_STACK *sk, OPENSSL_sk_call_delete_if_func call_func,
+                  OPENSSL_sk_delete_if_func func, void *data) {
+  if (sk == NULL) {
+    return;
+  }
+
+  size_t new_num = 0;
+  for (size_t i = 0; i < sk->num; i++) {
+    if (!call_func(func, sk->data[i], data)) {
+      sk->data[new_num] = sk->data[i];
+      new_num++;
+    }
+  }
+  sk->num = new_num;
 }
 
 int sk_find(const _STACK *sk, size_t *out_index, const void *p,
@@ -399,7 +415,8 @@ int sk_is_sorted(const _STACK *sk) {
   if (!sk) {
     return 1;
   }
-  return sk->sorted;
+  // Zero- and one-element lists are always sorted.
+  return sk->sorted || (sk->comp != NULL && sk->num < 2);
 }
 
 OPENSSL_sk_cmp_func sk_set_cmp_func(_STACK *sk, OPENSSL_sk_cmp_func comp) {

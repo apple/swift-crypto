@@ -92,9 +92,9 @@ OPENSSL_EXPORT char *x509v3_bytes_to_hex(const uint8_t *in, size_t len);
 // name, |string_to_hex| converted from hex.
 unsigned char *x509v3_hex_to_bytes(const char *str, long *len);
 
-// x509v3_name_cmp returns zero if |name| is equal to |cmp| or begins with |cmp|
-// followed by '.'. Otherwise, it returns a non-zero number.
-int x509v3_name_cmp(const char *name, const char *cmp);
+// x509v3_conf_name_matches returns one if |name| is equal to |cmp| or begins
+// with |cmp| followed by '.', and zero otherwise.
+int x509v3_conf_name_matches(const char *name, const char *cmp);
 
 // x509v3_looks_like_dns_name returns one if |in| looks like a DNS name and zero
 // otherwise.
@@ -104,7 +104,7 @@ OPENSSL_EXPORT int x509v3_looks_like_dns_name(const unsigned char *in,
 // x509v3_cache_extensions fills in a number of fields relating to X.509
 // extensions in |x|. It returns one on success and zero if some extensions were
 // invalid.
-int x509v3_cache_extensions(X509 *x);
+OPENSSL_EXPORT int x509v3_cache_extensions(X509 *x);
 
 // x509v3_a2i_ipadd decodes |ipasc| as an IPv4 or IPv6 address. IPv6 addresses
 // use colon-separated syntax while IPv4 addresses use dotted decimal syntax. If
@@ -126,6 +126,46 @@ typedef struct {
 // zero on error.
 int x509V3_add_value_asn1_string(const char *name, const ASN1_STRING *value,
                                  STACK_OF(CONF_VALUE) **extlist);
+
+// X509V3_NAME_from_section adds attributes to |nm| by interpreting the
+// key/value pairs in |dn_sk|. It returns one on success and zero on error.
+// |chtype|, which should be one of |MBSTRING_*| constants, determines the
+// character encoding used to interpret values.
+int X509V3_NAME_from_section(X509_NAME *nm, const STACK_OF(CONF_VALUE) *dn_sk,
+                             int chtype);
+
+int X509V3_get_value_bool(const CONF_VALUE *value, int *asn1_bool);
+int X509V3_get_value_int(const CONF_VALUE *value, ASN1_INTEGER **aint);
+const STACK_OF(CONF_VALUE) *X509V3_get_section(const X509V3_CTX *ctx,
+                                               const char *section);
+
+// X509V3_add_value appends a |CONF_VALUE| containing |name| and |value| to
+// |*extlist|. It returns one on success and zero on error. If |*extlist| is
+// NULL, it sets |*extlist| to a newly-allocated |STACK_OF(CONF_VALUE)|
+// containing the result. Either |name| or |value| may be NULL to omit the
+// field.
+//
+// On failure, if |*extlist| was NULL, |*extlist| will remain NULL when the
+// function returns.
+int X509V3_add_value(const char *name, const char *value,
+                     STACK_OF(CONF_VALUE) **extlist);
+
+// X509V3_add_value_bool behaves like |X509V3_add_value| but stores the value
+// "TRUE" if |asn1_bool| is non-zero and "FALSE" otherwise.
+int X509V3_add_value_bool(const char *name, int asn1_bool,
+                          STACK_OF(CONF_VALUE) **extlist);
+
+// X509V3_add_value_bool behaves like |X509V3_add_value| but stores a string
+// representation of |aint|. Note this string representation may be decimal or
+// hexadecimal, depending on the size of |aint|.
+int X509V3_add_value_int(const char *name, const ASN1_INTEGER *aint,
+                         STACK_OF(CONF_VALUE) **extlist);
+
+STACK_OF(CONF_VALUE) *X509V3_parse_list(const char *line);
+
+#define X509V3_conf_err(val)                                               \
+  ERR_add_error_data(6, "section:", (val)->section, ",name:", (val)->name, \
+                     ",value:", (val)->value);
 
 
 // Internal structures

@@ -1,850 +1,845 @@
 #define BORINGSSL_PREFIX CCryptoBoringSSL
 #if defined(__i386__) && defined(_WIN32)
-// This file is generated from a similarly-named Perl script in the BoringSSL
-// source tree. Do not edit by hand.
+; This file is generated from a similarly-named Perl script in the BoringSSL
+; source tree. Do not edit by hand.
 
-#if defined(__i386__)
-#if defined(BORINGSSL_PREFIX)
-#include <CCryptoBoringSSL_boringssl_prefix_symbols_asm.h>
-#endif
-.text
-.globl	_bn_mul_add_words
-.hidden	_bn_mul_add_words
-.def	_bn_mul_add_words;	.scl	2;	.type	32;	.endef
-.align	16
+%ifdef BORINGSSL_PREFIX
+%include "boringssl_prefix_symbols_nasm.inc"
+%endif
+%ifidn __OUTPUT_FORMAT__, win32
+%ifidn __OUTPUT_FORMAT__,obj
+section	code	use32 class=code align=64
+%elifidn __OUTPUT_FORMAT__,win32
+$@feat.00 equ 1
+section	.text	code align=64
+%else
+section	.text	code
+%endif
+global	_bn_mul_add_words
+align	16
 _bn_mul_add_words:
-.L_bn_mul_add_words_begin:
-	pushl	%ebp
-	pushl	%ebx
-	pushl	%esi
-	pushl	%edi
-
-	xorl	%esi,%esi
-	movl	20(%esp),%edi
-	movl	28(%esp),%ecx
-	movl	24(%esp),%ebx
-	andl	$4294967288,%ecx
-	movl	32(%esp),%ebp
-	pushl	%ecx
-	jz	.L000maw_finish
-.align	16
-.L001maw_loop:
-	# Round 0 
-	movl	(%ebx),%eax
-	mull	%ebp
-	addl	%esi,%eax
-	adcl	$0,%edx
-	addl	(%edi),%eax
-	adcl	$0,%edx
-	movl	%eax,(%edi)
-	movl	%edx,%esi
-	# Round 4 
-	movl	4(%ebx),%eax
-	mull	%ebp
-	addl	%esi,%eax
-	adcl	$0,%edx
-	addl	4(%edi),%eax
-	adcl	$0,%edx
-	movl	%eax,4(%edi)
-	movl	%edx,%esi
-	# Round 8 
-	movl	8(%ebx),%eax
-	mull	%ebp
-	addl	%esi,%eax
-	adcl	$0,%edx
-	addl	8(%edi),%eax
-	adcl	$0,%edx
-	movl	%eax,8(%edi)
-	movl	%edx,%esi
-	# Round 12 
-	movl	12(%ebx),%eax
-	mull	%ebp
-	addl	%esi,%eax
-	adcl	$0,%edx
-	addl	12(%edi),%eax
-	adcl	$0,%edx
-	movl	%eax,12(%edi)
-	movl	%edx,%esi
-	# Round 16 
-	movl	16(%ebx),%eax
-	mull	%ebp
-	addl	%esi,%eax
-	adcl	$0,%edx
-	addl	16(%edi),%eax
-	adcl	$0,%edx
-	movl	%eax,16(%edi)
-	movl	%edx,%esi
-	# Round 20 
-	movl	20(%ebx),%eax
-	mull	%ebp
-	addl	%esi,%eax
-	adcl	$0,%edx
-	addl	20(%edi),%eax
-	adcl	$0,%edx
-	movl	%eax,20(%edi)
-	movl	%edx,%esi
-	# Round 24 
-	movl	24(%ebx),%eax
-	mull	%ebp
-	addl	%esi,%eax
-	adcl	$0,%edx
-	addl	24(%edi),%eax
-	adcl	$0,%edx
-	movl	%eax,24(%edi)
-	movl	%edx,%esi
-	# Round 28 
-	movl	28(%ebx),%eax
-	mull	%ebp
-	addl	%esi,%eax
-	adcl	$0,%edx
-	addl	28(%edi),%eax
-	adcl	$0,%edx
-	movl	%eax,28(%edi)
-	movl	%edx,%esi
-
-	subl	$8,%ecx
-	leal	32(%ebx),%ebx
-	leal	32(%edi),%edi
-	jnz	.L001maw_loop
-.L000maw_finish:
-	movl	32(%esp),%ecx
-	andl	$7,%ecx
-	jnz	.L002maw_finish2
-	jmp	.L003maw_end
-.L002maw_finish2:
-	# Tail Round 0 
-	movl	(%ebx),%eax
-	mull	%ebp
-	addl	%esi,%eax
-	adcl	$0,%edx
-	addl	(%edi),%eax
-	adcl	$0,%edx
-	decl	%ecx
-	movl	%eax,(%edi)
-	movl	%edx,%esi
-	jz	.L003maw_end
-	# Tail Round 1 
-	movl	4(%ebx),%eax
-	mull	%ebp
-	addl	%esi,%eax
-	adcl	$0,%edx
-	addl	4(%edi),%eax
-	adcl	$0,%edx
-	decl	%ecx
-	movl	%eax,4(%edi)
-	movl	%edx,%esi
-	jz	.L003maw_end
-	# Tail Round 2 
-	movl	8(%ebx),%eax
-	mull	%ebp
-	addl	%esi,%eax
-	adcl	$0,%edx
-	addl	8(%edi),%eax
-	adcl	$0,%edx
-	decl	%ecx
-	movl	%eax,8(%edi)
-	movl	%edx,%esi
-	jz	.L003maw_end
-	# Tail Round 3 
-	movl	12(%ebx),%eax
-	mull	%ebp
-	addl	%esi,%eax
-	adcl	$0,%edx
-	addl	12(%edi),%eax
-	adcl	$0,%edx
-	decl	%ecx
-	movl	%eax,12(%edi)
-	movl	%edx,%esi
-	jz	.L003maw_end
-	# Tail Round 4 
-	movl	16(%ebx),%eax
-	mull	%ebp
-	addl	%esi,%eax
-	adcl	$0,%edx
-	addl	16(%edi),%eax
-	adcl	$0,%edx
-	decl	%ecx
-	movl	%eax,16(%edi)
-	movl	%edx,%esi
-	jz	.L003maw_end
-	# Tail Round 5 
-	movl	20(%ebx),%eax
-	mull	%ebp
-	addl	%esi,%eax
-	adcl	$0,%edx
-	addl	20(%edi),%eax
-	adcl	$0,%edx
-	decl	%ecx
-	movl	%eax,20(%edi)
-	movl	%edx,%esi
-	jz	.L003maw_end
-	# Tail Round 6 
-	movl	24(%ebx),%eax
-	mull	%ebp
-	addl	%esi,%eax
-	adcl	$0,%edx
-	addl	24(%edi),%eax
-	adcl	$0,%edx
-	movl	%eax,24(%edi)
-	movl	%edx,%esi
-.L003maw_end:
-	movl	%esi,%eax
-	popl	%ecx
-	popl	%edi
-	popl	%esi
-	popl	%ebx
-	popl	%ebp
+L$_bn_mul_add_words_begin:
+	push	ebp
+	push	ebx
+	push	esi
+	push	edi
+	; 
+	xor	esi,esi
+	mov	edi,DWORD [20+esp]
+	mov	ecx,DWORD [28+esp]
+	mov	ebx,DWORD [24+esp]
+	and	ecx,4294967288
+	mov	ebp,DWORD [32+esp]
+	push	ecx
+	jz	NEAR L$000maw_finish
+align	16
+L$001maw_loop:
+	; Round 0
+	mov	eax,DWORD [ebx]
+	mul	ebp
+	add	eax,esi
+	adc	edx,0
+	add	eax,DWORD [edi]
+	adc	edx,0
+	mov	DWORD [edi],eax
+	mov	esi,edx
+	; Round 4
+	mov	eax,DWORD [4+ebx]
+	mul	ebp
+	add	eax,esi
+	adc	edx,0
+	add	eax,DWORD [4+edi]
+	adc	edx,0
+	mov	DWORD [4+edi],eax
+	mov	esi,edx
+	; Round 8
+	mov	eax,DWORD [8+ebx]
+	mul	ebp
+	add	eax,esi
+	adc	edx,0
+	add	eax,DWORD [8+edi]
+	adc	edx,0
+	mov	DWORD [8+edi],eax
+	mov	esi,edx
+	; Round 12
+	mov	eax,DWORD [12+ebx]
+	mul	ebp
+	add	eax,esi
+	adc	edx,0
+	add	eax,DWORD [12+edi]
+	adc	edx,0
+	mov	DWORD [12+edi],eax
+	mov	esi,edx
+	; Round 16
+	mov	eax,DWORD [16+ebx]
+	mul	ebp
+	add	eax,esi
+	adc	edx,0
+	add	eax,DWORD [16+edi]
+	adc	edx,0
+	mov	DWORD [16+edi],eax
+	mov	esi,edx
+	; Round 20
+	mov	eax,DWORD [20+ebx]
+	mul	ebp
+	add	eax,esi
+	adc	edx,0
+	add	eax,DWORD [20+edi]
+	adc	edx,0
+	mov	DWORD [20+edi],eax
+	mov	esi,edx
+	; Round 24
+	mov	eax,DWORD [24+ebx]
+	mul	ebp
+	add	eax,esi
+	adc	edx,0
+	add	eax,DWORD [24+edi]
+	adc	edx,0
+	mov	DWORD [24+edi],eax
+	mov	esi,edx
+	; Round 28
+	mov	eax,DWORD [28+ebx]
+	mul	ebp
+	add	eax,esi
+	adc	edx,0
+	add	eax,DWORD [28+edi]
+	adc	edx,0
+	mov	DWORD [28+edi],eax
+	mov	esi,edx
+	; 
+	sub	ecx,8
+	lea	ebx,[32+ebx]
+	lea	edi,[32+edi]
+	jnz	NEAR L$001maw_loop
+L$000maw_finish:
+	mov	ecx,DWORD [32+esp]
+	and	ecx,7
+	jnz	NEAR L$002maw_finish2
+	jmp	NEAR L$003maw_end
+L$002maw_finish2:
+	; Tail Round 0
+	mov	eax,DWORD [ebx]
+	mul	ebp
+	add	eax,esi
+	adc	edx,0
+	add	eax,DWORD [edi]
+	adc	edx,0
+	dec	ecx
+	mov	DWORD [edi],eax
+	mov	esi,edx
+	jz	NEAR L$003maw_end
+	; Tail Round 1
+	mov	eax,DWORD [4+ebx]
+	mul	ebp
+	add	eax,esi
+	adc	edx,0
+	add	eax,DWORD [4+edi]
+	adc	edx,0
+	dec	ecx
+	mov	DWORD [4+edi],eax
+	mov	esi,edx
+	jz	NEAR L$003maw_end
+	; Tail Round 2
+	mov	eax,DWORD [8+ebx]
+	mul	ebp
+	add	eax,esi
+	adc	edx,0
+	add	eax,DWORD [8+edi]
+	adc	edx,0
+	dec	ecx
+	mov	DWORD [8+edi],eax
+	mov	esi,edx
+	jz	NEAR L$003maw_end
+	; Tail Round 3
+	mov	eax,DWORD [12+ebx]
+	mul	ebp
+	add	eax,esi
+	adc	edx,0
+	add	eax,DWORD [12+edi]
+	adc	edx,0
+	dec	ecx
+	mov	DWORD [12+edi],eax
+	mov	esi,edx
+	jz	NEAR L$003maw_end
+	; Tail Round 4
+	mov	eax,DWORD [16+ebx]
+	mul	ebp
+	add	eax,esi
+	adc	edx,0
+	add	eax,DWORD [16+edi]
+	adc	edx,0
+	dec	ecx
+	mov	DWORD [16+edi],eax
+	mov	esi,edx
+	jz	NEAR L$003maw_end
+	; Tail Round 5
+	mov	eax,DWORD [20+ebx]
+	mul	ebp
+	add	eax,esi
+	adc	edx,0
+	add	eax,DWORD [20+edi]
+	adc	edx,0
+	dec	ecx
+	mov	DWORD [20+edi],eax
+	mov	esi,edx
+	jz	NEAR L$003maw_end
+	; Tail Round 6
+	mov	eax,DWORD [24+ebx]
+	mul	ebp
+	add	eax,esi
+	adc	edx,0
+	add	eax,DWORD [24+edi]
+	adc	edx,0
+	mov	DWORD [24+edi],eax
+	mov	esi,edx
+L$003maw_end:
+	mov	eax,esi
+	pop	ecx
+	pop	edi
+	pop	esi
+	pop	ebx
+	pop	ebp
 	ret
-.globl	_bn_mul_words
-.hidden	_bn_mul_words
-.def	_bn_mul_words;	.scl	2;	.type	32;	.endef
-.align	16
+global	_bn_mul_words
+align	16
 _bn_mul_words:
-.L_bn_mul_words_begin:
-	pushl	%ebp
-	pushl	%ebx
-	pushl	%esi
-	pushl	%edi
-
-	xorl	%esi,%esi
-	movl	20(%esp),%edi
-	movl	24(%esp),%ebx
-	movl	28(%esp),%ebp
-	movl	32(%esp),%ecx
-	andl	$4294967288,%ebp
-	jz	.L004mw_finish
-.L005mw_loop:
-	# Round 0 
-	movl	(%ebx),%eax
-	mull	%ecx
-	addl	%esi,%eax
-	adcl	$0,%edx
-	movl	%eax,(%edi)
-	movl	%edx,%esi
-	# Round 4 
-	movl	4(%ebx),%eax
-	mull	%ecx
-	addl	%esi,%eax
-	adcl	$0,%edx
-	movl	%eax,4(%edi)
-	movl	%edx,%esi
-	# Round 8 
-	movl	8(%ebx),%eax
-	mull	%ecx
-	addl	%esi,%eax
-	adcl	$0,%edx
-	movl	%eax,8(%edi)
-	movl	%edx,%esi
-	# Round 12 
-	movl	12(%ebx),%eax
-	mull	%ecx
-	addl	%esi,%eax
-	adcl	$0,%edx
-	movl	%eax,12(%edi)
-	movl	%edx,%esi
-	# Round 16 
-	movl	16(%ebx),%eax
-	mull	%ecx
-	addl	%esi,%eax
-	adcl	$0,%edx
-	movl	%eax,16(%edi)
-	movl	%edx,%esi
-	# Round 20 
-	movl	20(%ebx),%eax
-	mull	%ecx
-	addl	%esi,%eax
-	adcl	$0,%edx
-	movl	%eax,20(%edi)
-	movl	%edx,%esi
-	# Round 24 
-	movl	24(%ebx),%eax
-	mull	%ecx
-	addl	%esi,%eax
-	adcl	$0,%edx
-	movl	%eax,24(%edi)
-	movl	%edx,%esi
-	# Round 28 
-	movl	28(%ebx),%eax
-	mull	%ecx
-	addl	%esi,%eax
-	adcl	$0,%edx
-	movl	%eax,28(%edi)
-	movl	%edx,%esi
-
-	addl	$32,%ebx
-	addl	$32,%edi
-	subl	$8,%ebp
-	jz	.L004mw_finish
-	jmp	.L005mw_loop
-.L004mw_finish:
-	movl	28(%esp),%ebp
-	andl	$7,%ebp
-	jnz	.L006mw_finish2
-	jmp	.L007mw_end
-.L006mw_finish2:
-	# Tail Round 0 
-	movl	(%ebx),%eax
-	mull	%ecx
-	addl	%esi,%eax
-	adcl	$0,%edx
-	movl	%eax,(%edi)
-	movl	%edx,%esi
-	decl	%ebp
-	jz	.L007mw_end
-	# Tail Round 1 
-	movl	4(%ebx),%eax
-	mull	%ecx
-	addl	%esi,%eax
-	adcl	$0,%edx
-	movl	%eax,4(%edi)
-	movl	%edx,%esi
-	decl	%ebp
-	jz	.L007mw_end
-	# Tail Round 2 
-	movl	8(%ebx),%eax
-	mull	%ecx
-	addl	%esi,%eax
-	adcl	$0,%edx
-	movl	%eax,8(%edi)
-	movl	%edx,%esi
-	decl	%ebp
-	jz	.L007mw_end
-	# Tail Round 3 
-	movl	12(%ebx),%eax
-	mull	%ecx
-	addl	%esi,%eax
-	adcl	$0,%edx
-	movl	%eax,12(%edi)
-	movl	%edx,%esi
-	decl	%ebp
-	jz	.L007mw_end
-	# Tail Round 4 
-	movl	16(%ebx),%eax
-	mull	%ecx
-	addl	%esi,%eax
-	adcl	$0,%edx
-	movl	%eax,16(%edi)
-	movl	%edx,%esi
-	decl	%ebp
-	jz	.L007mw_end
-	# Tail Round 5 
-	movl	20(%ebx),%eax
-	mull	%ecx
-	addl	%esi,%eax
-	adcl	$0,%edx
-	movl	%eax,20(%edi)
-	movl	%edx,%esi
-	decl	%ebp
-	jz	.L007mw_end
-	# Tail Round 6 
-	movl	24(%ebx),%eax
-	mull	%ecx
-	addl	%esi,%eax
-	adcl	$0,%edx
-	movl	%eax,24(%edi)
-	movl	%edx,%esi
-.L007mw_end:
-	movl	%esi,%eax
-	popl	%edi
-	popl	%esi
-	popl	%ebx
-	popl	%ebp
+L$_bn_mul_words_begin:
+	push	ebp
+	push	ebx
+	push	esi
+	push	edi
+	; 
+	xor	esi,esi
+	mov	edi,DWORD [20+esp]
+	mov	ebx,DWORD [24+esp]
+	mov	ebp,DWORD [28+esp]
+	mov	ecx,DWORD [32+esp]
+	and	ebp,4294967288
+	jz	NEAR L$004mw_finish
+L$005mw_loop:
+	; Round 0
+	mov	eax,DWORD [ebx]
+	mul	ecx
+	add	eax,esi
+	adc	edx,0
+	mov	DWORD [edi],eax
+	mov	esi,edx
+	; Round 4
+	mov	eax,DWORD [4+ebx]
+	mul	ecx
+	add	eax,esi
+	adc	edx,0
+	mov	DWORD [4+edi],eax
+	mov	esi,edx
+	; Round 8
+	mov	eax,DWORD [8+ebx]
+	mul	ecx
+	add	eax,esi
+	adc	edx,0
+	mov	DWORD [8+edi],eax
+	mov	esi,edx
+	; Round 12
+	mov	eax,DWORD [12+ebx]
+	mul	ecx
+	add	eax,esi
+	adc	edx,0
+	mov	DWORD [12+edi],eax
+	mov	esi,edx
+	; Round 16
+	mov	eax,DWORD [16+ebx]
+	mul	ecx
+	add	eax,esi
+	adc	edx,0
+	mov	DWORD [16+edi],eax
+	mov	esi,edx
+	; Round 20
+	mov	eax,DWORD [20+ebx]
+	mul	ecx
+	add	eax,esi
+	adc	edx,0
+	mov	DWORD [20+edi],eax
+	mov	esi,edx
+	; Round 24
+	mov	eax,DWORD [24+ebx]
+	mul	ecx
+	add	eax,esi
+	adc	edx,0
+	mov	DWORD [24+edi],eax
+	mov	esi,edx
+	; Round 28
+	mov	eax,DWORD [28+ebx]
+	mul	ecx
+	add	eax,esi
+	adc	edx,0
+	mov	DWORD [28+edi],eax
+	mov	esi,edx
+	; 
+	add	ebx,32
+	add	edi,32
+	sub	ebp,8
+	jz	NEAR L$004mw_finish
+	jmp	NEAR L$005mw_loop
+L$004mw_finish:
+	mov	ebp,DWORD [28+esp]
+	and	ebp,7
+	jnz	NEAR L$006mw_finish2
+	jmp	NEAR L$007mw_end
+L$006mw_finish2:
+	; Tail Round 0
+	mov	eax,DWORD [ebx]
+	mul	ecx
+	add	eax,esi
+	adc	edx,0
+	mov	DWORD [edi],eax
+	mov	esi,edx
+	dec	ebp
+	jz	NEAR L$007mw_end
+	; Tail Round 1
+	mov	eax,DWORD [4+ebx]
+	mul	ecx
+	add	eax,esi
+	adc	edx,0
+	mov	DWORD [4+edi],eax
+	mov	esi,edx
+	dec	ebp
+	jz	NEAR L$007mw_end
+	; Tail Round 2
+	mov	eax,DWORD [8+ebx]
+	mul	ecx
+	add	eax,esi
+	adc	edx,0
+	mov	DWORD [8+edi],eax
+	mov	esi,edx
+	dec	ebp
+	jz	NEAR L$007mw_end
+	; Tail Round 3
+	mov	eax,DWORD [12+ebx]
+	mul	ecx
+	add	eax,esi
+	adc	edx,0
+	mov	DWORD [12+edi],eax
+	mov	esi,edx
+	dec	ebp
+	jz	NEAR L$007mw_end
+	; Tail Round 4
+	mov	eax,DWORD [16+ebx]
+	mul	ecx
+	add	eax,esi
+	adc	edx,0
+	mov	DWORD [16+edi],eax
+	mov	esi,edx
+	dec	ebp
+	jz	NEAR L$007mw_end
+	; Tail Round 5
+	mov	eax,DWORD [20+ebx]
+	mul	ecx
+	add	eax,esi
+	adc	edx,0
+	mov	DWORD [20+edi],eax
+	mov	esi,edx
+	dec	ebp
+	jz	NEAR L$007mw_end
+	; Tail Round 6
+	mov	eax,DWORD [24+ebx]
+	mul	ecx
+	add	eax,esi
+	adc	edx,0
+	mov	DWORD [24+edi],eax
+	mov	esi,edx
+L$007mw_end:
+	mov	eax,esi
+	pop	edi
+	pop	esi
+	pop	ebx
+	pop	ebp
 	ret
-.globl	_bn_sqr_words
-.hidden	_bn_sqr_words
-.def	_bn_sqr_words;	.scl	2;	.type	32;	.endef
-.align	16
+global	_bn_sqr_words
+align	16
 _bn_sqr_words:
-.L_bn_sqr_words_begin:
-	pushl	%ebp
-	pushl	%ebx
-	pushl	%esi
-	pushl	%edi
-
-	movl	20(%esp),%esi
-	movl	24(%esp),%edi
-	movl	28(%esp),%ebx
-	andl	$4294967288,%ebx
-	jz	.L008sw_finish
-.L009sw_loop:
-	# Round 0 
-	movl	(%edi),%eax
-	mull	%eax
-	movl	%eax,(%esi)
-	movl	%edx,4(%esi)
-	# Round 4 
-	movl	4(%edi),%eax
-	mull	%eax
-	movl	%eax,8(%esi)
-	movl	%edx,12(%esi)
-	# Round 8 
-	movl	8(%edi),%eax
-	mull	%eax
-	movl	%eax,16(%esi)
-	movl	%edx,20(%esi)
-	# Round 12 
-	movl	12(%edi),%eax
-	mull	%eax
-	movl	%eax,24(%esi)
-	movl	%edx,28(%esi)
-	# Round 16 
-	movl	16(%edi),%eax
-	mull	%eax
-	movl	%eax,32(%esi)
-	movl	%edx,36(%esi)
-	# Round 20 
-	movl	20(%edi),%eax
-	mull	%eax
-	movl	%eax,40(%esi)
-	movl	%edx,44(%esi)
-	# Round 24 
-	movl	24(%edi),%eax
-	mull	%eax
-	movl	%eax,48(%esi)
-	movl	%edx,52(%esi)
-	# Round 28 
-	movl	28(%edi),%eax
-	mull	%eax
-	movl	%eax,56(%esi)
-	movl	%edx,60(%esi)
-
-	addl	$32,%edi
-	addl	$64,%esi
-	subl	$8,%ebx
-	jnz	.L009sw_loop
-.L008sw_finish:
-	movl	28(%esp),%ebx
-	andl	$7,%ebx
-	jz	.L010sw_end
-	# Tail Round 0 
-	movl	(%edi),%eax
-	mull	%eax
-	movl	%eax,(%esi)
-	decl	%ebx
-	movl	%edx,4(%esi)
-	jz	.L010sw_end
-	# Tail Round 1 
-	movl	4(%edi),%eax
-	mull	%eax
-	movl	%eax,8(%esi)
-	decl	%ebx
-	movl	%edx,12(%esi)
-	jz	.L010sw_end
-	# Tail Round 2 
-	movl	8(%edi),%eax
-	mull	%eax
-	movl	%eax,16(%esi)
-	decl	%ebx
-	movl	%edx,20(%esi)
-	jz	.L010sw_end
-	# Tail Round 3 
-	movl	12(%edi),%eax
-	mull	%eax
-	movl	%eax,24(%esi)
-	decl	%ebx
-	movl	%edx,28(%esi)
-	jz	.L010sw_end
-	# Tail Round 4 
-	movl	16(%edi),%eax
-	mull	%eax
-	movl	%eax,32(%esi)
-	decl	%ebx
-	movl	%edx,36(%esi)
-	jz	.L010sw_end
-	# Tail Round 5 
-	movl	20(%edi),%eax
-	mull	%eax
-	movl	%eax,40(%esi)
-	decl	%ebx
-	movl	%edx,44(%esi)
-	jz	.L010sw_end
-	# Tail Round 6 
-	movl	24(%edi),%eax
-	mull	%eax
-	movl	%eax,48(%esi)
-	movl	%edx,52(%esi)
-.L010sw_end:
-	popl	%edi
-	popl	%esi
-	popl	%ebx
-	popl	%ebp
+L$_bn_sqr_words_begin:
+	push	ebp
+	push	ebx
+	push	esi
+	push	edi
+	; 
+	mov	esi,DWORD [20+esp]
+	mov	edi,DWORD [24+esp]
+	mov	ebx,DWORD [28+esp]
+	and	ebx,4294967288
+	jz	NEAR L$008sw_finish
+L$009sw_loop:
+	; Round 0
+	mov	eax,DWORD [edi]
+	mul	eax
+	mov	DWORD [esi],eax
+	mov	DWORD [4+esi],edx
+	; Round 4
+	mov	eax,DWORD [4+edi]
+	mul	eax
+	mov	DWORD [8+esi],eax
+	mov	DWORD [12+esi],edx
+	; Round 8
+	mov	eax,DWORD [8+edi]
+	mul	eax
+	mov	DWORD [16+esi],eax
+	mov	DWORD [20+esi],edx
+	; Round 12
+	mov	eax,DWORD [12+edi]
+	mul	eax
+	mov	DWORD [24+esi],eax
+	mov	DWORD [28+esi],edx
+	; Round 16
+	mov	eax,DWORD [16+edi]
+	mul	eax
+	mov	DWORD [32+esi],eax
+	mov	DWORD [36+esi],edx
+	; Round 20
+	mov	eax,DWORD [20+edi]
+	mul	eax
+	mov	DWORD [40+esi],eax
+	mov	DWORD [44+esi],edx
+	; Round 24
+	mov	eax,DWORD [24+edi]
+	mul	eax
+	mov	DWORD [48+esi],eax
+	mov	DWORD [52+esi],edx
+	; Round 28
+	mov	eax,DWORD [28+edi]
+	mul	eax
+	mov	DWORD [56+esi],eax
+	mov	DWORD [60+esi],edx
+	; 
+	add	edi,32
+	add	esi,64
+	sub	ebx,8
+	jnz	NEAR L$009sw_loop
+L$008sw_finish:
+	mov	ebx,DWORD [28+esp]
+	and	ebx,7
+	jz	NEAR L$010sw_end
+	; Tail Round 0
+	mov	eax,DWORD [edi]
+	mul	eax
+	mov	DWORD [esi],eax
+	dec	ebx
+	mov	DWORD [4+esi],edx
+	jz	NEAR L$010sw_end
+	; Tail Round 1
+	mov	eax,DWORD [4+edi]
+	mul	eax
+	mov	DWORD [8+esi],eax
+	dec	ebx
+	mov	DWORD [12+esi],edx
+	jz	NEAR L$010sw_end
+	; Tail Round 2
+	mov	eax,DWORD [8+edi]
+	mul	eax
+	mov	DWORD [16+esi],eax
+	dec	ebx
+	mov	DWORD [20+esi],edx
+	jz	NEAR L$010sw_end
+	; Tail Round 3
+	mov	eax,DWORD [12+edi]
+	mul	eax
+	mov	DWORD [24+esi],eax
+	dec	ebx
+	mov	DWORD [28+esi],edx
+	jz	NEAR L$010sw_end
+	; Tail Round 4
+	mov	eax,DWORD [16+edi]
+	mul	eax
+	mov	DWORD [32+esi],eax
+	dec	ebx
+	mov	DWORD [36+esi],edx
+	jz	NEAR L$010sw_end
+	; Tail Round 5
+	mov	eax,DWORD [20+edi]
+	mul	eax
+	mov	DWORD [40+esi],eax
+	dec	ebx
+	mov	DWORD [44+esi],edx
+	jz	NEAR L$010sw_end
+	; Tail Round 6
+	mov	eax,DWORD [24+edi]
+	mul	eax
+	mov	DWORD [48+esi],eax
+	mov	DWORD [52+esi],edx
+L$010sw_end:
+	pop	edi
+	pop	esi
+	pop	ebx
+	pop	ebp
 	ret
-.globl	_bn_div_words
-.hidden	_bn_div_words
-.def	_bn_div_words;	.scl	2;	.type	32;	.endef
-.align	16
+global	_bn_div_words
+align	16
 _bn_div_words:
-.L_bn_div_words_begin:
-	movl	4(%esp),%edx
-	movl	8(%esp),%eax
-	movl	12(%esp),%ecx
-	divl	%ecx
+L$_bn_div_words_begin:
+	mov	edx,DWORD [4+esp]
+	mov	eax,DWORD [8+esp]
+	mov	ecx,DWORD [12+esp]
+	div	ecx
 	ret
-.globl	_bn_add_words
-.hidden	_bn_add_words
-.def	_bn_add_words;	.scl	2;	.type	32;	.endef
-.align	16
+global	_bn_add_words
+align	16
 _bn_add_words:
-.L_bn_add_words_begin:
-	pushl	%ebp
-	pushl	%ebx
-	pushl	%esi
-	pushl	%edi
-
-	movl	20(%esp),%ebx
-	movl	24(%esp),%esi
-	movl	28(%esp),%edi
-	movl	32(%esp),%ebp
-	xorl	%eax,%eax
-	andl	$4294967288,%ebp
-	jz	.L011aw_finish
-.L012aw_loop:
-	# Round 0 
-	movl	(%esi),%ecx
-	movl	(%edi),%edx
-	addl	%eax,%ecx
-	movl	$0,%eax
-	adcl	%eax,%eax
-	addl	%edx,%ecx
-	adcl	$0,%eax
-	movl	%ecx,(%ebx)
-	# Round 1 
-	movl	4(%esi),%ecx
-	movl	4(%edi),%edx
-	addl	%eax,%ecx
-	movl	$0,%eax
-	adcl	%eax,%eax
-	addl	%edx,%ecx
-	adcl	$0,%eax
-	movl	%ecx,4(%ebx)
-	# Round 2 
-	movl	8(%esi),%ecx
-	movl	8(%edi),%edx
-	addl	%eax,%ecx
-	movl	$0,%eax
-	adcl	%eax,%eax
-	addl	%edx,%ecx
-	adcl	$0,%eax
-	movl	%ecx,8(%ebx)
-	# Round 3 
-	movl	12(%esi),%ecx
-	movl	12(%edi),%edx
-	addl	%eax,%ecx
-	movl	$0,%eax
-	adcl	%eax,%eax
-	addl	%edx,%ecx
-	adcl	$0,%eax
-	movl	%ecx,12(%ebx)
-	# Round 4 
-	movl	16(%esi),%ecx
-	movl	16(%edi),%edx
-	addl	%eax,%ecx
-	movl	$0,%eax
-	adcl	%eax,%eax
-	addl	%edx,%ecx
-	adcl	$0,%eax
-	movl	%ecx,16(%ebx)
-	# Round 5 
-	movl	20(%esi),%ecx
-	movl	20(%edi),%edx
-	addl	%eax,%ecx
-	movl	$0,%eax
-	adcl	%eax,%eax
-	addl	%edx,%ecx
-	adcl	$0,%eax
-	movl	%ecx,20(%ebx)
-	# Round 6 
-	movl	24(%esi),%ecx
-	movl	24(%edi),%edx
-	addl	%eax,%ecx
-	movl	$0,%eax
-	adcl	%eax,%eax
-	addl	%edx,%ecx
-	adcl	$0,%eax
-	movl	%ecx,24(%ebx)
-	# Round 7 
-	movl	28(%esi),%ecx
-	movl	28(%edi),%edx
-	addl	%eax,%ecx
-	movl	$0,%eax
-	adcl	%eax,%eax
-	addl	%edx,%ecx
-	adcl	$0,%eax
-	movl	%ecx,28(%ebx)
-
-	addl	$32,%esi
-	addl	$32,%edi
-	addl	$32,%ebx
-	subl	$8,%ebp
-	jnz	.L012aw_loop
-.L011aw_finish:
-	movl	32(%esp),%ebp
-	andl	$7,%ebp
-	jz	.L013aw_end
-	# Tail Round 0 
-	movl	(%esi),%ecx
-	movl	(%edi),%edx
-	addl	%eax,%ecx
-	movl	$0,%eax
-	adcl	%eax,%eax
-	addl	%edx,%ecx
-	adcl	$0,%eax
-	decl	%ebp
-	movl	%ecx,(%ebx)
-	jz	.L013aw_end
-	# Tail Round 1 
-	movl	4(%esi),%ecx
-	movl	4(%edi),%edx
-	addl	%eax,%ecx
-	movl	$0,%eax
-	adcl	%eax,%eax
-	addl	%edx,%ecx
-	adcl	$0,%eax
-	decl	%ebp
-	movl	%ecx,4(%ebx)
-	jz	.L013aw_end
-	# Tail Round 2 
-	movl	8(%esi),%ecx
-	movl	8(%edi),%edx
-	addl	%eax,%ecx
-	movl	$0,%eax
-	adcl	%eax,%eax
-	addl	%edx,%ecx
-	adcl	$0,%eax
-	decl	%ebp
-	movl	%ecx,8(%ebx)
-	jz	.L013aw_end
-	# Tail Round 3 
-	movl	12(%esi),%ecx
-	movl	12(%edi),%edx
-	addl	%eax,%ecx
-	movl	$0,%eax
-	adcl	%eax,%eax
-	addl	%edx,%ecx
-	adcl	$0,%eax
-	decl	%ebp
-	movl	%ecx,12(%ebx)
-	jz	.L013aw_end
-	# Tail Round 4 
-	movl	16(%esi),%ecx
-	movl	16(%edi),%edx
-	addl	%eax,%ecx
-	movl	$0,%eax
-	adcl	%eax,%eax
-	addl	%edx,%ecx
-	adcl	$0,%eax
-	decl	%ebp
-	movl	%ecx,16(%ebx)
-	jz	.L013aw_end
-	# Tail Round 5 
-	movl	20(%esi),%ecx
-	movl	20(%edi),%edx
-	addl	%eax,%ecx
-	movl	$0,%eax
-	adcl	%eax,%eax
-	addl	%edx,%ecx
-	adcl	$0,%eax
-	decl	%ebp
-	movl	%ecx,20(%ebx)
-	jz	.L013aw_end
-	# Tail Round 6 
-	movl	24(%esi),%ecx
-	movl	24(%edi),%edx
-	addl	%eax,%ecx
-	movl	$0,%eax
-	adcl	%eax,%eax
-	addl	%edx,%ecx
-	adcl	$0,%eax
-	movl	%ecx,24(%ebx)
-.L013aw_end:
-	popl	%edi
-	popl	%esi
-	popl	%ebx
-	popl	%ebp
+L$_bn_add_words_begin:
+	push	ebp
+	push	ebx
+	push	esi
+	push	edi
+	; 
+	mov	ebx,DWORD [20+esp]
+	mov	esi,DWORD [24+esp]
+	mov	edi,DWORD [28+esp]
+	mov	ebp,DWORD [32+esp]
+	xor	eax,eax
+	and	ebp,4294967288
+	jz	NEAR L$011aw_finish
+L$012aw_loop:
+	; Round 0
+	mov	ecx,DWORD [esi]
+	mov	edx,DWORD [edi]
+	add	ecx,eax
+	mov	eax,0
+	adc	eax,eax
+	add	ecx,edx
+	adc	eax,0
+	mov	DWORD [ebx],ecx
+	; Round 1
+	mov	ecx,DWORD [4+esi]
+	mov	edx,DWORD [4+edi]
+	add	ecx,eax
+	mov	eax,0
+	adc	eax,eax
+	add	ecx,edx
+	adc	eax,0
+	mov	DWORD [4+ebx],ecx
+	; Round 2
+	mov	ecx,DWORD [8+esi]
+	mov	edx,DWORD [8+edi]
+	add	ecx,eax
+	mov	eax,0
+	adc	eax,eax
+	add	ecx,edx
+	adc	eax,0
+	mov	DWORD [8+ebx],ecx
+	; Round 3
+	mov	ecx,DWORD [12+esi]
+	mov	edx,DWORD [12+edi]
+	add	ecx,eax
+	mov	eax,0
+	adc	eax,eax
+	add	ecx,edx
+	adc	eax,0
+	mov	DWORD [12+ebx],ecx
+	; Round 4
+	mov	ecx,DWORD [16+esi]
+	mov	edx,DWORD [16+edi]
+	add	ecx,eax
+	mov	eax,0
+	adc	eax,eax
+	add	ecx,edx
+	adc	eax,0
+	mov	DWORD [16+ebx],ecx
+	; Round 5
+	mov	ecx,DWORD [20+esi]
+	mov	edx,DWORD [20+edi]
+	add	ecx,eax
+	mov	eax,0
+	adc	eax,eax
+	add	ecx,edx
+	adc	eax,0
+	mov	DWORD [20+ebx],ecx
+	; Round 6
+	mov	ecx,DWORD [24+esi]
+	mov	edx,DWORD [24+edi]
+	add	ecx,eax
+	mov	eax,0
+	adc	eax,eax
+	add	ecx,edx
+	adc	eax,0
+	mov	DWORD [24+ebx],ecx
+	; Round 7
+	mov	ecx,DWORD [28+esi]
+	mov	edx,DWORD [28+edi]
+	add	ecx,eax
+	mov	eax,0
+	adc	eax,eax
+	add	ecx,edx
+	adc	eax,0
+	mov	DWORD [28+ebx],ecx
+	; 
+	add	esi,32
+	add	edi,32
+	add	ebx,32
+	sub	ebp,8
+	jnz	NEAR L$012aw_loop
+L$011aw_finish:
+	mov	ebp,DWORD [32+esp]
+	and	ebp,7
+	jz	NEAR L$013aw_end
+	; Tail Round 0
+	mov	ecx,DWORD [esi]
+	mov	edx,DWORD [edi]
+	add	ecx,eax
+	mov	eax,0
+	adc	eax,eax
+	add	ecx,edx
+	adc	eax,0
+	dec	ebp
+	mov	DWORD [ebx],ecx
+	jz	NEAR L$013aw_end
+	; Tail Round 1
+	mov	ecx,DWORD [4+esi]
+	mov	edx,DWORD [4+edi]
+	add	ecx,eax
+	mov	eax,0
+	adc	eax,eax
+	add	ecx,edx
+	adc	eax,0
+	dec	ebp
+	mov	DWORD [4+ebx],ecx
+	jz	NEAR L$013aw_end
+	; Tail Round 2
+	mov	ecx,DWORD [8+esi]
+	mov	edx,DWORD [8+edi]
+	add	ecx,eax
+	mov	eax,0
+	adc	eax,eax
+	add	ecx,edx
+	adc	eax,0
+	dec	ebp
+	mov	DWORD [8+ebx],ecx
+	jz	NEAR L$013aw_end
+	; Tail Round 3
+	mov	ecx,DWORD [12+esi]
+	mov	edx,DWORD [12+edi]
+	add	ecx,eax
+	mov	eax,0
+	adc	eax,eax
+	add	ecx,edx
+	adc	eax,0
+	dec	ebp
+	mov	DWORD [12+ebx],ecx
+	jz	NEAR L$013aw_end
+	; Tail Round 4
+	mov	ecx,DWORD [16+esi]
+	mov	edx,DWORD [16+edi]
+	add	ecx,eax
+	mov	eax,0
+	adc	eax,eax
+	add	ecx,edx
+	adc	eax,0
+	dec	ebp
+	mov	DWORD [16+ebx],ecx
+	jz	NEAR L$013aw_end
+	; Tail Round 5
+	mov	ecx,DWORD [20+esi]
+	mov	edx,DWORD [20+edi]
+	add	ecx,eax
+	mov	eax,0
+	adc	eax,eax
+	add	ecx,edx
+	adc	eax,0
+	dec	ebp
+	mov	DWORD [20+ebx],ecx
+	jz	NEAR L$013aw_end
+	; Tail Round 6
+	mov	ecx,DWORD [24+esi]
+	mov	edx,DWORD [24+edi]
+	add	ecx,eax
+	mov	eax,0
+	adc	eax,eax
+	add	ecx,edx
+	adc	eax,0
+	mov	DWORD [24+ebx],ecx
+L$013aw_end:
+	pop	edi
+	pop	esi
+	pop	ebx
+	pop	ebp
 	ret
-.globl	_bn_sub_words
-.hidden	_bn_sub_words
-.def	_bn_sub_words;	.scl	2;	.type	32;	.endef
-.align	16
+global	_bn_sub_words
+align	16
 _bn_sub_words:
-.L_bn_sub_words_begin:
-	pushl	%ebp
-	pushl	%ebx
-	pushl	%esi
-	pushl	%edi
-
-	movl	20(%esp),%ebx
-	movl	24(%esp),%esi
-	movl	28(%esp),%edi
-	movl	32(%esp),%ebp
-	xorl	%eax,%eax
-	andl	$4294967288,%ebp
-	jz	.L014aw_finish
-.L015aw_loop:
-	# Round 0 
-	movl	(%esi),%ecx
-	movl	(%edi),%edx
-	subl	%eax,%ecx
-	movl	$0,%eax
-	adcl	%eax,%eax
-	subl	%edx,%ecx
-	adcl	$0,%eax
-	movl	%ecx,(%ebx)
-	# Round 1 
-	movl	4(%esi),%ecx
-	movl	4(%edi),%edx
-	subl	%eax,%ecx
-	movl	$0,%eax
-	adcl	%eax,%eax
-	subl	%edx,%ecx
-	adcl	$0,%eax
-	movl	%ecx,4(%ebx)
-	# Round 2 
-	movl	8(%esi),%ecx
-	movl	8(%edi),%edx
-	subl	%eax,%ecx
-	movl	$0,%eax
-	adcl	%eax,%eax
-	subl	%edx,%ecx
-	adcl	$0,%eax
-	movl	%ecx,8(%ebx)
-	# Round 3 
-	movl	12(%esi),%ecx
-	movl	12(%edi),%edx
-	subl	%eax,%ecx
-	movl	$0,%eax
-	adcl	%eax,%eax
-	subl	%edx,%ecx
-	adcl	$0,%eax
-	movl	%ecx,12(%ebx)
-	# Round 4 
-	movl	16(%esi),%ecx
-	movl	16(%edi),%edx
-	subl	%eax,%ecx
-	movl	$0,%eax
-	adcl	%eax,%eax
-	subl	%edx,%ecx
-	adcl	$0,%eax
-	movl	%ecx,16(%ebx)
-	# Round 5 
-	movl	20(%esi),%ecx
-	movl	20(%edi),%edx
-	subl	%eax,%ecx
-	movl	$0,%eax
-	adcl	%eax,%eax
-	subl	%edx,%ecx
-	adcl	$0,%eax
-	movl	%ecx,20(%ebx)
-	# Round 6 
-	movl	24(%esi),%ecx
-	movl	24(%edi),%edx
-	subl	%eax,%ecx
-	movl	$0,%eax
-	adcl	%eax,%eax
-	subl	%edx,%ecx
-	adcl	$0,%eax
-	movl	%ecx,24(%ebx)
-	# Round 7 
-	movl	28(%esi),%ecx
-	movl	28(%edi),%edx
-	subl	%eax,%ecx
-	movl	$0,%eax
-	adcl	%eax,%eax
-	subl	%edx,%ecx
-	adcl	$0,%eax
-	movl	%ecx,28(%ebx)
-
-	addl	$32,%esi
-	addl	$32,%edi
-	addl	$32,%ebx
-	subl	$8,%ebp
-	jnz	.L015aw_loop
-.L014aw_finish:
-	movl	32(%esp),%ebp
-	andl	$7,%ebp
-	jz	.L016aw_end
-	# Tail Round 0 
-	movl	(%esi),%ecx
-	movl	(%edi),%edx
-	subl	%eax,%ecx
-	movl	$0,%eax
-	adcl	%eax,%eax
-	subl	%edx,%ecx
-	adcl	$0,%eax
-	decl	%ebp
-	movl	%ecx,(%ebx)
-	jz	.L016aw_end
-	# Tail Round 1 
-	movl	4(%esi),%ecx
-	movl	4(%edi),%edx
-	subl	%eax,%ecx
-	movl	$0,%eax
-	adcl	%eax,%eax
-	subl	%edx,%ecx
-	adcl	$0,%eax
-	decl	%ebp
-	movl	%ecx,4(%ebx)
-	jz	.L016aw_end
-	# Tail Round 2 
-	movl	8(%esi),%ecx
-	movl	8(%edi),%edx
-	subl	%eax,%ecx
-	movl	$0,%eax
-	adcl	%eax,%eax
-	subl	%edx,%ecx
-	adcl	$0,%eax
-	decl	%ebp
-	movl	%ecx,8(%ebx)
-	jz	.L016aw_end
-	# Tail Round 3 
-	movl	12(%esi),%ecx
-	movl	12(%edi),%edx
-	subl	%eax,%ecx
-	movl	$0,%eax
-	adcl	%eax,%eax
-	subl	%edx,%ecx
-	adcl	$0,%eax
-	decl	%ebp
-	movl	%ecx,12(%ebx)
-	jz	.L016aw_end
-	# Tail Round 4 
-	movl	16(%esi),%ecx
-	movl	16(%edi),%edx
-	subl	%eax,%ecx
-	movl	$0,%eax
-	adcl	%eax,%eax
-	subl	%edx,%ecx
-	adcl	$0,%eax
-	decl	%ebp
-	movl	%ecx,16(%ebx)
-	jz	.L016aw_end
-	# Tail Round 5 
-	movl	20(%esi),%ecx
-	movl	20(%edi),%edx
-	subl	%eax,%ecx
-	movl	$0,%eax
-	adcl	%eax,%eax
-	subl	%edx,%ecx
-	adcl	$0,%eax
-	decl	%ebp
-	movl	%ecx,20(%ebx)
-	jz	.L016aw_end
-	# Tail Round 6 
-	movl	24(%esi),%ecx
-	movl	24(%edi),%edx
-	subl	%eax,%ecx
-	movl	$0,%eax
-	adcl	%eax,%eax
-	subl	%edx,%ecx
-	adcl	$0,%eax
-	movl	%ecx,24(%ebx)
-.L016aw_end:
-	popl	%edi
-	popl	%esi
-	popl	%ebx
-	popl	%ebp
+L$_bn_sub_words_begin:
+	push	ebp
+	push	ebx
+	push	esi
+	push	edi
+	; 
+	mov	ebx,DWORD [20+esp]
+	mov	esi,DWORD [24+esp]
+	mov	edi,DWORD [28+esp]
+	mov	ebp,DWORD [32+esp]
+	xor	eax,eax
+	and	ebp,4294967288
+	jz	NEAR L$014aw_finish
+L$015aw_loop:
+	; Round 0
+	mov	ecx,DWORD [esi]
+	mov	edx,DWORD [edi]
+	sub	ecx,eax
+	mov	eax,0
+	adc	eax,eax
+	sub	ecx,edx
+	adc	eax,0
+	mov	DWORD [ebx],ecx
+	; Round 1
+	mov	ecx,DWORD [4+esi]
+	mov	edx,DWORD [4+edi]
+	sub	ecx,eax
+	mov	eax,0
+	adc	eax,eax
+	sub	ecx,edx
+	adc	eax,0
+	mov	DWORD [4+ebx],ecx
+	; Round 2
+	mov	ecx,DWORD [8+esi]
+	mov	edx,DWORD [8+edi]
+	sub	ecx,eax
+	mov	eax,0
+	adc	eax,eax
+	sub	ecx,edx
+	adc	eax,0
+	mov	DWORD [8+ebx],ecx
+	; Round 3
+	mov	ecx,DWORD [12+esi]
+	mov	edx,DWORD [12+edi]
+	sub	ecx,eax
+	mov	eax,0
+	adc	eax,eax
+	sub	ecx,edx
+	adc	eax,0
+	mov	DWORD [12+ebx],ecx
+	; Round 4
+	mov	ecx,DWORD [16+esi]
+	mov	edx,DWORD [16+edi]
+	sub	ecx,eax
+	mov	eax,0
+	adc	eax,eax
+	sub	ecx,edx
+	adc	eax,0
+	mov	DWORD [16+ebx],ecx
+	; Round 5
+	mov	ecx,DWORD [20+esi]
+	mov	edx,DWORD [20+edi]
+	sub	ecx,eax
+	mov	eax,0
+	adc	eax,eax
+	sub	ecx,edx
+	adc	eax,0
+	mov	DWORD [20+ebx],ecx
+	; Round 6
+	mov	ecx,DWORD [24+esi]
+	mov	edx,DWORD [24+edi]
+	sub	ecx,eax
+	mov	eax,0
+	adc	eax,eax
+	sub	ecx,edx
+	adc	eax,0
+	mov	DWORD [24+ebx],ecx
+	; Round 7
+	mov	ecx,DWORD [28+esi]
+	mov	edx,DWORD [28+edi]
+	sub	ecx,eax
+	mov	eax,0
+	adc	eax,eax
+	sub	ecx,edx
+	adc	eax,0
+	mov	DWORD [28+ebx],ecx
+	; 
+	add	esi,32
+	add	edi,32
+	add	ebx,32
+	sub	ebp,8
+	jnz	NEAR L$015aw_loop
+L$014aw_finish:
+	mov	ebp,DWORD [32+esp]
+	and	ebp,7
+	jz	NEAR L$016aw_end
+	; Tail Round 0
+	mov	ecx,DWORD [esi]
+	mov	edx,DWORD [edi]
+	sub	ecx,eax
+	mov	eax,0
+	adc	eax,eax
+	sub	ecx,edx
+	adc	eax,0
+	dec	ebp
+	mov	DWORD [ebx],ecx
+	jz	NEAR L$016aw_end
+	; Tail Round 1
+	mov	ecx,DWORD [4+esi]
+	mov	edx,DWORD [4+edi]
+	sub	ecx,eax
+	mov	eax,0
+	adc	eax,eax
+	sub	ecx,edx
+	adc	eax,0
+	dec	ebp
+	mov	DWORD [4+ebx],ecx
+	jz	NEAR L$016aw_end
+	; Tail Round 2
+	mov	ecx,DWORD [8+esi]
+	mov	edx,DWORD [8+edi]
+	sub	ecx,eax
+	mov	eax,0
+	adc	eax,eax
+	sub	ecx,edx
+	adc	eax,0
+	dec	ebp
+	mov	DWORD [8+ebx],ecx
+	jz	NEAR L$016aw_end
+	; Tail Round 3
+	mov	ecx,DWORD [12+esi]
+	mov	edx,DWORD [12+edi]
+	sub	ecx,eax
+	mov	eax,0
+	adc	eax,eax
+	sub	ecx,edx
+	adc	eax,0
+	dec	ebp
+	mov	DWORD [12+ebx],ecx
+	jz	NEAR L$016aw_end
+	; Tail Round 4
+	mov	ecx,DWORD [16+esi]
+	mov	edx,DWORD [16+edi]
+	sub	ecx,eax
+	mov	eax,0
+	adc	eax,eax
+	sub	ecx,edx
+	adc	eax,0
+	dec	ebp
+	mov	DWORD [16+ebx],ecx
+	jz	NEAR L$016aw_end
+	; Tail Round 5
+	mov	ecx,DWORD [20+esi]
+	mov	edx,DWORD [20+edi]
+	sub	ecx,eax
+	mov	eax,0
+	adc	eax,eax
+	sub	ecx,edx
+	adc	eax,0
+	dec	ebp
+	mov	DWORD [20+ebx],ecx
+	jz	NEAR L$016aw_end
+	; Tail Round 6
+	mov	ecx,DWORD [24+esi]
+	mov	edx,DWORD [24+edi]
+	sub	ecx,eax
+	mov	eax,0
+	adc	eax,eax
+	sub	ecx,edx
+	adc	eax,0
+	mov	DWORD [24+ebx],ecx
+L$016aw_end:
+	pop	edi
+	pop	esi
+	pop	ebx
+	pop	ebp
 	ret
-#endif
+%endif
 #endif  // defined(__i386__) && defined(_WIN32)
 #if defined(__linux__) && defined(__ELF__)
 .section .note.GNU-stack,"",%progbits

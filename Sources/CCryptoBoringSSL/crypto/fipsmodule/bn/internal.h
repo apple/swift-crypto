@@ -189,14 +189,20 @@ extern "C" {
 #define BN_CAN_USE_INLINE_ASM
 #endif
 
-// |BN_mod_exp_mont_consttime| is based on the assumption that the L1 data
-// cache line width of the target processor is at least the following value.
-#define MOD_EXP_CTIME_MIN_CACHE_LINE_WIDTH 64
+// MOD_EXP_CTIME_ALIGN is the alignment needed for |BN_mod_exp_mont_consttime|'s
+// tables.
+//
+// TODO(davidben): Historically, this alignment came from cache line
+// assumptions, which we've since removed. Is 64-byte alignment still necessary
+// or ideal? The true alignment requirement seems to now be 32 bytes, coming
+// from RSAZ's use of VMOVDQA to a YMM register. Non-x86_64 has even fewer
+// requirements.
+#define MOD_EXP_CTIME_ALIGN 64
 
-// The number of |BN_ULONG|s needed for the |BN_mod_exp_mont_consttime| stack-
-// allocated storage buffer. The buffer is just the right size for the RSAZ
-// and is about ~1KB larger than what's necessary (4480 bytes) for 1024-bit
-// inputs.
+// MOD_EXP_CTIME_STORAGE_LEN is the number of |BN_ULONG|s needed for the
+// |BN_mod_exp_mont_consttime| stack-allocated storage buffer. The buffer is
+// just the right size for the RSAZ and is about ~1KB larger than what's
+// necessary (4480 bytes) for 1024-bit inputs.
 #define MOD_EXP_CTIME_STORAGE_LEN \
   (((320u * 3u) + (32u * 9u * 16u)) / sizeof(BN_ULONG))
 
@@ -344,6 +350,12 @@ int bn_rand_range_words(BN_ULONG *out, BN_ULONG min_inclusive,
 int bn_rand_secret_range(BIGNUM *r, int *out_is_uniform, BN_ULONG min_inclusive,
                          const BIGNUM *max_exclusive);
 
+// BN_MONTGOMERY_MAX_WORDS is the maximum numer of words allowed in a |BIGNUM|
+// used with Montgomery reduction. Ideally this limit would be applied to all
+// |BIGNUM|s, in |bn_wexpand|, but the exactfloat library needs to create 8 MiB
+// values for other operations.
+#define BN_MONTGOMERY_MAX_WORDS (8 * 1024 / sizeof(BN_ULONG))
+
 #if !defined(OPENSSL_NO_ASM) &&                         \
     (defined(OPENSSL_X86) || defined(OPENSSL_X86_64) || \
      defined(OPENSSL_ARM) || defined(OPENSSL_AARCH64))
@@ -356,11 +368,13 @@ int bn_rand_secret_range(BIGNUM *r, int *out_is_uniform, BN_ULONG min_inclusive,
 // If at least one of |ap| or |bp| is fully reduced, |rp| will be fully reduced.
 // If neither is fully-reduced, the output may not be either.
 //
+// This function allocates |num| words on the stack, so |num| should be at most
+// |BN_MONTGOMERY_MAX_WORDS|.
+//
 // TODO(davidben): The x86_64 implementation expects a 32-bit input and masks
 // off upper bits. The aarch64 implementation expects a 64-bit input and does
 // not. |size_t| is the safer option but not strictly correct for x86_64. But
-// this function implicitly already has a bound on the size of |num| because it
-// internally creates |num|-sized stack allocation.
+// the |BN_MONTGOMERY_MAX_WORDS| bound makes this moot.
 //
 // See also discussion in |ToWord| in abi_test.h for notes on smaller-than-word
 // inputs.
@@ -374,7 +388,8 @@ int bn_mul_mont(BN_ULONG *rp, const BN_ULONG *ap, const BN_ULONG *bp,
 // bn_mul_mont_gather5 multiples loads index |power| of |table|, multiplies it
 // by |ap| modulo |np|, and stores the result in |rp|. The values are |num|
 // words long and represented in Montgomery form. |n0| is a pointer to the
-// corresponding field in |BN_MONT_CTX|.
+// corresponding field in |BN_MONT_CTX|. |table| must be aligned to at least
+// 16 bytes. |power| must be less than 32 and is treated as secret.
 //
 // WARNING: This function implements Almost Montgomery Multiplication from
 // https://eprint.iacr.org/2011/239. The inputs do not need to be fully reduced.
@@ -384,20 +399,22 @@ void bn_mul_mont_gather5(BN_ULONG *rp, const BN_ULONG *ap,
                          const BN_ULONG *n0, int num, int power);
 
 // bn_scatter5 stores |inp| to index |power| of |table|. |inp| and each entry of
-// |table| are |num| words long. |power| must be less than 32. |table| must be
-// 32*|num| words long.
+// |table| are |num| words long. |power| must be less than 32 and is treated as
+// public. |table| must be 32*|num| words long. |table| must be aligned to at
+// least 16 bytes.
 void bn_scatter5(const BN_ULONG *inp, size_t num, BN_ULONG *table,
                  size_t power);
 
 // bn_gather5 loads index |power| of |table| and stores it in |out|. |out| and
-// each entry of |table| are |num| words long. |power| must be less than 32.
+// each entry of |table| are |num| words long. |power| must be less than 32 and
+// is treated as secret. |table| must be aligned to at least 16 bytes.
 void bn_gather5(BN_ULONG *out, size_t num, const BN_ULONG *table, size_t power);
 
 // bn_power5 squares |ap| five times and multiplies it by the value stored at
 // index |power| of |table|, modulo |np|. It stores the result in |rp|. The
 // values are |num| words long and represented in Montgomery form. |n0| is a
 // pointer to the corresponding field in |BN_MONT_CTX|. |num| must be divisible
-// by 8.
+// by 8. |power| must be less than 32 and is treated as secret.
 //
 // WARNING: This function implements Almost Montgomery Multiplication from
 // https://eprint.iacr.org/2011/239. The inputs do not need to be fully reduced.
@@ -690,9 +707,10 @@ void bn_mod_mul_montgomery_small(BN_ULONG *r, const BN_ULONG *a,
 // bn_mod_exp_mont_small sets |r| to |a|^|p| mod |mont->N|. It returns one on
 // success and zero on programmer or internal error. Both inputs and outputs are
 // in the Montgomery domain. |r| and |a| are |num| words long, which must be
-// |mont->N.width| and at most |BN_SMALL_MAX_WORDS|. |a| must be fully-reduced.
-// This function runs in time independent of |a|, but |p| and |mont->N| are
-// public values. |a| must be fully-reduced and may alias with |r|.
+// |mont->N.width| and at most |BN_SMALL_MAX_WORDS|. |num_p|, measured in bits,
+// must fit in |size_t|. |a| must be fully-reduced. This function runs in time
+// independent of |a|, but |p| and |mont->N| are public values. |a| must be
+// fully-reduced and may alias with |r|.
 //
 // Note this function differs from |BN_mod_exp_mont| which uses Montgomery
 // reduction but takes input and output outside the Montgomery domain. Combine

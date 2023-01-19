@@ -23,7 +23,6 @@ add_library(CCryptoBoringSSL STATIC
   "crypto/asn1/a_mbstr.c"
   "crypto/asn1/a_object.c"
   "crypto/asn1/a_octet.c"
-  "crypto/asn1/a_print.c"
   "crypto/asn1/a_strex.c"
   "crypto/asn1/a_strnid.c"
   "crypto/asn1/a_time.c"
@@ -364,6 +363,7 @@ elseif(CMAKE_SYSTEM_NAME STREQUAL Darwin AND CMAKE_SYSTEM_PROCESSOR MATCHES "arm
     crypto/chacha/chacha-armv8.ios.aarch64.S
     crypto/cipher_extra/chacha20_poly1305_armv8.ios.aarch64.S
     crypto/fipsmodule/aesv8-armx64.ios.aarch64.S
+    crypto/fipsmodule/aesv8-gcm-armv8.ios.aarch64.S
     crypto/fipsmodule/armv8-mont.ios.aarch64.S
     crypto/fipsmodule/ghash-neon-armv8.ios.aarch64.S
     crypto/fipsmodule/ghashv8-armx64.ios.aarch64.S
@@ -378,6 +378,7 @@ elseif(CMAKE_SYSTEM_NAME MATCHES "Linux|Android" AND CMAKE_SYSTEM_PROCESSOR MATC
     crypto/chacha/chacha-armv8.linux.aarch64.S
     crypto/cipher_extra/chacha20_poly1305_armv8.linux.aarch64.S
     crypto/fipsmodule/aesv8-armx64.linux.aarch64.S
+    crypto/fipsmodule/aesv8-gcm-armv8.linux.aarch64.S
     crypto/fipsmodule/armv8-mont.linux.aarch64.S
     crypto/fipsmodule/ghash-neon-armv8.linux.aarch64.S
     crypto/fipsmodule/ghashv8-armx64.linux.aarch64.S
