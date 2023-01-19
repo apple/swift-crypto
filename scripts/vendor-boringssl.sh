@@ -88,6 +88,7 @@ function mangle_symbols {
         swift build --triple "arm64-apple-macosx" --product CCryptoBoringSSL --enable-test-discovery
         (
             cd "${SRCROOT}"
+            go mod tidy -modcacherw
             go run "util/read_symbols.go" -out "${TMPDIR}/symbols-macOS-intel.txt" "${HERE}/.build/x86_64-apple-macosx/debug/libCCryptoBoringSSL.a"
             go run "util/read_symbols.go" -out "${TMPDIR}/symbols-macOS-as.txt" "${HERE}/.build/arm64-apple-macosx/debug/libCCryptoBoringSSL.a"
         )
@@ -234,14 +235,12 @@ done
 echo "GENERATING err_data.c"
 (
     cd "$SRCROOT/crypto/err"
+    go mod tidy -modcacherw
     go run err_data_generate.go > "${HERE}/${DSTROOT}/crypto/err/err_data.c"
 )
 
 echo "DELETING crypto/fipsmodule/bcm.c"
 rm -f $DSTROOT/crypto/fipsmodule/bcm.c
-
-echo "FIXING missing include"
-perl -pi -e '$_ .= qq(\n#include <openssl/cpu.h>\n) if /#include <openssl\/err.h>/' "$DSTROOT/crypto/fipsmodule/ec/p256-x86_64.c"
 
 echo "REMOVING libssl"
 (

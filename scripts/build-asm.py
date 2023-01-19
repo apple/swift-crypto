@@ -30,7 +30,7 @@ OS_ARCH_COMBOS = [
     ('mac', 'x86_64', 'macosx', [], 'S'),
     # ('windows', 'aarch64', 'coff', [], 'S'),
     # ('windows', 'arm', 'coff', [], 'S'),
-    ('windows', 'x86', 'coff', [], 'S'),
+    ('windows', 'x86', 'win32n', [], 'S'),
     # ('windows', 'x86_64', 'coff', [], 'S'),
 ]
 
