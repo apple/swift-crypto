@@ -3,7 +3,7 @@
 ##
 ## This source file is part of the SwiftCrypto open source project
 ##
-## Copyright (c) 2021 Apple Inc. and the SwiftCrypto project authors
+## Copyright (c) 2021-2023 Apple Inc. and the SwiftCrypto project authors
 ## Licensed under Apache License v2.0
 ##
 ## See LICENSE.txt for license information
@@ -80,6 +80,8 @@ function update_cmakelists_assembly() {
 
 update_cmakelists_source "CCryptoBoringSSL" "*.c"
 update_cmakelists_source "CCryptoBoringSSLShims" "*.c"
+update_cmakelists_source "CryptoBoringWrapper" "*.swift"
 update_cmakelists_source "Crypto" "*.swift"
+update_cmakelists_source "_CryptoExtras" "*.swift"
 
 update_cmakelists_assembly "CCryptoBoringSSL"
