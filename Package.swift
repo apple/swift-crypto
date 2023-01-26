@@ -3,7 +3,7 @@
 //
 // This source file is part of the SwiftCrypto open source project
 //
-// Copyright (c) 2019 Apple Inc. and the SwiftCrypto project authors
+// Copyright (c) 2019-2023 Apple Inc. and the SwiftCrypto project authors
 // Licensed under Apache License v2.0
 //
 // See LICENSE.txt for license information
@@ -107,7 +107,18 @@ let package = Package(
             ],
             swiftSettings: swiftSettings
         ),
-        .target(name: "_CryptoExtras", dependencies: ["CCryptoBoringSSL", "CCryptoBoringSSLShims", "CryptoBoringWrapper", "Crypto"]),
+        .target(
+            name: "_CryptoExtras",
+            dependencies: [
+                "CCryptoBoringSSL",
+                "CCryptoBoringSSLShims",
+                "CryptoBoringWrapper",
+                "Crypto"
+            ],
+            exclude: [
+                "CMakeLists.txt",
+            ]
+        ),
         .target(
             name: "CryptoBoringWrapper",
             dependencies: [
