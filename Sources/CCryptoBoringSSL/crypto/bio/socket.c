@@ -56,6 +56,7 @@
 
 #include <CCryptoBoringSSL_bio.h>
 
+#if !defined(ARCH_WASM32)
 #if !defined(OPENSSL_TRUSTY)
 
 #include <fcntl.h>
@@ -187,3 +188,4 @@ BIO *BIO_new_socket(int fd, int close_flag) {
 }
 
 #endif  // OPENSSL_TRUSTY
+#endif  // ARCH_WASM32

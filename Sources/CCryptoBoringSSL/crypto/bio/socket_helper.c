@@ -20,6 +20,7 @@
 #include <CCryptoBoringSSL_bio.h>
 #include <CCryptoBoringSSL_err.h>
 
+#if !defined(ARCH_WASM32)
 #if !defined(OPENSSL_TRUSTY)
 
 #include <fcntl.h>
@@ -122,3 +123,4 @@ int bio_sock_error(int sock) {
 }
 
 #endif  // OPENSSL_TRUSTY
+#endif  // ARCH_WASM32

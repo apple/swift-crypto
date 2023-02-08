@@ -47,6 +47,7 @@ if development {
         Platform.linux,
         Platform.android,
         Platform.windows,
+        Platform.wasi,
     ]
     dependencies = [
         .target(name: "CCryptoBoringSSL", condition: .when(platforms: platforms)),
@@ -86,6 +87,12 @@ let package = Package(
                  * only.  Unconditionally define it instead.
                  */
                 .define("WIN32_LEAN_AND_MEAN"),
+                /*
+                 * These defines are required on WASM, to disable use of pthread.
+                 */
+                .define("ARCH_WASM32", .when(platforms: [Platform.wasi])),
+                .define("OPENSSL_NO_THREADS_CORRUPT_MEMORY_AND_LEAK_SECRETS_IF_THREADED", .when(platforms: [Platform.wasi])),
+                .define("OPENSSL_NO_ASM", .when(platforms: [Platform.wasi])),
             ]
         ),
         .target(

@@ -56,6 +56,7 @@
 
 #include <CCryptoBoringSSL_bio.h>
 
+#if !defined(ARCH_WASM32)
 #if !defined(OPENSSL_TRUSTY)
 
 #include <assert.h>
@@ -545,3 +546,4 @@ int BIO_do_connect(BIO *bio) {
 }
 
 #endif  // OPENSSL_TRUSTY
+#endif  // ARCH_WASM32
