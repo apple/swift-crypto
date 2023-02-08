@@ -79,6 +79,13 @@ let package = Package(
                 "hash.txt",
                 "include/boringssl_prefix_symbols_nasm.inc",
                 "CMakeLists.txt",
+                /*
+                 * These files are excluded to support WASM which cannot include on <netdb.h>.
+                 * This is safe for all platforms as we do not rely on networking features.
+                 */
+                "crypto/bio/connect.c",
+                "crypto/bio/socket_helper.c",
+                "crypto/bio/socket.c"
             ],
             cSettings: [
                 /*
@@ -90,7 +97,6 @@ let package = Package(
                 /*
                  * These defines are required on WASM, to disable use of pthread.
                  */
-                .define("ARCH_WASM32", .when(platforms: [Platform.wasi])),
                 .define("OPENSSL_NO_THREADS_CORRUPT_MEMORY_AND_LEAK_SECRETS_IF_THREADED", .when(platforms: [Platform.wasi])),
                 .define("OPENSSL_NO_ASM", .when(platforms: [Platform.wasi])),
             ]
