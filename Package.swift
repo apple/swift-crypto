@@ -47,6 +47,7 @@ if development {
         Platform.linux,
         Platform.android,
         Platform.windows,
+        Platform.wasi,
     ]
     dependencies = [
         .target(name: "CCryptoBoringSSL", condition: .when(platforms: platforms)),
@@ -78,6 +79,13 @@ let package = Package(
                 "hash.txt",
                 "include/boringssl_prefix_symbols_nasm.inc",
                 "CMakeLists.txt",
+                /*
+                 * These files are excluded to support WASI libc which doesn't provide <netdb.h>.
+                 * This is safe for all platforms as we do not rely on networking features.
+                 */
+                "crypto/bio/connect.c",
+                "crypto/bio/socket_helper.c",
+                "crypto/bio/socket.c"
             ],
             cSettings: [
                 /*
@@ -86,6 +94,11 @@ let package = Package(
                  * only.  Unconditionally define it instead.
                  */
                 .define("WIN32_LEAN_AND_MEAN"),
+                /*
+                 * These defines are required on Wasm/WASI, to disable use of pthread.
+                 */
+                .define("OPENSSL_NO_THREADS_CORRUPT_MEMORY_AND_LEAK_SECRETS_IF_THREADED", .when(platforms: [Platform.wasi])),
+                .define("OPENSSL_NO_ASM", .when(platforms: [Platform.wasi])),
             ]
         ),
         .target(
