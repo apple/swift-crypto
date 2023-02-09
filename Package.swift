@@ -80,7 +80,7 @@ let package = Package(
                 "include/boringssl_prefix_symbols_nasm.inc",
                 "CMakeLists.txt",
                 /*
-                 * These files are excluded to support WASM which cannot include <netdb.h>.
+                 * These files are excluded to support WASI libc which doesn't provide <netdb.h>.
                  * This is safe for all platforms as we do not rely on networking features.
                  */
                 "crypto/bio/connect.c",
