@@ -95,7 +95,7 @@ let package = Package(
                  */
                 .define("WIN32_LEAN_AND_MEAN"),
                 /*
-                 * These defines are required on WASM, to disable use of pthread.
+                 * These defines are required on Wasm/WASI, to disable use of pthread.
                  */
                 .define("OPENSSL_NO_THREADS_CORRUPT_MEMORY_AND_LEAK_SECRETS_IF_THREADED", .when(platforms: [Platform.wasi])),
                 .define("OPENSSL_NO_ASM", .when(platforms: [Platform.wasi])),
