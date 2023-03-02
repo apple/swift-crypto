@@ -9,7 +9,7 @@
 #endif
 #endif
 
-#if defined(__x86_64__) && !defined(OPENSSL_NO_ASM)
+#if defined(__x86_64__) && !defined(OPENSSL_NO_ASM) && defined(__ELF__)
 #if defined(BORINGSSL_PREFIX)
 #include <CCryptoBoringSSL_boringssl_prefix_symbols_asm.h>
 #endif
@@ -209,6 +209,7 @@ bn_mul_mont_gather5:
 	por	%xmm2,%xmm0
 	por	%xmm3,%xmm1
 	por	%xmm1,%xmm0
+
 	pshufd	$0x4e,%xmm0,%xmm1
 	por	%xmm1,%xmm0
 	leaq	256(%r12),%r12
@@ -332,6 +333,7 @@ bn_mul_mont_gather5:
 	por	%xmm2,%xmm4
 	por	%xmm3,%xmm5
 	por	%xmm5,%xmm4
+
 	pshufd	$0x4e,%xmm4,%xmm0
 	por	%xmm4,%xmm0
 	leaq	256(%r12),%r12
@@ -700,6 +702,7 @@ mul4x_internal:
 	por	%xmm2,%xmm0
 	por	%xmm3,%xmm1
 	por	%xmm1,%xmm0
+
 	pshufd	$0x4e,%xmm0,%xmm1
 	por	%xmm1,%xmm0
 	leaq	256(%r12),%r12
@@ -907,6 +910,7 @@ mul4x_internal:
 	por	%xmm2,%xmm4
 	por	%xmm3,%xmm5
 	por	%xmm5,%xmm4
+
 	pshufd	$0x4e,%xmm4,%xmm0
 	por	%xmm4,%xmm0
 	leaq	256(%r12),%r12
@@ -2323,6 +2327,7 @@ mulx4x_internal:
 	por	%xmm2,%xmm0
 	por	%xmm3,%xmm1
 	pxor	%xmm1,%xmm0
+
 	pshufd	$0x4e,%xmm0,%xmm1
 	por	%xmm1,%xmm0
 	leaq	256(%rdi),%rdi
@@ -2473,6 +2478,7 @@ mulx4x_internal:
 	por	%xmm2,%xmm4
 	por	%xmm3,%xmm5
 	por	%xmm5,%xmm4
+
 	pshufd	$0x4e,%xmm4,%xmm0
 	por	%xmm4,%xmm0
 	leaq	256(%rdi),%rdi
@@ -3421,6 +3427,15 @@ bn_scatter5:
 .cfi_startproc	
 	cmpl	$0,%esi
 	jz	.Lscatter_epilogue
+
+
+
+
+
+
+
+
+
 	leaq	(%rdx,%rcx,8),%rdx
 .Lscatter:
 	movq	(%rdi),%rax
@@ -3589,6 +3604,7 @@ bn_gather5:
 	por	%xmm3,%xmm5
 	por	%xmm5,%xmm4
 	leaq	256(%r11),%r11
+
 	pshufd	$0x4e,%xmm4,%xmm0
 	por	%xmm4,%xmm0
 	movq	%xmm0,(%rdi)
@@ -3608,7 +3624,10 @@ bn_gather5:
 .long	2,2, 2,2
 .byte	77,111,110,116,103,111,109,101,114,121,32,77,117,108,116,105,112,108,105,99,97,116,105,111,110,32,119,105,116,104,32,115,99,97,116,116,101,114,47,103,97,116,104,101,114,32,102,111,114,32,120,56,54,95,54,52,44,32,67,82,89,80,84,79,71,65,77,83,32,98,121,32,60,97,112,112,114,111,64,111,112,101,110,115,115,108,46,111,114,103,62,0
 #endif
-.section	.note.GNU-stack,"",@progbits
+#if defined(__ELF__)
+// See https://www.airs.com/blog/archives/518.
+.section .note.GNU-stack,"",%progbits
+#endif
 #endif  // defined(__x86_64__) && defined(__linux__)
 #if defined(__linux__) && defined(__ELF__)
 .section .note.GNU-stack,"",%progbits

@@ -1,4 +1,3 @@
-/* crypto/x509/x509_req.c */
 /* Copyright (C) 1995-1998 Eric Young (eay@cryptsoft.com)
  * All rights reserved.
  *
@@ -65,6 +64,7 @@
 #include <CCryptoBoringSSL_pem.h>
 #include <CCryptoBoringSSL_x509.h>
 
+#include "../asn1/internal.h"
 #include "internal.h"
 
 
@@ -238,6 +238,6 @@ int X509_REQ_get_signature_nid(const X509_REQ *req) {
 }
 
 int i2d_re_X509_REQ_tbs(X509_REQ *req, unsigned char **pp) {
-  req->req_info->enc.modified = 1;
+  asn1_encoding_clear(&req->req_info->enc);
   return i2d_X509_REQ_INFO(req->req_info, pp);
 }

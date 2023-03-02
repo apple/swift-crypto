@@ -3,7 +3,7 @@
 //
 // This source file is part of the SwiftCrypto open source project
 //
-// Copyright (c) 2019 Apple Inc. and the SwiftCrypto project authors
+// Copyright (c) 2019-2023 Apple Inc. and the SwiftCrypto project authors
 // Licensed under Apache License v2.0
 //
 // See LICENSE.txt for license information
@@ -20,7 +20,7 @@
 // Sources/CCryptoBoringSSL directory. The source repository is at
 // https://boringssl.googlesource.com/boringssl.
 //
-// BoringSSL Commit: 0faffc7a30eeb195248ea43056f4848e2a9b1c6d
+// BoringSSL Commit: 45b8d7bbd771cbf7e116db2ba1f1cc7af959497e
 
 import PackageDescription
 
@@ -47,6 +47,7 @@ if development {
         Platform.linux,
         Platform.android,
         Platform.windows,
+        Platform.wasi,
     ]
     dependencies = [
         .target(name: "CCryptoBoringSSL", condition: .when(platforms: platforms)),
@@ -78,6 +79,13 @@ let package = Package(
                 "hash.txt",
                 "include/boringssl_prefix_symbols_nasm.inc",
                 "CMakeLists.txt",
+                /*
+                 * These files are excluded to support WASI libc which doesn't provide <netdb.h>.
+                 * This is safe for all platforms as we do not rely on networking features.
+                 */
+                "crypto/bio/connect.c",
+                "crypto/bio/socket_helper.c",
+                "crypto/bio/socket.c"
             ],
             cSettings: [
                 /*
@@ -86,6 +94,11 @@ let package = Package(
                  * only.  Unconditionally define it instead.
                  */
                 .define("WIN32_LEAN_AND_MEAN"),
+                /*
+                 * These defines are required on Wasm/WASI, to disable use of pthread.
+                 */
+                .define("OPENSSL_NO_THREADS_CORRUPT_MEMORY_AND_LEAK_SECRETS_IF_THREADED", .when(platforms: [Platform.wasi])),
+                .define("OPENSSL_NO_ASM", .when(platforms: [Platform.wasi])),
             ]
         ),
         .target(
@@ -107,7 +120,18 @@ let package = Package(
             ],
             swiftSettings: swiftSettings
         ),
-        .target(name: "_CryptoExtras", dependencies: ["CCryptoBoringSSL", "CCryptoBoringSSLShims", "CryptoBoringWrapper", "Crypto"]),
+        .target(
+            name: "_CryptoExtras",
+            dependencies: [
+                "CCryptoBoringSSL",
+                "CCryptoBoringSSLShims",
+                "CryptoBoringWrapper",
+                "Crypto"
+            ],
+            exclude: [
+                "CMakeLists.txt",
+            ]
+        ),
         .target(
             name: "CryptoBoringWrapper",
             dependencies: [

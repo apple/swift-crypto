@@ -136,9 +136,9 @@ typedef struct gcm128_key_st {
 
   block128_f block;
 
-  // use_aesni_gcm_crypt is true if this context should use the assembly
-  // functions |aesni_gcm_encrypt| and |aesni_gcm_decrypt| to process data.
-  unsigned use_aesni_gcm_crypt:1;
+  // use_hw_gcm_crypt is true if this context should use platform-specific
+  // assembly to process GCM data.
+  unsigned use_hw_gcm_crypt:1;
 } GCM128_KEY;
 
 // GCM128_CONTEXT contains state for a single GCM operation. The structure
@@ -267,7 +267,7 @@ void gcm_gmult_avx(uint64_t Xi[2], const u128 Htable[16]);
 void gcm_ghash_avx(uint64_t Xi[2], const u128 Htable[16], const uint8_t *in,
                    size_t len);
 
-#define AESNI_GCM
+#define HW_GCM
 size_t aesni_gcm_encrypt(const uint8_t *in, uint8_t *out, size_t len,
                          const AES_KEY *key, uint8_t ivec[16], uint64_t *Xi);
 size_t aesni_gcm_decrypt(const uint8_t *in, uint8_t *out, size_t len,
@@ -279,6 +279,7 @@ size_t aesni_gcm_decrypt(const uint8_t *in, uint8_t *out, size_t len,
 #endif  // OPENSSL_X86
 
 #elif defined(OPENSSL_ARM) || defined(OPENSSL_AARCH64)
+
 #define GHASH_ASM_ARM
 #define GCM_FUNCREF
 
@@ -297,6 +298,15 @@ void gcm_init_neon(u128 Htable[16], const uint64_t Xi[2]);
 void gcm_gmult_neon(uint64_t Xi[2], const u128 Htable[16]);
 void gcm_ghash_neon(uint64_t Xi[2], const u128 Htable[16], const uint8_t *inp,
                     size_t len);
+
+#if defined(OPENSSL_AARCH64)
+#define HW_GCM
+// These functions are defined in aesv8-gcm-armv8.pl.
+void aes_gcm_enc_kernel(const uint8_t *in, uint64_t in_bits, void *out,
+                        void *Xi, uint8_t *ivec, const AES_KEY *key);
+void aes_gcm_dec_kernel(const uint8_t *in, uint64_t in_bits, void *out,
+                        void *Xi, uint8_t *ivec, const AES_KEY *key);
+#endif
 
 #elif defined(OPENSSL_PPC64LE)
 #define GHASH_ASM_PPC64LE
