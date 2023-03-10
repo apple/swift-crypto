@@ -29,6 +29,14 @@ internal struct BoringSSLRSAPublicKey {
         self.backing = try Backing(derRepresentation: derRepresentation)
     }
 
+    var pkcs1DERRepresentation: Data {
+        self.backing.pkcs1DERRepresentation
+    }
+
+    var pkcs1PEMRepresentation: String {
+        self.backing.pkcs1PEMRepresentation
+    }
+
     var derRepresentation: Data {
         self.backing.derRepresentation
     }
@@ -164,6 +172,19 @@ extension BoringSSLRSAPublicKey {
             }
         }
 
+        fileprivate var pkcs1DERRepresentation: Data {
+            return BIOHelper.withWritableMemoryBIO { bio in
+                let rc = CCryptoBoringSSL_i2d_RSAPublicKey_bio(bio, self.pointer)
+                precondition(rc == 1)
+
+                return try! Data(copyingMemoryBIO: bio)
+            }
+        }
+
+        fileprivate var pkcs1PEMRepresentation: String {
+            return ASN1.PEMDocument(type: _RSA.PKCS1PublicKeyType, derBytes: self.pkcs1DERRepresentation).pemString
+        }
+
         fileprivate var derRepresentation: Data {
             return BIOHelper.withWritableMemoryBIO { bio in
                 let rc = CCryptoBoringSSL_i2d_RSA_PUBKEY_bio(bio, self.pointer)
@@ -174,12 +195,7 @@ extension BoringSSLRSAPublicKey {
         }
 
         fileprivate var pemRepresentation: String {
-            return BIOHelper.withWritableMemoryBIO { bio in
-                let rc = CCryptoBoringSSL_PEM_write_bio_RSA_PUBKEY(bio, self.pointer)
-                precondition(rc == 1)
-
-                return try! String(copyingUTF8MemoryBIO: bio)
-            }
+            return ASN1.PEMDocument(type: _RSA.SPKIPublicKeyType, derBytes: self.derRepresentation).pemString
         }
 
         fileprivate var keySizeInBits: Int {

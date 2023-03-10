@@ -65,6 +65,14 @@ extension _RSA.Signing {
             }
         }
 
+        public var pkcs1DERRepresentation: Data {
+            self.backing.pkcs1DERRepresentation
+        }
+
+        public var pkcs1PEMRepresentation: String {
+            self.backing.pkcs1PEMRepresentation
+        }
+
         public var derRepresentation: Data {
             self.backing.derRepresentation
         }
@@ -308,4 +316,14 @@ extension _RSA.Signing {
             self.bitCount = bitCount
         }
     }
+}
+
+extension _RSA {
+    static let PKCS1KeyType = "RSA PRIVATE KEY"
+
+    static let PKCS8KeyType = "PRIVATE KEY"
+
+    static let PKCS1PublicKeyType = "RSA PUBLIC KEY"
+
+    static let SPKIPublicKeyType = "PUBLIC KEY"
 }

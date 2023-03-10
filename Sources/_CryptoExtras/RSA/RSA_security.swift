@@ -42,14 +42,22 @@ internal struct SecurityRSAPublicKey {
         self.backing = unwrappedKey
     }
 
-    var derRepresentation: Data {
+    var pkcs1DERRepresentation: Data {
         var error: Unmanaged<CFError>? = nil
         let representation = SecKeyCopyExternalRepresentation(self.backing, &error)
         return representation! as Data
     }
 
+    var pkcs1PEMRepresentation: String {
+        return ASN1.PEMDocument(type: _RSA.PKCS1PublicKeyType, derBytes: self.pkcs1DERRepresentation).pemString
+    }
+
+    var derRepresentation: Data {
+        return Data(spkiBytesForPKCS1Bytes: self.pkcs1DERRepresentation)
+    }
+
     var pemRepresentation: String {
-        return ASN1.PEMDocument(type: "PUBLIC KEY", derBytes: self.derRepresentation).pemString
+        return ASN1.PEMDocument(type: _RSA.SPKIPublicKeyType, derBytes: self.derRepresentation).pemString
     }
 
     var keySizeInBits: Int {
@@ -66,18 +74,14 @@ internal struct SecurityRSAPublicKey {
 internal struct SecurityRSAPrivateKey {
     private var backing: SecKey
 
-    static let PKCS1KeyType = "RSA PRIVATE KEY"
-
-    static let PKCS8KeyType = "PRIVATE KEY"
-
     init(pemRepresentation: String) throws {
         let document = try ASN1.PEMDocument(pemString: pemRepresentation)
 
         switch document.type {
-        case SecurityRSAPrivateKey.PKCS1KeyType:
+        case _RSA.PKCS1KeyType:
             // This is what is expected by Security.framework
             self = try .init(derRepresentation: document.derBytes)
-        case SecurityRSAPrivateKey.PKCS8KeyType:
+        case _RSA.PKCS8KeyType:
             guard let pkcs8Bytes = document.derBytes.pkcs8RSAKeyBytes else {
                 throw _CryptoRSAError.invalidPEMDocument
             }
@@ -138,7 +142,7 @@ internal struct SecurityRSAPrivateKey {
     }
 
     var pemRepresentation: String {
-        return ASN1.PEMDocument(type: SecurityRSAPrivateKey.PKCS1KeyType, derBytes: self.derRepresentation).pemString
+        return ASN1.PEMDocument(type: _RSA.PKCS1KeyType, derBytes: self.derRepresentation).pemString
     }
 
     var keySizeInBits: Int {
@@ -300,6 +304,81 @@ extension Data {
         }
 
         return self.dropFirst(4 + Data.partialPKCS8Prefix.count + 4)
+    }
+
+    // Corresponds to the ASN.1 encoding of the RSA AlgorithmIdentifier:
+    //
+    // SEQUENCE of OID (:rsaEncryption) and NULL.
+    static let rsaAlgorithmIdentifierBytes = Data([
+        0x30, 0x0D,                                             // SEQUENCE, Length 13
+        0x06, 0x09,                                             // OID, length 9
+        0x2A, 0x86 , 0x48, 0x86, 0xF7, 0x0D, 0x01, 0x01, 0x01,  // 1.2.840.113549.1.1.1 :rsaEncryption
+        0x05, 0x00,                                             // NULL, length 0
+
+    ])
+
+    fileprivate init(spkiBytesForPKCS1Bytes pkcs1Bytes: Data) {
+        // This does an ad-hoc SPKI encode. Ideally we'd bring over the entire ASN.1 stack, but it's not worth doing
+        // for just this one use-case.
+        let keyLength = (pkcs1Bytes.count + 1)
+        let bitStringOverhead = 1 + keyLength._bytesNeededToEncodeASN1Length  // 1 byte for tag.
+        let totalLengthOfSequencePayload = Self.rsaAlgorithmIdentifierBytes.count + bitStringOverhead + keyLength
+
+        var bytes = Data()
+        bytes.reserveCapacity(1 + totalLengthOfSequencePayload._bytesNeededToEncodeASN1Length + totalLengthOfSequencePayload)
+
+        bytes.append(0x30)  // SEQUENCE marker.
+        bytes.appendAsASN1NodeLength(totalLengthOfSequencePayload)
+        bytes.append(Self.rsaAlgorithmIdentifierBytes)
+
+        bytes.append(0x03)  // BITSTRING marker
+        bytes.appendAsASN1NodeLength(keyLength)
+        bytes.append(UInt8(0))  // No padding bits
+        bytes.append(contentsOf: pkcs1Bytes)
+
+        self = bytes
+    }
+
+    fileprivate mutating func appendAsASN1NodeLength(_ length: Int) {
+        let bytesNeeded = length._bytesNeededToEncodeASN1Length
+
+        if bytesNeeded == 1 {
+            self.append(UInt8(length))
+        } else {
+            // We first write the number of length bytes
+            // we need, setting the high bit. Then we write the bytes of the length.
+            self.append(0x80 | UInt8(bytesNeeded - 1))
+
+            for shift in (0..<(bytesNeeded - 1)).reversed() {
+                // Shift and mask the integer.
+                self.append(UInt8(truncatingIfNeeded: (length >> (shift * 8))))
+            }
+        }
+    }
+}
+
+extension Int {
+    fileprivate var _bytesNeededToEncodeASN1Length: Int {
+        // ASN.1 lengths are in two forms. If we can store the length in 7 bits, we should:
+        // that requires only one byte. Otherwise, we need multiple bytes: work out how many,
+        // plus one for the length of the length bytes.
+        if self <= 0x7F {
+            return 1
+        } else {
+            // We need to work out how many bytes we need. There are many fancy bit-twiddling
+            // ways of doing this, but honestly we don't do this enough to need them, so we'll
+            // do it the easy way. This math is done on UInt because it makes the shift semantics clean.
+            // We save a branch here because we can never overflow this addition.
+            return UInt(self).neededBytes &+ 1
+        }
+    }
+}
+
+extension UInt {
+    // Bytes needed to store a given integer in 7 bit bytes.
+    fileprivate var neededBytes: Int {
+        let neededBits = self.bitWidth - self.leadingZeroBitCount
+        return (neededBits + 7) / 8
     }
 }
 
