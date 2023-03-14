@@ -29,12 +29,9 @@ esac
 function update_cmakelists_source() {
     src_root="$here/Sources/$1"
 
-    # Build an array with the rest of the arguments
-    shift
-    src_exts=("$@")
-    echo "Finding source files (${src_exts[@]}) under $src_root"
-
+    src_exts=("*.c" "*.swift")
     num_exts=${#src_exts[@]}
+    echo "Finding source files (${src_exts[@]}) under $src_root"
 
     # Build file extensions argument for `find`
     declare -a exts_arg
@@ -43,6 +40,19 @@ function update_cmakelists_source() {
     do
         exts_arg+=(-o -name "${src_exts[$i]}")
     done
+    
+    # Build an array with the rest of the arguments
+    shift
+    exceptions=("$@")
+    # Add path exceptions for `find`
+    if (( ${#exceptions[@]} )); then
+        echo "Excluding source paths (${exceptions[@]}) under $src_root"
+        num_exceptions=${#exceptions[@]}
+        for (( i=0; i<$num_exceptions; i++ ));
+        do
+            exts_arg+=(! -path "${exceptions[$i]}")
+        done
+    fi
 
     # Wrap quotes around each filename since it might contain spaces
     srcs=$($find "${src_root}" -type f \( "${exts_arg[@]}" \) -printf '  "%P"\n' | LC_ALL=POSIX sort)
@@ -78,10 +88,10 @@ function update_cmakelists_assembly() {
     echo "Updated $src_root/CMakeLists.txt"
 }
 
-update_cmakelists_source "CCryptoBoringSSL" "*.c"
-update_cmakelists_source "CCryptoBoringSSLShims" "*.c"
-update_cmakelists_source "CryptoBoringWrapper" "*.swift"
-update_cmakelists_source "Crypto" "*.swift"
-update_cmakelists_source "_CryptoExtras" "*.swift"
+update_cmakelists_source "CCryptoBoringSSL"
+update_cmakelists_source "CCryptoBoringSSLShims"
+update_cmakelists_source "CryptoBoringWrapper"
+update_cmakelists_source "Crypto"
+update_cmakelists_source "_CryptoExtras" "*/AES/*.swift"
 
 update_cmakelists_assembly "CCryptoBoringSSL"
