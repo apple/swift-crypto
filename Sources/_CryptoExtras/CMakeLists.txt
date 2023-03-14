@@ -13,9 +13,6 @@
 ##===----------------------------------------------------------------------===##
 
 add_library(_CryptoExtras
-  "AES/AES_GCM_SIV.swift"
-  "AES/Block Function.swift"
-  "AES/BoringSSL/AES_GCM_SIV_boring.swift"
   "RSA/RSA.swift"
   "RSA/RSA_boring.swift"
   "RSA/RSA_security.swift"
