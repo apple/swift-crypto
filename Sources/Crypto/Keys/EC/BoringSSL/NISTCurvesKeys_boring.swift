@@ -336,7 +336,7 @@ class BoringSSLECPublicKeyWrapper<Curve: OpenSSLSupportedNISTCurve> {
         self.key = try group.makeUnsafeOwnedECKey()
 
         // The compact representation is simply the X coordinate: deserializing then requires us to do a little math,
-        // as discussed in https://tools.ietf.org/id/draft-jivsov-ecc-compact-05.html#rfc.section.4.1.
+        // as discussed in https://datatracker.ietf.org/doc/html/draft-jivsov-ecc-compact-05#section-4.1
         var x = try ArbitraryPrecisionInteger(bytes: bytes)
 
         // We now need to solve the curve equation in Weierstrass form. This form is y² = x³ + ax + b. We need a and b.
