@@ -43,10 +43,10 @@ struct SignatureTestVector: Codable {
 
 struct EdDSATestGroup: Codable {
     let tests: [SignatureTestVector]
-    let key: EdDSAKey
+    let publicKey: EdDSAPublicKey
 }
 
-struct EdDSAKey: Codable {
+struct EdDSAPublicKey: Codable {
     let pk: String
 }
 
@@ -57,7 +57,7 @@ class SignatureTests: XCTestCase {
         try orFail {
             try wycheproofTest(
                 bundleType: self,
-                jsonName: "eddsa_test",
+                jsonName: "ed25519_test",
                 testFunction: { (group: EdDSATestGroup) in
                     try orFail { try testEdGroup(group: group) }
                 })
@@ -114,7 +114,7 @@ class SignatureTests: XCTestCase {
     }
     
     func testEdGroup(group: EdDSATestGroup, file: StaticString = #file, line: UInt = #line) throws {
-        let keyBytes = try orFail { try Array(hexString: group.key.pk) }
+        let keyBytes = try orFail { try Array(hexString: group.publicKey.pk) }
         let key = try orFail { try Curve25519.Signing.PublicKey(rawRepresentation: keyBytes) }
         
         for testVector in group.tests {
