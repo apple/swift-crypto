@@ -293,11 +293,11 @@ extension ArraySlice where Element == UInt8 {
         self = self[self.index(after: subidentifierEndIndex)...]
 
         // We need to compact the bits. These are 7-bit integers, which is really awkward.
-		guard let int = UInt(sevenBitBigEndianBytes: oidSlice) else {
-			 // too big to parse, happens for Wycheproof vectors with comment "large integer in oid"
-			 throw ECDHTestErrors.ParseSPKIFailure
-		 }
-		 return int
+        guard let int = UInt(sevenBitBigEndianBytes: oidSlice) else {
+            // too big to parse, happens for Wycheproof vectors with comment "large integer in oid"
+            throw ECDHTestErrors.ParseSPKIFailure
+        }
+        return int
     }
 }
 
@@ -318,13 +318,13 @@ extension UInt {
     }
 
     init?<Bytes: Collection>(sevenBitBigEndianBytes bytes: Bytes) where Bytes.Element == UInt8 {
-		// We need to know how many bytes we _need_ to store this "int".
-		guard ((bytes.count * 7) + 7) / 8 <= MemoryLayout<UInt>.size else {
-			// Too big to parse, this happens for e.g. Wycheproof in testvector 'ecdh_secp256r1_test' for
-			// tests with comment "large integer in oid", thus we let this
-			// initializer be failable.
-			return nil
-		}
+        // We need to know how many bytes we _need_ to store this "int".
+        guard ((bytes.count * 7) + 7) / 8 <= MemoryLayout<UInt>.size else {
+            // Too big to parse, this happens for e.g. Wycheproof in testvector 'ecdh_secp256r1_test' for
+            // tests with comment "large integer in oid", thus we let this
+            // initializer be failable.
+            return nil
+        }
 
         self = 0
         let shiftSizes = stride(from: 0, to: bytes.count * 7, by: 7).reversed()
