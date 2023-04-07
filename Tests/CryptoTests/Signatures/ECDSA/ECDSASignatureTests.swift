@@ -50,17 +50,6 @@ struct EdDSAPublicKey: Codable {
     let pk: String
 }
 
-// These initializer wrappers makes implementation of ECDSA tests simpler, since we can pass
-// initializers as function pointers instead of having to spell out the initializer.
-extension NISTECDSASignature {
-    init(p1363: Data) throws {
-        try self.init(rawRepresentation: p1363)
-    }
-    init(der: Data) throws {
-        try self.init(derRepresentation: der)
-    }
-}
-
 class SignatureTests: XCTestCase {
     let data = "Testing Signatures".data(using: String.Encoding.utf8)!
     
@@ -81,7 +70,7 @@ class SignatureTests: XCTestCase {
                 bundleType: self,
                 jsonName: "ecdsa_secp256r1_sha256_test",
                 testFunction: { (group: ECDSATestGroup) in
-                    try orFail { try testGroup(group: group, curve: P256.Signing.self, hashFunction: SHA256.self, deserializeSignature: P256.Signing.ECDSASignature.init(der:)) }
+                    try orFail { try testGroup(group: group, curve: P256.Signing.self, hashFunction: SHA256.self, deserializeSignature: P256.Signing.ECDSASignature.init(derRepresentation:)) }
                 })
         }
         
@@ -90,7 +79,7 @@ class SignatureTests: XCTestCase {
                 bundleType: self,
                 jsonName: "ecdsa_secp256r1_sha512_test",
                 testFunction: { (group: ECDSATestGroup) in
-                    try orFail { try testGroup(group: group, curve: P256.Signing.self, hashFunction: SHA512.self, deserializeSignature: P256.Signing.ECDSASignature.init(der:)) }
+                    try orFail { try testGroup(group: group, curve: P256.Signing.self, hashFunction: SHA512.self, deserializeSignature: P256.Signing.ECDSASignature.init(derRepresentation:)) }
                 })
         }
     }
@@ -101,7 +90,7 @@ class SignatureTests: XCTestCase {
                 bundleType: self,
                 jsonName: "ecdsa_secp384r1_sha384_test",
                 testFunction: { (group: ECDSATestGroup) in
-                    try orFail { try testGroup(group: group, curve: P384.Signing.self, hashFunction: SHA384.self, deserializeSignature: P384.Signing.ECDSASignature.init(der:)) }
+                    try orFail { try testGroup(group: group, curve: P384.Signing.self, hashFunction: SHA384.self, deserializeSignature: P384.Signing.ECDSASignature.init(derRepresentation:)) }
                 })
         }
         try orFail {
@@ -109,7 +98,7 @@ class SignatureTests: XCTestCase {
                 bundleType: self,
                 jsonName: "ecdsa_secp384r1_sha512_test",
                 testFunction: { (group: ECDSATestGroup) in
-                    try orFail { try testGroup(group: group, curve: P384.Signing.self, hashFunction: SHA512.self, deserializeSignature: P384.Signing.ECDSASignature.init(der:)) }
+                    try orFail { try testGroup(group: group, curve: P384.Signing.self, hashFunction: SHA512.self, deserializeSignature: P384.Signing.ECDSASignature.init(derRepresentation:)) }
                 })
         }
     }
@@ -120,7 +109,7 @@ class SignatureTests: XCTestCase {
                 bundleType: self,
                 jsonName: "ecdsa_secp521r1_sha512_test",
                 testFunction: { (group: ECDSATestGroup) in
-                    try orFail { try testGroup(group: group, curve: P521.Signing.self, hashFunction: SHA512.self, deserializeSignature: P521.Signing.ECDSASignature.init(der:)) }
+                    try orFail { try testGroup(group: group, curve: P521.Signing.self, hashFunction: SHA512.self, deserializeSignature: P521.Signing.ECDSASignature.init(derRepresentation:)) }
                 })
         }
     }
@@ -131,7 +120,7 @@ class SignatureTests: XCTestCase {
                 bundleType: self,
                 jsonName: "ecdsa_secp256r1_sha256_p1363_test",
                 testFunction: { (group: ECDSATestGroup) in
-                    try orFail { try testGroup(group: group, curve: P256.Signing.self, hashFunction: SHA256.self, deserializeSignature: P256.Signing.ECDSASignature.init(p1363:)) }
+                    try orFail { try testGroup(group: group, curve: P256.Signing.self, hashFunction: SHA256.self, deserializeSignature: P256.Signing.ECDSASignature.init(rawRepresentation:)) }
                 })
         }
         
@@ -140,7 +129,7 @@ class SignatureTests: XCTestCase {
                 bundleType: self,
                 jsonName: "ecdsa_secp256r1_sha512_p1363_test",
                 testFunction: { (group: ECDSATestGroup) in
-                    try orFail { try testGroup(group: group, curve: P256.Signing.self, hashFunction: SHA512.self, deserializeSignature: P256.Signing.ECDSASignature.init(p1363:)) }
+                    try orFail { try testGroup(group: group, curve: P256.Signing.self, hashFunction: SHA512.self, deserializeSignature: P256.Signing.ECDSASignature.init(rawRepresentation:)) }
                 })
         }
     }
@@ -151,7 +140,7 @@ class SignatureTests: XCTestCase {
                 bundleType: self,
                 jsonName: "ecdsa_secp384r1_sha384_p1363_test",
                 testFunction: { (group: ECDSATestGroup) in
-                    try orFail { try testGroup(group: group, curve: P384.Signing.self, hashFunction: SHA384.self, deserializeSignature: P384.Signing.ECDSASignature.init(p1363:)) }
+                    try orFail { try testGroup(group: group, curve: P384.Signing.self, hashFunction: SHA384.self, deserializeSignature: P384.Signing.ECDSASignature.init(rawRepresentation:)) }
                 })
         }
         try orFail {
@@ -159,7 +148,7 @@ class SignatureTests: XCTestCase {
                 bundleType: self,
                 jsonName: "ecdsa_secp384r1_sha512_p1363_test",
                 testFunction: { (group: ECDSATestGroup) in
-                    try orFail { try testGroup(group: group, curve: P384.Signing.self, hashFunction: SHA512.self, deserializeSignature: P384.Signing.ECDSASignature.init(p1363:)) }
+                    try orFail { try testGroup(group: group, curve: P384.Signing.self, hashFunction: SHA512.self, deserializeSignature: P384.Signing.ECDSASignature.init(rawRepresentation:)) }
                 })
         }
     }
@@ -170,7 +159,7 @@ class SignatureTests: XCTestCase {
                 bundleType: self,
                 jsonName: "ecdsa_secp521r1_sha512_p1363_test",
                 testFunction: { (group: ECDSATestGroup) in
-                    try orFail { try testGroup(group: group, curve: P521.Signing.self, hashFunction: SHA512.self, deserializeSignature: P521.Signing.ECDSASignature.init(p1363:)) }
+                    try orFail { try testGroup(group: group, curve: P521.Signing.self, hashFunction: SHA512.self, deserializeSignature: P521.Signing.ECDSASignature.init(rawRepresentation:)) }
                 })
         }
     }
