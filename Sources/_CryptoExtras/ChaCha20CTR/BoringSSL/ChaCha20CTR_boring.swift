@@ -19,35 +19,31 @@ import Crypto
 import Foundation
 
 enum OpenSSLChaCha20CTRImpl {
-    static func encrypt<M: DataProtocol, N: DataProtocol>(key: SymmetricKey, message: M, counter: UInt32, nonce: N) throws -> [UInt8] {
+    static func encrypt<M: DataProtocol, N: ContiguousBytes>(key: SymmetricKey, message: M, counter: UInt32, nonce: N) throws -> Data {
         guard key.bitCount == Insecure.ChaCha20CTR.keyBitsCount else {
             throw CryptoKitError.incorrectKeySize
         }
-        guard nonce.count == Insecure.ChaCha20CTR.nonceByteCount else {
-            throw CryptoKitError.incorrectParameterSize
+
+        var ciphertext = Array<UInt8>(repeating: 0, count: message.count)
+
+        key.withUnsafeBytes { keyPointer in
+            message.withContiguousStorageIfAvailable { plaintext in
+                nonce.withUnsafeBytes { noncePointer in
+                    self.chacha20CTR(out: &ciphertext, plaintext: plaintext, inLen: plaintext.count, key: keyPointer.bindMemory(to: UInt8.self), nonce: noncePointer.bindMemory(to: UInt8.self), counter: counter)
+                }
+            }
         }
 
-        let plaintext = Array(message)
-        var ciphertext = Array<UInt8>(repeating: 0, count: plaintext.count)
-        let nonce = Array<UInt8>(nonce)
-
-        self.chacha20CTR(out: &ciphertext, plaintext: plaintext, inLen: plaintext.count, key: key.withUnsafeBytes { Array($0) }, nonce: nonce, counter: counter)
-
-        return ciphertext
+        return Data(ciphertext)
     }
 
-    static func chacha20CTR(out: UnsafeMutablePointer<UInt8>, plaintext: UnsafePointer<UInt8>, inLen: Int, key: UnsafePointer<UInt8>, nonce: UnsafePointer<UInt8>, counter: UInt32) {
-        let outPtr = UnsafeMutableRawPointer(out).assumingMemoryBound(to: UInt8.self)
-        let inPtr = UnsafeRawPointer(plaintext).assumingMemoryBound(to: UInt8.self)
-        let keyPtr = UnsafeRawPointer(key).assumingMemoryBound(to: UInt8.self)
-        let noncePtr = UnsafeRawPointer(nonce).assumingMemoryBound(to: UInt8.self)
-
+    static func chacha20CTR(out: UnsafeMutablePointer<UInt8>, plaintext: UnsafeBufferPointer<UInt8>, inLen: Int, key: UnsafeBufferPointer<UInt8>, nonce: UnsafeBufferPointer<UInt8>, counter: UInt32) {
         CCryptoBoringSSL_CRYPTO_chacha_20(
-            outPtr,
-            inPtr,
+            out,
+            plaintext.baseAddress,
             inLen,
-            keyPtr,
-            noncePtr,
+            key.baseAddress,
+            nonce.baseAddress,
             counter
         )
     }
