@@ -82,7 +82,7 @@ class ChaCha20CTRTests: XCTestCase {
         let key: SymmetricKey = SymmetricKey(data: [214, 89, 118, 13, 43, 164, 52, 162, 38, 253, 55, 179, 92, 105, 226, 218, 130, 17, 209, 12, 79, 18, 83, 135, 135, 214, 86, 69, 213, 209, 184, 226])
 
         // Ensure UInt32.max Counter Supported
-        XCTAssertNoThrow(try Insecure.ChaCha20CTR.encrypt(Array<UInt8>(repeating: 0, count: 5), using: key, nonce: Insecure.ChaCha20CTR.Nonce()))
+        XCTAssertNoThrow(try Insecure.ChaCha20CTR.encrypt(Array<UInt8>(repeating: 0, count: 5), using: key, counter: Insecure.ChaCha20CTR.Counter(offset: UInt32.max), nonce: Insecure.ChaCha20CTR.Nonce()))
 
         // Assert that two calls with the same Counter + Nonce params results in the same output
         let nonce = Insecure.ChaCha20CTR.Nonce()
