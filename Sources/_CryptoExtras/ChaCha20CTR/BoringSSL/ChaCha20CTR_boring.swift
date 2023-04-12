@@ -34,7 +34,7 @@ enum OpenSSLChaCha20CTRImpl {
                     // want a "with memory rebound" function but we don't have it yet.
                     let keyBytes = keyPtr.bindMemory(to: UInt8.self)
                     let nonceBytes = noncePtr.bindMemory(to: UInt8.self)
-                    
+
                     self.chacha20CTR(out: &ciphertext, plaintext: plaintext, inLen: plaintext.count, key: keyBytes, nonce: nonceBytes, counter: counter)
                 }
             }
