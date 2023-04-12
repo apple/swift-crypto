@@ -26,10 +26,16 @@ enum OpenSSLChaCha20CTRImpl {
 
         var ciphertext = Array<UInt8>(repeating: 0, count: message.count)
 
-        key.withUnsafeBytes { keyPointer in
-            message.withContiguousStorageIfAvailable { plaintext in
-                nonce.withUnsafeBytes { noncePointer in
-                    self.chacha20CTR(out: &ciphertext, plaintext: plaintext, inLen: plaintext.count, key: keyPointer.bindMemory(to: UInt8.self), nonce: noncePointer.bindMemory(to: UInt8.self), counter: counter)
+        key.withUnsafeBytes { keyPtr in
+            nonce.withUnsafeBytes { noncePtr in
+                message.withContiguousStorageIfAvailable { plaintext in
+                    // We bind both pointers here. These binds are not technically safe, but because we
+                    // know the pointers don't persist they can't violate the aliasing rules. We really
+                    // want a "with memory rebound" function but we don't have it yet.
+                    let keyBytes = keyPtr.bindMemory(to: UInt8.self)
+                    let nonceBytes = noncePtr.bindMemory(to: UInt8.self)
+                    
+                    self.chacha20CTR(out: &ciphertext, plaintext: plaintext, inLen: plaintext.count, key: keyBytes, nonce: nonceBytes, counter: counter)
                 }
             }
         }
