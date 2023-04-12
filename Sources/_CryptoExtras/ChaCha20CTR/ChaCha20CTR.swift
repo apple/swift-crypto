@@ -37,9 +37,81 @@ extension Insecure {
         /// - Returns: The encrypted ciphertext
         /// - Throws: CipherError errors
         /// - Warning: You most likely want to use the ChaChaPoly implemention with AuthenticatedData available at `Crypto.ChaChaPoly`
-        public static func encrypt<Plaintext: DataProtocol, Nonce: DataProtocol>
-        (_ message: Plaintext, using key: SymmetricKey, counter: UInt32 = 0, nonce: Nonce) throws -> [UInt8] {
-            return try ChaCha20CTRImpl.encrypt(key: key, message: message, counter: counter, nonce: nonce)
+        public static func encrypt<Plaintext: DataProtocol>
+        (_ message: Plaintext, using key: SymmetricKey, counter: Insecure.ChaCha20CTR.Counter = Counter(), nonce: Insecure.ChaCha20CTR.Nonce) throws -> Data {
+            return try ChaCha20CTRImpl.encrypt(key: key, message: message, counter: counter.asUInt32(), nonce: nonce.bytes)
+        }
+    }
+}
+
+extension Insecure.ChaCha20CTR {
+    public struct Nonce: ContiguousBytes, Sequence {
+        let bytes: Data
+
+        /// Generates a fresh random Nonce. Unless required by a specification to provide a specific Nonce, this is the recommended initializer.
+        public init() {
+            var data = Data(repeating: 0, count: Insecure.ChaCha20CTR.nonceByteCount)
+            data.withUnsafeMutableBytes {
+                assert($0.count == Insecure.ChaCha20CTR.nonceByteCount)
+                $0.initializeWithRandomBytes(count: Insecure.ChaCha20CTR.nonceByteCount)
+            }
+            self.bytes = data
+        }
+
+        public init<D: DataProtocol>(data: D) throws {
+            if data.count != Insecure.ChaCha20CTR.nonceByteCount {
+                throw CryptoKitError.incorrectParameterSize
+            }
+
+            self.bytes = Data(data)
+        }
+
+        public func withUnsafeBytes<R>(_ body: (UnsafeRawBufferPointer) throws -> R) rethrows -> R {
+            return try self.bytes.withUnsafeBytes(body)
+        }
+
+        public func makeIterator() -> Array<UInt8>.Iterator {
+            self.withUnsafeBytes({ buffPtr in
+                Array(buffPtr).makeIterator()
+            })
+        }
+    }
+
+    public struct Counter: ContiguousBytes, Sequence {
+        let bytes: Data
+
+        /// Generates a fresh Counter set to 0. Unless required by a specification to provide a specific Counter, this is the recommended initializer.
+        public init() {
+            self.bytes = Data(repeating: 0, count: Insecure.ChaCha20CTR.counterByteCount)
+        }
+
+        /// Explicitly set the Counter's offset using a little endian byte sequence
+        public init<D: DataProtocol>(data: D) throws {
+            if data.count != Insecure.ChaCha20CTR.counterByteCount {
+                throw CryptoKitError.incorrectParameterSize
+            }
+
+            self.bytes = Data(data)
+        }
+        
+        /// Explicitly set the Counter's offset using a UInt32
+        public init(offset: UInt32) throws {
+            var offset = offset
+            self.bytes = Data(bytes: &offset, count: MemoryLayout<UInt32>.size)
+        }
+
+        public func withUnsafeBytes<R>(_ body: (UnsafeRawBufferPointer) throws -> R) rethrows -> R {
+            return try self.bytes.withUnsafeBytes(body)
+        }
+        
+        public func asUInt32() -> UInt32 {
+            return self.withUnsafeBytes { $0.load(as: UInt32.self) }
+        }
+
+        public func makeIterator() -> Array<UInt8>.Iterator {
+            self.withUnsafeBytes({ buffPtr in
+                Array(buffPtr).makeIterator()
+            })
         }
     }
 }
