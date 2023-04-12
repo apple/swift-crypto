@@ -93,7 +93,7 @@ extension Insecure.ChaCha20CTR {
 
             self.bytes = Data(data)
         }
-        
+
         /// Explicitly set the Counter's offset using a UInt32
         public init(offset: UInt32) throws {
             var offset = offset
@@ -103,7 +103,7 @@ extension Insecure.ChaCha20CTR {
         public func withUnsafeBytes<R>(_ body: (UnsafeRawBufferPointer) throws -> R) rethrows -> R {
             return try self.bytes.withUnsafeBytes(body)
         }
-        
+
         public func asUInt32() -> UInt32 {
             return self.withUnsafeBytes { $0.load(as: UInt32.self) }
         }
