@@ -169,12 +169,6 @@ void CRYPTO_get_seed_entropy(uint8_t *out_entropy, size_t out_entropy_len,
   } else {
     CRYPTO_sysrand_for_seed(out_entropy, out_entropy_len);
   }
-
-  if (boringssl_fips_break_test("CRNG")) {
-    // This breaks the "continuous random number generator test" defined in FIPS
-    // 140-2, section 4.9.2, and implemented in |rand_get_seed|.
-    OPENSSL_memset(out_entropy, 0, out_entropy_len);
-  }
 }
 
 // In passive entropy mode, entropy is supplied from outside of the module via
@@ -416,11 +410,6 @@ void RAND_bytes_with_additional_data(uint8_t *out, size_t out_len,
     // Take a read lock around accesses to |state->drbg|. This is needed to
     // avoid returning bad entropy if we race with
     // |rand_thread_state_clear_all|.
-    //
-    // This lock must be taken after any calls to |CRYPTO_sysrand| to avoid a
-    // bug on ppc64le. glibc may implement pthread locks by wrapping user code
-    // in a hardware transaction, but, on some older versions of glibc and the
-    // kernel, syscalls made with |syscall| did not abort the transaction.
     CRYPTO_STATIC_MUTEX_lock_read(state_clear_all_lock_bss_get());
 #endif
     if (!CTR_DRBG_reseed(&state->drbg, seed, reseed_additional_data,

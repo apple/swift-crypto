@@ -88,7 +88,6 @@ DEFINE_STATIC_EX_DATA_CLASS(g_ec_ex_data_class)
 static EC_WRAPPED_SCALAR *ec_wrapped_scalar_new(const EC_GROUP *group) {
   EC_WRAPPED_SCALAR *wrapped = OPENSSL_malloc(sizeof(EC_WRAPPED_SCALAR));
   if (wrapped == NULL) {
-    OPENSSL_PUT_ERROR(EC, ERR_R_MALLOC_FAILURE);
     return NULL;
   }
 
@@ -109,7 +108,6 @@ EC_KEY *EC_KEY_new(void) { return EC_KEY_new_method(NULL); }
 EC_KEY *EC_KEY_new_method(const ENGINE *engine) {
   EC_KEY *ret = OPENSSL_malloc(sizeof(EC_KEY));
   if (ret == NULL) {
-    OPENSSL_PUT_ERROR(EC, ERR_R_MALLOC_FAILURE);
     return NULL;
   }
 
@@ -142,7 +140,6 @@ EC_KEY *EC_KEY_new_method(const ENGINE *engine) {
 EC_KEY *EC_KEY_new_by_curve_name(int nid) {
   EC_KEY *ret = EC_KEY_new();
   if (ret == NULL) {
-    OPENSSL_PUT_ERROR(EC, ERR_R_MALLOC_FAILURE);
     return NULL;
   }
   ret->group = EC_GROUP_new_by_curve_name(nid);
@@ -247,8 +244,9 @@ int EC_KEY_set_private_key(EC_KEY *key, const BIGNUM *priv_key) {
   if (scalar == NULL) {
     return 0;
   }
-  if (!ec_bignum_to_scalar(key->group, &scalar->scalar, priv_key)) {
-    OPENSSL_PUT_ERROR(EC, EC_R_WRONG_ORDER);
+  if (!ec_bignum_to_scalar(key->group, &scalar->scalar, priv_key) ||
+      ec_scalar_is_zero(key->group, &scalar->scalar)) {
+    OPENSSL_PUT_ERROR(EC, EC_R_INVALID_PRIVATE_KEY);
     ec_wrapped_scalar_free(scalar);
     return 0;
   }
@@ -467,7 +465,6 @@ size_t EC_KEY_priv2buf(const EC_KEY *key, uint8_t **out_buf) {
 
   uint8_t *buf = OPENSSL_malloc(len);
   if (buf == NULL) {
-    OPENSSL_PUT_ERROR(EC, ERR_R_MALLOC_FAILURE);
     return 0;
   }
 

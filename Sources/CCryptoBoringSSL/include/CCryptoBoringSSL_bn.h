@@ -143,6 +143,10 @@ extern "C" {
 // strategies that may not be ideal for other applications. Non-cryptographic
 // uses should use a more general-purpose integer library, especially if
 // performance-sensitive.
+//
+// Many functions in BN scale quadratically or higher in the bit length of their
+// input. Callers at this layer are assumed to have capped input sizes within
+// their performance tolerances.
 
 
 // BN_ULONG is the native word size when working with big integers.
@@ -290,6 +294,10 @@ OPENSSL_EXPORT int BN_hex2bn(BIGNUM **outp, const char *in);
 // BN_bn2dec returns an allocated string that contains a NUL-terminated,
 // decimal representation of |bn|. If |bn| is negative, the first char in the
 // resulting string will be '-'. Returns NULL on allocation failure.
+//
+// Converting an arbitrarily large integer to decimal is quadratic in the bit
+// length of |a|. This function assumes the caller has capped the input within
+// performance tolerances.
 OPENSSL_EXPORT char *BN_bn2dec(const BIGNUM *a);
 
 // BN_dec2bn parses the leading decimal number from |in|, which may be
@@ -298,6 +306,10 @@ OPENSSL_EXPORT char *BN_bn2dec(const BIGNUM *a);
 // decimal number and stores it in |*outp|. If |*outp| is NULL then it
 // allocates a new BIGNUM and updates |*outp|. It returns the number of bytes
 // of |in| processed or zero on error.
+//
+// Converting an arbitrarily large integer to decimal is quadratic in the bit
+// length of |a|. This function assumes the caller has capped the input within
+// performance tolerances.
 OPENSSL_EXPORT int BN_dec2bn(BIGNUM **outp, const char *in);
 
 // BN_asc2bn acts like |BN_dec2bn| or |BN_hex2bn| depending on whether |in|
@@ -823,8 +835,9 @@ OPENSSL_EXPORT BIGNUM *BN_mod_inverse(BIGNUM *out, const BIGNUM *a,
 // Note this function may incorrectly report |a| has no inverse if the random
 // blinding value has no inverse. It should only be used when |n| has few
 // non-invertible elements, such as an RSA modulus.
-int BN_mod_inverse_blinded(BIGNUM *out, int *out_no_inverse, const BIGNUM *a,
-                           const BN_MONT_CTX *mont, BN_CTX *ctx);
+OPENSSL_EXPORT int BN_mod_inverse_blinded(BIGNUM *out, int *out_no_inverse,
+                                          const BIGNUM *a,
+                                          const BN_MONT_CTX *mont, BN_CTX *ctx);
 
 // BN_mod_inverse_odd sets |out| equal to |a|^-1, mod |n|. |a| must be
 // non-negative and must be less than |n|. |n| must be odd. This function
@@ -861,15 +874,6 @@ OPENSSL_EXPORT void BN_MONT_CTX_free(BN_MONT_CTX *mont);
 // NULL on error.
 OPENSSL_EXPORT BN_MONT_CTX *BN_MONT_CTX_copy(BN_MONT_CTX *to,
                                              const BN_MONT_CTX *from);
-
-// BN_MONT_CTX_set_locked takes |lock| and checks whether |*pmont| is NULL. If
-// so, it creates a new |BN_MONT_CTX| and sets the modulus for it to |mod|. It
-// then stores it as |*pmont|. It returns one on success and zero on error. Note
-// this function assumes |mod| is public.
-//
-// If |*pmont| is already non-NULL then it does nothing and returns one.
-int BN_MONT_CTX_set_locked(BN_MONT_CTX **pmont, CRYPTO_MUTEX *lock,
-                           const BIGNUM *mod, BN_CTX *bn_ctx);
 
 // BN_to_montgomery sets |ret| equal to |a| in the Montgomery domain. |a| is
 // assumed to be in the range [0, n), where |n| is the Montgomery modulus. It

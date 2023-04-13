@@ -54,13 +54,13 @@
  * Hudson (tjh@cryptsoft.com).
  *
  */
-#ifndef HEADER_ASN1T_H
-#define HEADER_ASN1T_H
+#ifndef OPENSSL_HEADER_ASN1T_H
+#define OPENSSL_HEADER_ASN1T_H
 
 #include "CCryptoBoringSSL_base.h"
 #include "CCryptoBoringSSL_asn1.h"
 
-#ifdef  __cplusplus
+#if defined(__cplusplus)
 extern "C" {
 #endif
 
@@ -243,11 +243,6 @@ typedef struct ASN1_TLC_st ASN1_TLC;
 #define ASN1_EX_TYPE(flags, tag, stname, field, type) { \
 	(flags), (tag), offsetof(stname, field),\
 	#field, ASN1_ITEM_ref(type) }
-
-/* used when the structure is combined with the parent */
-
-#define ASN1_EX_COMBINE(flags, tag, type) { \
-	(flags)|ASN1_TFLG_COMBINE, (tag), 0, NULL, ASN1_ITEM_ref(type) }
 
 /* implicit and explicit helper macros */
 
@@ -441,16 +436,6 @@ struct ASN1_ADB_TABLE_st {
 
 #define ASN1_TFLG_ADB_OID	(0x1<<8)
 
-/* This flag means a parent structure is passed
- * instead of the field: this is useful is a
- * SEQUENCE is being combined with a CHOICE for
- * example. Since this means the structure and
- * item name will differ we need to use the
- * ASN1_CHOICE_END_name() macro for example.
- */
-
-#define ASN1_TFLG_COMBINE	(0x1<<10)
-
 /* This is the actual ASN1 item itself */
 
 struct ASN1_ITEM_st {
@@ -511,35 +496,6 @@ const char *sname;		/* Structure name */
 
 /* Deprecated tag and length cache */
 struct ASN1_TLC_st;
-
-/* Typedefs for ASN1 function pointers */
-
-typedef ASN1_VALUE * ASN1_new_func(void);
-typedef void ASN1_free_func(ASN1_VALUE *a);
-typedef ASN1_VALUE * ASN1_d2i_func(ASN1_VALUE **a, const unsigned char ** in, long length);
-typedef int ASN1_i2d_func(ASN1_VALUE * a, unsigned char **in);
-
-typedef int ASN1_ex_d2i(ASN1_VALUE **pval, const unsigned char **in, long len, const ASN1_ITEM *it,
-					int tag, int aclass, char opt, ASN1_TLC *ctx);
-
-typedef int ASN1_ex_i2d(ASN1_VALUE **pval, unsigned char **out, const ASN1_ITEM *it, int tag, int aclass);
-typedef int ASN1_ex_new_func(ASN1_VALUE **pval, const ASN1_ITEM *it);
-typedef void ASN1_ex_free_func(ASN1_VALUE **pval, const ASN1_ITEM *it);
-
-typedef int ASN1_ex_print_func(BIO *out, ASN1_VALUE **pval, 
-						int indent, const char *fname, 
-						const ASN1_PCTX *pctx);
-
-typedef struct ASN1_EXTERN_FUNCS_st {
-	void *app_data;
-	ASN1_ex_new_func *asn1_ex_new;
-	ASN1_ex_free_func *asn1_ex_free;
-	ASN1_ex_free_func *asn1_ex_clear;
-	ASN1_ex_d2i *asn1_ex_d2i;
-	ASN1_ex_i2d *asn1_ex_i2d;
-	/* asn1_ex_print is unused. */
-	ASN1_ex_print_func *asn1_ex_print;
-} ASN1_EXTERN_FUNCS;
 
 /* This is the ASN1_AUX structure: it handles various
  * miscellaneous requirements. For example the use of
@@ -702,7 +658,9 @@ DECLARE_ASN1_ITEM(ASN1_SEQUENCE)
 
 DEFINE_STACK_OF(ASN1_VALUE)
 
-#ifdef  __cplusplus
-}
+
+#if defined(__cplusplus)
+}  // extern "C"
 #endif
-#endif
+
+#endif  // OPENSSL_HEADER_ASN1T_H

@@ -75,17 +75,26 @@ extern "C" {
 // unless stated otherwise.
 
 
-// OPENSSL_malloc acts like a regular |malloc|.
+#ifndef _BORINGSSL_PROHIBIT_OPENSSL_MALLOC
+// OPENSSL_malloc is similar to a regular |malloc|, but allocates additional
+// private data. The resulting pointer must be freed with |OPENSSL_free|. In
+// the case of a malloc failure, prior to returning NULL |OPENSSL_malloc| will
+// push |ERR_R_MALLOC_FAILURE| onto the openssl error stack.
 OPENSSL_EXPORT void *OPENSSL_malloc(size_t size);
+#endif // !_BORINGSSL_PROHIBIT_OPENSSL_MALLOC
 
 // OPENSSL_free does nothing if |ptr| is NULL. Otherwise it zeros out the
-// memory allocated at |ptr| and frees it.
+// memory allocated at |ptr| and frees it along with the private data.
+// It must only be used on on |ptr| values obtained from |OPENSSL_malloc|
 OPENSSL_EXPORT void OPENSSL_free(void *ptr);
 
+#ifndef _BORINGSSL_PROHIBIT_OPENSSL_MALLOC
 // OPENSSL_realloc returns a pointer to a buffer of |new_size| bytes that
 // contains the contents of |ptr|. Unlike |realloc|, a new buffer is always
-// allocated and the data at |ptr| is always wiped and freed.
+// allocated and the data at |ptr| is always wiped and freed. Memory is
+// allocated with |OPENSSL_malloc| and must be freed with |OPENSSL_free|.
 OPENSSL_EXPORT void *OPENSSL_realloc(void *ptr, size_t new_size);
+#endif // !_BORINGSSL_PROHIBIT_OPENSSL_MALLOC
 
 // OPENSSL_cleanse zeros out |len| bytes of memory at |ptr|. This is similar to
 // |memset_s| from C11.
@@ -110,13 +119,42 @@ OPENSSL_EXPORT char *OPENSSL_strdup(const char *s);
 // OPENSSL_strnlen has the same behaviour as strnlen(3).
 OPENSSL_EXPORT size_t OPENSSL_strnlen(const char *s, size_t len);
 
-// OPENSSL_tolower is a locale-independent version of tolower(3).
+// OPENSSL_isalpha is a locale-independent, ASCII-only version of isalpha(3), It
+// only recognizes 'a' through 'z' and 'A' through 'Z' as alphabetic.
+OPENSSL_EXPORT int OPENSSL_isalpha(int c);
+
+// OPENSSL_isdigit is a locale-independent, ASCII-only version of isdigit(3), It
+// only recognizes '0' through '9' as digits.
+OPENSSL_EXPORT int OPENSSL_isdigit(int c);
+
+// OPENSSL_isxdigit is a locale-independent, ASCII-only version of isxdigit(3),
+// It only recognizes '0' through '9', 'a' through 'f', and 'A through 'F' as
+// digits.
+OPENSSL_EXPORT int OPENSSL_isxdigit(int c);
+
+// OPENSSL_fromxdigit returns one if |c| is a hexadecimal digit as recognized
+// by OPENSSL_isxdigit, and sets |out| to the corresponding value. Otherwise
+// zero is returned.
+OPENSSL_EXPORT int OPENSSL_fromxdigit(uint8_t *out, int c);
+
+// OPENSSL_isalnum is a locale-independent, ASCII-only version of isalnum(3), It
+// only recognizes what |OPENSSL_isalpha| and |OPENSSL_isdigit| recognize.
+OPENSSL_EXPORT int OPENSSL_isalnum(int c);
+
+// OPENSSL_tolower is a locale-independent, ASCII-only version of tolower(3). It
+// only lowercases ASCII values. Other values are returned as-is.
 OPENSSL_EXPORT int OPENSSL_tolower(int c);
 
-// OPENSSL_strcasecmp is a locale-independent version of strcasecmp(3).
+// OPENSSL_isspace is a locale-independent, ASCII-only version of isspace(3). It
+// only recognizes '\t', '\n', '\v', '\f', '\r', and ' '.
+OPENSSL_EXPORT int OPENSSL_isspace(int c);
+
+// OPENSSL_strcasecmp is a locale-independent, ASCII-only version of
+// strcasecmp(3).
 OPENSSL_EXPORT int OPENSSL_strcasecmp(const char *a, const char *b);
 
-// OPENSSL_strncasecmp is a locale-independent version of strncasecmp(3).
+// OPENSSL_strncasecmp is a locale-independent, ASCII-only version of
+// strncasecmp(3).
 OPENSSL_EXPORT int OPENSSL_strncasecmp(const char *a, const char *b, size_t n);
 
 // DECIMAL_SIZE returns an upper bound for the length of the decimal
@@ -131,12 +169,25 @@ OPENSSL_EXPORT int BIO_snprintf(char *buf, size_t n, const char *format, ...)
 OPENSSL_EXPORT int BIO_vsnprintf(char *buf, size_t n, const char *format,
                                  va_list args) OPENSSL_PRINTF_FORMAT_FUNC(3, 0);
 
+// OPENSSL_vasprintf has the same behavior as vasprintf(3), except that
+// memory allocated in a returned string must be freed with |OPENSSL_free|.
+OPENSSL_EXPORT int OPENSSL_vasprintf(char **str, const char *format,
+                                     va_list args)
+    OPENSSL_PRINTF_FORMAT_FUNC(2, 0);
+
+// OPENSSL_asprintf has the same behavior as asprintf(3), except that
+// memory allocated in a returned string must be freed with |OPENSSL_free|.
+OPENSSL_EXPORT int OPENSSL_asprintf(char **str, const char *format, ...)
+    OPENSSL_PRINTF_FORMAT_FUNC(2, 3);
+
 // OPENSSL_strndup returns an allocated, duplicate of |str|, which is, at most,
-// |size| bytes. The result is always NUL terminated.
+// |size| bytes. The result is always NUL terminated. The memory allocated
+// must be freed with |OPENSSL_free|.
 OPENSSL_EXPORT char *OPENSSL_strndup(const char *str, size_t size);
 
 // OPENSSL_memdup returns an allocated, duplicate of |size| bytes from |data| or
-// NULL on allocation failure.
+// NULL on allocation failure. The memory allocated must be freed with
+// |OPENSSL_free|.
 OPENSSL_EXPORT void *OPENSSL_memdup(const void *data, size_t size);
 
 // OPENSSL_strlcpy acts like strlcpy(3).
