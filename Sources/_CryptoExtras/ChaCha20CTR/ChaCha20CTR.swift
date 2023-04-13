@@ -104,7 +104,7 @@ extension Insecure.ChaCha20CTR {
         }
 
         public func withUnsafeBytes<R>(_ body: (UnsafeRawBufferPointer) throws -> R) rethrows -> R {
-            return try Swift.withUnsafeBytes(of: counter, body)
+            return try Swift.withUnsafeBytes(of: self.counter, body)
         }
     }
 }
