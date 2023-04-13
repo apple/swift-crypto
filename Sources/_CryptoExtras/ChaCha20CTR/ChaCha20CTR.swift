@@ -39,7 +39,7 @@ extension Insecure {
         /// - Warning: You most likely want to use the ChaChaPoly implemention with AuthenticatedData available at `Crypto.ChaChaPoly`
         public static func encrypt<Plaintext: DataProtocol>
         (_ message: Plaintext, using key: SymmetricKey, counter: Insecure.ChaCha20CTR.Counter = Counter(), nonce: Insecure.ChaCha20CTR.Nonce) throws -> Data {
-            return try ChaCha20CTRImpl.encrypt(key: key, message: message, counter: counter.asUInt32(), nonce: nonce.bytes)
+            return try ChaCha20CTRImpl.encrypt(key: key, message: message, counter: counter.counter, nonce: nonce.bytes)
         }
     }
 }
@@ -77,12 +77,12 @@ extension Insecure.ChaCha20CTR {
         }
     }
 
-    public struct Counter: ContiguousBytes, Sequence {
-        let bytes: Data
+    public struct Counter: ContiguousBytes {
+        let counter: UInt32
 
         /// Generates a fresh Counter set to 0. Unless required by a specification to provide a specific Counter, this is the recommended initializer.
         public init() {
-            self.bytes = Data(repeating: 0, count: Insecure.ChaCha20CTR.counterByteCount)
+            self.counter = 0
         }
 
         /// Explicitly set the Counter's offset using a little endian byte sequence
@@ -91,27 +91,20 @@ extension Insecure.ChaCha20CTR {
                 throw CryptoKitError.incorrectParameterSize
             }
 
-            self.bytes = Data(data)
+            if data.regions.count == 1 {
+                self.counter = data.regions.first!.withUnsafeBytes { $0.load(as: UInt32.self) }
+            } else {
+                self.counter = Array(data).withUnsafeBytes { $0.load(as: UInt32.self) }
+            }
         }
 
         /// Explicitly set the Counter's offset using a UInt32
         public init(offset: UInt32) throws {
-            var offset = offset
-            self.bytes = Data(bytes: &offset, count: MemoryLayout<UInt32>.size)
+            self.counter = offset
         }
 
         public func withUnsafeBytes<R>(_ body: (UnsafeRawBufferPointer) throws -> R) rethrows -> R {
-            return try self.bytes.withUnsafeBytes(body)
-        }
-
-        public func asUInt32() -> UInt32 {
-            return self.withUnsafeBytes { $0.load(as: UInt32.self) }
-        }
-
-        public func makeIterator() -> Array<UInt8>.Iterator {
-            self.withUnsafeBytes({ buffPtr in
-                Array(buffPtr).makeIterator()
-            })
+            return try Swift.withUnsafeBytes(of: counter, body)
         }
     }
 }
