@@ -50,23 +50,19 @@ enum OpenSSLChaCha20CTRImpl {
                     var ciphertext = Data(repeating: 0, count: plaintext.count)
 
                     ciphertext.withUnsafeMutableBytes { ciphertext in
-                        self.chacha20CTR(out: ciphertext, plaintext: plaintext, key: keyBytes, nonce: nonceBytes, counter: counter)
+                        CCryptoBoringSSL_CRYPTO_chacha_20(
+                            ciphertext,
+                            plaintext.baseAddress,
+                            plaintext.count,
+                            keyBytes.baseAddress,
+                            nonceBytes.baseAddress,
+                            counter
+                        )
                     }
 
                     return ciphertext
                 }
             }
         }
-    }
-
-    static func chacha20CTR(out: UnsafeMutablePointer<UInt8>, plaintext: UnsafeBufferPointer<UInt8>, key: UnsafeBufferPointer<UInt8>, nonce: UnsafeBufferPointer<UInt8>, counter: UInt32) {
-        CCryptoBoringSSL_CRYPTO_chacha_20(
-            out,
-            plaintext.baseAddress,
-            plaintext.count,
-            key.baseAddress,
-            nonce.baseAddress,
-            counter
-        )
     }
 }
