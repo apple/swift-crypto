@@ -24,30 +24,46 @@ enum OpenSSLChaCha20CTRImpl {
             throw CryptoKitError.incorrectKeySize
         }
 
-        var ciphertext = Array<UInt8>(repeating: 0, count: message.count)
+        // If our message, conforming to DataProtocol, happens to be allocated contiguously in memory, then we can grab the first, and only, contiguous region and operate on it
+        if message.regions.count == 1 {
+            return self._encryptContiguous(key: key, message: message.regions.first!, counter: counter, nonce: nonce)
+        } else {
+            // Otherwise we need to consolidate the noncontiguous bytes by instantiating an Array<UInt8>
+            let contiguousMessage = Array(message)
+            return self._encryptContiguous(key: key, message: contiguousMessage, counter: counter, nonce: nonce)
+        }
+    }
 
+    /// A fast-path for encrypting contiguous data. Also inlinable to gain specialization information.
+    @inlinable
+    static func _encryptContiguous<Plaintext: ContiguousBytes, Nonce: ContiguousBytes>(key: SymmetricKey, message: Plaintext, counter: UInt32, nonce: Nonce) -> Data {
         key.withUnsafeBytes { keyPtr in
             nonce.withUnsafeBytes { noncePtr in
-                message.withContiguousStorageIfAvailable { plaintext in
-                    // We bind both pointers here. These binds are not technically safe, but because we
+                message.withUnsafeBytes { plaintextPtr in
+                    // We bind all three pointers here. These binds are not technically safe, but because we
                     // know the pointers don't persist they can't violate the aliasing rules. We really
                     // want a "with memory rebound" function but we don't have it yet.
                     let keyBytes = keyPtr.bindMemory(to: UInt8.self)
                     let nonceBytes = noncePtr.bindMemory(to: UInt8.self)
+                    let plaintext = plaintextPtr.bindMemory(to: UInt8.self)
 
-                    self.chacha20CTR(out: &ciphertext, plaintext: plaintext, inLen: plaintext.count, key: keyBytes, nonce: nonceBytes, counter: counter)
+                    var ciphertext = Data(repeating: 0, count: plaintext.count)
+
+                    ciphertext.withUnsafeMutableBytes { ciphertext in
+                        self.chacha20CTR(out: ciphertext, plaintext: plaintext, key: keyBytes, nonce: nonceBytes, counter: counter)
+                    }
+
+                    return ciphertext
                 }
             }
         }
-
-        return Data(ciphertext)
     }
 
-    static func chacha20CTR(out: UnsafeMutablePointer<UInt8>, plaintext: UnsafeBufferPointer<UInt8>, inLen: Int, key: UnsafeBufferPointer<UInt8>, nonce: UnsafeBufferPointer<UInt8>, counter: UInt32) {
+    static func chacha20CTR(out: UnsafeMutablePointer<UInt8>, plaintext: UnsafeBufferPointer<UInt8>, key: UnsafeBufferPointer<UInt8>, nonce: UnsafeBufferPointer<UInt8>, counter: UInt32) {
         CCryptoBoringSSL_CRYPTO_chacha_20(
             out,
             plaintext.baseAddress,
-            inLen,
+            plaintext.count,
             key.baseAddress,
             nonce.baseAddress,
             counter
