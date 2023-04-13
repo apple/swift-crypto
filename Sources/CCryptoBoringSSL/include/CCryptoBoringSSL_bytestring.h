@@ -160,6 +160,13 @@ OPENSSL_EXPORT int CBS_get_u24_length_prefixed(CBS *cbs, CBS *out);
 // one. Otherwise, it returns zero and leaves |cbs| unmodified.
 OPENSSL_EXPORT int CBS_get_until_first(CBS *cbs, CBS *out, uint8_t c);
 
+// CBS_get_u64_decimal reads a decimal integer from |cbs| and writes it to
+// |*out|. It stops reading at the end of the string, or the first non-digit
+// character. It returns one on success and zero on error. This function behaves
+// analogously to |strtoul| except it does not accept empty inputs, leading
+// zeros, or negative values.
+OPENSSL_EXPORT int CBS_get_u64_decimal(CBS *cbs, uint64_t *out);
+
 
 // Parsing ASN.1
 //
@@ -349,11 +356,19 @@ OPENSSL_EXPORT int CBS_is_valid_asn1_integer(const CBS *cbs,
 // ASN.1 INTEGER body and zero otherwise.
 OPENSSL_EXPORT int CBS_is_unsigned_asn1_integer(const CBS *cbs);
 
+// CBS_is_valid_asn1_oid returns one if |cbs| is a valid DER-encoded ASN.1
+// OBJECT IDENTIFIER contents (not including the element framing) and zero
+// otherwise. This function tolerates arbitrarily large OID components.
+OPENSSL_EXPORT int CBS_is_valid_asn1_oid(const CBS *cbs);
+
 // CBS_asn1_oid_to_text interprets |cbs| as DER-encoded ASN.1 OBJECT IDENTIFIER
 // contents (not including the element framing) and returns the ASCII
 // representation (e.g., "1.2.840.113554.4.1.72585") in a newly-allocated
 // string, or NULL on failure. The caller must release the result with
 // |OPENSSL_free|.
+//
+// This function may fail if |cbs| is an invalid OBJECT IDENTIFIER, or if any
+// OID components are too large.
 OPENSSL_EXPORT char *CBS_asn1_oid_to_text(const CBS *cbs);
 
 

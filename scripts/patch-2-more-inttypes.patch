@@ -1,4 +1,4 @@
-diff --git a/Sources/CNIOBoringSSL/crypto/evp/print.c b/Sources/CNIOBoringSSL/crypto/evp/print.c
+diff --git a/Sources/CCryptoBoringSSL/crypto/evp/print.c b/Sources/CCryptoBoringSSL/crypto/evp/print.c
 index 89ceb32..5e6fb2f 100644
 --- a/Sources/CCryptoBoringSSL/crypto/evp/print.c
 +++ b/Sources/CCryptoBoringSSL/crypto/evp/print.c
@@ -8,6 +8,6 @@ index 89ceb32..5e6fb2f 100644
  
 +#include <inttypes.h>
 +
- #include <CNIOBoringSSL_evp.h>
+ #include <CCryptoBoringSSL_evp.h>
  
- #include <CNIOBoringSSL_bio.h>
+ #include <CCryptoBoringSSL_bio.h>

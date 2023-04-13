@@ -95,7 +95,7 @@ static int check_purpose_timestamp_sign(const X509_PURPOSE *xp, const X509 *x,
 static int no_check(const X509_PURPOSE *xp, const X509 *x, int ca);
 static int ocsp_helper(const X509_PURPOSE *xp, const X509 *x, int ca);
 
-static int xp_cmp(const X509_PURPOSE **a, const X509_PURPOSE **b);
+static int xp_cmp(const X509_PURPOSE *const *a, const X509_PURPOSE *const *b);
 static void xptable_free(X509_PURPOSE *p);
 
 static X509_PURPOSE xstandard[] = {
@@ -126,7 +126,7 @@ static X509_PURPOSE xstandard[] = {
 
 static STACK_OF(X509_PURPOSE) *xptable = NULL;
 
-static int xp_cmp(const X509_PURPOSE **a, const X509_PURPOSE **b) {
+static int xp_cmp(const X509_PURPOSE *const *a, const X509_PURPOSE *const *b) {
   return (*a)->purpose - (*b)->purpose;
 }
 
@@ -201,7 +201,6 @@ int X509_PURPOSE_get_by_id(int purpose) {
     return -1;
   }
 
-  sk_X509_PURPOSE_sort(xptable);
   if (!sk_X509_PURPOSE_find(xptable, &idx, &tmp)) {
     return -1;
   }
@@ -224,7 +223,6 @@ int X509_PURPOSE_add(int id, int trust, int flags,
   // Need a new entry
   if (idx == -1) {
     if (!(ptmp = OPENSSL_malloc(sizeof(X509_PURPOSE)))) {
-      OPENSSL_PUT_ERROR(X509V3, ERR_R_MALLOC_FAILURE);
       return 0;
     }
     ptmp->flags = X509_PURPOSE_DYNAMIC;
@@ -236,7 +234,6 @@ int X509_PURPOSE_add(int id, int trust, int flags,
   name_dup = OPENSSL_strdup(name);
   sname_dup = OPENSSL_strdup(sname);
   if (name_dup == NULL || sname_dup == NULL) {
-    OPENSSL_PUT_ERROR(X509V3, ERR_R_MALLOC_FAILURE);
     if (name_dup != NULL) {
       OPENSSL_free(name_dup);
     }
@@ -269,16 +266,19 @@ int X509_PURPOSE_add(int id, int trust, int flags,
 
   // If its a new entry manage the dynamic table
   if (idx == -1) {
+    // TODO(davidben): This should be locked. Alternatively, remove the dynamic
+    // registration mechanism entirely. The trouble is there no way to pass in
+    // the various parameters into an |X509_VERIFY_PARAM| directly. You can only
+    // register it in the global table and get an ID.
     if (!xptable && !(xptable = sk_X509_PURPOSE_new(xp_cmp))) {
-      OPENSSL_PUT_ERROR(X509V3, ERR_R_MALLOC_FAILURE);
       xptable_free(ptmp);
       return 0;
     }
     if (!sk_X509_PURPOSE_push(xptable, ptmp)) {
-      OPENSSL_PUT_ERROR(X509V3, ERR_R_MALLOC_FAILURE);
       xptable_free(ptmp);
       return 0;
     }
+    sk_X509_PURPOSE_sort(xptable);
   }
   return 1;
 }
@@ -334,7 +334,6 @@ int X509_supported_extension(const X509_EXTENSION *ex) {
       NID_certificate_policies,  // 89
       NID_ext_key_usage,         // 126
       NID_policy_constraints,    // 401
-      NID_proxyCertInfo,         // 663
       NID_name_constraints,      // 666
       NID_policy_mappings,       // 747
       NID_inhibit_any_policy     // 748
@@ -400,7 +399,6 @@ static int setup_crldp(X509 *x) {
 
 int x509v3_cache_extensions(X509 *x) {
   BASIC_CONSTRAINTS *bs;
-  PROXY_CERT_INFO_EXTENSION *pci;
   ASN1_BIT_STRING *usage;
   ASN1_BIT_STRING *ns;
   EXTENDED_KEY_USAGE *extusage;
@@ -450,23 +448,6 @@ int x509v3_cache_extensions(X509 *x) {
     }
     BASIC_CONSTRAINTS_free(bs);
     x->ex_flags |= EXFLAG_BCONS;
-  } else if (j != -1) {
-    x->ex_flags |= EXFLAG_INVALID;
-  }
-  // Handle proxy certificates
-  if ((pci = X509_get_ext_d2i(x, NID_proxyCertInfo, &j, NULL))) {
-    if (x->ex_flags & EXFLAG_CA ||
-        X509_get_ext_by_NID(x, NID_subject_alt_name, -1) >= 0 ||
-        X509_get_ext_by_NID(x, NID_issuer_alt_name, -1) >= 0) {
-      x->ex_flags |= EXFLAG_INVALID;
-    }
-    if (pci->pcPathLengthConstraint) {
-      x->ex_pcpathlen = ASN1_INTEGER_get(pci->pcPathLengthConstraint);
-    } else {
-      x->ex_pcpathlen = -1;
-    }
-    PROXY_CERT_INFO_EXTENSION_free(pci);
-    x->ex_flags |= EXFLAG_PROXY;
   } else if (j != -1) {
     x->ex_flags |= EXFLAG_INVALID;
   }
@@ -801,11 +782,7 @@ int X509_check_issued(X509 *issuer, X509 *subject) {
     }
   }
 
-  if (subject->ex_flags & EXFLAG_PROXY) {
-    if (ku_reject(issuer, KU_DIGITAL_SIGNATURE)) {
-      return X509_V_ERR_KEYUSAGE_NO_DIGITAL_SIGNATURE;
-    }
-  } else if (ku_reject(issuer, KU_KEY_CERT_SIGN)) {
+  if (ku_reject(issuer, KU_KEY_CERT_SIGN)) {
     return X509_V_ERR_KEYUSAGE_NO_CERTSIGN;
   }
   return X509_V_OK;
