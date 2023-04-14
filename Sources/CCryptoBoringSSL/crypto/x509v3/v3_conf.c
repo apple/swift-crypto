@@ -57,6 +57,7 @@
 // extension creation utilities
 
 #include <ctype.h>
+#include <limits.h>
 #include <stdio.h>
 #include <string.h>
 
@@ -81,28 +82,24 @@ static X509_EXTENSION *v3_generic_extension(const char *ext, const char *value,
 static X509_EXTENSION *do_ext_i2d(const X509V3_EXT_METHOD *method, int ext_nid,
                                   int crit, void *ext_struc);
 static unsigned char *generic_asn1(const char *value, const X509V3_CTX *ctx,
-                                   long *ext_len);
+                                   size_t *ext_len);
 
-static void setup_ctx(X509V3_CTX *out, const CONF *conf,
-                      const X509V3_CTX *ctx_in) {
-  if (ctx_in == NULL) {
-    X509V3_set_ctx(out, NULL, NULL, NULL, NULL, 0);
-  } else {
-    *out = *ctx_in;
-  }
-  X509V3_set_nconf(out, conf);
-}
-
-X509_EXTENSION *X509V3_EXT_nconf(const CONF *conf, const X509V3_CTX *ctx_in,
+X509_EXTENSION *X509V3_EXT_nconf(const CONF *conf, const X509V3_CTX *ctx,
                                  const char *name, const char *value) {
-  X509V3_CTX ctx;
-  setup_ctx(&ctx, conf, ctx_in);
+  // If omitted, fill in an empty |X509V3_CTX|.
+  X509V3_CTX ctx_tmp;
+  if (ctx == NULL) {
+    X509V3_set_ctx(&ctx_tmp, NULL, NULL, NULL, NULL, 0);
+    X509V3_set_nconf(&ctx_tmp, conf);
+    ctx = &ctx_tmp;
+  }
+
   int crit = v3_check_critical(&value);
   int ext_type = v3_check_generic(&value);
   if (ext_type != 0) {
-    return v3_generic_extension(name, value, crit, ext_type, &ctx);
+    return v3_generic_extension(name, value, crit, ext_type, ctx);
   }
-  X509_EXTENSION *ret = do_ext_nconf(conf, &ctx, OBJ_sn2nid(name), crit, value);
+  X509_EXTENSION *ret = do_ext_nconf(conf, ctx, OBJ_sn2nid(name), crit, value);
   if (!ret) {
     OPENSSL_PUT_ERROR(X509V3, X509V3_R_ERROR_IN_EXTENSION);
     ERR_add_error_data(4, "name=", name, ", value=", value);
@@ -110,17 +107,23 @@ X509_EXTENSION *X509V3_EXT_nconf(const CONF *conf, const X509V3_CTX *ctx_in,
   return ret;
 }
 
-X509_EXTENSION *X509V3_EXT_nconf_nid(const CONF *conf, const X509V3_CTX *ctx_in,
+X509_EXTENSION *X509V3_EXT_nconf_nid(const CONF *conf, const X509V3_CTX *ctx,
                                      int ext_nid, const char *value) {
-  X509V3_CTX ctx;
-  setup_ctx(&ctx, conf, ctx_in);
+  // If omitted, fill in an empty |X509V3_CTX|.
+  X509V3_CTX ctx_tmp;
+  if (ctx == NULL) {
+    X509V3_set_ctx(&ctx_tmp, NULL, NULL, NULL, NULL, 0);
+    X509V3_set_nconf(&ctx_tmp, conf);
+    ctx = &ctx_tmp;
+  }
+
   int crit = v3_check_critical(&value);
   int ext_type = v3_check_generic(&value);
   if (ext_type != 0) {
     return v3_generic_extension(OBJ_nid2sn(ext_nid), value, crit, ext_type,
-                                &ctx);
+                                ctx);
   }
-  return do_ext_nconf(conf, &ctx, ext_nid, crit, value);
+  return do_ext_nconf(conf, ctx, ext_nid, crit, value);
 }
 
 // CONF *conf:  Config file
@@ -143,6 +146,9 @@ static X509_EXTENSION *do_ext_nconf(const CONF *conf, const X509V3_CTX *ctx,
   // Now get internal extension representation based on type
   if (method->v2i) {
     if (*value == '@') {
+      // TODO(davidben): This is the only place where |X509V3_EXT_nconf|'s
+      // |conf| parameter is used. All other codepaths use the copy inside
+      // |ctx|. Should this be switched and then the parameter ignored?
       if (conf == NULL) {
         OPENSSL_PUT_ERROR(X509V3, X509V3_R_NO_CONFIG_DATABASE);
         return NULL;
@@ -168,6 +174,10 @@ static X509_EXTENSION *do_ext_nconf(const CONF *conf, const X509V3_CTX *ctx,
       return NULL;
     }
   } else if (method->r2i) {
+    // TODO(davidben): Should this check be removed? This matches OpenSSL, but
+    // r2i-based extensions do not necessarily require a config database. The
+    // two built-in extensions only use it some of the time, and already handle
+    // |X509V3_get_section| returning NULL.
     if (!ctx->db) {
       OPENSSL_PUT_ERROR(X509V3, X509V3_R_NO_CONFIG_DATABASE);
       return NULL;
@@ -192,43 +202,38 @@ static X509_EXTENSION *do_ext_nconf(const CONF *conf, const X509V3_CTX *ctx,
 
 static X509_EXTENSION *do_ext_i2d(const X509V3_EXT_METHOD *method, int ext_nid,
                                   int crit, void *ext_struc) {
+  // Convert the extension's internal representation to DER.
   unsigned char *ext_der;
   int ext_len;
-  ASN1_OCTET_STRING *ext_oct;
-  X509_EXTENSION *ext;
-  // Convert internal representation to DER
   if (method->it) {
     ext_der = NULL;
     ext_len = ASN1_item_i2d(ext_struc, &ext_der, ASN1_ITEM_ptr(method->it));
     if (ext_len < 0) {
-      goto merr;
+      return NULL;
     }
   } else {
-    unsigned char *p;
+    // TODO(davidben): Remove support for the "old-style" ASN.1 callbacks. Every
+    // |X509V3_EXT_METHOD|, both inside and outside the library, has an
+    // |ASN1_ITEM|, and this codepath is missing handling.
     ext_len = method->i2d(ext_struc, NULL);
     if (!(ext_der = OPENSSL_malloc(ext_len))) {
-      goto merr;
+      return NULL;
     }
-    p = ext_der;
+    unsigned char *p = ext_der;
     method->i2d(ext_struc, &p);
   }
-  if (!(ext_oct = ASN1_OCTET_STRING_new())) {
-    goto merr;
-  }
-  ext_oct->data = ext_der;
-  ext_oct->length = ext_len;
 
-  ext = X509_EXTENSION_create_by_NID(NULL, ext_nid, crit, ext_oct);
-  if (!ext) {
-    goto merr;
+  ASN1_OCTET_STRING *ext_oct = ASN1_OCTET_STRING_new();
+  if (ext_oct == NULL) {
+    OPENSSL_free(ext_der);
+    return NULL;
   }
+  ASN1_STRING_set0(ext_oct, ext_der, ext_len);
+
+  X509_EXTENSION *ext =
+      X509_EXTENSION_create_by_NID(NULL, ext_nid, crit, ext_oct);
   ASN1_OCTET_STRING_free(ext_oct);
-
   return ext;
-
-merr:
-  OPENSSL_PUT_ERROR(X509V3, ERR_R_MALLOC_FAILURE);
-  return NULL;
 }
 
 // Given an internal structure, nid and critical flag create an extension
@@ -249,7 +254,7 @@ static int v3_check_critical(const char **value) {
     return 0;
   }
   p += 9;
-  while (isspace((unsigned char)*p)) {
+  while (OPENSSL_isspace((unsigned char)*p)) {
     p++;
   }
   *value = p;
@@ -270,7 +275,7 @@ static int v3_check_generic(const char **value) {
     return 0;
   }
 
-  while (isspace((unsigned char)*p)) {
+  while (OPENSSL_isspace((unsigned char)*p)) {
     p++;
   }
   *value = p;
@@ -282,7 +287,7 @@ static X509_EXTENSION *v3_generic_extension(const char *ext, const char *value,
                                             int crit, int gen_type,
                                             const X509V3_CTX *ctx) {
   unsigned char *ext_der = NULL;
-  long ext_len = 0;
+  size_t ext_len = 0;
   ASN1_OBJECT *obj = NULL;
   ASN1_OCTET_STRING *oct = NULL;
   X509_EXTENSION *extension = NULL;
@@ -304,13 +309,17 @@ static X509_EXTENSION *v3_generic_extension(const char *ext, const char *value,
     goto err;
   }
 
-  if (!(oct = ASN1_OCTET_STRING_new())) {
-    OPENSSL_PUT_ERROR(X509V3, ERR_R_MALLOC_FAILURE);
+  if (ext_len > INT_MAX) {
+    OPENSSL_PUT_ERROR(X509V3, ERR_R_OVERFLOW);
     goto err;
   }
 
-  oct->data = ext_der;
-  oct->length = ext_len;
+  oct = ASN1_OCTET_STRING_new();
+  if (oct == NULL) {
+    goto err;
+  }
+
+  ASN1_STRING_set0(oct, ext_der, (int)ext_len);
   ext_der = NULL;
 
   extension = X509_EXTENSION_create_by_OBJ(NULL, obj, crit, oct);
@@ -323,15 +332,18 @@ err:
 }
 
 static unsigned char *generic_asn1(const char *value, const X509V3_CTX *ctx,
-                                   long *ext_len) {
-  ASN1_TYPE *typ;
-  unsigned char *ext_der = NULL;
-  typ = ASN1_generate_v3(value, ctx);
+                                   size_t *ext_len) {
+  ASN1_TYPE *typ = ASN1_generate_v3(value, ctx);
   if (typ == NULL) {
     return NULL;
   }
-  *ext_len = i2d_ASN1_TYPE(typ, &ext_der);
+  unsigned char *ext_der = NULL;
+  int len = i2d_ASN1_TYPE(typ, &ext_der);
   ASN1_TYPE_free(typ);
+  if (len < 0) {
+    return NULL;
+  }
+  *ext_len = len;
   return ext_der;
 }
 
@@ -348,13 +360,12 @@ int X509V3_EXT_add_nconf_sk(const CONF *conf, const X509V3_CTX *ctx,
   for (size_t i = 0; i < sk_CONF_VALUE_num(nval); i++) {
     const CONF_VALUE *val = sk_CONF_VALUE_value(nval, i);
     X509_EXTENSION *ext = X509V3_EXT_nconf(conf, ctx, val->name, val->value);
-    if (ext == NULL) {
+    int ok = ext != NULL &&  //
+             (sk == NULL || X509v3_add_ext(sk, ext, -1) != NULL);
+    X509_EXTENSION_free(ext);
+    if (!ok) {
       return 0;
     }
-    if (sk) {
-      X509v3_add_ext(sk, ext, -1);
-    }
-    X509_EXTENSION_free(ext);
   }
   return 1;
 }
@@ -416,6 +427,7 @@ void X509V3_set_nconf(X509V3_CTX *ctx, const CONF *conf) {
 
 void X509V3_set_ctx(X509V3_CTX *ctx, const X509 *issuer, const X509 *subj,
                     const X509_REQ *req, const X509_CRL *crl, int flags) {
+  OPENSSL_memset(ctx, 0, sizeof(*ctx));
   ctx->issuer_cert = issuer;
   ctx->subject_cert = subj;
   ctx->crl = crl;

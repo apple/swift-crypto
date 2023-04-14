@@ -18,6 +18,7 @@
     !defined(OPENSSL_STATIC_ARMCAP)
 #include <errno.h>
 #include <fcntl.h>
+#include <sys/auxv.h>
 #include <sys/types.h>
 #include <unistd.h>
 
@@ -25,13 +26,6 @@
 #include <CCryptoBoringSSL_mem.h>
 
 #include "cpu_arm_linux.h"
-
-#define AT_HWCAP 16
-#define AT_HWCAP2 26
-
-// |getauxval| is not available on Android until API level 20. Link it as a weak
-// symbol and use other methods as fallback.
-unsigned long getauxval(unsigned long type) __attribute__((weak));
 
 static int open_eintr(const char *path, int flags) {
   int ret;
@@ -47,21 +41,6 @@ static ssize_t read_eintr(int fd, void *out, size_t len) {
     ret = read(fd, out, len);
   } while (ret < 0 && errno == EINTR);
   return ret;
-}
-
-// read_full reads exactly |len| bytes from |fd| to |out|. On error or end of
-// file, it returns zero.
-static int read_full(int fd, void *out, size_t len) {
-  char *outp = out;
-  while (len > 0) {
-    ssize_t ret = read_eintr(fd, outp, len);
-    if (ret <= 0) {
-      return 0;
-    }
-    outp += ret;
-    len -= ret;
-  }
-  return 1;
 }
 
 // read_file opens |path| and reads until end-of-file. On success, it returns
@@ -116,41 +95,14 @@ err:
   return ret;
 }
 
-// getauxval_proc behaves like |getauxval| but reads from /proc/self/auxv.
-static unsigned long getauxval_proc(unsigned long type) {
-  int fd = open_eintr("/proc/self/auxv", O_RDONLY);
-  if (fd < 0) {
-    return 0;
-  }
-
-  struct {
-    unsigned long tag;
-    unsigned long value;
-  } entry;
-
-  for (;;) {
-    if (!read_full(fd, &entry, sizeof(entry)) ||
-        (entry.tag == 0 && entry.value == 0)) {
-      break;
-    }
-    if (entry.tag == type) {
-      close(fd);
-      return entry.value;
-    }
-  }
-  close(fd);
-  return 0;
-}
-
 extern uint32_t OPENSSL_armcap_P;
 
-static int g_has_broken_neon, g_needs_hwcap2_workaround;
+static int g_needs_hwcap2_workaround;
 
 void OPENSSL_cpuid_setup(void) {
   // We ignore the return value of |read_file| and proceed with an empty
   // /proc/cpuinfo on error. If |getauxval| works, we will still detect
-  // capabilities. There may be a false positive due to
-  // |crypto_cpuinfo_has_broken_neon|, but this is now rare.
+  // capabilities.
   char *cpuinfo_data = NULL;
   size_t cpuinfo_len = 0;
   read_file(&cpuinfo_data, &cpuinfo_len, "/proc/cpuinfo");
@@ -158,37 +110,8 @@ void OPENSSL_cpuid_setup(void) {
   cpuinfo.data = cpuinfo_data;
   cpuinfo.len = cpuinfo_len;
 
-  // |getauxval| is not available on Android until API level 20. If it is
-  // unavailable, read from /proc/self/auxv as a fallback. This is unreadable
-  // on some versions of Android, so further fall back to /proc/cpuinfo.
-  //
-  // See
-  // https://android.googlesource.com/platform/ndk/+/882ac8f3392858991a0e1af33b4b7387ec856bd2
-  // and b/13679666 (Google-internal) for details.
-  unsigned long hwcap = 0;
-  if (getauxval != NULL) {
-    hwcap = getauxval(AT_HWCAP);
-  }
-  if (hwcap == 0) {
-    hwcap = getauxval_proc(AT_HWCAP);
-  }
-  if (hwcap == 0) {
-    hwcap = crypto_get_arm_hwcap_from_cpuinfo(&cpuinfo);
-  }
-
-  // Clear NEON support if known broken. Note, if NEON is available statically,
-  // the non-NEON code is dropped and this workaround is a no-op.
-  //
-  // TODO(davidben): The Android NDK now builds with NEON statically available
-  // by default. Cronet still has some consumers that support NEON-less devices
-  // (b/150371744). Get metrics on whether they still see this CPU and, if not,
-  // remove this check entirely.
-  g_has_broken_neon = crypto_cpuinfo_has_broken_neon(&cpuinfo);
-  if (g_has_broken_neon) {
-    hwcap &= ~HWCAP_NEON;
-  }
-
   // Matching OpenSSL, only report other features if NEON is present.
+  unsigned long hwcap = getauxval(AT_HWCAP);
   if (hwcap & HWCAP_NEON) {
     OPENSSL_armcap_P |= ARMV7_NEON;
 
@@ -197,10 +120,7 @@ void OPENSSL_cpuid_setup(void) {
     // this is now rare (see Chrome's Net.NeedsHWCAP2Workaround metric), but AES
     // and PMULL extensions are very useful, so we still carry the workaround
     // for now.
-    unsigned long hwcap2 = 0;
-    if (getauxval != NULL) {
-      hwcap2 = getauxval(AT_HWCAP2);
-    }
+    unsigned long hwcap2 = getauxval(AT_HWCAP2);
     if (hwcap2 == 0) {
       hwcap2 = crypto_get_arm_hwcap2_from_cpuinfo(&cpuinfo);
       g_needs_hwcap2_workaround = hwcap2 != 0;
@@ -223,7 +143,7 @@ void OPENSSL_cpuid_setup(void) {
   OPENSSL_free(cpuinfo_data);
 }
 
-int CRYPTO_has_broken_NEON(void) { return g_has_broken_neon; }
+int CRYPTO_has_broken_NEON(void) { return 0; }
 
 int CRYPTO_needs_hwcap2_workaround(void) { return g_needs_hwcap2_workaround; }
 

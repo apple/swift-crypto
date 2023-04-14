@@ -63,7 +63,7 @@
 #include "internal.h"
 
 
-static int tr_cmp(const X509_TRUST **a, const X509_TRUST **b);
+static int tr_cmp(const X509_TRUST *const *a, const X509_TRUST *const *b);
 static void trtable_free(X509_TRUST *p);
 
 static int trust_1oidany(X509_TRUST *trust, X509 *x, int flags);
@@ -97,7 +97,7 @@ static X509_TRUST trstandard[] = {
 
 static STACK_OF(X509_TRUST) *trtable = NULL;
 
-static int tr_cmp(const X509_TRUST **a, const X509_TRUST **b) {
+static int tr_cmp(const X509_TRUST *const *a, const X509_TRUST *const *b) {
   return (*a)->trust - (*b)->trust;
 }
 
@@ -152,7 +152,6 @@ int X509_TRUST_get_by_id(int id) {
   if (!trtable) {
     return -1;
   }
-  sk_X509_TRUST_sort(trtable);
   if (!sk_X509_TRUST_find(trtable, &idx, &tmp)) {
     return -1;
   }
@@ -183,7 +182,6 @@ int X509_TRUST_add(int id, int flags, int (*ck)(X509_TRUST *, X509 *, int),
   // Need a new entry
   if (idx == -1) {
     if (!(trtmp = OPENSSL_malloc(sizeof(X509_TRUST)))) {
-      OPENSSL_PUT_ERROR(X509, ERR_R_MALLOC_FAILURE);
       return 0;
     }
     trtmp->flags = X509_TRUST_DYNAMIC;
@@ -194,7 +192,6 @@ int X509_TRUST_add(int id, int flags, int (*ck)(X509_TRUST *, X509 *, int),
   // Duplicate the supplied name.
   name_dup = OPENSSL_strdup(name);
   if (name_dup == NULL) {
-    OPENSSL_PUT_ERROR(X509, ERR_R_MALLOC_FAILURE);
     if (idx == -1) {
       OPENSSL_free(trtmp);
     }
@@ -218,16 +215,19 @@ int X509_TRUST_add(int id, int flags, int (*ck)(X509_TRUST *, X509 *, int),
 
   // If its a new entry manage the dynamic table
   if (idx == -1) {
+    // TODO(davidben): This should be locked. Alternatively, remove the dynamic
+    // registration mechanism entirely. The trouble is there no way to pass in
+    // the various parameters into an |X509_VERIFY_PARAM| directly. You can only
+    // register it in the global table and get an ID.
     if (!trtable && !(trtable = sk_X509_TRUST_new(tr_cmp))) {
-      OPENSSL_PUT_ERROR(X509, ERR_R_MALLOC_FAILURE);
       trtable_free(trtmp);
       return 0;
     }
     if (!sk_X509_TRUST_push(trtable, trtmp)) {
-      OPENSSL_PUT_ERROR(X509, ERR_R_MALLOC_FAILURE);
       trtable_free(trtmp);
       return 0;
     }
+    sk_X509_TRUST_sort(trtable);
   }
   return 1;
 }

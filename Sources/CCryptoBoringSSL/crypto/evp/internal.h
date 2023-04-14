@@ -66,6 +66,9 @@ extern "C" {
 #endif
 
 
+typedef struct evp_pkey_asn1_method_st EVP_PKEY_ASN1_METHOD;
+typedef struct evp_pkey_method_st EVP_PKEY_METHOD;
+
 struct evp_pkey_asn1_method_st {
   int pkey_id;
   uint8_t oid[9];
@@ -128,6 +131,20 @@ struct evp_pkey_asn1_method_st {
   void (*pkey_free)(EVP_PKEY *pkey);
 } /* EVP_PKEY_ASN1_METHOD */;
 
+struct evp_pkey_st {
+  CRYPTO_refcount_t references;
+
+  // type contains one of the EVP_PKEY_* values or NID_undef and determines
+  // the type of |pkey|.
+  int type;
+
+  // pkey contains a pointer to a structure dependent on |type|.
+  void *pkey;
+
+  // ameth contains a pointer to a method table that contains many ASN.1
+  // methods for the key type.
+  const EVP_PKEY_ASN1_METHOD *ameth;
+} /* EVP_PKEY */;
 
 #define EVP_PKEY_OP_UNDEFINED 0
 #define EVP_PKEY_OP_KEYGEN (1 << 2)

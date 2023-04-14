@@ -54,12 +54,14 @@
  * (eay@cryptsoft.com).  This product includes software written by Tim
  * Hudson (tjh@cryptsoft.com). */
 
+#include <limits.h>
 #include <stdio.h>
 #include <string.h>
 
 #include <CCryptoBoringSSL_digest.h>
 #include <CCryptoBoringSSL_err.h>
 #include <CCryptoBoringSSL_obj.h>
+#include <CCryptoBoringSSL_mem.h>
 #include <CCryptoBoringSSL_x509v3.h>
 
 #include "../x509/internal.h"
@@ -74,22 +76,26 @@ char *i2s_ASN1_OCTET_STRING(const X509V3_EXT_METHOD *method,
 ASN1_OCTET_STRING *s2i_ASN1_OCTET_STRING(const X509V3_EXT_METHOD *method,
                                          const X509V3_CTX *ctx,
                                          const char *str) {
-  ASN1_OCTET_STRING *oct;
-  long length;
-
-  if (!(oct = ASN1_OCTET_STRING_new())) {
-    OPENSSL_PUT_ERROR(X509V3, ERR_R_MALLOC_FAILURE);
+  size_t len;
+  uint8_t *data = x509v3_hex_to_bytes(str, &len);
+  if (data == NULL) {
     return NULL;
   }
-
-  if (!(oct->data = x509v3_hex_to_bytes(str, &length))) {
-    ASN1_OCTET_STRING_free(oct);
-    return NULL;
+  if (len > INT_MAX) {
+    OPENSSL_PUT_ERROR(X509V3, ERR_R_OVERFLOW);
+    goto err;
   }
 
-  oct->length = length;
-
+  ASN1_OCTET_STRING *oct = ASN1_OCTET_STRING_new();
+  if (oct == NULL) {
+    goto err;
+  }
+  ASN1_STRING_set0(oct, data, (int)len);
   return oct;
+
+err:
+  OPENSSL_free(data);
+  return NULL;
 }
 
 static char *i2s_ASN1_OCTET_STRING_cb(const X509V3_EXT_METHOD *method,
@@ -109,7 +115,6 @@ static void *s2i_skey_id(const X509V3_EXT_METHOD *method, const X509V3_CTX *ctx,
   }
 
   if (!(oct = ASN1_OCTET_STRING_new())) {
-    OPENSSL_PUT_ERROR(X509V3, ERR_R_MALLOC_FAILURE);
     return NULL;
   }
 
@@ -138,7 +143,6 @@ static void *s2i_skey_id(const X509V3_EXT_METHOD *method, const X509V3_CTX *ctx,
   }
 
   if (!ASN1_OCTET_STRING_set(oct, pkey_dig, diglen)) {
-    OPENSSL_PUT_ERROR(X509V3, ERR_R_MALLOC_FAILURE);
     goto err;
   }
 

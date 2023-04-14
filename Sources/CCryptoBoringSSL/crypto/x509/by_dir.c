@@ -152,7 +152,8 @@ static int new_dir(X509_LOOKUP *lu) {
 
 static void by_dir_hash_free(BY_DIR_HASH *hash) { OPENSSL_free(hash); }
 
-static int by_dir_hash_cmp(const BY_DIR_HASH **a, const BY_DIR_HASH **b) {
+static int by_dir_hash_cmp(const BY_DIR_HASH *const *a,
+                           const BY_DIR_HASH *const *b) {
   if ((*a)->hash > (*b)->hash) {
     return 1;
   }
@@ -211,7 +212,6 @@ static int add_cert_dir(BY_DIR *ctx, const char *dir, int type) {
       if (ctx->dirs == NULL) {
         ctx->dirs = sk_BY_DIR_ENTRY_new_null();
         if (!ctx->dirs) {
-          OPENSSL_PUT_ERROR(X509, ERR_R_MALLOC_FAILURE);
           return 0;
         }
       }
@@ -300,7 +300,6 @@ static int get_cert_by_subject(X509_LOOKUP *xl, int type, X509_NAME *name,
       ent = sk_BY_DIR_ENTRY_value(ctx->dirs, i);
       j = strlen(ent->dir) + 1 + 8 + 6 + 1 + 1;
       if (!BUF_MEM_grow(b, j)) {
-        OPENSSL_PUT_ERROR(X509, ERR_R_MALLOC_FAILURE);
         goto finish;
       }
       if (type == X509_LU_CRL && ent->hashes) {
@@ -319,29 +318,8 @@ static int get_cert_by_subject(X509_LOOKUP *xl, int type, X509_NAME *name,
         hent = NULL;
       }
       for (;;) {
-        char c = '/';
-#ifdef OPENSSL_SYS_VMS
-        c = ent->dir[strlen(ent->dir) - 1];
-        if (c != ':' && c != '>' && c != ']') {
-          // If no separator is present, we assume the directory
-          // specifier is a logical name, and add a colon.  We
-          // really should use better VMS routines for merging
-          // things like this, but this will do for now... --
-          // Richard Levitte
-          c = ':';
-        } else {
-          c = '\0';
-        }
-#endif
-        if (c == '\0') {
-          // This is special.  When c == '\0', no directory
-          // separator should be added.
-          BIO_snprintf(b->data, b->max, "%s%08lx.%s%d", ent->dir, h, postfix,
-                       k);
-        } else {
-          BIO_snprintf(b->data, b->max, "%s%c%08lx.%s%d", ent->dir, c, h,
-                       postfix, k);
-        }
+        BIO_snprintf(b->data, b->max, "%s/%08lx.%s%d", ent->dir, h, postfix,
+                     k);
 #ifndef OPENSSL_NO_POSIX_IO
 #if defined(_WIN32) && !defined(stat)
 #define stat _stat

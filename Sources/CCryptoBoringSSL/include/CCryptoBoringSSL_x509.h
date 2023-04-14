@@ -60,8 +60,8 @@
  * SUN MICROSYSTEMS, INC., and contributed to the OpenSSL project.
  */
 
-#ifndef HEADER_X509_H
-#define HEADER_X509_H
+#ifndef OPENSSL_HEADER_X509_H
+#define OPENSSL_HEADER_X509_H
 
 #include "CCryptoBoringSSL_asn1.h"
 #include "CCryptoBoringSSL_base.h"
@@ -146,7 +146,7 @@ OPENSSL_EXPORT X509 *X509_dup(X509 *x509);
 OPENSSL_EXPORT void X509_free(X509 *x509);
 
 // d2i_X509 parses up to |len| bytes from |*inp| as a DER-encoded X.509
-// Certificate (RFC 5280), as described in |d2i_SAMPLE_with_reuse|.
+// Certificate (RFC 5280), as described in |d2i_SAMPLE|.
 OPENSSL_EXPORT X509 *d2i_X509(X509 **out, const uint8_t **inp, long len);
 
 // X509_parse_from_buffer parses an X.509 structure from |buf| and returns a
@@ -398,8 +398,7 @@ OPENSSL_EXPORT int i2d_X509_AUX(X509 *x509, unsigned char **outp);
 
 // d2i_X509_AUX parses up to |length| bytes from |*inp| as a DER-encoded X.509
 // Certificate (RFC 5280), followed optionally by a separate, OpenSSL-specific
-// structure with auxiliary properties. It behaves as described in
-// |d2i_SAMPLE_with_reuse|.
+// structure with auxiliary properties. It behaves as described in |d2i_SAMPLE|.
 //
 // Some auxiliary properties affect trust decisions, so this function should not
 // be used with untrusted input.
@@ -414,13 +413,13 @@ OPENSSL_EXPORT X509 *d2i_X509_AUX(X509 **x509, const unsigned char **inp,
 // NULL, the alias is cleared instead. Aliases are not part of the certificate
 // itself and will not be serialized by |i2d_X509|.
 OPENSSL_EXPORT int X509_alias_set1(X509 *x509, const unsigned char *name,
-                                   int len);
+                                   ossl_ssize_t len);
 
 // X509_keyid_set1 sets |x509|'s key ID to |len| bytes from |id|. If |id| is
 // NULL, the key ID is cleared instead. Key IDs are not part of the certificate
 // itself and will not be serialized by |i2d_X509|.
 OPENSSL_EXPORT int X509_keyid_set1(X509 *x509, const unsigned char *id,
-                                   int len);
+                                   ossl_ssize_t len);
 
 // X509_alias_get0 looks up |x509|'s alias. If found, it sets |*out_len| to the
 // alias's length and returns a pointer to a buffer containing the contents. If
@@ -485,7 +484,7 @@ OPENSSL_EXPORT X509_CRL *X509_CRL_dup(X509_CRL *crl);
 OPENSSL_EXPORT void X509_CRL_free(X509_CRL *crl);
 
 // d2i_X509_CRL parses up to |len| bytes from |*inp| as a DER-encoded X.509
-// CertificateList (RFC 5280), as described in |d2i_SAMPLE_with_reuse|.
+// CertificateList (RFC 5280), as described in |d2i_SAMPLE|.
 OPENSSL_EXPORT X509_CRL *d2i_X509_CRL(X509_CRL **out, const uint8_t **inp,
                                       long len);
 
@@ -699,7 +698,7 @@ OPENSSL_EXPORT X509_REQ *X509_REQ_dup(X509_REQ *req);
 OPENSSL_EXPORT void X509_REQ_free(X509_REQ *req);
 
 // d2i_X509_REQ parses up to |len| bytes from |*inp| as a DER-encoded
-// CertificateRequest (RFC 2986), as described in |d2i_SAMPLE_with_reuse|.
+// CertificateRequest (RFC 2986), as described in |d2i_SAMPLE|.
 OPENSSL_EXPORT X509_REQ *d2i_X509_REQ(X509_REQ **out, const uint8_t **inp,
                                       long len);
 
@@ -850,7 +849,7 @@ OPENSSL_EXPORT X509_NAME *X509_NAME_new(void);
 OPENSSL_EXPORT void X509_NAME_free(X509_NAME *name);
 
 // d2i_X509_NAME parses up to |len| bytes from |*inp| as a DER-encoded X.509
-// Name (RFC 5280), as described in |d2i_SAMPLE_with_reuse|.
+// Name (RFC 5280), as described in |d2i_SAMPLE|.
 OPENSSL_EXPORT X509_NAME *d2i_X509_NAME(X509_NAME **out, const uint8_t **inp,
                                         long len);
 
@@ -938,7 +937,7 @@ OPENSSL_EXPORT int X509_NAME_add_entry(X509_NAME *name,
 // success or zero on error. The entry's attribute type is |obj|. The entry's
 // attribute value is determined by |type|, |bytes|, and |len|, as in
 // |X509_NAME_ENTRY_set_data|. The entry's position is determined by |loc| and
-// |set| as in |X509_NAME_entry|.
+// |set| as in |X509_NAME_add_entry|.
 OPENSSL_EXPORT int X509_NAME_add_entry_by_OBJ(X509_NAME *name,
                                               const ASN1_OBJECT *obj, int type,
                                               const uint8_t *bytes, int len,
@@ -970,7 +969,7 @@ OPENSSL_EXPORT X509_NAME_ENTRY *X509_NAME_ENTRY_new(void);
 OPENSSL_EXPORT void X509_NAME_ENTRY_free(X509_NAME_ENTRY *entry);
 
 // d2i_X509_NAME_ENTRY parses up to |len| bytes from |*inp| as a DER-encoded
-// AttributeTypeAndValue (RFC 5280), as described in |d2i_SAMPLE_with_reuse|.
+// AttributeTypeAndValue (RFC 5280), as described in |d2i_SAMPLE|.
 OPENSSL_EXPORT X509_NAME_ENTRY *d2i_X509_NAME_ENTRY(X509_NAME_ENTRY **out,
                                                     const uint8_t **inp,
                                                     long len);
@@ -1073,15 +1072,14 @@ OPENSSL_EXPORT X509_EXTENSION *X509_EXTENSION_new(void);
 OPENSSL_EXPORT void X509_EXTENSION_free(X509_EXTENSION *ex);
 
 // d2i_X509_EXTENSION parses up to |len| bytes from |*inp| as a DER-encoded
-// X.509 Extension (RFC 5280), as described in |d2i_SAMPLE_with_reuse|.
+// X.509 Extension (RFC 5280), as described in |d2i_SAMPLE|.
 OPENSSL_EXPORT X509_EXTENSION *d2i_X509_EXTENSION(X509_EXTENSION **out,
                                                   const uint8_t **inp,
                                                   long len);
 
-// i2d_X509_EXTENSION marshals |alg| as a DER-encoded X.509 Extension (RFC
+// i2d_X509_EXTENSION marshals |ex| as a DER-encoded X.509 Extension (RFC
 // 5280), as described in |i2d_SAMPLE|.
-OPENSSL_EXPORT int i2d_X509_EXTENSION(const X509_EXTENSION *alg,
-                                      uint8_t **outp);
+OPENSSL_EXPORT int i2d_X509_EXTENSION(const X509_EXTENSION *ex, uint8_t **outp);
 
 // X509_EXTENSION_dup returns a newly-allocated copy of |ex|, or NULL on error.
 // This function works by serializing the structure, so if |ex| is incomplete,
@@ -1149,7 +1147,7 @@ typedef STACK_OF(X509_EXTENSION) X509_EXTENSIONS;
 DECLARE_ASN1_ITEM(X509_EXTENSIONS)
 
 // d2i_X509_EXTENSIONS parses up to |len| bytes from |*inp| as a DER-encoded
-// SEQUENCE OF Extension (RFC 5280), as described in |d2i_SAMPLE_with_reuse|.
+// SEQUENCE OF Extension (RFC 5280), as described in |d2i_SAMPLE|.
 OPENSSL_EXPORT X509_EXTENSIONS *d2i_X509_EXTENSIONS(X509_EXTENSIONS **out,
                                                     const uint8_t **inp,
                                                     long len);
@@ -1235,7 +1233,7 @@ OPENSSL_EXPORT X509_ALGOR *X509_ALGOR_dup(const X509_ALGOR *alg);
 OPENSSL_EXPORT void X509_ALGOR_free(X509_ALGOR *alg);
 
 // d2i_X509_ALGOR parses up to |len| bytes from |*inp| as a DER-encoded
-// AlgorithmIdentifier, as described in |d2i_SAMPLE_with_reuse|.
+// AlgorithmIdentifier, as described in |d2i_SAMPLE|.
 OPENSSL_EXPORT X509_ALGOR *d2i_X509_ALGOR(X509_ALGOR **out, const uint8_t **inp,
                                           long len);
 
@@ -1794,7 +1792,7 @@ OPENSSL_EXPORT int NETSCAPE_SPKI_verify(NETSCAPE_SPKI *spki, EVP_PKEY *pkey);
 // If |len| is 0 or negative, the length is calculated with |strlen| and |str|
 // must be a NUL-terminated C string.
 OPENSSL_EXPORT NETSCAPE_SPKI *NETSCAPE_SPKI_b64_decode(const char *str,
-                                                       int len);
+                                                       ossl_ssize_t len);
 
 // NETSCAPE_SPKI_b64_encode encodes |spki| as a base64-encoded Netscape signed
 // public key and challenge (SPKAC) structure. It returns a newly-allocated
@@ -1837,6 +1835,14 @@ OPENSSL_EXPORT X509_REVOKED *X509_REVOKED_dup(const X509_REVOKED *rev);
 // WARNING: Unlike most comparison functions, this function returns zero on
 // error, not equality.
 OPENSSL_EXPORT int X509_cmp_time(const ASN1_TIME *s, time_t *t);
+
+// X509_cmp_time_posix compares |s| against |t|. On success, it returns a
+// negative number if |s| <= |t| and a positive number if |s| > |t|. On error,
+// it returns zero.
+//
+// WARNING: Unlike most comparison functions, this function returns zero on
+// error, not equality.
+OPENSSL_EXPORT int X509_cmp_time_posix(const ASN1_TIME *s, int64_t t);
 
 // X509_cmp_current_time behaves like |X509_cmp_time| but compares |s| against
 // the current time.
@@ -2557,9 +2563,9 @@ OPENSSL_EXPORT void X509_STORE_CTX_set_depth(X509_STORE_CTX *ctx, int depth);
 #define X509_V_FLAG_IGNORE_CRITICAL 0x10
 // Does nothing as its functionality has been enabled by default.
 #define X509_V_FLAG_X509_STRICT 0x00
-// Enable proxy certificate validation
+// This flag does nothing as proxy certificate support has been removed.
 #define X509_V_FLAG_ALLOW_PROXY_CERTS 0x40
-// Enable policy checking
+// Does nothing as its functionality has been enabled by default.
 #define X509_V_FLAG_POLICY_CHECK 0x80
 // Policy variable require-explicit-policy
 #define X509_V_FLAG_EXPLICIT_POLICY 0x100
@@ -2595,11 +2601,6 @@ OPENSSL_EXPORT void X509_STORE_CTX_set_depth(X509_STORE_CTX *ctx, int depth);
 #define X509_VP_FLAG_RESET_FLAGS 0x4
 #define X509_VP_FLAG_LOCKED 0x8
 #define X509_VP_FLAG_ONCE 0x10
-
-// Internal use: mask of policy related options
-#define X509_V_FLAG_POLICY_MASK                             \
-  (X509_V_FLAG_POLICY_CHECK | X509_V_FLAG_EXPLICIT_POLICY | \
-   X509_V_FLAG_INHIBIT_ANY | X509_V_FLAG_INHIBIT_MAP)
 
 OPENSSL_EXPORT int X509_OBJECT_idx_by_subject(STACK_OF(X509_OBJECT) *h,
                                               int type, X509_NAME *name);
@@ -2771,6 +2772,9 @@ OPENSSL_EXPORT void X509_STORE_CTX_set_flags(X509_STORE_CTX *ctx,
                                              unsigned long flags);
 OPENSSL_EXPORT void X509_STORE_CTX_set_time(X509_STORE_CTX *ctx,
                                             unsigned long flags, time_t t);
+OPENSSL_EXPORT void X509_STORE_CTX_set_time_posix(X509_STORE_CTX *ctx,
+                                                  unsigned long flags,
+                                                  int64_t t);
 OPENSSL_EXPORT void X509_STORE_CTX_set_verify_cb(
     X509_STORE_CTX *ctx, int (*verify_cb)(int, X509_STORE_CTX *));
 
@@ -2805,6 +2809,8 @@ OPENSSL_EXPORT void X509_VERIFY_PARAM_set_depth(X509_VERIFY_PARAM *param,
                                                 int depth);
 OPENSSL_EXPORT void X509_VERIFY_PARAM_set_time(X509_VERIFY_PARAM *param,
                                                time_t t);
+OPENSSL_EXPORT void X509_VERIFY_PARAM_set_time_posix(X509_VERIFY_PARAM *param,
+                                                     int64_t t);
 OPENSSL_EXPORT int X509_VERIFY_PARAM_add0_policy(X509_VERIFY_PARAM *param,
                                                  ASN1_OBJECT *policy);
 OPENSSL_EXPORT int X509_VERIFY_PARAM_set1_policies(
@@ -2832,12 +2838,8 @@ OPENSSL_EXPORT int X509_VERIFY_PARAM_get_depth(const X509_VERIFY_PARAM *param);
 OPENSSL_EXPORT const char *X509_VERIFY_PARAM_get0_name(
     const X509_VERIFY_PARAM *param);
 
-OPENSSL_EXPORT int X509_VERIFY_PARAM_add0_table(X509_VERIFY_PARAM *param);
-OPENSSL_EXPORT int X509_VERIFY_PARAM_get_count(void);
-OPENSSL_EXPORT const X509_VERIFY_PARAM *X509_VERIFY_PARAM_get0(int id);
 OPENSSL_EXPORT const X509_VERIFY_PARAM *X509_VERIFY_PARAM_lookup(
     const char *name);
-OPENSSL_EXPORT void X509_VERIFY_PARAM_table_cleanup(void);
 
 
 #if defined(__cplusplus)
@@ -2921,5 +2923,6 @@ BSSL_NAMESPACE_END
 #define X509_R_NO_CERTIFICATE_FOUND 141
 #define X509_R_NO_CERTIFICATE_OR_CRL_FOUND 142
 #define X509_R_NO_CRL_FOUND 143
+#define X509_R_INVALID_POLICY_EXTENSION 144
 
-#endif
+#endif  // OPENSSL_HEADER_X509_H

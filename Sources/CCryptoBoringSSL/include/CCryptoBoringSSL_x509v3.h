@@ -52,8 +52,8 @@
  * (eay@cryptsoft.com).  This product includes software written by Tim
  * Hudson (tjh@cryptsoft.com). */
 
-#ifndef HEADER_X509V3_H
-#define HEADER_X509V3_H
+#ifndef OPENSSL_HEADER_X509V3_H
+#define OPENSSL_HEADER_X509V3_H
 
 #include "CCryptoBoringSSL_bio.h"
 #include "CCryptoBoringSSL_conf.h"
@@ -167,7 +167,7 @@ typedef struct GENERAL_NAME_st {
     OTHERNAME *otherName;  // otherName
     ASN1_IA5STRING *rfc822Name;
     ASN1_IA5STRING *dNSName;
-    ASN1_TYPE *x400Address;
+    ASN1_STRING *x400Address;
     X509_NAME *directoryName;
     EDIPARTYNAME *ediPartyName;
     ASN1_IA5STRING *uniformResourceIdentifier;
@@ -179,7 +179,6 @@ typedef struct GENERAL_NAME_st {
     X509_NAME *dirn;        // dirn
     ASN1_IA5STRING *ia5;    // rfc822Name, dNSName, uniformResourceIdentifier
     ASN1_OBJECT *rid;       // registeredID
-    ASN1_TYPE *other;       // x400Address
   } d;
 } GENERAL_NAME;
 
@@ -298,20 +297,6 @@ typedef struct POLICY_CONSTRAINTS_st {
   ASN1_INTEGER *inhibitPolicyMapping;
 } POLICY_CONSTRAINTS;
 
-// Proxy certificate structures, see RFC 3820
-typedef struct PROXY_POLICY_st {
-  ASN1_OBJECT *policyLanguage;
-  ASN1_OCTET_STRING *policy;
-} PROXY_POLICY;
-
-typedef struct PROXY_CERT_INFO_EXTENSION_st {
-  ASN1_INTEGER *pcPathLengthConstraint;
-  PROXY_POLICY *proxyPolicy;
-} PROXY_CERT_INFO_EXTENSION;
-
-DECLARE_ASN1_FUNCTIONS_const(PROXY_POLICY)
-DECLARE_ASN1_FUNCTIONS_const(PROXY_CERT_INFO_EXTENSION)
-
 struct ISSUING_DIST_POINT_st {
   DIST_POINT_NAME *distpoint;
   int onlyuser;
@@ -353,9 +338,7 @@ struct ISSUING_DIST_POINT_st {
 #define EXFLAG_INVALID 0x80
 #define EXFLAG_SET 0x100
 #define EXFLAG_CRITICAL 0x200
-#define EXFLAG_PROXY 0x400
 
-#define EXFLAG_INVALID_POLICY 0x800
 #define EXFLAG_FRESHEST 0x1000
 // Self signed
 #define EXFLAG_SS 0x2000
@@ -428,12 +411,6 @@ DECLARE_ASN1_FUNCTIONS(AUTHORITY_KEYID)
 DECLARE_ASN1_FUNCTIONS(GENERAL_NAME)
 OPENSSL_EXPORT GENERAL_NAME *GENERAL_NAME_dup(GENERAL_NAME *a);
 
-// GENERAL_NAME_cmp returns zero if |a| and |b| are equal and a non-zero
-// value otherwise. Note this function does not provide a comparison suitable
-// for sorting.
-OPENSSL_EXPORT int GENERAL_NAME_cmp(const GENERAL_NAME *a,
-                                    const GENERAL_NAME *b);
-
 // i2v_GENERAL_NAME serializes |gen| as a |CONF_VALUE|. If |ret| is non-NULL, it
 // appends the value to |ret| and returns |ret| on success or NULL on error. If
 // it returns NULL, the caller is still responsible for freeing |ret|. If |ret|
@@ -444,9 +421,15 @@ OPENSSL_EXPORT int GENERAL_NAME_cmp(const GENERAL_NAME *a,
 // human-readable print functions. If extracting a SAN list from a certificate,
 // look at |gen| directly.
 OPENSSL_EXPORT STACK_OF(CONF_VALUE) *i2v_GENERAL_NAME(
-    const X509V3_EXT_METHOD *method, GENERAL_NAME *gen,
+    const X509V3_EXT_METHOD *method, const GENERAL_NAME *gen,
     STACK_OF(CONF_VALUE) *ret);
-OPENSSL_EXPORT int GENERAL_NAME_print(BIO *out, GENERAL_NAME *gen);
+
+// GENERAL_NAME_print prints a human-readable representation of |gen| to |out|.
+// It returns one on success and zero on error.
+//
+// TODO(davidben): Actually, it just returns one and doesn't check for I/O or
+// allocation errors. But it should return zero on error.
+OPENSSL_EXPORT int GENERAL_NAME_print(BIO *out, const GENERAL_NAME *gen);
 
 // TODO(https://crbug.com/boringssl/407): This is not const because it contains
 // an |X509_NAME|.
@@ -462,7 +445,7 @@ DECLARE_ASN1_FUNCTIONS(GENERAL_NAMES)
 // human-readable print functions. If extracting a SAN list from a certificate,
 // look at |gen| directly.
 OPENSSL_EXPORT STACK_OF(CONF_VALUE) *i2v_GENERAL_NAMES(
-    const X509V3_EXT_METHOD *method, GENERAL_NAMES *gen,
+    const X509V3_EXT_METHOD *method, const GENERAL_NAMES *gen,
     STACK_OF(CONF_VALUE) *extlist);
 OPENSSL_EXPORT GENERAL_NAMES *v2i_GENERAL_NAMES(
     const X509V3_EXT_METHOD *method, const X509V3_CTX *ctx,
@@ -470,7 +453,6 @@ OPENSSL_EXPORT GENERAL_NAMES *v2i_GENERAL_NAMES(
 
 DECLARE_ASN1_FUNCTIONS_const(OTHERNAME)
 DECLARE_ASN1_FUNCTIONS_const(EDIPARTYNAME)
-OPENSSL_EXPORT int OTHERNAME_cmp(OTHERNAME *a, OTHERNAME *b);
 OPENSSL_EXPORT void GENERAL_NAME_set0_value(GENERAL_NAME *a, int type,
                                             void *value);
 OPENSSL_EXPORT void *GENERAL_NAME_get0_value(const GENERAL_NAME *a, int *ptype);
@@ -481,8 +463,12 @@ OPENSSL_EXPORT int GENERAL_NAME_get0_otherName(const GENERAL_NAME *gen,
                                                ASN1_OBJECT **poid,
                                                ASN1_TYPE **pvalue);
 
+// i2s_ASN1_OCTET_STRING returns a human-readable representation of |oct| as a
+// newly-allocated, NUL-terminated string, or NULL on error. |method| is
+// ignored. The caller must release the result with |OPENSSL_free| when done.
 OPENSSL_EXPORT char *i2s_ASN1_OCTET_STRING(const X509V3_EXT_METHOD *method,
-                                           const ASN1_OCTET_STRING *ia5);
+                                           const ASN1_OCTET_STRING *oct);
+
 OPENSSL_EXPORT ASN1_OCTET_STRING *s2i_ASN1_OCTET_STRING(
     const X509V3_EXT_METHOD *method, const X509V3_CTX *ctx, const char *str);
 
@@ -566,8 +552,8 @@ OPENSSL_EXPORT void X509V3_conf_free(CONF_VALUE *val);
 
 // v3_ext_ctx, aka |X509V3_CTX|, contains additional context information for
 // constructing extensions. Some string formats reference additional values in
-// these objects. It must be initialized with both |X509V3_set_ctx| and
-// |X509V3_set_nconf| before use.
+// these objects. It must be initialized with |X509V3_set_ctx| or
+// |X509V3_set_ctx_test| before use.
 struct v3_ext_ctx {
   int flags;
   const X509 *issuer_cert;
@@ -579,16 +565,12 @@ struct v3_ext_ctx {
 
 #define X509V3_CTX_TEST 0x1
 
-// X509V3_set_ctx partially initializes |ctx| with the specified objects. Some
-// string formats will reference fields in these objects. Each object may be
-// NULL to omit it, in which case those formats cannot be used. |flags| should
-// be zero, unless called via |X509V3_set_ctx_test|.
+// X509V3_set_ctx initializes |ctx| with the specified objects. Some string
+// formats will reference fields in these objects. Each object may be NULL to
+// omit it, in which case those formats cannot be used. |flags| should be zero,
+// unless called via |X509V3_set_ctx_test|.
 //
 // |issuer|, |subject|, |req|, and |crl|, if non-NULL, must outlive |ctx|.
-//
-// WARNING: This function only partially initializes |ctx|. Unless otherwise
-// documented, callers must also call |X509V3_set_nconf| or
-// |X509V3_set_ctx_nodb|.
 OPENSSL_EXPORT void X509V3_set_ctx(X509V3_CTX *ctx, const X509 *issuer,
                                    const X509 *subject, const X509_REQ *req,
                                    const X509_CRL *crl, int flags);
@@ -598,21 +580,15 @@ OPENSSL_EXPORT void X509V3_set_ctx(X509V3_CTX *ctx, const X509 *issuer,
 // incomplete and should be discarded. This can be used to partially validate
 // syntax.
 //
-// WARNING: This function only partially initializes |ctx|. Unless otherwise
-// documented, callers must also call |X509V3_set_nconf| or
-// |X509V3_set_ctx_nodb|.
-//
 // TODO(davidben): Can we remove this?
 #define X509V3_set_ctx_test(ctx) \
   X509V3_set_ctx(ctx, NULL, NULL, NULL, NULL, X509V3_CTX_TEST)
 
-// X509V3_set_nconf partially initializes |ctx| with |conf| as the config
-// database. Some string formats will reference sections in |conf|. |conf| may
-// be NULL, in which case these formats cannot be used. If non-NULL, |conf| must
-// outlive |ctx|.
-//
-// WARNING: This function only partially initializes |ctx|. Callers must also
-// call |X509V3_set_ctx| or |X509V3_set_ctx_test|.
+// X509V3_set_nconf sets |ctx| to use |conf| as the config database. |ctx| must
+// have previously been initialized by |X509V3_set_ctx| or
+// |X509V3_set_ctx_test|. Some string formats will reference sections in |conf|.
+// |conf| may be NULL, in which case these formats cannot be used. If non-NULL,
+// |conf| must outlive |ctx|.
 OPENSSL_EXPORT void X509V3_set_nconf(X509V3_CTX *ctx, const CONF *conf);
 
 // X509V3_set_ctx_nodb calls |X509V3_set_nconf| with no config database.
@@ -625,8 +601,11 @@ OPENSSL_EXPORT void X509V3_set_nconf(X509V3_CTX *ctx, const CONF *conf);
 // in which case features which use it will be disabled.
 //
 // If non-NULL, |ctx| must be initialized with |X509V3_set_ctx| or
-// |X509V3_set_ctx_test|. This function implicitly calls |X509V3_set_nconf| with
-// |conf|, so it is safe to only call |X509V3_set_ctx|.
+// |X509V3_set_ctx_test|.
+//
+// Both |conf| and |ctx| provide a |CONF| object. When |ctx| is non-NULL, most
+// features use the |ctx| copy, configured with |X509V3_set_ctx|, but some use
+// |conf|. Callers should ensure the two match to avoid surprisingly behavior.
 OPENSSL_EXPORT X509_EXTENSION *X509V3_EXT_nconf(const CONF *conf,
                                                 const X509V3_CTX *ctx,
                                                 const char *name,
@@ -1035,4 +1014,4 @@ BSSL_NAMESPACE_END
 #define X509V3_R_INVALID_VALUE 163
 #define X509V3_R_TRAILING_DATA_IN_EXTENSION 164
 
-#endif
+#endif  // OPENSSL_HEADER_X509V3_H

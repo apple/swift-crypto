@@ -61,6 +61,8 @@
 #include <CCryptoBoringSSL_obj.h>
 #include <CCryptoBoringSSL_x509v3.h>
 
+#include "internal.h"
+
 
 ASN1_SEQUENCE(OTHERNAME) = {
     ASN1_SIMPLE(OTHERNAME, type_id, ASN1_OBJECT),
@@ -122,6 +124,22 @@ static int edipartyname_cmp(const EDIPARTYNAME *a, const EDIPARTYNAME *b) {
 }
 
 // Returns 0 if they are equal, != 0 otherwise.
+static int othername_cmp(const OTHERNAME *a, const OTHERNAME *b) {
+  int result = -1;
+
+  if (!a || !b) {
+    return -1;
+  }
+  // Check their type first.
+  if ((result = OBJ_cmp(a->type_id, b->type_id)) != 0) {
+    return result;
+  }
+  // Check the value.
+  result = ASN1_TYPE_cmp(a->value, b->value);
+  return result;
+}
+
+// Returns 0 if they are equal, != 0 otherwise.
 int GENERAL_NAME_cmp(const GENERAL_NAME *a, const GENERAL_NAME *b) {
   if (!a || !b || a->type != b->type) {
     return -1;
@@ -129,13 +147,13 @@ int GENERAL_NAME_cmp(const GENERAL_NAME *a, const GENERAL_NAME *b) {
 
   switch (a->type) {
     case GEN_X400:
-      return ASN1_TYPE_cmp(a->d.x400Address, b->d.x400Address);
+      return ASN1_STRING_cmp(a->d.x400Address, b->d.x400Address);
 
     case GEN_EDIPARTY:
       return edipartyname_cmp(a->d.ediPartyName, b->d.ediPartyName);
 
     case GEN_OTHERNAME:
-      return OTHERNAME_cmp(a->d.otherName, b->d.otherName);
+      return othername_cmp(a->d.otherName, b->d.otherName);
 
     case GEN_EMAIL:
     case GEN_DNS:
@@ -153,22 +171,6 @@ int GENERAL_NAME_cmp(const GENERAL_NAME *a, const GENERAL_NAME *b) {
   }
 
   return -1;
-}
-
-// Returns 0 if they are equal, != 0 otherwise.
-int OTHERNAME_cmp(OTHERNAME *a, OTHERNAME *b) {
-  int result = -1;
-
-  if (!a || !b) {
-    return -1;
-  }
-  // Check their type first.
-  if ((result = OBJ_cmp(a->type_id, b->type_id)) != 0) {
-    return result;
-  }
-  // Check the value.
-  result = ASN1_TYPE_cmp(a->value, b->value);
-  return result;
 }
 
 void GENERAL_NAME_set0_value(GENERAL_NAME *a, int type, void *value) {
