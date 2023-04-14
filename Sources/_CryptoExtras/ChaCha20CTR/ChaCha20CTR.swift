@@ -91,17 +91,19 @@ extension Insecure.ChaCha20CTR {
             self.counter = 0
         }
 
-        /// Explicitly set the Counter's offset using a little endian byte sequence
+        /// Explicitly set the Counter's offset using a byte sequence
         public init<D: DataProtocol>(data: D) throws {
             if data.count != Insecure.ChaCha20CTR.counterByteCount {
                 throw CryptoKitError.incorrectParameterSize
             }
 
-            if data.regions.count == 1 {
-                self.counter = data.regions.first!.withUnsafeBytes { $0.load(as: UInt32.self) }
-            } else {
-                self.counter = Array(data).withUnsafeBytes { $0.load(as: UInt32.self) }
-            }
+            let startIndex = data.startIndex
+            self.counter = (
+                (UInt32(data[data.index(startIndex, offsetBy: 0)]) << 0) |
+                (UInt32(data[data.index(startIndex, offsetBy: 1)]) << 8) |
+                (UInt32(data[data.index(startIndex, offsetBy: 2)]) << 16) |
+                (UInt32(data[data.index(startIndex, offsetBy: 3)]) << 24)
+            )
         }
 
         /// Explicitly set the Counter's offset using a UInt32
