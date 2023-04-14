@@ -23,7 +23,7 @@ class ChaCha20CTRTests: XCTestCase {
         let hpKey = try Array(hexString: "25a282b9e82f06f21f488917a4fc8f1b73573685608597d0efcb076b0ab7a7a4")
         /// Sample = 0x5e5cd55c41f69080575d7999c25a5bfb
         let counterAsData = try Array(hexString: "5e5cd55c")
-        let counterAsUInt32 = counterAsData.withUnsafeBytes { $0.load(as: UInt32.self) }
+        let counterAsUInt32 = UInt32(bigEndian: 0x5e5cd55c)
         let iv = try Array(hexString: "41f69080575d7999c25a5bfb")
 
         let mask: Data = try Insecure.ChaCha20CTR.encrypt(Array<UInt8>(repeating: 0, count: 5), using: SymmetricKey(data: hpKey), counter: Insecure.ChaCha20CTR.Counter(data: counterAsData), nonce: Insecure.ChaCha20CTR.Nonce(data: iv))
@@ -38,7 +38,7 @@ class ChaCha20CTRTests: XCTestCase {
         let hpKey = try Array(hexString: "d659760d2ba434a226fd37b35c69e2da8211d10c4f12538787d65645d5d1b8e2")
         /// Sample = 0xe7b6b932bc27d786f4bc2bb20f2162ba
         let counterAsData = try Array(hexString: "e7b6b932")
-        let counterAsUInt32 = counterAsData.withUnsafeBytes { $0.load(as: UInt32.self) }
+        let counterAsUInt32 = UInt32(bigEndian: 0xe7b6b932)
         let iv = try Array(hexString: "bc27d786f4bc2bb20f2162ba")
 
         let mask: Data = try Insecure.ChaCha20CTR.encrypt(Array<UInt8>(repeating: 0, count: 5), using: SymmetricKey(data: hpKey), counter: Insecure.ChaCha20CTR.Counter(data: counterAsData), nonce: Insecure.ChaCha20CTR.Nonce(data: iv))
