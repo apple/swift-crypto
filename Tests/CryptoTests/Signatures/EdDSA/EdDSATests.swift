@@ -75,4 +75,38 @@ class EdDSATests: XCTestCase {
         // This signature should be invalid
         XCTAssertFalse(privateKey.publicKey.isValidSignature(DispatchData.empty, for: DispatchData.empty))
     }
+	
+	func testCurve25519SigningPublicKeyEquatable() throws {
+		// Inequality
+		
+		// The probability of this inequality check loop
+		// accidentally failing is... 1/(2^246), i.e. low.
+		for _ in 0..<1024 {
+			XCTAssertNotEqual(
+				Curve25519.Signing.PrivateKey().publicKey,
+				Curve25519.Signing.PrivateKey().publicKey
+			)
+		}
+		
+		// Equality
+		let publicKey = Curve25519.Signing.PrivateKey().publicKey
+		XCTAssertEqual(publicKey, publicKey)
+	}
+	
+	func testCurve25519KeyAgreementPublicKeyEquatable() throws {
+		// Inequality
+		
+		// The probability of this inequality check loop
+		// accidentally failing is... 1/(2^246), i.e. low.
+		for _ in 0..<1024 {
+			XCTAssertNotEqual(
+				Curve25519.KeyAgreement.PrivateKey().publicKey,
+				Curve25519.KeyAgreement.PrivateKey().publicKey
+			)
+		}
+		
+		// Equality
+		let publicKey = Curve25519.KeyAgreement.PrivateKey().publicKey
+		XCTAssertEqual(publicKey, publicKey)
+	}
 }
