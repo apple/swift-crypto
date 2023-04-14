@@ -37,8 +37,14 @@ extension Insecure {
         /// - Returns: The encrypted ciphertext
         /// - Throws: CipherError errors
         /// - Warning: You most likely want to use the ChaChaPoly implemention with AuthenticatedData available at `Crypto.ChaChaPoly`
-        public static func encrypt<Plaintext: DataProtocol>
-        (_ message: Plaintext, using key: SymmetricKey, counter: Insecure.ChaCha20CTR.Counter = Counter(), nonce: Insecure.ChaCha20CTR.Nonce) throws -> Data {
+        public static func encrypt<
+            Plaintext: DataProtocol
+        >(
+            _ message: Plaintext,
+            using key: SymmetricKey,
+            counter: Insecure.ChaCha20CTR.Counter = Counter(),
+            nonce: Insecure.ChaCha20CTR.Nonce
+        ) throws -> Data {
             return try ChaCha20CTRImpl.encrypt(key: key, message: message, counter: counter.counter, nonce: nonce.bytes)
         }
     }
