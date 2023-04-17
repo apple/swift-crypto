@@ -227,6 +227,30 @@ int CBS_get_until_first(CBS *cbs, CBS *out, uint8_t c) {
   return CBS_get_bytes(cbs, out, split - CBS_data(cbs));
 }
 
+int CBS_get_u64_decimal(CBS *cbs, uint64_t *out) {
+  uint64_t v = 0;
+  int seen_digit = 0;
+  while (CBS_len(cbs) != 0) {
+    uint8_t c = CBS_data(cbs)[0];
+    if (!OPENSSL_isdigit(c)) {
+      break;
+    }
+    CBS_skip(cbs, 1);
+    if (// Forbid stray leading zeros.
+        (v == 0 && seen_digit) ||
+        // Check for overflow.
+        v > UINT64_MAX / 10 ||  //
+        v * 10 > UINT64_MAX - (c - '0')) {
+      return 0;
+    }
+    v = v * 10 + (c - '0');
+    seen_digit = 1;
+  }
+
+  *out = v;
+  return seen_digit;
+}
+
 // parse_base128_integer reads a big-endian base-128 integer from |cbs| and sets
 // |*out| to the result. This is the encoding used in DER for both high tag
 // number form and OID components.
@@ -456,10 +480,6 @@ int CBS_get_asn1_element(CBS *cbs, CBS *out, CBS_ASN1_TAG tag_value) {
 }
 
 int CBS_peek_asn1_tag(const CBS *cbs, CBS_ASN1_TAG tag_value) {
-  if (CBS_len(cbs) < 1) {
-    return 0;
-  }
-
   CBS copy = *cbs;
   CBS_ASN1_TAG actual_tag;
   return parse_asn1_tag(&copy, &actual_tag) && tag_value == actual_tag;
@@ -678,6 +698,29 @@ static int add_decimal(CBB *out, uint64_t v) {
   return CBB_add_bytes(out, (const uint8_t *)buf, strlen(buf));
 }
 
+int CBS_is_valid_asn1_oid(const CBS *cbs) {
+  if (CBS_len(cbs) == 0) {
+    return 0;  // OID encodings cannot be empty.
+  }
+
+  CBS copy = *cbs;
+  uint8_t v, prev = 0;
+  while (CBS_get_u8(&copy, &v)) {
+    // OID encodings are a sequence of minimally-encoded base-128 integers (see
+    // |parse_base128_integer|). If |prev|'s MSB was clear, it was the last byte
+    // of an integer (or |v| is the first byte). |v| is then the first byte of
+    // the next integer. If first byte of an integer is 0x80, it is not
+    // minimally-encoded.
+    if ((prev & 0x80) == 0 && v == 0x80) {
+      return 0;
+    }
+    prev = v;
+  }
+
+  // The last byte should must end an integer encoding.
+  return (prev & 0x80) == 0;
+}
+
 char *CBS_asn1_oid_to_text(const CBS *cbs) {
   CBB cbb;
   if (!CBB_init(&cbb, 32)) {
@@ -729,13 +772,13 @@ static int cbs_get_two_digits(CBS *cbs, int *out) {
   if (!CBS_get_u8(cbs, &first_digit)) {
     return 0;
   }
-  if (!isdigit(first_digit)) {
+  if (!OPENSSL_isdigit(first_digit)) {
     return 0;
   }
   if (!CBS_get_u8(cbs, &second_digit)) {
     return 0;
   }
-  if (!isdigit(second_digit)) {
+  if (!OPENSSL_isdigit(second_digit)) {
     return 0;
   }
   *out = (first_digit - '0') * 10 + (second_digit - '0');
