@@ -77,36 +77,37 @@ class EdDSATests: XCTestCase {
     }
 	
 	func testCurve25519SigningPublicKeyEquatable() throws {
-		// Inequality
-		
-		// The probability of this inequality check loop
-		// accidentally failing is... 1/(2^246), i.e. low.
-		for _ in 0..<1024 {
-			XCTAssertNotEqual(
-				Curve25519.Signing.PrivateKey().publicKey,
-				Curve25519.Signing.PrivateKey().publicKey
-			)
-		}
-		
 		// Equality
 		let publicKey = Curve25519.Signing.PrivateKey().publicKey
 		XCTAssertEqual(publicKey, publicKey)
-	}
-	
-	func testCurve25519KeyAgreementPublicKeyEquatable() throws {
+		
 		// Inequality
 		
 		// The probability of this inequality check loop
-		// accidentally failing is... 1/(2^246), i.e. low.
+		// accidentally failing is... 1/2^246, i.e. low.
 		for _ in 0..<1024 {
 			XCTAssertNotEqual(
-				Curve25519.KeyAgreement.PrivateKey().publicKey,
-				Curve25519.KeyAgreement.PrivateKey().publicKey
+				publicKey,
+				Curve25519.Signing.PrivateKey().publicKey
 			)
 		}
-		
+	
+	}
+	
+	func testCurve25519KeyAgreementPublicKeyEquatable() throws {
 		// Equality
 		let publicKey = Curve25519.KeyAgreement.PrivateKey().publicKey
 		XCTAssertEqual(publicKey, publicKey)
+		
+		// Inequality
+		
+		// The probability of this inequality check loop
+		// accidentally failing is... 1/2^246, i.e. low.
+		for _ in 0..<1024 {
+			XCTAssertNotEqual(
+				publicKey,
+				Curve25519.KeyAgreement.PrivateKey().publicKey
+			)
+		}
 	}
 }
