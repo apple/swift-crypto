@@ -91,7 +91,6 @@ class EdDSATests: XCTestCase {
 				Curve25519.Signing.PrivateKey().publicKey
 			)
 		}
-	
 	}
 	
 	func testCurve25519KeyAgreementPublicKeyEquatable() throws {
@@ -109,5 +108,21 @@ class EdDSATests: XCTestCase {
 				Curve25519.KeyAgreement.PrivateKey().publicKey
 			)
 		}
+	}
+	
+	func testCurve25519SigningPublicKeyHashable() throws {
+		let expectedCount = 1000
+		let set = Set((0..<expectedCount).map { _ in
+			Curve25519.Signing.PrivateKey().publicKey
+		})
+		XCTAssertEqual(set.count, expectedCount)
+	}
+	
+	func testCurve25519KeyAgreementPublicKeyHashable() throws {
+		let expectedCount = 1000
+		let set = Set((0..<expectedCount).map { _ in
+			Curve25519.KeyAgreement.PrivateKey().publicKey
+		})
+		XCTAssertEqual(set.count, expectedCount)
 	}
 }

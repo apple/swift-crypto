@@ -26,7 +26,7 @@ extension Curve25519 {
         typealias Curve25519PublicKeyImpl = Curve25519.KeyAgreement.OpenSSLCurve25519PublicKeyImpl
         #endif
 
-        public struct PublicKey: ECPublicKey, Equatable {
+        public struct PublicKey: ECPublicKey, Hashable {
             fileprivate var baseKey: Curve25519PublicKeyImpl
 
             /// Initializes a Curve25519 Key for Key Agreement.
@@ -56,7 +56,11 @@ extension Curve25519 {
             }
 			
 			public static func ==(lhs: Self, rhs: Self) -> Bool {
-				lhs.rawRepresentation == rhs.rawRepresentation
+				return lhs.rawRepresentation == rhs.rawRepresentation
+			}
+			
+			public func hash(into hasher: inout Hasher) {
+				self.withUnsafeBytes { hasher.combine(bytes: $0) }
 			}
         }
 
