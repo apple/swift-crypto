@@ -82,7 +82,7 @@ add_library(Crypto
   "Util/Zeroization.swift")
 
 target_compile_definitions(Crypto PRIVATE
-  CRYPTO_IN_SWIFTPM_FORCE_BUILD_API)
+  "$<$<COMPILE_LANGUAGE:Swift>:CRYPTO_IN_SWIFTPM>")
 target_include_directories(Crypto PRIVATE
   $<TARGET_PROPERTY:CCryptoBoringSSL,INCLUDE_DIRECTORIES>
   $<TARGET_PROPERTY:CCryptoBoringSSLShims,INCLUDE_DIRECTORIES>
