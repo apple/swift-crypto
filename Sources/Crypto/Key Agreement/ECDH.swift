@@ -92,6 +92,10 @@ extension P256 {
 			public static func ==(lhs: Self, rhs: Self) -> Bool {
 				lhs.rawRepresentation == rhs.rawRepresentation
 			}
+
+			public func hash(into hasher: inout Hasher) {
+				hasher.combine(rawRepresentation)
+			}
         }
 
         public struct PrivateKey: NISTECPrivateKey {
@@ -229,6 +233,10 @@ extension P256 {
 			
 			public static func ==(lhs: Self, rhs: Self) -> Bool {
 				lhs.rawRepresentation == rhs.rawRepresentation
+			}
+
+			public func hash(into hasher: inout Hasher) {
+				hasher.combine(rawRepresentation)
 			}
         }
 
@@ -368,6 +376,10 @@ extension P384 {
 			public static func ==(lhs: Self, rhs: Self) -> Bool {
 				lhs.rawRepresentation == rhs.rawRepresentation
 			}
+
+			public func hash(into hasher: inout Hasher) {
+				hasher.combine(rawRepresentation)
+			}
         }
 
         public struct PrivateKey: NISTECPrivateKey {
@@ -505,6 +517,10 @@ extension P384 {
 			
 			public static func ==(lhs: Self, rhs: Self) -> Bool {
 				lhs.rawRepresentation == rhs.rawRepresentation
+			}
+
+			public func hash(into hasher: inout Hasher) {
+				hasher.combine(rawRepresentation)
 			}
         }
 
@@ -644,6 +660,10 @@ extension P521 {
 			public static func ==(lhs: Self, rhs: Self) -> Bool {
 				lhs.rawRepresentation == rhs.rawRepresentation
 			}
+
+			public func hash(into hasher: inout Hasher) {
+				hasher.combine(rawRepresentation)
+			}
         }
 
         public struct PrivateKey: NISTECPrivateKey {
@@ -781,6 +801,10 @@ extension P521 {
 			
 			public static func ==(lhs: Self, rhs: Self) -> Bool {
 				lhs.rawRepresentation == rhs.rawRepresentation
+			}
+
+			public func hash(into hasher: inout Hasher) {
+				hasher.combine(rawRepresentation)
 			}
         }
 

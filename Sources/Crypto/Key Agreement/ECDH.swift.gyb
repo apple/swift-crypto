@@ -98,6 +98,10 @@ extension ${CURVE} {
 			public static func ==(lhs: Self, rhs: Self) -> Bool {
 				lhs.rawRepresentation == rhs.rawRepresentation
 			}
+
+			public func hash(into hasher: inout Hasher) {
+				hasher.combine(rawRepresentation)
+			}
         }
 
         public struct PrivateKey: NISTECPrivateKey {

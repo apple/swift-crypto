@@ -537,5 +537,54 @@ class SignatureTests: XCTestCase {
 			)
 		}
 	}
+	
+	func testP256SigningPublicKeyHashable() throws {
+		let expectedCount = 64
+		let set = Set((0..<expectedCount).map { _ in
+			P256.Signing.PrivateKey().publicKey
+		})
+		XCTAssertEqual(set.count, expectedCount)
+	}
+	
+	func testP256KeyAgreementPublicKeyHashable() throws {
+		let expectedCount = 64
+		let set = Set((0..<expectedCount).map { _ in
+			P256.KeyAgreement.PrivateKey().publicKey
+		})
+		XCTAssertEqual(set.count, expectedCount)
+	}
+	
+	func testP384SigningPublicKeyHashable() throws {
+		let expectedCount = 64
+		let set = Set((0..<expectedCount).map { _ in
+			P384.Signing.PrivateKey().publicKey
+		})
+		XCTAssertEqual(set.count, expectedCount)
+	}
+	
+	func testP384KeyAgreementPublicKeyHashable() throws {
+		let expectedCount = 64
+		let set = Set((0..<expectedCount).map { _ in
+			P384.KeyAgreement.PrivateKey().publicKey
+		})
+		XCTAssertEqual(set.count, expectedCount)
+	}
+	
+	func testP521SigningPublicKeyHashable() throws {
+		let expectedCount = 64
+		let set = Set((0..<expectedCount).map { _ in
+			P521.Signing.PrivateKey().publicKey
+		})
+		XCTAssertEqual(set.count, expectedCount)
+	}
+	
+	func testP521KeyAgreementPublicKeyHashable() throws {
+		let expectedCount = 64
+		let set = Set((0..<expectedCount).map { _ in
+			P521.KeyAgreement.PrivateKey().publicKey
+		})
+		XCTAssertEqual(set.count, expectedCount)
+	}
+
 }
 #endif // (os(macOS) || os(iOS) || os(watchOS) || os(tvOS)) && CRYPTO_IN_SWIFTPM
