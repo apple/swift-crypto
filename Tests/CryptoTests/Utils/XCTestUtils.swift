@@ -42,7 +42,7 @@ extension XCTestCase {
     /// Unwraps the given optional value, or if it is nil, throws an error and
     /// registers an XCTest failure. Meant to be used in a test method that has
     /// been marked as `throws`.
-    /// - Note: this is a replacement for `XCTUnwrap`, which is not availble
+    /// - Note: this is a replacement for `XCTUnwrap`, which is not available
     /// in SPM command line builds as of this writing: <https://bugs.swift.org/browse/SR-11501>
     func unwrap<T>(_ optional: T?, file: StaticString = (#file), line: UInt = #line) throws -> T {
         guard let wrapped = optional else {
