@@ -121,4 +121,11 @@ class DigestsTests: XCTestCase {
         XCTAssertEqual(SHA384.blockByteCount, 128)
         XCTAssertEqual(SHA512.blockByteCount, 128)
     }
+    
+    func testComparisonOperators() {
+        XCTAssertTrue(SHA256.hash(data: [1, 2, 3, 4]) == SHA256.hash(data: [1, 2, 3, 4]))
+        XCTAssertTrue(SHA256.hash(data: [1, 2, 3, 4]) != SHA256.hash(data: [5, 6, 7, 8]))
+        XCTAssertTrue(SHA256.hash(data: [1, 2, 3, 4]) == Data(SHA256.hash(data: [1, 2, 3, 4])))
+        XCTAssertTrue(SHA256.hash(data: [1, 2, 3, 4]) != Data(SHA256.hash(data: [5, 6, 7, 8])))
+    }
 }
