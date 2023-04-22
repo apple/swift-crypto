@@ -11,10 +11,11 @@
 // SPDX-License-Identifier: Apache-2.0
 //
 //===----------------------------------------------------------------------===//
+import Foundation
+
 #if (os(macOS) || os(iOS) || os(watchOS) || os(tvOS)) && CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
 @_exported import CryptoKit
 #else
-import Foundation
 
 /// A protocol defining requirements for digests
 public protocol Digest: Hashable, ContiguousBytes, CustomStringConvertible, Sequence where Element == UInt8 {
@@ -52,7 +53,7 @@ extension Digest {
 extension Digest {
     public static func == (lhs: Self, rhs: Self) -> Bool {
         return safeCompare(lhs, rhs)
-	}
+    }
     
     public static func == <D: DataProtocol>(lhs: Self, rhs: D) -> Bool {
         if rhs.regions.count != 1 {
@@ -62,9 +63,24 @@ extension Digest {
             return safeCompare(lhs, rhs.regions.first!)
         }
     }
-
+    
     public var description: String {
         return "\(Self.self): \(Array(self).hexString)"
     }
 }
 #endif // Linux or !SwiftPM
+
+extension Digest {
+    
+    /// Determines whether a digest is not equal to a collection of contiguous bytes.
+    ///
+    /// - Parameters:
+    ///   - lhs: A digest to compare.
+    ///   - rhs: A collection of contiguous bytes to compare.
+    ///
+    /// - Returns: A Boolean value that’s `true` if the digest is not equal to the collection of binary data.
+    public static func != <D: DataProtocol>(lhs: Self, rhs: D) -> Bool {
+        return !(lhs == rhs)
+    }
+    
+}

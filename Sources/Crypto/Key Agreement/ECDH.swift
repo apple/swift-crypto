@@ -123,7 +123,7 @@ extension P256 {
             public init<Bytes: RandomAccessCollection>(derRepresentation: Bytes) throws where Bytes.Element == UInt8 {
                 let bytes = Array(derRepresentation)
 
-                // We have to try to parse this twice because we have no informaton about what kind of key this is.
+                // We have to try to parse this twice because we have no information about what kind of key this is.
                 // We try with PKCS#8 first, and then fall back to SEC.1.
 
                 do {
@@ -257,7 +257,7 @@ extension P256 {
             public init<Bytes: RandomAccessCollection>(derRepresentation: Bytes) throws where Bytes.Element == UInt8 {
                 let bytes = Array(derRepresentation)
 
-                // We have to try to parse this twice because we have no informaton about what kind of key this is.
+                // We have to try to parse this twice because we have no information about what kind of key this is.
                 // We try with PKCS#8 first, and then fall back to SEC.1.
 
                 do {
@@ -391,7 +391,7 @@ extension P384 {
             public init<Bytes: RandomAccessCollection>(derRepresentation: Bytes) throws where Bytes.Element == UInt8 {
                 let bytes = Array(derRepresentation)
 
-                // We have to try to parse this twice because we have no informaton about what kind of key this is.
+                // We have to try to parse this twice because we have no information about what kind of key this is.
                 // We try with PKCS#8 first, and then fall back to SEC.1.
 
                 do {
@@ -525,7 +525,7 @@ extension P384 {
             public init<Bytes: RandomAccessCollection>(derRepresentation: Bytes) throws where Bytes.Element == UInt8 {
                 let bytes = Array(derRepresentation)
 
-                // We have to try to parse this twice because we have no informaton about what kind of key this is.
+                // We have to try to parse this twice because we have no information about what kind of key this is.
                 // We try with PKCS#8 first, and then fall back to SEC.1.
 
                 do {
@@ -659,7 +659,7 @@ extension P521 {
             public init<Bytes: RandomAccessCollection>(derRepresentation: Bytes) throws where Bytes.Element == UInt8 {
                 let bytes = Array(derRepresentation)
 
-                // We have to try to parse this twice because we have no informaton about what kind of key this is.
+                // We have to try to parse this twice because we have no information about what kind of key this is.
                 // We try with PKCS#8 first, and then fall back to SEC.1.
 
                 do {
@@ -793,7 +793,7 @@ extension P521 {
             public init<Bytes: RandomAccessCollection>(derRepresentation: Bytes) throws where Bytes.Element == UInt8 {
                 let bytes = Array(derRepresentation)
 
-                // We have to try to parse this twice because we have no informaton about what kind of key this is.
+                // We have to try to parse this twice because we have no information about what kind of key this is.
                 // We try with PKCS#8 first, and then fall back to SEC.1.
 
                 do {
