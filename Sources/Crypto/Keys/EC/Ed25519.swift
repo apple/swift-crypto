@@ -57,7 +57,7 @@ extension Curve25519 {
             }
         }
 
-        public struct PublicKey {
+		public struct PublicKey: Hashable {
             private var baseKey: Curve25519.Signing.Curve25519PublicKeyImpl
 
             public init<D: ContiguousBytes>(rawRepresentation: D) throws {
@@ -75,6 +75,18 @@ extension Curve25519 {
             var keyBytes: [UInt8] {
                 return self.baseKey.keyBytes
             }
+			
+			private func withUnsafeBytes<R>(_ body: (UnsafeRawBufferPointer) throws -> R) rethrows -> R {
+				return try self.baseKey.keyBytes.withUnsafeBytes(body)
+			}
+			
+			public static func ==(lhs: Self, rhs: Self) -> Bool {
+				return lhs.rawRepresentation == rhs.rawRepresentation
+			}
+			
+			public func hash(into hasher: inout Hasher) {
+				return self.withUnsafeBytes { hasher.combine(bytes: $0) }
+			}
         }
     }
 }
