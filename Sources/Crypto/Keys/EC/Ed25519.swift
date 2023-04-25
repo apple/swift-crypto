@@ -57,7 +57,7 @@ extension Curve25519 {
             }
         }
 
-        public struct PublicKey {
+		public struct PublicKey: Equatable {
             private var baseKey: Curve25519.Signing.Curve25519PublicKeyImpl
 
             public init<D: ContiguousBytes>(rawRepresentation: D) throws {
@@ -75,6 +75,10 @@ extension Curve25519 {
             var keyBytes: [UInt8] {
                 return self.baseKey.keyBytes
             }
+			
+			public static func ==(lhs: Self, rhs: Self) -> Bool {
+				lhs.rawRepresentation == rhs.rawRepresentation
+			}
         }
     }
 }
