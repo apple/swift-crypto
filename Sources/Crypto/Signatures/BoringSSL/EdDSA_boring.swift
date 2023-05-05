@@ -21,11 +21,11 @@ import Foundation
 extension Curve25519.Signing.PublicKey {
     // We do this to enable inlinability on these methods.
     @usableFromInline
-    static let signatureLength = Curve25519.Signing.signatureLength
+    static let signatureByteCount = Curve25519.Signing.signatureByteCount
 
     @inlinable
     func openSSLIsValidSignature<S: DataProtocol, D: DataProtocol>(_ signature: S, for data: D) -> Bool {
-        if signature.count != Curve25519.Signing.PublicKey.signatureLength {
+        if signature.count != Curve25519.Signing.PublicKey.signatureByteCount {
             return false
         }
 
@@ -58,7 +58,7 @@ extension Curve25519.Signing.PublicKey {
     // We need this factored out because self.keyBytes is not @usableFromInline, and so we can't see it.
     @usableFromInline
     func openSSLIsValidSignature(signaturePointer: UnsafeRawBufferPointer, dataPointer: UnsafeRawBufferPointer) -> Bool {
-        precondition(signaturePointer.count == Curve25519.Signing.PublicKey.signatureLength)
+        precondition(signaturePointer.count == Curve25519.Signing.PublicKey.signatureByteCount)
         precondition(self.keyBytes.count == 32)
         let rc: CInt = self.keyBytes.withUnsafeBytes { keyBytesPtr in
             CCryptoBoringSSLShims_ED25519_verify(dataPointer.baseAddress,
@@ -90,11 +90,11 @@ extension Curve25519.Signing.PrivateKey {
 
     @usableFromInline
     func openSSLSignature(forDataPointer dataPointer: UnsafeRawBufferPointer) throws -> Data {
-        var signature = Data(repeating: 0, count: Curve25519.Signing.PublicKey.signatureLength)
+        var signature = Data(repeating: 0, count: Curve25519.Signing.PublicKey.signatureByteCount)
 
         let rc: CInt = signature.withUnsafeMutableBytes { signaturePointer in
             self.key.withUnsafeBytes { keyPointer in
-                precondition(signaturePointer.count == Curve25519.Signing.PublicKey.signatureLength)
+                precondition(signaturePointer.count == Curve25519.Signing.PublicKey.signatureByteCount)
                 precondition(keyPointer.count == ED25519_PRIVATE_KEY_LEN)
 
                 return CCryptoBoringSSLShims_ED25519_sign(signaturePointer.baseAddress, dataPointer.baseAddress, dataPointer.count, keyPointer.baseAddress)

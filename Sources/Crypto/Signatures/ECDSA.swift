@@ -33,16 +33,19 @@ protocol NISTSigning {
 }
 
 // MARK: - P256 + Signing
-/// An ECDSA (Elliptic Curve Digital Signature Algorithm) Signature
 extension P256.Signing {
+
+    /// A P-256 elliptic curve digital signature algorithm (ECDSA) signature.
     public struct ECDSASignature: ContiguousBytes, NISTECDSASignature {
-        /// Returns the raw signature.
-        /// The raw signature format for ECDSA is r || s
+        
+        /// A raw data representation of a P-256 digital signature.
         public var rawRepresentation: Data
 
-        /// Initializes ECDSASignature from the raw representation.
-        /// The raw signature format for ECDSA is r || s
-        /// As defined in https://tools.ietf.org/html/rfc4754
+        /// Creates a P-256 digital signature from a raw representation.
+        ///
+        /// - Parameters:
+        ///   - rawRepresentation: A raw representation of the signature as a
+        /// collection of contiguous bytes.
         public init<D: DataProtocol>(rawRepresentation: D) throws {
             guard rawRepresentation.count == 2 * P256.coordinateByteCount else {
                 throw CryptoKitError.incorrectParameterSize
@@ -66,7 +69,12 @@ extension P256.Signing {
             return (combined.prefix(upTo: half), combined.suffix(from: half))
         }
 
-        /// Initializes ECDSASignature from the DER representation.
+        /// Creates a P-256 digital signature from a Distinguished Encoding
+        /// Rules (DER) encoded representation.
+        ///
+        /// - Parameters:
+        ///   - derRepresentation: The DER-encoded representation of the
+        /// signature.
         public init<D: DataProtocol>(derRepresentation: D) throws {
             #if os(iOS) && (arch(arm) || arch(i386))
             fatalError("Unsupported architecture")
@@ -93,11 +101,14 @@ extension P256.Signing {
             #endif
         }
 
+        /// Invokes the given closure with a buffer pointer covering the raw
+        /// bytes of the signature.
         public func withUnsafeBytes<R>(_ body: (UnsafeRawBufferPointer) throws -> R) rethrows -> R {
             try self.rawRepresentation.withUnsafeBytes(body)
         }
 
-        /// A DER-encoded representation of the signature
+        /// A Distinguished Encoding Rules (DER) encoded representation of a
+        /// P-256 digital signature.
         public var derRepresentation: Data {
             #if os(iOS) && (arch(arm) || arch(i386))
             fatalError("Unsupported architecture")
@@ -120,11 +131,14 @@ extension P256.Signing: NISTSigning {}
 
 // MARK: - P256 + PrivateKey
 extension P256.Signing.PrivateKey: DigestSigner {
-    ///  Generates an ECDSA signature over the P256 elliptic curve.
+    /// Generates an Elliptic Curve Digital Signature Algorithm (ECDSA)
+    /// signature of the digest you provide over the P-256 elliptic curve.
     ///
-    /// - Parameter digest: The digest to sign.
-    /// - Returns: The ECDSA Signature.
-    /// - Throws: If there is a failure producing the signature
+    /// - Parameters:
+    ///   - digest: The digest of the data to sign.
+    /// - Returns: The signature corresponding to the digest. The signing
+    /// algorithm employs randomization to generate a different signature on
+    /// every call, even for the same data and key.
     public func signature<D: Digest>(for digest: D) throws -> P256.Signing.ECDSASignature {
         #if (os(macOS) || os(iOS) || os(watchOS) || os(tvOS)) && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
         return try self.coreCryptoSignature(for: digest)
@@ -134,24 +148,30 @@ extension P256.Signing.PrivateKey: DigestSigner {
     }
  }
 
- extension P256.Signing.PrivateKey: Signer {
-    /// Generates an ECDSA signature over the P256 elliptic curve.
-    /// SHA256 is used as the hash function.
+extension P256.Signing.PrivateKey: Signer {
+    /// Generates an Elliptic Curve Digital Signature Algorithm (ECDSA)
+    /// signature of the data you provide over the P-256 elliptic curve,
+    /// using SHA-256 as the hash function.
     ///
-    /// - Parameter data: The data to sign.
-    /// - Returns: The ECDSA Signature.
-    /// - Throws: If there is a failure producing the signature.
+    /// - Parameters:
+    ///   - data: The data to sign.
+    /// - Returns: The signature corresponding to the data. The signing
+    /// algorithm employs randomization to generate a different signature on
+    /// every call, even for the same data and key.
     public func signature<D: DataProtocol>(for data: D) throws -> P256.Signing.ECDSASignature {
         return try self.signature(for: SHA256.hash(data: data))
     }
- }
+}
+
 extension P256.Signing.PublicKey: DigestValidator {
-    /// Verifies an ECDSA signature over the P256 elliptic curve.
+    /// Verifies an elliptic curve digital signature algorithm (ECDSA)
+    /// signature on a digest over the P-256 elliptic curve.
     ///
     /// - Parameters:
-    ///   - signature: The signature to verify
-    ///   - digest: The digest that was signed.
-    /// - Returns: True if the signature is valid, false otherwise.
+    ///   - signature: The signature to verify.
+    ///   - digest: The signed digest.
+    /// - Returns: A Boolean value that’s `true` if the signature is valid for
+    /// the given digest; otherwise, `false`.
     public func isValidSignature<D: Digest>(_ signature: P256.Signing.ECDSASignature, for digest: D) -> Bool {
         #if (os(macOS) || os(iOS) || os(watchOS) || os(tvOS)) && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
         return self.coreCryptoIsValidSignature(signature, for: digest)
@@ -162,29 +182,33 @@ extension P256.Signing.PublicKey: DigestValidator {
 }
 
 extension P256.Signing.PublicKey: DataValidator {
-    /// Verifies an ECDSA signature over the P256 elliptic curve.
-    /// SHA256 is used as the hash function.
+    /// Verifies an elliptic curve digital signature algorithm (ECDSA)
+    /// signature on a block of data over the P-256 elliptic curve.
     ///
     /// - Parameters:
-    ///   - signature: The signature to verify
-    ///   - data: The data that was signed.
-    /// - Returns: True if the signature is valid, false otherwise.
+    ///   - signature: The signature to verify.
+    ///   - data: The signed data.
+    /// - Returns: A Boolean value that’s `true` if the signature is valid for
+    /// the given data; otherwise, `false`.
     public func isValidSignature<D: DataProtocol>(_ signature: P256.Signing.ECDSASignature, for data: D) -> Bool {
         return self.isValidSignature(signature, for: SHA256.hash(data: data))
     }
  }
 
 // MARK: - P384 + Signing
-/// An ECDSA (Elliptic Curve Digital Signature Algorithm) Signature
 extension P384.Signing {
+
+    /// A P-384 elliptic curve digital signature algorithm (ECDSA) signature.
     public struct ECDSASignature: ContiguousBytes, NISTECDSASignature {
-        /// Returns the raw signature.
-        /// The raw signature format for ECDSA is r || s
+        
+        /// A raw data representation of a P-384 digital signature.
         public var rawRepresentation: Data
 
-        /// Initializes ECDSASignature from the raw representation.
-        /// The raw signature format for ECDSA is r || s
-        /// As defined in https://tools.ietf.org/html/rfc4754
+        /// Creates a P-384 digital signature from a raw representation.
+        ///
+        /// - Parameters:
+        ///   - rawRepresentation: A raw representation of the signature as a
+        /// collection of contiguous bytes.
         public init<D: DataProtocol>(rawRepresentation: D) throws {
             guard rawRepresentation.count == 2 * P384.coordinateByteCount else {
                 throw CryptoKitError.incorrectParameterSize
@@ -208,7 +232,12 @@ extension P384.Signing {
             return (combined.prefix(upTo: half), combined.suffix(from: half))
         }
 
-        /// Initializes ECDSASignature from the DER representation.
+        /// Creates a P-384 digital signature from a Distinguished Encoding
+        /// Rules (DER) encoded representation.
+        ///
+        /// - Parameters:
+        ///   - derRepresentation: The DER-encoded representation of the
+        /// signature.
         public init<D: DataProtocol>(derRepresentation: D) throws {
             #if os(iOS) && (arch(arm) || arch(i386))
             fatalError("Unsupported architecture")
@@ -235,11 +264,14 @@ extension P384.Signing {
             #endif
         }
 
+        /// Invokes the given closure with a buffer pointer covering the raw
+        /// bytes of the signature.
         public func withUnsafeBytes<R>(_ body: (UnsafeRawBufferPointer) throws -> R) rethrows -> R {
             try self.rawRepresentation.withUnsafeBytes(body)
         }
 
-        /// A DER-encoded representation of the signature
+        /// A Distinguished Encoding Rules (DER) encoded representation of a
+        /// P-384 digital signature.
         public var derRepresentation: Data {
             #if os(iOS) && (arch(arm) || arch(i386))
             fatalError("Unsupported architecture")
@@ -262,11 +294,14 @@ extension P384.Signing: NISTSigning {}
 
 // MARK: - P384 + PrivateKey
 extension P384.Signing.PrivateKey: DigestSigner {
-    ///  Generates an ECDSA signature over the P384 elliptic curve.
+    /// Generates an Elliptic Curve Digital Signature Algorithm (ECDSA)
+    /// signature of the digest you provide over the P-384 elliptic curve.
     ///
-    /// - Parameter digest: The digest to sign.
-    /// - Returns: The ECDSA Signature.
-    /// - Throws: If there is a failure producing the signature
+    /// - Parameters:
+    ///   - digest: The digest of the data to sign.
+    /// - Returns: The signature corresponding to the digest. The signing
+    /// algorithm employs randomization to generate a different signature on
+    /// every call, even for the same data and key.
     public func signature<D: Digest>(for digest: D) throws -> P384.Signing.ECDSASignature {
         #if (os(macOS) || os(iOS) || os(watchOS) || os(tvOS)) && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
         return try self.coreCryptoSignature(for: digest)
@@ -276,24 +311,30 @@ extension P384.Signing.PrivateKey: DigestSigner {
     }
  }
 
- extension P384.Signing.PrivateKey: Signer {
-    /// Generates an ECDSA signature over the P384 elliptic curve.
-    /// SHA384 is used as the hash function.
+extension P384.Signing.PrivateKey: Signer {
+    /// Generates an Elliptic Curve Digital Signature Algorithm (ECDSA)
+    /// signature of the data you provide over the P-384 elliptic curve,
+    /// using SHA-384 as the hash function.
     ///
-    /// - Parameter data: The data to sign.
-    /// - Returns: The ECDSA Signature.
-    /// - Throws: If there is a failure producing the signature.
+    /// - Parameters:
+    ///   - data: The data to sign.
+    /// - Returns: The signature corresponding to the data. The signing
+    /// algorithm employs randomization to generate a different signature on
+    /// every call, even for the same data and key.
     public func signature<D: DataProtocol>(for data: D) throws -> P384.Signing.ECDSASignature {
         return try self.signature(for: SHA384.hash(data: data))
     }
- }
+}
+
 extension P384.Signing.PublicKey: DigestValidator {
-    /// Verifies an ECDSA signature over the P384 elliptic curve.
+    /// Verifies an elliptic curve digital signature algorithm (ECDSA)
+    /// signature on a digest over the P-384 elliptic curve.
     ///
     /// - Parameters:
-    ///   - signature: The signature to verify
-    ///   - digest: The digest that was signed.
-    /// - Returns: True if the signature is valid, false otherwise.
+    ///   - signature: The signature to verify.
+    ///   - digest: The signed digest.
+    /// - Returns: A Boolean value that’s `true` if the signature is valid for
+    /// the given digest; otherwise, `false`.
     public func isValidSignature<D: Digest>(_ signature: P384.Signing.ECDSASignature, for digest: D) -> Bool {
         #if (os(macOS) || os(iOS) || os(watchOS) || os(tvOS)) && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
         return self.coreCryptoIsValidSignature(signature, for: digest)
@@ -304,29 +345,33 @@ extension P384.Signing.PublicKey: DigestValidator {
 }
 
 extension P384.Signing.PublicKey: DataValidator {
-    /// Verifies an ECDSA signature over the P384 elliptic curve.
-    /// SHA384 is used as the hash function.
+    /// Verifies an elliptic curve digital signature algorithm (ECDSA)
+    /// signature on a block of data over the P-384 elliptic curve.
     ///
     /// - Parameters:
-    ///   - signature: The signature to verify
-    ///   - data: The data that was signed.
-    /// - Returns: True if the signature is valid, false otherwise.
+    ///   - signature: The signature to verify.
+    ///   - data: The signed data.
+    /// - Returns: A Boolean value that’s `true` if the signature is valid for
+    /// the given data; otherwise, `false`.
     public func isValidSignature<D: DataProtocol>(_ signature: P384.Signing.ECDSASignature, for data: D) -> Bool {
         return self.isValidSignature(signature, for: SHA384.hash(data: data))
     }
  }
 
 // MARK: - P521 + Signing
-/// An ECDSA (Elliptic Curve Digital Signature Algorithm) Signature
 extension P521.Signing {
+
+    /// A P-521 elliptic curve digital signature algorithm (ECDSA) signature.
     public struct ECDSASignature: ContiguousBytes, NISTECDSASignature {
-        /// Returns the raw signature.
-        /// The raw signature format for ECDSA is r || s
+        
+        /// A raw data representation of a P-521 digital signature.
         public var rawRepresentation: Data
 
-        /// Initializes ECDSASignature from the raw representation.
-        /// The raw signature format for ECDSA is r || s
-        /// As defined in https://tools.ietf.org/html/rfc4754
+        /// Creates a P-521 digital signature from a raw representation.
+        ///
+        /// - Parameters:
+        ///   - rawRepresentation: A raw representation of the signature as a
+        /// collection of contiguous bytes.
         public init<D: DataProtocol>(rawRepresentation: D) throws {
             guard rawRepresentation.count == 2 * P521.coordinateByteCount else {
                 throw CryptoKitError.incorrectParameterSize
@@ -350,7 +395,12 @@ extension P521.Signing {
             return (combined.prefix(upTo: half), combined.suffix(from: half))
         }
 
-        /// Initializes ECDSASignature from the DER representation.
+        /// Creates a P-521 digital signature from a Distinguished Encoding
+        /// Rules (DER) encoded representation.
+        ///
+        /// - Parameters:
+        ///   - derRepresentation: The DER-encoded representation of the
+        /// signature.
         public init<D: DataProtocol>(derRepresentation: D) throws {
             #if os(iOS) && (arch(arm) || arch(i386))
             fatalError("Unsupported architecture")
@@ -377,11 +427,14 @@ extension P521.Signing {
             #endif
         }
 
+        /// Invokes the given closure with a buffer pointer covering the raw
+        /// bytes of the signature.
         public func withUnsafeBytes<R>(_ body: (UnsafeRawBufferPointer) throws -> R) rethrows -> R {
             try self.rawRepresentation.withUnsafeBytes(body)
         }
 
-        /// A DER-encoded representation of the signature
+        /// A Distinguished Encoding Rules (DER) encoded representation of a
+        /// P-521 digital signature.
         public var derRepresentation: Data {
             #if os(iOS) && (arch(arm) || arch(i386))
             fatalError("Unsupported architecture")
@@ -404,11 +457,14 @@ extension P521.Signing: NISTSigning {}
 
 // MARK: - P521 + PrivateKey
 extension P521.Signing.PrivateKey: DigestSigner {
-    ///  Generates an ECDSA signature over the P521 elliptic curve.
+    /// Generates an Elliptic Curve Digital Signature Algorithm (ECDSA)
+    /// signature of the digest you provide over the P-521 elliptic curve.
     ///
-    /// - Parameter digest: The digest to sign.
-    /// - Returns: The ECDSA Signature.
-    /// - Throws: If there is a failure producing the signature
+    /// - Parameters:
+    ///   - digest: The digest of the data to sign.
+    /// - Returns: The signature corresponding to the digest. The signing
+    /// algorithm employs randomization to generate a different signature on
+    /// every call, even for the same data and key.
     public func signature<D: Digest>(for digest: D) throws -> P521.Signing.ECDSASignature {
         #if (os(macOS) || os(iOS) || os(watchOS) || os(tvOS)) && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
         return try self.coreCryptoSignature(for: digest)
@@ -418,24 +474,30 @@ extension P521.Signing.PrivateKey: DigestSigner {
     }
  }
 
- extension P521.Signing.PrivateKey: Signer {
-    /// Generates an ECDSA signature over the P521 elliptic curve.
-    /// SHA512 is used as the hash function.
+extension P521.Signing.PrivateKey: Signer {
+    /// Generates an Elliptic Curve Digital Signature Algorithm (ECDSA)
+    /// signature of the data you provide over the P-521 elliptic curve,
+    /// using SHA-512 as the hash function.
     ///
-    /// - Parameter data: The data to sign.
-    /// - Returns: The ECDSA Signature.
-    /// - Throws: If there is a failure producing the signature.
+    /// - Parameters:
+    ///   - data: The data to sign.
+    /// - Returns: The signature corresponding to the data. The signing
+    /// algorithm employs randomization to generate a different signature on
+    /// every call, even for the same data and key.
     public func signature<D: DataProtocol>(for data: D) throws -> P521.Signing.ECDSASignature {
         return try self.signature(for: SHA512.hash(data: data))
     }
- }
+}
+
 extension P521.Signing.PublicKey: DigestValidator {
-    /// Verifies an ECDSA signature over the P521 elliptic curve.
+    /// Verifies an elliptic curve digital signature algorithm (ECDSA)
+    /// signature on a digest over the P-521 elliptic curve.
     ///
     /// - Parameters:
-    ///   - signature: The signature to verify
-    ///   - digest: The digest that was signed.
-    /// - Returns: True if the signature is valid, false otherwise.
+    ///   - signature: The signature to verify.
+    ///   - digest: The signed digest.
+    /// - Returns: A Boolean value that’s `true` if the signature is valid for
+    /// the given digest; otherwise, `false`.
     public func isValidSignature<D: Digest>(_ signature: P521.Signing.ECDSASignature, for digest: D) -> Bool {
         #if (os(macOS) || os(iOS) || os(watchOS) || os(tvOS)) && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
         return self.coreCryptoIsValidSignature(signature, for: digest)
@@ -446,13 +508,14 @@ extension P521.Signing.PublicKey: DigestValidator {
 }
 
 extension P521.Signing.PublicKey: DataValidator {
-    /// Verifies an ECDSA signature over the P521 elliptic curve.
-    /// SHA512 is used as the hash function.
+    /// Verifies an elliptic curve digital signature algorithm (ECDSA)
+    /// signature on a block of data over the P-521 elliptic curve.
     ///
     /// - Parameters:
-    ///   - signature: The signature to verify
-    ///   - data: The data that was signed.
-    /// - Returns: True if the signature is valid, false otherwise.
+    ///   - signature: The signature to verify.
+    ///   - data: The signed data.
+    /// - Returns: A Boolean value that’s `true` if the signature is valid for
+    /// the given data; otherwise, `false`.
     public func isValidSignature<D: DataProtocol>(_ signature: P521.Signing.ECDSASignature, for data: D) -> Bool {
         return self.isValidSignature(signature, for: SHA512.hash(data: data))
     }

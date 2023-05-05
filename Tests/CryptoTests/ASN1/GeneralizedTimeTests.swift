@@ -39,7 +39,7 @@ final class GeneralizedTimeTests: XCTestCase {
             ("19920622123421Z", try .init(year: 1992, month: 6, day: 22, hours: 12, minutes: 34, seconds: 21, fractionalSeconds: 0)),
             ("19920722132100.3Z", try .init(year: 1992, month: 7, day: 22, hours: 13, minutes: 21, seconds: 0, fractionalSeconds: 0.3)),
             ("19851106210627.3Z", try .init(year: 1985, month: 11, day: 6, hours: 21, minutes: 6, seconds: 27, fractionalSeconds: 0.3)),
-            ("19851106210627.14159Z", try .init(year: 1985, month: 11, day: 6, hours: 21, minutes: 6, seconds: 27, fractionalSeconds: 0.141_59)),
+            ("19851106210627.14159Z", try .init(year: 1985, month: 11, day: 6, hours: 21, minutes: 6, seconds: 27, fractionalSeconds: 0.14159)),
             ("20210131000000Z", try .init(year: 2021, month: 1, day: 31, hours: 0, minutes: 0, seconds: 0, fractionalSeconds: 0)),  // only 31 days in January
             ("20210228000000Z", try .init(year: 2021, month: 2, day: 28, hours: 0, minutes: 0, seconds: 0, fractionalSeconds: 0)),  // only 28 days in February 2021
             ("20200229000000Z", try .init(year: 2020, month: 2, day: 29, hours: 0, minutes: 0, seconds: 0, fractionalSeconds: 0)),  // only 29 days in February 2020

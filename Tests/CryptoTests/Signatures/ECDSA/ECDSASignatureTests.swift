@@ -41,28 +41,8 @@ struct SignatureTestVector: Codable {
     let tcId: Int
 }
 
-struct EdDSATestGroup: Codable {
-    let tests: [SignatureTestVector]
-    let publicKey: EdDSAPublicKey
-}
-
-struct EdDSAPublicKey: Codable {
-    let pk: String
-}
-
 class SignatureTests: XCTestCase {
     let data = "Testing Signatures".data(using: String.Encoding.utf8)!
-    
-    func testWycheproofEdDSA() throws {
-        try orFail {
-            try wycheproofTest(
-                bundleType: self,
-                jsonName: "ed25519_test",
-                testFunction: { (group: EdDSATestGroup) in
-                    try orFail { try testEdGroup(group: group) }
-                })
-        }
-    }
     
     func testWycheproofP256DER() throws {
         try orFail {
@@ -113,7 +93,7 @@ class SignatureTests: XCTestCase {
                 })
         }
     }
-    
+
     func testWycheproofP256P1363() throws {
         try orFail {
             try wycheproofTest(
@@ -123,7 +103,7 @@ class SignatureTests: XCTestCase {
                     try orFail { try testGroup(group: group, curve: P256.Signing.self, hashFunction: SHA256.self, deserializeSignature: P256.Signing.ECDSASignature.init(rawRepresentation:)) }
                 })
         }
-        
+
         try orFail {
             try wycheproofTest(
                 bundleType: self,
@@ -133,7 +113,7 @@ class SignatureTests: XCTestCase {
                 })
         }
     }
-    
+
     func testWycheproofP384P1363() throws {
         try orFail {
             try wycheproofTest(
@@ -152,7 +132,7 @@ class SignatureTests: XCTestCase {
                 })
         }
     }
-    
+
     func testWycheproofP521P1363() throws {
         try orFail {
             try wycheproofTest(
@@ -161,41 +141,6 @@ class SignatureTests: XCTestCase {
                 testFunction: { (group: ECDSATestGroup) in
                     try orFail { try testGroup(group: group, curve: P521.Signing.self, hashFunction: SHA512.self, deserializeSignature: P521.Signing.ECDSASignature.init(rawRepresentation:)) }
                 })
-        }
-    }
-    
-    func testEdGroup(group: EdDSATestGroup, file: StaticString = #file, line: UInt = #line) throws {
-        let keyBytes = try orFail { try Array(hexString: group.publicKey.pk) }
-        let key = try orFail { try Curve25519.Signing.PublicKey(rawRepresentation: keyBytes) }
-        
-        for testVector in group.tests {
-            var isValid = false
-            
-            do {
-                let sig = try Data(hexString: testVector.sig)
-                
-                let msg: Data
-                if testVector.msg.count > 0 {
-                    msg = try Data(hexString: testVector.msg)
-                } else {
-                    msg = Data()
-                }
-                
-                isValid = key.isValidSignature(sig, for: msg)
-            } catch {
-                XCTAssert(testVector.result == "invalid" || testVector.result == "acceptable", "Test ID: \(testVector.tcId) is valid, but failed \(error.localizedDescription).")
-                continue
-            }
-            
-            switch testVector.result {
-            case "valid": XCTAssert(isValid, "Test vector is valid, but is rejected \(testVector.tcId)")
-            case "acceptable": do {
-                XCTAssert(isValid)
-                }
-            case "invalid": XCTAssert(!isValid, "Test ID: \(testVector.tcId) is valid, but failed.")
-            default:
-                XCTFail("Unhandled test vector")
-            }
         }
     }
     
