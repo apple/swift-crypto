@@ -18,7 +18,7 @@
 /// - incorrectKeySize: A key is being deserialized with an incorrect key size.
 /// - incorrectParameterSize: The number of bytes passed for a given argument is incorrect.
 /// - authenticationFailure: The authentication tag or signature is incorrect.
-/// - underlyingCoreCryptoError: An unexpected error at a lower-level occured.
+/// - underlyingCoreCryptoError: An unexpected error at a lower-level occurred.
 /// - wrapFailure: Failed to wrap key
 /// - unwrapFailure: Failed to unwrap key
 public enum CryptoKitError: Error {
