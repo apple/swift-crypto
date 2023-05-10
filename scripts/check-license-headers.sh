@@ -50,6 +50,7 @@ read -ra PATHS_TO_CHECK_FOR_LICENSE <<< "$( \
   ":(exclude)NOTICE.txt" \
   ":(exclude)Package.swift" \
   ":(exclude)README.md" \
+  ":(exclude)SECURITY.md" \
   ":(exclude)scripts/unacceptable-language.txt" \
   ":(exclude)docker/*" \
   ":(exclude)**/*.docc/*" \
