@@ -52,7 +52,7 @@ import Foundation
 /// The ``URLSessionTransport/Configuration-swift.struct`` type allows you to
 /// provide a custom URLSession and tweak behaviors such as the default
 /// timeouts, authentication challenges, and more.
-public struct URLSessionTransport {
+public struct URLSessionTransport: ClientTransport {
 
     /// A set of configuration values for the URLSession transport.
     public struct Configuration: Sendable {
