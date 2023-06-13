@@ -90,23 +90,28 @@ public struct URLSessionTransport: ClientTransport {
     }
 
     private func invokeSession(_ urlRequest: URLRequest) async throws -> (Data, URLResponse) {
-        #if canImport(FoundationNetworking)
+        // Using `dataTask(with:completionHandler:)` instead of the async method `data(for:)` of URLSession because the latter is not available on linux platforms
         return try await withCheckedThrowingContinuation { continuation in
             configuration.session
                 .dataTask(with: urlRequest) { data, response, error in
-                    if let error = error {
+                    if let error {
                         continuation.resume(with: .failure(error))
                         return
                     }
+
+                    guard let response else {
+                        continuation.resume(
+                            with: .failure(URLSessionTransportError.noResponse(url: urlRequest.url))
+                        )
+                        return
+                    }
+
                     continuation.resume(
-                        with: .success((data ?? Data(), response!))
+                        with: .success((data ?? Data(), response))
                     )
                 }
                 .resume()
         }
-        #else
-        return try await configuration.session.data(for: urlRequest)
-        #endif
     }
 }
 
@@ -118,6 +123,9 @@ internal enum URLSessionTransportError: Error {
 
     /// Returned `URLResponse` could not be converted to `HTTPURLResponse`.
     case notHTTPResponse(URLResponse)
+
+    /// Returned `URLResponse` was nil
+    case noResponse(url: URL?)
 }
 
 extension OpenAPIRuntime.Response {
@@ -170,6 +178,8 @@ extension URLSessionTransportError: CustomStringConvertible {
                 "Invalid request URL from request path: \(request.path), query: \(request.query ?? "<nil>") relative to base URL: \(baseURL.absoluteString)"
         case .notHTTPResponse(let response):
             return "Received a non-HTTP response, of type: \(String(describing: type(of: response)))"
+        case .noResponse(let url):
+            return "Received a nil response for \(url?.absoluteString ?? "<nil URL>")"
         }
     }
 }

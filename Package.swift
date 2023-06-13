@@ -18,7 +18,7 @@ import PackageDescription
 let package = Package(
     name: "swift-openapi-urlsession",
     platforms: [
-        .macOS(.v13), .iOS(.v16), .tvOS(.v16), .watchOS(.v9),
+        .macOS(.v10_15), .iOS(.v13), .tvOS(.v13), .watchOS(.v6),
     ],
     products: [
         .library(
@@ -27,7 +27,7 @@ let package = Package(
         ),
     ],
     dependencies: [
-        .package(url: "https://github.com/apple/swift-openapi-runtime", .upToNextMinor(from: "0.1.0")),
+        .package(url: "https://github.com/apple/swift-openapi-runtime", .upToNextMinor(from: "0.1.3")),
         .package(url: "https://github.com/apple/swift-docc-plugin", from: "1.0.0"),
     ],
     targets: [
