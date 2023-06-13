@@ -24,19 +24,27 @@ digests_and_length = [{"name": "SHA256", "count": 32},{"name": "SHA384","count":
 %{
     name = HF["name"]
     byteCount = HF["count"]
-    wordsCount = (byteCount*8)/64 + (0 if ((byteCount*8)%64) == 0 else 1)
+    wordsCount = (byteCount*8)//64 + (0 if ((byteCount*8)%64) == 0 else 1)
 }%
 %{
     if "prefix" in HF.keys():
         protocol_prefix = ""
         protocol_prefix = protocol_prefix + "extension " + HF["prefix"] + "{"
         protocol_suffix = "}"
+        parent = HF["prefix"].strip() + "/" + name
     else:
         protocol_prefix = ""
         protocol_suffix = ""
+        parent = name
+        
+    if name == "SHA1" or name == "MD5":
+        abstract = "The output of a " + name + " hash."
+    else:
+        abstract = "The output of a Secure Hashing Algorithm 2 (SHA-2) hash with a " + name[-3:] + "-bit digest."
 }%
 ${protocol_prefix}
 // MARK: - ${name}Digest + DigestPrivate
+/// ${abstract}
 public struct ${name}Digest: DigestPrivate {
     let bytes: (${(wordsCount-1)*"UInt64, "+"UInt64"})
     
@@ -52,10 +60,19 @@ public struct ${name}Digest: DigestPrivate {
         self.bytes = bytes
     }
     
+    /// The number of bytes in the digest.
     public static var byteCount: Int {
         return ${byteCount}
     }
     
+    /// Invokes the given closure with a buffer pointer covering the raw bytes of
+    /// the digest.
+    ///
+    /// - Parameters:
+    ///   - body: A closure that takes a raw buffer pointer to the bytes of the digest
+    /// and returns the digest.
+    ///
+    /// - Returns: The digest, as returned from the body closure.
     public func withUnsafeBytes<R>(_ body: (UnsafeRawBufferPointer) throws -> R) rethrows -> R {
         return try Swift.withUnsafeBytes(of: bytes) {
             let boundsCheckedPtr = UnsafeRawBufferPointer(start: $0.baseAddress,
@@ -73,10 +90,23 @@ public struct ${name}Digest: DigestPrivate {
         return array.prefix(upTo: ${name}Digest.byteCount)
     }
     
+    /// A human-readable description of the digest.
     public var description: String {
         return "\("${name}") digest: \(toArray().hexString)"
     }
     
+    /// Hashes the essential components of the digest by feeding them into the
+    /// given hash function.
+    ///
+    /// This method is part of the digest’s conformance to Swift standard library’s
+    /// <doc://com.apple.documentation/documentation/swift/hashable> protocol, making
+    /// it possible to compare digests. Don’t confuse that hashing with the
+    /// cryptographically secure hashing that you use to create the digest in the
+    /// first place by, for example, calling ``${parent}/hash(data:)``.
+    ///
+    /// - Parameters:
+    ///   - hasher: The hash function to use when combining the components of
+    /// the digest.
     public func hash(into hasher: inout Hasher) {
         self.withUnsafeBytes { hasher.combine(bytes: $0) }
     }

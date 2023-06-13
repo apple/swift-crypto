@@ -16,7 +16,15 @@
 #else
 import Foundation
 
+extension Curve25519.KeyAgreement {
+    static var keyByteCount: Int {
+        return 32
+    }
+}
+
 extension Curve25519 {
+    /// A mechanism used to create a shared secret between two users by
+    /// performing X25519 key agreement.
     public enum KeyAgreement {
         #if (os(macOS) || os(iOS) || os(watchOS) || os(tvOS)) && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
         typealias Curve25519PrivateKeyImpl = Curve25519.KeyAgreement.CoreCryptoCurve25519PrivateKeyImpl
@@ -26,14 +34,16 @@ extension Curve25519 {
         typealias Curve25519PublicKeyImpl = Curve25519.KeyAgreement.OpenSSLCurve25519PublicKeyImpl
         #endif
 
+        /// A Curve25519 public key used for key agreement.
         public struct PublicKey: ECPublicKey {
             fileprivate var baseKey: Curve25519PublicKeyImpl
 
-            /// Initializes a Curve25519 Key for Key Agreement.
+            /// Creates a Curve25519 public key for key agreement from a
+            /// collection of bytes.
             ///
-            /// - Parameter rawRepresentation: The data representation of the key
-            /// - Returns: An initialized key if the data is valid.
-            /// - Throws: Throws if the data is not a valid key.
+            /// - Parameters:
+            /// - rawRepresentation: A raw representation of the key as a
+            /// collection of contiguous bytes.
             public init<D: ContiguousBytes>(rawRepresentation: D) throws {
                 self.baseKey = try Curve25519PublicKeyImpl(rawRepresentation: rawRepresentation)
             }
@@ -42,7 +52,8 @@ extension Curve25519 {
                 self.baseKey = baseKey
             }
 
-            /// A data representation of the public key
+            /// A representation of the Curve25519 public key as a collection of
+            /// bytes.
             public var rawRepresentation: Data {
                 return self.baseKey.rawRepresentation
             }
@@ -56,38 +67,45 @@ extension Curve25519 {
             }
         }
 
-        public struct PrivateKey: ECPrivateKey, DiffieHellmanKeyAgreement {
+        /// A Curve25519 private key used for key agreement.
+        public struct PrivateKey: DiffieHellmanKeyAgreement {
             fileprivate var baseKey: Curve25519PrivateKeyImpl
 
-            /// Generates a new X25519 private key.
+            /// Creates a random Curve25519 private key for key agreement.
             public init() {
                 self.baseKey = Curve25519PrivateKeyImpl()
             }
 
-            /// Returns the associated X25519 public key.
-            ///
-            /// - Returns: The public key
-            public var publicKey: PublicKey {
+            /// The corresponding public key.
+            public var publicKey: Curve25519.KeyAgreement.PublicKey {
                 return PublicKey(baseKey: self.baseKey.publicKey)
             }
 
-            /// Initializes the key with data.
+            /// Creates a Curve25519 private key for key agreement from a
+            /// collection of bytes.
             ///
-            /// - Parameter data: The 32-bytes representation of the private key.
+            /// - Parameters:
+            ///   - rawRepresentation: A raw representation of the key as a
+            /// collection of contiguous bytes.
             public init<D: ContiguousBytes>(rawRepresentation: D) throws {
                 self.baseKey = try Curve25519PrivateKeyImpl(rawRepresentation: rawRepresentation)
             }
 
-            /// Performs an elliptic curve Diffie-Hellmann key agreement over X25519.
+            /// Computes a shared secret with the provided public key from
+            /// another party.
             ///
-            /// - Parameter publicKeyShare: The public key share to perform the key agreement with.
-            /// - Returns: The shared secret
-            /// - Throws: Throws if the operation failed to be performed.
-            public func sharedSecretFromKeyAgreement(with publicKeyShare: PublicKey) throws -> SharedSecret {
+            /// - Parameters:
+            ///   - publicKeyShare: The public key from another party to be
+            /// combined with the private key from this user to create the
+            /// shared secret.
+            ///
+            /// - Returns: The computed shared secret.
+            public func sharedSecretFromKeyAgreement(with publicKeyShare: Curve25519.KeyAgreement.PublicKey) throws -> SharedSecret {
                 return try self.baseKey.sharedSecretFromKeyAgreement(with: publicKeyShare.baseKey)
             }
             
-            /// A data representation of the private key
+            /// The raw representation of the key as a collection of contiguous
+            /// bytes.
             public var rawRepresentation: Data {
                 return self.baseKey.rawRepresentation
             }

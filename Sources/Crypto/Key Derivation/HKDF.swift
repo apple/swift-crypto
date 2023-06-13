@@ -16,17 +16,33 @@
 #else
 import Foundation
 
-/// The HMAC-based Extract-and-Expand Key Derivation Function (IETF RFC 5869)
-/// https://tools.ietf.org/html/rfc5869
+/// A standards-based implementation of an HMAC-based Key Derivation Function
+/// (HKDF).
+///
+/// The key derivation functions allow you to derive one or more secrets of the
+/// size of your choice from a main key or passcode. The key derivation function
+/// is compliant with IETF RFC 5869. Use one of the `deriveKey` functions, such
+/// as ``deriveKey(inputKeyMaterial:outputByteCount:)`` or
+/// ``deriveKey(inputKeyMaterial:salt:info:outputByteCount:)``, to derive a key
+/// from a main secret or passcode in a single function.
+///
+/// To derive a key with more fine-grained control, use
+/// ``extract(inputKeyMaterial:salt:)`` to create cryptographically strong key
+/// material in the form of a hashed authentication code, then call
+/// ``expand(pseudoRandomKey:info:outputByteCount:)`` using that key material to
+/// generate a symmetric key of the length you specify.
 public struct HKDF<H: HashFunction> {
-    /// Derives a symmetric key using the HKDF algorithm.
+    /// Derives a symmetric encryption key from a main key or passcode using
+    /// HKDF key derivation with information and salt you specify.
     ///
     /// - Parameters:
-    ///   - inputKeyMaterial: Input key material.
-    ///   - salt: A non-secret random value.
-    ///   - info: Context and application specific information.
-    ///   - outputByteCount: The desired number of output bytes.
-    /// - Returns: The derived key
+    ///   - inputKeyMaterial: The main key or passcode the derivation function
+    /// uses to derive a key.
+    ///   - salt: The salt to use for key derivation.
+    ///   - info: The shared information to use for key derivation.
+    ///   - outputByteCount: The length in bytes of the resulting symmetric key.
+    ///
+    /// - Returns: The derived symmetric key.
     public static func deriveKey<Salt: DataProtocol, Info: DataProtocol>(inputKeyMaterial: SymmetricKey,
                                                                          salt: Salt,
                                                                          info: Info,
@@ -34,51 +50,66 @@ public struct HKDF<H: HashFunction> {
         return expand(pseudoRandomKey: extract(inputKeyMaterial: inputKeyMaterial, salt: salt), info: info, outputByteCount: outputByteCount)
     }
     
-    /// Derives a symmetric key using the HKDF algorithm.
+    /// Derives a symmetric encryption key from a main key or passcode using
+    /// HKDF key derivation with information you specify.
     ///
     /// - Parameters:
-    ///   - inputKeyMaterial: Input key material.
-    ///   - info: Context and application specific information.
-    ///   - outputByteCount: The desired number of output bytes.
-    /// - Returns: The derived key
+    ///   - inputKeyMaterial: The main key or passcode the derivation function
+    /// uses to derive a key.
+    ///   - info: The shared information to use for key derivation.
+    ///   - outputByteCount: The length in bytes of the resulting symmetric key.
+    ///
+    /// - Returns: The derived symmetric key.
     public static func deriveKey<Info: DataProtocol>(inputKeyMaterial: SymmetricKey,
                                                      info: Info,
                                                      outputByteCount: Int) -> SymmetricKey {
         return deriveKey(inputKeyMaterial: inputKeyMaterial, salt: [UInt8](), info: info, outputByteCount: outputByteCount)
     }
     
-    /// Derives a symmetric key using the HKDF algorithm.
+    /// Derives a symmetric encryption key from a main key or passcode using
+    /// HKDF key derivation with salt that you specify.
     ///
     /// - Parameters:
-    ///   - inputKeyMaterial: Input key material.
-    ///   - salt: A non-secret random value.
-    ///   - outputByteCount: The desired number of output bytes.
-    /// - Returns: The derived key
+    ///   - inputKeyMaterial: The main key or passcode the derivation function
+    /// uses to derive a key.
+    ///   - salt: The salt to use for key derivation.
+    ///   - outputByteCount: The length in bytes of the resulting symmetric key.
+    ///
+    /// - Returns: The derived symmetric key.
     public static func deriveKey<Salt: DataProtocol>(inputKeyMaterial: SymmetricKey,
                                                      salt: Salt,
                                                      outputByteCount: Int) -> SymmetricKey {
         return deriveKey(inputKeyMaterial: inputKeyMaterial, salt: salt, info: [UInt8](), outputByteCount: outputByteCount)
     }
     
-    /// Derives a symmetric key using the HKDF algorithm.
+    /// Derives a symmetric encryption key from a main key or passcode using
+    /// HKDF key derivation.
     ///
     /// - Parameters:
-    ///   - inputKeyMaterial: Input key material.
-    ///   - outputByteCount: The desired number of output bytes.
-    /// - Returns: The derived key
+    ///   - inputKeyMaterial: The main key or passcode the derivation function
+    /// uses to derive a key.
+    ///   - outputByteCount: The length in bytes of the resulting symmetric key.
+    ///
+    /// - Returns: The derived symmetric key.
     public static func deriveKey(inputKeyMaterial: SymmetricKey,
                                  outputByteCount: Int) -> SymmetricKey {
         return deriveKey(inputKeyMaterial: inputKeyMaterial, salt: [UInt8](), info: [UInt8](), outputByteCount: outputByteCount)
     }
     
-    /// The extract function as defined by specification.
-    /// The goal of the extract function is to "concentrate" the possibly dispersed entropy of the input keying material into a short, but cryptographically strong, pseudorandom key.
-    /// Unless required by a specification, it is recommended to use the one-shot "deriveKey" API instead that performs both extraction and expansion.
+    /// Creates cryptographically strong key material from a main key or
+    /// passcode that you specify.
+    ///
+    /// Generate a derived symmetric key from the cryptographically strong key
+    /// material this function creates by calling
+    /// ``expand(pseudoRandomKey:info:outputByteCount:)``.
     ///
     /// - Parameters:
-    ///   - inputKeyMaterial: Input key material.
-    ///   - salt: A non-secret random value.
-    /// - Returns: The resulting secret
+    ///   - inputKeyMaterial: The main key or passcode the derivation function
+    /// uses to derive a key.
+    ///   - salt: The salt to use for key derivation.
+    ///
+    /// - Returns: A pseudorandom, cryptographically strong key in the form of a
+    /// hashed authentication code.
     public static func extract<Salt: DataProtocol>(inputKeyMaterial: SymmetricKey, salt: Salt?) -> HashedAuthenticationCode<H> {
         let key: SymmetricKey
         if let salt = salt {
@@ -97,15 +128,19 @@ public struct HKDF<H: HashFunction> {
         }
     }
     
-    /// The expand function as defined by the specification.
-    /// The goal of the expand function is to expand the pseudorandom key to the desired length.
-    /// Unless required by a specification, it is recommended to use the one-shot "deriveKey" API instead that performs both extraction and expansion.
+    /// Expands cryptographically strong key material into a derived symmetric
+    /// key.
+    ///
+    /// Generate cryptographically strong key material to use with this function
+    /// by calling ``extract(inputKeyMaterial:salt:)``.
     ///
     /// - Parameters:
-    ///   - pseudoRandomKey: The extracted pseudorandom key. This value is expected to be a high-entropy secret. In the HKDF specification it is obtained from the input key material and the salt using the extract method.
-    ///   - info: Context and application specific information.
-    ///   - outputByteCount: The desired number of output bytes.
-    /// - Returns: The expanded key bytes.
+    ///   - prk: A pseudorandom, cryptographically strong key generated from the
+    /// ``extract(inputKeyMaterial:salt:)`` function.
+    ///   - info: The shared information to use for key derivation.
+    ///   - outputByteCount: The length in bytes of the resulting symmetric key.
+    ///
+    /// - Returns: The derived symmetric key.
     public static func expand<PRK: ContiguousBytes, Info: DataProtocol>(pseudoRandomKey prk: PRK, info: Info?, outputByteCount: Int) -> SymmetricKey {
         let iterations: UInt8 = UInt8(ceil((Float(outputByteCount) / Float(H.Digest.byteCount))))
         var output = SecureBytes()

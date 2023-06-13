@@ -190,7 +190,12 @@ class X25519Tests: XCTestCase {
 
                 let testSharedSecret = try Array(privateKey.sharedSecretFromKeyAgreement(with: publicKey).ss)
                 XCTAssertEqual(testSharedSecret, expectedSharedSecret)
+                XCTAssert(testVector.result == "valid" || testVector.result == "acceptable")
             } catch {
+                if testVector.flags.contains("LowOrderPublic") {
+                    XCTAssertEqual(testVector.result, "acceptable")
+                    return
+                }
                 XCTAssertEqual(testVector.result, "invalid")
             }
         }

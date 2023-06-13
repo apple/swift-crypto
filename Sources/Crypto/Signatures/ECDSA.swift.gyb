@@ -37,20 +37,25 @@ protocol NISTSigning {
 
 % for CURVE_AND_HF in NIST_CURVES_AND_HF:
 %{
-    CURVE = CURVE_AND_HF["curve"]
-    HF    = CURVE_AND_HF["hf"]
+    CURVE           = CURVE_AND_HF["curve"]
+    HF              = CURVE_AND_HF["hf"]
+    DISPLAY_CURVE   = CURVE[:1] + "-" + CURVE[1:]
+    DISPLAY_HF      = HF[:3] + "-" + HF[3:]
 }%
 // MARK: - ${CURVE} + Signing
-/// An ECDSA (Elliptic Curve Digital Signature Algorithm) Signature
 extension ${CURVE}.Signing {
+
+    /// A ${DISPLAY_CURVE} elliptic curve digital signature algorithm (ECDSA) signature.
     public struct ECDSASignature: ContiguousBytes, NISTECDSASignature {
-        /// Returns the raw signature.
-        /// The raw signature format for ECDSA is r || s
+        
+        /// A raw data representation of a ${DISPLAY_CURVE} digital signature.
         public var rawRepresentation: Data
 
-        /// Initializes ECDSASignature from the raw representation.
-        /// The raw signature format for ECDSA is r || s
-        /// As defined in https://tools.ietf.org/html/rfc4754
+        /// Creates a ${DISPLAY_CURVE} digital signature from a raw representation.
+        ///
+        /// - Parameters:
+        ///   - rawRepresentation: A raw representation of the signature as a
+        /// collection of contiguous bytes.
         public init<D: DataProtocol>(rawRepresentation: D) throws {
             guard rawRepresentation.count == 2 * ${CURVE}.coordinateByteCount else {
                 throw CryptoKitError.incorrectParameterSize
@@ -74,7 +79,12 @@ extension ${CURVE}.Signing {
             return (combined.prefix(upTo: half), combined.suffix(from: half))
         }
 
-        /// Initializes ECDSASignature from the DER representation.
+        /// Creates a ${DISPLAY_CURVE} digital signature from a Distinguished Encoding
+        /// Rules (DER) encoded representation.
+        ///
+        /// - Parameters:
+        ///   - derRepresentation: The DER-encoded representation of the
+        /// signature.
         public init<D: DataProtocol>(derRepresentation: D) throws {
             #if os(iOS) && (arch(arm) || arch(i386))
             fatalError("Unsupported architecture")
@@ -101,11 +111,14 @@ extension ${CURVE}.Signing {
             #endif
         }
 
+        /// Invokes the given closure with a buffer pointer covering the raw
+        /// bytes of the signature.
         public func withUnsafeBytes<R>(_ body: (UnsafeRawBufferPointer) throws -> R) rethrows -> R {
             try self.rawRepresentation.withUnsafeBytes(body)
         }
 
-        /// A DER-encoded representation of the signature
+        /// A Distinguished Encoding Rules (DER) encoded representation of a
+        /// ${DISPLAY_CURVE} digital signature.
         public var derRepresentation: Data {
             #if os(iOS) && (arch(arm) || arch(i386))
             fatalError("Unsupported architecture")
@@ -128,11 +141,14 @@ extension ${CURVE}.Signing: NISTSigning {}
 
 // MARK: - ${CURVE} + PrivateKey
 extension ${CURVE}.Signing.PrivateKey: DigestSigner {
-    ///  Generates an ECDSA signature over the ${CURVE} elliptic curve.
+    /// Generates an Elliptic Curve Digital Signature Algorithm (ECDSA)
+    /// signature of the digest you provide over the ${DISPLAY_CURVE} elliptic curve.
     ///
-    /// - Parameter digest: The digest to sign.
-    /// - Returns: The ECDSA Signature.
-    /// - Throws: If there is a failure producing the signature
+    /// - Parameters:
+    ///   - digest: The digest of the data to sign.
+    /// - Returns: The signature corresponding to the digest. The signing
+    /// algorithm employs randomization to generate a different signature on
+    /// every call, even for the same data and key.
     public func signature<D: Digest>(for digest: D) throws -> ${CURVE}.Signing.ECDSASignature {
         #if (os(macOS) || os(iOS) || os(watchOS) || os(tvOS)) && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
         return try self.coreCryptoSignature(for: digest)
@@ -142,24 +158,30 @@ extension ${CURVE}.Signing.PrivateKey: DigestSigner {
     }
  }
 
- extension ${CURVE}.Signing.PrivateKey: Signer {
-    /// Generates an ECDSA signature over the ${CURVE} elliptic curve.
-    /// ${HF} is used as the hash function.
+extension ${CURVE}.Signing.PrivateKey: Signer {
+    /// Generates an Elliptic Curve Digital Signature Algorithm (ECDSA)
+    /// signature of the data you provide over the ${DISPLAY_CURVE} elliptic curve,
+    /// using ${DISPLAY_HF} as the hash function.
     ///
-    /// - Parameter data: The data to sign.
-    /// - Returns: The ECDSA Signature.
-    /// - Throws: If there is a failure producing the signature.
+    /// - Parameters:
+    ///   - data: The data to sign.
+    /// - Returns: The signature corresponding to the data. The signing
+    /// algorithm employs randomization to generate a different signature on
+    /// every call, even for the same data and key.
     public func signature<D: DataProtocol>(for data: D) throws -> ${CURVE}.Signing.ECDSASignature {
         return try self.signature(for: ${HF}.hash(data: data))
     }
- }
+}
+
 extension ${CURVE}.Signing.PublicKey: DigestValidator {
-    /// Verifies an ECDSA signature over the ${CURVE} elliptic curve.
+    /// Verifies an elliptic curve digital signature algorithm (ECDSA)
+    /// signature on a digest over the ${DISPLAY_CURVE} elliptic curve.
     ///
     /// - Parameters:
-    ///   - signature: The signature to verify
-    ///   - digest: The digest that was signed.
-    /// - Returns: True if the signature is valid, false otherwise.
+    ///   - signature: The signature to verify.
+    ///   - digest: The signed digest.
+    /// - Returns: A Boolean value that’s `true` if the signature is valid for
+    /// the given digest; otherwise, `false`.
     public func isValidSignature<D: Digest>(_ signature: ${CURVE}.Signing.ECDSASignature, for digest: D) -> Bool {
         #if (os(macOS) || os(iOS) || os(watchOS) || os(tvOS)) && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
         return self.coreCryptoIsValidSignature(signature, for: digest)
@@ -170,13 +192,14 @@ extension ${CURVE}.Signing.PublicKey: DigestValidator {
 }
 
 extension ${CURVE}.Signing.PublicKey: DataValidator {
-    /// Verifies an ECDSA signature over the ${CURVE} elliptic curve.
-    /// ${HF} is used as the hash function.
+    /// Verifies an elliptic curve digital signature algorithm (ECDSA)
+    /// signature on a block of data over the ${DISPLAY_CURVE} elliptic curve.
     ///
     /// - Parameters:
-    ///   - signature: The signature to verify
-    ///   - data: The data that was signed.
-    /// - Returns: True if the signature is valid, false otherwise.
+    ///   - signature: The signature to verify.
+    ///   - data: The signed data.
+    /// - Returns: A Boolean value that’s `true` if the signature is valid for
+    /// the given data; otherwise, `false`.
     public func isValidSignature<D: DataProtocol>(_ signature: ${CURVE}.Signing.ECDSASignature, for data: D) -> Bool {
         return self.isValidSignature(signature, for: ${HF}.hash(data: data))
     }

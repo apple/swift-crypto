@@ -30,27 +30,58 @@ import Foundation
 
 // MARK: - P256 + Signing
 extension P256 {
-    public enum Signing {
     
+    /// A mechanism used to create or verify a cryptographic signature using
+    /// the NIST P-256 elliptic curve digital signature algorithm (ECDSA).
+    public enum Signing {
+            
+        /// A P-256 public key used to verify cryptographic signatures.
         public struct PublicKey: NISTECPublicKey {
             var impl: NISTCurvePublicKeyImpl<P256>
 
+            /// Creates a P-256 public key for signing from a collection of bytes.
+            ///
+            /// - Parameters:
+            ///   - rawRepresentation: A raw representation of the key as a collection of
+            /// contiguous bytes.
             public init<D: ContiguousBytes>(rawRepresentation: D) throws {
                 impl = try NISTCurvePublicKeyImpl(rawRepresentation: rawRepresentation)
             }
 
+            /// Creates a P-256 public key for signing from a compact
+            /// representation of the key.
+            ///
+            /// - Parameters:
+            ///   - compactRepresentation: A compact representation of the key
+            /// as a collection of contiguous bytes.
             public init<Bytes: ContiguousBytes>(compactRepresentation: Bytes) throws {
                 impl = try NISTCurvePublicKeyImpl(compactRepresentation: compactRepresentation)
             }
 
+            /// Creates a P-256 public key for signing from an ANSI x9.63
+            /// representation.
+            ///
+            /// - Parameters:
+            ///   - x963Representation: An ANSI x9.63 representation of the key.
             public init<Bytes: ContiguousBytes>(x963Representation: Bytes) throws {
                 impl = try NISTCurvePublicKeyImpl(x963Representation: x963Representation)
             }
             
+            /// Creates a P-256 public key for signing from a compressed representation of
+            /// the key.
+            ///
+            /// - Parameters:
+            ///   - compressedRepresentation: A compressed representation of the key as a collection
+            /// of contiguous bytes.
             public init<Bytes: ContiguousBytes>(compressedRepresentation: Bytes) throws {
                 impl = try NISTCurvePublicKeyImpl(compressedRepresentation: compressedRepresentation)
             }
 
+            /// Creates a P-256 public key for signing from a Privacy-Enhanced Mail
+            /// (PEM) representation.
+            ///
+            /// - Parameters:
+            ///   - pemRepresentation: A PEM representation of the key.
             public init(pemRepresentation: String) throws {
                 let pem = try ASN1.PEMDocument(pemString: pemRepresentation)
                 guard pem.type == "PUBLIC KEY" else {
@@ -59,6 +90,11 @@ extension P256 {
                 self = try .init(derRepresentation: pem.derBytes)
             }
 
+            /// Creates a P-256 public key for signing from a Distinguished Encoding
+            /// Rules (DER) encoded representation.
+            ///
+            /// - Parameters:
+            ///   - derRepresentation: A DER-encoded representation of the key.
             public init<Bytes: RandomAccessCollection>(derRepresentation: Bytes) throws where Bytes.Element == UInt8 {
                 let bytes = Array(derRepresentation)
                 let parsed = try ASN1.SubjectPublicKeyInfo(asn1Encoded: bytes)
@@ -69,12 +105,19 @@ extension P256 {
                 self.impl = impl
             }
 
+            /// A compact representation of the public key.
             public var compactRepresentation: Data? { impl.compactRepresentation }
+            
+            /// A full representation of the public key.
             public var rawRepresentation: Data { impl.rawRepresentation }
+            
+            /// An ANSI x9.63 representation of the public key.
             public var x963Representation: Data { impl.x963Representation }
 
+            /// A compressed representation of the public key.
             public var compressedRepresentation: Data { impl.compressedRepresentation }
             
+            /// A Distinguished Encoding Rules (DER) encoded representation of the public key.
             public var derRepresentation: Data {
                 let spki = ASN1.SubjectPublicKeyInfo(algorithmIdentifier: .ecdsaP256, key: Array(self.x963Representation))
                 var serializer = ASN1.Serializer()
@@ -84,27 +127,53 @@ extension P256 {
                 return Data(serializer.serializedBytes)
             }
 
+            /// A Privacy-Enhanced Mail (PEM) representation of the public key.
             public var pemRepresentation: String {
                 let pemDocument = ASN1.PEMDocument(type: "PUBLIC KEY", derBytes: self.derRepresentation)
                 return pemDocument.pemString
             }
         }
 
+        /// A P-256 private key used to create cryptographic signatures.
         public struct PrivateKey: NISTECPrivateKey {
             let impl: NISTCurvePrivateKeyImpl<P256>
 
+            /// Creates a random P-256 private key for signing.
+            ///
+            /// Keys that use a compact point encoding enable shorter public keys, but aren’t
+            /// compliant with FIPS certification. If your app requires FIPS certification,
+            /// create a key with ``init(rawRepresentation:)``.
+            ///
+            /// - Parameters:
+            ///   - compactRepresentable: A Boolean value that indicates whether CryptoKit
+            /// creates the key with the structure to enable compact point encoding.
             public init(compactRepresentable: Bool = true) {
                 impl = NISTCurvePrivateKeyImpl(compactRepresentable: compactRepresentable)
             }
 
+            /// Creates a P-256 private key for signing from an ANSI x9.63
+            /// representation.
+            ///
+            /// - Parameters:
+            ///   - x963Representation: An ANSI x9.63 representation of the key.
             public init<Bytes: ContiguousBytes>(x963Representation: Bytes) throws {
                 impl = try NISTCurvePrivateKeyImpl(x963: x963Representation)
             }
 
+            /// Creates a P-256 private key for signing from a collection of bytes.
+            ///
+            /// - Parameters:
+            ///   - rawRepresentation: A raw representation of the key as a collection of
+            /// contiguous bytes.
             public init<Bytes: ContiguousBytes>(rawRepresentation: Bytes) throws {
                 impl = try NISTCurvePrivateKeyImpl(data: rawRepresentation)
             }
 
+            /// Creates a P-256 private key for signing from a Privacy-Enhanced Mail
+            /// PEM) representation.
+            ///
+            /// - Parameters:
+            ///   - pemRepresentation: A PEM representation of the key.
             public init(pemRepresentation: String) throws {
                 let pem = try ASN1.PEMDocument(pemString: pemRepresentation)
 
@@ -120,6 +189,11 @@ extension P256 {
                 }
             }
 
+            /// Creates a P-256 private key for signing from a Distinguished Encoding
+            /// Rules (DER) encoded representation.
+            ///
+            /// - Parameters:
+            ///   - derRepresentation: A DER-encoded representation of the key.
             public init<Bytes: RandomAccessCollection>(derRepresentation: Bytes) throws where Bytes.Element == UInt8 {
                 let bytes = Array(derRepresentation)
 
@@ -139,13 +213,18 @@ extension P256 {
                 self.impl = impl
             }
 
+            /// The corresponding public key.
             public var publicKey: P256.Signing.PublicKey {
                 return PublicKey(impl: impl.publicKey())
             }
 
+            /// A data representation of the private key.
             public var rawRepresentation: Data { impl.rawRepresentation }
+            
+            /// An ANSI x9.63 representation of the private key.
             public var x963Representation: Data { impl.x963Representation }
 
+            /// A Distinguished Encoding Rules (DER) encoded representation of the private key.
             public var derRepresentation: Data {
                 let pkey = ASN1.PKCS8PrivateKey(algorithm: .ecdsaP256, privateKey: Array(self.rawRepresentation), publicKey: Array(self.publicKey.x963Representation))
                 var serializer = ASN1.Serializer()
@@ -155,6 +234,7 @@ extension P256 {
                 return Data(serializer.serializedBytes)
             }
 
+            /// A Privacy-Enhanced Mail (PEM) representation of the private key.
             public var pemRepresentation: String {
                 let pemDocument = ASN1.PEMDocument(type: "PRIVATE KEY", derBytes: self.derRepresentation)
                 return pemDocument.pemString
@@ -164,27 +244,59 @@ extension P256 {
 }
 // MARK: - P256 + KeyAgreement
 extension P256 {
-    public enum KeyAgreement {
     
+    /// A mechanism used to create a shared secret between two users by
+    /// performing NIST P-256 elliptic curve Diffie Hellman (ECDH) key
+    /// exchange.
+    public enum KeyAgreement {
+            
+        /// A P-256 public key used for key agreement.
         public struct PublicKey: NISTECPublicKey {
             var impl: NISTCurvePublicKeyImpl<P256>
 
+            /// Creates a P-256 public key for key agreement from a collection of bytes.
+            ///
+            /// - Parameters:
+            ///   - rawRepresentation: A raw representation of the key as a collection of
+            /// contiguous bytes.
             public init<D: ContiguousBytes>(rawRepresentation: D) throws {
                 impl = try NISTCurvePublicKeyImpl(rawRepresentation: rawRepresentation)
             }
 
+            /// Creates a P-256 public key for key agreement from a compact
+            /// representation of the key.
+            ///
+            /// - Parameters:
+            ///   - compactRepresentation: A compact representation of the key
+            /// as a collection of contiguous bytes.
             public init<Bytes: ContiguousBytes>(compactRepresentation: Bytes) throws {
                 impl = try NISTCurvePublicKeyImpl(compactRepresentation: compactRepresentation)
             }
 
+            /// Creates a P-256 public key for key agreement from an ANSI x9.63
+            /// representation.
+            ///
+            /// - Parameters:
+            ///   - x963Representation: An ANSI x9.63 representation of the key.
             public init<Bytes: ContiguousBytes>(x963Representation: Bytes) throws {
                 impl = try NISTCurvePublicKeyImpl(x963Representation: x963Representation)
             }
             
+            /// Creates a P-256 public key for key agreement from a compressed representation of
+            /// the key.
+            ///
+            /// - Parameters:
+            ///   - compressedRepresentation: A compressed representation of the key as a collection
+            /// of contiguous bytes.
             public init<Bytes: ContiguousBytes>(compressedRepresentation: Bytes) throws {
                 impl = try NISTCurvePublicKeyImpl(compressedRepresentation: compressedRepresentation)
             }
 
+            /// Creates a P-256 public key for key agreement from a Privacy-Enhanced Mail
+            /// (PEM) representation.
+            ///
+            /// - Parameters:
+            ///   - pemRepresentation: A PEM representation of the key.
             public init(pemRepresentation: String) throws {
                 let pem = try ASN1.PEMDocument(pemString: pemRepresentation)
                 guard pem.type == "PUBLIC KEY" else {
@@ -193,6 +305,11 @@ extension P256 {
                 self = try .init(derRepresentation: pem.derBytes)
             }
 
+            /// Creates a P-256 public key for key agreement from a Distinguished Encoding
+            /// Rules (DER) encoded representation.
+            ///
+            /// - Parameters:
+            ///   - derRepresentation: A DER-encoded representation of the key.
             public init<Bytes: RandomAccessCollection>(derRepresentation: Bytes) throws where Bytes.Element == UInt8 {
                 let bytes = Array(derRepresentation)
                 let parsed = try ASN1.SubjectPublicKeyInfo(asn1Encoded: bytes)
@@ -203,12 +320,19 @@ extension P256 {
                 self.impl = impl
             }
 
+            /// A compact representation of the public key.
             public var compactRepresentation: Data? { impl.compactRepresentation }
+            
+            /// A full representation of the public key.
             public var rawRepresentation: Data { impl.rawRepresentation }
+            
+            /// An ANSI x9.63 representation of the public key.
             public var x963Representation: Data { impl.x963Representation }
 
+            /// A compressed representation of the public key.
             public var compressedRepresentation: Data { impl.compressedRepresentation }
             
+            /// A Distinguished Encoding Rules (DER) encoded representation of the public key.
             public var derRepresentation: Data {
                 let spki = ASN1.SubjectPublicKeyInfo(algorithmIdentifier: .ecdsaP256, key: Array(self.x963Representation))
                 var serializer = ASN1.Serializer()
@@ -218,27 +342,53 @@ extension P256 {
                 return Data(serializer.serializedBytes)
             }
 
+            /// A Privacy-Enhanced Mail (PEM) representation of the public key.
             public var pemRepresentation: String {
                 let pemDocument = ASN1.PEMDocument(type: "PUBLIC KEY", derBytes: self.derRepresentation)
                 return pemDocument.pemString
             }
         }
 
+        /// A P-256 private key used for key agreement.
         public struct PrivateKey: NISTECPrivateKey {
             let impl: NISTCurvePrivateKeyImpl<P256>
 
+            /// Creates a random P-256 private key for key agreement.
+            ///
+            /// Keys that use a compact point encoding enable shorter public keys, but aren’t
+            /// compliant with FIPS certification. If your app requires FIPS certification,
+            /// create a key with ``init(rawRepresentation:)``.
+            ///
+            /// - Parameters:
+            ///   - compactRepresentable: A Boolean value that indicates whether CryptoKit
+            /// creates the key with the structure to enable compact point encoding.
             public init(compactRepresentable: Bool = true) {
                 impl = NISTCurvePrivateKeyImpl(compactRepresentable: compactRepresentable)
             }
 
+            /// Creates a P-256 private key for key agreement from an ANSI x9.63
+            /// representation.
+            ///
+            /// - Parameters:
+            ///   - x963Representation: An ANSI x9.63 representation of the key.
             public init<Bytes: ContiguousBytes>(x963Representation: Bytes) throws {
                 impl = try NISTCurvePrivateKeyImpl(x963: x963Representation)
             }
 
+            /// Creates a P-256 private key for key agreement from a collection of bytes.
+            ///
+            /// - Parameters:
+            ///   - rawRepresentation: A raw representation of the key as a collection of
+            /// contiguous bytes.
             public init<Bytes: ContiguousBytes>(rawRepresentation: Bytes) throws {
                 impl = try NISTCurvePrivateKeyImpl(data: rawRepresentation)
             }
 
+            /// Creates a P-256 private key for key agreement from a Privacy-Enhanced Mail
+            /// PEM) representation.
+            ///
+            /// - Parameters:
+            ///   - pemRepresentation: A PEM representation of the key.
             public init(pemRepresentation: String) throws {
                 let pem = try ASN1.PEMDocument(pemString: pemRepresentation)
 
@@ -254,6 +404,11 @@ extension P256 {
                 }
             }
 
+            /// Creates a P-256 private key for key agreement from a Distinguished Encoding
+            /// Rules (DER) encoded representation.
+            ///
+            /// - Parameters:
+            ///   - derRepresentation: A DER-encoded representation of the key.
             public init<Bytes: RandomAccessCollection>(derRepresentation: Bytes) throws where Bytes.Element == UInt8 {
                 let bytes = Array(derRepresentation)
 
@@ -273,13 +428,18 @@ extension P256 {
                 self.impl = impl
             }
 
+            /// The corresponding public key.
             public var publicKey: P256.KeyAgreement.PublicKey {
                 return PublicKey(impl: impl.publicKey())
             }
 
+            /// A data representation of the private key.
             public var rawRepresentation: Data { impl.rawRepresentation }
+            
+            /// An ANSI x9.63 representation of the private key.
             public var x963Representation: Data { impl.x963Representation }
 
+            /// A Distinguished Encoding Rules (DER) encoded representation of the private key.
             public var derRepresentation: Data {
                 let pkey = ASN1.PKCS8PrivateKey(algorithm: .ecdsaP256, privateKey: Array(self.rawRepresentation), publicKey: Array(self.publicKey.x963Representation))
                 var serializer = ASN1.Serializer()
@@ -289,6 +449,7 @@ extension P256 {
                 return Data(serializer.serializedBytes)
             }
 
+            /// A Privacy-Enhanced Mail (PEM) representation of the private key.
             public var pemRepresentation: String {
                 let pemDocument = ASN1.PEMDocument(type: "PRIVATE KEY", derBytes: self.derRepresentation)
                 return pemDocument.pemString
@@ -298,27 +459,58 @@ extension P256 {
 }
 // MARK: - P384 + Signing
 extension P384 {
-    public enum Signing {
     
+    /// A mechanism used to create or verify a cryptographic signature using
+    /// the NIST P-384 elliptic curve digital signature algorithm (ECDSA).
+    public enum Signing {
+            
+        /// A P-384 public key used to verify cryptographic signatures.
         public struct PublicKey: NISTECPublicKey {
             var impl: NISTCurvePublicKeyImpl<P384>
 
+            /// Creates a P-384 public key for signing from a collection of bytes.
+            ///
+            /// - Parameters:
+            ///   - rawRepresentation: A raw representation of the key as a collection of
+            /// contiguous bytes.
             public init<D: ContiguousBytes>(rawRepresentation: D) throws {
                 impl = try NISTCurvePublicKeyImpl(rawRepresentation: rawRepresentation)
             }
 
+            /// Creates a P-384 public key for signing from a compact
+            /// representation of the key.
+            ///
+            /// - Parameters:
+            ///   - compactRepresentation: A compact representation of the key
+            /// as a collection of contiguous bytes.
             public init<Bytes: ContiguousBytes>(compactRepresentation: Bytes) throws {
                 impl = try NISTCurvePublicKeyImpl(compactRepresentation: compactRepresentation)
             }
 
+            /// Creates a P-384 public key for signing from an ANSI x9.63
+            /// representation.
+            ///
+            /// - Parameters:
+            ///   - x963Representation: An ANSI x9.63 representation of the key.
             public init<Bytes: ContiguousBytes>(x963Representation: Bytes) throws {
                 impl = try NISTCurvePublicKeyImpl(x963Representation: x963Representation)
             }
             
+            /// Creates a P-384 public key for signing from a compressed representation of
+            /// the key.
+            ///
+            /// - Parameters:
+            ///   - compressedRepresentation: A compressed representation of the key as a collection
+            /// of contiguous bytes.
             public init<Bytes: ContiguousBytes>(compressedRepresentation: Bytes) throws {
                 impl = try NISTCurvePublicKeyImpl(compressedRepresentation: compressedRepresentation)
             }
 
+            /// Creates a P-384 public key for signing from a Privacy-Enhanced Mail
+            /// (PEM) representation.
+            ///
+            /// - Parameters:
+            ///   - pemRepresentation: A PEM representation of the key.
             public init(pemRepresentation: String) throws {
                 let pem = try ASN1.PEMDocument(pemString: pemRepresentation)
                 guard pem.type == "PUBLIC KEY" else {
@@ -327,6 +519,11 @@ extension P384 {
                 self = try .init(derRepresentation: pem.derBytes)
             }
 
+            /// Creates a P-384 public key for signing from a Distinguished Encoding
+            /// Rules (DER) encoded representation.
+            ///
+            /// - Parameters:
+            ///   - derRepresentation: A DER-encoded representation of the key.
             public init<Bytes: RandomAccessCollection>(derRepresentation: Bytes) throws where Bytes.Element == UInt8 {
                 let bytes = Array(derRepresentation)
                 let parsed = try ASN1.SubjectPublicKeyInfo(asn1Encoded: bytes)
@@ -337,12 +534,19 @@ extension P384 {
                 self.impl = impl
             }
 
+            /// A compact representation of the public key.
             public var compactRepresentation: Data? { impl.compactRepresentation }
+            
+            /// A full representation of the public key.
             public var rawRepresentation: Data { impl.rawRepresentation }
+            
+            /// An ANSI x9.63 representation of the public key.
             public var x963Representation: Data { impl.x963Representation }
 
+            /// A compressed representation of the public key.
             public var compressedRepresentation: Data { impl.compressedRepresentation }
             
+            /// A Distinguished Encoding Rules (DER) encoded representation of the public key.
             public var derRepresentation: Data {
                 let spki = ASN1.SubjectPublicKeyInfo(algorithmIdentifier: .ecdsaP384, key: Array(self.x963Representation))
                 var serializer = ASN1.Serializer()
@@ -352,27 +556,53 @@ extension P384 {
                 return Data(serializer.serializedBytes)
             }
 
+            /// A Privacy-Enhanced Mail (PEM) representation of the public key.
             public var pemRepresentation: String {
                 let pemDocument = ASN1.PEMDocument(type: "PUBLIC KEY", derBytes: self.derRepresentation)
                 return pemDocument.pemString
             }
         }
 
+        /// A P-384 private key used to create cryptographic signatures.
         public struct PrivateKey: NISTECPrivateKey {
             let impl: NISTCurvePrivateKeyImpl<P384>
 
+            /// Creates a random P-384 private key for signing.
+            ///
+            /// Keys that use a compact point encoding enable shorter public keys, but aren’t
+            /// compliant with FIPS certification. If your app requires FIPS certification,
+            /// create a key with ``init(rawRepresentation:)``.
+            ///
+            /// - Parameters:
+            ///   - compactRepresentable: A Boolean value that indicates whether CryptoKit
+            /// creates the key with the structure to enable compact point encoding.
             public init(compactRepresentable: Bool = true) {
                 impl = NISTCurvePrivateKeyImpl(compactRepresentable: compactRepresentable)
             }
 
+            /// Creates a P-384 private key for signing from an ANSI x9.63
+            /// representation.
+            ///
+            /// - Parameters:
+            ///   - x963Representation: An ANSI x9.63 representation of the key.
             public init<Bytes: ContiguousBytes>(x963Representation: Bytes) throws {
                 impl = try NISTCurvePrivateKeyImpl(x963: x963Representation)
             }
 
+            /// Creates a P-384 private key for signing from a collection of bytes.
+            ///
+            /// - Parameters:
+            ///   - rawRepresentation: A raw representation of the key as a collection of
+            /// contiguous bytes.
             public init<Bytes: ContiguousBytes>(rawRepresentation: Bytes) throws {
                 impl = try NISTCurvePrivateKeyImpl(data: rawRepresentation)
             }
 
+            /// Creates a P-384 private key for signing from a Privacy-Enhanced Mail
+            /// PEM) representation.
+            ///
+            /// - Parameters:
+            ///   - pemRepresentation: A PEM representation of the key.
             public init(pemRepresentation: String) throws {
                 let pem = try ASN1.PEMDocument(pemString: pemRepresentation)
 
@@ -388,6 +618,11 @@ extension P384 {
                 }
             }
 
+            /// Creates a P-384 private key for signing from a Distinguished Encoding
+            /// Rules (DER) encoded representation.
+            ///
+            /// - Parameters:
+            ///   - derRepresentation: A DER-encoded representation of the key.
             public init<Bytes: RandomAccessCollection>(derRepresentation: Bytes) throws where Bytes.Element == UInt8 {
                 let bytes = Array(derRepresentation)
 
@@ -407,13 +642,18 @@ extension P384 {
                 self.impl = impl
             }
 
+            /// The corresponding public key.
             public var publicKey: P384.Signing.PublicKey {
                 return PublicKey(impl: impl.publicKey())
             }
 
+            /// A data representation of the private key.
             public var rawRepresentation: Data { impl.rawRepresentation }
+            
+            /// An ANSI x9.63 representation of the private key.
             public var x963Representation: Data { impl.x963Representation }
 
+            /// A Distinguished Encoding Rules (DER) encoded representation of the private key.
             public var derRepresentation: Data {
                 let pkey = ASN1.PKCS8PrivateKey(algorithm: .ecdsaP384, privateKey: Array(self.rawRepresentation), publicKey: Array(self.publicKey.x963Representation))
                 var serializer = ASN1.Serializer()
@@ -423,6 +663,7 @@ extension P384 {
                 return Data(serializer.serializedBytes)
             }
 
+            /// A Privacy-Enhanced Mail (PEM) representation of the private key.
             public var pemRepresentation: String {
                 let pemDocument = ASN1.PEMDocument(type: "PRIVATE KEY", derBytes: self.derRepresentation)
                 return pemDocument.pemString
@@ -432,27 +673,59 @@ extension P384 {
 }
 // MARK: - P384 + KeyAgreement
 extension P384 {
-    public enum KeyAgreement {
     
+    /// A mechanism used to create a shared secret between two users by
+    /// performing NIST P-384 elliptic curve Diffie Hellman (ECDH) key
+    /// exchange.
+    public enum KeyAgreement {
+            
+        /// A P-384 public key used for key agreement.
         public struct PublicKey: NISTECPublicKey {
             var impl: NISTCurvePublicKeyImpl<P384>
 
+            /// Creates a P-384 public key for key agreement from a collection of bytes.
+            ///
+            /// - Parameters:
+            ///   - rawRepresentation: A raw representation of the key as a collection of
+            /// contiguous bytes.
             public init<D: ContiguousBytes>(rawRepresentation: D) throws {
                 impl = try NISTCurvePublicKeyImpl(rawRepresentation: rawRepresentation)
             }
 
+            /// Creates a P-384 public key for key agreement from a compact
+            /// representation of the key.
+            ///
+            /// - Parameters:
+            ///   - compactRepresentation: A compact representation of the key
+            /// as a collection of contiguous bytes.
             public init<Bytes: ContiguousBytes>(compactRepresentation: Bytes) throws {
                 impl = try NISTCurvePublicKeyImpl(compactRepresentation: compactRepresentation)
             }
 
+            /// Creates a P-384 public key for key agreement from an ANSI x9.63
+            /// representation.
+            ///
+            /// - Parameters:
+            ///   - x963Representation: An ANSI x9.63 representation of the key.
             public init<Bytes: ContiguousBytes>(x963Representation: Bytes) throws {
                 impl = try NISTCurvePublicKeyImpl(x963Representation: x963Representation)
             }
             
+            /// Creates a P-384 public key for key agreement from a compressed representation of
+            /// the key.
+            ///
+            /// - Parameters:
+            ///   - compressedRepresentation: A compressed representation of the key as a collection
+            /// of contiguous bytes.
             public init<Bytes: ContiguousBytes>(compressedRepresentation: Bytes) throws {
                 impl = try NISTCurvePublicKeyImpl(compressedRepresentation: compressedRepresentation)
             }
 
+            /// Creates a P-384 public key for key agreement from a Privacy-Enhanced Mail
+            /// (PEM) representation.
+            ///
+            /// - Parameters:
+            ///   - pemRepresentation: A PEM representation of the key.
             public init(pemRepresentation: String) throws {
                 let pem = try ASN1.PEMDocument(pemString: pemRepresentation)
                 guard pem.type == "PUBLIC KEY" else {
@@ -461,6 +734,11 @@ extension P384 {
                 self = try .init(derRepresentation: pem.derBytes)
             }
 
+            /// Creates a P-384 public key for key agreement from a Distinguished Encoding
+            /// Rules (DER) encoded representation.
+            ///
+            /// - Parameters:
+            ///   - derRepresentation: A DER-encoded representation of the key.
             public init<Bytes: RandomAccessCollection>(derRepresentation: Bytes) throws where Bytes.Element == UInt8 {
                 let bytes = Array(derRepresentation)
                 let parsed = try ASN1.SubjectPublicKeyInfo(asn1Encoded: bytes)
@@ -471,12 +749,19 @@ extension P384 {
                 self.impl = impl
             }
 
+            /// A compact representation of the public key.
             public var compactRepresentation: Data? { impl.compactRepresentation }
+            
+            /// A full representation of the public key.
             public var rawRepresentation: Data { impl.rawRepresentation }
+            
+            /// An ANSI x9.63 representation of the public key.
             public var x963Representation: Data { impl.x963Representation }
 
+            /// A compressed representation of the public key.
             public var compressedRepresentation: Data { impl.compressedRepresentation }
             
+            /// A Distinguished Encoding Rules (DER) encoded representation of the public key.
             public var derRepresentation: Data {
                 let spki = ASN1.SubjectPublicKeyInfo(algorithmIdentifier: .ecdsaP384, key: Array(self.x963Representation))
                 var serializer = ASN1.Serializer()
@@ -486,27 +771,53 @@ extension P384 {
                 return Data(serializer.serializedBytes)
             }
 
+            /// A Privacy-Enhanced Mail (PEM) representation of the public key.
             public var pemRepresentation: String {
                 let pemDocument = ASN1.PEMDocument(type: "PUBLIC KEY", derBytes: self.derRepresentation)
                 return pemDocument.pemString
             }
         }
 
+        /// A P-384 private key used for key agreement.
         public struct PrivateKey: NISTECPrivateKey {
             let impl: NISTCurvePrivateKeyImpl<P384>
 
+            /// Creates a random P-384 private key for key agreement.
+            ///
+            /// Keys that use a compact point encoding enable shorter public keys, but aren’t
+            /// compliant with FIPS certification. If your app requires FIPS certification,
+            /// create a key with ``init(rawRepresentation:)``.
+            ///
+            /// - Parameters:
+            ///   - compactRepresentable: A Boolean value that indicates whether CryptoKit
+            /// creates the key with the structure to enable compact point encoding.
             public init(compactRepresentable: Bool = true) {
                 impl = NISTCurvePrivateKeyImpl(compactRepresentable: compactRepresentable)
             }
 
+            /// Creates a P-384 private key for key agreement from an ANSI x9.63
+            /// representation.
+            ///
+            /// - Parameters:
+            ///   - x963Representation: An ANSI x9.63 representation of the key.
             public init<Bytes: ContiguousBytes>(x963Representation: Bytes) throws {
                 impl = try NISTCurvePrivateKeyImpl(x963: x963Representation)
             }
 
+            /// Creates a P-384 private key for key agreement from a collection of bytes.
+            ///
+            /// - Parameters:
+            ///   - rawRepresentation: A raw representation of the key as a collection of
+            /// contiguous bytes.
             public init<Bytes: ContiguousBytes>(rawRepresentation: Bytes) throws {
                 impl = try NISTCurvePrivateKeyImpl(data: rawRepresentation)
             }
 
+            /// Creates a P-384 private key for key agreement from a Privacy-Enhanced Mail
+            /// PEM) representation.
+            ///
+            /// - Parameters:
+            ///   - pemRepresentation: A PEM representation of the key.
             public init(pemRepresentation: String) throws {
                 let pem = try ASN1.PEMDocument(pemString: pemRepresentation)
 
@@ -522,6 +833,11 @@ extension P384 {
                 }
             }
 
+            /// Creates a P-384 private key for key agreement from a Distinguished Encoding
+            /// Rules (DER) encoded representation.
+            ///
+            /// - Parameters:
+            ///   - derRepresentation: A DER-encoded representation of the key.
             public init<Bytes: RandomAccessCollection>(derRepresentation: Bytes) throws where Bytes.Element == UInt8 {
                 let bytes = Array(derRepresentation)
 
@@ -541,13 +857,18 @@ extension P384 {
                 self.impl = impl
             }
 
+            /// The corresponding public key.
             public var publicKey: P384.KeyAgreement.PublicKey {
                 return PublicKey(impl: impl.publicKey())
             }
 
+            /// A data representation of the private key.
             public var rawRepresentation: Data { impl.rawRepresentation }
+            
+            /// An ANSI x9.63 representation of the private key.
             public var x963Representation: Data { impl.x963Representation }
 
+            /// A Distinguished Encoding Rules (DER) encoded representation of the private key.
             public var derRepresentation: Data {
                 let pkey = ASN1.PKCS8PrivateKey(algorithm: .ecdsaP384, privateKey: Array(self.rawRepresentation), publicKey: Array(self.publicKey.x963Representation))
                 var serializer = ASN1.Serializer()
@@ -557,6 +878,7 @@ extension P384 {
                 return Data(serializer.serializedBytes)
             }
 
+            /// A Privacy-Enhanced Mail (PEM) representation of the private key.
             public var pemRepresentation: String {
                 let pemDocument = ASN1.PEMDocument(type: "PRIVATE KEY", derBytes: self.derRepresentation)
                 return pemDocument.pemString
@@ -566,27 +888,58 @@ extension P384 {
 }
 // MARK: - P521 + Signing
 extension P521 {
-    public enum Signing {
     
+    /// A mechanism used to create or verify a cryptographic signature using
+    /// the NIST P-521 elliptic curve digital signature algorithm (ECDSA).
+    public enum Signing {
+            
+        /// A P-521 public key used to verify cryptographic signatures.
         public struct PublicKey: NISTECPublicKey {
             var impl: NISTCurvePublicKeyImpl<P521>
 
+            /// Creates a P-521 public key for signing from a collection of bytes.
+            ///
+            /// - Parameters:
+            ///   - rawRepresentation: A raw representation of the key as a collection of
+            /// contiguous bytes.
             public init<D: ContiguousBytes>(rawRepresentation: D) throws {
                 impl = try NISTCurvePublicKeyImpl(rawRepresentation: rawRepresentation)
             }
 
+            /// Creates a P-521 public key for signing from a compact
+            /// representation of the key.
+            ///
+            /// - Parameters:
+            ///   - compactRepresentation: A compact representation of the key
+            /// as a collection of contiguous bytes.
             public init<Bytes: ContiguousBytes>(compactRepresentation: Bytes) throws {
                 impl = try NISTCurvePublicKeyImpl(compactRepresentation: compactRepresentation)
             }
 
+            /// Creates a P-521 public key for signing from an ANSI x9.63
+            /// representation.
+            ///
+            /// - Parameters:
+            ///   - x963Representation: An ANSI x9.63 representation of the key.
             public init<Bytes: ContiguousBytes>(x963Representation: Bytes) throws {
                 impl = try NISTCurvePublicKeyImpl(x963Representation: x963Representation)
             }
             
+            /// Creates a P-521 public key for signing from a compressed representation of
+            /// the key.
+            ///
+            /// - Parameters:
+            ///   - compressedRepresentation: A compressed representation of the key as a collection
+            /// of contiguous bytes.
             public init<Bytes: ContiguousBytes>(compressedRepresentation: Bytes) throws {
                 impl = try NISTCurvePublicKeyImpl(compressedRepresentation: compressedRepresentation)
             }
 
+            /// Creates a P-521 public key for signing from a Privacy-Enhanced Mail
+            /// (PEM) representation.
+            ///
+            /// - Parameters:
+            ///   - pemRepresentation: A PEM representation of the key.
             public init(pemRepresentation: String) throws {
                 let pem = try ASN1.PEMDocument(pemString: pemRepresentation)
                 guard pem.type == "PUBLIC KEY" else {
@@ -595,6 +948,11 @@ extension P521 {
                 self = try .init(derRepresentation: pem.derBytes)
             }
 
+            /// Creates a P-521 public key for signing from a Distinguished Encoding
+            /// Rules (DER) encoded representation.
+            ///
+            /// - Parameters:
+            ///   - derRepresentation: A DER-encoded representation of the key.
             public init<Bytes: RandomAccessCollection>(derRepresentation: Bytes) throws where Bytes.Element == UInt8 {
                 let bytes = Array(derRepresentation)
                 let parsed = try ASN1.SubjectPublicKeyInfo(asn1Encoded: bytes)
@@ -605,12 +963,19 @@ extension P521 {
                 self.impl = impl
             }
 
+            /// A compact representation of the public key.
             public var compactRepresentation: Data? { impl.compactRepresentation }
+            
+            /// A full representation of the public key.
             public var rawRepresentation: Data { impl.rawRepresentation }
+            
+            /// An ANSI x9.63 representation of the public key.
             public var x963Representation: Data { impl.x963Representation }
 
+            /// A compressed representation of the public key.
             public var compressedRepresentation: Data { impl.compressedRepresentation }
             
+            /// A Distinguished Encoding Rules (DER) encoded representation of the public key.
             public var derRepresentation: Data {
                 let spki = ASN1.SubjectPublicKeyInfo(algorithmIdentifier: .ecdsaP521, key: Array(self.x963Representation))
                 var serializer = ASN1.Serializer()
@@ -620,27 +985,53 @@ extension P521 {
                 return Data(serializer.serializedBytes)
             }
 
+            /// A Privacy-Enhanced Mail (PEM) representation of the public key.
             public var pemRepresentation: String {
                 let pemDocument = ASN1.PEMDocument(type: "PUBLIC KEY", derBytes: self.derRepresentation)
                 return pemDocument.pemString
             }
         }
 
+        /// A P-521 private key used to create cryptographic signatures.
         public struct PrivateKey: NISTECPrivateKey {
             let impl: NISTCurvePrivateKeyImpl<P521>
 
+            /// Creates a random P-521 private key for signing.
+            ///
+            /// Keys that use a compact point encoding enable shorter public keys, but aren’t
+            /// compliant with FIPS certification. If your app requires FIPS certification,
+            /// create a key with ``init(rawRepresentation:)``.
+            ///
+            /// - Parameters:
+            ///   - compactRepresentable: A Boolean value that indicates whether CryptoKit
+            /// creates the key with the structure to enable compact point encoding.
             public init(compactRepresentable: Bool = true) {
                 impl = NISTCurvePrivateKeyImpl(compactRepresentable: compactRepresentable)
             }
 
+            /// Creates a P-521 private key for signing from an ANSI x9.63
+            /// representation.
+            ///
+            /// - Parameters:
+            ///   - x963Representation: An ANSI x9.63 representation of the key.
             public init<Bytes: ContiguousBytes>(x963Representation: Bytes) throws {
                 impl = try NISTCurvePrivateKeyImpl(x963: x963Representation)
             }
 
+            /// Creates a P-521 private key for signing from a collection of bytes.
+            ///
+            /// - Parameters:
+            ///   - rawRepresentation: A raw representation of the key as a collection of
+            /// contiguous bytes.
             public init<Bytes: ContiguousBytes>(rawRepresentation: Bytes) throws {
                 impl = try NISTCurvePrivateKeyImpl(data: rawRepresentation)
             }
 
+            /// Creates a P-521 private key for signing from a Privacy-Enhanced Mail
+            /// PEM) representation.
+            ///
+            /// - Parameters:
+            ///   - pemRepresentation: A PEM representation of the key.
             public init(pemRepresentation: String) throws {
                 let pem = try ASN1.PEMDocument(pemString: pemRepresentation)
 
@@ -656,6 +1047,11 @@ extension P521 {
                 }
             }
 
+            /// Creates a P-521 private key for signing from a Distinguished Encoding
+            /// Rules (DER) encoded representation.
+            ///
+            /// - Parameters:
+            ///   - derRepresentation: A DER-encoded representation of the key.
             public init<Bytes: RandomAccessCollection>(derRepresentation: Bytes) throws where Bytes.Element == UInt8 {
                 let bytes = Array(derRepresentation)
 
@@ -675,13 +1071,18 @@ extension P521 {
                 self.impl = impl
             }
 
+            /// The corresponding public key.
             public var publicKey: P521.Signing.PublicKey {
                 return PublicKey(impl: impl.publicKey())
             }
 
+            /// A data representation of the private key.
             public var rawRepresentation: Data { impl.rawRepresentation }
+            
+            /// An ANSI x9.63 representation of the private key.
             public var x963Representation: Data { impl.x963Representation }
 
+            /// A Distinguished Encoding Rules (DER) encoded representation of the private key.
             public var derRepresentation: Data {
                 let pkey = ASN1.PKCS8PrivateKey(algorithm: .ecdsaP521, privateKey: Array(self.rawRepresentation), publicKey: Array(self.publicKey.x963Representation))
                 var serializer = ASN1.Serializer()
@@ -691,6 +1092,7 @@ extension P521 {
                 return Data(serializer.serializedBytes)
             }
 
+            /// A Privacy-Enhanced Mail (PEM) representation of the private key.
             public var pemRepresentation: String {
                 let pemDocument = ASN1.PEMDocument(type: "PRIVATE KEY", derBytes: self.derRepresentation)
                 return pemDocument.pemString
@@ -700,27 +1102,59 @@ extension P521 {
 }
 // MARK: - P521 + KeyAgreement
 extension P521 {
-    public enum KeyAgreement {
     
+    /// A mechanism used to create a shared secret between two users by
+    /// performing NIST P-521 elliptic curve Diffie Hellman (ECDH) key
+    /// exchange.
+    public enum KeyAgreement {
+            
+        /// A P-521 public key used for key agreement.
         public struct PublicKey: NISTECPublicKey {
             var impl: NISTCurvePublicKeyImpl<P521>
 
+            /// Creates a P-521 public key for key agreement from a collection of bytes.
+            ///
+            /// - Parameters:
+            ///   - rawRepresentation: A raw representation of the key as a collection of
+            /// contiguous bytes.
             public init<D: ContiguousBytes>(rawRepresentation: D) throws {
                 impl = try NISTCurvePublicKeyImpl(rawRepresentation: rawRepresentation)
             }
 
+            /// Creates a P-521 public key for key agreement from a compact
+            /// representation of the key.
+            ///
+            /// - Parameters:
+            ///   - compactRepresentation: A compact representation of the key
+            /// as a collection of contiguous bytes.
             public init<Bytes: ContiguousBytes>(compactRepresentation: Bytes) throws {
                 impl = try NISTCurvePublicKeyImpl(compactRepresentation: compactRepresentation)
             }
 
+            /// Creates a P-521 public key for key agreement from an ANSI x9.63
+            /// representation.
+            ///
+            /// - Parameters:
+            ///   - x963Representation: An ANSI x9.63 representation of the key.
             public init<Bytes: ContiguousBytes>(x963Representation: Bytes) throws {
                 impl = try NISTCurvePublicKeyImpl(x963Representation: x963Representation)
             }
             
+            /// Creates a P-521 public key for key agreement from a compressed representation of
+            /// the key.
+            ///
+            /// - Parameters:
+            ///   - compressedRepresentation: A compressed representation of the key as a collection
+            /// of contiguous bytes.
             public init<Bytes: ContiguousBytes>(compressedRepresentation: Bytes) throws {
                 impl = try NISTCurvePublicKeyImpl(compressedRepresentation: compressedRepresentation)
             }
 
+            /// Creates a P-521 public key for key agreement from a Privacy-Enhanced Mail
+            /// (PEM) representation.
+            ///
+            /// - Parameters:
+            ///   - pemRepresentation: A PEM representation of the key.
             public init(pemRepresentation: String) throws {
                 let pem = try ASN1.PEMDocument(pemString: pemRepresentation)
                 guard pem.type == "PUBLIC KEY" else {
@@ -729,6 +1163,11 @@ extension P521 {
                 self = try .init(derRepresentation: pem.derBytes)
             }
 
+            /// Creates a P-521 public key for key agreement from a Distinguished Encoding
+            /// Rules (DER) encoded representation.
+            ///
+            /// - Parameters:
+            ///   - derRepresentation: A DER-encoded representation of the key.
             public init<Bytes: RandomAccessCollection>(derRepresentation: Bytes) throws where Bytes.Element == UInt8 {
                 let bytes = Array(derRepresentation)
                 let parsed = try ASN1.SubjectPublicKeyInfo(asn1Encoded: bytes)
@@ -739,12 +1178,19 @@ extension P521 {
                 self.impl = impl
             }
 
+            /// A compact representation of the public key.
             public var compactRepresentation: Data? { impl.compactRepresentation }
+            
+            /// A full representation of the public key.
             public var rawRepresentation: Data { impl.rawRepresentation }
+            
+            /// An ANSI x9.63 representation of the public key.
             public var x963Representation: Data { impl.x963Representation }
 
+            /// A compressed representation of the public key.
             public var compressedRepresentation: Data { impl.compressedRepresentation }
             
+            /// A Distinguished Encoding Rules (DER) encoded representation of the public key.
             public var derRepresentation: Data {
                 let spki = ASN1.SubjectPublicKeyInfo(algorithmIdentifier: .ecdsaP521, key: Array(self.x963Representation))
                 var serializer = ASN1.Serializer()
@@ -754,27 +1200,53 @@ extension P521 {
                 return Data(serializer.serializedBytes)
             }
 
+            /// A Privacy-Enhanced Mail (PEM) representation of the public key.
             public var pemRepresentation: String {
                 let pemDocument = ASN1.PEMDocument(type: "PUBLIC KEY", derBytes: self.derRepresentation)
                 return pemDocument.pemString
             }
         }
 
+        /// A P-521 private key used for key agreement.
         public struct PrivateKey: NISTECPrivateKey {
             let impl: NISTCurvePrivateKeyImpl<P521>
 
+            /// Creates a random P-521 private key for key agreement.
+            ///
+            /// Keys that use a compact point encoding enable shorter public keys, but aren’t
+            /// compliant with FIPS certification. If your app requires FIPS certification,
+            /// create a key with ``init(rawRepresentation:)``.
+            ///
+            /// - Parameters:
+            ///   - compactRepresentable: A Boolean value that indicates whether CryptoKit
+            /// creates the key with the structure to enable compact point encoding.
             public init(compactRepresentable: Bool = true) {
                 impl = NISTCurvePrivateKeyImpl(compactRepresentable: compactRepresentable)
             }
 
+            /// Creates a P-521 private key for key agreement from an ANSI x9.63
+            /// representation.
+            ///
+            /// - Parameters:
+            ///   - x963Representation: An ANSI x9.63 representation of the key.
             public init<Bytes: ContiguousBytes>(x963Representation: Bytes) throws {
                 impl = try NISTCurvePrivateKeyImpl(x963: x963Representation)
             }
 
+            /// Creates a P-521 private key for key agreement from a collection of bytes.
+            ///
+            /// - Parameters:
+            ///   - rawRepresentation: A raw representation of the key as a collection of
+            /// contiguous bytes.
             public init<Bytes: ContiguousBytes>(rawRepresentation: Bytes) throws {
                 impl = try NISTCurvePrivateKeyImpl(data: rawRepresentation)
             }
 
+            /// Creates a P-521 private key for key agreement from a Privacy-Enhanced Mail
+            /// PEM) representation.
+            ///
+            /// - Parameters:
+            ///   - pemRepresentation: A PEM representation of the key.
             public init(pemRepresentation: String) throws {
                 let pem = try ASN1.PEMDocument(pemString: pemRepresentation)
 
@@ -790,6 +1262,11 @@ extension P521 {
                 }
             }
 
+            /// Creates a P-521 private key for key agreement from a Distinguished Encoding
+            /// Rules (DER) encoded representation.
+            ///
+            /// - Parameters:
+            ///   - derRepresentation: A DER-encoded representation of the key.
             public init<Bytes: RandomAccessCollection>(derRepresentation: Bytes) throws where Bytes.Element == UInt8 {
                 let bytes = Array(derRepresentation)
 
@@ -809,13 +1286,18 @@ extension P521 {
                 self.impl = impl
             }
 
+            /// The corresponding public key.
             public var publicKey: P521.KeyAgreement.PublicKey {
                 return PublicKey(impl: impl.publicKey())
             }
 
+            /// A data representation of the private key.
             public var rawRepresentation: Data { impl.rawRepresentation }
+            
+            /// An ANSI x9.63 representation of the private key.
             public var x963Representation: Data { impl.x963Representation }
 
+            /// A Distinguished Encoding Rules (DER) encoded representation of the private key.
             public var derRepresentation: Data {
                 let pkey = ASN1.PKCS8PrivateKey(algorithm: .ecdsaP521, privateKey: Array(self.rawRepresentation), publicKey: Array(self.publicKey.x963Representation))
                 var serializer = ASN1.Serializer()
@@ -825,6 +1307,7 @@ extension P521 {
                 return Data(serializer.serializedBytes)
             }
 
+            /// A Privacy-Enhanced Mail (PEM) representation of the private key.
             public var pemRepresentation: String {
                 let pemDocument = ASN1.PEMDocument(type: "PRIVATE KEY", derBytes: self.derRepresentation)
                 return pemDocument.pemString
@@ -835,11 +1318,12 @@ extension P521 {
 
 // MARK: - P256 + DH
 extension P256.KeyAgreement.PrivateKey: DiffieHellmanKeyAgreement {
-    /// Performs a key agreement with provided public key share.
+    /// Computes a shared secret with the provided public key from another party.
     ///
-    /// - Parameter publicKeyShare: The public key to perform the ECDH with.
-    /// - Returns: Returns a shared secret
-    /// - Throws: An error occurred while computing the shared secret
+    /// - Parameters:
+    ///   - publicKeyShare: The public key from another party to be combined with the private
+    /// key from this user to create the shared secret.
+    /// - Returns: The computed shared secret.
     public func sharedSecretFromKeyAgreement(with publicKeyShare: P256.KeyAgreement.PublicKey) throws -> SharedSecret {
         #if (os(macOS) || os(iOS) || os(watchOS) || os(tvOS)) && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
         return try self.coreCryptoSharedSecretFromKeyAgreement(with: publicKeyShare)
@@ -850,11 +1334,12 @@ extension P256.KeyAgreement.PrivateKey: DiffieHellmanKeyAgreement {
 }
 // MARK: - P384 + DH
 extension P384.KeyAgreement.PrivateKey: DiffieHellmanKeyAgreement {
-    /// Performs a key agreement with provided public key share.
+    /// Computes a shared secret with the provided public key from another party.
     ///
-    /// - Parameter publicKeyShare: The public key to perform the ECDH with.
-    /// - Returns: Returns a shared secret
-    /// - Throws: An error occurred while computing the shared secret
+    /// - Parameters:
+    ///   - publicKeyShare: The public key from another party to be combined with the private
+    /// key from this user to create the shared secret.
+    /// - Returns: The computed shared secret.
     public func sharedSecretFromKeyAgreement(with publicKeyShare: P384.KeyAgreement.PublicKey) throws -> SharedSecret {
         #if (os(macOS) || os(iOS) || os(watchOS) || os(tvOS)) && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
         return try self.coreCryptoSharedSecretFromKeyAgreement(with: publicKeyShare)
@@ -865,11 +1350,12 @@ extension P384.KeyAgreement.PrivateKey: DiffieHellmanKeyAgreement {
 }
 // MARK: - P521 + DH
 extension P521.KeyAgreement.PrivateKey: DiffieHellmanKeyAgreement {
-    /// Performs a key agreement with provided public key share.
+    /// Computes a shared secret with the provided public key from another party.
     ///
-    /// - Parameter publicKeyShare: The public key to perform the ECDH with.
-    /// - Returns: Returns a shared secret
-    /// - Throws: An error occurred while computing the shared secret
+    /// - Parameters:
+    ///   - publicKeyShare: The public key from another party to be combined with the private
+    /// key from this user to create the shared secret.
+    /// - Returns: The computed shared secret.
     public func sharedSecretFromKeyAgreement(with publicKeyShare: P521.KeyAgreement.PublicKey) throws -> SharedSecret {
         #if (os(macOS) || os(iOS) || os(watchOS) || os(tvOS)) && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
         return try self.coreCryptoSharedSecretFromKeyAgreement(with: publicKeyShare)

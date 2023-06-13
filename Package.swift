@@ -143,7 +143,14 @@ let package = Package(
             ]
         ),
         .executableTarget(name: "crypto-shasum", dependencies: ["Crypto"]),
-        .testTarget(name: "CryptoTests", dependencies: ["Crypto"], swiftSettings: swiftSettings),
+        .testTarget(
+            name: "CryptoTests",
+            dependencies: ["Crypto"],
+            resources: [
+                .copy("HPKE/hpke-test-vectors.json"),
+            ],
+            swiftSettings: swiftSettings
+        ),
         .testTarget(name: "_CryptoExtrasTests", dependencies: ["_CryptoExtras"]),
     ],
     cxxLanguageStandard: .cxx11
