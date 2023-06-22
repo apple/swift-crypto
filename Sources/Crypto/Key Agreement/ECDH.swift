@@ -11,10 +11,10 @@
 // SPDX-License-Identifier: Apache-2.0
 //
 //===----------------------------------------------------------------------===//
-#if (os(macOS) || os(iOS) || os(watchOS) || os(tvOS)) && CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
+#if CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
 @_exported import CryptoKit
 #else
-#if (os(macOS) || os(iOS) || os(watchOS) || os(tvOS)) && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
+#if !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
 typealias NISTCurvePublicKeyImpl = CoreCryptoNISTCurvePublicKeyImpl
 typealias NISTCurvePrivateKeyImpl = CoreCryptoNISTCurvePrivateKeyImpl
 #else
@@ -1325,7 +1325,7 @@ extension P256.KeyAgreement.PrivateKey: DiffieHellmanKeyAgreement {
     /// key from this user to create the shared secret.
     /// - Returns: The computed shared secret.
     public func sharedSecretFromKeyAgreement(with publicKeyShare: P256.KeyAgreement.PublicKey) throws -> SharedSecret {
-        #if (os(macOS) || os(iOS) || os(watchOS) || os(tvOS)) && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
+        #if !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
         return try self.coreCryptoSharedSecretFromKeyAgreement(with: publicKeyShare)
         #else
         return try self.openSSLSharedSecretFromKeyAgreement(with: publicKeyShare)
@@ -1341,7 +1341,7 @@ extension P384.KeyAgreement.PrivateKey: DiffieHellmanKeyAgreement {
     /// key from this user to create the shared secret.
     /// - Returns: The computed shared secret.
     public func sharedSecretFromKeyAgreement(with publicKeyShare: P384.KeyAgreement.PublicKey) throws -> SharedSecret {
-        #if (os(macOS) || os(iOS) || os(watchOS) || os(tvOS)) && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
+        #if !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
         return try self.coreCryptoSharedSecretFromKeyAgreement(with: publicKeyShare)
         #else
         return try self.openSSLSharedSecretFromKeyAgreement(with: publicKeyShare)
@@ -1357,7 +1357,7 @@ extension P521.KeyAgreement.PrivateKey: DiffieHellmanKeyAgreement {
     /// key from this user to create the shared secret.
     /// - Returns: The computed shared secret.
     public func sharedSecretFromKeyAgreement(with publicKeyShare: P521.KeyAgreement.PublicKey) throws -> SharedSecret {
-        #if (os(macOS) || os(iOS) || os(watchOS) || os(tvOS)) && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
+        #if !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
         return try self.coreCryptoSharedSecretFromKeyAgreement(with: publicKeyShare)
         #else
         return try self.openSSLSharedSecretFromKeyAgreement(with: publicKeyShare)

@@ -14,10 +14,10 @@
 import Foundation
 import XCTest
 
-#if (os(macOS) || os(iOS) || os(watchOS) || os(tvOS)) && CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
+#if CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
 // Skip tests that require @testable imports of CryptoKit.
 #else
-#if (os(macOS) || os(iOS) || os(watchOS) || os(tvOS)) && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
+#if !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
 @testable import CryptoKit
 #else
 @testable import Crypto
@@ -64,7 +64,7 @@ struct HPKETestVector: Codable {
 class HPKETestVectors: XCTestCase {
     
     func testVectors() throws {
-        #if (os(macOS) || os(iOS) || os(watchOS) || os(tvOS)) && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
+        #if !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
         let bundle = Bundle(for: type(of: self))
         #else
         let bundle = Bundle.module
@@ -193,4 +193,4 @@ private func aeadFromValue(value: UInt16) -> HPKE.AEAD? {
     return aeadValues.first
 }
 
-#endif // (os(macOS) || os(iOS) || os(watchOS) || os(tvOS)) && CRYPTO_IN_SWIFTPM
+#endif // CRYPTO_IN_SWIFTPM
