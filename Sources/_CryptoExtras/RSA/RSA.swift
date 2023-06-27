@@ -220,7 +220,7 @@ extension _RSA.Signing.PrivateKey {
         return try self.signature(for: SHA256.hash(data: data), padding: .PSS)
     }
 
-    ///  Generates an RSA signature with the given key.
+    /// Generates an RSA signature with the given key.
     ///
     /// - Parameter digest: The digest to sign.
     /// - Parameter padding: The padding to use.
