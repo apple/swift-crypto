@@ -41,7 +41,7 @@ class ECKeyEncodingsTests: XCTestCase {
         let p521KeyKA_x963 = p521KeyKA.x963Representation
         XCTAssertNoThrow(try P521.KeyAgreement.PrivateKey(rawRepresentation: p521KeyKA_raw))
         XCTAssertNoThrow(try P521.KeyAgreement.PrivateKey(x963Representation: p521KeyKA_x963))
-
+        
         // Curve25519 does not have an x963 representation.
         let x25519KeyKA = Curve25519.KeyAgreement.PrivateKey()
         let x25519KeyKA_raw = x25519KeyKA.rawRepresentation
@@ -66,84 +66,121 @@ class ECKeyEncodingsTests: XCTestCase {
         let p521KeyKA_x963 = p521KeyKA.x963Representation
         XCTAssertNoThrow(try P521.Signing.PrivateKey(rawRepresentation: p521KeyKA_raw))
         XCTAssertNoThrow(try P521.Signing.PrivateKey(x963Representation: p521KeyKA_x963))
-
+        
         let x25519KeyKA = Curve25519.Signing.PrivateKey()
         let x25519KeyKA_raw = x25519KeyKA.rawRepresentation
         XCTAssertNoThrow(try Curve25519.Signing.PrivateKey(rawRepresentation: x25519KeyKA_raw))
     }
-
+    
     func testEncodingsKeyAgreementPublicKeys() {
         let p256KeyKA = P256.KeyAgreement.PrivateKey().publicKey
         let p256KeyKA_raw = p256KeyKA.rawRepresentation
         let p256KeyKA_x963 = p256KeyKA.x963Representation
+        let p256KeyKA_compressed = p256KeyKA.compressedRepresentation
         XCTAssertNoThrow(try P256.KeyAgreement.PublicKey(rawRepresentation: p256KeyKA_raw))
         XCTAssertNoThrow(try P256.KeyAgreement.PublicKey(x963Representation: p256KeyKA_x963))
-
+        XCTAssertNoThrow(try P256.KeyAgreement.PublicKey(compressedRepresentation: p256KeyKA_compressed))
+        XCTAssertThrowsError(try P256.KeyAgreement.PublicKey(compressedRepresentation: p256KeyKA_x963)) { error in
+            XCTAssertTrue(error is CryptoKitError)
+            XCTAssertEqual(error as? CryptoKitError, .incorrectParameterSize)
+        }
+        
         let p384KeyKA = P384.KeyAgreement.PrivateKey().publicKey
         let p384KeyKA_raw = p384KeyKA.rawRepresentation
         let p384KeyKA_x963 = p384KeyKA.x963Representation
+        let p384KeyKA_compressed = p384KeyKA.compressedRepresentation
         XCTAssertNoThrow(try P384.KeyAgreement.PublicKey(rawRepresentation: p384KeyKA_raw))
         XCTAssertNoThrow(try P384.KeyAgreement.PublicKey(x963Representation: p384KeyKA_x963))
-
+        XCTAssertNoThrow(try P384.KeyAgreement.PublicKey(compressedRepresentation: p384KeyKA_compressed))
+        XCTAssertThrowsError(try P384.KeyAgreement.PublicKey(compressedRepresentation: p384KeyKA_x963)) { error in
+            XCTAssertTrue(error is CryptoKitError)
+            XCTAssertEqual(error as? CryptoKitError, .incorrectParameterSize)
+        }
+        
         let p521KeyKA = P521.KeyAgreement.PrivateKey().publicKey
         let p521KeyKA_raw = p521KeyKA.rawRepresentation
         let p521KeyKA_x963 = p521KeyKA.x963Representation
+        let p521KeyKA_compressed = p521KeyKA.compressedRepresentation
         XCTAssertNoThrow(try P521.KeyAgreement.PublicKey(rawRepresentation: p521KeyKA_raw))
         XCTAssertNoThrow(try P521.KeyAgreement.PublicKey(x963Representation: p521KeyKA_x963))
-
+        XCTAssertNoThrow(try P521.KeyAgreement.PublicKey(compressedRepresentation: p521KeyKA_compressed))
+        XCTAssertThrowsError(try P521.KeyAgreement.PublicKey(compressedRepresentation: p521KeyKA_x963)) { error in
+            XCTAssertTrue(error is CryptoKitError)
+            XCTAssertEqual(error as? CryptoKitError, .incorrectParameterSize)
+        }
+        
         // Curve25519 does not have an x963 representation.
         let x25519KeyKA = Curve25519.KeyAgreement.PrivateKey().publicKey
         let x25519KeyKA_raw = x25519KeyKA.rawRepresentation
         XCTAssertNoThrow(try Curve25519.KeyAgreement.PublicKey(rawRepresentation: x25519KeyKA_raw))
     }
-
+    
     func testEncodingsSigningKeyPublicKeys() {
         let p256KeyKA = P256.Signing.PrivateKey().publicKey
         let p256KeyKA_raw = p256KeyKA.rawRepresentation
         let p256KeyKA_x963 = p256KeyKA.x963Representation
+        let p256KeyKA_compressed = p256KeyKA.compressedRepresentation
+
         XCTAssertNoThrow(try P256.Signing.PublicKey(rawRepresentation: p256KeyKA_raw))
         XCTAssertNoThrow(try P256.Signing.PublicKey(x963Representation: p256KeyKA_x963))
-
+        XCTAssertNoThrow(try P256.KeyAgreement.PublicKey(compressedRepresentation: p256KeyKA_compressed))
+        XCTAssertThrowsError(try P256.KeyAgreement.PublicKey(compressedRepresentation: p256KeyKA_x963)) { error in
+            XCTAssertTrue(error is CryptoKitError)
+            XCTAssertEqual(error as? CryptoKitError, .incorrectParameterSize)
+        }
+        
         let p384KeyKA = P384.Signing.PrivateKey().publicKey
         let p384KeyKA_raw = p384KeyKA.rawRepresentation
         let p384KeyKA_x963 = p384KeyKA.x963Representation
+        let p384KeyKA_compressed = p384KeyKA.compressedRepresentation
         XCTAssertNoThrow(try P384.Signing.PublicKey(rawRepresentation: p384KeyKA_raw))
         XCTAssertNoThrow(try P384.Signing.PublicKey(x963Representation: p384KeyKA_x963))
-
+        XCTAssertNoThrow(try P384.KeyAgreement.PublicKey(compressedRepresentation: p384KeyKA_compressed))
+        XCTAssertThrowsError(try P384.KeyAgreement.PublicKey(compressedRepresentation: p384KeyKA_x963)) { error in
+            XCTAssertTrue(error is CryptoKitError)
+            XCTAssertEqual(error as? CryptoKitError, .incorrectParameterSize)
+        }
+        
         let p521KeyKA = P521.Signing.PrivateKey().publicKey
         let p521KeyKA_raw = p521KeyKA.rawRepresentation
         let p521KeyKA_x963 = p521KeyKA.x963Representation
+        let p521KeyKA_compressed = p521KeyKA.compressedRepresentation
         XCTAssertNoThrow(try P521.Signing.PublicKey(rawRepresentation: p521KeyKA_raw))
         XCTAssertNoThrow(try P521.Signing.PublicKey(x963Representation: p521KeyKA_x963))
-
+        XCTAssertNoThrow(try P521.KeyAgreement.PublicKey(compressedRepresentation: p521KeyKA_compressed))
+        XCTAssertThrowsError(try P521.KeyAgreement.PublicKey(compressedRepresentation: p521KeyKA_x963)) { error in
+            XCTAssertTrue(error is CryptoKitError)
+            XCTAssertEqual(error as? CryptoKitError, .incorrectParameterSize)
+        }
+        
         let x25519KeyKA = Curve25519.Signing.PrivateKey().publicKey
         let x25519KeyKA_raw = x25519KeyKA.rawRepresentation
         XCTAssertNoThrow(try Curve25519.Signing.PublicKey(rawRepresentation: x25519KeyKA_raw))
     }
-
+    
     func testEncodingsKeyAgreementCompactRepresentation() {
         let p256KeyKA = P256.KeyAgreement.PrivateKey(compactRepresentable: true).publicKey
         let p256KeyKA_compact = p256KeyKA.compactRepresentation!
         XCTAssertNoThrow(try P256.KeyAgreement.PublicKey(compactRepresentation: p256KeyKA_compact))
-
+        
         let p384KeyKA = P384.KeyAgreement.PrivateKey(compactRepresentable: true).publicKey
         let p384KeyKA_compact = p384KeyKA.compactRepresentation!
         XCTAssertNoThrow(try P384.KeyAgreement.PublicKey(compactRepresentation: p384KeyKA_compact))
-
+        
         let p521KeyKA = P521.KeyAgreement.PrivateKey(compactRepresentable: true).publicKey
         let p521KeyKA_compact = p521KeyKA.compactRepresentation!
         XCTAssertNoThrow(try P521.KeyAgreement.PublicKey(compactRepresentation: p521KeyKA_compact))
     }
-
+    
     func testEncodingsSigningCompactRepresentation() {
         let p256KeyKA = P256.Signing.PrivateKey(compactRepresentable: true).publicKey
         let p256KeyKA_compact = p256KeyKA.compactRepresentation!
         XCTAssertNoThrow(try P256.Signing.PublicKey(compactRepresentation: p256KeyKA_compact))
-
+        
         let p384KeyKA = P384.Signing.PrivateKey(compactRepresentable: true).publicKey
         let p384KeyKA_compact = p384KeyKA.compactRepresentation!
         XCTAssertNoThrow(try P384.Signing.PublicKey(compactRepresentation: p384KeyKA_compact))
-
+        
         let p521KeyKA = P521.Signing.PrivateKey(compactRepresentable: true).publicKey
         let p521KeyKA_compact = p521KeyKA.compactRepresentation!
         XCTAssertNoThrow(try P521.Signing.PublicKey(compactRepresentation: p521KeyKA_compact))
@@ -1080,6 +1117,17 @@ class ECKeyEncodingsTests: XCTestCase {
         // This is not a valid private key for P521.
         XCTAssertThrowsError(try P521.Signing.PrivateKey(derRepresentation: derPrivateKey))
         XCTAssertThrowsError(try P521.KeyAgreement.PrivateKey(derRepresentation: derPrivateKey))
+    }
+
+    func testRejectX963CompressedRepresentation() throws {
+        let privateKey = P256.KeyAgreement.PrivateKey()
+        let publicKey = privateKey.publicKey
+        
+        try XCTAssertNoThrow(P256.KeyAgreement.PublicKey(x963Representation: publicKey.x963Representation))
+        try XCTAssertThrowsError(P256.KeyAgreement.PublicKey(x963Representation: publicKey.compressedRepresentation)) { error in
+            XCTAssertTrue(error is CryptoKitError)
+            XCTAssertEqual(error as? CryptoKitError, .incorrectParameterSize)
+        }
     }
 }
 #endif // (os(macOS) || os(iOS) || os(watchOS) || os(tvOS)) && CRYPTO_IN_SWIFTPM

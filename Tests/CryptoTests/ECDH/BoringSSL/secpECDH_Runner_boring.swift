@@ -29,14 +29,14 @@ extension NISTECDHTests {
         for testVector in group.tests {
             do {
                 let pkBytes = try Array(hexString: testVector.publicKey)
-                let publicKey = try PrivKey.PublicKey(derBytes: pkBytes, curve: Curve.self)
+                let publicKey = try PrivKey.PK(derBytes: pkBytes, curve: Curve.self)
 
                 var privateBytes = [UInt8]()
                 privateBytes = try padKeyIfNecessary(curve: curve, vector: testVector.privateKey)
 
                 let privateKey = try PrivKey(rawRepresentation: privateBytes)
 
-                let agreement = try unwrap(publicKey as? PrivKey.P, file: file, line: line)
+                let agreement = try unwrap(publicKey as? PrivKey.PublicKey, file: file, line: line)
                 let result = try privateKey.sharedSecretFromKeyAgreement(with: agreement)
 
                 let expectedResult = try Array(hexString: testVector.shared)
@@ -58,12 +58,12 @@ extension NISTECDHTests {
         for testVector in group.tests {
             do {
                 let pkBytes = try Array(hexString: testVector.publicKey)
-                let publicKey: PrivKey.PublicKey
+                let publicKey: PrivKey.PK
 
                 if testVector.flags.contains("CompressedPoint") {
-                    publicKey = try PrivKey.PublicKey(compressedRepresentation: pkBytes)
+                    publicKey = try PrivKey.PK(compressedRepresentation: pkBytes)
                 } else {
-                    publicKey = try PrivKey.PublicKey(x963Representation: pkBytes)
+                    publicKey = try PrivKey.PK(x963Representation: pkBytes)
                 }
 
                 var privateBytes = [UInt8]()
@@ -71,7 +71,7 @@ extension NISTECDHTests {
 
                 let privateKey = try PrivKey(rawRepresentation: privateBytes)
 
-                let agreement = try unwrap(publicKey as? PrivKey.P, file: file, line: line)
+                let agreement = try unwrap(publicKey as? PrivKey.PublicKey, file: file, line: line)
                 let result = try privateKey.sharedSecretFromKeyAgreement(with: agreement)
 
                 let expectedResult = try Array(hexString: testVector.shared)

@@ -36,7 +36,7 @@ extension Insecure {
         ///   - nonce: A 12 byte nonce for ChaCha20 encryption. The nonce must be unique for every use of the key to seal data.
         /// - Returns: The encrypted ciphertext
         /// - Throws: CipherError errors
-        /// - Warning: You most likely want to use the ChaChaPoly implemention with AuthenticatedData available at `Crypto.ChaChaPoly`
+        /// - Warning: You most likely want to use the ChaChaPoly implementation with AuthenticatedData available at `Crypto.ChaChaPoly`
         public static func encrypt<
             Plaintext: DataProtocol
         >(

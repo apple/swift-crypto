@@ -42,8 +42,24 @@ add_library(Crypto
   "Digests/Digests.swift"
   "Digests/HashFunctions.swift"
   "Digests/HashFunctions_SHA2.swift"
+  "HPKE/Ciphersuite/HPKE-AEAD.swift"
+  "HPKE/Ciphersuite/HPKE-Ciphersuite.swift"
+  "HPKE/Ciphersuite/HPKE-KDF.swift"
+  "HPKE/Ciphersuite/HPKE-KexKeyDerivation.swift"
+  "HPKE/Ciphersuite/HPKE-LabeledExtract.swift"
+  "HPKE/Ciphersuite/HPKE-Utils.swift"
+  "HPKE/Ciphersuite/KEM/Conformances/DHKEM.swift"
+  "HPKE/Ciphersuite/KEM/Conformances/HPKE-KEM-Curve25519.swift"
+  "HPKE/Ciphersuite/KEM/Conformances/HPKE-NIST-EC-KEMs.swift"
+  "HPKE/Ciphersuite/KEM/HPKE-KEM.swift"
+  "HPKE/HPKE-Errors.swift"
+  "HPKE/HPKE.swift"
+  "HPKE/Key Schedule/HPKE-Context.swift"
+  "HPKE/Key Schedule/HPKE-KeySchedule.swift"
+  "HPKE/Modes/HPKE-Modes.swift"
   "Insecure/Insecure.swift"
   "Insecure/Insecure_HashFunctions.swift"
+  "KEM/KEM.swift"
   "Key Agreement/BoringSSL/ECDH_boring.swift"
   "Key Agreement/DH.swift"
   "Key Agreement/ECDH.swift"
@@ -56,7 +72,7 @@ add_library(Crypto
   "Keys/EC/BoringSSL/NISTCurvesKeys_boring.swift"
   "Keys/EC/BoringSSL/X25519Keys_boring.swift"
   "Keys/EC/Curve25519.swift"
-  "Keys/EC/Ed25519.swift"
+  "Keys/EC/Ed25519Keys.swift"
   "Keys/EC/NISTCurvesKeys.swift"
   "Keys/EC/X25519Keys.swift"
   "Keys/Symmetric/SymmetricKeys.swift"
@@ -68,7 +84,7 @@ add_library(Crypto
   "Signatures/BoringSSL/ECDSA_boring.swift"
   "Signatures/BoringSSL/EdDSA_boring.swift"
   "Signatures/ECDSA.swift"
-  "Signatures/EdDSA.swift"
+  "Signatures/Ed25519.swift"
   "Signatures/Signature.swift"
   "Util/BoringSSL/ArbitraryPrecisionInteger_boring.swift"
   "Util/BoringSSL/CryptoKitErrors_boring.swift"
@@ -82,7 +98,7 @@ add_library(Crypto
   "Util/Zeroization.swift")
 
 target_compile_definitions(Crypto PRIVATE
-  CRYPTO_IN_SWIFTPM_FORCE_BUILD_API)
+  "$<$<COMPILE_LANGUAGE:Swift>:CRYPTO_IN_SWIFTPM>")
 target_include_directories(Crypto PRIVATE
   $<TARGET_PROPERTY:CCryptoBoringSSL,INCLUDE_DIRECTORIES>
   $<TARGET_PROPERTY:CCryptoBoringSSLShims,INCLUDE_DIRECTORIES>

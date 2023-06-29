@@ -16,51 +16,83 @@
 #else
 import Foundation
 
-/// The size of a symmetric key
+/// The sizes that a symmetric cryptographic key can take.
+///
+/// When creating a new ``SymmetricKey`` instance with a call to its
+/// ``SymmetricKey/init(size:)`` initializer, you typically use one of the
+/// standard key sizes, like ``bits128``, ``bits192``, or ``bits256``. When you
+/// need a key with a non-standard length, use the ``init(bitCount:)``
+/// initializer to create a `SymmetricKeySize` instance with a custom bit count.
 public struct SymmetricKeySize {
+    /// The number of bits in the key.
     public let bitCount: Int
 
-    /// Symmetric key size of 128 bits
+    /// A size of 128 bits.
     public static var bits128: SymmetricKeySize {
         return self.init(bitCount: 128)
     }
 
-    /// Symmetric key size of 192 bits
+    /// A size of 192 bits.
     public static var bits192: SymmetricKeySize {
         return self.init(bitCount: 192)
     }
 
-    /// Symmetric key size of 256 bits
+    /// A size of 256 bits.
     public static var bits256: SymmetricKeySize {
         return self.init(bitCount: 256)
     }
     
-    /// Symmetric key size with a custom number of bits.
+    /// Creates a new key size of the given length.
     ///
-    /// Params:
-    ///     - bitsCount: Positive integer that is a multiple of 8.
+    /// In most cases, you can use one of the standard key sizes, like bits256.
+    /// If instead you need a key with a non-standard size, use the
+    /// ``init(bitCount:)`` initializer to create a custom key size.
+    ///
+    /// - Parameters:
+    ///   - bitCount: The number of bits in the key size.
     public init(bitCount: Int) {
         precondition(bitCount > 0 && bitCount % 8 == 0)
         self.bitCount = bitCount
     }
 }
 
-/// A symmetric key for use with software implementations of cryptographic algorithms.
+/// A symmetric cryptographic key.
+///
+/// You typically derive a symmetric key from an instance of a shared secret
+/// (``SharedSecret``) that you obtain through key agreement. You use a
+/// symmetric key to compute a message authentication code like ``HMAC``, or to
+/// open and close a sealed box (``ChaChaPoly/SealedBox`` or
+/// ``AES/GCM/SealedBox``) using a cipher like ``ChaChaPoly`` or ``AES``.
 public struct SymmetricKey: ContiguousBytes {
     let sb: SecureBytes
 
+    /// Invokes the given closure with a buffer pointer covering the raw bytes
+    /// of the key.
+    ///
+    /// - Parameters:
+    ///   - body: A closure that takes a raw buffer pointer to the bytes of the
+    /// key and returns the key.
+    ///
+    /// - Returns: The key, as returned from the body closure.
     public func withUnsafeBytes<R>(_ body: (UnsafeRawBufferPointer) throws -> R) rethrows -> R {
         return try sb.withUnsafeBytes(body)
     }
 
-    /// Initializes a key with data
+    /// Creates a key from the given data.
+    ///
+    /// - Parameters:
+    ///   - data: The contiguous bytes from which to create the key.
     public init<D: ContiguousBytes>(data: D) {
         self.init(key: SecureBytes(bytes: data))
     }
 
-    /// Generates a key of the provided key size
+    /// Generates a new random key of the given size.
     ///
-    /// - Parameter size: The key size
+    /// - Parameters:
+    ///   - size: The size of the key to generate. You can use one of the standard
+    /// sizes, like ``SymmetricKeySize/bits256``, or you can create a key of
+    /// custom length by initializing a ``SymmetricKeySize`` instance with a
+    /// non-standard value.
     public init(size: SymmetricKeySize) {
         self.init(key: SecureBytes(count: Int(size.bitCount / 8)))
     }
@@ -74,7 +106,7 @@ public struct SymmetricKey: ContiguousBytes {
         self.init(key: data)
     }
 
-    /// The key size in bits
+    /// The number of bits in the key.
     public var bitCount: Int {
         return self.byteCount * 8
     }

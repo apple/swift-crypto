@@ -14,6 +14,6 @@
 #if (os(macOS) || os(iOS) || os(watchOS) || os(tvOS)) && CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
 @_exported import CryptoKit
 #else
-/// The Curve25519 Elliptic Curve.
+/// An elliptic curve that enables X25519 key agreement and Ed25519 signatures.
 public enum Curve25519 {}
 #endif // Linux or !SwiftPM
