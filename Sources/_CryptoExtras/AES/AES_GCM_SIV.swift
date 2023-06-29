@@ -58,9 +58,9 @@ extension AES.GCM {
         ///   - sealedBox: The sealed box to authenticate and decrypt
         ///   - key: An encryption key of 128 or 256 bits
         ///   - nonce: An Nonce for AES-GCM-SIV encryption. The nonce must be unique for every use of the key to seal data. It can be safely generated with AES.GCM.Nonce().
-        ///   - authenticatedData:  Data that was authenticated as part of the seal
+        ///   - authenticatedData: Data that was authenticated as part of the seal
         /// - Returns: The ciphertext if opening was successful
-        /// - Throws: CipherError errors. If the authentication of the sealedbox failed, incorrectTag is thrown.
+        /// - Throws: CipherError errors. If the authentication of the sealed box failed, incorrectTag is thrown.
         public static func open<AuthenticatedData: DataProtocol>
             (_ sealedBox: SealedBox, using key: SymmetricKey, authenticating authenticatedData: AuthenticatedData) throws -> Data {
             return try OpenSSLAESGCMSIVImpl.open(key: key, sealedBox: sealedBox, authenticatedData: authenticatedData)
@@ -73,7 +73,7 @@ extension AES.GCM {
         ///   - key: An encryption key of 128 or 256 bits
         ///   - nonce: An Nonce for AES-GCM-SIV encryption. The nonce must be unique for every use of the key to seal data. It can be safely generated with AES.GCM.Nonce().
         /// - Returns: The ciphertext if opening was successful
-        /// - Throws: CipherError errors. If the authentication of the sealedbox failed, incorrectTag is thrown.
+        /// - Throws: CipherError errors. If the authentication of the sealed box failed, incorrectTag is thrown.
         public static func open(_ sealedBox: SealedBox, using key: SymmetricKey) throws -> Data {
             return try OpenSSLAESGCMSIVImpl.open(key: key, sealedBox: sealedBox, authenticatedData: Data?.none)
         }
