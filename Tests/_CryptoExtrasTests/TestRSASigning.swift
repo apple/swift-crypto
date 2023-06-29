@@ -509,12 +509,12 @@ final class TestRSASigning: XCTestCase {
             "En7fZhCeZeNBjNTuKXj3JqdP3wIDAQAB"
         )!
 
-        XCTAssertEqual(try _RSA.Signing.PrivateKey(pemRepresentation: awkwardRSAPrivateKeyPEM).keySizeInBits, 2056)
-        XCTAssertEqual(try _RSA.Signing.PrivateKey(pemRepresentation: awkwardRSAPrivateKeyPKCS8PEM).keySizeInBits, 2056)
-        XCTAssertEqual(try _RSA.Signing.PrivateKey(derRepresentation: awkwardRSAPrivateKeyDER).keySizeInBits, 2056)
-        XCTAssertEqual(try _RSA.Signing.PrivateKey(derRepresentation: awkwardRSAPrivateKeyPKCS8DER).keySizeInBits, 2056)
-        XCTAssertEqual(try _RSA.Signing.PublicKey(pemRepresentation: awkwardRSAPublicKeyPEM).keySizeInBits, 2056)
-        XCTAssertEqual(try _RSA.Signing.PublicKey(derRepresentation: awkwardRSAPublicKeyDER).keySizeInBits, 2056)
+        XCTAssertThrowsError(try _RSA.Signing.PrivateKey(pemRepresentation: awkwardRSAPrivateKeyPEM).keySizeInBits)
+        XCTAssertThrowsError(try _RSA.Signing.PrivateKey(pemRepresentation: awkwardRSAPrivateKeyPKCS8PEM).keySizeInBits)
+        XCTAssertThrowsError(try _RSA.Signing.PrivateKey(derRepresentation: awkwardRSAPrivateKeyDER).keySizeInBits)
+        XCTAssertThrowsError(try _RSA.Signing.PrivateKey(derRepresentation: awkwardRSAPrivateKeyPKCS8DER).keySizeInBits)
+        XCTAssertThrowsError(try _RSA.Signing.PublicKey(pemRepresentation: awkwardRSAPublicKeyPEM).keySizeInBits)
+        XCTAssertThrowsError(try _RSA.Signing.PublicKey(derRepresentation: awkwardRSAPublicKeyDER).keySizeInBits)
     }
 
     func testMangledPKCS8DERKey() throws {
