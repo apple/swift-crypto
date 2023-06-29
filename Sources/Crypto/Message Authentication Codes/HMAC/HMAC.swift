@@ -16,28 +16,46 @@
 #else
 import Foundation
 
-/// Performs HMAC - Keyed-Hashing for Message Authentication
-/// Reference: https://tools.ietf.org/html/rfc2104
+/// A hash-based message authentication algorithm.
+///
+/// Use hash-based message authentication to create a code with a value that’s
+/// dependent on both a block of data and a symmetric cryptographic key. Another
+/// party with access to the data and the same secret key can compute the code
+/// again and compare it to the original to detect whether the data changed.
+/// This serves a purpose similar to digital signing and verification, but
+/// depends on a shared symmetric key instead of public-key cryptography.
+///
+/// As with digital signing, the data isn’t hidden by this process. When you
+/// need to encrypt the data as well as authenticate it, use a cipher like
+/// ``AES`` or ``ChaChaPoly`` to put the data into a sealed box (an instance of
+/// ``AES/GCM/SealedBox`` or ``ChaChaPoly/SealedBox``).
 public struct HMAC<H: HashFunction>: MACAlgorithm {
+    /// An alias for the symmetric key type used to compute or verify a message
+    /// authentication code.
     public typealias Key = SymmetricKey
+    /// An alias for a hash-based message authentication code.
     public typealias MAC = HashedAuthenticationCode<H>
     var outerHasher: H
     var innerHasher: H
     
-    /// Verifies a tag of a Message Authentication Code. The comparison is done in constant-time.
+    /// Returns a Boolean value indicating whether the given message
+    /// authentication code is valid for a block of data stored in a buffer.
     ///
     /// - Parameters:
-    ///   - key: The key used to authenticate the data
-    ///   - data: The data to authenticate
-    ///   - mac: The MAC to verify
-    /// - Returns: Returns true if the MAC is valid. False otherwise.
+    ///   - mac: The authentication code to compare.
+    ///   - bufferPointer: A pointer to the block of data to compare.
+    ///   - key: The symmetric key for the authentication code.
+    ///
+    /// - Returns: A Boolean value that’s `true` if the message authentication
+    /// code is valid for the data within the specified buffer.
     public static func isValidAuthenticationCode(_ mac: MAC, authenticating bufferPointer: UnsafeRawBufferPointer, using key: SymmetricKey) -> Bool {
         return isValidAuthenticationCode(authenticationCodeBytes: mac, authenticatedData: bufferPointer, key: key)
     }
     
-    /// Initializes an incremental HMAC
+    /// Creates a message authentication code generator.
     ///
-    /// - Parameter key: The key to use for HMAC.
+    /// - Parameters:
+    ///   - key: The symmetric key used to secure the computation.
     public init(key: SymmetricKey) {
         #if os(iOS) && (arch(arm) || arch(i386))
         fatalError("Unsupported architecture")
@@ -81,45 +99,55 @@ public struct HMAC<H: HashFunction>: MACAlgorithm {
         #endif
     }
     
-    /// Computes a Message Authentication Code.
+    /// Computes a message authentication code for the given data.
     ///
     /// - Parameters:
-    ///   - key: The key used to authenticate the data
-    ///   - data: The data to authenticate
-    /// - Returns: A Message Authentication Code
+    ///   - data: The data for which to compute the authentication code.
+    ///   - key: The symmetric key used to secure the computation.
+    ///
+    /// - Returns: The message authentication code.
     public static func authenticationCode<D: DataProtocol>(for data: D, using key: SymmetricKey) -> MAC {
         var authenticator = Self(key: key)
         authenticator.update(data: data)
         return authenticator.finalize()
     }
     
-    /// Verifies a Message Authentication Code. The comparison is done in constant-time.
+    /// Returns a Boolean value indicating whether the given message
+    /// authentication code is valid for a block of data.
     ///
     /// - Parameters:
-    ///   - authenticationCode: The authentication code
-    ///   - authenticatedData: Authenticated Data
-    ///   - key: The key to authenticate the data with
-    /// - Returns: Returns true if the MAC is valid. False otherwise.
+    ///   - authenticationCode: The authentication code to compare.
+    ///   - authenticatedData: The block of data to compare.
+    ///   - key: The symmetric key for the authentication code.
+    ///
+    /// - Returns: A Boolean value that’s `true` if the message authentication
+    /// code is valid for the specified block of data.
     public static func isValidAuthenticationCode<D: DataProtocol>(_ authenticationCode: MAC, authenticating authenticatedData: D, using key: SymmetricKey) -> Bool {
         return isValidAuthenticationCode(authenticationCodeBytes: authenticationCode, authenticatedData: authenticatedData, key: key)
     }
     
-    /// Verifies a Message Authentication Code. The comparison is done in constant-time.
+    /// Returns a Boolean value indicating whether the given message
+    /// authentication code represented as contiguous bytes is valid for a block
+    /// of data.
     ///
     /// - Parameters:
-    ///   - authenticationCode: The authentication code
-    ///   - authenticatedData: Authenticated Data
-    ///   - key: The key to authenticate the data with
-    /// - Returns: Returns true if the MAC is valid. False otherwise.
+    ///   - authenticationCode: The authentication code to compare.
+    ///   - authenticatedData: The block of data to compare.
+    ///   - key: The symmetric key for the authentication code.
+    ///
+    /// - Returns: A Boolean value that’s `true` if the message authentication
+    /// code is valid for the specified block of data.
     public static func isValidAuthenticationCode<C: ContiguousBytes, D: DataProtocol>(_ authenticationCode: C,
                                                                                       authenticating authenticatedData: D,
                                                                                       using key: SymmetricKey) -> Bool {
         return isValidAuthenticationCode(authenticationCodeBytes: authenticationCode, authenticatedData: authenticatedData, key: key)
     }
     
-    /// Updates the MAC with data.
+    /// Updates the message authentication code computation with a block of
+    /// data.
     ///
-    /// - Parameter data: The data to update the MAC
+    /// - Parameters:
+    ///   - data: The data for which to compute the authentication code.
     public mutating func update<D: DataProtocol>(data: D) {
         data.regions.forEach { (memoryRegion) in
             memoryRegion.withUnsafeBytes({ (bp) in
@@ -128,10 +156,10 @@ public struct HMAC<H: HashFunction>: MACAlgorithm {
         }
     }
     
-    /// Returns the Message Authentication Code (MAC) from the data inputted into the MAC.
+    /// Finalizes the message authentication computation and returns the
+    /// computed code.
     ///
-    /// - Returns: The Message Authentication Code
-    /// - Throws: Throws if the MAC has already been finalized
+    /// - Returns: The message authentication code.
     public func finalize() -> MAC {
         let innerHash = innerHasher.finalize()
         var outerHashForFinalization = outerHasher
@@ -146,8 +174,9 @@ public struct HMAC<H: HashFunction>: MACAlgorithm {
     
     /// Adds data to be authenticated by MAC function. This can be called one or more times to append additional data.
     ///
-    /// - Parameter data: The data to be authenticated
-    /// - Throws: Throws if the HMAC has already been finalized
+    /// - Parameters:
+    ///   - data: The data to be authenticated.
+    /// - Throws: Throws if the HMAC has already been finalized.
     mutating func update(bufferPointer: UnsafeRawBufferPointer) {
         innerHasher.update(bufferPointer: bufferPointer)
     }
@@ -163,18 +192,28 @@ public struct HMAC<H: HashFunction>: MACAlgorithm {
     }
 }
 
-/// A structure that contains a Message Authentication Code that was computed from a Hash Function using HMAC.
+/// A hash-based message authentication code.
 public struct HashedAuthenticationCode<H: HashFunction>: MessageAuthenticationCode {
     let digest: H.Digest
     
+    /// The number of bytes in the message authentication code.
     public var byteCount: Int {
         return H.Digest.byteCount
     }
     
+    /// A human-readable description of the code.
     public var description: String {
         return "HMAC with \(H.self): \(Array(digest).hexString)"
     }
     
+    /// Invokes the given closure with a buffer pointer covering the raw bytes
+    /// of the code.
+    ///
+    /// - Parameters:
+    ///   - body: A closure that takes a raw buffer pointer to the bytes of the
+    /// code and returns the code.
+    ///
+    /// - Returns: The code, as returned from the body closure.
     public func withUnsafeBytes<R>(_ body: (UnsafeRawBufferPointer) throws -> R) rethrows -> R {
         return try digest.withUnsafeBytes(body)
     }

@@ -28,8 +28,8 @@ protocol ECPublicKey {
 }
 
 protocol ECPrivateKey {
-    associatedtype PublicKey
-    var publicKey: PublicKey { get }
+    associatedtype PK
+    var publicKey: PK { get }
 }
 
 protocol NISTECPublicKey: ECPublicKey, Hashable {
@@ -41,17 +41,17 @@ protocol NISTECPublicKey: ECPublicKey, Hashable {
     var x963Representation: Data { get }
 }
 
-protocol NISTECPrivateKey: ECPrivateKey where PublicKey: NISTECPublicKey {
+protocol NISTECPrivateKey: ECPrivateKey where PK: NISTECPublicKey {
     init <Bytes: ContiguousBytes>(rawRepresentation: Bytes) throws
     var rawRepresentation: Data { get }
 }
 
-/// The NIST P-256 Elliptic Curve.
+/// An elliptic curve that enables NIST P-256 signatures and key agreement.
 public enum P256 { }
 
-/// The NIST P-384 Elliptic Curve.
+/// An elliptic curve that enables NIST P-384 signatures and key agreement.
 public enum P384 { }
 
-/// The NIST P-521 Elliptic Curve.
+/// An elliptic curve that enables NIST P-521 signatures and key agreement.
 public enum P521 { }
 #endif // Linux or !SwiftPM

@@ -33,30 +33,74 @@ import Foundation
     CURVES_FUNC = ["Signing", "KeyAgreement"]
 }%
 % for CURVE in NIST_CURVES:
+%{ DISPLAY_CURVE = CURVE[:1] + "-" + CURVE[1:] }%
 % for FUNC in CURVES_FUNC:
 // MARK: - ${CURVE} + ${FUNC}
 extension ${CURVE} {
-    public enum ${FUNC} {
     
+    % if FUNC == "Signing":
+    /// A mechanism used to create or verify a cryptographic signature using
+    /// the NIST ${DISPLAY_CURVE} elliptic curve digital signature algorithm (ECDSA).
+    % else:
+    /// A mechanism used to create a shared secret between two users by
+    /// performing NIST ${DISPLAY_CURVE} elliptic curve Diffie Hellman (ECDH) key
+    /// exchange.
+    % end
+    public enum ${FUNC} {
+            
+        % if FUNC == "Signing":
+        %{ READABLE_FUNC = "signing" }%
+        /// A ${DISPLAY_CURVE} public key used to verify cryptographic signatures.
+        % else:
+        %{ READABLE_FUNC = "key agreement" }%
+        /// A ${DISPLAY_CURVE} public key used for key agreement.
+        % end
         public struct PublicKey: NISTECPublicKey {
             var impl: NISTCurvePublicKeyImpl<${CURVE}>
 
+            /// Creates a ${DISPLAY_CURVE} public key for ${READABLE_FUNC} from a collection of bytes.
+            ///
+            /// - Parameters:
+            ///   - rawRepresentation: A raw representation of the key as a collection of
+            /// contiguous bytes.
             public init<D: ContiguousBytes>(rawRepresentation: D) throws {
                 impl = try NISTCurvePublicKeyImpl(rawRepresentation: rawRepresentation)
             }
 
+            /// Creates a ${DISPLAY_CURVE} public key for ${READABLE_FUNC} from a compact
+            /// representation of the key.
+            ///
+            /// - Parameters:
+            ///   - compactRepresentation: A compact representation of the key
+            /// as a collection of contiguous bytes.
             public init<Bytes: ContiguousBytes>(compactRepresentation: Bytes) throws {
                 impl = try NISTCurvePublicKeyImpl(compactRepresentation: compactRepresentation)
             }
 
+            /// Creates a ${DISPLAY_CURVE} public key for ${READABLE_FUNC} from an ANSI x9.63
+            /// representation.
+            ///
+            /// - Parameters:
+            ///   - x963Representation: An ANSI x9.63 representation of the key.
             public init<Bytes: ContiguousBytes>(x963Representation: Bytes) throws {
                 impl = try NISTCurvePublicKeyImpl(x963Representation: x963Representation)
             }
             
+            /// Creates a ${DISPLAY_CURVE} public key for ${READABLE_FUNC} from a compressed representation of
+            /// the key.
+            ///
+            /// - Parameters:
+            ///   - compressedRepresentation: A compressed representation of the key as a collection
+            /// of contiguous bytes.
             public init<Bytes: ContiguousBytes>(compressedRepresentation: Bytes) throws {
                 impl = try NISTCurvePublicKeyImpl(compressedRepresentation: compressedRepresentation)
             }
 
+            /// Creates a ${DISPLAY_CURVE} public key for ${READABLE_FUNC} from a Privacy-Enhanced Mail
+            /// (PEM) representation.
+            ///
+            /// - Parameters:
+            ///   - pemRepresentation: A PEM representation of the key.
             public init(pemRepresentation: String) throws {
                 let pem = try ASN1.PEMDocument(pemString: pemRepresentation)
                 guard pem.type == "PUBLIC KEY" else {
@@ -65,6 +109,11 @@ extension ${CURVE} {
                 self = try .init(derRepresentation: pem.derBytes)
             }
 
+            /// Creates a ${DISPLAY_CURVE} public key for ${READABLE_FUNC} from a Distinguished Encoding
+            /// Rules (DER) encoded representation.
+            ///
+            /// - Parameters:
+            ///   - derRepresentation: A DER-encoded representation of the key.
             public init<Bytes: RandomAccessCollection>(derRepresentation: Bytes) throws where Bytes.Element == UInt8 {
                 let bytes = Array(derRepresentation)
                 let parsed = try ASN1.SubjectPublicKeyInfo(asn1Encoded: bytes)
@@ -75,12 +124,19 @@ extension ${CURVE} {
                 self.impl = impl
             }
 
+            /// A compact representation of the public key.
             public var compactRepresentation: Data? { impl.compactRepresentation }
+            
+            /// A full representation of the public key.
             public var rawRepresentation: Data { impl.rawRepresentation }
+            
+            /// An ANSI x9.63 representation of the public key.
             public var x963Representation: Data { impl.x963Representation }
 
+            /// A compressed representation of the public key.
             public var compressedRepresentation: Data { impl.compressedRepresentation }
             
+            /// A Distinguished Encoding Rules (DER) encoded representation of the public key.
             public var derRepresentation: Data {
                 let spki = ASN1.SubjectPublicKeyInfo(algorithmIdentifier: .ecdsa${CURVE}, key: Array(self.x963Representation))
                 var serializer = ASN1.Serializer()
@@ -90,6 +146,7 @@ extension ${CURVE} {
                 return Data(serializer.serializedBytes)
             }
 
+            /// A Privacy-Enhanced Mail (PEM) representation of the public key.
             public var pemRepresentation: String {
                 let pemDocument = ASN1.PEMDocument(type: "PUBLIC KEY", derBytes: self.derRepresentation)
                 return pemDocument.pemString
@@ -104,21 +161,50 @@ extension ${CURVE} {
 			}
         }
 
+        % if FUNC == "Signing":
+        /// A ${DISPLAY_CURVE} private key used to create cryptographic signatures.
+        % else:
+        /// A ${DISPLAY_CURVE} private key used for key agreement.
+        % end
         public struct PrivateKey: NISTECPrivateKey {
             let impl: NISTCurvePrivateKeyImpl<${CURVE}>
 
+            /// Creates a random ${DISPLAY_CURVE} private key for ${READABLE_FUNC}.
+            ///
+            /// Keys that use a compact point encoding enable shorter public keys, but aren’t
+            /// compliant with FIPS certification. If your app requires FIPS certification,
+            /// create a key with ``init(rawRepresentation:)``.
+            ///
+            /// - Parameters:
+            ///   - compactRepresentable: A Boolean value that indicates whether CryptoKit
+            /// creates the key with the structure to enable compact point encoding.
             public init(compactRepresentable: Bool = true) {
                 impl = NISTCurvePrivateKeyImpl(compactRepresentable: compactRepresentable)
             }
 
+            /// Creates a ${DISPLAY_CURVE} private key for ${READABLE_FUNC} from an ANSI x9.63
+            /// representation.
+            ///
+            /// - Parameters:
+            ///   - x963Representation: An ANSI x9.63 representation of the key.
             public init<Bytes: ContiguousBytes>(x963Representation: Bytes) throws {
                 impl = try NISTCurvePrivateKeyImpl(x963: x963Representation)
             }
 
+            /// Creates a ${DISPLAY_CURVE} private key for ${READABLE_FUNC} from a collection of bytes.
+            ///
+            /// - Parameters:
+            ///   - rawRepresentation: A raw representation of the key as a collection of
+            /// contiguous bytes.
             public init<Bytes: ContiguousBytes>(rawRepresentation: Bytes) throws {
                 impl = try NISTCurvePrivateKeyImpl(data: rawRepresentation)
             }
 
+            /// Creates a ${DISPLAY_CURVE} private key for ${READABLE_FUNC} from a Privacy-Enhanced Mail
+            /// PEM) representation.
+            ///
+            /// - Parameters:
+            ///   - pemRepresentation: A PEM representation of the key.
             public init(pemRepresentation: String) throws {
                 let pem = try ASN1.PEMDocument(pemString: pemRepresentation)
 
@@ -134,10 +220,15 @@ extension ${CURVE} {
                 }
             }
 
+            /// Creates a ${DISPLAY_CURVE} private key for ${READABLE_FUNC} from a Distinguished Encoding
+            /// Rules (DER) encoded representation.
+            ///
+            /// - Parameters:
+            ///   - derRepresentation: A DER-encoded representation of the key.
             public init<Bytes: RandomAccessCollection>(derRepresentation: Bytes) throws where Bytes.Element == UInt8 {
                 let bytes = Array(derRepresentation)
 
-                // We have to try to parse this twice because we have no informaton about what kind of key this is.
+                // We have to try to parse this twice because we have no information about what kind of key this is.
                 // We try with PKCS#8 first, and then fall back to SEC.1.
 
                 do {
@@ -153,13 +244,18 @@ extension ${CURVE} {
                 self.impl = impl
             }
 
+            /// The corresponding public key.
             public var publicKey: ${CURVE}.${FUNC}.PublicKey {
                 return PublicKey(impl: impl.publicKey())
             }
 
+            /// A data representation of the private key.
             public var rawRepresentation: Data { impl.rawRepresentation }
+            
+            /// An ANSI x9.63 representation of the private key.
             public var x963Representation: Data { impl.x963Representation }
 
+            /// A Distinguished Encoding Rules (DER) encoded representation of the private key.
             public var derRepresentation: Data {
                 let pkey = ASN1.PKCS8PrivateKey(algorithm: .ecdsa${CURVE}, privateKey: Array(self.rawRepresentation), publicKey: Array(self.publicKey.x963Representation))
                 var serializer = ASN1.Serializer()
@@ -169,6 +265,7 @@ extension ${CURVE} {
                 return Data(serializer.serializedBytes)
             }
 
+            /// A Privacy-Enhanced Mail (PEM) representation of the private key.
             public var pemRepresentation: String {
                 let pemDocument = ASN1.PEMDocument(type: "PRIVATE KEY", derBytes: self.derRepresentation)
                 return pemDocument.pemString
@@ -182,11 +279,12 @@ extension ${CURVE} {
 % for CURVE in NIST_CURVES:
 // MARK: - ${CURVE} + DH
 extension ${CURVE}.KeyAgreement.PrivateKey: DiffieHellmanKeyAgreement {
-    /// Performs a key agreement with provided public key share.
+    /// Computes a shared secret with the provided public key from another party.
     ///
-    /// - Parameter publicKeyShare: The public key to perform the ECDH with.
-    /// - Returns: Returns a shared secret
-    /// - Throws: An error occurred while computing the shared secret
+    /// - Parameters:
+    ///   - publicKeyShare: The public key from another party to be combined with the private
+    /// key from this user to create the shared secret.
+    /// - Returns: The computed shared secret.
     public func sharedSecretFromKeyAgreement(with publicKeyShare: ${CURVE}.KeyAgreement.PublicKey) throws -> SharedSecret {
         #if (os(macOS) || os(iOS) || os(watchOS) || os(tvOS)) && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
         return try self.coreCryptoSharedSecretFromKeyAgreement(with: publicKeyShare)

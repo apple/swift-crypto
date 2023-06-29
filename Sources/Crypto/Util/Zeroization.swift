@@ -28,6 +28,12 @@ extension UnsafeMutablePointer: Zeroization {
     }
 }
 
+extension UnsafeMutableRawBufferPointer: Zeroization {
+    func zeroize() {
+        memset_s(self.baseAddress, self.count, 0, self.count)
+    }
+}
+
 extension Array: Zeroization where Element == UInt8 {
     /// Zeroizes the array
     mutating func zeroize() {

@@ -23,24 +23,34 @@ typealias AESWRAPImpl = BoringSSLAESWRAPImpl
 #endif
 
 extension AES {
-    /// The Key Wrapping module provides AES Key Wrapping, according to the IETF RFC 3394 specification.
+    /// An implementation of AES Key Wrapping in accordance with the IETF RFC
+    /// 3394 specification.
     public enum KeyWrap {
-        /// Wraps a key with AES wrap (RFC 3394), according to the IETF RFC 3394 specification.
+        /// Wraps a key using the AES wrap algorithm.
+        ///
+        /// Wrap is an implementation of the AES key wrap algorithm as specified
+        /// in IETF RFC 3394.
         ///
         /// - Parameters:
-        ///   - keyToWrap: The key to wrap
-        ///   - kek: The Key Encryption Key
-        /// - Returns: The wrapped key
+        ///   - keyToWrap: The key to wrap.
+        ///   - kek: The key encryption key.
+        ///
+        /// - Returns: The wrapped key.
         public static func wrap(_ keyToWrap: SymmetricKey, using kek: SymmetricKey) throws -> Data {
             return try AESWRAPImpl.wrap(key: kek, keyToWrap: keyToWrap)
         }
 
-        /// Unwraps a key with AES wrap, according to the IETF RFC 3394 specification.
+        /// Unwraps a key using the AES wrap algorithm.
+        ///
+        /// Wrap is an implementation of the AES key wrap algorithm as specified
+        /// in IETF RFC 3394. The method throws an error is the key was
+        /// incorrectly wrapped.
         ///
         /// - Parameters:
-        ///   - wrappedKey: The wrapped key
-        ///   - kek: The key encryption key
-        /// - Returns: The unwrapped key, the method will throw if the payload was incorrectly wrapped.
+        ///   - wrappedKey: The key to unwrap.
+        ///   - kek: The key encryption key.
+        ///
+        /// - Returns: The unwrapped key.
         public static func unwrap<WrappedKey: DataProtocol>(_ wrappedKey: WrappedKey, using kek: SymmetricKey) throws -> SymmetricKey {
             return try AESWRAPImpl.unwrap(key: kek, wrappedKey: wrappedKey)
         }
