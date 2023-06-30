@@ -250,7 +250,6 @@ extension BoringSSLRSAPublicKey {
                 let rc: CInt = contiguousData.withUnsafeBytes { dataPtr in
                     let rawPadding: CInt
                     switch padding.backing {
-                    case .pkcs1v1_5: rawPadding = RSA_PKCS1_PADDING
                     case .pkcs1_oaep: rawPadding = RSA_PKCS1_OAEP_PADDING
                     }
                     let rc = CCryptoBoringSSLShims_RSA_public_encrypt(
@@ -449,7 +448,6 @@ extension BoringSSLRSAPrivateKey {
                 let rc: CInt = contiguousData.withUnsafeBytes { dataPtr in
                     let rawPadding: CInt
                     switch padding.backing {
-                    case .pkcs1v1_5: rawPadding = RSA_PKCS1_PADDING
                     case .pkcs1_oaep: rawPadding = RSA_PKCS1_OAEP_PADDING
                     }
                     let rc = CCryptoBoringSSLShims_RSA_private_decrypt(

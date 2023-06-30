@@ -319,16 +319,6 @@ extension _RSA.Signing {
     }
 }
 
-extension _RSA {
-    static let PKCS1KeyType = "RSA PRIVATE KEY"
-
-    static let PKCS8KeyType = "PRIVATE KEY"
-
-    static let PKCS1PublicKeyType = "RSA PUBLIC KEY"
-
-    static let SPKIPublicKeyType = "PUBLIC KEY"
-}
-
 extension _RSA.Encryption {
     public typealias PublicKey = _RSA.Signing.PublicKey
     public typealias PrivateKey = _RSA.Signing.PrivateKey
@@ -363,7 +353,6 @@ extension _RSA.Encryption {
 extension _RSA.Encryption {
     public struct Padding {
         internal enum Backing {
-            case pkcs1v1_5
             case pkcs1_oaep
         }
         
@@ -373,7 +362,6 @@ extension _RSA.Encryption {
             self.backing = backing
         }
         
-        public static let insecurePKCS1v1_5 = Self(.pkcs1v1_5)
         public static let PKCS1_OAEP = Self(.pkcs1_oaep)
     }
 }
@@ -388,4 +376,14 @@ extension _RSA.Encryption.PublicKey {
     public func encrypt<D: DataProtocol>(_ data: D, padding: _RSA.Encryption.Padding) throws -> _RSA.Encryption.RSAEncryptedData {
         return try self.backing.encrypt(data, padding: padding)
     }
+}
+
+extension _RSA {
+    static let PKCS1KeyType = "RSA PRIVATE KEY"
+
+    static let PKCS8KeyType = "PRIVATE KEY"
+
+    static let PKCS1PublicKeyType = "RSA PUBLIC KEY"
+
+    static let SPKIPublicKeyType = "PUBLIC KEY"
 }
