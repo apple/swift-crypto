@@ -400,17 +400,47 @@ extension _RSA.Encryption {
             self.backing = backing
         }
         
+        /// PKCS#1 OAEP padding
+        ///
+        /// As defined by [RFC 8017 § 7.1](https://datatracker.ietf.org/doc/html/rfc8017#section-7.1).
         public static let PKCS1_OAEP = Self(.pkcs1_oaep)
     }
 }
 
 extension _RSA.Encryption.PrivateKey {
+    /// Decrypt a message encrypted with this key's public key and using the specified padding mode.
+    ///
+    /// > Important: The size of the data to decrypt must be equal to the block size of the key (e.g.
+    ///   `keySizeInBits / 8`). Attempting to decrypt data of the wrong size will fail.
     public func decrypt<D: DataProtocol>(_ data: D, padding: _RSA.Encryption.Padding) throws -> Data {
         return try self.backing.decrypt(data, padding: padding)
     }
 }
 
 extension _RSA.Encryption.PublicKey {
+    /// Return the maximum amount of data in bytes this key can encrypt in a single operation when using
+    /// the specified padding mode.
+    ///
+    /// ## Common values:
+    ///
+    /// Key size|Padding|Max length
+    /// -|-|-
+    /// 2048|PKCS-OAEP|214 bytes
+    /// 3072|PKCS-OAEP|342 bytes
+    /// 4096|PKCS-OAEP|470 bytes
+    public func maximumEncryptSize(with padding: _RSA.Encryption.Padding) -> Int {
+        switch padding.backing {
+            case .pkcs1_oaep:
+                return (self.keySizeInBits / 8) - 42
+        }
+    }
+    
+    /// Encrypt a message with this key, using the specified padding mode.
+    ///
+    /// > Important: The size of the data to encrypt _must_ not exceed the modulus of the key (e.g.
+    ///   `keySizeInBits / 8`), minus any additional space required by the padding mode. Attempting to
+    ///   encrypt data larger than this will fail. Use ``maximumEncryptSize(with:)`` to determine
+    ///   exactly how many bytes can be encrypted by the key.
     public func encrypt<D: DataProtocol>(_ data: D, padding: _RSA.Encryption.Padding) throws -> Data {
         return try self.backing.encrypt(data, padding: padding)
     }
