@@ -320,33 +320,71 @@ extension _RSA.Signing {
 }
 
 extension _RSA.Encryption {
-    public typealias PublicKey = _RSA.Signing.PublicKey
-    public typealias PrivateKey = _RSA.Signing.PrivateKey
-}
+    /// Identical to ``_RSA/Signing/PublicKey``.
+    public struct PublicKey {
+        private var backing: BackingPublicKey
+        
+        /// Construct an RSA public key from a PEM representation.
+        ///
+        /// This constructor supports key sizes of 1024 bits or more. Users should validate that key sizes are appropriate
+        /// for their use-case.
+        public init(pemRepresentation: String) throws {
+            self.backing = try BackingPublicKey(pemRepresentation: pemRepresentation)
+            guard self.keySizeInBits >= 1024, self.keySizeInBits % 8 == 0 else { throw CryptoKitError.incorrectParameterSize }
+        }
 
-extension _RSA.Encryption {
-    public struct RSAEncryptedData: ContiguousBytes {
-        public var rawRepresentation: Data
-        
-        public init<D: DataProtocol>(rawRepresentation: D) {
-            self.rawRepresentation = Data(rawRepresentation)
+        /// Construct an RSA public key from a DER representation.
+        ///
+        /// This constructor supports key sizes of 1024 bits or more. Users should validate that key sizes are appropriate
+        /// for their use-case.
+        public init<Bytes: DataProtocol>(derRepresentation: Bytes) throws {
+            self.backing = try BackingPublicKey(derRepresentation: derRepresentation)
+            guard self.keySizeInBits >= 1024, self.keySizeInBits % 8 == 0 else { throw CryptoKitError.incorrectParameterSize }
         }
-        
-        public func withUnsafeBytes<R>(_ body: (UnsafeRawBufferPointer) throws -> R) rethrows -> R {
-            try self.rawRepresentation.withUnsafeBytes(body)
-        }
+
+        public var pkcs1DERRepresentation: Data { self.backing.pkcs1DERRepresentation }
+        public var pkcs1PEMRepresentation: String { self.backing.pkcs1PEMRepresentation }
+        public var derRepresentation: Data { self.backing.derRepresentation }
+        public var pemRepresentation: String { self.backing.pemRepresentation }
+        public var keySizeInBits: Int { self.backing.keySizeInBits }
+        fileprivate init(_ backing: BackingPublicKey) { self.backing = backing }
     }
     
-    public struct RSADecryptedData: ContiguousBytes {
-        public var rawRepresentation: Data
-        
-        public init<D: DataProtocol>(rawRepresentation: D) {
-            self.rawRepresentation = Data(rawRepresentation)
+    /// Identical to ``_RSA/Signing/PrivateKey``.
+    public struct PrivateKey {
+        private var backing: BackingPrivateKey
+
+        /// Construct an RSA private key from a PEM representation.
+        ///
+        /// This constructor supports key sizes of 1024 bits or more. Users should validate that key sizes are appropriate
+        /// for their use-case.
+        public init(pemRepresentation: String) throws {
+            self.backing = try BackingPrivateKey(pemRepresentation: pemRepresentation)
+            guard self.keySizeInBits >= 1024, self.keySizeInBits % 8 == 0 else { throw CryptoKitError.incorrectParameterSize }
+        }
+
+        /// Construct an RSA private key from a DER representation.
+        ///
+        /// This constructor supports key sizes of 1024 bits or more. Users should validate that key sizes are appropriate
+        /// for their use-case.
+        public init<Bytes: DataProtocol>(derRepresentation: Bytes) throws {
+            self.backing = try BackingPrivateKey(derRepresentation: derRepresentation)
+            guard self.keySizeInBits >= 1024, self.keySizeInBits % 8 == 0 else { throw CryptoKitError.incorrectParameterSize }
+        }
+
+        /// Randomly generate a new RSA private key of a given size.
+        ///
+        /// This constructor will refuse to generate keys smaller than 1024 bits. Callers that want to enforce minimum
+        /// key size requirements should validate `keySize` before use.
+        public init(keySize: _RSA.Signing.KeySize) throws {
+            guard keySize.bitCount >= 1024 else { throw CryptoKitError.incorrectParameterSize }
+            self.backing = try BackingPrivateKey(keySize: keySize)
         }
         
-        public func withUnsafeBytes<R>(_ body: (UnsafeRawBufferPointer) throws -> R) rethrows -> R {
-            try self.rawRepresentation.withUnsafeBytes(body)
-        }
+        public var derRepresentation: Data { self.backing.derRepresentation }
+        public var pemRepresentation: String { self.backing.pemRepresentation }
+        public var keySizeInBits: Int { self.backing.keySizeInBits }
+        public var publicKey: _RSA.Encryption.PublicKey { .init(self.backing.publicKey) }
     }
 }
 

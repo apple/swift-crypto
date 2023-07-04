@@ -28,8 +28,8 @@ final class TestRSAEncryption: XCTestCase {
     }
     
     private func testOAEPGroup(_ group: RSAEncryptionOAEPTestGroup) throws {
-        let derPrivKey = try _RSA.Signing.PrivateKey(derRepresentation: group.privateKeyDerBytes)
-        let pemPrivKey = try _RSA.Signing.PrivateKey(pemRepresentation: group.privateKeyPem)
+        let derPrivKey = try _RSA.Encryption.PrivateKey(derRepresentation: group.privateKeyDerBytes)
+        let pemPrivKey = try _RSA.Encryption.PrivateKey(pemRepresentation: group.privateKeyPem)
 
         XCTAssertEqual(derPrivKey.derRepresentation, pemPrivKey.derRepresentation)
         XCTAssertEqual(derPrivKey.pemRepresentation, pemPrivKey.pemRepresentation)
