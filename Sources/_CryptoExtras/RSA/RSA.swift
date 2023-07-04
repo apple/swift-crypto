@@ -31,6 +31,7 @@ fileprivate typealias BackingPrivateKey = BoringSSLRSAPrivateKey
 ///
 /// When rolling out new cryptosystems, users should avoid RSA and use ECDSA or edDSA instead. RSA
 /// support is provided for interoperability with legacy systems.
+@_documentation(visibility: public)
 public enum _RSA { }
 
 extension _RSA {
