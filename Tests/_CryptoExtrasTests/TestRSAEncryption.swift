@@ -51,9 +51,9 @@ final class TestRSAEncryption: XCTestCase {
             do {
                 let decryptResult = try derPrivKey.decrypt(test.ciphertextBytes, padding: .PKCS1_OAEP)
                 let encryptResult = try derPubKey.encrypt(test.messageBytes, padding: .PKCS1_OAEP)
-                let decryptResult2 = try derPrivKey.decrypt(encryptResult.rawRepresentation, padding: .PKCS1_OAEP)
+                let decryptResult2 = try derPrivKey.decrypt(encryptResult, padding: .PKCS1_OAEP)
                 
-                valid = (test.messageBytes == decryptResult.rawRepresentation && decryptResult2.rawRepresentation == decryptResult.rawRepresentation)
+                valid = (test.messageBytes == decryptResult && decryptResult2 == decryptResult)
             } catch {
                 valid = false
             }

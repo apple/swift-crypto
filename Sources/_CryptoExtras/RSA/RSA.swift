@@ -405,13 +405,13 @@ extension _RSA.Encryption {
 }
 
 extension _RSA.Encryption.PrivateKey {
-    public func decrypt<D: DataProtocol>(_ data: D, padding: _RSA.Encryption.Padding) throws -> _RSA.Encryption.RSADecryptedData {
+    public func decrypt<D: DataProtocol>(_ data: D, padding: _RSA.Encryption.Padding) throws -> Data {
         return try self.backing.decrypt(data, padding: padding)
     }
 }
 
 extension _RSA.Encryption.PublicKey {
-    public func encrypt<D: DataProtocol>(_ data: D, padding: _RSA.Encryption.Padding) throws -> _RSA.Encryption.RSAEncryptedData {
+    public func encrypt<D: DataProtocol>(_ data: D, padding: _RSA.Encryption.Padding) throws -> Data {
         return try self.backing.encrypt(data, padding: padding)
     }
 }

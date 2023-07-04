@@ -172,7 +172,7 @@ extension SecurityRSAPrivateKey {
  }
  
 extension SecurityRSAPrivateKey {
-    internal func decrypt<D: DataProtocol>(_ data: D, padding: _RSA.Encryption.Padding) throws -> _RSA.Encryption.RSADecryptedData {
+    internal func decrypt<D: DataProtocol>(_ data: D, padding: _RSA.Encryption.Padding) throws -> Data {
         let algorithm = try SecKeyAlgorithm(padding: padding)
         let dataToDecrypt = Data(data)
         var error: Unmanaged<CFError>? = nil
@@ -182,7 +182,7 @@ extension SecurityRSAPrivateKey {
             throw error!.takeRetainedValue() as Error
         }
         
-        return _RSA.Encryption.RSADecryptedData(rawRepresentation: decrypted as Data)
+        return decrypted as Data
     }
 }
 
@@ -206,7 +206,7 @@ extension SecurityRSAPublicKey {
 }
 
 extension SecurityRSAPublicKey {
-    internal func encrypt<D: DataProtocol>(_ data: D, padding: _RSA.Encryption.Padding) throws -> _RSA.Encryption.RSAEncryptedData {
+    internal func encrypt<D: DataProtocol>(_ data: D, padding: _RSA.Encryption.Padding) throws -> Data {
         let algorithm = try SecKeyAlgorithm(padding: padding)
         let dataToEncrypt = Data(data)
         var error: Unmanaged<CFError>? = nil
@@ -216,7 +216,7 @@ extension SecurityRSAPublicKey {
             throw error!.takeRetainedValue() as Error
         }
         
-        return _RSA.Encryption.RSAEncryptedData(rawRepresentation: encrypted as Data)
+        return encrypted as Data
     }
 }
 

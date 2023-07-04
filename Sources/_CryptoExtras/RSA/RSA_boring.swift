@@ -92,7 +92,7 @@ extension BoringSSLRSAPrivateKey {
         return try self.backing.signature(for: digest, padding: padding)
     }
     
-    internal func decrypt<D: DataProtocol>(_ data: D, padding: _RSA.Encryption.Padding) throws -> _RSA.Encryption.RSADecryptedData {
+    internal func decrypt<D: DataProtocol>(_ data: D, padding: _RSA.Encryption.Padding) throws -> Data {
         return try self.backing.decrypt(data, padding: padding)
     }
  }
@@ -102,7 +102,7 @@ extension BoringSSLRSAPublicKey {
         return self.backing.isValidSignature(signature, for: digest, padding: padding)
     }
     
-    internal func encrypt<D: DataProtocol>(_ data: D, padding: _RSA.Encryption.Padding) throws -> _RSA.Encryption.RSAEncryptedData {
+    internal func encrypt<D: DataProtocol>(_ data: D, padding: _RSA.Encryption.Padding) throws -> Data {
         return try self.backing.encrypt(data, padding: padding)
     }
 }
@@ -242,12 +242,13 @@ extension BoringSSLRSAPublicKey {
             }
         }
         
-        fileprivate func encrypt<D: DataProtocol>(_ data: D, padding: _RSA.Encryption.Padding) throws -> _RSA.Encryption.RSAEncryptedData {
+        fileprivate func encrypt<D: DataProtocol>(_ data: D, padding: _RSA.Encryption.Padding) throws -> Data {
             let outputSize = Int(CCryptoBoringSSL_RSA_size(self.pointer))
+            var output = Data(count: outputSize)
 
-            let output = try Array<UInt8>(unsafeUninitializedCapacity: outputSize) { bufferPtr, length in
-                let contiguousData: ContiguousBytes = data.regions.count == 1 ? data.regions.first! : Array(data)
-                let rc: CInt = contiguousData.withUnsafeBytes { dataPtr in
+            let contiguousData: ContiguousBytes = data.regions.count == 1 ? data.regions.first! : Array(data)
+            let rc: CInt = output.withUnsafeMutableBytes { bufferPtr in
+                contiguousData.withUnsafeBytes { dataPtr in
                     let rawPadding: CInt
                     switch padding.backing {
                     case .pkcs1_oaep: rawPadding = RSA_PKCS1_OAEP_PADDING
@@ -261,12 +262,11 @@ extension BoringSSLRSAPublicKey {
                     )
                     return rc
                 }
-                if rc == -1 {
-                    throw CryptoKitError.internalBoringSSLError()
-                }
-                length = Int(rc)
             }
-            return _RSA.Encryption.RSAEncryptedData(rawRepresentation: Data(output))
+            if rc == -1 {
+                throw CryptoKitError.internalBoringSSLError()
+            }
+            return output
         }
 
         deinit {
@@ -440,12 +440,13 @@ extension BoringSSLRSAPrivateKey {
             return _RSA.Signing.RSASignature(signatureBytes: output)
         }
 
-        fileprivate func decrypt<D: DataProtocol>(_ data: D, padding: _RSA.Encryption.Padding) throws -> _RSA.Encryption.RSADecryptedData {
+        fileprivate func decrypt<D: DataProtocol>(_ data: D, padding: _RSA.Encryption.Padding) throws -> Data {
             let outputSize = Int(CCryptoBoringSSL_RSA_size(self.pointer))
+            var output = Data(count: outputSize)
 
-            let output = try Array<UInt8>(unsafeUninitializedCapacity: outputSize) { bufferPtr, length in
-                let contiguousData: ContiguousBytes = data.regions.count == 1 ? data.regions.first! : Array(data)
-                let rc: CInt = contiguousData.withUnsafeBytes { dataPtr in
+            let contiguousData: ContiguousBytes = data.regions.count == 1 ? data.regions.first! : Array(data)
+            let rc: CInt = output.withUnsafeMutableBytes { bufferPtr in
+                contiguousData.withUnsafeBytes { dataPtr in
                     let rawPadding: CInt
                     switch padding.backing {
                     case .pkcs1_oaep: rawPadding = RSA_PKCS1_OAEP_PADDING
@@ -459,12 +460,12 @@ extension BoringSSLRSAPrivateKey {
                     )
                     return rc
                 }
-                if rc == -1 {
-                    throw CryptoKitError.internalBoringSSLError()
-                }
-                length = Int(rc)
             }
-            return _RSA.Encryption.RSADecryptedData(rawRepresentation: Data(output))
+            if rc == -1 {
+                throw CryptoKitError.internalBoringSSLError()
+            }
+            output.removeSubrange(output.index(output.startIndex, offsetBy: Int(rc)) ..< output.endIndex)
+            return output
         }
 
         deinit {
