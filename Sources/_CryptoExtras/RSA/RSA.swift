@@ -435,8 +435,8 @@ extension _RSA.Encryption.PublicKey {
     /// 4096|PKCS-OAEP|470 bytes
     public func maximumEncryptSize(with padding: _RSA.Encryption.Padding) -> Int {
         switch padding.backing {
-            case .pkcs1_oaep:
-                return (self.keySizeInBits / 8) - 42
+        case .pkcs1_oaep:
+            return (self.keySizeInBits / 8) - 42
         }
     }
     
