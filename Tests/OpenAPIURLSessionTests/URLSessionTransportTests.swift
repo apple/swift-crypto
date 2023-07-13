@@ -59,7 +59,7 @@ class URLSessionTransportTests: XCTestCase {
                 body: Data("👋".utf8)
             )
         )
-        let transport: ClientTransport = URLSessionTransport(
+        let transport: any ClientTransport = URLSessionTransport(
             configuration: .init(session: MockURLProtocol.mockURLSession)
         )
         let request = OpenAPIRuntime.Request(
@@ -81,7 +81,7 @@ class URLSessionTransportTests: XCTestCase {
 }
 
 class MockURLProtocol: URLProtocol {
-    static var mockHTTPResponses: [URL: Result<(response: HTTPURLResponse, body: Data?), Error>] = [:]
+    static var mockHTTPResponses: [URL: Result<(response: HTTPURLResponse, body: Data?), any Error>] = [:]
 
     static var recordedHTTPRequests: [URLRequest] = []
 
