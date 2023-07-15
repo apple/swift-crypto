@@ -42,12 +42,10 @@ extension DataProtocol {
         var hexChars = [UInt8](repeating: 0, count: hexLen)
         var offset = 0
         
-        self.regions.forEach { (_) in
-            for i in self {
-                hexChars[Int(offset * 2)] = itoh((i >> 4) & 0xF)
-                hexChars[Int(offset * 2 + 1)] = itoh(i & 0xF)
-                offset += 1
-            }
+        for i in self {
+            hexChars[Int(offset * 2)] = itoh((i >> 4) & 0xF)
+            hexChars[Int(offset * 2 + 1)] = itoh(i & 0xF)
+            offset += 1
         }
         
         return String(bytes: hexChars, encoding: .utf8)!
