@@ -11,7 +11,7 @@
 // SPDX-License-Identifier: Apache-2.0
 //
 //===----------------------------------------------------------------------===//
-#if !(canImport(Darwin))
+#if !canImport(Darwin)
 @_implementationOnly import CCryptoBoringSSL
 
 typealias errno_t = CInt
