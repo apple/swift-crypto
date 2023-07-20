@@ -13,9 +13,9 @@
 //===----------------------------------------------------------------------===//
 import XCTest
 
-#if (os(macOS) || os(iOS) || os(watchOS) || os(tvOS)) && CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
+#if CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
 import Crypto
-#elseif (os(macOS) || os(iOS) || os(watchOS) || os(tvOS)) && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
+#elseif !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
 import CryptoKit
 #else
 import Crypto
@@ -57,7 +57,7 @@ class Ed25519Tests: XCTestCase {
 
         let signatureOnContiguous = try orFail { try privateKey.signature(for: someContiguousData) }
         let signatureOnDiscontiguous = try orFail { try privateKey.signature(for: someDiscontiguousData) }
-        #if !(os(macOS) || os(iOS) || os(watchOS) || os(tvOS))
+        #if !(canImport(Darwin))
         XCTAssertEqual(signatureOnContiguous, signatureOnDiscontiguous)
         #endif
 

@@ -13,10 +13,10 @@
 //===----------------------------------------------------------------------===//
 import XCTest
 
-#if (os(macOS) || os(iOS) || os(watchOS) || os(tvOS)) && CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
+#if CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
 // Skip tests that require @testable imports of CryptoKit.
 #else
-#if (os(macOS) || os(iOS) || os(watchOS) || os(tvOS)) && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
+#if !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
 @testable import CryptoKit
 #else
 @testable import Crypto
@@ -225,4 +225,4 @@ final class SecureBytesTests: XCTestCase {
     }
 }
 
-#endif // (os(macOS) || os(iOS) || os(watchOS) || os(tvOS)) && CRYPTO_IN_SWIFTPM
+#endif // CRYPTO_IN_SWIFTPM

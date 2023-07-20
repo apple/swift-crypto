@@ -13,10 +13,10 @@
 //===----------------------------------------------------------------------===//
 import XCTest
 
-#if (os(macOS) || os(iOS) || os(watchOS) || os(tvOS)) && CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
+#if CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
 // Skip tests that require @testable imports of CryptoKit.
 #else
-#if (os(macOS) || os(iOS) || os(watchOS) || os(tvOS)) && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
+#if !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
 @testable import CryptoKit
 #else
 @testable import Crypto
@@ -86,4 +86,4 @@ class RawECDSASignaturesTests: XCTestCase {
         try orFail { try testForCurve(curve: P521.Signing.self) }
     }
 }
-#endif // (os(macOS) || os(iOS) || os(watchOS) || os(tvOS)) && CRYPTO_IN_SWIFTPM
+#endif // CRYPTO_IN_SWIFTPM
