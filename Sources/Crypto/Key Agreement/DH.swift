@@ -36,7 +36,7 @@ public protocol DiffieHellmanKeyAgreement {
 /// Generate a shared secret by calling your private key’s
 /// `sharedSecretFromKeyAgreement(publicKeyShare:)` method with the public key
 /// from another party. The other party computes the same secret by passing your
-/// public key to the the equivalent method on their own private key.
+/// public key to the equivalent method on their own private key.
 ///
 /// The shared secret isn’t suitable as a symmetric cryptographic key
 /// (``SymmetricKey``) by itself. However, you use it to generate a key by
