@@ -11,10 +11,10 @@
 // SPDX-License-Identifier: Apache-2.0
 //
 //===----------------------------------------------------------------------===//
-#if (os(macOS) || os(iOS) || os(watchOS) || os(tvOS)) && CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
+#if CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
 @_exported import CryptoKit
 #else
-#if (os(macOS) || os(iOS) || os(watchOS) || os(tvOS)) && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
+#if !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
 typealias DigestImpl = CoreCryptoDigestImpl
 #else
 typealias DigestImpl = OpenSSLDigestImpl
@@ -26,7 +26,8 @@ import Foundation
 public protocol HashFunction {
     /// The block size of the hash function. It is different from the output size that can be retrieved from Digest.byteCount.
     static var blockByteCount: Int { get }
-    #if (os(macOS) || os(iOS) || os(watchOS) || os(tvOS)) && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
+    #if !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
+    /// The type of the digest returned by the hash function.
     associatedtype Digest: CryptoKit.Digest
     #else
     associatedtype Digest: Crypto.Digest

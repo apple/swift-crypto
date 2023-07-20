@@ -11,7 +11,7 @@
 // SPDX-License-Identifier: Apache-2.0
 //
 //===----------------------------------------------------------------------===//
-#if (os(macOS) || os(iOS) || os(watchOS) || os(tvOS)) && CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
+#if CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
 @_exported import CryptoKit
 #else
 import Foundation
@@ -126,7 +126,7 @@ extension P256.Signing.PrivateKey: DigestSigner {
     /// - Returns: The ECDSA Signature.
     /// - Throws: If there is a failure producing the signature
     public func signature<D: Digest>(for digest: D) throws -> P256.Signing.ECDSASignature {
-        #if (os(macOS) || os(iOS) || os(watchOS) || os(tvOS)) && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
+        #if !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
         return try self.coreCryptoSignature(for: digest)
         #else
         return try self.openSSLSignature(for: digest)
@@ -153,7 +153,7 @@ extension P256.Signing.PublicKey: DigestValidator {
     ///   - digest: The digest that was signed.
     /// - Returns: True if the signature is valid, false otherwise.
     public func isValidSignature<D: Digest>(_ signature: P256.Signing.ECDSASignature, for digest: D) -> Bool {
-        #if (os(macOS) || os(iOS) || os(watchOS) || os(tvOS)) && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
+        #if !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
         return self.coreCryptoIsValidSignature(signature, for: digest)
         #else
         return self.openSSLIsValidSignature(signature, for: digest)
@@ -268,7 +268,7 @@ extension P384.Signing.PrivateKey: DigestSigner {
     /// - Returns: The ECDSA Signature.
     /// - Throws: If there is a failure producing the signature
     public func signature<D: Digest>(for digest: D) throws -> P384.Signing.ECDSASignature {
-        #if (os(macOS) || os(iOS) || os(watchOS) || os(tvOS)) && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
+        #if !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
         return try self.coreCryptoSignature(for: digest)
         #else
         return try self.openSSLSignature(for: digest)
@@ -295,7 +295,7 @@ extension P384.Signing.PublicKey: DigestValidator {
     ///   - digest: The digest that was signed.
     /// - Returns: True if the signature is valid, false otherwise.
     public func isValidSignature<D: Digest>(_ signature: P384.Signing.ECDSASignature, for digest: D) -> Bool {
-        #if (os(macOS) || os(iOS) || os(watchOS) || os(tvOS)) && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
+        #if !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
         return self.coreCryptoIsValidSignature(signature, for: digest)
         #else
         return self.openSSLIsValidSignature(signature, for: digest)
@@ -410,7 +410,7 @@ extension P521.Signing.PrivateKey: DigestSigner {
     /// - Returns: The ECDSA Signature.
     /// - Throws: If there is a failure producing the signature
     public func signature<D: Digest>(for digest: D) throws -> P521.Signing.ECDSASignature {
-        #if (os(macOS) || os(iOS) || os(watchOS) || os(tvOS)) && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
+        #if !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
         return try self.coreCryptoSignature(for: digest)
         #else
         return try self.openSSLSignature(for: digest)
@@ -437,7 +437,7 @@ extension P521.Signing.PublicKey: DigestValidator {
     ///   - digest: The digest that was signed.
     /// - Returns: True if the signature is valid, false otherwise.
     public func isValidSignature<D: Digest>(_ signature: P521.Signing.ECDSASignature, for digest: D) -> Bool {
-        #if (os(macOS) || os(iOS) || os(watchOS) || os(tvOS)) && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
+        #if !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
         return self.coreCryptoIsValidSignature(signature, for: digest)
         #else
         return self.openSSLIsValidSignature(signature, for: digest)

@@ -11,7 +11,7 @@
 // SPDX-License-Identifier: Apache-2.0
 //
 //===----------------------------------------------------------------------===//
-#if (os(macOS) || os(iOS) || os(watchOS) || os(tvOS)) && CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
+#if CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
 @_exported import CryptoKit
 #else
 import Foundation
@@ -134,7 +134,7 @@ extension ${CURVE}.Signing.PrivateKey: DigestSigner {
     /// - Returns: The ECDSA Signature.
     /// - Throws: If there is a failure producing the signature
     public func signature<D: Digest>(for digest: D) throws -> ${CURVE}.Signing.ECDSASignature {
-        #if (os(macOS) || os(iOS) || os(watchOS) || os(tvOS)) && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
+        #if !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
         return try self.coreCryptoSignature(for: digest)
         #else
         return try self.openSSLSignature(for: digest)
@@ -161,7 +161,7 @@ extension ${CURVE}.Signing.PublicKey: DigestValidator {
     ///   - digest: The digest that was signed.
     /// - Returns: True if the signature is valid, false otherwise.
     public func isValidSignature<D: Digest>(_ signature: ${CURVE}.Signing.ECDSASignature, for digest: D) -> Bool {
-        #if (os(macOS) || os(iOS) || os(watchOS) || os(tvOS)) && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
+        #if !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
         return self.coreCryptoIsValidSignature(signature, for: digest)
         #else
         return self.openSSLIsValidSignature(signature, for: digest)

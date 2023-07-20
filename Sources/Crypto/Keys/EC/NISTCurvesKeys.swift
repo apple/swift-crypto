@@ -13,10 +13,10 @@
 //===----------------------------------------------------------------------===//
 import Foundation
 
-#if (os(macOS) || os(iOS) || os(watchOS) || os(tvOS)) && CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
+#if CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
 @_exported import CryptoKit
 #else
-#if (os(macOS) || os(iOS) || os(watchOS) || os(tvOS)) && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
+#if !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
 typealias SupportedCurveDetailsImpl = CorecryptoSupportedNISTCurve
 #else
 typealias SupportedCurveDetailsImpl = OpenSSLSupportedNISTCurve
