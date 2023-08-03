@@ -3,16 +3,9 @@
 // This file is generated from a similarly-named Perl script in the BoringSSL
 // source tree. Do not edit by hand.
 
-#if defined(__has_feature)
-#if __has_feature(memory_sanitizer) && !defined(OPENSSL_NO_ASM)
-#define OPENSSL_NO_ASM
-#endif
-#endif
+#include <CCryptoBoringSSL_asm_base.h>
 
-#if defined(__x86_64__) && !defined(OPENSSL_NO_ASM) && defined(__APPLE__)
-#if defined(BORINGSSL_PREFIX)
-#include <CCryptoBoringSSL_boringssl_prefix_symbols_asm.h>
-#endif
+#if !defined(OPENSSL_NO_ASM) && defined(OPENSSL_X86_64) && defined(__APPLE__)
 .text	
 
 
@@ -231,6 +224,7 @@ L$hash_ad_done:
 .p2align	6
 _chacha20_poly1305_open:
 
+_CET_ENDBR
 	pushq	%rbp
 
 	pushq	%rbx
@@ -2102,6 +2096,7 @@ L$open_sse_128_xor_hash:
 .p2align	6
 _chacha20_poly1305_seal:
 
+_CET_ENDBR
 	pushq	%rbp
 
 	pushq	%rbx
@@ -8879,10 +8874,6 @@ L$seal_avx2_exit:
 	jmp	L$seal_sse_tail_16
 
 
-#endif
-#if defined(__ELF__)
-// See https://www.airs.com/blog/archives/518.
-.section .note.GNU-stack,"",%progbits
 #endif
 #endif  // defined(__x86_64__) && defined(__APPLE__)
 #if defined(__linux__) && defined(__ELF__)

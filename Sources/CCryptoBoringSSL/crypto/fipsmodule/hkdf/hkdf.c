@@ -20,7 +20,7 @@
 #include <CCryptoBoringSSL_err.h>
 #include <CCryptoBoringSSL_hmac.h>
 
-#include "../internal.h"
+#include "../../internal.h"
 
 
 int HKDF(uint8_t *out_key, size_t out_len, const EVP_MD *digest,
@@ -94,7 +94,7 @@ int HKDF_expand(uint8_t *out_key, size_t out_len, const EVP_MD *digest,
     }
 
     todo = digest_len;
-    if (done + todo > out_len) {
+    if (todo > out_len - done) {
       todo = out_len - done;
     }
     OPENSSL_memcpy(out_key + done, previous, todo);
