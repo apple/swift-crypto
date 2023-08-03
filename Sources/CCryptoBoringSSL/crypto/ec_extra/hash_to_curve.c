@@ -179,12 +179,12 @@ static int hash_to_field2(const EC_GROUP *group, const EVP_MD *md,
                           size_t msg_len) {
   size_t L;
   uint8_t buf[4 * EC_MAX_BYTES];
-  if (!num_bytes_to_derive(&L, &group->field, k) ||
+  if (!num_bytes_to_derive(&L, &group->field.N, k) ||
       !expand_message_xmd(md, buf, 2 * L, msg, msg_len, dst, dst_len)) {
     return 0;
   }
   BN_ULONG words[2 * EC_MAX_WORDS];
-  size_t num_words = 2 * group->field.width;
+  size_t num_words = 2 * group->field.N.width;
   big_endian_to_words(words, num_words, buf, L);
   group->meth->felem_reduce(group, out1, words, num_words);
   big_endian_to_words(words, num_words, buf + L, L);
@@ -197,15 +197,16 @@ static int hash_to_field2(const EC_GROUP *group, const EVP_MD *md,
 static int hash_to_scalar(const EC_GROUP *group, const EVP_MD *md,
                           EC_SCALAR *out, const uint8_t *dst, size_t dst_len,
                           unsigned k, const uint8_t *msg, size_t msg_len) {
+  const BIGNUM *order = EC_GROUP_get0_order(group);
   size_t L;
   uint8_t buf[EC_MAX_BYTES * 2];
-  if (!num_bytes_to_derive(&L, &group->order, k) ||
+  if (!num_bytes_to_derive(&L, order, k) ||
       !expand_message_xmd(md, buf, L, msg, msg_len, dst, dst_len)) {
     return 0;
   }
 
   BN_ULONG words[2 * EC_MAX_WORDS];
-  size_t num_words = 2 * group->order.width;
+  size_t num_words = 2 * order->width;
   big_endian_to_words(words, num_words, buf, L);
   ec_scalar_reduce(group, out, words, num_words);
   return 1;
@@ -230,7 +231,7 @@ static BN_ULONG sgn0(const EC_GROUP *group, const EC_FELEM *a) {
 }
 
 OPENSSL_UNUSED static int is_3mod4(const EC_GROUP *group) {
-  return group->field.width > 0 && (group->field.d[0] & 3) == 3;
+  return group->field.N.width > 0 && (group->field.N.d[0] & 3) == 3;
 }
 
 // sqrt_ratio_3mod4 implements the operation described in appendix F.2.1.2
@@ -273,7 +274,7 @@ static BN_ULONG sqrt_ratio_3mod4(const EC_GROUP *group, const EC_FELEM *Z,
 // in appendix F.2.
 static void map_to_curve_simple_swu(const EC_GROUP *group, const EC_FELEM *Z,
                                     const BN_ULONG *c1, size_t num_c1,
-                                    const EC_FELEM *c2, EC_RAW_POINT *out,
+                                    const EC_FELEM *c2, EC_JACOBIAN *out,
                                     const EC_FELEM *u) {
   // This function requires the prime be 3 mod 4, and that A = -3.
   assert(is_3mod4(group));
@@ -285,12 +286,12 @@ static void map_to_curve_simple_swu(const EC_GROUP *group, const EC_FELEM *Z,
       group->meth->felem_sqr;
 
   EC_FELEM tv1, tv2, tv3, tv4, tv5, tv6, x, y, y1;
-  felem_sqr(group, &tv1, u);                     // 1. tv1 = u^2
-  felem_mul(group, &tv1, Z, &tv1);               // 2. tv1 = Z * tv1
-  felem_sqr(group, &tv2, &tv1);                  // 3. tv2 = tv1^2
-  ec_felem_add(group, &tv2, &tv2, &tv1);         // 4. tv2 = tv2 + tv1
-  ec_felem_add(group, &tv3, &tv2, &group->one);  // 5. tv3 = tv2 + 1
-  felem_mul(group, &tv3, &group->b, &tv3);       // 6. tv3 = B * tv3
+  felem_sqr(group, &tv1, u);                             // 1. tv1 = u^2
+  felem_mul(group, &tv1, Z, &tv1);                       // 2. tv1 = Z * tv1
+  felem_sqr(group, &tv2, &tv1);                          // 3. tv2 = tv1^2
+  ec_felem_add(group, &tv2, &tv2, &tv1);                 // 4. tv2 = tv2 + tv1
+  ec_felem_add(group, &tv3, &tv2, ec_felem_one(group));  // 5. tv3 = tv2 + 1
+  felem_mul(group, &tv3, &group->b, &tv3);               // 6. tv3 = B * tv3
 
   // 7. tv4 = CMOV(Z, -tv2, tv2 != 0)
   const BN_ULONG tv2_non_zero = ec_felem_non_zero_mask(group, &tv2);
@@ -344,7 +345,7 @@ static void map_to_curve_simple_swu(const EC_GROUP *group, const EC_FELEM *Z,
 
 static int hash_to_curve(const EC_GROUP *group, const EVP_MD *md,
                          const EC_FELEM *Z, const EC_FELEM *c2, unsigned k,
-                         EC_RAW_POINT *out, const uint8_t *dst, size_t dst_len,
+                         EC_JACOBIAN *out, const uint8_t *dst, size_t dst_len,
                          const uint8_t *msg, size_t msg_len) {
   EC_FELEM u0, u1;
   if (!hash_to_field2(group, md, &u0, &u1, dst, dst_len, k, msg, msg_len)) {
@@ -353,13 +354,13 @@ static int hash_to_curve(const EC_GROUP *group, const EVP_MD *md,
 
   // Compute |c1| = (p - 3) / 4.
   BN_ULONG c1[EC_MAX_WORDS];
-  size_t num_c1 = group->field.width;
-  if (!bn_copy_words(c1, num_c1, &group->field)) {
+  size_t num_c1 = group->field.N.width;
+  if (!bn_copy_words(c1, num_c1, &group->field.N)) {
     return 0;
   }
   bn_rshift_words(c1, c1, /*shift=*/2, /*num=*/num_c1);
 
-  EC_RAW_POINT Q0, Q1;
+  EC_JACOBIAN Q0, Q1;
   map_to_curve_simple_swu(group, Z, c1, num_c1, c2, &Q0, &u0);
   map_to_curve_simple_swu(group, Z, c1, num_c1, c2, &Q1, &u1);
 
@@ -370,7 +371,7 @@ static int hash_to_curve(const EC_GROUP *group, const EVP_MD *md,
 
 static int felem_from_u8(const EC_GROUP *group, EC_FELEM *out, uint8_t a) {
   uint8_t bytes[EC_MAX_BYTES] = {0};
-  size_t len = BN_num_bytes(&group->field);
+  size_t len = BN_num_bytes(&group->field.N);
   bytes[len - 1] = a;
   return ec_felem_from_bytes(group, out, bytes, len);
 }
@@ -401,7 +402,7 @@ static const uint8_t kP384Sqrt12[] = {
     0xa8, 0x0f, 0x7e, 0x19, 0x14, 0xe2, 0xec, 0x69, 0xf5, 0xa6, 0x26, 0xb3};
 
 int ec_hash_to_curve_p256_xmd_sha256_sswu(const EC_GROUP *group,
-                                          EC_RAW_POINT *out, const uint8_t *dst,
+                                          EC_JACOBIAN *out, const uint8_t *dst,
                                           size_t dst_len, const uint8_t *msg,
                                           size_t msg_len) {
   // See section 8.3 of draft-irtf-cfrg-hash-to-curve-16.
@@ -434,7 +435,7 @@ int EC_hash_to_curve_p256_xmd_sha256_sswu(const EC_GROUP *group, EC_POINT *out,
 }
 
 int ec_hash_to_curve_p384_xmd_sha384_sswu(const EC_GROUP *group,
-                                          EC_RAW_POINT *out, const uint8_t *dst,
+                                          EC_JACOBIAN *out, const uint8_t *dst,
                                           size_t dst_len, const uint8_t *msg,
                                           size_t msg_len) {
   // See section 8.3 of draft-irtf-cfrg-hash-to-curve-16.
@@ -479,7 +480,7 @@ int ec_hash_to_scalar_p384_xmd_sha384(
 }
 
 int ec_hash_to_curve_p384_xmd_sha512_sswu_draft07(
-    const EC_GROUP *group, EC_RAW_POINT *out, const uint8_t *dst,
+    const EC_GROUP *group, EC_JACOBIAN *out, const uint8_t *dst,
     size_t dst_len, const uint8_t *msg, size_t msg_len) {
   // See section 8.3 of draft-irtf-cfrg-hash-to-curve-07.
   if (EC_GROUP_get_curve_name(group) != NID_secp384r1) {

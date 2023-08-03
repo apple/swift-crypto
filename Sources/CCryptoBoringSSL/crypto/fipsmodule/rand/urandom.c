@@ -20,7 +20,7 @@
 
 #include "internal.h"
 
-#if defined(OPENSSL_URANDOM)
+#if defined(OPENSSL_RAND_URANDOM)
 
 #include <assert.h>
 #include <errno.h>
@@ -57,16 +57,6 @@
 #include <sys/auxv.h>
 #endif
 #endif  // OPENSSL_LINUX
-
-#if defined(OPENSSL_MACOS)
-#include <sys/random.h>
-#endif
-
-#if defined(OPENSSL_FREEBSD) && __FreeBSD__ >= 12
-// getrandom is supported in FreeBSD 12 and up.
-#define FREEBSD_GETRANDOM
-#include <sys/random.h>
-#endif
 
 #include <CCryptoBoringSSL_thread.h>
 #include <CCryptoBoringSSL_mem.h>
@@ -172,20 +162,6 @@ static void init_once(void) {
     return;
   }
 #endif  // USE_NR_getrandom
-
-#if defined(OPENSSL_MACOS)
-  // getentropy is available in macOS 10.12 and up. iOS 10 and up may also
-  // support it, but the header is missing. See https://crbug.com/boringssl/287.
-  if (__builtin_available(macos 10.12, *)) {
-    *urandom_fd_bss_get() = kHaveGetrandom;
-    return;
-  }
-#endif
-
-#if defined(FREEBSD_GETRANDOM)
-  *urandom_fd_bss_get() = kHaveGetrandom;
-  return;
-#endif
 
   // FIPS builds must support getrandom.
   //
@@ -298,21 +274,6 @@ static int fill_with_entropy(uint8_t *out, size_t len, int block, int seed) {
     if (*urandom_fd_bss_get() == kHaveGetrandom) {
 #if defined(USE_NR_getrandom)
       r = boringssl_getrandom(out, len, getrandom_flags);
-#elif defined(FREEBSD_GETRANDOM)
-      r = getrandom(out, len, getrandom_flags);
-#elif defined(OPENSSL_MACOS)
-      if (__builtin_available(macos 10.12, *)) {
-        // |getentropy| can only request 256 bytes at a time.
-        size_t todo = len <= 256 ? len : 256;
-        if (getentropy(out, todo) != 0) {
-          r = -1;
-        } else {
-          r = (ssize_t)todo;
-        }
-      } else {
-        fprintf(stderr, "urandom fd corrupt.\n");
-        abort();
-      }
 #else  // USE_NR_getrandom
       fprintf(stderr, "urandom fd corrupt.\n");
       abort();
@@ -364,4 +325,4 @@ int CRYPTO_sysrand_if_available(uint8_t *out, size_t requested) {
   }
 }
 
-#endif  // OPENSSL_URANDOM
+#endif  // OPENSSL_RAND_URANDOM

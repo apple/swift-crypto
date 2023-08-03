@@ -1,4 +1,4 @@
-/* Copyright (c) 2022, Google Inc.
+/* Copyright (c) 2022, Robert Nagy <robert.nagy@gmail.com>
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -12,51 +12,50 @@
  * OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN
  * CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. */
 
-#include "internal.h"
+#include <CCryptoBoringSSL_cpu.h>
 
-#if defined(OPENSSL_AARCH64) && defined(OPENSSL_FREEBSD) && \
+#if defined(OPENSSL_AARCH64) && defined(OPENSSL_OPENBSD) && \
     !defined(OPENSSL_STATIC_ARMCAP)
 
+#include <sys/sysctl.h>
+#include <machine/cpu.h>
 #include <machine/armreg.h>
-#include <sys/types.h>
 
 #include <CCryptoBoringSSL_arm_arch.h>
 
-extern uint32_t OPENSSL_armcap_P;
+#include "internal.h"
 
-// ID_AA64ISAR0_*_VAL are defined starting FreeBSD 13.0. When FreeBSD
-// 12.x is out of support, these compatibility macros can be removed.
-
-#ifndef ID_AA64ISAR0_AES_VAL
-#define ID_AA64ISAR0_AES_VAL ID_AA64ISAR0_AES
-#endif
-#ifndef ID_AA64ISAR0_SHA1_VAL
-#define ID_AA64ISAR0_SHA1_VAL ID_AA64ISAR0_SHA1
-#endif
-#ifndef ID_AA64ISAR0_SHA2_VAL
-#define ID_AA64ISAR0_SHA2_VAL ID_AA64ISAR0_SHA2
-#endif
 
 void OPENSSL_cpuid_setup(void) {
-  uint64_t id_aa64isar0 = READ_SPECIALREG(id_aa64isar0_el1);
+  int isar0_mib[] = { CTL_MACHDEP, CPU_ID_AA64ISAR0 };
+  uint64_t cpu_id = 0;
+  size_t len = sizeof(cpu_id);
+
+  if (sysctl(isar0_mib, 2, &cpu_id, &len, NULL, 0) < 0) {
+    return;
+  }
 
   OPENSSL_armcap_P |= ARMV7_NEON;
 
-  if (ID_AA64ISAR0_AES_VAL(id_aa64isar0) >= ID_AA64ISAR0_AES_BASE) {
+  if (ID_AA64ISAR0_AES(cpu_id) >= ID_AA64ISAR0_AES_BASE) {
     OPENSSL_armcap_P |= ARMV8_AES;
   }
-  if (ID_AA64ISAR0_AES_VAL(id_aa64isar0) >= ID_AA64ISAR0_AES_PMULL) {
+
+  if (ID_AA64ISAR0_AES(cpu_id) >= ID_AA64ISAR0_AES_PMULL) {
     OPENSSL_armcap_P |= ARMV8_PMULL;
   }
-  if (ID_AA64ISAR0_SHA1_VAL(id_aa64isar0) >= ID_AA64ISAR0_SHA1_BASE) {
+
+  if (ID_AA64ISAR0_SHA1(cpu_id) >= ID_AA64ISAR0_SHA1_BASE) {
     OPENSSL_armcap_P |= ARMV8_SHA1;
   }
-  if (ID_AA64ISAR0_SHA2_VAL(id_aa64isar0) >= ID_AA64ISAR0_SHA2_BASE) {
+
+  if (ID_AA64ISAR0_SHA2(cpu_id) >= ID_AA64ISAR0_SHA2_BASE) {
     OPENSSL_armcap_P |= ARMV8_SHA256;
   }
-  if (ID_AA64ISAR0_SHA2_VAL(id_aa64isar0) >= ID_AA64ISAR0_SHA2_512) {
+
+  if (ID_AA64ISAR0_SHA2(cpu_id) >= ID_AA64ISAR0_SHA2_512) {
     OPENSSL_armcap_P |= ARMV8_SHA512;
   }
 }
 
-#endif  // OPENSSL_AARCH64 && OPENSSL_FREEBSD && !OPENSSL_STATIC_ARMCAP
+#endif  // OPENSSL_AARCH64 && OPENSSL_OPENBSD && !OPENSSL_STATIC_ARMCAP

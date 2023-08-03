@@ -57,6 +57,7 @@
  */
 /* X509 v3 extension utilities */
 
+#include <assert.h>
 #include <stdio.h>
 
 #include <CCryptoBoringSSL_conf.h>
@@ -70,21 +71,20 @@
 #include "ext_dat.h"
 static STACK_OF(X509V3_EXT_METHOD) *ext_list = NULL;
 
-static void ext_list_free(X509V3_EXT_METHOD *ext);
-
 static int ext_stack_cmp(const X509V3_EXT_METHOD *const *a,
                          const X509V3_EXT_METHOD *const *b) {
   return ((*a)->ext_nid - (*b)->ext_nid);
 }
 
 int X509V3_EXT_add(X509V3_EXT_METHOD *ext) {
+  // We only support |ASN1_ITEM|-based extensions.
+  assert(ext->it != NULL);
+
   // TODO(davidben): This should be locked. Also check for duplicates.
   if (!ext_list && !(ext_list = sk_X509V3_EXT_METHOD_new(ext_stack_cmp))) {
-    ext_list_free(ext);
     return 0;
   }
   if (!sk_X509V3_EXT_METHOD_push(ext_list, ext)) {
-    ext_list_free(ext);
     return 0;
   }
   sk_X509V3_EXT_METHOD_sort(ext_list);
@@ -136,28 +136,12 @@ int X509V3_EXT_free(int nid, void *ext_data) {
     return 0;
   }
 
-  if (ext_method->it != NULL) {
-    ASN1_item_free(ext_data, ASN1_ITEM_ptr(ext_method->it));
-  } else if (ext_method->ext_free != NULL) {
-    ext_method->ext_free(ext_data);
-  } else {
-    OPENSSL_PUT_ERROR(X509V3, X509V3_R_CANNOT_FIND_FREE_FUNCTION);
-    return 0;
-  }
-
-  return 1;
-}
-
-int X509V3_EXT_add_list(X509V3_EXT_METHOD *extlist) {
-  for (; extlist->ext_nid != -1; extlist++) {
-    if (!X509V3_EXT_add(extlist)) {
-      return 0;
-    }
-  }
+  ASN1_item_free(ext_data, ASN1_ITEM_ptr(ext_method->it));
   return 1;
 }
 
 int X509V3_EXT_add_alias(int nid_to, int nid_from) {
+OPENSSL_BEGIN_ALLOW_DEPRECATED
   const X509V3_EXT_METHOD *ext;
   X509V3_EXT_METHOD *tmpext;
 
@@ -171,19 +155,12 @@ int X509V3_EXT_add_alias(int nid_to, int nid_from) {
   }
   *tmpext = *ext;
   tmpext->ext_nid = nid_to;
-  tmpext->ext_flags |= X509V3_EXT_DYNAMIC;
-  return X509V3_EXT_add(tmpext);
-}
-
-void X509V3_EXT_cleanup(void) {
-  sk_X509V3_EXT_METHOD_pop_free(ext_list, ext_list_free);
-  ext_list = NULL;
-}
-
-static void ext_list_free(X509V3_EXT_METHOD *ext) {
-  if (ext->ext_flags & X509V3_EXT_DYNAMIC) {
-    OPENSSL_free(ext);
+  if (!X509V3_EXT_add(tmpext)) {
+    OPENSSL_free(tmpext);
+    return 0;
   }
+  return 1;
+OPENSSL_END_ALLOW_DEPRECATED
 }
 
 // Legacy function: we don't need to add standard extensions any more because
@@ -201,23 +178,14 @@ void *X509V3_EXT_d2i(const X509_EXTENSION *ext) {
     return NULL;
   }
   p = ext->value->data;
-  void *ret;
-  if (method->it) {
-    ret =
-        ASN1_item_d2i(NULL, &p, ext->value->length, ASN1_ITEM_ptr(method->it));
-  } else {
-    ret = method->d2i(NULL, &p, ext->value->length);
-  }
+  void *ret =
+      ASN1_item_d2i(NULL, &p, ext->value->length, ASN1_ITEM_ptr(method->it));
   if (ret == NULL) {
     return NULL;
   }
   // Check for trailing data.
   if (p != ext->value->data + ext->value->length) {
-    if (method->it) {
-      ASN1_item_free(ret, ASN1_ITEM_ptr(method->it));
-    } else {
-      method->ext_free(ret);
-    }
+    ASN1_item_free(ret, ASN1_ITEM_ptr(method->it));
     OPENSSL_PUT_ERROR(X509V3, X509V3_R_TRAILING_DATA_IN_EXTENSION);
     return NULL;
   }
@@ -227,7 +195,6 @@ void *X509V3_EXT_d2i(const X509_EXTENSION *ext) {
 void *X509V3_get_d2i(const STACK_OF(X509_EXTENSION) *extensions, int nid,
                      int *out_critical, int *out_idx) {
   int lastpos;
-  size_t i;
   X509_EXTENSION *ex, *found_ex = NULL;
   if (!extensions) {
     if (out_idx) {
@@ -246,13 +213,13 @@ void *X509V3_get_d2i(const STACK_OF(X509_EXTENSION) *extensions, int nid,
   if (lastpos < 0) {
     lastpos = 0;
   }
-  for (i = lastpos; i < sk_X509_EXTENSION_num(extensions); i++) {
+  for (size_t i = lastpos; i < sk_X509_EXTENSION_num(extensions); i++) {
     ex = sk_X509_EXTENSION_value(extensions, i);
     if (OBJ_obj2nid(ex->object) == nid) {
       if (out_idx) {
         // TODO(https://crbug.com/boringssl/379): Consistently reject
         // duplicate extensions.
-        *out_idx = i;
+        *out_idx = (int)i;
         found_ex = ex;
         break;
       } else if (found_ex) {

@@ -3,16 +3,9 @@
 // This file is generated from a similarly-named Perl script in the BoringSSL
 // source tree. Do not edit by hand.
 
-#if defined(__has_feature)
-#if __has_feature(memory_sanitizer) && !defined(OPENSSL_NO_ASM)
-#define OPENSSL_NO_ASM
-#endif
-#endif
+#include <CCryptoBoringSSL_asm_base.h>
 
-#if !defined(OPENSSL_NO_ASM) && defined(__i386__) && defined(__ELF__)
-#if defined(BORINGSSL_PREFIX)
-#include <CCryptoBoringSSL_boringssl_prefix_symbols_asm.h>
-#endif
+#if !defined(OPENSSL_NO_ASM) && defined(OPENSSL_X86) && defined(__ELF__)
 .text
 .globl	bn_mul_comba8
 .hidden	bn_mul_comba8
@@ -1270,11 +1263,7 @@ bn_sqr_comba4:
 	popl	%esi
 	ret
 .size	bn_sqr_comba4,.-.L_bn_sqr_comba4_begin
-#endif  // !defined(OPENSSL_NO_ASM) && defined(__i386__) && defined(__ELF__)
-#if defined(__ELF__)
-// See https://www.airs.com/blog/archives/518.
-.section .note.GNU-stack,"",%progbits
-#endif
+#endif  // !defined(OPENSSL_NO_ASM) && defined(OPENSSL_X86) && defined(__ELF__)
 #endif  // defined(__i386__) && defined(__linux__)
 #if defined(__linux__) && defined(__ELF__)
 .section .note.GNU-stack,"",%progbits
