@@ -91,11 +91,19 @@ extension BoringSSLRSAPrivateKey {
     internal func signature<D: Digest>(for digest: D, padding: _RSA.Signing.Padding) throws -> _RSA.Signing.RSASignature {
         return try self.backing.signature(for: digest, padding: padding)
     }
+    
+    internal func decrypt<D: DataProtocol>(_ data: D, padding: _RSA.Encryption.Padding) throws -> Data {
+        return try self.backing.decrypt(data, padding: padding)
+    }
  }
 
 extension BoringSSLRSAPublicKey {
     func isValidSignature<D: Digest>(_ signature: _RSA.Signing.RSASignature, for digest: D, padding: _RSA.Signing.Padding) -> Bool {
         return self.backing.isValidSignature(signature, for: digest, padding: padding)
+    }
+    
+    internal func encrypt<D: DataProtocol>(_ data: D, padding: _RSA.Encryption.Padding) throws -> Data {
+        return try self.backing.encrypt(data, padding: padding)
     }
 }
 
@@ -232,6 +240,33 @@ extension BoringSSLRSAPublicKey {
                 }
                 return rc == 1
             }
+        }
+        
+        fileprivate func encrypt<D: DataProtocol>(_ data: D, padding: _RSA.Encryption.Padding) throws -> Data {
+            let outputSize = Int(CCryptoBoringSSL_RSA_size(self.pointer))
+            var output = Data(count: outputSize)
+
+            let contiguousData: ContiguousBytes = data.regions.count == 1 ? data.regions.first! : Array(data)
+            let rc: CInt = output.withUnsafeMutableBytes { bufferPtr in
+                contiguousData.withUnsafeBytes { dataPtr in
+                    let rawPadding: CInt
+                    switch padding.backing {
+                    case .pkcs1_oaep: rawPadding = RSA_PKCS1_OAEP_PADDING
+                    }
+                    let rc = CCryptoBoringSSLShims_RSA_public_encrypt(
+                        CInt(dataPtr.count),
+                        dataPtr.baseAddress,
+                        bufferPtr.baseAddress,
+                        self.pointer,
+                        rawPadding
+                    )
+                    return rc
+                }
+            }
+            if rc == -1 {
+                throw CryptoKitError.internalBoringSSLError()
+            }
+            return output
         }
 
         deinit {
@@ -403,6 +438,34 @@ extension BoringSSLRSAPrivateKey {
                 length = outputLength
             }
             return _RSA.Signing.RSASignature(signatureBytes: output)
+        }
+
+        fileprivate func decrypt<D: DataProtocol>(_ data: D, padding: _RSA.Encryption.Padding) throws -> Data {
+            let outputSize = Int(CCryptoBoringSSL_RSA_size(self.pointer))
+            var output = Data(count: outputSize)
+
+            let contiguousData: ContiguousBytes = data.regions.count == 1 ? data.regions.first! : Array(data)
+            let rc: CInt = output.withUnsafeMutableBytes { bufferPtr in
+                contiguousData.withUnsafeBytes { dataPtr in
+                    let rawPadding: CInt
+                    switch padding.backing {
+                    case .pkcs1_oaep: rawPadding = RSA_PKCS1_OAEP_PADDING
+                    }
+                    let rc = CCryptoBoringSSLShims_RSA_private_decrypt(
+                        CInt(dataPtr.count),
+                        dataPtr.baseAddress,
+                        bufferPtr.baseAddress,
+                        self.pointer,
+                        rawPadding
+                    )
+                    return rc
+                }
+            }
+            if rc == -1 {
+                throw CryptoKitError.internalBoringSSLError()
+            }
+            output.removeSubrange(output.index(output.startIndex, offsetBy: Int(rc)) ..< output.endIndex)
+            return output
         }
 
         deinit {

@@ -17,7 +17,7 @@ import XCTest
 // correct line. But Linux and older Xcodes do not, so we need to use this
 // wrapper as long as those platforms are supported.
 func orFail<T>(file: StaticString = #file, line: UInt = #line, _ closure: () throws -> T) throws -> T {
-    func wrapper<T>(_ closure: () throws -> T, file: StaticString, line: UInt) throws -> T {
+    func wrapper<U>(_ closure: () throws -> U, file: StaticString, line: UInt) throws -> U {
         do {
             return try closure()
         } catch {

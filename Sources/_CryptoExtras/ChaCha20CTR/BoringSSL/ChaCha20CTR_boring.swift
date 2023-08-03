@@ -51,7 +51,7 @@ enum OpenSSLChaCha20CTRImpl {
 
                     ciphertext.withUnsafeMutableBytes { ciphertext in
                         CCryptoBoringSSL_CRYPTO_chacha_20(
-                            ciphertext,
+                            ciphertext.baseAddress,
                             plaintext.baseAddress,
                             plaintext.count,
                             keyBytes.baseAddress,
