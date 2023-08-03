@@ -93,8 +93,8 @@ static EC_WRAPPED_SCALAR *ec_wrapped_scalar_new(const EC_GROUP *group) {
 
   OPENSSL_memset(wrapped, 0, sizeof(EC_WRAPPED_SCALAR));
   wrapped->bignum.d = wrapped->scalar.words;
-  wrapped->bignum.width = group->order.width;
-  wrapped->bignum.dmax = group->order.width;
+  wrapped->bignum.width = group->order.N.width;
+  wrapped->bignum.dmax = group->order.N.width;
   wrapped->bignum.flags = BN_FLG_STATIC_DATA;
   return wrapped;
 }
@@ -311,7 +311,7 @@ int EC_KEY_check_key(const EC_KEY *eckey) {
   // NOTE: this is a FIPS pair-wise consistency check for the ECDH case. See SP
   // 800-56Ar3, page 36.
   if (eckey->priv_key != NULL) {
-    EC_RAW_POINT point;
+    EC_JACOBIAN point;
     if (!ec_point_mul_scalar_base(eckey->group, &point,
                                   &eckey->priv_key->scalar)) {
       OPENSSL_PUT_ERROR(EC, ERR_R_EC_LIB);
@@ -485,7 +485,7 @@ int EC_KEY_generate_key(EC_KEY *key) {
   }
 
   // Check that the group order is FIPS compliant (FIPS 186-4 B.4.2).
-  if (BN_num_bits(EC_GROUP_get0_order(key->group)) < 160) {
+  if (EC_GROUP_order_bits(key->group) < 160) {
     OPENSSL_PUT_ERROR(EC, EC_R_INVALID_GROUP_ORDER);
     return 0;
   }

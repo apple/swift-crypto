@@ -3,16 +3,9 @@
 // This file is generated from a similarly-named Perl script in the BoringSSL
 // source tree. Do not edit by hand.
 
-#if defined(__has_feature)
-#if __has_feature(memory_sanitizer) && !defined(OPENSSL_NO_ASM)
-#define OPENSSL_NO_ASM
-#endif
-#endif
+#include <CCryptoBoringSSL_asm_base.h>
 
-#if defined(__x86_64__) && !defined(OPENSSL_NO_ASM) && defined(__ELF__)
-#if defined(BORINGSSL_PREFIX)
-#include <CCryptoBoringSSL_boringssl_prefix_symbols_asm.h>
-#endif
+#if !defined(OPENSSL_NO_ASM) && defined(OPENSSL_X86_64) && defined(__ELF__)
 .text	
 
 
@@ -814,6 +807,7 @@ _vpaes_schedule_mangle:
 .align	16
 vpaes_set_encrypt_key:
 .cfi_startproc	
+_CET_ENDBR
 #ifdef BORINGSSL_DISPATCH_TEST
 .extern	BORINGSSL_function_hit
 .hidden BORINGSSL_function_hit
@@ -839,6 +833,7 @@ vpaes_set_encrypt_key:
 .align	16
 vpaes_set_decrypt_key:
 .cfi_startproc	
+_CET_ENDBR
 	movl	%esi,%eax
 	shrl	$5,%eax
 	addl	$5,%eax
@@ -863,6 +858,7 @@ vpaes_set_decrypt_key:
 .align	16
 vpaes_encrypt:
 .cfi_startproc	
+_CET_ENDBR
 #ifdef BORINGSSL_DISPATCH_TEST
 .extern	BORINGSSL_function_hit
 .hidden BORINGSSL_function_hit
@@ -882,6 +878,7 @@ vpaes_encrypt:
 .align	16
 vpaes_decrypt:
 .cfi_startproc	
+_CET_ENDBR
 	movdqu	(%rdi),%xmm0
 	call	_vpaes_preheat
 	call	_vpaes_decrypt_core
@@ -895,6 +892,7 @@ vpaes_decrypt:
 .align	16
 vpaes_cbc_encrypt:
 .cfi_startproc	
+_CET_ENDBR
 	xchgq	%rcx,%rdx
 	subq	$16,%rcx
 	jc	.Lcbc_abort
@@ -938,6 +936,7 @@ vpaes_cbc_encrypt:
 .align	16
 vpaes_ctr32_encrypt_blocks:
 .cfi_startproc	
+_CET_ENDBR
 
 	xchgq	%rcx,%rdx
 	testq	%rcx,%rcx
@@ -1133,10 +1132,6 @@ _vpaes_consts:
 .align	64
 .size	_vpaes_consts,.-_vpaes_consts
 .text	
-#endif
-#if defined(__ELF__)
-// See https://www.airs.com/blog/archives/518.
-.section .note.GNU-stack,"",%progbits
 #endif
 #endif  // defined(__x86_64__) && defined(__linux__)
 #if defined(__linux__) && defined(__ELF__)

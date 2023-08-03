@@ -19,17 +19,9 @@
  * domain licensed but the standard ISC license is included above to keep
  * licensing simple. */
 
-#if defined(__has_feature)
-#if __has_feature(memory_sanitizer) && !defined(OPENSSL_NO_ASM)
-#define OPENSSL_NO_ASM
-#endif
-#endif
+#include <CCryptoBoringSSL_asm_base.h>
 
-#if !defined(OPENSSL_NO_ASM) && defined(__ARMEL__) && defined(__ELF__)
-
-#if defined(BORINGSSL_PREFIX)
-#include <CCryptoBoringSSL_boringssl_prefix_symbols_asm.h>
-#endif
+#if !defined(OPENSSL_NO_ASM) && defined(OPENSSL_ARM) && defined(__ELF__)
 
 .fpu neon
 .text
@@ -2131,11 +2123,7 @@ mov sp,r12
 vpop {q4,q5,q6,q7}
 bx lr
 
-#endif  /* !OPENSSL_NO_ASM && __ARMEL__ && __ELF__ */
-
-#if defined(__ELF__)
-.section	.note.GNU-stack,"",%progbits
-#endif
+#endif  /* !OPENSSL_NO_ASM && OPENSSL_ARM && __ELF__ */
 #endif  // defined(__arm__) && defined(__linux__)
 #if defined(__linux__) && defined(__ELF__)
 .section .note.GNU-stack,"",%progbits

@@ -109,9 +109,9 @@ extension BoringSSLRSAPublicKey {
 
 extension BoringSSLRSAPublicKey {
     fileprivate final class Backing {
-        private let pointer: UnsafeMutablePointer<RSA>
+        private let pointer: OpaquePointer
 
-        fileprivate init(takingOwnershipOf pointer: UnsafeMutablePointer<RSA>) {
+        fileprivate init(takingOwnershipOf pointer: OpaquePointer) {
             self.pointer = pointer
         }
 
@@ -277,7 +277,7 @@ extension BoringSSLRSAPublicKey {
 
 extension BoringSSLRSAPrivateKey {
     fileprivate final class Backing {
-        private let pointer: UnsafeMutablePointer<RSA>
+        private let pointer: OpaquePointer
 
         fileprivate init(copying other: Backing) {
             self.pointer = CCryptoBoringSSL_RSAPrivateKey_dup(other.pointer)
@@ -316,7 +316,7 @@ extension BoringSSLRSAPrivateKey {
             }
         }
 
-        private static func pkcs8DERPrivateKey<Bytes: ContiguousBytes>(_ derRepresentation: Bytes) -> UnsafeMutablePointer<RSA>? {
+        private static func pkcs8DERPrivateKey<Bytes: ContiguousBytes>(_ derRepresentation: Bytes) -> OpaquePointer? {
             return derRepresentation.withUnsafeBytes { derPtr in
                 return BIOHelper.withReadOnlyMemoryBIO(wrapping: derPtr) { bio in
                     guard let p8 = CCryptoBoringSSL_d2i_PKCS8_PRIV_KEY_INFO_bio(bio, nil) else {
@@ -337,7 +337,7 @@ extension BoringSSLRSAPrivateKey {
             }
         }
 
-        private static func pkcs1DERPrivateKey<Bytes: ContiguousBytes>(_ derRepresentation: Bytes) -> UnsafeMutablePointer<RSA>? {
+        private static func pkcs1DERPrivateKey<Bytes: ContiguousBytes>(_ derRepresentation: Bytes) -> OpaquePointer? {
             return derRepresentation.withUnsafeBytes { derPtr in
                 return BIOHelper.withReadOnlyMemoryBIO(wrapping: derPtr) { bio in
                     return CCryptoBoringSSL_d2i_RSAPrivateKey_bio(bio, nil)
