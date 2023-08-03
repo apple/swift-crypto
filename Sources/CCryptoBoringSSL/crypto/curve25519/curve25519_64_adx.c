@@ -1,4 +1,4 @@
-/* Copyright (c) 2017, Google Inc.
+/* Copyright (c) 2023, Google Inc.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -12,23 +12,7 @@
  * OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN
  * CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. */
 
-#include <CCryptoBoringSSL_rand.h>
-
-#if defined(OPENSSL_FUCHSIA) && !defined(BORINGSSL_UNSAFE_DETERMINISTIC_MODE)
-
-#include <limits.h>
-#include <stdlib.h>
-
-#include <zircon/syscalls.h>
-
-#include "../fipsmodule/rand/internal.h"
-
-void CRYPTO_sysrand(uint8_t *out, size_t requested) {
-  zx_cprng_draw(out, requested);
-}
-
-void CRYPTO_sysrand_for_seed(uint8_t *out, size_t requested) {
-  CRYPTO_sysrand(out, requested);
-}
-
-#endif  // OPENSSL_FUCHSIA && !BORINGSSL_UNSAFE_DETERMINISTIC_MODE
+#include "internal.h"
+#if defined(BORINGSSL_FE25519_ADX)
+#include "../../third_party/fiat/curve25519_64_adx.h"
+#endif
