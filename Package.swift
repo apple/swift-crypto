@@ -40,14 +40,15 @@ if development {
         "CryptoBoringWrapper"
     ]
 } else {
-    swiftSettings = [
-        .define("CRYPTO_IN_SWIFTPM"),
-    ]
     let platforms: [Platform] = [
         Platform.linux,
         Platform.android,
         Platform.windows,
         Platform.wasi,
+    ]
+    swiftSettings = [
+        .define("CRYPTO_IN_SWIFTPM"),
+        .define("CRYPTO_IN_SWIFTPM_FORCE_BUILD_API", .when(platforms: platforms)),
     ]
     dependencies = [
         .target(name: "CCryptoBoringSSL", condition: .when(platforms: platforms)),

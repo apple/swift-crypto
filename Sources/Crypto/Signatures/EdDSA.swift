@@ -11,7 +11,7 @@
 // SPDX-License-Identifier: Apache-2.0
 //
 //===----------------------------------------------------------------------===//
-#if (os(macOS) || os(iOS) || os(watchOS) || os(tvOS)) && CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
+#if CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
 @_exported import CryptoKit
 #else
 import Foundation
@@ -42,7 +42,7 @@ extension Curve25519.Signing.PublicKey: DataValidator {
     ///   - data: The digest that was signed.
     /// - Returns: True if the signature is valid. False otherwise.
     public func isValidSignature<S: DataProtocol, D: DataProtocol>(_ signature: S, for data: D) -> Bool {
-        #if (os(macOS) || os(iOS) || os(watchOS) || os(tvOS)) && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
+        #if !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
         return self.coreCryptoIsValidSignature(signature, for: data)
         #else
         return self.openSSLIsValidSignature(signature, for: data)
@@ -57,7 +57,7 @@ extension Curve25519.Signing.PrivateKey: Signer {
     /// - Returns: The 64-bytes signature.
     /// - Throws: If there is a failure producing the signature.
     public func signature<D: DataProtocol>(for data: D) throws -> Data {
-        #if (os(macOS) || os(iOS) || os(watchOS) || os(tvOS)) && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
+        #if !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
         return try self.coreCryptoSignature(for: data)
         #else
         return try self.openSSLSignature(for: data)
