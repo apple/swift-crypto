@@ -101,7 +101,7 @@ function mangle_symbols {
         )
 
         # Now cross compile for our targets.
-        docker run --rm -v$(pwd):/src -w/src --platform linux/arm64 swift5.8-jammy \
+        docker run --rm -v$(pwd):/src -w/src --platform linux/arm64 swift:5.8-jammy \
             swift build --product CCryptoBoringSSL
         docker run --rm -v$(pwd):/src -w/src --platform linux/amd64 swift:5.8-jammy \
             swift build --product CCryptoBoringSSL
