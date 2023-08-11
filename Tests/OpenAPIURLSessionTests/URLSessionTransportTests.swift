@@ -13,9 +13,18 @@
 //===----------------------------------------------------------------------===//
 import XCTest
 import OpenAPIRuntime
+#if canImport(Darwin)
 import Foundation
+#else
+@preconcurrency import struct Foundation.URL
+#endif
 #if canImport(FoundationNetworking)
-import FoundationNetworking
+@preconcurrency import struct FoundationNetworking.URLRequest
+@preconcurrency import class FoundationNetworking.URLProtocol
+@preconcurrency import class FoundationNetworking.URLSession
+@preconcurrency import class FoundationNetworking.HTTPURLResponse
+@preconcurrency import class FoundationNetworking.URLResponse
+@preconcurrency import class FoundationNetworking.URLSessionConfiguration
 #endif
 @testable import OpenAPIURLSession
 
@@ -53,12 +62,14 @@ class URLSessionTransportTests: XCTestCase {
 
     func testSend() async throws {
         let endpointURL = URL(string: "http://example.com/api/hello/Maria?greeting=Howdy")!
-        MockURLProtocol.mockHTTPResponses[endpointURL] = .success(
-            (
-                HTTPURLResponse(url: endpointURL, statusCode: 201, httpVersion: nil, headerFields: [:])!,
-                body: Data("👋".utf8)
+        MockURLProtocol.mockHTTPResponses.withValue { map in
+            map[endpointURL] = .success(
+                (
+                    HTTPURLResponse(url: endpointURL, statusCode: 201, httpVersion: nil, headerFields: [:])!,
+                    body: Data("👋".utf8)
+                )
             )
-        )
+        }
         let transport: any ClientTransport = URLSessionTransport(
             configuration: .init(session: MockURLProtocol.mockURLSession)
         )
@@ -81,9 +92,10 @@ class URLSessionTransportTests: XCTestCase {
 }
 
 class MockURLProtocol: URLProtocol {
-    static var mockHTTPResponses: [URL: Result<(response: HTTPURLResponse, body: Data?), any Error>] = [:]
+    typealias MockHTTPResponseMap = [URL: Result<(response: HTTPURLResponse, body: Data?), any Error>]
+    static let mockHTTPResponses = LockedValueBox<MockHTTPResponseMap>([:])
 
-    static var recordedHTTPRequests: [URLRequest] = []
+    static let recordedHTTPRequests = LockedValueBox<[URLRequest]>([])
 
     override class func canInit(with request: URLRequest) -> Bool { true }
 
@@ -92,9 +104,11 @@ class MockURLProtocol: URLProtocol {
     override func stopLoading() {}
 
     override func startLoading() {
-        Self.recordedHTTPRequests.append(self.request)
+        Self.recordedHTTPRequests.withValue { $0.append(self.request) }
         guard let url = self.request.url else { return }
-        guard let response = Self.mockHTTPResponses[url] else { return }
+        guard let response = Self.mockHTTPResponses.withValue({ $0[url] }) else {
+            return
+        }
         switch response {
         case .success(let mockResponse):
             client?.urlProtocol(self, didReceive: mockResponse.response, cacheStoragePolicy: .notAllowed)

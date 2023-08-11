@@ -12,9 +12,19 @@
 //
 //===----------------------------------------------------------------------===//
 import OpenAPIRuntime
+#if canImport(Darwin)
 import Foundation
+#else
+@preconcurrency import struct Foundation.URL
+@preconcurrency import struct Foundation.URLComponents
+@preconcurrency import struct Foundation.Data
+@preconcurrency import protocol Foundation.LocalizedError
+#endif
 #if canImport(FoundationNetworking)
-@preconcurrency import FoundationNetworking
+@preconcurrency import struct FoundationNetworking.URLRequest
+@preconcurrency import class FoundationNetworking.URLSession
+@preconcurrency import class FoundationNetworking.URLResponse
+@preconcurrency import class FoundationNetworking.HTTPURLResponse
 #endif
 
 /// A client transport that performs HTTP operations using the URLSession type
