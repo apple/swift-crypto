@@ -90,10 +90,10 @@ let package = Package(
             ],
             cSettings: [
                 // These defines come from BoringSSL's build system
-                .define("_HAS_EXCEPTIONS", to: "0", .when(platforms: [Platform.windows]),
-                .define("WIN32_LEAN_AND_MEAN", .when(platforms: [Platform.windows]),
-                .define("NOMINMAX", .when(platforms: [Platform.windows]),
-                .define("_CRT_SECURE_NO_WARNINGS", .when(platforms: [Platform.windows]),
+                .define("_HAS_EXCEPTIONS", to: "0", .when(platforms: [Platform.windows])),
+                .define("WIN32_LEAN_AND_MEAN", .when(platforms: [Platform.windows])),
+                .define("NOMINMAX", .when(platforms: [Platform.windows])),
+                .define("_CRT_SECURE_NO_WARNINGS", .when(platforms: [Platform.windows])),
                 /*
                  * These defines are required on Wasm/WASI, to disable use of pthread.
                  */
