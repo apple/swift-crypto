@@ -89,12 +89,11 @@ let package = Package(
                 "crypto/bio/socket.c"
             ],
             cSettings: [
-                /*
-                 * This define is required on Windows, but because we need older
-                 * versions of SPM, we cannot conditionally define this on Windows
-                 * only.  Unconditionally define it instead.
-                 */
-                .define("WIN32_LEAN_AND_MEAN"),
+                // These defines come from BoringSSL's build system
+                .define("_HAS_EXCEPTIONS", to: "0", .when(platforms: [Platform.windows])),
+                .define("WIN32_LEAN_AND_MEAN", .when(platforms: [Platform.windows])),
+                .define("NOMINMAX", .when(platforms: [Platform.windows])),
+                .define("_CRT_SECURE_NO_WARNINGS", .when(platforms: [Platform.windows])),
                 /*
                  * These defines are required on Wasm/WASI, to disable use of pthread.
                  */
