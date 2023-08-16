@@ -263,14 +263,13 @@ int BN_mod_inverse_odd(BIGNUM *out, int *out_no_inverse, const BIGNUM *a,
   // Now  Y*a  ==  A  (mod |n|).
 
   // Y*a == 1  (mod |n|)
-  if (!Y->neg && BN_ucmp(Y, n) < 0) {
-    if (!BN_copy(R, Y)) {
+  if (Y->neg || BN_ucmp(Y, n) >= 0) {
+    if (!BN_nnmod(Y, Y, n, ctx)) {
       goto err;
     }
-  } else {
-    if (!BN_nnmod(R, Y, n, ctx)) {
-      goto err;
-    }
+  }
+  if (!BN_copy(R, Y)) {
+    goto err;
   }
 
   ret = 1;
@@ -286,7 +285,6 @@ BIGNUM *BN_mod_inverse(BIGNUM *out, const BIGNUM *a, const BIGNUM *n,
   if (out == NULL) {
     new_out = BN_new();
     if (new_out == NULL) {
-      OPENSSL_PUT_ERROR(BN, ERR_R_MALLOC_FAILURE);
       return NULL;
     }
     out = new_out;

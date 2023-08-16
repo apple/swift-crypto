@@ -29,6 +29,14 @@ internal struct BoringSSLRSAPublicKey {
         self.backing = try Backing(derRepresentation: derRepresentation)
     }
 
+    var pkcs1DERRepresentation: Data {
+        self.backing.pkcs1DERRepresentation
+    }
+
+    var pkcs1PEMRepresentation: String {
+        self.backing.pkcs1PEMRepresentation
+    }
+
     var derRepresentation: Data {
         self.backing.derRepresentation
     }
@@ -83,19 +91,27 @@ extension BoringSSLRSAPrivateKey {
     internal func signature<D: Digest>(for digest: D, padding: _RSA.Signing.Padding) throws -> _RSA.Signing.RSASignature {
         return try self.backing.signature(for: digest, padding: padding)
     }
+    
+    internal func decrypt<D: DataProtocol>(_ data: D, padding: _RSA.Encryption.Padding) throws -> Data {
+        return try self.backing.decrypt(data, padding: padding)
+    }
  }
 
 extension BoringSSLRSAPublicKey {
     func isValidSignature<D: Digest>(_ signature: _RSA.Signing.RSASignature, for digest: D, padding: _RSA.Signing.Padding) -> Bool {
         return self.backing.isValidSignature(signature, for: digest, padding: padding)
     }
+    
+    internal func encrypt<D: DataProtocol>(_ data: D, padding: _RSA.Encryption.Padding) throws -> Data {
+        return try self.backing.encrypt(data, padding: padding)
+    }
 }
 
 extension BoringSSLRSAPublicKey {
     fileprivate final class Backing {
-        private let pointer: UnsafeMutablePointer<RSA>
+        private let pointer: OpaquePointer
 
-        fileprivate init(takingOwnershipOf pointer: UnsafeMutablePointer<RSA>) {
+        fileprivate init(takingOwnershipOf pointer: OpaquePointer) {
             self.pointer = pointer
         }
 
@@ -106,13 +122,26 @@ extension BoringSSLRSAPublicKey {
         fileprivate init(pemRepresentation: String) throws {
             var pemRepresentation = pemRepresentation
 
-            self.pointer = try pemRepresentation.withUTF8 { utf8Ptr in
-                return try BIOHelper.withReadOnlyMemoryBIO(wrapping: utf8Ptr) { bio in
-                    guard let key = CCryptoBoringSSL_PEM_read_bio_RSA_PUBKEY(bio, nil, nil, nil) else {
-                        throw CryptoKitError.internalBoringSSLError()
+            // There are two encodings for RSA public keys: PKCS#1 and the SPKI form.
+            // The SPKI form is what we support for EC keys, so we try that first, then we
+            // fall back to the PKCS#1 form if that parse fails.
+            do {
+                self.pointer = try pemRepresentation.withUTF8 { utf8Ptr in
+                    return try BIOHelper.withReadOnlyMemoryBIO(wrapping: utf8Ptr) { bio in
+                        guard let key = CCryptoBoringSSL_PEM_read_bio_RSA_PUBKEY(bio, nil, nil, nil) else {
+                            throw CryptoKitError.internalBoringSSLError()
+                        }
+                        return key
                     }
-
-                    return key
+                }
+            } catch {
+                self.pointer = try pemRepresentation.withUTF8 { utf8Ptr in
+                    return try BIOHelper.withReadOnlyMemoryBIO(wrapping: utf8Ptr) { bio in
+                        guard let key = CCryptoBoringSSL_PEM_read_bio_RSAPublicKey(bio, nil, nil, nil) else {
+                            throw CryptoKitError.internalBoringSSLError()
+                        }
+                        return key
+                    }
                 }
             }
         }
@@ -127,14 +156,41 @@ extension BoringSSLRSAPublicKey {
         }
 
         private init<Bytes: ContiguousBytes>(contiguousDerRepresentation: Bytes) throws {
-            self.pointer = try contiguousDerRepresentation.withUnsafeBytes { derPtr in
-                return try BIOHelper.withReadOnlyMemoryBIO(wrapping: derPtr) { bio in
-                    guard let key = CCryptoBoringSSL_d2i_RSA_PUBKEY_bio(bio, nil) else {
-                        throw CryptoKitError.internalBoringSSLError()
+            // There are two encodings for RSA public keys: PKCS#1 and the SPKI form.
+            // The SPKI form is what we support for EC keys, so we try that first, then we
+            // fall back to the PKCS#1 form if that parse fails.
+            do {
+                self.pointer = try contiguousDerRepresentation.withUnsafeBytes { derPtr in
+                    return try BIOHelper.withReadOnlyMemoryBIO(wrapping: derPtr) { bio in
+                        guard let key = CCryptoBoringSSL_d2i_RSA_PUBKEY_bio(bio, nil) else {
+                            throw CryptoKitError.internalBoringSSLError()
+                        }
+                        return key
                     }
-                    return key
+                }
+            } catch {
+                self.pointer = try contiguousDerRepresentation.withUnsafeBytes { derPtr in
+                    return try BIOHelper.withReadOnlyMemoryBIO(wrapping: derPtr) { bio in
+                        guard let key = CCryptoBoringSSL_d2i_RSAPublicKey_bio(bio, nil) else {
+                            throw CryptoKitError.internalBoringSSLError()
+                        }
+                        return key
+                    }
                 }
             }
+        }
+
+        fileprivate var pkcs1DERRepresentation: Data {
+            return BIOHelper.withWritableMemoryBIO { bio in
+                let rc = CCryptoBoringSSL_i2d_RSAPublicKey_bio(bio, self.pointer)
+                precondition(rc == 1)
+
+                return try! Data(copyingMemoryBIO: bio)
+            }
+        }
+
+        fileprivate var pkcs1PEMRepresentation: String {
+            return ASN1.PEMDocument(type: _RSA.PKCS1PublicKeyType, derBytes: self.pkcs1DERRepresentation).pemString
         }
 
         fileprivate var derRepresentation: Data {
@@ -147,12 +203,7 @@ extension BoringSSLRSAPublicKey {
         }
 
         fileprivate var pemRepresentation: String {
-            return BIOHelper.withWritableMemoryBIO { bio in
-                let rc = CCryptoBoringSSL_PEM_write_bio_RSA_PUBKEY(bio, self.pointer)
-                precondition(rc == 1)
-
-                return try! String(copyingUTF8MemoryBIO: bio)
-            }
+            return ASN1.PEMDocument(type: _RSA.SPKIPublicKeyType, derBytes: self.derRepresentation).pemString
         }
 
         fileprivate var keySizeInBits: Int {
@@ -190,6 +241,33 @@ extension BoringSSLRSAPublicKey {
                 return rc == 1
             }
         }
+        
+        fileprivate func encrypt<D: DataProtocol>(_ data: D, padding: _RSA.Encryption.Padding) throws -> Data {
+            let outputSize = Int(CCryptoBoringSSL_RSA_size(self.pointer))
+            var output = Data(count: outputSize)
+
+            let contiguousData: ContiguousBytes = data.regions.count == 1 ? data.regions.first! : Array(data)
+            let rc: CInt = output.withUnsafeMutableBytes { bufferPtr in
+                contiguousData.withUnsafeBytes { dataPtr in
+                    let rawPadding: CInt
+                    switch padding.backing {
+                    case .pkcs1_oaep: rawPadding = RSA_PKCS1_OAEP_PADDING
+                    }
+                    let rc = CCryptoBoringSSLShims_RSA_public_encrypt(
+                        CInt(dataPtr.count),
+                        dataPtr.baseAddress,
+                        bufferPtr.baseAddress,
+                        self.pointer,
+                        rawPadding
+                    )
+                    return rc
+                }
+            }
+            if rc == -1 {
+                throw CryptoKitError.internalBoringSSLError()
+            }
+            return output
+        }
 
         deinit {
             CCryptoBoringSSL_RSA_free(self.pointer)
@@ -199,7 +277,7 @@ extension BoringSSLRSAPublicKey {
 
 extension BoringSSLRSAPrivateKey {
     fileprivate final class Backing {
-        private let pointer: UnsafeMutablePointer<RSA>
+        private let pointer: OpaquePointer
 
         fileprivate init(copying other: Backing) {
             self.pointer = CCryptoBoringSSL_RSAPrivateKey_dup(other.pointer)
@@ -238,7 +316,7 @@ extension BoringSSLRSAPrivateKey {
             }
         }
 
-        private static func pkcs8DERPrivateKey<Bytes: ContiguousBytes>(_ derRepresentation: Bytes) -> UnsafeMutablePointer<RSA>? {
+        private static func pkcs8DERPrivateKey<Bytes: ContiguousBytes>(_ derRepresentation: Bytes) -> OpaquePointer? {
             return derRepresentation.withUnsafeBytes { derPtr in
                 return BIOHelper.withReadOnlyMemoryBIO(wrapping: derPtr) { bio in
                     guard let p8 = CCryptoBoringSSL_d2i_PKCS8_PRIV_KEY_INFO_bio(bio, nil) else {
@@ -259,7 +337,7 @@ extension BoringSSLRSAPrivateKey {
             }
         }
 
-        private static func pkcs1DERPrivateKey<Bytes: ContiguousBytes>(_ derRepresentation: Bytes) -> UnsafeMutablePointer<RSA>? {
+        private static func pkcs1DERPrivateKey<Bytes: ContiguousBytes>(_ derRepresentation: Bytes) -> OpaquePointer? {
             return derRepresentation.withUnsafeBytes { derPtr in
                 return BIOHelper.withReadOnlyMemoryBIO(wrapping: derPtr) { bio in
                     return CCryptoBoringSSL_d2i_RSAPrivateKey_bio(bio, nil)
@@ -360,6 +438,34 @@ extension BoringSSLRSAPrivateKey {
                 length = outputLength
             }
             return _RSA.Signing.RSASignature(signatureBytes: output)
+        }
+
+        fileprivate func decrypt<D: DataProtocol>(_ data: D, padding: _RSA.Encryption.Padding) throws -> Data {
+            let outputSize = Int(CCryptoBoringSSL_RSA_size(self.pointer))
+            var output = Data(count: outputSize)
+
+            let contiguousData: ContiguousBytes = data.regions.count == 1 ? data.regions.first! : Array(data)
+            let rc: CInt = output.withUnsafeMutableBytes { bufferPtr in
+                contiguousData.withUnsafeBytes { dataPtr in
+                    let rawPadding: CInt
+                    switch padding.backing {
+                    case .pkcs1_oaep: rawPadding = RSA_PKCS1_OAEP_PADDING
+                    }
+                    let rc = CCryptoBoringSSLShims_RSA_private_decrypt(
+                        CInt(dataPtr.count),
+                        dataPtr.baseAddress,
+                        bufferPtr.baseAddress,
+                        self.pointer,
+                        rawPadding
+                    )
+                    return rc
+                }
+            }
+            if rc == -1 {
+                throw CryptoKitError.internalBoringSSLError()
+            }
+            output.removeSubrange(output.index(output.startIndex, offsetBy: Int(rc)) ..< output.endIndex)
+            return output
         }
 
         deinit {

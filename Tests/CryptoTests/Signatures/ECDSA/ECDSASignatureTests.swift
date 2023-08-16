@@ -14,10 +14,10 @@
 import Foundation
 import XCTest
 
-#if (os(macOS) || os(iOS) || os(watchOS) || os(tvOS)) && CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
+#if CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
 // Skip tests that require @testable imports of CryptoKit.
 #else
-#if (os(macOS) || os(iOS) || os(watchOS) || os(tvOS)) && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
+#if !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
 @testable import CryptoKit
 #else
 @testable import Crypto
@@ -25,7 +25,7 @@ import XCTest
 
 struct ECDSATestGroup: Codable {
     let tests: [SignatureTestVector]
-    let key: ECDSAKey
+    let publicKey: ECDSAKey
 }
 
 struct ECDSAKey: Codable {
@@ -41,35 +41,16 @@ struct SignatureTestVector: Codable {
     let tcId: Int
 }
 
-struct EdDSATestGroup: Codable {
-    let tests: [SignatureTestVector]
-    let key: EdDSAKey
-}
-
-struct EdDSAKey: Codable {
-    let pk: String
-}
-
 class SignatureTests: XCTestCase {
     let data = "Testing Signatures".data(using: String.Encoding.utf8)!
     
-    func testWycheProofEdDSA() throws {
-        try orFail {
-            try wycheproofTest(
-                bundleType: self,
-                jsonName: "eddsa_test",
-                testFunction: { (group: EdDSATestGroup) in
-                    try orFail { try testEdGroup(group: group) }
-                })
-        }
-    }
-    func testWycheProofP256() throws {
+    func testWycheproofP256DER() throws {
         try orFail {
             try wycheproofTest(
                 bundleType: self,
                 jsonName: "ecdsa_secp256r1_sha256_test",
                 testFunction: { (group: ECDSATestGroup) in
-                    try orFail { try testGroup(group: group, curve: P256.Signing.self, hashFunction: SHA256.self) }
+                    try orFail { try testGroup(group: group, curve: P256.Signing.self, hashFunction: SHA256.self, deserializeSignature: P256.Signing.ECDSASignature.init(derRepresentation:)) }
                 })
         }
         
@@ -78,18 +59,18 @@ class SignatureTests: XCTestCase {
                 bundleType: self,
                 jsonName: "ecdsa_secp256r1_sha512_test",
                 testFunction: { (group: ECDSATestGroup) in
-                    try orFail { try testGroup(group: group, curve: P256.Signing.self, hashFunction: SHA512.self) }
+                    try orFail { try testGroup(group: group, curve: P256.Signing.self, hashFunction: SHA512.self, deserializeSignature: P256.Signing.ECDSASignature.init(derRepresentation:)) }
                 })
         }
     }
     
-    func testWycheProofP384() throws {
+    func testWycheproofP384DER() throws {
         try orFail {
             try wycheproofTest(
                 bundleType: self,
                 jsonName: "ecdsa_secp384r1_sha384_test",
                 testFunction: { (group: ECDSATestGroup) in
-                    try orFail { try testGroup(group: group, curve: P384.Signing.self, hashFunction: SHA384.self) }
+                    try orFail { try testGroup(group: group, curve: P384.Signing.self, hashFunction: SHA384.self, deserializeSignature: P384.Signing.ECDSASignature.init(derRepresentation:)) }
                 })
         }
         try orFail {
@@ -97,59 +78,74 @@ class SignatureTests: XCTestCase {
                 bundleType: self,
                 jsonName: "ecdsa_secp384r1_sha512_test",
                 testFunction: { (group: ECDSATestGroup) in
-                    try orFail { try testGroup(group: group, curve: P384.Signing.self, hashFunction: SHA512.self) }
+                    try orFail { try testGroup(group: group, curve: P384.Signing.self, hashFunction: SHA512.self, deserializeSignature: P384.Signing.ECDSASignature.init(derRepresentation:)) }
                 })
         }
     }
     
-    func testWycheProofP521() throws {
+    func testWycheproofP521DER() throws {
         try orFail {
             try wycheproofTest(
                 bundleType: self,
                 jsonName: "ecdsa_secp521r1_sha512_test",
                 testFunction: { (group: ECDSATestGroup) in
-                    try orFail { try testGroup(group: group, curve: P521.Signing.self, hashFunction: SHA512.self) }
+                    try orFail { try testGroup(group: group, curve: P521.Signing.self, hashFunction: SHA512.self, deserializeSignature: P521.Signing.ECDSASignature.init(derRepresentation:)) }
+                })
+        }
+    }
+
+    func testWycheproofP256P1363() throws {
+        try orFail {
+            try wycheproofTest(
+                bundleType: self,
+                jsonName: "ecdsa_secp256r1_sha256_p1363_test",
+                testFunction: { (group: ECDSATestGroup) in
+                    try orFail { try testGroup(group: group, curve: P256.Signing.self, hashFunction: SHA256.self, deserializeSignature: P256.Signing.ECDSASignature.init(rawRepresentation:)) }
+                })
+        }
+
+        try orFail {
+            try wycheproofTest(
+                bundleType: self,
+                jsonName: "ecdsa_secp256r1_sha512_p1363_test",
+                testFunction: { (group: ECDSATestGroup) in
+                    try orFail { try testGroup(group: group, curve: P256.Signing.self, hashFunction: SHA512.self, deserializeSignature: P256.Signing.ECDSASignature.init(rawRepresentation:)) }
+                })
+        }
+    }
+
+    func testWycheproofP384P1363() throws {
+        try orFail {
+            try wycheproofTest(
+                bundleType: self,
+                jsonName: "ecdsa_secp384r1_sha384_p1363_test",
+                testFunction: { (group: ECDSATestGroup) in
+                    try orFail { try testGroup(group: group, curve: P384.Signing.self, hashFunction: SHA384.self, deserializeSignature: P384.Signing.ECDSASignature.init(rawRepresentation:)) }
+                })
+        }
+        try orFail {
+            try wycheproofTest(
+                bundleType: self,
+                jsonName: "ecdsa_secp384r1_sha512_p1363_test",
+                testFunction: { (group: ECDSATestGroup) in
+                    try orFail { try testGroup(group: group, curve: P384.Signing.self, hashFunction: SHA512.self, deserializeSignature: P384.Signing.ECDSASignature.init(rawRepresentation:)) }
+                })
+        }
+    }
+
+    func testWycheproofP521P1363() throws {
+        try orFail {
+            try wycheproofTest(
+                bundleType: self,
+                jsonName: "ecdsa_secp521r1_sha512_p1363_test",
+                testFunction: { (group: ECDSATestGroup) in
+                    try orFail { try testGroup(group: group, curve: P521.Signing.self, hashFunction: SHA512.self, deserializeSignature: P521.Signing.ECDSASignature.init(rawRepresentation:)) }
                 })
         }
     }
     
-    func testEdGroup(group: EdDSATestGroup, file: StaticString = #file, line: UInt = #line) throws {
-        let keyBytes = try orFail { try Array(hexString: group.key.pk) }
-        let key = try orFail { try Curve25519.Signing.PublicKey(rawRepresentation: keyBytes) }
-        
-        for testVector in group.tests {
-            var isValid = false
-            
-            do {
-                let sig = try Data(hexString: testVector.sig)
-                
-                let msg: Data
-                if testVector.msg.count > 0 {
-                    msg = try Data(hexString: testVector.msg)
-                } else {
-                    msg = Data()
-                }
-                
-                isValid = key.isValidSignature(sig, for: msg)
-            } catch {
-                XCTAssert(testVector.result == "invalid" || testVector.result == "acceptable", "Test ID: \(testVector.tcId) is valid, but failed \(error.localizedDescription).")
-                continue
-            }
-            
-            switch testVector.result {
-            case "valid": XCTAssert(isValid, "Test vector is valid, but is rejected \(testVector.tcId)")
-            case "acceptable": do {
-                XCTAssert(isValid)
-                }
-            case "invalid": XCTAssert(!isValid, "Test ID: \(testVector.tcId) is valid, but failed.")
-            default:
-                XCTFail("Unhandled test vector")
-            }
-        }
-    }
-    
-    func testGroup<C: NISTSigning, HF: HashFunction>(group: ECDSATestGroup, curve: C.Type, hashFunction: HF.Type, file: StaticString = #file, line: UInt = #line) throws where C.ECDSASignature == C.PublicKey.Signature {
-        let keyBytes = try orFail(file: file, line: line) { try Array(hexString: group.key.uncompressed) }
+    func testGroup<C: NISTSigning, HF: HashFunction>(group: ECDSATestGroup, curve: C.Type, hashFunction: HF.Type, deserializeSignature: (Data) throws -> C.ECDSASignature, file: StaticString = #file, line: UInt = #line) throws where C.ECDSASignature == C.PublicKey.Signature {
+        let keyBytes = try orFail(file: file, line: line) { try Array(hexString: group.publicKey.uncompressed) }
         let key = try orFail(file: file, line: line) { try C.PublicKey(x963Representation: keyBytes) }
 
         for testVector in group.tests {
@@ -165,7 +161,7 @@ class SignatureTests: XCTestCase {
 
                 let digest = HF.hash(data: msg)
 
-                let signature = try C.ECDSASignature(derRepresentation: sig)
+                let signature = try deserializeSignature(sig)
 
                 isValid = key.isValidSignature(signature, for: digest)
             } catch {
@@ -404,4 +400,4 @@ class SignatureTests: XCTestCase {
     }
     
 }
-#endif // (os(macOS) || os(iOS) || os(watchOS) || os(tvOS)) && CRYPTO_IN_SWIFTPM
+#endif // CRYPTO_IN_SWIFTPM

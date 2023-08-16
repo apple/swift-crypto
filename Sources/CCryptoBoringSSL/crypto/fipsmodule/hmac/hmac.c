@@ -151,6 +151,7 @@ int HMAC_Init_ex(HMAC_CTX *ctx, const void *key, size_t key_len,
 
     size_t block_size = EVP_MD_block_size(md);
     assert(block_size <= sizeof(key_block));
+    assert(EVP_MD_size(md) <= block_size);
     if (block_size < key_len) {
       // Long keys are hashed.
       if (!EVP_DigestInit_ex(&ctx->md_ctx, md, impl) ||
@@ -164,23 +165,21 @@ int HMAC_Init_ex(HMAC_CTX *ctx, const void *key, size_t key_len,
       key_block_len = (unsigned)key_len;
     }
     // Keys are then padded with zeros.
-    if (key_block_len != EVP_MAX_MD_BLOCK_SIZE) {
-      OPENSSL_memset(&key_block[key_block_len], 0, sizeof(key_block) - key_block_len);
-    }
+    OPENSSL_memset(key_block + key_block_len, 0, block_size - key_block_len);
 
-    for (size_t i = 0; i < EVP_MAX_MD_BLOCK_SIZE; i++) {
+    for (size_t i = 0; i < block_size; i++) {
       pad[i] = 0x36 ^ key_block[i];
     }
     if (!EVP_DigestInit_ex(&ctx->i_ctx, md, impl) ||
-        !EVP_DigestUpdate(&ctx->i_ctx, pad, EVP_MD_block_size(md))) {
+        !EVP_DigestUpdate(&ctx->i_ctx, pad, block_size)) {
       goto out;
     }
 
-    for (size_t i = 0; i < EVP_MAX_MD_BLOCK_SIZE; i++) {
+    for (size_t i = 0; i < block_size; i++) {
       pad[i] = 0x5c ^ key_block[i];
     }
     if (!EVP_DigestInit_ex(&ctx->o_ctx, md, impl) ||
-        !EVP_DigestUpdate(&ctx->o_ctx, pad, EVP_MD_block_size(md))) {
+        !EVP_DigestUpdate(&ctx->o_ctx, pad, block_size)) {
       goto out;
     }
 
@@ -224,9 +223,9 @@ int HMAC_Final(HMAC_CTX *ctx, uint8_t *out, unsigned int *out_len) {
   return ret;
 }
 
-size_t HMAC_size(const HMAC_CTX *ctx) {
-  return EVP_MD_size(ctx->md);
-}
+size_t HMAC_size(const HMAC_CTX *ctx) { return EVP_MD_size(ctx->md); }
+
+const EVP_MD *HMAC_CTX_get_md(const HMAC_CTX *ctx) { return ctx->md; }
 
 int HMAC_CTX_copy_ex(HMAC_CTX *dest, const HMAC_CTX *src) {
   if (!EVP_MD_CTX_copy_ex(&dest->i_ctx, &src->i_ctx) ||

@@ -57,10 +57,10 @@
 #ifndef OPENSSL_HEADER_CIPHER_EXTRA_INTERNAL_H
 #define OPENSSL_HEADER_CIPHER_EXTRA_INTERNAL_H
 
+#include <assert.h>
 #include <stdlib.h>
 
 #include <CCryptoBoringSSL_base.h>
-#include <CCryptoBoringSSL_type_check.h>
 
 #include "../internal.h"
 
@@ -108,6 +108,14 @@ int EVP_tls_cbc_record_digest_supported(const EVP_MD *md);
 OPENSSL_EXPORT int EVP_sha1_final_with_secret_suffix(
     SHA_CTX *ctx, uint8_t out[SHA_DIGEST_LENGTH], const uint8_t *in, size_t len,
     size_t max_len);
+
+// EVP_sha256_final_with_secret_suffix acts like
+// |EVP_sha1_final_with_secret_suffix|, but for SHA-256.
+//
+// This function is exported for unit tests.
+OPENSSL_EXPORT int EVP_sha256_final_with_secret_suffix(
+    SHA256_CTX *ctx, uint8_t out[SHA256_DIGEST_LENGTH], const uint8_t *in,
+    size_t len, size_t max_len);
 
 // EVP_tls_cbc_digest_record computes the MAC of a decrypted, padded TLS
 // record.
@@ -166,10 +174,10 @@ union chacha20_poly1305_seal_data {
 #if (defined(OPENSSL_X86_64) || defined(OPENSSL_AARCH64)) &&  \
     !defined(OPENSSL_NO_ASM)
 
-OPENSSL_STATIC_ASSERT(sizeof(union chacha20_poly1305_open_data) == 48,
-                      "wrong chacha20_poly1305_open_data size");
-OPENSSL_STATIC_ASSERT(sizeof(union chacha20_poly1305_seal_data) == 48 + 8 + 8,
-                      "wrong chacha20_poly1305_seal_data size");
+static_assert(sizeof(union chacha20_poly1305_open_data) == 48,
+              "wrong chacha20_poly1305_open_data size");
+static_assert(sizeof(union chacha20_poly1305_seal_data) == 48 + 8 + 8,
+              "wrong chacha20_poly1305_seal_data size");
 
 OPENSSL_INLINE int chacha20_poly1305_asm_capable(void) {
 #if defined(OPENSSL_X86_64)

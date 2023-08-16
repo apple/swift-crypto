@@ -179,12 +179,38 @@ OPENSSL_EXPORT int EC_KEY_set_public_key_affine_coordinates(EC_KEY *key,
                                                             const BIGNUM *x,
                                                             const BIGNUM *y);
 
-// EC_KEY_key2buf encodes the public key in |key| to an allocated octet string
-// and sets |*out_buf| to point to it. It returns the length of the encoded
-// octet string or zero if an error occurred.
+// EC_KEY_oct2key decodes |len| bytes from |in| as an EC public key in X9.62
+// form. |key| must already have a group configured. On success, it sets the
+// public key in |key| to the result and returns one. Otherwise, it returns
+// zero.
+OPENSSL_EXPORT int EC_KEY_oct2key(EC_KEY *key, const uint8_t *in, size_t len,
+                                  BN_CTX *ctx);
+
+// EC_KEY_key2buf behaves like |EC_POINT_point2buf|, except it encodes the
+// public key in |key|.
 OPENSSL_EXPORT size_t EC_KEY_key2buf(const EC_KEY *key,
                                      point_conversion_form_t form,
-                                     unsigned char **out_buf, BN_CTX *ctx);
+                                     uint8_t **out_buf, BN_CTX *ctx);
+
+// EC_KEY_oct2priv decodes a big-endian, zero-padded integer from |len| bytes
+// from |in| and sets |key|'s private key to the result. It returns one on
+// success and zero on error. The input must be padded to the size of |key|'s
+// group order.
+OPENSSL_EXPORT int EC_KEY_oct2priv(EC_KEY *key, const uint8_t *in, size_t len);
+
+// EC_KEY_priv2oct serializes |key|'s private key as a big-endian integer,
+// zero-padded to the size of |key|'s group order and writes the result to at
+// most |max_out| bytes of |out|. It returns the number of bytes written on
+// success and zero on error. If |out| is NULL, it returns the number of bytes
+// needed without writing anything.
+OPENSSL_EXPORT size_t EC_KEY_priv2oct(const EC_KEY *key, uint8_t *out,
+                                      size_t max_out);
+
+// EC_KEY_priv2buf behaves like |EC_KEY_priv2oct| but sets |*out_buf| to a
+// newly-allocated buffer containing the result. It returns the size of the
+// result on success and zero on error. The caller must release |*out_buf| with
+// |OPENSSL_free| when done.
+OPENSSL_EXPORT size_t EC_KEY_priv2buf(const EC_KEY *key, uint8_t **out_buf);
 
 
 // Key generation.
@@ -233,8 +259,15 @@ OPENSSL_EXPORT int EC_KEY_marshal_private_key(CBB *cbb, const EC_KEY *key,
                                               unsigned enc_flags);
 
 // EC_KEY_parse_curve_name parses a DER-encoded OBJECT IDENTIFIER as a curve
-// name from |cbs| and advances |cbs|. It returns a newly-allocated |EC_GROUP|
-// or NULL on error.
+// name from |cbs| and advances |cbs|. It returns the decoded |EC_GROUP| or NULL
+// on error.
+//
+// This function returns a non-const pointer which may be passed to
+// |EC_GROUP_free|. However, the resulting object is actually static and calling
+// |EC_GROUP_free| is optional.
+//
+// TODO(davidben): Make this return a const pointer, if it does not break too
+// many callers.
 OPENSSL_EXPORT EC_GROUP *EC_KEY_parse_curve_name(CBS *cbs);
 
 // EC_KEY_marshal_curve_name marshals |group| as a DER-encoded OBJECT IDENTIFIER
@@ -243,10 +276,16 @@ OPENSSL_EXPORT EC_GROUP *EC_KEY_parse_curve_name(CBS *cbs);
 OPENSSL_EXPORT int EC_KEY_marshal_curve_name(CBB *cbb, const EC_GROUP *group);
 
 // EC_KEY_parse_parameters parses a DER-encoded ECParameters structure (RFC
-// 5480) from |cbs| and advances |cbs|. It returns a newly-allocated |EC_GROUP|
-// or NULL on error. It supports the namedCurve and specifiedCurve options, but
-// use of specifiedCurve is deprecated. Use |EC_KEY_parse_curve_name|
-// instead.
+// 5480) from |cbs| and advances |cbs|. It returns the resulting |EC_GROUP| or
+// NULL on error. It supports the namedCurve and specifiedCurve options, but use
+// of specifiedCurve is deprecated. Use |EC_KEY_parse_curve_name| instead.
+//
+// This function returns a non-const pointer which may be passed to
+// |EC_GROUP_free|. However, the resulting object is actually static and calling
+// |EC_GROUP_free| is optional.
+//
+// TODO(davidben): Make this return a const pointer, if it does not break too
+// many callers.
 OPENSSL_EXPORT EC_GROUP *EC_KEY_parse_parameters(CBS *cbs);
 
 
@@ -335,7 +374,7 @@ OPENSSL_EXPORT EC_KEY *o2i_ECPublicKey(EC_KEY **out_key, const uint8_t **inp,
                                        long len);
 
 // i2o_ECPublicKey marshals an EC point from |key|, as described in
-// |i2d_SAMPLE|.
+// |i2d_SAMPLE|, except it returns zero on error instead of a negative value.
 //
 // Use |EC_POINT_point2cbb| instead.
 OPENSSL_EXPORT int i2o_ECPublicKey(const EC_KEY *key, unsigned char **outp);

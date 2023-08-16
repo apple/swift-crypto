@@ -89,6 +89,9 @@ OPENSSL_EXPORT int DH_up_ref(DH *dh);
 
 // Properties.
 
+// DH_bits returns the size of |dh|'s group modulus, in bits.
+OPENSSL_EXPORT unsigned DH_bits(const DH *dh);
+
 // DH_get0_pub_key returns |dh|'s public key.
 OPENSSL_EXPORT const BIGNUM *DH_get0_pub_key(const DH *dh);
 
@@ -134,15 +137,40 @@ OPENSSL_EXPORT int DH_set_length(DH *dh, unsigned priv_length);
 
 // Standard parameters.
 
+// DH_get_rfc7919_2048 returns the group `ffdhe2048` from
+// https://tools.ietf.org/html/rfc7919#appendix-A.1. It returns NULL if out
+// of memory.
+OPENSSL_EXPORT DH *DH_get_rfc7919_2048(void);
+
 // BN_get_rfc3526_prime_1536 sets |*ret| to the 1536-bit MODP group from RFC
 // 3526 and returns |ret|. If |ret| is NULL then a fresh |BIGNUM| is allocated
 // and returned. It returns NULL on allocation failure.
 OPENSSL_EXPORT BIGNUM *BN_get_rfc3526_prime_1536(BIGNUM *ret);
 
-// DH_get_rfc7919_2048 returns the group `ffdhe2048` from
-// https://tools.ietf.org/html/rfc7919#appendix-A.1. It returns NULL if out
-// of memory.
-OPENSSL_EXPORT DH *DH_get_rfc7919_2048(void);
+// BN_get_rfc3526_prime_2048 sets |*ret| to the 2048-bit MODP group from RFC
+// 3526 and returns |ret|. If |ret| is NULL then a fresh |BIGNUM| is allocated
+// and returned. It returns NULL on allocation failure.
+OPENSSL_EXPORT BIGNUM *BN_get_rfc3526_prime_2048(BIGNUM *ret);
+
+// BN_get_rfc3526_prime_3072 sets |*ret| to the 3072-bit MODP group from RFC
+// 3526 and returns |ret|. If |ret| is NULL then a fresh |BIGNUM| is allocated
+// and returned. It returns NULL on allocation failure.
+OPENSSL_EXPORT BIGNUM *BN_get_rfc3526_prime_3072(BIGNUM *ret);
+
+// BN_get_rfc3526_prime_4096 sets |*ret| to the 4096-bit MODP group from RFC
+// 3526 and returns |ret|. If |ret| is NULL then a fresh |BIGNUM| is allocated
+// and returned. It returns NULL on allocation failure.
+OPENSSL_EXPORT BIGNUM *BN_get_rfc3526_prime_4096(BIGNUM *ret);
+
+// BN_get_rfc3526_prime_6144 sets |*ret| to the 6144-bit MODP group from RFC
+// 3526 and returns |ret|. If |ret| is NULL then a fresh |BIGNUM| is allocated
+// and returned. It returns NULL on allocation failure.
+OPENSSL_EXPORT BIGNUM *BN_get_rfc3526_prime_6144(BIGNUM *ret);
+
+// BN_get_rfc3526_prime_8192 sets |*ret| to the 8192-bit MODP group from RFC
+// 3526 and returns |ret|. If |ret| is NULL then a fresh |BIGNUM| is allocated
+// and returned. It returns NULL on allocation failure.
+OPENSSL_EXPORT BIGNUM *BN_get_rfc3526_prime_8192(BIGNUM *ret);
 
 
 // Parameter generation.
@@ -216,7 +244,6 @@ OPENSSL_EXPORT unsigned DH_num_bits(const DH *dh);
 #define DH_CHECK_NOT_SUITABLE_GENERATOR 0x08
 #define DH_CHECK_Q_NOT_PRIME 0x10
 #define DH_CHECK_INVALID_Q_VALUE 0x20
-#define DH_CHECK_INVALID_J_VALUE 0x40
 
 // These are compatibility defines.
 #define DH_NOT_SUITABLE_GENERATOR DH_CHECK_NOT_SUITABLE_GENERATOR
@@ -300,31 +327,6 @@ OPENSSL_EXPORT int i2d_DHparams(const DH *in, unsigned char **outp);
 // primitive such as X25519 or ECDH with P-256 instead.
 OPENSSL_EXPORT int DH_compute_key(uint8_t *out, const BIGNUM *peers_key,
                                   DH *dh);
-
-
-struct dh_st {
-  BIGNUM *p;
-  BIGNUM *g;
-  BIGNUM *pub_key;   // g^x mod p
-  BIGNUM *priv_key;  // x
-
-  // priv_length contains the length, in bits, of the private value. If zero,
-  // the private value will be the same length as |p|.
-  unsigned priv_length;
-
-  CRYPTO_MUTEX method_mont_p_lock;
-  BN_MONT_CTX *method_mont_p;
-
-  // Place holders if we want to do X9.42 DH
-  BIGNUM *q;
-  BIGNUM *j;
-  unsigned char *seed;
-  int seedlen;
-  BIGNUM *counter;
-
-  int flags;
-  CRYPTO_refcount_t references;
-};
 
 
 #if defined(__cplusplus)

@@ -73,42 +73,43 @@
 #include "internal.h"
 
 
-size_t ec_point_to_bytes(const EC_GROUP *group, const EC_AFFINE *point,
-                         point_conversion_form_t form, uint8_t *buf,
-                         size_t len) {
+size_t ec_point_byte_len(const EC_GROUP *group, point_conversion_form_t form) {
   if (form != POINT_CONVERSION_COMPRESSED &&
       form != POINT_CONVERSION_UNCOMPRESSED) {
     OPENSSL_PUT_ERROR(EC, EC_R_INVALID_FORM);
     return 0;
   }
 
-  const size_t field_len = BN_num_bytes(&group->field);
+  const size_t field_len = BN_num_bytes(&group->field.N);
   size_t output_len = 1 /* type byte */ + field_len;
   if (form == POINT_CONVERSION_UNCOMPRESSED) {
     // Uncompressed points have a second coordinate.
     output_len += field_len;
   }
+  return output_len;
+}
 
-  // if 'buf' is NULL, just return required length
-  if (buf != NULL) {
-    if (len < output_len) {
-      OPENSSL_PUT_ERROR(EC, EC_R_BUFFER_TOO_SMALL);
-      return 0;
-    }
+size_t ec_point_to_bytes(const EC_GROUP *group, const EC_AFFINE *point,
+                         point_conversion_form_t form, uint8_t *buf,
+                         size_t max_out) {
+  size_t output_len = ec_point_byte_len(group, form);
+  if (max_out < output_len) {
+    OPENSSL_PUT_ERROR(EC, EC_R_BUFFER_TOO_SMALL);
+    return 0;
+  }
 
-    size_t field_len_out;
-    ec_felem_to_bytes(group, buf + 1, &field_len_out, &point->X);
-    assert(field_len_out == field_len);
+  size_t field_len;
+  ec_felem_to_bytes(group, buf + 1, &field_len, &point->X);
+  assert(field_len == BN_num_bytes(&group->field.N));
 
-    if (form == POINT_CONVERSION_UNCOMPRESSED) {
-      ec_felem_to_bytes(group, buf + 1 + field_len, &field_len_out, &point->Y);
-      assert(field_len_out == field_len);
-      buf[0] = form;
-    } else {
-      uint8_t y_buf[EC_MAX_BYTES];
-      ec_felem_to_bytes(group, y_buf, &field_len_out, &point->Y);
-      buf[0] = form + (y_buf[field_len_out - 1] & 1);
-    }
+  if (form == POINT_CONVERSION_UNCOMPRESSED) {
+    ec_felem_to_bytes(group, buf + 1 + field_len, &field_len, &point->Y);
+    assert(field_len == BN_num_bytes(&group->field.N));
+    buf[0] = form;
+  } else {
+    uint8_t y_buf[EC_MAX_BYTES];
+    ec_felem_to_bytes(group, y_buf, &field_len, &point->Y);
+    buf[0] = form + (y_buf[field_len - 1] & 1);
   }
 
   return output_len;
@@ -116,7 +117,7 @@ size_t ec_point_to_bytes(const EC_GROUP *group, const EC_AFFINE *point,
 
 int ec_point_from_uncompressed(const EC_GROUP *group, EC_AFFINE *out,
                                const uint8_t *in, size_t len) {
-  const size_t field_len = BN_num_bytes(&group->field);
+  const size_t field_len = BN_num_bytes(&group->field.N);
   if (len != 1 + 2 * field_len || in[0] != POINT_CONVERSION_UNCOMPRESSED) {
     OPENSSL_PUT_ERROR(EC, EC_R_INVALID_ENCODING);
     return 0;
@@ -154,7 +155,7 @@ static int ec_GFp_simple_oct2point(const EC_GROUP *group, EC_POINT *point,
   }
 
   const int y_bit = form & 1;
-  const size_t field_len = BN_num_bytes(&group->field);
+  const size_t field_len = BN_num_bytes(&group->field.N);
   form = form & ~1u;
   if (form != POINT_CONVERSION_COMPRESSED ||
       len != 1 /* type byte */ + field_len) {
@@ -181,7 +182,7 @@ static int ec_GFp_simple_oct2point(const EC_GROUP *group, EC_POINT *point,
   if (x == NULL || !BN_bin2bn(buf + 1, field_len, x)) {
     goto err;
   }
-  if (BN_ucmp(x, &group->field) >= 0) {
+  if (BN_ucmp(x, &group->field.N) >= 0) {
     OPENSSL_PUT_ERROR(EC, EC_R_INVALID_ENCODING);
     goto err;
   }
@@ -209,16 +210,46 @@ int EC_POINT_oct2point(const EC_GROUP *group, EC_POINT *point,
 
 size_t EC_POINT_point2oct(const EC_GROUP *group, const EC_POINT *point,
                           point_conversion_form_t form, uint8_t *buf,
-                          size_t len, BN_CTX *ctx) {
+                          size_t max_out, BN_CTX *ctx) {
   if (EC_GROUP_cmp(group, point->group, NULL) != 0) {
     OPENSSL_PUT_ERROR(EC, EC_R_INCOMPATIBLE_OBJECTS);
     return 0;
+  }
+  if (buf == NULL) {
+    // When |buf| is NULL, just return the number of bytes that would be
+    // written, without doing an expensive Jacobian-to-affine conversion.
+    if (ec_GFp_simple_is_at_infinity(group, &point->raw)) {
+      OPENSSL_PUT_ERROR(EC, EC_R_POINT_AT_INFINITY);
+      return 0;
+    }
+    return ec_point_byte_len(group, form);
   }
   EC_AFFINE affine;
   if (!ec_jacobian_to_affine(group, &affine, &point->raw)) {
     return 0;
   }
-  return ec_point_to_bytes(group, &affine, form, buf, len);
+  return ec_point_to_bytes(group, &affine, form, buf, max_out);
+}
+
+size_t EC_POINT_point2buf(const EC_GROUP *group, const EC_POINT *point,
+                          point_conversion_form_t form, uint8_t **out_buf,
+                          BN_CTX *ctx) {
+  *out_buf = NULL;
+  size_t len = EC_POINT_point2oct(group, point, form, NULL, 0, ctx);
+  if (len == 0) {
+    return 0;
+  }
+  uint8_t *buf = OPENSSL_malloc(len);
+  if (buf == NULL) {
+    return 0;
+  }
+  len = EC_POINT_point2oct(group, point, form, buf, len, ctx);
+  if (len == 0) {
+    OPENSSL_free(buf);
+    return 0;
+  }
+  *out_buf = buf;
+  return len;
 }
 
 int EC_POINT_set_compressed_coordinates_GFp(const EC_GROUP *group,
@@ -229,7 +260,8 @@ int EC_POINT_set_compressed_coordinates_GFp(const EC_GROUP *group,
     return 0;
   }
 
-  if (BN_is_negative(x) || BN_cmp(x, &group->field) >= 0) {
+  const BIGNUM *field = &group->field.N;
+  if (BN_is_negative(x) || BN_cmp(x, field) >= 0) {
     OPENSSL_PUT_ERROR(EC, EC_R_INVALID_COMPRESSED_POINT);
     return 0;
   }
@@ -264,33 +296,32 @@ int EC_POINT_set_compressed_coordinates_GFp(const EC_GROUP *group,
   // so  y  is one of the square roots of  x^3 + a*x + b.
 
   // tmp1 := x^3
-  if (!BN_mod_sqr(tmp2, x, &group->field, ctx) ||
-      !BN_mod_mul(tmp1, tmp2, x, &group->field, ctx)) {
+  if (!BN_mod_sqr(tmp2, x, field, ctx) ||
+      !BN_mod_mul(tmp1, tmp2, x, field, ctx)) {
     goto err;
   }
 
   // tmp1 := tmp1 + a*x
   if (group->a_is_minus3) {
-    if (!bn_mod_lshift1_consttime(tmp2, x, &group->field, ctx) ||
-        !bn_mod_add_consttime(tmp2, tmp2, x, &group->field, ctx) ||
-        !bn_mod_sub_consttime(tmp1, tmp1, tmp2, &group->field, ctx)) {
+    if (!bn_mod_lshift1_consttime(tmp2, x, field, ctx) ||
+        !bn_mod_add_consttime(tmp2, tmp2, x, field, ctx) ||
+        !bn_mod_sub_consttime(tmp1, tmp1, tmp2, field, ctx)) {
       goto err;
     }
   } else {
-    if (!BN_mod_mul(tmp2, a, x, &group->field, ctx) ||
-        !bn_mod_add_consttime(tmp1, tmp1, tmp2, &group->field, ctx)) {
+    if (!BN_mod_mul(tmp2, a, x, field, ctx) ||
+        !bn_mod_add_consttime(tmp1, tmp1, tmp2, field, ctx)) {
       goto err;
     }
   }
 
   // tmp1 := tmp1 + b
-  if (!bn_mod_add_consttime(tmp1, tmp1, b, &group->field, ctx)) {
+  if (!bn_mod_add_consttime(tmp1, tmp1, b, field, ctx)) {
     goto err;
   }
 
-  if (!BN_mod_sqrt(y, tmp1, &group->field, ctx)) {
-    unsigned long err = ERR_peek_last_error();
-
+  if (!BN_mod_sqrt(y, tmp1, field, ctx)) {
+    uint32_t err = ERR_peek_last_error();
     if (ERR_GET_LIB(err) == ERR_LIB_BN &&
         ERR_GET_REASON(err) == BN_R_NOT_A_SQUARE) {
       ERR_clear_error();
@@ -306,7 +337,7 @@ int EC_POINT_set_compressed_coordinates_GFp(const EC_GROUP *group,
       OPENSSL_PUT_ERROR(EC, EC_R_INVALID_COMPRESSION_BIT);
       goto err;
     }
-    if (!BN_usub(y, &group->field, y)) {
+    if (!BN_usub(y, field, y)) {
       goto err;
     }
   }

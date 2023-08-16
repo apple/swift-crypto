@@ -60,18 +60,18 @@ extension DataProtocol {
     var hexString: String {
         get {
             let hexLen = self.count * 2
-            let ptr = UnsafeMutablePointer<UInt8>.allocate(capacity: hexLen)
-            var offset = 0
+            return String.init(unsafeUninitializedCapacity: hexLen) { buf in
+                var offset = 0
 
-            self.regions.forEach { (_) in
-                for i in self {
-                    ptr[Int(offset * 2)] = itoh((i >> 4) & 0xF)
-                    ptr[Int(offset * 2 + 1)] = itoh(i & 0xF)
-                    offset += 1
+                self.regions.forEach { (_) in
+                    for i in self {
+                        buf[Int(offset * 2)] = itoh((i >> 4) & 0xF)
+                        buf[Int(offset * 2 + 1)] = itoh(i & 0xF)
+                        offset += 1
+                    }
                 }
+                return offset
             }
-
-            return String(bytesNoCopy: ptr, length: hexLen, encoding: .utf8, freeWhenDone: true)!
         }
     }
 }

@@ -55,6 +55,13 @@ int CCryptoBoringSSLShims_EVP_AEAD_CTX_open_gather(const EVP_AEAD_CTX *ctx, void
     return CCryptoBoringSSL_EVP_AEAD_CTX_open_gather(ctx, out, nonce, nonce_len, in, in_len, in_tag, in_tag_len, ad, ad_len);
 }
 
+int CCryptoBoringSSLShims_EVP_AEAD_CTX_open(const EVP_AEAD_CTX *ctx, void *out, size_t *out_len, size_t max_out_len,
+                                                   const void *nonce, size_t nonce_len,
+                                                   const void *in, size_t in_len,
+                                                   const void *ad, size_t ad_len) {
+    return CCryptoBoringSSL_EVP_AEAD_CTX_open(ctx, out, out_len, max_out_len, nonce, nonce_len, in, in_len, ad, ad_len);
+}
+
 void CCryptoBoringSSLShims_ED25519_keypair(void *out_public_key, void *out_private_key) {
     CCryptoBoringSSL_ED25519_keypair(out_public_key, out_private_key);
 }
@@ -134,4 +141,14 @@ int CCryptoBoringSSLShims_RSA_sign_pss_mgf1(RSA *rsa, size_t *out_len, void *out
                                             size_t in_len, const EVP_MD *md,
                                             const EVP_MD *mgf1_md, int salt_len) {
     return CCryptoBoringSSL_RSA_sign_pss_mgf1(rsa, out_len, out, max_out, in, in_len, md, mgf1_md, salt_len);
+}
+
+int CCryptoBoringSSLShims_RSA_public_encrypt(int flen, const void *from, void *to,
+                                             RSA *rsa, int padding) {
+    return CCryptoBoringSSL_RSA_public_encrypt(flen, from, to, rsa, padding);
+}
+
+int CCryptoBoringSSLShims_RSA_private_decrypt(int flen, const void *from, void *to,
+                                              RSA *rsa, int padding) {
+    return CCryptoBoringSSL_RSA_private_decrypt(flen, from, to, rsa, padding);
 }

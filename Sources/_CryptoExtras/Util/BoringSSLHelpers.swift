@@ -21,7 +21,7 @@ internal enum BIOHelper {
     static func withReadOnlyMemoryBIO<ReturnValue>(
         wrapping pointer: UnsafeRawBufferPointer, _ block: (UnsafeMutablePointer<BIO>) throws -> ReturnValue
     ) rethrows -> ReturnValue {
-        let bio = CCryptoBoringSSL_BIO_new_mem_buf(pointer.baseAddress, CInt(pointer.count))!
+        let bio = CCryptoBoringSSL_BIO_new_mem_buf(pointer.baseAddress, pointer.count)!
         defer {
             CCryptoBoringSSL_BIO_free(bio)
         }
@@ -32,7 +32,7 @@ internal enum BIOHelper {
     static func withReadOnlyMemoryBIO<ReturnValue>(
         wrapping pointer: UnsafeBufferPointer<UInt8>, _ block: (UnsafeMutablePointer<BIO>) throws -> ReturnValue
     ) rethrows -> ReturnValue {
-        let bio = CCryptoBoringSSL_BIO_new_mem_buf(pointer.baseAddress, CInt(pointer.count))!
+        let bio = CCryptoBoringSSL_BIO_new_mem_buf(pointer.baseAddress, pointer.count)!
         defer {
             CCryptoBoringSSL_BIO_free(bio)
         }

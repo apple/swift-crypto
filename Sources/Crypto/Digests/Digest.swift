@@ -11,13 +11,14 @@
 // SPDX-License-Identifier: Apache-2.0
 //
 //===----------------------------------------------------------------------===//
-#if (os(macOS) || os(iOS) || os(watchOS) || os(tvOS)) && CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
+#if CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
 @_exported import CryptoKit
 #else
 import Foundation
 
-/// A protocol defining requirements for digests
+/// A type that represents the output of a hash.
 public protocol Digest: Hashable, ContiguousBytes, CustomStringConvertible, Sequence where Element == UInt8 {
+    /// The number of bytes in the digest.
     static var byteCount: Int { get }
 }
 
@@ -50,10 +51,26 @@ extension Digest {
 
 // We want to implement constant-time comparison for digests.
 extension Digest {
+    /// Determines whether two digests are equal.
+    ///
+    /// - Parameters:
+    ///   - lhs: The first digest to compare.
+    ///   - rhs: The second digest to compare.
+    ///
+    /// - Returns: A Boolean value set to `true` if the two digests are equal.
     public static func == (lhs: Self, rhs: Self) -> Bool {
         return safeCompare(lhs, rhs)
 	}
     
+    /// Determines whether a digest is equivalent to a collection of contiguous
+    /// bytes.
+    ///
+    /// - Parameters:
+    ///   - lhs: A digest to compare.
+    ///   - rhs: A collection of contiguous bytes to compare.
+    ///
+    /// - Returns: A Boolean value that’s `true` if the digest is equivalent to
+    /// the collection of binary data.
     public static func == <D: DataProtocol>(lhs: Self, rhs: D) -> Bool {
         if rhs.regions.count != 1 {
             let rhsContiguous = Data(rhs)

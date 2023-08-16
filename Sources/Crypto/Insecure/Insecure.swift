@@ -11,10 +11,13 @@
 // SPDX-License-Identifier: Apache-2.0
 //
 //===----------------------------------------------------------------------===//
-#if (os(macOS) || os(iOS) || os(watchOS) || os(tvOS)) && CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
+#if CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
 @_exported import CryptoKit
 #else
-/// Algorithms that we support for legacy reasons but that are insecure to use.
-/// Do not adopt in new protocols.
+/// A container for older, cryptographically insecure algorithms.
+///
+/// - Important: These algorithms aren’t considered cryptographically secure,
+/// but the framework provides them for backward compatibility with older
+/// services that require them. For new services, avoid these algorithms.
 public enum Insecure {}
 #endif // Linux or !SwiftPM

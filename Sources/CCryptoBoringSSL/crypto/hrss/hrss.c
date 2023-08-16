@@ -1227,10 +1227,10 @@ static void poly_mul_vec_aux(vec_t *restrict out, vec_t *restrict scratch,
 // poly_mul_vec sets |*out| to |x|×|y| mod (𝑥^n - 1).
 static void poly_mul_vec(struct POLY_MUL_SCRATCH *scratch, struct poly *out,
                          const struct poly *x, const struct poly *y) {
-  OPENSSL_STATIC_ASSERT(sizeof(out->v) == sizeof(vec_t) * VECS_PER_POLY,
-                        "struct poly is the wrong size");
-  OPENSSL_STATIC_ASSERT(alignof(struct poly) == alignof(vec_t),
-                        "struct poly has incorrect alignment");
+  static_assert(sizeof(out->v) == sizeof(vec_t) * VECS_PER_POLY,
+                "struct poly is the wrong size");
+  static_assert(alignof(struct poly) == alignof(vec_t),
+                "struct poly has incorrect alignment");
   poly_assert_normalized(x);
   poly_assert_normalized(y);
 
@@ -1752,8 +1752,7 @@ static void poly_marshal_mod3(uint8_t out[HRSS_POLY3_BYTES],
 // function uses that freedom to implement a flatter distribution of values.
 static void poly_short_sample(struct poly *out,
                               const uint8_t in[HRSS_SAMPLE_BYTES]) {
-  OPENSSL_STATIC_ASSERT(HRSS_SAMPLE_BYTES == N - 1,
-                        "HRSS_SAMPLE_BYTES incorrect");
+  static_assert(HRSS_SAMPLE_BYTES == N - 1, "HRSS_SAMPLE_BYTES incorrect");
   for (size_t i = 0; i < N - 1; i++) {
     uint16_t v = mod3(in[i]);
     // Map {0, 1, 2} -> {0, 1, 0xffff}
@@ -1922,7 +1921,7 @@ struct private_key {
 // that up.)
 static struct public_key *public_key_from_external(
     struct HRSS_public_key *ext) {
-  OPENSSL_STATIC_ASSERT(
+  static_assert(
       sizeof(struct HRSS_public_key) >= sizeof(struct public_key) + 15,
       "HRSS public key too small");
 
@@ -1934,7 +1933,7 @@ static struct public_key *public_key_from_external(
 // issues.
 static struct private_key *private_key_from_external(
     struct HRSS_private_key *ext) {
-  OPENSSL_STATIC_ASSERT(
+  static_assert(
       sizeof(struct HRSS_private_key) >= sizeof(struct private_key) + 15,
       "HRSS private key too small");
 
@@ -2111,8 +2110,8 @@ int HRSS_decap(uint8_t out_shared_key[HRSS_KEY_BYTES],
   // This is HMAC, expanded inline rather than using the |HMAC| function so that
   // we can avoid dealing with possible allocation failures and so keep this
   // function infallible.
-  OPENSSL_STATIC_ASSERT(sizeof(priv->hmac_key) <= sizeof(vars->masked_key),
-                        "HRSS HMAC key larger than SHA-256 block size");
+  static_assert(sizeof(priv->hmac_key) <= sizeof(vars->masked_key),
+                "HRSS HMAC key larger than SHA-256 block size");
   for (size_t i = 0; i < sizeof(priv->hmac_key); i++) {
     vars->masked_key[i] = priv->hmac_key[i] ^ 0x36;
   }
@@ -2134,8 +2133,8 @@ int HRSS_decap(uint8_t out_shared_key[HRSS_KEY_BYTES],
   SHA256_Init(&vars->hash_ctx);
   SHA256_Update(&vars->hash_ctx, vars->masked_key, sizeof(vars->masked_key));
   SHA256_Update(&vars->hash_ctx, inner_digest, sizeof(inner_digest));
-  OPENSSL_STATIC_ASSERT(HRSS_KEY_BYTES == SHA256_DIGEST_LENGTH,
-                        "HRSS shared key length incorrect");
+  static_assert(HRSS_KEY_BYTES == SHA256_DIGEST_LENGTH,
+                "HRSS shared key length incorrect");
   SHA256_Final(out_shared_key, &vars->hash_ctx);
 
   // If the ciphertext is publicly invalid then a random shared key is still
@@ -2188,8 +2187,8 @@ int HRSS_decap(uint8_t out_shared_key[HRSS_KEY_BYTES],
   // The |poly_marshal| here then is just confirming that |poly_unmarshal| is
   // strict and could be omitted.
 
-  OPENSSL_STATIC_ASSERT(HRSS_CIPHERTEXT_BYTES == POLY_BYTES,
-                        "ciphertext is the wrong size");
+  static_assert(HRSS_CIPHERTEXT_BYTES == POLY_BYTES,
+                "ciphertext is the wrong size");
   assert(ciphertext_len == sizeof(vars->expected_ciphertext));
   poly_marshal(vars->expected_ciphertext, &vars->c);
 

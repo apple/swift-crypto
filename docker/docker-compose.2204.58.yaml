@@ -1,0 +1,21 @@
+version: "3"
+
+services:
+
+  runtime-setup:
+    image: swift-crypto:22.04-5.8
+    build:
+      args:
+        ubuntu_version: "jammy"
+        swift_version: "5.8"
+
+  test:
+    image: swift-crypto:22.04-5.8
+    environment: []
+      #- SANITIZER_ARG=--sanitize=thread
+
+  cmake:
+    image: swift-crypto:22.04-5.8
+
+  shell:
+    image: swift-crypto:22.04-5.8

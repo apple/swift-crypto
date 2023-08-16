@@ -12,7 +12,6 @@
 //
 //===----------------------------------------------------------------------===//
 
-#if !canImport(Security)
 @_implementationOnly import CCryptoBoringSSL
 import Crypto
 
@@ -23,5 +22,3 @@ extension CryptoKitError {
         return .underlyingCoreCryptoError(error: Int32(bitPattern: CCryptoBoringSSL_ERR_get_error()))
     }
 }
-
-#endif

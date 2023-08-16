@@ -30,7 +30,7 @@ OS_ARCH_COMBOS = [
     ('mac', 'x86_64', 'macosx', [], 'S'),
     # ('windows', 'aarch64', 'coff', [], 'S'),
     # ('windows', 'arm', 'coff', [], 'S'),
-    ('windows', 'x86', 'coff', [], 'S'),
+    ('windows', 'x86', 'win32n', [], 'S'),
     # ('windows', 'x86_64', 'coff', [], 'S'),
 ]
 
@@ -73,12 +73,12 @@ def ExtractPerlAsmFromCMakeFile(cmakefile):
         raise ValueError('Bad perlasm line in %s' % cmakefile)
       # Remove "perlasm(" from start and ")" from end
       params = line[8:-1].split()
-      if len(params) < 2:
+      if len(params) != 4:
         raise ValueError('Bad perlasm line in %s' % cmakefile)
       perlasms.append({
-          'extra_args': params[2:],
-          'input': os.path.join(os.path.dirname(cmakefile), params[1]),
-          'output': os.path.join(os.path.dirname(cmakefile), params[0]),
+          'arch': params[1],
+          'output': os.path.join(os.path.dirname(cmakefile), params[2]),
+          'input': os.path.join(os.path.dirname(cmakefile), params[3]),
       })
 
   return perlasms
@@ -104,53 +104,26 @@ def PerlAsm(output_filename, input_filename, perlasm_style, extra_args):
   subprocess.check_call(
       ['perl', input_filename, perlasm_style] + extra_args + [output_filename])
 
-
-def ArchForAsmFilename(filename):
-  """Returns the architectures that a given asm file should be compiled for
-  based on substrings in the filename."""
-
-  if 'x86_64' in filename or 'avx2' in filename:
-    return ['x86_64']
-  elif ('x86' in filename and 'x86_64' not in filename) or '586' in filename:
-    return ['x86']
-  elif 'armx' in filename:
-    return ['arm', 'aarch64']
-  elif 'armv8' in filename:
-    return ['aarch64']
-  elif 'arm' in filename:
-    return ['arm']
-  elif 'ppc' in filename:
-    # We aren't supporting ppc here.
-    return []
-  else:
-    raise ValueError('Unknown arch for asm filename: ' + filename)
-
-
 def WriteAsmFiles(perlasms):
   """Generates asm files from perlasm directives for each supported OS x
   platform combination."""
   asmfiles = {}
 
-  for osarch in OS_ARCH_COMBOS:
-    (osname, arch, perlasm_style, extra_args, asm_ext) = osarch
-    key = (osname, arch)
-    outDir = '%s-%s' % key
+  for perlasm in perlasms:
+    for (osname, arch, perlasm_style, extra_args, asm_ext) in OS_ARCH_COMBOS:
+      if arch != perlasm['arch']:
+        continue
+      key = (osname, arch)
+      outDir = '%s-%s' % key
 
-    for perlasm in perlasms:
       filename = os.path.basename(perlasm['input'])
       output = perlasm['output']
       if not output.startswith('boringssl/crypto'):
         raise ValueError('output missing crypto: %s' % output)
       output = os.path.join(outDir, output[17:])
-      if output.endswith('-armx.${ASM_EXT}'):
-        output = output.replace('-armx',
-                                '-armx64' if arch == 'aarch64' else '-armx32')
-      output = output.replace('${ASM_EXT}', asm_ext)
-
-      if arch in ArchForAsmFilename(filename):
-        PerlAsm(output, perlasm['input'], perlasm_style,
-                perlasm['extra_args'] + extra_args)
-        asmfiles.setdefault(key, []).append(output)
+      output = '%s-%s.%s' % (output, osname, asm_ext)
+      PerlAsm(output, perlasm['input'], perlasm_style, extra_args)
+      asmfiles.setdefault(key, []).append(output)
 
   return asmfiles
 

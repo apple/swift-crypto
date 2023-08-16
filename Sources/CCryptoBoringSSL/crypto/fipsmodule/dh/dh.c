@@ -75,7 +75,6 @@
 DH *DH_new(void) {
   DH *dh = OPENSSL_malloc(sizeof(DH));
   if (dh == NULL) {
-    OPENSSL_PUT_ERROR(DH, ERR_R_MALLOC_FAILURE);
     return NULL;
   }
 
@@ -101,15 +100,14 @@ void DH_free(DH *dh) {
   BN_clear_free(dh->p);
   BN_clear_free(dh->g);
   BN_clear_free(dh->q);
-  BN_clear_free(dh->j);
-  OPENSSL_free(dh->seed);
-  BN_clear_free(dh->counter);
   BN_clear_free(dh->pub_key);
   BN_clear_free(dh->priv_key);
   CRYPTO_MUTEX_cleanup(&dh->method_mont_p_lock);
 
   OPENSSL_free(dh);
 }
+
+unsigned DH_bits(const DH *dh) { return BN_num_bits(dh->p); }
 
 const BIGNUM *DH_get0_pub_key(const DH *dh) { return dh->pub_key; }
 
@@ -179,6 +177,9 @@ int DH_set0_pqg(DH *dh, BIGNUM *p, BIGNUM *q, BIGNUM *g) {
     dh->g = g;
   }
 
+  // Invalidate the cached Montgomery parameters.
+  BN_MONT_CTX_free(dh->method_mont_p);
+  dh->method_mont_p = NULL;
   return 1;
 }
 
@@ -366,7 +367,8 @@ int DH_compute_key(unsigned char *out, const BIGNUM *peers_key, DH *dh) {
   int ret = -1;
   BIGNUM *shared_key = BN_CTX_get(ctx);
   if (shared_key && dh_compute_key(dh, shared_key, peers_key, ctx)) {
-    ret = BN_bn2bin(shared_key, out);
+    // A |BIGNUM|'s byte count fits in |int|.
+    ret = (int)BN_bn2bin(shared_key, out);
   }
 
   BN_CTX_end(ctx);

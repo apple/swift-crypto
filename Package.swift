@@ -1,9 +1,9 @@
-// swift-tools-version:5.4
+// swift-tools-version:5.6
 //===----------------------------------------------------------------------===//
 //
 // This source file is part of the SwiftCrypto open source project
 //
-// Copyright (c) 2019 Apple Inc. and the SwiftCrypto project authors
+// Copyright (c) 2019-2023 Apple Inc. and the SwiftCrypto project authors
 // Licensed under Apache License v2.0
 //
 // See LICENSE.txt for license information
@@ -20,7 +20,7 @@
 // Sources/CCryptoBoringSSL directory. The source repository is at
 // https://boringssl.googlesource.com/boringssl.
 //
-// BoringSSL Commit: 1f51cfc7d7f54d2bee30bb5793470ef9c36a5083
+// BoringSSL Commit: 7ae2b910c13017b63f1a8bd6c8decfce692869b0
 
 import PackageDescription
 
@@ -36,20 +36,24 @@ if development {
     ]
     dependencies = [
         "CCryptoBoringSSL",
-        "CCryptoBoringSSLShims"
+        "CCryptoBoringSSLShims",
+        "CryptoBoringWrapper"
     ]
 } else {
-    swiftSettings = [
-        .define("CRYPTO_IN_SWIFTPM"),
-    ]
     let platforms: [Platform] = [
         Platform.linux,
         Platform.android,
         Platform.windows,
+        Platform.wasi,
+    ]
+    swiftSettings = [
+        .define("CRYPTO_IN_SWIFTPM"),
+        .define("CRYPTO_IN_SWIFTPM_FORCE_BUILD_API", .when(platforms: platforms)),
     ]
     dependencies = [
         .target(name: "CCryptoBoringSSL", condition: .when(platforms: platforms)),
-        .target(name: "CCryptoBoringSSLShims", condition: .when(platforms: platforms))
+        .target(name: "CCryptoBoringSSLShims", condition: .when(platforms: platforms)),
+        .target(name: "CryptoBoringWrapper", condition: .when(platforms: platforms))
     ]
 }
 
@@ -76,14 +80,25 @@ let package = Package(
                 "hash.txt",
                 "include/boringssl_prefix_symbols_nasm.inc",
                 "CMakeLists.txt",
+                /*
+                 * These files are excluded to support WASI libc which doesn't provide <netdb.h>.
+                 * This is safe for all platforms as we do not rely on networking features.
+                 */
+                "crypto/bio/connect.c",
+                "crypto/bio/socket_helper.c",
+                "crypto/bio/socket.c"
             ],
             cSettings: [
+                // These defines come from BoringSSL's build system
+                .define("_HAS_EXCEPTIONS", to: "0", .when(platforms: [Platform.windows])),
+                .define("WIN32_LEAN_AND_MEAN", .when(platforms: [Platform.windows])),
+                .define("NOMINMAX", .when(platforms: [Platform.windows])),
+                .define("_CRT_SECURE_NO_WARNINGS", .when(platforms: [Platform.windows])),
                 /*
-                 * This define is required on Windows, but because we need older
-                 * versions of SPM, we cannot conditionally define this on Windows
-                 * only.  Unconditionally define it instead.
+                 * These defines are required on Wasm/WASI, to disable use of pthread.
                  */
-                .define("WIN32_LEAN_AND_MEAN"),
+                .define("OPENSSL_NO_THREADS_CORRUPT_MEMORY_AND_LEAK_SECRETS_IF_THREADED", .when(platforms: [Platform.wasi])),
+                .define("OPENSSL_NO_ASM", .when(platforms: [Platform.wasi])),
             ]
         ),
         .target(
@@ -105,9 +120,37 @@ let package = Package(
             ],
             swiftSettings: swiftSettings
         ),
-        .target(name: "_CryptoExtras", dependencies: ["CCryptoBoringSSL", "CCryptoBoringSSLShims", "Crypto"]),
+        .target(
+            name: "_CryptoExtras",
+            dependencies: [
+                "CCryptoBoringSSL",
+                "CCryptoBoringSSLShims",
+                "CryptoBoringWrapper",
+                "Crypto"
+            ],
+            exclude: [
+                "CMakeLists.txt",
+            ]
+        ),
+        .target(
+            name: "CryptoBoringWrapper",
+            dependencies: [
+                "CCryptoBoringSSL",
+                "CCryptoBoringSSLShims"
+            ],
+            exclude: [
+                "CMakeLists.txt",
+            ]
+        ),
         .executableTarget(name: "crypto-shasum", dependencies: ["Crypto"]),
-        .testTarget(name: "CryptoTests", dependencies: ["Crypto"], swiftSettings: swiftSettings),
+        .testTarget(
+            name: "CryptoTests",
+            dependencies: ["Crypto"],
+            resources: [
+                .copy("HPKE/hpke-test-vectors.json"),
+            ],
+            swiftSettings: swiftSettings
+        ),
         .testTarget(name: "_CryptoExtrasTests", dependencies: ["_CryptoExtras"]),
     ],
     cxxLanguageStandard: .cxx11

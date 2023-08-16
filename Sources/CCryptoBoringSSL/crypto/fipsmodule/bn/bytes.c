@@ -138,7 +138,7 @@ BIGNUM *BN_le2bn(const uint8_t *in, size_t len, BIGNUM *ret) {
     BN_free(bn);
     return NULL;
   }
-  ret->width = num_words;
+  ret->width = (int)num_words;
 
   // Make sure the top bytes will be zeroed.
   ret->d[num_words - 1] = 0;
@@ -160,6 +160,18 @@ static int fits_in_bytes(const BN_ULONG *words, size_t num_words,
     mask |= bytes[i];
   }
   return mask == 0;
+}
+
+void bn_assert_fits_in_bytes(const BIGNUM *bn, size_t num) {
+  const uint8_t *bytes = (const uint8_t *)bn->d;
+  size_t tot_bytes = bn->width * sizeof(BN_ULONG);
+  if (tot_bytes > num) {
+    CONSTTIME_DECLASSIFY(bytes + num, tot_bytes - num);
+    for (size_t i = num; i < tot_bytes; i++) {
+      assert(bytes[i] == 0);
+    }
+    (void)bytes;
+  }
 }
 
 void bn_words_to_big_endian(uint8_t *out, size_t out_len, const BN_ULONG *in,

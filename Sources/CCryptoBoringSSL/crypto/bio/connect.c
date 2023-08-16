@@ -56,7 +56,7 @@
 
 #include <CCryptoBoringSSL_bio.h>
 
-#if !defined(OPENSSL_TRUSTY)
+#if !defined(OPENSSL_NO_SOCK)
 
 #include <assert.h>
 #include <errno.h>
@@ -233,7 +233,7 @@ static int conn_state(BIO *bio, BIO_CONNECT *c) {
         BIO_clear_retry_flags(bio);
         ret = connect(bio->num, (struct sockaddr*) &c->them, c->them_length);
         if (ret < 0) {
-          if (bio_fd_should_retry(ret)) {
+          if (bio_socket_should_retry(ret)) {
             BIO_set_flags(bio, (BIO_FLAGS_IO_SPECIAL | BIO_FLAGS_SHOULD_RETRY));
             c->state = BIO_CONN_S_BLOCKED_CONNECT;
             bio->retry_reason = BIO_RR_CONNECT;
@@ -252,7 +252,7 @@ static int conn_state(BIO *bio, BIO_CONNECT *c) {
       case BIO_CONN_S_BLOCKED_CONNECT:
         i = bio_sock_error(bio->num);
         if (i) {
-          if (bio_fd_should_retry(ret)) {
+          if (bio_socket_should_retry(ret)) {
             BIO_set_flags(bio, (BIO_FLAGS_IO_SPECIAL | BIO_FLAGS_SHOULD_RETRY));
             c->state = BIO_CONN_S_BLOCKED_CONNECT;
             bio->retry_reason = BIO_RR_CONNECT;
@@ -363,10 +363,10 @@ static int conn_read(BIO *bio, char *out, int out_len) {
   }
 
   bio_clear_socket_error();
-  ret = recv(bio->num, out, out_len, 0);
+  ret = (int)recv(bio->num, out, out_len, 0);
   BIO_clear_retry_flags(bio);
   if (ret <= 0) {
-    if (bio_fd_should_retry(ret)) {
+    if (bio_socket_should_retry(ret)) {
       BIO_set_retry_read(bio);
     }
   }
@@ -387,10 +387,10 @@ static int conn_write(BIO *bio, const char *in, int in_len) {
   }
 
   bio_clear_socket_error();
-  ret = send(bio->num, in, in_len, 0);
+  ret = (int)send(bio->num, in, in_len, 0);
   BIO_clear_retry_flags(bio);
   if (ret <= 0) {
-    if (bio_fd_should_retry(ret)) {
+    if (bio_socket_should_retry(ret)) {
       BIO_set_retry_write(bio);
     }
   }
@@ -523,25 +523,25 @@ static const BIO_METHOD methods_connectp = {
 const BIO_METHOD *BIO_s_connect(void) { return &methods_connectp; }
 
 int BIO_set_conn_hostname(BIO *bio, const char *name) {
-  return BIO_ctrl(bio, BIO_C_SET_CONNECT, 0, (void*) name);
+  return (int)BIO_ctrl(bio, BIO_C_SET_CONNECT, 0, (void*) name);
 }
 
 int BIO_set_conn_port(BIO *bio, const char *port_str) {
-  return BIO_ctrl(bio, BIO_C_SET_CONNECT, 1, (void*) port_str);
+  return (int)BIO_ctrl(bio, BIO_C_SET_CONNECT, 1, (void*) port_str);
 }
 
 int BIO_set_conn_int_port(BIO *bio, const int *port) {
   char buf[DECIMAL_SIZE(int) + 1];
-  BIO_snprintf(buf, sizeof(buf), "%d", *port);
+  snprintf(buf, sizeof(buf), "%d", *port);
   return BIO_set_conn_port(bio, buf);
 }
 
 int BIO_set_nbio(BIO *bio, int on) {
-  return BIO_ctrl(bio, BIO_C_SET_NBIO, on, NULL);
+  return (int)BIO_ctrl(bio, BIO_C_SET_NBIO, on, NULL);
 }
 
 int BIO_do_connect(BIO *bio) {
-  return BIO_ctrl(bio, BIO_C_DO_STATE_MACHINE, 0, NULL);
+  return (int)BIO_ctrl(bio, BIO_C_DO_STATE_MACHINE, 0, NULL);
 }
 
-#endif  // OPENSSL_TRUSTY
+#endif  // OPENSSL_NO_SOCK

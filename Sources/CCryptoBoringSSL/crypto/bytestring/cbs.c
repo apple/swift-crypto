@@ -136,7 +136,7 @@ int CBS_get_u24(CBS *cbs, uint32_t *out) {
   if (!cbs_get_u(cbs, &v, 3)) {
     return 0;
   }
-  *out = v;
+  *out = (uint32_t)v;
   return 1;
 }
 
@@ -145,7 +145,7 @@ int CBS_get_u32(CBS *cbs, uint32_t *out) {
   if (!cbs_get_u(cbs, &v, 4)) {
     return 0;
   }
-  *out = v;
+  *out = (uint32_t)v;
   return 1;
 }
 
@@ -227,6 +227,30 @@ int CBS_get_until_first(CBS *cbs, CBS *out, uint8_t c) {
   return CBS_get_bytes(cbs, out, split - CBS_data(cbs));
 }
 
+int CBS_get_u64_decimal(CBS *cbs, uint64_t *out) {
+  uint64_t v = 0;
+  int seen_digit = 0;
+  while (CBS_len(cbs) != 0) {
+    uint8_t c = CBS_data(cbs)[0];
+    if (!OPENSSL_isdigit(c)) {
+      break;
+    }
+    CBS_skip(cbs, 1);
+    if (// Forbid stray leading zeros.
+        (v == 0 && seen_digit) ||
+        // Check for overflow.
+        v > UINT64_MAX / 10 ||  //
+        v * 10 > UINT64_MAX - (c - '0')) {
+      return 0;
+    }
+    v = v * 10 + (c - '0');
+    seen_digit = 1;
+  }
+
+  *out = v;
+  return seen_digit;
+}
+
 // parse_base128_integer reads a big-endian base-128 integer from |cbs| and sets
 // |*out| to the result. This is the encoding used in DER for both high tag
 // number form and OID components.
@@ -254,7 +278,7 @@ static int parse_base128_integer(CBS *cbs, uint64_t *out) {
   return 1;
 }
 
-static int parse_asn1_tag(CBS *cbs, unsigned *out) {
+static int parse_asn1_tag(CBS *cbs, CBS_ASN1_TAG *out) {
   uint8_t tag_byte;
   if (!CBS_get_u8(cbs, &tag_byte)) {
     return 0;
@@ -266,8 +290,8 @@ static int parse_asn1_tag(CBS *cbs, unsigned *out) {
   // If the number portion is 31 (0x1f, the largest value that fits in the
   // allotted bits), then the tag is more than one byte long and the
   // continuation bytes contain the tag number.
-  unsigned tag = ((unsigned)tag_byte & 0xe0) << CBS_ASN1_TAG_SHIFT;
-  unsigned tag_number = tag_byte & 0x1f;
+  CBS_ASN1_TAG tag = ((CBS_ASN1_TAG)tag_byte & 0xe0) << CBS_ASN1_TAG_SHIFT;
+  CBS_ASN1_TAG tag_number = tag_byte & 0x1f;
   if (tag_number == 0x1f) {
     uint64_t v;
     if (!parse_base128_integer(cbs, &v) ||
@@ -277,7 +301,7 @@ static int parse_asn1_tag(CBS *cbs, unsigned *out) {
         v < 0x1f) {
       return 0;
     }
-    tag_number = (unsigned)v;
+    tag_number = (CBS_ASN1_TAG)v;
   }
 
   tag |= tag_number;
@@ -293,7 +317,7 @@ static int parse_asn1_tag(CBS *cbs, unsigned *out) {
   return 1;
 }
 
-static int cbs_get_any_asn1_element(CBS *cbs, CBS *out, unsigned *out_tag,
+static int cbs_get_any_asn1_element(CBS *cbs, CBS *out, CBS_ASN1_TAG *out_tag,
                                     size_t *out_header_len, int *out_ber_found,
                                     int *out_indefinite, int ber_ok) {
   CBS header = *cbs;
@@ -310,7 +334,7 @@ static int cbs_get_any_asn1_element(CBS *cbs, CBS *out, unsigned *out_tag,
     assert(out_indefinite == NULL);
   }
 
-  unsigned tag;
+  CBS_ASN1_TAG tag;
   if (!parse_asn1_tag(&header, &tag)) {
     return 0;
   }
@@ -394,7 +418,7 @@ static int cbs_get_any_asn1_element(CBS *cbs, CBS *out, unsigned *out_tag,
   return CBS_get_bytes(cbs, out, len);
 }
 
-int CBS_get_any_asn1(CBS *cbs, CBS *out, unsigned *out_tag) {
+int CBS_get_any_asn1(CBS *cbs, CBS *out, CBS_ASN1_TAG *out_tag) {
   size_t header_len;
   if (!CBS_get_any_asn1_element(cbs, out, out_tag, &header_len)) {
     return 0;
@@ -408,13 +432,13 @@ int CBS_get_any_asn1(CBS *cbs, CBS *out, unsigned *out_tag) {
   return 1;
 }
 
-int CBS_get_any_asn1_element(CBS *cbs, CBS *out, unsigned *out_tag,
+int CBS_get_any_asn1_element(CBS *cbs, CBS *out, CBS_ASN1_TAG *out_tag,
                                     size_t *out_header_len) {
   return cbs_get_any_asn1_element(cbs, out, out_tag, out_header_len, NULL, NULL,
                                   /*ber_ok=*/0);
 }
 
-int CBS_get_any_ber_asn1_element(CBS *cbs, CBS *out, unsigned *out_tag,
+int CBS_get_any_ber_asn1_element(CBS *cbs, CBS *out, CBS_ASN1_TAG *out_tag,
                                  size_t *out_header_len, int *out_ber_found,
                                  int *out_indefinite) {
   int ber_found_temp;
@@ -424,10 +448,10 @@ int CBS_get_any_ber_asn1_element(CBS *cbs, CBS *out, unsigned *out_tag,
       /*ber_ok=*/1);
 }
 
-static int cbs_get_asn1(CBS *cbs, CBS *out, unsigned tag_value,
+static int cbs_get_asn1(CBS *cbs, CBS *out, CBS_ASN1_TAG tag_value,
                         int skip_header) {
   size_t header_len;
-  unsigned tag;
+  CBS_ASN1_TAG tag;
   CBS throwaway;
 
   if (out == NULL) {
@@ -447,21 +471,17 @@ static int cbs_get_asn1(CBS *cbs, CBS *out, unsigned tag_value,
   return 1;
 }
 
-int CBS_get_asn1(CBS *cbs, CBS *out, unsigned tag_value) {
+int CBS_get_asn1(CBS *cbs, CBS *out, CBS_ASN1_TAG tag_value) {
   return cbs_get_asn1(cbs, out, tag_value, 1 /* skip header */);
 }
 
-int CBS_get_asn1_element(CBS *cbs, CBS *out, unsigned tag_value) {
+int CBS_get_asn1_element(CBS *cbs, CBS *out, CBS_ASN1_TAG tag_value) {
   return cbs_get_asn1(cbs, out, tag_value, 0 /* include header */);
 }
 
-int CBS_peek_asn1_tag(const CBS *cbs, unsigned tag_value) {
-  if (CBS_len(cbs) < 1) {
-    return 0;
-  }
-
+int CBS_peek_asn1_tag(const CBS *cbs, CBS_ASN1_TAG tag_value) {
   CBS copy = *cbs;
-  unsigned actual_tag;
+  CBS_ASN1_TAG actual_tag;
   return parse_asn1_tag(&copy, &actual_tag) && tag_value == actual_tag;
 }
 
@@ -524,7 +544,7 @@ int CBS_get_asn1_bool(CBS *cbs, int *out) {
   return 1;
 }
 
-int CBS_get_optional_asn1(CBS *cbs, CBS *out, int *out_present, unsigned tag) {
+int CBS_get_optional_asn1(CBS *cbs, CBS *out, int *out_present, CBS_ASN1_TAG tag) {
   int present = 0;
 
   if (CBS_peek_asn1_tag(cbs, tag)) {
@@ -542,7 +562,7 @@ int CBS_get_optional_asn1(CBS *cbs, CBS *out, int *out_present, unsigned tag) {
 }
 
 int CBS_get_optional_asn1_octet_string(CBS *cbs, CBS *out, int *out_present,
-                                       unsigned tag) {
+                                       CBS_ASN1_TAG tag) {
   CBS child;
   int present;
   if (!CBS_get_optional_asn1(cbs, &child, &present, tag)) {
@@ -563,7 +583,7 @@ int CBS_get_optional_asn1_octet_string(CBS *cbs, CBS *out, int *out_present,
   return 1;
 }
 
-int CBS_get_optional_asn1_uint64(CBS *cbs, uint64_t *out, unsigned tag,
+int CBS_get_optional_asn1_uint64(CBS *cbs, uint64_t *out, CBS_ASN1_TAG tag,
                                  uint64_t default_value) {
   CBS child;
   int present;
@@ -581,7 +601,7 @@ int CBS_get_optional_asn1_uint64(CBS *cbs, uint64_t *out, unsigned tag,
   return 1;
 }
 
-int CBS_get_optional_asn1_bool(CBS *cbs, int *out, unsigned tag,
+int CBS_get_optional_asn1_bool(CBS *cbs, int *out, CBS_ASN1_TAG tag,
                                int default_value) {
   CBS child, child2;
   int present;
@@ -674,8 +694,31 @@ int CBS_is_unsigned_asn1_integer(const CBS *cbs) {
 
 static int add_decimal(CBB *out, uint64_t v) {
   char buf[DECIMAL_SIZE(uint64_t) + 1];
-  BIO_snprintf(buf, sizeof(buf), "%" PRIu64, v);
+  snprintf(buf, sizeof(buf), "%" PRIu64, v);
   return CBB_add_bytes(out, (const uint8_t *)buf, strlen(buf));
+}
+
+int CBS_is_valid_asn1_oid(const CBS *cbs) {
+  if (CBS_len(cbs) == 0) {
+    return 0;  // OID encodings cannot be empty.
+  }
+
+  CBS copy = *cbs;
+  uint8_t v, prev = 0;
+  while (CBS_get_u8(&copy, &v)) {
+    // OID encodings are a sequence of minimally-encoded base-128 integers (see
+    // |parse_base128_integer|). If |prev|'s MSB was clear, it was the last byte
+    // of an integer (or |v| is the first byte). |v| is then the first byte of
+    // the next integer. If first byte of an integer is 0x80, it is not
+    // minimally-encoded.
+    if ((prev & 0x80) == 0 && v == 0x80) {
+      return 0;
+    }
+    prev = v;
+  }
+
+  // The last byte should must end an integer encoding.
+  return (prev & 0x80) == 0;
 }
 
 char *CBS_asn1_oid_to_text(const CBS *cbs) {
@@ -729,13 +772,13 @@ static int cbs_get_two_digits(CBS *cbs, int *out) {
   if (!CBS_get_u8(cbs, &first_digit)) {
     return 0;
   }
-  if (!isdigit(first_digit)) {
+  if (!OPENSSL_isdigit(first_digit)) {
     return 0;
   }
   if (!CBS_get_u8(cbs, &second_digit)) {
     return 0;
   }
-  if (!isdigit(second_digit)) {
+  if (!OPENSSL_isdigit(second_digit)) {
     return 0;
   }
   *out = (first_digit - '0') * 10 + (second_digit - '0');

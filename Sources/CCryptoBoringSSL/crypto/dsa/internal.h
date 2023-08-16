@@ -17,14 +17,34 @@
 
 #include <CCryptoBoringSSL_dsa.h>
 
+#include <CCryptoBoringSSL_thread.h>
+
+#include "../internal.h"
+
 #if defined(__cplusplus)
 extern "C" {
 #endif
 
 
-// dsa_check_parameters checks that |dsa|'s group is within DoS bounds. It
-// returns one on success and zero on error.
-int dsa_check_parameters(const DSA *dsa);
+struct dsa_st {
+  BIGNUM *p;
+  BIGNUM *q;
+  BIGNUM *g;
+
+  BIGNUM *pub_key;
+  BIGNUM *priv_key;
+
+  // Normally used to cache montgomery values
+  CRYPTO_MUTEX method_mont_lock;
+  BN_MONT_CTX *method_mont_p;
+  BN_MONT_CTX *method_mont_q;
+  CRYPTO_refcount_t references;
+  CRYPTO_EX_DATA ex_data;
+};
+
+// dsa_check_key performs cheap self-checks on |dsa|, and ensures it is within
+// DoS bounds. It returns one on success and zero on error.
+int dsa_check_key(const DSA *dsa);
 
 
 #if defined(__cplusplus)

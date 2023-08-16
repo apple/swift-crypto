@@ -18,6 +18,7 @@
 #include <CCryptoBoringSSL_lhash.h>
 #include <CCryptoBoringSSL_thread.h>
 
+#include "../internal.h"
 #include "../lhash/internal.h"
 
 

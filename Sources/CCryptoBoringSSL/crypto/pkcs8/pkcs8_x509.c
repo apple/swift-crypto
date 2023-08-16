@@ -87,65 +87,20 @@ int pkcs12_iterations_acceptable(uint64_t iterations) {
   static const uint64_t kIterationsLimit = 100 * 1000000;
 #endif
 
+  assert(kIterationsLimit <= UINT32_MAX);
   return 0 < iterations && iterations <= kIterationsLimit;
 }
 
-// Minor tweak to operation: zero private key data
-static int pkey_cb(int operation, ASN1_VALUE **pval, const ASN1_ITEM *it,
-                   void *exarg) {
-  // Since the structure must still be valid use ASN1_OP_FREE_PRE
-  if (operation == ASN1_OP_FREE_PRE) {
-    PKCS8_PRIV_KEY_INFO *key = (PKCS8_PRIV_KEY_INFO *)*pval;
-    if (key->pkey) {
-      OPENSSL_cleanse(key->pkey->data, key->pkey->length);
-    }
-  }
-  return 1;
-}
-
-ASN1_SEQUENCE_cb(PKCS8_PRIV_KEY_INFO, pkey_cb) = {
+ASN1_SEQUENCE(PKCS8_PRIV_KEY_INFO) = {
     ASN1_SIMPLE(PKCS8_PRIV_KEY_INFO, version, ASN1_INTEGER),
     ASN1_SIMPLE(PKCS8_PRIV_KEY_INFO, pkeyalg, X509_ALGOR),
     ASN1_SIMPLE(PKCS8_PRIV_KEY_INFO, pkey, ASN1_OCTET_STRING),
     ASN1_IMP_SET_OF_OPT(PKCS8_PRIV_KEY_INFO, attributes, X509_ATTRIBUTE, 0),
-} ASN1_SEQUENCE_END_cb(PKCS8_PRIV_KEY_INFO, PKCS8_PRIV_KEY_INFO)
+} ASN1_SEQUENCE_END(PKCS8_PRIV_KEY_INFO)
 
-IMPLEMENT_ASN1_FUNCTIONS(PKCS8_PRIV_KEY_INFO)
+IMPLEMENT_ASN1_FUNCTIONS_const(PKCS8_PRIV_KEY_INFO)
 
-int PKCS8_pkey_set0(PKCS8_PRIV_KEY_INFO *priv, ASN1_OBJECT *aobj, int version,
-                    int ptype, void *pval, uint8_t *penc, int penclen) {
-  if (version >= 0 &&
-      !ASN1_INTEGER_set(priv->version, version)) {
-    return 0;
-  }
-
-  if (!X509_ALGOR_set0(priv->pkeyalg, aobj, ptype, pval)) {
-    return 0;
-  }
-
-  if (penc != NULL) {
-    ASN1_STRING_set0(priv->pkey, penc, penclen);
-  }
-
-  return 1;
-}
-
-int PKCS8_pkey_get0(ASN1_OBJECT **ppkalg, const uint8_t **pk, int *ppklen,
-                    X509_ALGOR **pa, PKCS8_PRIV_KEY_INFO *p8) {
-  if (ppkalg) {
-    *ppkalg = p8->pkeyalg->algorithm;
-  }
-  if (pk) {
-    *pk = ASN1_STRING_data(p8->pkey);
-    *ppklen = ASN1_STRING_length(p8->pkey);
-  }
-  if (pa) {
-    *pa = p8->pkeyalg;
-  }
-  return 1;
-}
-
-EVP_PKEY *EVP_PKCS82PKEY(PKCS8_PRIV_KEY_INFO *p8) {
+EVP_PKEY *EVP_PKCS82PKEY(const PKCS8_PRIV_KEY_INFO *p8) {
   uint8_t *der = NULL;
   int der_len = i2d_PKCS8_PRIV_KEY_INFO(p8, &der);
   if (der_len < 0) {
@@ -166,7 +121,7 @@ EVP_PKEY *EVP_PKCS82PKEY(PKCS8_PRIV_KEY_INFO *p8) {
   return ret;
 }
 
-PKCS8_PRIV_KEY_INFO *EVP_PKEY2PKCS8(EVP_PKEY *pkey) {
+PKCS8_PRIV_KEY_INFO *EVP_PKEY2PKCS8(const EVP_PKEY *pkey) {
   CBB cbb;
   uint8_t *der = NULL;
   size_t der_len;
@@ -380,7 +335,6 @@ static int parse_bag_attributes(CBS *attrs, uint8_t **out_friendly_name,
       // Convert the friendly name to UTF-8.
       CBB cbb;
       if (!CBB_init(&cbb, CBS_len(&value))) {
-        OPENSSL_PUT_ERROR(PKCS8, ERR_R_MALLOC_FAILURE);
         goto err;
       }
       while (CBS_len(&value) != 0) {
@@ -393,7 +347,6 @@ static int parse_bag_attributes(CBS *attrs, uint8_t **out_friendly_name,
         }
       }
       if (!CBB_finish(&cbb, out_friendly_name, out_friendly_name_len)) {
-        OPENSSL_PUT_ERROR(PKCS8, ERR_R_MALLOC_FAILURE);
         CBB_cleanup(&cbb);
         goto err;
       }
@@ -602,7 +555,7 @@ err:
 
 static int pkcs12_check_mac(int *out_mac_ok, const char *password,
                             size_t password_len, const CBS *salt,
-                            unsigned iterations, const EVP_MD *md,
+                            uint32_t iterations, const EVP_MD *md,
                             const CBS *authsafes, const CBS *expected_mac) {
   int ret = 0;
   uint8_t hmac_key[EVP_MAX_MD_SIZE];
@@ -724,13 +677,15 @@ int PKCS12_get_key_and_certs(EVP_PKEY **out_key, STACK_OF(X509) *out_certs,
     }
 
     // The iteration count is optional and the default is one.
-    uint64_t iterations = 1;
+    uint32_t iterations = 1;
     if (CBS_len(&mac_data) > 0) {
-      if (!CBS_get_asn1_uint64(&mac_data, &iterations) ||
-          !pkcs12_iterations_acceptable(iterations)) {
+      uint64_t iterations_u64;
+      if (!CBS_get_asn1_uint64(&mac_data, &iterations_u64) ||
+          !pkcs12_iterations_acceptable(iterations_u64)) {
         OPENSSL_PUT_ERROR(PKCS8, PKCS8_R_BAD_PKCS12_DATA);
         goto err;
       }
+      iterations = (uint32_t)iterations_u64;
     }
 
     int mac_ok;
@@ -828,7 +783,9 @@ PKCS12* d2i_PKCS12_bio(BIO *bio, PKCS12 **out_p12) {
   }
 
   for (;;) {
-    int n = BIO_read(bio, &buf->data[used], buf->length - used);
+    size_t max_read = buf->length - used;
+    int n = BIO_read(bio, &buf->data[used],
+                     max_read > INT_MAX ? INT_MAX : (int)max_read);
     if (n < 0) {
       if (used == 0) {
         goto out;
@@ -888,7 +845,6 @@ int i2d_PKCS12(const PKCS12 *p12, uint8_t **out) {
   if (*out == NULL) {
     *out = OPENSSL_malloc(p12->ber_len);
     if (*out == NULL) {
-      OPENSSL_PUT_ERROR(PKCS8, ERR_R_MALLOC_FAILURE);
       return -1;
     }
     OPENSSL_memcpy(*out, p12->ber_bytes, p12->ber_len);
@@ -927,7 +883,6 @@ int PKCS12_parse(const PKCS12 *p12, const char *password, EVP_PKEY **out_pkey,
   if (!ca_certs) {
     ca_certs = sk_X509_new_null();
     if (ca_certs == NULL) {
-      OPENSSL_PUT_ERROR(PKCS8, ERR_R_MALLOC_FAILURE);
       return 0;
     }
     ca_certs_alloced = 1;
@@ -1104,7 +1059,7 @@ static int add_cert_safe_contents(CBB *cbb, X509 *cert,
 }
 
 static int add_encrypted_data(CBB *out, int pbe_nid, const char *password,
-                              size_t password_len, unsigned iterations,
+                              size_t password_len, uint32_t iterations,
                               const uint8_t *in, size_t in_len) {
   uint8_t salt[PKCS5_SALT_LEN];
   if (!RAND_bytes(salt, sizeof(salt))) {

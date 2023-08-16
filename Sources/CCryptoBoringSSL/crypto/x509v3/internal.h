@@ -65,6 +65,11 @@
 #include <CCryptoBoringSSL_stack.h>
 #include <CCryptoBoringSSL_x509v3.h>
 
+// TODO(davidben): Merge x509 and x509v3. This include is needed because some
+// internal typedefs are shared between the two, but the two modules depend on
+// each other circularly.
+#include "../x509/internal.h"
+
 #if defined(__cplusplus)
 extern "C" {
 #endif
@@ -85,11 +90,11 @@ OPENSSL_EXPORT char *x509v3_bytes_to_hex(const uint8_t *in, size_t len);
 //
 // This function was historically named |string_to_hex| in OpenSSL. Despite the
 // name, |string_to_hex| converted from hex.
-unsigned char *x509v3_hex_to_bytes(const char *str, long *len);
+unsigned char *x509v3_hex_to_bytes(const char *str, size_t *len);
 
-// x509v3_name_cmp returns zero if |name| is equal to |cmp| or begins with |cmp|
-// followed by '.'. Otherwise, it returns a non-zero number.
-int x509v3_name_cmp(const char *name, const char *cmp);
+// x509v3_conf_name_matches returns one if |name| is equal to |cmp| or begins
+// with |cmp| followed by '.', and zero otherwise.
+int x509v3_conf_name_matches(const char *name, const char *cmp);
 
 // x509v3_looks_like_dns_name returns one if |in| looks like a DNS name and zero
 // otherwise.
@@ -99,7 +104,7 @@ OPENSSL_EXPORT int x509v3_looks_like_dns_name(const unsigned char *in,
 // x509v3_cache_extensions fills in a number of fields relating to X.509
 // extensions in |x|. It returns one on success and zero if some extensions were
 // invalid.
-int x509v3_cache_extensions(X509 *x);
+OPENSSL_EXPORT int x509v3_cache_extensions(X509 *x);
 
 // x509v3_a2i_ipadd decodes |ipasc| as an IPv4 or IPv6 address. IPv6 addresses
 // use colon-separated syntax while IPv4 addresses use dotted decimal syntax. If
@@ -122,168 +127,71 @@ typedef struct {
 int x509V3_add_value_asn1_string(const char *name, const ASN1_STRING *value,
                                  STACK_OF(CONF_VALUE) **extlist);
 
-typedef struct X509_POLICY_DATA_st X509_POLICY_DATA;
+// X509V3_NAME_from_section adds attributes to |nm| by interpreting the
+// key/value pairs in |dn_sk|. It returns one on success and zero on error.
+// |chtype|, which should be one of |MBSTRING_*| constants, determines the
+// character encoding used to interpret values.
+int X509V3_NAME_from_section(X509_NAME *nm, const STACK_OF(CONF_VALUE) *dn_sk,
+                             int chtype);
 
-DEFINE_STACK_OF(X509_POLICY_DATA)
+// X509V3_bool_from_string decodes |str| as a boolean. On success, it returns
+// one and sets |*out_bool| to resulting value. Otherwise, it returns zero.
+int X509V3_bool_from_string(const char *str, ASN1_BOOLEAN *out_bool);
 
-/* Internal structures */
+// X509V3_get_value_bool decodes |value| as a boolean. On success, it returns
+// one and sets |*out_bool| to the resulting value. Otherwise, it returns zero.
+int X509V3_get_value_bool(const CONF_VALUE *value, ASN1_BOOLEAN *out_bool);
 
-/*
- * This structure and the field names correspond to the Policy 'node' of
- * RFC 3280. NB this structure contains no pointers to parent or child data:
- * X509_POLICY_NODE contains that. This means that the main policy data can
- * be kept static and cached with the certificate.
- */
+// X509V3_get_value_int decodes |value| as an integer. On success, it returns
+// one and sets |*aint| to the resulting value. Otherwise, it returns zero. If
+// |*aint| was non-NULL at the start of the function, it frees the previous
+// value before writing a new one.
+int X509V3_get_value_int(const CONF_VALUE *value, ASN1_INTEGER **aint);
 
-struct X509_POLICY_DATA_st {
-    unsigned int flags;
-    /* Policy OID and qualifiers for this data */
-    ASN1_OBJECT *valid_policy;
-    STACK_OF(POLICYQUALINFO) *qualifier_set;
-    STACK_OF(ASN1_OBJECT) *expected_policy_set;
-};
+// X509V3_get_section behaves like |NCONF_get_section| but queries |ctx|'s
+// config database.
+const STACK_OF(CONF_VALUE) *X509V3_get_section(const X509V3_CTX *ctx,
+                                               const char *section);
 
-/* X509_POLICY_DATA flags values */
+// X509V3_add_value appends a |CONF_VALUE| containing |name| and |value| to
+// |*extlist|. It returns one on success and zero on error. If |*extlist| is
+// NULL, it sets |*extlist| to a newly-allocated |STACK_OF(CONF_VALUE)|
+// containing the result. Either |name| or |value| may be NULL to omit the
+// field.
+//
+// On failure, if |*extlist| was NULL, |*extlist| will remain NULL when the
+// function returns.
+int X509V3_add_value(const char *name, const char *value,
+                     STACK_OF(CONF_VALUE) **extlist);
 
-/*
- * This flag indicates the structure has been mapped using a policy mapping
- * extension. If policy mapping is not active its references get deleted.
- */
+// X509V3_add_value_bool behaves like |X509V3_add_value| but stores the value
+// "TRUE" if |asn1_bool| is non-zero and "FALSE" otherwise.
+int X509V3_add_value_bool(const char *name, int asn1_bool,
+                          STACK_OF(CONF_VALUE) **extlist);
 
-#define POLICY_DATA_FLAG_MAPPED                 0x1
+// X509V3_add_value_bool behaves like |X509V3_add_value| but stores a string
+// representation of |aint|. Note this string representation may be decimal or
+// hexadecimal, depending on the size of |aint|.
+int X509V3_add_value_int(const char *name, const ASN1_INTEGER *aint,
+                         STACK_OF(CONF_VALUE) **extlist);
 
-/*
- * This flag indicates the data doesn't correspond to a policy in Certificate
- * Policies: it has been mapped to any policy.
- */
+STACK_OF(CONF_VALUE) *X509V3_parse_list(const char *line);
 
-#define POLICY_DATA_FLAG_MAPPED_ANY             0x2
+#define X509V3_conf_err(val)                                               \
+  ERR_add_error_data(6, "section:", (val)->section, ",name:", (val)->name, \
+                     ",value:", (val)->value);
 
-/* AND with flags to see if any mapping has occurred */
-
-#define POLICY_DATA_FLAG_MAP_MASK               0x3
-
-/* qualifiers are shared and shouldn't be freed */
-
-#define POLICY_DATA_FLAG_SHARED_QUALIFIERS      0x4
-
-/* Parent node is an extra node and should be freed */
-
-#define POLICY_DATA_FLAG_EXTRA_NODE             0x8
-
-/* Corresponding CertificatePolicies is critical */
-
-#define POLICY_DATA_FLAG_CRITICAL               0x10
-
-/* This structure is cached with a certificate */
-
-struct X509_POLICY_CACHE_st {
-    /* anyPolicy data or NULL if no anyPolicy */
-    X509_POLICY_DATA *anyPolicy;
-    /* other policy data */
-    STACK_OF(X509_POLICY_DATA) *data;
-    /* If InhibitAnyPolicy present this is its value or -1 if absent. */
-    long any_skip;
-    /*
-     * If policyConstraints and requireExplicitPolicy present this is its
-     * value or -1 if absent.
-     */
-    long explicit_skip;
-    /*
-     * If policyConstraints and policyMapping present this is its value or -1
-     * if absent.
-     */
-    long map_skip;
-};
-
-/*
- * #define POLICY_CACHE_FLAG_CRITICAL POLICY_DATA_FLAG_CRITICAL
- */
-
-/* This structure represents the relationship between nodes */
-
-struct X509_POLICY_NODE_st {
-    /* node data this refers to */
-    const X509_POLICY_DATA *data;
-    /* Parent node */
-    X509_POLICY_NODE *parent;
-    /* Number of child nodes */
-    int nchild;
-};
-
-struct X509_POLICY_LEVEL_st {
-    /* Cert for this level */
-    X509 *cert;
-    /* nodes at this level */
-    STACK_OF(X509_POLICY_NODE) *nodes;
-    /* anyPolicy node */
-    X509_POLICY_NODE *anyPolicy;
-    /* Extra data */
-    /*
-     * STACK_OF(X509_POLICY_DATA) *extra_data;
-     */
-    unsigned int flags;
-};
-
-struct X509_POLICY_TREE_st {
-    /* This is the tree 'level' data */
-    X509_POLICY_LEVEL *levels;
-    int nlevel;
-    /*
-     * Extra policy data when additional nodes (not from the certificate) are
-     * required.
-     */
-    STACK_OF(X509_POLICY_DATA) *extra_data;
-    /* This is the authority constained policy set */
-    STACK_OF(X509_POLICY_NODE) *auth_policies;
-    STACK_OF(X509_POLICY_NODE) *user_policies;
-    unsigned int flags;
-};
-
-/* Set if anyPolicy present in user policies */
-#define POLICY_FLAG_ANY_POLICY          0x2
-
-/* Useful macros */
-
-#define node_data_critical(data) ((data)->flags & POLICY_DATA_FLAG_CRITICAL)
-#define node_critical(node) node_data_critical((node)->data)
-
-/* Internal functions */
-
-X509_POLICY_DATA *policy_data_new(POLICYINFO *policy, const ASN1_OBJECT *id,
-                                  int crit);
-void policy_data_free(X509_POLICY_DATA *data);
-
-X509_POLICY_DATA *policy_cache_find_data(const X509_POLICY_CACHE *cache,
-                                         const ASN1_OBJECT *id);
-int policy_cache_set_mapping(X509 *x, POLICY_MAPPINGS *maps);
-
-STACK_OF(X509_POLICY_NODE) *policy_node_cmp_new(void);
-
-void policy_cache_init(void);
-
-void policy_cache_free(X509_POLICY_CACHE *cache);
-
-X509_POLICY_NODE *level_find_node(const X509_POLICY_LEVEL *level,
-                                  const X509_POLICY_NODE *parent,
-                                  const ASN1_OBJECT *id);
-
-X509_POLICY_NODE *tree_find_sk(STACK_OF(X509_POLICY_NODE) *sk,
-                               const ASN1_OBJECT *id);
-
-X509_POLICY_NODE *level_add_node(X509_POLICY_LEVEL *level,
-                                 X509_POLICY_DATA *data,
-                                 X509_POLICY_NODE *parent,
-                                 X509_POLICY_TREE *tree);
-void policy_node_free(X509_POLICY_NODE *node);
-int policy_node_match(const X509_POLICY_LEVEL *lvl,
-                      const X509_POLICY_NODE *node, const ASN1_OBJECT *oid);
-
-const X509_POLICY_CACHE *policy_cache_set(X509 *x);
+// GENERAL_NAME_cmp returns zero if |a| and |b| are equal and a non-zero
+// value otherwise. Note this function does not provide a comparison suitable
+// for sorting.
+//
+// This function is exported for testing.
+OPENSSL_EXPORT int GENERAL_NAME_cmp(const GENERAL_NAME *a,
+                                    const GENERAL_NAME *b);
 
 
 #if defined(__cplusplus)
-}  /* extern C */
+}  // extern C
 #endif
 
-#endif  /* OPENSSL_HEADER_X509V3_INTERNAL_H */
+#endif  // OPENSSL_HEADER_X509V3_INTERNAL_H

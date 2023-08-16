@@ -13,10 +13,10 @@
 //===----------------------------------------------------------------------===//
 import XCTest
 
-#if (os(macOS) || os(iOS) || os(watchOS) || os(tvOS)) && CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
+#if CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
 // Skip tests that require @testable imports of CryptoKit.
 #else
-#if (os(macOS) || os(iOS) || os(watchOS) || os(tvOS)) && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
+#if !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
 @testable import CryptoKit
 #else
 @testable import Crypto
@@ -41,7 +41,7 @@ class DERTests: XCTestCase {
     }
 
     func coordinateSizeForCurve<Curve: SupportedCurveDetailsImpl>(_ curve: Curve.Type) -> Int {
-        #if (os(macOS) || os(iOS) || os(watchOS) || os(tvOS)) && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
+        #if !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
         return self.coreCryptoCoordinateSizeForCurve(curve)
         #else
         return self.openSSLCoordinateSizeForCurve(curve)
@@ -49,7 +49,7 @@ class DERTests: XCTestCase {
     }
 
     func randomBytes(count: Int) -> [UInt8] {
-        #if (os(macOS) || os(iOS) || os(watchOS) || os(tvOS)) || os(Linux) || os(Android) || os(Windows)
+        #if canImport(Darwin) || os(Linux) || os(Android) || os(Windows)
         var rng = SystemRandomNumberGenerator()
         return (0..<count).map { _ in rng.next() }
         #else
@@ -57,4 +57,4 @@ class DERTests: XCTestCase {
         #endif
     }
 }
-#endif // (os(macOS) || os(iOS) || os(watchOS) || os(tvOS)) && CRYPTO_IN_SWIFTPM
+#endif // CRYPTO_IN_SWIFTPM

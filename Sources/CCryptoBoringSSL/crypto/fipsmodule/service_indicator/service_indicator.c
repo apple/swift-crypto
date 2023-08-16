@@ -51,7 +51,6 @@ static struct fips_service_indicator_state *service_indicator_get(void) {
   if (indicator == NULL) {
     indicator = OPENSSL_malloc(sizeof(struct fips_service_indicator_state));
     if (indicator == NULL) {
-      OPENSSL_PUT_ERROR(CRYPTO, ERR_R_MALLOC_FAILURE);
       return NULL;
     }
 
@@ -239,8 +238,9 @@ static void evp_md_ctx_verify_service_indicator(const EVP_MD_CTX *ctx,
     }
   } else if (pkey_type == EVP_PKEY_EC) {
     // Check if the MD type and the elliptic curve are approved.
-    if (md_ok(md_type) && is_ec_fips_approved(EC_GROUP_get_curve_name(
-                              ctx->pctx->pkey->pkey.ec->group))) {
+    if (md_ok(md_type) &&
+        is_ec_fips_approved(EC_GROUP_get_curve_name(
+            EC_KEY_get0_group(EVP_PKEY_get0_EC_KEY(ctx->pctx->pkey))))) {
       FIPS_service_indicator_update_state();
     }
   }
@@ -303,14 +303,11 @@ void HMAC_verify_service_indicator(const EVP_MD *evp_md) {
 }
 
 void TLSKDF_verify_service_indicator(const EVP_MD *md) {
-  // HMAC-MD5, HMAC-SHA1, and HMAC-MD5/HMAC-SHA1 (both used concurrently) are
-  // approved for use in the KDF in TLS 1.0/1.1.
-  // HMAC-SHA{256, 384, 512} are approved for use in the KDF in TLS 1.2.
-  // These Key Derivation functions are to be used in the context of the TLS
-  // protocol.
+  // HMAC-MD5/HMAC-SHA1 (both used concurrently) is approved for use in the KDF
+  // in TLS 1.0/1.1. HMAC-SHA{256, 384, 512} are approved for use in the KDF in
+  // TLS 1.2. These Key Derivation functions are to be used in the context of
+  // the TLS protocol.
   switch (EVP_MD_type(md)) {
-    case NID_md5:
-    case NID_sha1:
     case NID_md5_sha1:
     case NID_sha256:
     case NID_sha384:

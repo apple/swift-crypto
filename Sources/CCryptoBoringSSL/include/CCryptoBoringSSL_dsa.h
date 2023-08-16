@@ -62,9 +62,7 @@
 
 #include "CCryptoBoringSSL_base.h"
 
-#include "CCryptoBoringSSL_engine.h"
 #include "CCryptoBoringSSL_ex_data.h"
-#include "CCryptoBoringSSL_thread.h"
 
 #if defined(__cplusplus)
 extern "C" {
@@ -93,6 +91,9 @@ OPENSSL_EXPORT int DSA_up_ref(DSA *dsa);
 
 
 // Properties.
+
+// DSA_bits returns the size of |dsa|'s group modulus, in bits.
+OPENSSL_EXPORT unsigned DSA_bits(const DSA *dsa);
 
 // DSA_get0_pub_key returns |dsa|'s public key.
 OPENSSL_EXPORT const BIGNUM *DSA_get0_pub_key(const DSA *dsa);
@@ -395,25 +396,6 @@ OPENSSL_EXPORT DSA *DSA_generate_parameters(int bits, unsigned char *seed,
                                             void *cb_arg);
 
 
-struct dsa_st {
-  long version;
-  BIGNUM *p;
-  BIGNUM *q;  // == 20
-  BIGNUM *g;
-
-  BIGNUM *pub_key;   // y public key
-  BIGNUM *priv_key;  // x private key
-
-  int flags;
-  // Normally used to cache montgomery values
-  CRYPTO_MUTEX method_mont_lock;
-  BN_MONT_CTX *method_mont_p;
-  BN_MONT_CTX *method_mont_q;
-  CRYPTO_refcount_t references;
-  CRYPTO_EX_DATA ex_data;
-};
-
-
 #if defined(__cplusplus)
 }  // extern C
 
@@ -439,5 +421,6 @@ BSSL_NAMESPACE_END
 #define DSA_R_DECODE_ERROR 105
 #define DSA_R_ENCODE_ERROR 106
 #define DSA_R_INVALID_PARAMETERS 107
+#define DSA_R_TOO_MANY_ITERATIONS 108
 
 #endif  // OPENSSL_HEADER_DSA_H

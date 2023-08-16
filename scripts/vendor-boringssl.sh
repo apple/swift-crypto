@@ -44,8 +44,6 @@ HERE=$(pwd)
 DSTROOT=Sources/CCryptoBoringSSL
 TMPDIR=$(mktemp -d /tmp/.workingXXXXXX)
 SRCROOT="${TMPDIR}/src/boringssl.googlesource.com/boringssl"
-CROSS_COMPILE_TARGET_LOCATION="/Library/Developer/Destinations"
-CROSS_COMPILE_VERSION="5.6.1"
 
 # This function namespaces the awkward inline functions declared in OpenSSL
 # and BoringSSL.
@@ -88,6 +86,7 @@ function mangle_symbols {
         swift build --triple "arm64-apple-macosx" --product CCryptoBoringSSL --enable-test-discovery
         (
             cd "${SRCROOT}"
+            go mod tidy -modcacherw
             go run "util/read_symbols.go" -out "${TMPDIR}/symbols-macOS-intel.txt" "${HERE}/.build/x86_64-apple-macosx/debug/libCCryptoBoringSSL.a"
             go run "util/read_symbols.go" -out "${TMPDIR}/symbols-macOS-as.txt" "${HERE}/.build/arm64-apple-macosx/debug/libCCryptoBoringSSL.a"
         )
@@ -102,13 +101,10 @@ function mangle_symbols {
         )
 
         # Now cross compile for our targets.
-        # If you have trouble with the script around this point, consider
-        # https://github.com/CSCIX65G/SwiftCrossCompilers to obtain cross
-        # compilers for the architectures we care about.
-        for cc_target in "${CROSS_COMPILE_TARGET_LOCATION}"/*"${CROSS_COMPILE_VERSION}"*.json; do
-            echo "Cross compiling for ${cc_target}"
-            swift build --product CCryptoBoringSSL --destination "${cc_target}" --enable-test-discovery
-        done;
+        docker run -t -i --rm --privileged -v$(pwd):/src -w/src --platform linux/arm64 swift:5.8-jammy \
+            swift build --product CCryptoBoringSSL
+        docker run -t -i --rm --privileged -v$(pwd):/src -w/src --platform linux/amd64 swift:5.8-jammy \
+            swift build --product CCryptoBoringSSL
 
         # Now we need to generate symbol mangles for Linux. We can do this in
         # one go for all of them.
@@ -203,6 +199,7 @@ PATTERNS=(
 'crypto/*/*/*.S'
 'crypto/*/*/*/*.c'
 'third_party/fiat/*.h'
+'third_party/fiat/asm/*.S'
 #'third_party/fiat/*.c'
 )
 
@@ -234,14 +231,12 @@ done
 echo "GENERATING err_data.c"
 (
     cd "$SRCROOT/crypto/err"
+    go mod tidy -modcacherw
     go run err_data_generate.go > "${HERE}/${DSTROOT}/crypto/err/err_data.c"
 )
 
 echo "DELETING crypto/fipsmodule/bcm.c"
 rm -f $DSTROOT/crypto/fipsmodule/bcm.c
-
-echo "FIXING missing include"
-perl -pi -e '$_ .= qq(\n#include <openssl/cpu.h>\n) if /#include <openssl\/err.h>/' "$DSTROOT/crypto/fipsmodule/ec/p256-x86_64.c"
 
 echo "REMOVING libssl"
 (
@@ -293,6 +288,7 @@ echo "PROTECTING against executable stacks"
 
 echo "PATCHING BoringSSL"
 git apply "${HERE}/scripts/patch-1-inttypes.patch"
+git apply "${HERE}/scripts/patch-2-more-inttypes.patch"
 
 # We need BoringSSL to be modularised
 echo "MODULARISING BoringSSL"

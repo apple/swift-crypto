@@ -1,0 +1,21 @@
+version: "3"
+
+services:
+
+  runtime-setup:
+    image: swift-crypto:22.04-main
+    build:
+      args:
+        base_image: "swiftlang/swift:nightly-main-jammy"
+
+  test:
+    image: swift-crypto:22.04-main
+    environment:
+      - IMPORT_CHECK_ARG=--explicit-target-dependency-import-check error
+      #- SANITIZER_ARG=--sanitize=thread
+
+  cmake:
+    image: swift-crypto:22.04-main
+
+  shell:
+    image: swift-crypto:22.04-main

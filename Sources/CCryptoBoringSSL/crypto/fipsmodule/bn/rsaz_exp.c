@@ -18,17 +18,19 @@
 
 #include <CCryptoBoringSSL_mem.h>
 
+#include <assert.h>
+
 #include "internal.h"
 #include "../../internal.h"
 
 
-// one is 1 in RSAZ's representation.
-alignas(64) static const BN_ULONG one[40] = {
+// rsaz_one is 1 in RSAZ's representation.
+alignas(64) static const BN_ULONG rsaz_one[40] = {
     1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-// two80 is 2^80 in RSAZ's representation. Note RSAZ uses base 2^29, so this is
+// rsaz_two80 is 2^80 in RSAZ's representation. Note RSAZ uses base 2^29, so this is
 // 2^(29*2 + 22) = 2^80, not 2^(64*2 + 22).
-alignas(64) static const BN_ULONG two80[40] = {
+alignas(64) static const BN_ULONG rsaz_two80[40] = {
     0, 0, 1 << 22, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
     0, 0, 0,       0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 
@@ -38,8 +40,8 @@ void RSAZ_1024_mod_exp_avx2(BN_ULONG result_norm[16],
                             const BN_ULONG m_norm[16], const BN_ULONG RR[16],
                             BN_ULONG k0,
                             BN_ULONG storage[MOD_EXP_CTIME_STORAGE_LEN]) {
-  OPENSSL_STATIC_ASSERT(MOD_EXP_CTIME_MIN_CACHE_LINE_WIDTH % 64 == 0,
-                        "MOD_EXP_CTIME_MIN_CACHE_LINE_WIDTH is too small");
+  static_assert(MOD_EXP_CTIME_ALIGN % 64 == 0,
+                "MOD_EXP_CTIME_ALIGN is too small");
   assert((uintptr_t)storage % 64 == 0);
 
   BN_ULONG *a_inv, *m, *result, *table_s = storage + 40 * 3, *R2 = table_s;
@@ -62,12 +64,12 @@ void RSAZ_1024_mod_exp_avx2(BN_ULONG result_norm[16],
   // giving R = 2^(36*29) = 2^1044.
   rsaz_1024_mul_avx2(R2, R2, R2, m, k0);
   // R2 = 2^2048 * 2^2048 / 2^1044 = 2^3052
-  rsaz_1024_mul_avx2(R2, R2, two80, m, k0);
+  rsaz_1024_mul_avx2(R2, R2, rsaz_two80, m, k0);
   // R2 = 2^3052 * 2^80 / 2^1044 = 2^2088 = (2^1044)^2
 
   // table[0] = 1
   // table[1] = a_inv^1
-  rsaz_1024_mul_avx2(result, R2, one, m, k0);
+  rsaz_1024_mul_avx2(result, R2, rsaz_one, m, k0);
   rsaz_1024_mul_avx2(a_inv, a_inv, R2, m, k0);
   rsaz_1024_scatter5_avx2(table_s, result, 0);
   rsaz_1024_scatter5_avx2(table_s, a_inv, 1);
@@ -123,7 +125,7 @@ void RSAZ_1024_mod_exp_avx2(BN_ULONG result_norm[16],
   rsaz_1024_mul_avx2(result, result, a_inv, m, k0);
 
   // Convert from Montgomery.
-  rsaz_1024_mul_avx2(result, result, one, m, k0);
+  rsaz_1024_mul_avx2(result, result, rsaz_one, m, k0);
 
   rsaz_1024_red2norm_avx2(result_norm, result);
   BN_ULONG scratch[16];

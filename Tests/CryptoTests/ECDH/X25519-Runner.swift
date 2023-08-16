@@ -14,10 +14,10 @@
 import Foundation
 import XCTest
 
-#if (os(macOS) || os(iOS) || os(watchOS) || os(tvOS)) && CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
+#if CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
 // Skip tests that require @testable imports of CryptoKit.
 #else
-#if (os(macOS) || os(iOS) || os(watchOS) || os(tvOS)) && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
+#if !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
 @testable import CryptoKit
 #else
 @testable import Crypto
@@ -190,11 +190,16 @@ class X25519Tests: XCTestCase {
 
                 let testSharedSecret = try Array(privateKey.sharedSecretFromKeyAgreement(with: publicKey).ss)
                 XCTAssertEqual(testSharedSecret, expectedSharedSecret)
+                XCTAssert(testVector.result == "valid" || testVector.result == "acceptable")
             } catch {
+                if testVector.flags.contains("LowOrderPublic") {
+                    XCTAssertEqual(testVector.result, "acceptable")
+                    return
+                }
                 XCTAssertEqual(testVector.result, "invalid")
             }
         }
     }
 }
 
-#endif // (os(macOS) || os(iOS) || os(watchOS) || os(tvOS)) && CRYPTO_IN_SWIFTPM
+#endif // CRYPTO_IN_SWIFTPM

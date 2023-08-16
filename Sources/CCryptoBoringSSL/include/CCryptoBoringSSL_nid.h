@@ -4235,9 +4235,6 @@ extern "C" {
 #define LN_auth_any "auth-any"
 #define NID_auth_any 958
 
-#define SN_CECPQ2 "CECPQ2"
-#define NID_CECPQ2 959
-
 #define SN_ED448 "ED448"
 #define NID_ED448 960
 #define OBJ_ED448 1L, 3L, 101L, 113L
@@ -4254,6 +4251,9 @@ extern "C" {
 #define SN_hkdf "HKDF"
 #define LN_hkdf "hkdf"
 #define NID_hkdf 963
+
+#define SN_X25519Kyber768Draft00 "X25519Kyber768Draft00"
+#define NID_X25519Kyber768Draft00 964
 
 
 #if defined(__cplusplus)
