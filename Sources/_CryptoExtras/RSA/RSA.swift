@@ -54,7 +54,7 @@ extension _RSA.Signing {
         public init(pemRepresentation: String) throws {
             self.backing = try BackingPublicKey(pemRepresentation: pemRepresentation)
 
-            if self.keySizeInBits < 1024 || self.keySizeInBits % 8 != 0 {
+            guard self.keySizeInBits >= 1024 else {
                 throw CryptoKitError.incorrectParameterSize
             }
         }
@@ -66,7 +66,7 @@ extension _RSA.Signing {
         public init<Bytes: DataProtocol>(derRepresentation: Bytes) throws {
             self.backing = try BackingPublicKey(derRepresentation: derRepresentation)
 
-            if self.keySizeInBits < 1024 || self.keySizeInBits % 8 != 0 {
+            guard self.keySizeInBits >= 1024 else {
                 throw CryptoKitError.incorrectParameterSize
             }
         }
@@ -108,7 +108,7 @@ extension _RSA.Signing {
         public init(pemRepresentation: String) throws {
             self.backing = try BackingPrivateKey(pemRepresentation: pemRepresentation)
 
-            if self.keySizeInBits < 1024 || self.keySizeInBits % 8 != 0 {
+            guard self.keySizeInBits >= 1024 else {
                 throw CryptoKitError.incorrectParameterSize
             }
         }
@@ -120,7 +120,7 @@ extension _RSA.Signing {
         public init<Bytes: DataProtocol>(derRepresentation: Bytes) throws {
             self.backing = try BackingPrivateKey(derRepresentation: derRepresentation)
 
-            if self.keySizeInBits < 1024 || self.keySizeInBits % 8 != 0 {
+            guard self.keySizeInBits >= 1024 else {
                 throw CryptoKitError.incorrectParameterSize
             }
         }

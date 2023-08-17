@@ -61,8 +61,7 @@ internal struct SecurityRSAPublicKey {
     }
 
     var keySizeInBits: Int {
-        let attributes = SecKeyCopyAttributes(self.backing)! as NSDictionary
-        return (attributes[kSecAttrKeySizeInBits]! as! NSNumber).intValue
+        SecKeyGetBlockSize(self.backing) * 8
     }
 
     fileprivate init(_ backing: SecKey) {
@@ -146,8 +145,7 @@ internal struct SecurityRSAPrivateKey {
     }
 
     var keySizeInBits: Int {
-        let attributes = SecKeyCopyAttributes(self.backing)! as NSDictionary
-        return (attributes[kSecAttrKeySizeInBits]! as! NSNumber).intValue
+        SecKeyGetBlockSize(self.backing) * 8
     }
 
     var publicKey: SecurityRSAPublicKey {
