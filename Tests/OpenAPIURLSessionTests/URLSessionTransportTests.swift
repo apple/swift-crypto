@@ -32,7 +32,7 @@ class URLSessionTransportTests: XCTestCase {
 
     func testRequestConversion() throws {
         let request = OpenAPIRuntime.Request(
-            path: "/hello/Maria",
+            path: "/hello%20world/Maria",
             query: "greeting=Howdy",
             method: .post,
             headerFields: [
@@ -41,7 +41,7 @@ class URLSessionTransportTests: XCTestCase {
             body: Data("👋".utf8)
         )
         let urlRequest = try URLRequest(request, baseURL: URL(string: "http://example.com/api")!)
-        XCTAssertEqual(urlRequest.url, URL(string: "http://example.com/api/hello/Maria?greeting=Howdy"))
+        XCTAssertEqual(urlRequest.url, URL(string: "http://example.com/api/hello%20world/Maria?greeting=Howdy"))
         XCTAssertEqual(urlRequest.httpMethod, "POST")
         XCTAssertEqual(urlRequest.allHTTPHeaderFields, ["X-Mumble": "mumble"])
         XCTAssertEqual(urlRequest.httpBody, Data("👋".utf8))

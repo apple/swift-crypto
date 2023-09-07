@@ -160,7 +160,7 @@ extension URLRequest {
         guard var baseUrlComponents = URLComponents(string: baseURL.absoluteString) else {
             throw URLSessionTransportError.invalidRequestURL(request: request, baseURL: baseURL)
         }
-        baseUrlComponents.path += request.path
+        baseUrlComponents.percentEncodedPath += request.path
         baseUrlComponents.percentEncodedQuery = request.query
         guard let url = baseUrlComponents.url else {
             throw URLSessionTransportError.invalidRequestURL(request: request, baseURL: baseURL)
