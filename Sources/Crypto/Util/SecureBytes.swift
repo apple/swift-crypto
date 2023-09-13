@@ -170,7 +170,7 @@ extension SecureBytes: RangeReplaceableCollection {
 
     // The default implementation of this from RangeReplaceableCollection can't take advantage of `ContiguousBytes`, so we override it here
     @inlinable
-    public mutating func append(contentsOf newElements: some Sequence<UInt8>) {
+    public mutating func append<Elements: Sequence>(contentsOf newElements: Elements) where Elements.Element == UInt8 {
         let done:Void? = newElements.withContiguousStorageIfAvailable {
             replaceSubrange(endIndex..<endIndex, with: $0)
         }
