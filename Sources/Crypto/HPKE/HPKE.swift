@@ -60,11 +60,27 @@ extension HPKE {
         private var context: Context
         /// The encapsulated symmetric key that the recipient uses to decrypt messages.
         public let encapsulatedKey: Data
+
         /// The exporter secret.
-        public var exporterSecret: SymmetricKey {
+        internal var exporterSecret: SymmetricKey {
             return context.keySchedule.exporterSecret
         }
         
+        /// Exports a secret given domain-separation context and the desired output length.
+        /// - Parameters:
+        ///   - context: Application-specific information providing context on the use of this key.
+        ///   - outputByteCount: The desired length of the exported secret.
+        /// - Returns: The exported secret.
+        public func exportSecret<Context: DataProtocol>(context: Context, outputByteCount: Int) throws -> SymmetricKey {
+            precondition(outputByteCount > 0);
+            return LabeledExpand(prk: self.exporterSecret,
+                                 label: Data("sec".utf8),
+                                 info: context,
+                                 outputByteCount: UInt16(outputByteCount),
+                                 suiteID: self.context.keySchedule.ciphersuite.identifier,
+                                 kdf: self.context.keySchedule.ciphersuite.kdf)
+        }
+
         /// Creates a sender in base mode.
         ///
         /// The `Sender` encrypts messages in base mode with a symmetric encryption key it derives using a key derivation function (KDF).
@@ -180,9 +196,25 @@ extension HPKE {
     public struct Recipient {
         
         private var context: Context
+
         /// The exporter secret.
-        public var exporterSecret: SymmetricKey {
+        internal var exporterSecret: SymmetricKey {
             return context.keySchedule.exporterSecret
+        }
+
+        /// Exports a secret given domain-separation context and the desired output length.
+        /// - Parameters:
+        ///   - context: Application-specific information providing context on the use of this key.
+        ///   - outputByteCount: The desired length of the exported secret.
+        /// - Returns: The exported secret.
+        public func exportSecret<Context: DataProtocol>(context: Context, outputByteCount: Int) throws -> SymmetricKey {
+            precondition(outputByteCount > 0);
+            return LabeledExpand(prk: self.exporterSecret,
+                                 label: Data("sec".utf8),
+                                 info: context,
+                                 outputByteCount: UInt16(outputByteCount),
+                                 suiteID: self.context.keySchedule.ciphersuite.identifier,
+                                 kdf: self.context.keySchedule.ciphersuite.kdf)
         }
 
         /// Creates a recipient in base mode.
