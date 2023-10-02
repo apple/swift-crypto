@@ -12,6 +12,7 @@
 //
 //===----------------------------------------------------------------------===//
 import OpenAPIRuntime
+import HTTPTypes
 #if canImport(Darwin)
 import Foundation
 #else
@@ -90,13 +91,19 @@ public struct URLSessionTransport: ClientTransport {
     }
 
     public func send(
-        _ request: OpenAPIRuntime.Request,
+        _ request: HTTPRequest,
+        body: HTTPBody?,
         baseURL: URL,
         operationID: String
-    ) async throws -> OpenAPIRuntime.Response {
-        let urlRequest = try URLRequest(request, baseURL: baseURL)
+    ) async throws -> (HTTPResponse, HTTPBody?) {
+        // TODO: https://github.com/apple/swift-openapi-generator/issues/301
+        let urlRequest = try await URLRequest(request, body: body, baseURL: baseURL)
         let (responseBody, urlResponse) = try await invokeSession(urlRequest)
-        return try OpenAPIRuntime.Response(from: urlResponse, body: responseBody)
+        return try HTTPResponse.response(
+            method: request.method,
+            urlResponse: urlResponse,
+            data: responseBody
+        )
     }
 
     private func invokeSession(_ urlRequest: URLRequest) async throws -> (Data, URLResponse) {
@@ -129,7 +136,7 @@ public struct URLSessionTransport: ClientTransport {
 internal enum URLSessionTransportError: Error {
 
     /// Invalid URL composed from base URL and received request.
-    case invalidRequestURL(request: OpenAPIRuntime.Request, baseURL: URL)
+    case invalidRequestURL(path: String, method: HTTPRequest.Method, baseURL: URL)
 
     /// Returned `URLResponse` could not be converted to `HTTPURLResponse`.
     case notHTTPResponse(URLResponse)
@@ -138,40 +145,74 @@ internal enum URLSessionTransportError: Error {
     case noResponse(url: URL?)
 }
 
-extension OpenAPIRuntime.Response {
-    init(from urlResponse: URLResponse, body: Data) throws {
+extension HTTPResponse {
+    static func response(
+        method: HTTPRequest.Method,
+        urlResponse: URLResponse,
+        data: Data
+    ) throws -> (HTTPResponse, HTTPBody?) {
         guard let httpResponse = urlResponse as? HTTPURLResponse else {
             throw URLSessionTransportError.notHTTPResponse(urlResponse)
         }
-        let headerFields: [HeaderField] = httpResponse
-            .allHeaderFields
-            .compactMap { headerName, headerValue in
-                guard let name = headerName as? String, let value = headerValue as? String else {
-                    return nil
-                }
-                return HeaderField(name: name, value: value)
+        var headerFields = HTTPFields()
+        for (headerName, headerValue) in httpResponse.allHeaderFields {
+            guard
+                let rawName = headerName as? String,
+                let name = HTTPField.Name(rawName),
+                let value = headerValue as? String
+            else {
+                continue
             }
-        self.init(statusCode: httpResponse.statusCode, headerFields: headerFields, body: body)
+            headerFields[name] = value
+        }
+        let body: HTTPBody?
+        switch method {
+        case .head, .connect, .trace:
+            body = nil
+        default:
+            body = .init(data)
+        }
+        return (
+            HTTPResponse(
+                status: .init(code: httpResponse.statusCode),
+                headerFields: headerFields
+            ),
+            body
+        )
     }
 }
 
 extension URLRequest {
-    init(_ request: OpenAPIRuntime.Request, baseURL: URL) throws {
-        guard var baseUrlComponents = URLComponents(string: baseURL.absoluteString) else {
-            throw URLSessionTransportError.invalidRequestURL(request: request, baseURL: baseURL)
+    init(_ request: HTTPRequest, body: HTTPBody?, baseURL: URL) async throws {
+        guard
+            var baseUrlComponents = URLComponents(string: baseURL.absoluteString),
+            let requestUrlComponents = URLComponents(string: request.path ?? "")
+        else {
+            throw URLSessionTransportError.invalidRequestURL(
+                path: request.path ?? "<nil>",
+                method: request.method,
+                baseURL: baseURL
+            )
         }
-        baseUrlComponents.percentEncodedPath += request.path
-        baseUrlComponents.percentEncodedQuery = request.query
+
+        let path = requestUrlComponents.percentEncodedPath
+        baseUrlComponents.percentEncodedPath += path
+        baseUrlComponents.percentEncodedQuery = requestUrlComponents.percentEncodedQuery
         guard let url = baseUrlComponents.url else {
-            throw URLSessionTransportError.invalidRequestURL(request: request, baseURL: baseURL)
+            throw URLSessionTransportError.invalidRequestURL(
+                path: path,
+                method: request.method,
+                baseURL: baseURL
+            )
         }
         self.init(url: url)
-        self.httpMethod = request.method.name
+        self.httpMethod = request.method.rawValue
         for header in request.headerFields {
-            self.addValue(header.value, forHTTPHeaderField: header.name)
+            self.setValue(header.value, forHTTPHeaderField: header.name.canonicalName)
         }
-        if let body = request.body {
-            self.httpBody = body
+        if let body {
+            // TODO: https://github.com/apple/swift-openapi-generator/issues/301
+            self.httpBody = try await Data(collecting: body, upTo: .max)
         }
     }
 }
@@ -183,9 +224,9 @@ extension URLSessionTransportError: LocalizedError {
 extension URLSessionTransportError: CustomStringConvertible {
     public var description: String {
         switch self {
-        case let .invalidRequestURL(request: request, baseURL: baseURL):
+        case let .invalidRequestURL(path: path, method: method, baseURL: baseURL):
             return
-                "Invalid request URL from request path: \(request.path), query: \(request.query ?? "<nil>") relative to base URL: \(baseURL.absoluteString)"
+                "Invalid request URL from request path: \(path), method: \(method), relative to base URL: \(baseURL.absoluteString)"
         case .notHTTPResponse(let response):
             return "Received a non-HTTP response, of type: \(String(describing: type(of: response)))"
         case .noResponse(let url):
