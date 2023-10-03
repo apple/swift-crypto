@@ -62,7 +62,8 @@ extension AES {
         } ?? true
 
         if requiresSlowPath {
-            try AES.Block.withStackStorage { blockBytes in
+            var block = AES.Block()
+            try block.withUnsafeMutableBytes { blockBytes in
                 precondition(blockBytes.count == payload.count)
 
                 blockBytes.copyBytes(from: payload)
@@ -109,25 +110,87 @@ extension AES {
         }
     }
 
-    private struct Block {
-        private var storage: (UInt64, UInt64)
+    struct Block {
+        private static var blockSize: Int { 16 }
 
-        private init() {
-            assert(MemoryLayout<Self>.size == Int(AES.blockSize))
-            self.storage = (0, 0)
+        typealias BlockBytes = (
+            UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8,
+            UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8
+        )
+
+        // 128-bit block size
+        private var blockBytes: BlockBytes
+
+        fileprivate init() {
+            self.blockBytes = (
+                0, 0, 0, 0, 0, 0, 0, 0,
+                0, 0, 0, 0, 0, 0, 0, 0
+            )
         }
 
-        private mutating func withUnsafeMutableBytes<ReturnType>(
-            _ body: (UnsafeMutableRawBufferPointer) throws -> ReturnType
-        ) rethrows -> ReturnType {
-            return try Swift.withUnsafeMutableBytes(of: &self.storage, body)
+        init(_ blockBytes: BlockBytes) {
+            self.blockBytes = blockBytes
         }
 
-        static func withStackStorage<ReturnType>(
-            _ body: (UnsafeMutableRawBufferPointer) throws -> ReturnType
-        ) rethrows -> ReturnType {
-            var storage = Self()
-            return try storage.withUnsafeMutableBytes(body)
+        init(_ iv: AES._CBC.IV) {
+            self.blockBytes = iv.ivBytes
+        }
+
+        init<BlockBytes: Collection>(blockBytes: BlockBytes) where BlockBytes.Element == UInt8 {
+            // The block size is always 16. Pad out past there.
+            precondition(blockBytes.count <= Self.blockSize)
+
+            self.blockBytes = (
+                0, 0, 0, 0, 0, 0, 0, 0,
+                0, 0, 0, 0, 0, 0, 0, 0
+            )
+
+            Swift.withUnsafeMutableBytes(of: &self.blockBytes) { bytesPtr in
+                bytesPtr.copyBytes(from: blockBytes)
+
+                // Early exit here.
+                if blockBytes.count == Self.blockSize {
+                    return
+                }
+
+                var remainingBytes = bytesPtr.dropFirst(blockBytes.count)
+                let padByte = UInt8(remainingBytes.count)
+
+                for index in remainingBytes.indices {
+                    remainingBytes[index] = padByte
+                }
+            }
+        }
+
+        static var paddingBlock: Block {
+            // The padding block is a full block of value blocksize.
+            let value = UInt8(truncatingIfNeeded: Self.blockSize)
+            return Block((
+                value, value, value, value, value, value, value, value,
+                value, value, value, value, value, value, value, value
+            ))
+        }
+
+        func withUnsafeBytes<ReturnType>(_ body: (UnsafeRawBufferPointer) throws -> ReturnType) rethrows -> ReturnType {
+            return try Swift.withUnsafeBytes(of: self.blockBytes, body)
+        }
+
+        mutating func withUnsafeMutableBytes<ReturnType>(_ body: (UnsafeMutableRawBufferPointer) throws -> ReturnType) rethrows -> ReturnType {
+            return try Swift.withUnsafeMutableBytes(of: &self.blockBytes, body)
+        }
+
+        static func ^= (lhs: inout Block, rhs: Block) {
+            // Ideally we'd not use raw pointers for this.
+            lhs.withUnsafeMutableBytes { lhsPtr in
+                rhs.withUnsafeBytes { rhsPtr in
+                    assert(lhsPtr.count == Self.blockSize)
+                    assert(rhsPtr.count == Self.blockSize)
+
+                    for index in 0..<Self.blockSize {
+                        lhsPtr[index] ^= rhsPtr[index]
+                    }
+                }
+            }
         }
     }
 
@@ -141,3 +204,50 @@ extension AES {
     }
 }
 
+extension AES.Block: RandomAccessCollection, MutableCollection {
+    var startIndex: Int {
+        0
+    }
+
+    var endIndex: Int {
+        Self.blockSize
+    }
+
+    subscript(position: Int) -> UInt8 {
+        get {
+            precondition(position >= 0)
+            precondition(position < Self.blockSize)
+
+            return self.withUnsafeBytes { $0[position] }
+        }
+
+        set {
+            precondition(position >= 0)
+            precondition(position < Self.blockSize)
+
+            self.withUnsafeMutableBytes { $0[position] = newValue }
+        }
+    }
+
+    func withContiguousStorageIfAvailable<ReturnValue>(
+        _ body: (UnsafeBufferPointer<UInt8>) throws -> ReturnValue)
+    rethrows -> ReturnValue? {
+        return try withUnsafePointer(to: self.blockBytes) { tuplePtr in
+            // Homogeneous tuples are always bound to the element type as well as to their own type.
+            let retyped = UnsafeRawPointer(tuplePtr).assumingMemoryBound(to: UInt8.self)
+            let bufferised = UnsafeBufferPointer(start: retyped, count: Self.blockSize)
+            return try body(bufferised)
+        }
+    }
+
+    mutating func withContiguousMutableStorageIfAvailable<ReturnValue>(
+        _ body: (inout UnsafeMutableBufferPointer<UInt8>) throws -> ReturnValue)
+    rethrows -> ReturnValue? {
+        return try withUnsafeMutablePointer(to: &self.blockBytes) { tuplePtr in
+            // Homogeneous tuples are always bound to the element type as well as to their own type.
+            let retyped = UnsafeMutableRawPointer(tuplePtr).assumingMemoryBound(to: UInt8.self)
+            var bufferised = UnsafeMutableBufferPointer(start: retyped, count: Self.blockSize)
+            return try body(&bufferised)
+        }
+    }
+}
