@@ -14,7 +14,7 @@
 import Foundation
 import Crypto
 
-#if canImport(Security)
+#if CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
 fileprivate typealias BackingPublicKey = SecurityRSAPublicKey
 fileprivate typealias BackingPrivateKey = SecurityRSAPrivateKey
 #else

@@ -14,7 +14,7 @@
 import Foundation
 import Crypto
 
-#if canImport(Security)
+#if CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
 @_implementationOnly import Security
 
 internal struct SecurityRSAPublicKey {
