@@ -144,6 +144,10 @@ extension _RSA.Signing {
             self.backing.pemRepresentation
         }
 
+        public var pkcs8PEMRepresentation: String {
+            self.backing.pkcs8PEMRepresentation
+        }
+
         public var keySizeInBits: Int {
             self.backing.keySizeInBits
         }
@@ -388,6 +392,7 @@ extension _RSA.Encryption {
         
         public var derRepresentation: Data { self.backing.derRepresentation }
         public var pemRepresentation: String { self.backing.pemRepresentation }
+        public var pkcs8PEMRepresentation: String { self.backing.pkcs8PEMRepresentation }
         public var keySizeInBits: Int { self.backing.keySizeInBits }
         public var publicKey: _RSA.Encryption.PublicKey { .init(self.backing.publicKey) }
     }

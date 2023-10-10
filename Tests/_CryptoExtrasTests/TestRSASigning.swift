@@ -638,6 +638,43 @@ final class TestRSASigning: XCTestCase {
         XCTAssertEqual(pemKey, key.pemRepresentation)
     }
 
+    func testParsingPKCS8PrivateKeyPEM() throws {
+        let pemKey = """
+        -----BEGIN PRIVATE KEY-----
+        MIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQCmKCB/22l/q8ny
+        ernraohemEndZ3+RFWpeXZcGpBiWmoUqmrlJOYEzYNwvMP3y2VKPRStWHzuVN/mc
+        /QTytLNec7HbgJqUpHZSh1XrviysJjBaWkVrOVAOmeXLnyImbCBsvhjxTHECjner
+        tnNRjuoPdSRhYU5+9filh/iQxVMTAZFeGAKwS5fSXh6nB7s9sEztJ01rFQ6myp7c
+        xteyhRgNAKRIYoxjgOSrzalH5PWJZ94fS3J8xPzUF9WILojXUKAagHoA8nTD1bfF
+        Jz2tFojnjbfBE8S4FUxiiflybtjlH1sZz7EqEATcu1ny/pludcfoKmHHFuuCA0q7
+        XOHWtptfAgMBAAECggEAZB/iFaneFPUsKFYUGuyDaJ1URXrMwFyrUFoNXA8eUgKj
+        JF1AMgPY+2DuzfEz1ldnDLadurPvb6ffXt6JUMfbHpuRHbiNbez88BZljD15JfON
+        R6UGF+rddy797oniRkz57Q1Qcneh0eyP6IV1UDxShyYL2jKM3qzSPM2G15ZQzS43
+        3xCTFEFFTxFdmDWxC4iV7LHgdwub/9+FX2M05GeVzZ2t35PtabJ/FVqbj29ANcdg
+        Q7UAIFgAWfwfQSA1qXbx0LyChwuEEyef2h3ENnveJm8E9t03h6RGJky9IQVMP3B6
+        0SzUmSGlEX0rXpq/dRNrC+3bBDyQB4ZagVGk41IB4QKBgQDXq1keSNi3o2a/c9Io
+        007+Fqo3PRj1035/yq+qqm6J158q9WIIJS+b71ZQ62UR7yxWtm7DiFE0mXvP+aF/
+        e767O6cOf9qrdMX+G8SpDRtmQzXVOsIv1J26cJezpdDeud6V5odUX6EdcErQqzcv
+        uhTSOVWQbrq4SAAcAoWCsvYruwKBgQDFOnuQ2sEK3GPbFHzX7I+BKIe8bq2JkcBN
+        cHgs9NHNd93pddbeITm1lp/XPv/uJiZU2nneMHpP04mT89WRlFNA5UpmD99Ra5yN
+        wIeKaDuDf7k6NJNL/ubLkbrdjVV4feKN9c57tjGeaYwEB/qpaf6v1WiElLNLfvFo
+        ZBPTEDVKrQKBgQCRHwCZq0UA1Nf3rfTVedLmkNO61cbs64JsdTOdcI9u+4NkAbgU
+        aQlPMU5wpuTcm4bHVnzT3+9cqIaynHQ6d0cRcANqc0fuJWZxJbhAVMyCFGmt8Jro
+        WnZEFS1POh2BMasATR30/WBJkd0V6o/48oq+JsxXotrL088XCe9S0h9prwKBgQCt
+        jacKctUIf6OHN2Ich9hH6ah4ElS3CADWpC+8L7snOWGXfNCVK1ujBWamfJOttvho
+        FtDCypn3AMjB3wGCV6ljI+HyKelztmRPAKrFCq/EKXKPW5B6gVYKsLRlHWem3e+s
+        yC7pAgxrv6ksKvFSfylVBVAxysBzoMNB/z7KriqXCQKBgD735odQUJdsPZ3Swnbv
+        Iq/roNK1tzFxb52IHS2r2WM9TX4OlQE1VSPTTs0f84wTS+XZAnDRGubN5GYBkmWp
+        K8TpFCFPBP/Yv1Kngovn4O1MskoxTQraRBDjfC6O7OfcSCSMuVgB0Oofcp9iQjLA
+        HV3KOnbYqvzmFv7OWnAszkTh
+        -----END PRIVATE KEY-----
+        
+        """
+
+        let key = try _RSA.Signing.PrivateKey(pemRepresentation: pemKey)
+        XCTAssertEqual(pemKey, key.pkcs8PEMRepresentation)
+    }
+
     private func testPKCS1Group(_ group: RSAPKCS1TestGroup) throws {
         let derKey = try _RSA.Signing.PublicKey(derRepresentation: group.keyDerBytes)
         let pemKey = try _RSA.Signing.PublicKey(pemRepresentation: group.keyPem)
