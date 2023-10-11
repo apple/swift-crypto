@@ -14,7 +14,7 @@
 import Foundation
 import Crypto
 
-#if canImport(Security)
+#if CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
 fileprivate typealias BackingPublicKey = SecurityRSAPublicKey
 fileprivate typealias BackingPrivateKey = SecurityRSAPrivateKey
 #else
@@ -142,6 +142,10 @@ extension _RSA.Signing {
 
         public var pemRepresentation: String {
             self.backing.pemRepresentation
+        }
+
+        public var pkcs8PEMRepresentation: String {
+            self.backing.pkcs8PEMRepresentation
         }
 
         public var keySizeInBits: Int {
@@ -388,6 +392,7 @@ extension _RSA.Encryption {
         
         public var derRepresentation: Data { self.backing.derRepresentation }
         public var pemRepresentation: String { self.backing.pemRepresentation }
+        public var pkcs8PEMRepresentation: String { self.backing.pkcs8PEMRepresentation }
         public var keySizeInBits: Int { self.backing.keySizeInBits }
         public var publicKey: _RSA.Encryption.PublicKey { .init(self.backing.publicKey) }
     }

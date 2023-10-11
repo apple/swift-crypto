@@ -14,7 +14,9 @@
 import Foundation
 import Crypto
 
-#if !canImport(Security)
+#if CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
+// Nothing; this is implemented in RSA_security
+#else
 @_implementationOnly import CCryptoBoringSSL
 @_implementationOnly import CCryptoBoringSSLShims
 
@@ -76,6 +78,10 @@ internal struct BoringSSLRSAPrivateKey {
 
     var pemRepresentation: String {
         self.backing.pemRepresentation
+    }
+
+    var pkcs8PEMRepresentation: String {
+        self.backing.pkcs8PEMRepresentation
     }
 
     var keySizeInBits: Int {
@@ -379,6 +385,20 @@ extension BoringSSLRSAPrivateKey {
         fileprivate var pemRepresentation: String {
             return BIOHelper.withWritableMemoryBIO { bio in
                 let rc = CCryptoBoringSSL_PEM_write_bio_RSAPrivateKey(bio, self.pointer, nil, nil, 0, nil, nil)
+                precondition(rc == 1)
+
+                return try! String(copyingUTF8MemoryBIO: bio)
+            }
+        }
+
+        fileprivate var pkcs8PEMRepresentation: String {
+            return BIOHelper.withWritableMemoryBIO { bio in
+                let evp = CCryptoBoringSSL_EVP_PKEY_new()
+                defer {
+                    CCryptoBoringSSL_EVP_PKEY_free(evp)
+                }
+                CCryptoBoringSSL_EVP_PKEY_set1_RSA(evp, self.pointer)
+                let rc = CCryptoBoringSSL_PEM_write_bio_PKCS8PrivateKey(bio, evp, nil, nil, 0, nil, nil)
                 precondition(rc == 1)
 
                 return try! String(copyingUTF8MemoryBIO: bio)

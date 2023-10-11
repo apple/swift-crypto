@@ -130,7 +130,8 @@ let package = Package(
             ],
             exclude: [
                 "CMakeLists.txt",
-            ]
+            ],
+            swiftSettings: swiftSettings
         ),
         .target(
             name: "CryptoBoringWrapper",
