@@ -13,10 +13,6 @@
 //===----------------------------------------------------------------------===//
 #include <CCryptoBoringSSLShims.h>
 
-#if defined(__cplusplus)
-extern "C" {
-#endif
-
 // MARK:- Pointer type shims
 // This section of the code handles shims that change uint8_t* pointers to
 // void *s. This is done because Swift does not have the rule that C does, that
@@ -156,7 +152,3 @@ int CCryptoBoringSSLShims_RSA_private_decrypt(int flen, const void *from, void *
                                               RSA *rsa, int padding) {
     return CCryptoBoringSSL_RSA_private_decrypt(flen, from, to, rsa, padding);
 }
-
-#if defined(__cplusplus)
-}
-#endif
