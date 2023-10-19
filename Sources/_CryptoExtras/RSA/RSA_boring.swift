@@ -278,11 +278,6 @@ extension BoringSSLRSAPublicKey {
             let contiguousData: ContiguousBytes = data.regions.count == 1 ? data.regions.first! : Array(data)
             try output.withUnsafeMutableBytes { bufferPtr in
                 try contiguousData.withUnsafeBytes { dataPtr in
-                    let rawPadding: CInt
-                    switch padding.backing {
-                    case .pkcs1_oaep: rawPadding = RSA_PKCS1_OAEP_PADDING
-                    }
-
                     // `nil` 'engine' defaults to the standard implementation with no hooks
                     let ctx = CCryptoBoringSSL_EVP_PKEY_CTX_new(self.pointer, nil)
                     defer {
@@ -290,7 +285,19 @@ extension BoringSSLRSAPublicKey {
                     }
 
                     CCryptoBoringSSL_EVP_PKEY_encrypt_init(ctx)
-                    CCryptoBoringSSL_EVP_PKEY_CTX_set_rsa_padding(ctx, rawPadding)
+
+                    switch padding.backing {
+                    case let .pkcs1_oaep(digest):
+                        CCryptoBoringSSL_EVP_PKEY_CTX_set_rsa_padding(ctx, RSA_PKCS1_OAEP_PADDING)
+                        switch digest {
+                        case .sha1:
+                            break // default case, nothing to set
+                        case .sha256:
+                            CCryptoBoringSSL_EVP_PKEY_CTX_set_rsa_oaep_md(ctx, CCryptoBoringSSL_EVP_sha256())
+                        case .md4, .md5, .sha224, .sha384, .sha512, .sha512_256, .blake2b256:
+                            preconditionFailure("Unsupported PKCS1 OAEP digest")
+                        }
+                    }
 
                     var writtenLength = bufferPtr.count
                     let rc = CCryptoBoringSSLShims_EVP_PKEY_encrypt(
@@ -519,18 +526,25 @@ extension BoringSSLRSAPrivateKey {
             let contiguousData: ContiguousBytes = data.regions.count == 1 ? data.regions.first! : Array(data)
             let writtenLength: CInt = try output.withUnsafeMutableBytes { bufferPtr in
                 try contiguousData.withUnsafeBytes { dataPtr in
-                    let rawPadding: CInt
-                    switch padding.backing {
-                    case .pkcs1_oaep: rawPadding = RSA_PKCS1_OAEP_PADDING
-                    }
-
                     let ctx = CCryptoBoringSSL_EVP_PKEY_CTX_new(self.pointer, nil)
                     defer {
                         CCryptoBoringSSL_EVP_PKEY_CTX_free(ctx)
                     }
 
                     CCryptoBoringSSL_EVP_PKEY_decrypt_init(ctx)
-                    CCryptoBoringSSL_EVP_PKEY_CTX_set_rsa_padding(ctx, rawPadding)
+                    switch padding.backing {
+                    case let .pkcs1_oaep(digest):
+                        CCryptoBoringSSL_EVP_PKEY_CTX_set_rsa_padding(ctx, RSA_PKCS1_OAEP_PADDING)
+                        switch digest {
+                        case .sha1:
+                            break // default case, nothing to set
+                        case .sha256:
+                            CCryptoBoringSSL_EVP_PKEY_CTX_set_rsa_oaep_md(ctx, CCryptoBoringSSL_EVP_sha256())
+                        case .md4, .md5, .sha224, .sha384, .sha512, .sha512_256, .blake2b256:
+                            preconditionFailure("Unsupported PKCS1 OAEP digest")
+                        }
+                    }
+
 
                     var writtenLength = bufferPtr.count
 

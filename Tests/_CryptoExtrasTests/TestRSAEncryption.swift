@@ -36,8 +36,13 @@ final class TestRSAEncryption: XCTestCase {
 
         let derPubKey = derPrivKey.publicKey
 
-        guard group.sha == "SHA-1", group.mgfSha == "SHA-1" else {
-            // We currently only support SHA-1 OAEP, which is very legacy but oh well.
+        let padding: _RSA.Encryption.Padding
+        if group.sha == "SHA-1", group.mgfSha == "SHA-1" {
+            padding = .PKCS1_OAEP
+        } else if group.sha == "SHA-256", group.mgfSha == "SHA-256" {
+            padding = .PKCS1_OAEP_SHA256
+        } else {
+            // We currently only support SHA-1, SHA-256.
             return
         }
         
@@ -47,12 +52,12 @@ final class TestRSAEncryption: XCTestCase {
                 continue
             }
             let valid: Bool
-            
+
             do {
-                let decryptResult = try derPrivKey.decrypt(test.ciphertextBytes, padding: .PKCS1_OAEP)
-                let encryptResult = try derPubKey.encrypt(test.messageBytes, padding: .PKCS1_OAEP)
-                let decryptResult2 = try derPrivKey.decrypt(encryptResult, padding: .PKCS1_OAEP)
-                
+                let decryptResult = try derPrivKey.decrypt(test.ciphertextBytes, padding: padding)
+                let encryptResult = try derPubKey.encrypt(test.messageBytes, padding: padding)
+                let decryptResult2 = try derPrivKey.decrypt(encryptResult, padding: padding)
+
                 valid = (test.messageBytes == decryptResult && decryptResult2 == decryptResult)
             } catch {
                 valid = false
