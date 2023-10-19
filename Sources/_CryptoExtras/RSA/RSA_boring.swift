@@ -259,13 +259,32 @@ extension BoringSSLRSAPublicKey {
                     switch padding.backing {
                     case .pkcs1_oaep: rawPadding = RSA_PKCS1_OAEP_PADDING
                     }
-                    let rc = CCryptoBoringSSLShims_RSA_public_encrypt(
-                        CInt(dataPtr.count),
-                        dataPtr.baseAddress,
+
+                    let pkey = CCryptoBoringSSL_EVP_PKEY_new()
+                    defer {
+                        CCryptoBoringSSL_EVP_PKEY_free(pkey)
+                    }
+
+                    CCryptoBoringSSL_EVP_PKEY_set1_RSA(pkey, self.pointer)
+
+                    // nil engine defaults to the standard implementation with no hooks
+                    let ctx = CCryptoBoringSSL_EVP_PKEY_CTX_new(pkey, nil)
+                    defer {
+                        CCryptoBoringSSL_EVP_PKEY_CTX_free(ctx)
+                    }
+
+                    CCryptoBoringSSL_EVP_PKEY_encrypt_init(ctx)
+                    CCryptoBoringSSL_EVP_PKEY_CTX_set_rsa_padding(ctx, rawPadding)
+
+                    var writtenLength = bufferPtr.count
+                    let rc = CCryptoBoringSSLShims_EVP_PKEY_encrypt(
+                        ctx,
                         bufferPtr.baseAddress,
-                        self.pointer,
-                        rawPadding
+                        &writtenLength,
+                        dataPtr.baseAddress,
+                        dataPtr.count
                     )
+
                     return rc
                 }
             }
@@ -465,26 +484,46 @@ extension BoringSSLRSAPrivateKey {
             var output = Data(count: outputSize)
 
             let contiguousData: ContiguousBytes = data.regions.count == 1 ? data.regions.first! : Array(data)
-            let rc: CInt = output.withUnsafeMutableBytes { bufferPtr in
+            let writtenLength: CInt = output.withUnsafeMutableBytes { bufferPtr in
                 contiguousData.withUnsafeBytes { dataPtr in
                     let rawPadding: CInt
                     switch padding.backing {
                     case .pkcs1_oaep: rawPadding = RSA_PKCS1_OAEP_PADDING
                     }
-                    let rc = CCryptoBoringSSLShims_RSA_private_decrypt(
-                        CInt(dataPtr.count),
-                        dataPtr.baseAddress,
+
+                    let pkey = CCryptoBoringSSL_EVP_PKEY_new()
+                    defer {
+                        CCryptoBoringSSL_EVP_PKEY_free(pkey)
+                    }
+
+                    CCryptoBoringSSL_EVP_PKEY_set1_RSA(pkey, self.pointer)
+
+                    let ctx = CCryptoBoringSSL_EVP_PKEY_CTX_new(pkey, nil)
+                    defer {
+                        CCryptoBoringSSL_EVP_PKEY_CTX_free(ctx)
+                    }
+
+                    CCryptoBoringSSL_EVP_PKEY_decrypt_init(ctx)
+                    CCryptoBoringSSL_EVP_PKEY_CTX_set_rsa_padding(ctx, rawPadding)
+
+                    var writtenLength = bufferPtr.count
+
+                    // returns 1 on success and 0 on failure
+                    let rc = CCryptoBoringSSLShims_EVP_PKEY_decrypt(
+                        ctx,
                         bufferPtr.baseAddress,
-                        self.pointer,
-                        rawPadding
+                        &writtenLength,
+                        dataPtr.baseAddress,
+                        dataPtr.count
                     )
-                    return rc
+
+                    return rc == 0 ? CInt(-1) : CInt(writtenLength)
                 }
             }
-            if rc == -1 {
+            if writtenLength == -1 {
                 throw CryptoKitError.internalBoringSSLError()
             }
-            output.removeSubrange(output.index(output.startIndex, offsetBy: Int(rc)) ..< output.endIndex)
+            output.removeSubrange(output.index(output.startIndex, offsetBy: Int(writtenLength)) ..< output.endIndex)
             return output
         }
 

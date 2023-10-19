@@ -124,6 +124,14 @@ int CCryptoBoringSSLShims_RSA_public_encrypt(int flen, const void *from, void *t
 int CCryptoBoringSSLShims_RSA_private_decrypt(int flen, const void *from, void *to,
                                               RSA *rsa, int padding);
 
+int CCryptoBoringSSLShims_EVP_PKEY_encrypt(EVP_PKEY_CTX *ctx, void *out,
+                                           size_t *out_len, const void *in,
+                                           size_t in_len);
+
+int CCryptoBoringSSLShims_EVP_PKEY_decrypt(EVP_PKEY_CTX *ctx, void *out,
+                                           size_t *out_len, const void *in,
+                                           size_t in_len);
+
 #if defined(__cplusplus)
 }
 #endif // defined(__cplusplus)

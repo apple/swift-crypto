@@ -152,3 +152,15 @@ int CCryptoBoringSSLShims_RSA_private_decrypt(int flen, const void *from, void *
                                               RSA *rsa, int padding) {
     return CCryptoBoringSSL_RSA_private_decrypt(flen, from, to, rsa, padding);
 }
+
+int CCryptoBoringSSLShims_EVP_PKEY_encrypt(EVP_PKEY_CTX *ctx, void *out,
+                                           size_t *out_len, const void *in,
+                                           size_t in_len) {
+    return CCryptoBoringSSL_EVP_PKEY_encrypt(ctx, out, out_len, in, in_len);
+}
+
+int CCryptoBoringSSLShims_EVP_PKEY_decrypt(EVP_PKEY_CTX *ctx, void *out,
+                                           size_t *out_len, const void *in,
+                                           size_t in_len) {
+    return CCryptoBoringSSL_EVP_PKEY_decrypt(ctx, out, out_len, in, in_len);
+}
