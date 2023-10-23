@@ -253,8 +253,8 @@ extension BoringSSLRSAPublicKey {
             var output = Data(count: outputSize)
 
             let contiguousData: ContiguousBytes = data.regions.count == 1 ? data.regions.first! : Array(data)
-            let rc: CInt = output.withUnsafeMutableBytes { bufferPtr in
-                contiguousData.withUnsafeBytes { dataPtr in
+            try output.withUnsafeMutableBytes { bufferPtr in
+                try contiguousData.withUnsafeBytes { dataPtr in
                     let rawPadding: CInt
                     switch padding.backing {
                     case .pkcs1_oaep: rawPadding = RSA_PKCS1_OAEP_PADDING
@@ -284,12 +284,12 @@ extension BoringSSLRSAPublicKey {
                         dataPtr.baseAddress,
                         dataPtr.count
                     )
+                    precondition(writtenLength == bufferPtr.count, "PKEY encrypt actual written length should match RSA key size.")
 
-                    return rc
+                    guard rc == 1 else {
+                        throw CryptoKitError.internalBoringSSLError()
+                    }
                 }
-            }
-            if rc == -1 {
-                throw CryptoKitError.internalBoringSSLError()
             }
             return output
         }
@@ -484,8 +484,8 @@ extension BoringSSLRSAPrivateKey {
             var output = Data(count: outputSize)
 
             let contiguousData: ContiguousBytes = data.regions.count == 1 ? data.regions.first! : Array(data)
-            let writtenLength: CInt = output.withUnsafeMutableBytes { bufferPtr in
-                contiguousData.withUnsafeBytes { dataPtr in
+            let writtenLength: CInt = try output.withUnsafeMutableBytes { bufferPtr in
+                try contiguousData.withUnsafeBytes { dataPtr in
                     let rawPadding: CInt
                     switch padding.backing {
                     case .pkcs1_oaep: rawPadding = RSA_PKCS1_OAEP_PADDING
@@ -508,7 +508,6 @@ extension BoringSSLRSAPrivateKey {
 
                     var writtenLength = bufferPtr.count
 
-                    // returns 1 on success and 0 on failure
                     let rc = CCryptoBoringSSLShims_EVP_PKEY_decrypt(
                         ctx,
                         bufferPtr.baseAddress,
@@ -517,12 +516,14 @@ extension BoringSSLRSAPrivateKey {
                         dataPtr.count
                     )
 
-                    return rc == 0 ? CInt(-1) : CInt(writtenLength)
+                    guard rc == 1 else {
+                        throw CryptoKitError.internalBoringSSLError()
+                    }
+
+                    return CInt(writtenLength)
                 }
             }
-            if writtenLength == -1 {
-                throw CryptoKitError.internalBoringSSLError()
-            }
+
             output.removeSubrange(output.index(output.startIndex, offsetBy: Int(writtenLength)) ..< output.endIndex)
             return output
         }
