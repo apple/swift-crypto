@@ -28,9 +28,18 @@ public final class LockedValueBox<Value: Sendable>: @unchecked Sendable {
         return lock
     }()
     private var value: Value
+    /// Initializes a new `LockedValueBox` instance with the provided initial value.
+    ///
+    /// - Parameter value: The initial value to store in the `LockedValueBox`.
     public init(_ value: Value) {
         self.value = value
     }
+    /// Perform an operation on the value in a synchronized manner.
+    ///
+    /// - Parameter work: A closure that takes an inout reference to the wrapped value and returns a result.
+    ///
+    /// - Returns: The result of the provided closure.
+    /// - Returns: The result of the closure passed to `work`.
     public func withValue<R>(_ work: (inout Value) throws -> R) rethrows -> R {
         lock.lock()
         defer {

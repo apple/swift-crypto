@@ -72,8 +72,7 @@ public struct URLSessionTransport: ClientTransport {
         public var session: URLSession
 
         /// Creates a new configuration with the provided session.
-        /// - Parameters:
-        ///     - session: The URLSession used for performing HTTP operations.
+        /// - Parameter session: The URLSession used for performing HTTP operations.
         ///     If none is provided, the system uses the shared URLSession.
         public init(session: URLSession = .shared) {
             self.session = session
@@ -84,12 +83,20 @@ public struct URLSessionTransport: ClientTransport {
     public var configuration: Configuration
 
     /// Creates a new URLSession-based transport.
-    /// - Parameters:
-    ///   - configuration: A set of configuration values used by the transport.
+    /// - Parameter configuration: A set of configuration values used by the transport.
     public init(configuration: Configuration = .init()) {
         self.configuration = configuration
     }
 
+    /// Asynchronously sends an HTTP request and returns the response and body.
+    ///
+    /// - Parameters:
+    ///   - request: The HTTP request to be sent.
+    ///   - body: The HTTP body to include in the request (optional).
+    ///   - baseURL: The base URL for the request.
+    ///   - operationID: An optional identifier for the operation or request.
+    /// - Returns: A tuple containing the HTTP response and an optional HTTP response body.
+    /// - Throws: An error if there is a problem sending the request or processing the response.
     public func send(
         _ request: HTTPRequest,
         body: HTTPBody?,
@@ -218,10 +225,12 @@ extension URLRequest {
 }
 
 extension URLSessionTransportError: LocalizedError {
+    /// A custom error description for `URLSessionTransportError`.
     public var errorDescription: String? { description }
 }
 
 extension URLSessionTransportError: CustomStringConvertible {
+    /// A custom textual representation for `URLSessionTransportError`.
     public var description: String {
         switch self {
         case let .invalidRequestURL(path: path, method: method, baseURL: baseURL):
