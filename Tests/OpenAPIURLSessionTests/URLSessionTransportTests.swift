@@ -115,12 +115,16 @@ class MockURLProtocol: URLProtocol {
 
     static let recordedHTTPRequests = LockedValueBox<[URLRequest]>([])
 
+    /// Determines whether this protocol can handle the given request.
     override class func canInit(with request: URLRequest) -> Bool { true }
 
+    /// Returns a canonical version of the given request.
     override class func canonicalRequest(for request: URLRequest) -> URLRequest { request }
 
+    /// Stops protocol-specific loading of a request.
     override func stopLoading() {}
 
+    /// Starts protocol-specific loading of a request.
     override func startLoading() {
         Self.recordedHTTPRequests.withValue { $0.append(self.request) }
         guard let url = self.request.url else { return }
