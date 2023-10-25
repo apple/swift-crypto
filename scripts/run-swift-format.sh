@@ -21,10 +21,17 @@ fatal() { error "$@"; exit 1; }
 CURRENT_SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 REPO_ROOT="$(git -C "${CURRENT_SCRIPT_DIR}" rev-parse --show-toplevel)"
 
+FORMAT_COMMAND=(lint --strict)
+for arg in "$@"; do
+  if [ "$arg" == "--fix" ]; then
+    FORMAT_COMMAND=(format --in-place)
+  fi
+done
+
 SWIFTFORMAT_BIN=${SWIFTFORMAT_BIN:-$(command -v swift-format)} || fatal "❌ SWIFTFORMAT_BIN unset and no swift-format on PATH"
 
-"${SWIFTFORMAT_BIN}" lint \
-  --parallel --recursive --strict \
+"${SWIFTFORMAT_BIN}" "${FORMAT_COMMAND[@]}" \
+  --parallel --recursive \
   "${REPO_ROOT}/Sources" "${REPO_ROOT}/Tests" \
   && SWIFT_FORMAT_RC=$? || SWIFT_FORMAT_RC=$?
 
@@ -33,7 +40,7 @@ if [ "${SWIFT_FORMAT_RC}" -ne 0 ]; then
 
   To fix, run the following command:
 
-    % swift-format format --parallel --recursive --in-place Sources Tests
+    % ./scripts/run-swift-format.sh --fix
   "
   exit "${SWIFT_FORMAT_RC}"
 fi
