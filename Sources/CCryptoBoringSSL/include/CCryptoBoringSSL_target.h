@@ -55,10 +55,22 @@
 #elif defined(__myriad2__)
 #define OPENSSL_32_BIT
 #else
-// Note BoringSSL only supports standard 32-bit and 64-bit two's-complement,
-// little-endian architectures. Functions will not produce the correct answer
-// on other systems. Run the crypto_test binary, notably
-// crypto/compiler_test.cc, before adding a new architecture.
+// The list above enumerates the platforms that BoringSSL supports. For these
+// platforms we keep a reasonable bar of not breaking them: automated test
+// coverage, for one, but also we need access to these types for machines for
+// fixing them.
+//
+// However, we know that anything that seems to work will soon be expected
+// to work and, quickly, the implicit expectation is that every machine will
+// always work. So this list serves to mark the boundary of what we guarantee.
+// Of course, you can run the code any many more machines, but then you're
+// taking on the burden of fixing it and, if you're doing that, then you must
+// be able to carry local patches. In which case patching this list is trivial.
+//
+// BoringSSL will only possibly work on standard 32-bit and 64-bit
+// two's-complement, little-endian architectures. Functions will not produce
+// the correct answer on other systems. Run the crypto_test binary, notably
+// crypto/compiler_test.cc, before trying a new architecture.
 #error "Unknown target CPU"
 #endif
 
@@ -70,13 +82,18 @@
 #define OPENSSL_WINDOWS
 #endif
 
-// Trusty and Android baremetal aren't't Linux but currently define __linux__.
-// As a workaround, we exclude them here.
+// Trusty and Android baremetal aren't Linux but currently define __linux__.
+// As a workaround, we exclude them here. We also exclude nanolibc. nanolibc
+// sometimes build for a non-Linux target (which should not define __linux__),
+// but also sometimes build for Linux. Although technically running in Linux
+// userspace, this lacks all the libc APIs we'd normally expect on Linux, so we
+// treat it as a non-Linux target.
 //
 // TODO(b/169780122): Remove this workaround once Trusty no longer defines it.
 // TODO(b/291101350): Remove this workaround once Android baremetal no longer
 // defines it.
-#if defined(__linux__) && !defined(__TRUSTY__) && !defined(ANDROID_BAREMETAL)
+#if defined(__linux__) && !defined(__TRUSTY__) && \
+    !defined(ANDROID_BAREMETAL) && !defined(OPENSSL_NANOLIBC)
 #define OPENSSL_LINUX
 #endif
 
@@ -111,6 +128,30 @@
 // Defining this on any other platform is not supported. Other embedded
 // platforms must introduce their own defines.
 #if defined(ANDROID_BAREMETAL)
+#define OPENSSL_NO_FILESYSTEM
+#define OPENSSL_NO_POSIX_IO
+#define OPENSSL_NO_SOCK
+#define OPENSSL_NO_THREADS_CORRUPT_MEMORY_AND_LEAK_SECRETS_IF_THREADED
+#endif
+
+// CROS_EC is an embedded target for ChromeOS Embedded Controller. Defining
+// this on any other platform is not supported. Other embedded platforms must
+// introduce their own defines.
+//
+// https://chromium.googlesource.com/chromiumos/platform/ec/+/HEAD/README.md
+#if defined(CROS_EC)
+#define OPENSSL_NO_FILESYSTEM
+#define OPENSSL_NO_POSIX_IO
+#define OPENSSL_NO_SOCK
+#define OPENSSL_NO_THREADS_CORRUPT_MEMORY_AND_LEAK_SECRETS_IF_THREADED
+#endif
+
+// CROS_ZEPHYR is an embedded target for ChromeOS Zephyr Embedded Controller.
+// Defining this on any other platform is not supported. Other embedded
+// platforms must introduce their own defines.
+//
+// https://chromium.googlesource.com/chromiumos/platform/ec/+/HEAD/docs/zephyr/README.md
+#if defined(CROS_ZEPHYR)
 #define OPENSSL_NO_FILESYSTEM
 #define OPENSSL_NO_POSIX_IO
 #define OPENSSL_NO_SOCK

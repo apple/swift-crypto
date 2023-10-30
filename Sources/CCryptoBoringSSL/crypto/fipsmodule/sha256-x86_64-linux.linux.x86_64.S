@@ -1733,7 +1733,7 @@ _CET_ENDBR
 	leaq	(%rsi),%rsp
 .cfi_def_cfa_register	%rsp
 .Lepilogue:
-	.byte	0xf3,0xc3
+	ret
 .cfi_endproc	
 .size	sha256_block_data_order,.-sha256_block_data_order
 .section	.rodata
@@ -1987,7 +1987,7 @@ sha256_block_data_order_shaext:
 
 	movdqu	%xmm1,(%rdi)
 	movdqu	%xmm2,16(%rdi)
-	.byte	0xf3,0xc3
+	ret
 .cfi_endproc	
 .size	sha256_block_data_order_shaext,.-sha256_block_data_order_shaext
 .type	sha256_block_data_order_ssse3,@function
@@ -3100,7 +3100,7 @@ sha256_block_data_order_ssse3:
 	leaq	(%rsi),%rsp
 .cfi_def_cfa_register	%rsp
 .Lepilogue_ssse3:
-	.byte	0xf3,0xc3
+	ret
 .cfi_endproc	
 .size	sha256_block_data_order_ssse3,.-sha256_block_data_order_ssse3
 .type	sha256_block_data_order_avx,@function
@@ -4175,7 +4175,7 @@ sha256_block_data_order_avx:
 	leaq	(%rsi),%rsp
 .cfi_def_cfa_register	%rsp
 .Lepilogue_avx:
-	.byte	0xf3,0xc3
+	ret
 .cfi_endproc	
 .size	sha256_block_data_order_avx,.-sha256_block_data_order_avx
 #endif

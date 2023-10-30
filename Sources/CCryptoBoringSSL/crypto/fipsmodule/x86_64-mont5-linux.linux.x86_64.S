@@ -452,7 +452,7 @@ _CET_ENDBR
 	leaq	(%rsi),%rsp
 .cfi_def_cfa_register	%rsp
 .Lmul_epilogue:
-	.byte	0xf3,0xc3
+	ret
 .cfi_endproc	
 .size	bn_mul_mont_gather5,.-bn_mul_mont_gather5
 .type	bn_mul4x_mont_gather5,@function
@@ -557,7 +557,7 @@ bn_mul4x_mont_gather5:
 	leaq	(%rsi),%rsp
 .cfi_def_cfa_register	%rsp
 .Lmul4x_epilogue:
-	.byte	0xf3,0xc3
+	ret
 .cfi_endproc	
 .size	bn_mul4x_mont_gather5,.-bn_mul4x_mont_gather5
 
@@ -1224,7 +1224,7 @@ _CET_ENDBR
 	leaq	(%rsi),%rsp
 .cfi_def_cfa_register	%rsp
 .Lpower5_epilogue:
-	.byte	0xf3,0xc3
+	ret
 .cfi_endproc	
 .size	bn_power5,.-bn_power5
 
@@ -2010,7 +2010,7 @@ __bn_sqr8x_reduction:
 
 	cmpq	%rdx,%rdi
 	jb	.L8x_reduction_loop
-	.byte	0xf3,0xc3
+	ret
 .cfi_endproc	
 .size	bn_sqr8x_internal,.-bn_sqr8x_internal
 .type	__bn_post4x_internal,@function
@@ -2066,7 +2066,7 @@ __bn_post4x_internal:
 
 	movq	%r9,%r10
 	negq	%r9
-	.byte	0xf3,0xc3
+	ret
 .cfi_endproc	
 .size	__bn_post4x_internal,.-__bn_post4x_internal
 .type	bn_mulx4x_mont_gather5,@function
@@ -2176,7 +2176,7 @@ bn_mulx4x_mont_gather5:
 	leaq	(%rsi),%rsp
 .cfi_def_cfa_register	%rsp
 .Lmulx4x_epilogue:
-	.byte	0xf3,0xc3
+	ret
 .cfi_endproc	
 .size	bn_mulx4x_mont_gather5,.-bn_mulx4x_mont_gather5
 
@@ -2737,7 +2737,7 @@ bn_powerx5:
 	leaq	(%rsi),%rsp
 .cfi_def_cfa_register	%rsp
 .Lpowerx5_epilogue:
-	.byte	0xf3,0xc3
+	ret
 .cfi_endproc	
 .size	bn_powerx5,.-bn_powerx5
 
@@ -3360,7 +3360,7 @@ __bn_sqrx8x_reduction:
 	leaq	64(%rdi,%rcx,1),%rdi
 	cmpq	8+8(%rsp),%r8
 	jb	.Lsqrx8x_reduction_loop
-	.byte	0xf3,0xc3
+	ret
 .cfi_endproc	
 .size	bn_sqrx8x_internal,.-bn_sqrx8x_internal
 .align	32
@@ -3413,7 +3413,7 @@ __bn_postx4x_internal:
 
 	negq	%r9
 
-	.byte	0xf3,0xc3
+	ret
 .cfi_endproc	
 .size	__bn_postx4x_internal,.-__bn_postx4x_internal
 .globl	bn_scatter5
@@ -3443,7 +3443,7 @@ _CET_ENDBR
 	subl	$1,%esi
 	jnz	.Lscatter
 .Lscatter_epilogue:
-	.byte	0xf3,0xc3
+	ret
 .cfi_endproc	
 .size	bn_scatter5,.-bn_scatter5
 
@@ -3613,7 +3613,7 @@ _CET_ENDBR
 
 	leaq	(%r10),%rsp
 .cfi_def_cfa_register	%rsp
-	.byte	0xf3,0xc3
+	ret
 .LSEH_end_bn_gather5:
 .cfi_endproc	
 .size	bn_gather5,.-bn_gather5

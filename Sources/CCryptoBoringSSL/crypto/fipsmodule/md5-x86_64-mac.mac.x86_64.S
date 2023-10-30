@@ -686,7 +686,7 @@ L$end:
 	addq	$40,%rsp
 
 L$epilogue:
-	.byte	0xf3,0xc3
+	ret
 
 
 #endif

@@ -1728,7 +1728,7 @@ L$rounds_16_xx:
 	leaq	(%rsi),%rsp
 
 L$epilogue:
-	.byte	0xf3,0xc3
+	ret
 
 
 .section	__DATA,__const
@@ -2982,7 +2982,7 @@ L$avx_00_47:
 	leaq	(%rsi),%rsp
 
 L$epilogue_avx:
-	.byte	0xf3,0xc3
+	ret
 
 
 #endif
