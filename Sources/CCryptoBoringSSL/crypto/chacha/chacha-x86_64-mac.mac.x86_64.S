@@ -322,7 +322,7 @@ L$done:
 	leaq	(%rsi),%rsp
 
 L$no_data:
-	.byte	0xf3,0xc3
+	ret
 
 
 
@@ -459,7 +459,7 @@ L$done_ssse3:
 	leaq	(%r9),%rsp
 
 L$ssse3_epilogue:
-	.byte	0xf3,0xc3
+	ret
 
 
 
@@ -1011,7 +1011,7 @@ L$done4x:
 	leaq	(%r9),%rsp
 
 L$4x_epilogue:
-	.byte	0xf3,0xc3
+	ret
 
 
 
@@ -1617,7 +1617,7 @@ L$done8x:
 	leaq	(%r9),%rsp
 
 L$8x_epilogue:
-	.byte	0xf3,0xc3
+	ret
 
 
 #endif

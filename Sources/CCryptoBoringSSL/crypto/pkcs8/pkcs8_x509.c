@@ -339,8 +339,8 @@ static int parse_bag_attributes(CBS *attrs, uint8_t **out_friendly_name,
       }
       while (CBS_len(&value) != 0) {
         uint32_t c;
-        if (!cbs_get_ucs2_be(&value, &c) ||
-            !cbb_add_utf8(&cbb, c)) {
+        if (!CBS_get_ucs2_be(&value, &c) ||
+            !CBB_add_utf8(&cbb, c)) {
           OPENSSL_PUT_ERROR(PKCS8, PKCS8_R_INVALID_CHARACTERS);
           CBB_cleanup(&cbb);
           goto err;
@@ -741,26 +741,22 @@ struct pkcs12_st {
 
 PKCS12 *d2i_PKCS12(PKCS12 **out_p12, const uint8_t **ber_bytes,
                    size_t ber_len) {
-  PKCS12 *p12;
-
-  p12 = OPENSSL_malloc(sizeof(PKCS12));
+  PKCS12 *p12 = OPENSSL_malloc(sizeof(PKCS12));
   if (!p12) {
     return NULL;
   }
 
-  p12->ber_bytes = OPENSSL_malloc(ber_len);
+  p12->ber_bytes = OPENSSL_memdup(*ber_bytes, ber_len);
   if (!p12->ber_bytes) {
     OPENSSL_free(p12);
     return NULL;
   }
 
-  OPENSSL_memcpy(p12->ber_bytes, *ber_bytes, ber_len);
   p12->ber_len = ber_len;
   *ber_bytes += ber_len;
 
   if (out_p12) {
     PKCS12_free(*out_p12);
-
     *out_p12 = p12;
   }
 
@@ -843,11 +839,10 @@ int i2d_PKCS12(const PKCS12 *p12, uint8_t **out) {
   }
 
   if (*out == NULL) {
-    *out = OPENSSL_malloc(p12->ber_len);
+    *out = OPENSSL_memdup(p12->ber_bytes, p12->ber_len);
     if (*out == NULL) {
       return -1;
     }
-    OPENSSL_memcpy(*out, p12->ber_bytes, p12->ber_len);
   } else {
     OPENSSL_memcpy(*out, p12->ber_bytes, p12->ber_len);
     *out += p12->ber_len;
@@ -972,8 +967,8 @@ static int add_bag_attributes(CBB *bag, const char *name, size_t name_len,
     CBS_init(&name_cbs, (const uint8_t *)name, name_len);
     while (CBS_len(&name_cbs) != 0) {
       uint32_t c;
-      if (!cbs_get_utf8(&name_cbs, &c) ||
-          !cbb_add_ucs2_be(&value, c)) {
+      if (!CBS_get_utf8(&name_cbs, &c) ||
+          !CBB_add_ucs2_be(&value, c)) {
         OPENSSL_PUT_ERROR(PKCS8, PKCS8_R_INVALID_CHARACTERS);
         return 0;
       }
