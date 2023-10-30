@@ -23,6 +23,9 @@ final class TestRSAEncryption: XCTestCase {
             jsonName: "rsa_oaep_2048_sha1_mgf1sha1_test",
             testFunction: self.testOAEPGroup)
         try wycheproofTest(
+            jsonName: "rsa_oaep_2048_sha256_mgf1sha256_test",
+            testFunction: self.testOAEPGroup)
+        try wycheproofTest(
             jsonName: "rsa_oaep_misc_test",
             testFunction: self.testOAEPGroup)
     }

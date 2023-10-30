@@ -294,8 +294,6 @@ extension BoringSSLRSAPublicKey {
                             break // default case, nothing to set
                         case .sha256:
                             CCryptoBoringSSL_EVP_PKEY_CTX_set_rsa_oaep_md(ctx, CCryptoBoringSSL_EVP_sha256())
-                        case .md4, .md5, .sha224, .sha384, .sha512, .sha512_256, .blake2b256:
-                            preconditionFailure("Unsupported PKCS1 OAEP digest")
                         }
                     }
 
@@ -540,8 +538,6 @@ extension BoringSSLRSAPrivateKey {
                             break // default case, nothing to set
                         case .sha256:
                             CCryptoBoringSSL_EVP_PKEY_CTX_set_rsa_oaep_md(ctx, CCryptoBoringSSL_EVP_sha256())
-                        case .md4, .md5, .sha224, .sha384, .sha512, .sha512_256, .blake2b256:
-                            preconditionFailure("Unsupported PKCS1 OAEP digest")
                         }
                     }
 

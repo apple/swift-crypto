@@ -418,15 +418,8 @@ extension _RSA.Encryption {
     }
 
     internal enum Digest {
-        case md4
-        case md5
         case sha1
-        case sha224
         case sha256
-        case sha384
-        case sha512
-        case sha512_256
-        case blake2b256
     }
 }
 
