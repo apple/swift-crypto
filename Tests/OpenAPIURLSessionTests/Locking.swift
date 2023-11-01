@@ -20,8 +20,7 @@ import Foundation
 /// performed manually using locks.
 ///
 /// Note: Use the `package` access modifier once min Swift version is increased.
-@_spi(Locking)
-public final class LockedValueBox<Value: Sendable>: @unchecked Sendable {
+@_spi(Locking) public final class LockedValueBox<Value: Sendable>: @unchecked Sendable {
     private let lock: NSLock = {
         let lock = NSLock()
         lock.name = "com.apple.swift-openapi-urlsession.lock.LockedValueBox"
@@ -31,9 +30,7 @@ public final class LockedValueBox<Value: Sendable>: @unchecked Sendable {
     /// Initializes a new `LockedValueBox` instance with the provided initial value.
     ///
     /// - Parameter value: The initial value to store in the `LockedValueBox`.
-    public init(_ value: Value) {
-        self.value = value
-    }
+    public init(_ value: Value) { self.value = value }
     /// Perform an operation on the value in a synchronized manner.
     ///
     /// - Parameter work: A closure that takes an inout reference to the wrapped value and returns a result.
@@ -42,9 +39,7 @@ public final class LockedValueBox<Value: Sendable>: @unchecked Sendable {
     /// - Returns: The result of the closure passed to `work`.
     public func withValue<R>(_ work: (inout Value) throws -> R) rethrows -> R {
         lock.lock()
-        defer {
-            lock.unlock()
-        }
+        defer { lock.unlock() }
         return try work(&value)
     }
 }

@@ -37,16 +37,10 @@ class URLSessionTransportTests: XCTestCase {
             scheme: nil,
             authority: nil,
             path: "/hello%20world/Maria?greeting=Howdy",
-            headerFields: [
-                .init("x-mumble2")!: "mumble"
-            ]
+            headerFields: [.init("x-mumble2")!: "mumble"]
         )
         let body: HTTPBody = "👋"
-        let urlRequest = try await URLRequest(
-            request,
-            body: body,
-            baseURL: URL(string: "http://example.com/api")!
-        )
+        let urlRequest = try await URLRequest(request, body: body, baseURL: URL(string: "http://example.com/api")!)
         XCTAssertEqual(urlRequest.url, URL(string: "http://example.com/api/hello%20world/Maria?greeting=Howdy"))
         XCTAssertEqual(urlRequest.httpMethod, "POST")
         XCTAssertEqual(urlRequest.allHTTPHeaderFields?.count, 1)
@@ -91,9 +85,7 @@ class URLSessionTransportTests: XCTestCase {
             scheme: nil,
             authority: nil,
             path: "/hello%20world/Maria?greeting=Howdy",
-            headerFields: [
-                .init("x-mumble1")!: "mumble"
-            ]
+            headerFields: [.init("x-mumble1")!: "mumble"]
         )
         let requestBody: HTTPBody = "👋"
         let (response, maybeResponseBody) = try await transport.send(
@@ -128,18 +120,13 @@ class MockURLProtocol: URLProtocol {
     override func startLoading() {
         Self.recordedHTTPRequests.withValue { $0.append(self.request) }
         guard let url = self.request.url else { return }
-        guard let response = Self.mockHTTPResponses.withValue({ $0[url] }) else {
-            return
-        }
+        guard let response = Self.mockHTTPResponses.withValue({ $0[url] }) else { return }
         switch response {
         case .success(let mockResponse):
             client?.urlProtocol(self, didReceive: mockResponse.response, cacheStoragePolicy: .notAllowed)
-            if let data = mockResponse.body {
-                client?.urlProtocol(self, didLoad: data)
-            }
+            if let data = mockResponse.body { client?.urlProtocol(self, didLoad: data) }
             client?.urlProtocolDidFinishLoading(self)
-        case let .failure(error):
-            client?.urlProtocol(self, didFailWithError: error)
+        case let .failure(error): client?.urlProtocol(self, didFailWithError: error)
         }
     }
 

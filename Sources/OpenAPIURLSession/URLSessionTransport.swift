@@ -74,9 +74,7 @@ public struct URLSessionTransport: ClientTransport {
         /// Creates a new configuration with the provided session.
         /// - Parameter session: The URLSession used for performing HTTP operations.
         ///     If none is provided, the system uses the shared URLSession.
-        public init(session: URLSession = .shared) {
-            self.session = session
-        }
+        public init(session: URLSession = .shared) { self.session = session }
     }
 
     /// A set of configuration values used by the transport.
@@ -84,9 +82,7 @@ public struct URLSessionTransport: ClientTransport {
 
     /// Creates a new URLSession-based transport.
     /// - Parameter configuration: A set of configuration values used by the transport.
-    public init(configuration: Configuration = .init()) {
-        self.configuration = configuration
-    }
+    public init(configuration: Configuration = .init()) { self.configuration = configuration }
 
     /// Asynchronously sends an HTTP request and returns the response and body.
     ///
@@ -97,20 +93,13 @@ public struct URLSessionTransport: ClientTransport {
     ///   - operationID: An optional identifier for the operation or request.
     /// - Returns: A tuple containing the HTTP response and an optional HTTP response body.
     /// - Throws: An error if there is a problem sending the request or processing the response.
-    public func send(
-        _ request: HTTPRequest,
-        body: HTTPBody?,
-        baseURL: URL,
-        operationID: String
-    ) async throws -> (HTTPResponse, HTTPBody?) {
+    public func send(_ request: HTTPRequest, body: HTTPBody?, baseURL: URL, operationID: String) async throws -> (
+        HTTPResponse, HTTPBody?
+    ) {
         // TODO: https://github.com/apple/swift-openapi-generator/issues/301
         let urlRequest = try await URLRequest(request, body: body, baseURL: baseURL)
         let (responseBody, urlResponse) = try await invokeSession(urlRequest)
-        return try HTTPResponse.response(
-            method: request.method,
-            urlResponse: urlResponse,
-            data: responseBody
-        )
+        return try HTTPResponse.response(method: request.method, urlResponse: urlResponse, data: responseBody)
     }
 
     private func invokeSession(_ urlRequest: URLRequest) async throws -> (Data, URLResponse) {
@@ -124,15 +113,11 @@ public struct URLSessionTransport: ClientTransport {
                     }
 
                     guard let response else {
-                        continuation.resume(
-                            with: .failure(URLSessionTransportError.noResponse(url: urlRequest.url))
-                        )
+                        continuation.resume(with: .failure(URLSessionTransportError.noResponse(url: urlRequest.url)))
                         return
                     }
 
-                    continuation.resume(
-                        with: .success((data ?? Data(), response))
-                    )
+                    continuation.resume(with: .success((data ?? Data(), response)))
                 }
                 .resume()
         }
@@ -153,46 +138,31 @@ internal enum URLSessionTransportError: Error {
 }
 
 extension HTTPResponse {
-    static func response(
-        method: HTTPRequest.Method,
-        urlResponse: URLResponse,
-        data: Data
-    ) throws -> (HTTPResponse, HTTPBody?) {
+    static func response(method: HTTPRequest.Method, urlResponse: URLResponse, data: Data) throws -> (
+        HTTPResponse, HTTPBody?
+    ) {
         guard let httpResponse = urlResponse as? HTTPURLResponse else {
             throw URLSessionTransportError.notHTTPResponse(urlResponse)
         }
         var headerFields = HTTPFields()
         for (headerName, headerValue) in httpResponse.allHeaderFields {
-            guard
-                let rawName = headerName as? String,
-                let name = HTTPField.Name(rawName),
+            guard let rawName = headerName as? String, let name = HTTPField.Name(rawName),
                 let value = headerValue as? String
-            else {
-                continue
-            }
+            else { continue }
             headerFields[name] = value
         }
         let body: HTTPBody?
         switch method {
-        case .head, .connect, .trace:
-            body = nil
-        default:
-            body = .init(data)
+        case .head, .connect, .trace: body = nil
+        default: body = .init(data)
         }
-        return (
-            HTTPResponse(
-                status: .init(code: httpResponse.statusCode),
-                headerFields: headerFields
-            ),
-            body
-        )
+        return (HTTPResponse(status: .init(code: httpResponse.statusCode), headerFields: headerFields), body)
     }
 }
 
 extension URLRequest {
     init(_ request: HTTPRequest, body: HTTPBody?, baseURL: URL) async throws {
-        guard
-            var baseUrlComponents = URLComponents(string: baseURL.absoluteString),
+        guard var baseUrlComponents = URLComponents(string: baseURL.absoluteString),
             let requestUrlComponents = URLComponents(string: request.path ?? "")
         else {
             throw URLSessionTransportError.invalidRequestURL(
@@ -206,11 +176,7 @@ extension URLRequest {
         baseUrlComponents.percentEncodedPath += path
         baseUrlComponents.percentEncodedQuery = requestUrlComponents.percentEncodedQuery
         guard let url = baseUrlComponents.url else {
-            throw URLSessionTransportError.invalidRequestURL(
-                path: path,
-                method: request.method,
-                baseURL: baseURL
-            )
+            throw URLSessionTransportError.invalidRequestURL(path: path, method: request.method, baseURL: baseURL)
         }
         self.init(url: url)
         self.httpMethod = request.method.rawValue
@@ -238,8 +204,7 @@ extension URLSessionTransportError: CustomStringConvertible {
                 "Invalid request URL from request path: \(path), method: \(method), relative to base URL: \(baseURL.absoluteString)"
         case .notHTTPResponse(let response):
             return "Received a non-HTTP response, of type: \(String(describing: type(of: response)))"
-        case .noResponse(let url):
-            return "Received a nil response for \(url?.absoluteString ?? "<nil URL>")"
+        case .noResponse(let url): return "Received a nil response for \(url?.absoluteString ?? "<nil URL>")"
         }
     }
 }
