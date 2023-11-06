@@ -266,8 +266,13 @@ extension SecKeyAlgorithm {
     
     fileprivate init(padding: _RSA.Encryption.Padding) throws {
         switch padding.backing {
-        case .pkcs1_oaep:
-            self = .rsaEncryptionOAEPSHA1
+        case .pkcs1_oaep(let digest):
+            switch digest {
+            case .sha1:
+                self = .rsaEncryptionOAEPSHA1
+            case .sha256:
+                self = .rsaEncryptionOAEPSHA256
+            }
         }
     }
 }

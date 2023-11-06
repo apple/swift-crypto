@@ -401,11 +401,11 @@ extension _RSA.Encryption {
 extension _RSA.Encryption {
     public struct Padding {
         internal enum Backing {
-            case pkcs1_oaep
+            case pkcs1_oaep(Digest)
         }
-        
+
         internal var backing: Backing
-        
+
         private init(_ backing: Backing) {
             self.backing = backing
         }
@@ -413,7 +413,13 @@ extension _RSA.Encryption {
         /// PKCS#1 OAEP padding
         ///
         /// As defined by [RFC 8017 § 7.1](https://datatracker.ietf.org/doc/html/rfc8017#section-7.1).
-        public static let PKCS1_OAEP = Self(.pkcs1_oaep)
+        public static let PKCS1_OAEP = Self(.pkcs1_oaep(.sha1))
+        public static let PKCS1_OAEP_SHA256 = Self(.pkcs1_oaep(.sha256))
+    }
+
+    internal enum Digest {
+        case sha1
+        case sha256
     }
 }
 
