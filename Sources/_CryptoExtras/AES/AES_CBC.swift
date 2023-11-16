@@ -40,11 +40,29 @@ extension AES {
         ///   - iv: The initialization vector.
         /// - Returns: The encrypted ciphertext.
         public static func encrypt<Plaintext: DataProtocol>(_ plaintext: Plaintext, using key: SymmetricKey, iv: AES._CBC.IV) throws -> Data {
+            try self.encrypt(plaintext, using: key, iv: iv, noPadding: false)
+        }
+        
+        /// Encrypts data using AES-CBC.
+        ///
+        /// - Parameters:
+        ///   - plaintext: The message to encrypt.
+        ///   - key: A encryption key.
+        ///   - iv: The initialization vector.
+        ///   - noPadding: If set to `true`, padding won't be added.
+        /// - Returns: The encrypted ciphertext.
+        ///
+        /// - Note: If `noPadding` is set to `true`, `plainText` has to be a multiple of the blockSize (16 bytes). Otherwise an error will be thrown.
+        public static func encrypt<Plaintext: DataProtocol>(_ plaintext: Plaintext, using key: SymmetricKey, iv: AES._CBC.IV, noPadding: Bool) throws -> Data {
             guard [128, 192, 256].contains(key.bitCount) else {
                 throw CryptoKitError.incorrectKeySize
             }
 
             let requiresFullPaddingBlock = (plaintext.count % AES._CBC.blockSize) == 0
+
+            if noPadding && !requiresFullPaddingBlock {
+                throw CryptoKitError.incorrectParameterSize
+            }
 
             var ciphertext = Data()
             ciphertext.reserveCapacity(plaintext.count + Self.blockSize)  // Room for padding.
@@ -60,7 +78,7 @@ extension AES {
                 plaintext = plaintext.dropFirst(Self.blockSize)
             }
 
-            if requiresFullPaddingBlock {
+            if requiresFullPaddingBlock && !noPadding {
                 var block = Block.paddingBlock
                 try Self.encryptBlockInPlace(&block, priorCiphertextBlock: previousBlock, using: key)
                 ciphertext.append(contentsOf: block)
@@ -84,6 +102,18 @@ extension AES {
         ///   - iv: The initialization vector.
         /// - Returns: The decrypted message.
         public static func decrypt<Ciphertext: DataProtocol>(_ ciphertext: Ciphertext, using key: SymmetricKey, iv: AES._CBC.IV) throws -> Data {
+            try self.decrypt(ciphertext, using: key, iv: iv, noPadding: false)
+        }
+        
+        /// Decrypts data using AES-CBC.
+        ///
+        /// - Parameters:
+        ///   - ciphertext: The encrypted ciphertext.
+        ///   - key: A decryption key.
+        ///   - iv: The initialization vector.
+        ///   - noPadding: If this is set to `true`, padding won't be removed.
+        /// - Returns: The decrypted message.
+        public static func decrypt<Ciphertext: DataProtocol>(_ ciphertext: Ciphertext, using key: SymmetricKey, iv: AES._CBC.IV, noPadding: Bool = false) throws -> Data {
             guard [128, 192, 256].contains(key.bitCount) else {
                 throw CryptoKitError.incorrectKeySize
             }
@@ -103,7 +133,9 @@ extension AES {
                 ciphertext = ciphertext.dropFirst(Self.blockSize)
             }
 
-            try plaintext.trimPadding()
+            if !noPadding {
+                try plaintext.trimPadding()
+            }
             return plaintext
         }
     }
