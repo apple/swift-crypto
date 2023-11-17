@@ -20,12 +20,12 @@ import Foundation
 @preconcurrency import struct Foundation.URLComponents
 @preconcurrency import struct Foundation.Data
 @preconcurrency import protocol Foundation.LocalizedError
-#endif
 #if canImport(FoundationNetworking)
 @preconcurrency import struct FoundationNetworking.URLRequest
 @preconcurrency import class FoundationNetworking.URLSession
 @preconcurrency import class FoundationNetworking.URLResponse
 @preconcurrency import class FoundationNetworking.HTTPURLResponse
+#endif
 #endif
 
 /// A client transport that performs HTTP operations using the URLSession type
@@ -73,8 +73,23 @@ public struct URLSessionTransport: ClientTransport {
 
         /// Creates a new configuration with the provided session.
         /// - Parameter session: The URLSession used for performing HTTP operations.
-        ///     If none is provided, the system uses the shared URLSession.
-        public init(session: URLSession = .shared) { self.session = session }
+        ///   If none is provided, the system uses the shared URLSession.
+        public init(session: URLSession = .shared) { self.init(session: session, implementation: .platformDefault) }
+
+        enum Implementation {
+            case buffering
+            case streaming(requestBodyStreamBufferSize: Int, responseBodyStreamWatermarks: (low: Int, high: Int))
+        }
+
+        var implemenation: Implementation
+
+        init(session: URLSession = .shared, implementation: Implementation = .platformDefault) {
+            self.session = session
+            if case .streaming = implementation {
+                precondition(Implementation.platformSupportsStreaming, "Streaming not supported on platform")
+            }
+            self.implemenation = implementation
+        }
     }
 
     /// A set of configuration values used by the transport.
@@ -84,42 +99,50 @@ public struct URLSessionTransport: ClientTransport {
     /// - Parameter configuration: A set of configuration values used by the transport.
     public init(configuration: Configuration = .init()) { self.configuration = configuration }
 
-    /// Asynchronously sends an HTTP request and returns the response and body.
-    ///
+    /// Sends the underlying HTTP request and returns the received HTTP response.
     /// - Parameters:
-    ///   - request: The HTTP request to be sent.
-    ///   - body: The HTTP body to include in the request (optional).
-    ///   - baseURL: The base URL for the request.
-    ///   - operationID: An optional identifier for the operation or request.
-    /// - Returns: A tuple containing the HTTP response and an optional HTTP response body.
-    /// - Throws: An error if there is a problem sending the request or processing the response.
-    public func send(_ request: HTTPRequest, body: HTTPBody?, baseURL: URL, operationID: String) async throws -> (
-        HTTPResponse, HTTPBody?
-    ) {
-        // TODO: https://github.com/apple/swift-openapi-generator/issues/301
-        let urlRequest = try await URLRequest(request, body: body, baseURL: baseURL)
-        let (responseBody, urlResponse) = try await invokeSession(urlRequest)
-        return try HTTPResponse.response(method: request.method, urlResponse: urlResponse, data: responseBody)
+    ///   - request: An HTTP request.
+    ///   - requestBody: An HTTP request body.
+    ///   - baseURL: A server base URL.
+    ///   - operationID: The identifier of the OpenAPI operation.
+    /// - Returns: An HTTP response and its body.
+    /// - Throws: If there was an error performing the HTTP request.
+    public func send(_ request: HTTPRequest, body requestBody: HTTPBody?, baseURL: URL, operationID: String)
+        async throws -> (HTTPResponse, HTTPBody?)
+    {
+        switch self.configuration.implemenation {
+        case .streaming(let requestBodyStreamBufferSize, let responseBodyStreamWatermarks):
+            #if canImport(Darwin)
+            guard #available(macOS 12, iOS 15, tvOS 15, watchOS 8, *) else {
+                throw URLSessionTransportError.streamingNotSupported
+            }
+            return try await configuration.session.bidirectionalStreamingRequest(
+                for: request,
+                baseURL: baseURL,
+                requestBody: requestBody,
+                requestStreamBufferSize: requestBodyStreamBufferSize,
+                responseStreamWatermarks: responseBodyStreamWatermarks
+            )
+            #else
+            throw URLSessionTransportError.streamingNotSupported
+            #endif
+        case .buffering:
+            return try await configuration.session.bufferedRequest(
+                for: request,
+                baseURL: baseURL,
+                requestBody: requestBody
+            )
+        }
     }
+}
 
-    private func invokeSession(_ urlRequest: URLRequest) async throws -> (Data, URLResponse) {
-        // Using `dataTask(with:completionHandler:)` instead of the async method `data(for:)` of URLSession because the latter is not available on linux platforms
-        return try await withCheckedThrowingContinuation { continuation in
-            configuration.session
-                .dataTask(with: urlRequest) { data, response, error in
-                    if let error {
-                        continuation.resume(with: .failure(error))
-                        return
-                    }
-
-                    guard let response else {
-                        continuation.resume(with: .failure(URLSessionTransportError.noResponse(url: urlRequest.url)))
-                        return
-                    }
-
-                    continuation.resume(with: .success((data ?? Data(), response)))
-                }
-                .resume()
+extension HTTPBody.Length {
+    init(from urlResponse: URLResponse) {
+        if urlResponse.expectedContentLength == -1 {
+            self = .unknown
+        } else {
+            // TODO: Content-Length will change to Int64: https://github.com/apple/swift-openapi-generator/issues/354
+            self = .known(Int(urlResponse.expectedContentLength))
         }
     }
 }
@@ -135,12 +158,13 @@ internal enum URLSessionTransportError: Error {
 
     /// Returned `URLResponse` was nil
     case noResponse(url: URL?)
+
+    /// Platform does not support streaming.
+    case streamingNotSupported
 }
 
 extension HTTPResponse {
-    static func response(method: HTTPRequest.Method, urlResponse: URLResponse, data: Data) throws -> (
-        HTTPResponse, HTTPBody?
-    ) {
+    init(_ urlResponse: URLResponse) throws {
         guard let httpResponse = urlResponse as? HTTPURLResponse else {
             throw URLSessionTransportError.notHTTPResponse(urlResponse)
         }
@@ -151,17 +175,12 @@ extension HTTPResponse {
             else { continue }
             headerFields[name] = value
         }
-        let body: HTTPBody?
-        switch method {
-        case .head, .connect, .trace: body = nil
-        default: body = .init(data)
-        }
-        return (HTTPResponse(status: .init(code: httpResponse.statusCode), headerFields: headerFields), body)
+        self.init(status: .init(code: httpResponse.statusCode), headerFields: headerFields)
     }
 }
 
 extension URLRequest {
-    init(_ request: HTTPRequest, body: HTTPBody?, baseURL: URL) async throws {
+    init(_ request: HTTPRequest, baseURL: URL) throws {
         guard var baseUrlComponents = URLComponents(string: baseURL.absoluteString),
             let requestUrlComponents = URLComponents(string: request.path ?? "")
         else {
@@ -183,20 +202,16 @@ extension URLRequest {
         for header in request.headerFields {
             self.setValue(header.value, forHTTPHeaderField: header.name.canonicalName)
         }
-        if let body {
-            // TODO: https://github.com/apple/swift-openapi-generator/issues/301
-            self.httpBody = try await Data(collecting: body, upTo: .max)
-        }
     }
 }
 
 extension URLSessionTransportError: LocalizedError {
-    /// A custom error description for `URLSessionTransportError`.
+    /// A localized message describing what error occurred.
     public var errorDescription: String? { description }
 }
 
 extension URLSessionTransportError: CustomStringConvertible {
-    /// A custom textual representation for `URLSessionTransportError`.
+    /// A textual representation of this instance.
     public var description: String {
         switch self {
         case let .invalidRequestURL(path: path, method: method, baseURL: baseURL):
@@ -205,6 +220,73 @@ extension URLSessionTransportError: CustomStringConvertible {
         case .notHTTPResponse(let response):
             return "Received a non-HTTP response, of type: \(String(describing: type(of: response)))"
         case .noResponse(let url): return "Received a nil response for \(url?.absoluteString ?? "<nil URL>")"
+        case .streamingNotSupported: return "Streaming is not supported on this platform"
         }
+    }
+}
+
+private let _debugLoggingEnabled = LockStorage.create(value: false)
+var debugLoggingEnabled: Bool {
+    get { _debugLoggingEnabled.withLockedValue { $0 } }
+    set { _debugLoggingEnabled.withLockedValue { $0 = newValue } }
+}
+func debug(_ items: Any..., separator: String = " ", terminator: String = "\n") {
+    assert(
+        {
+            if debugLoggingEnabled { print(items, separator: separator, terminator: terminator) }
+            return true
+        }()
+    )
+}
+
+extension URLSession {
+    func bufferedRequest(for request: HTTPRequest, baseURL: URL, requestBody: HTTPBody?) async throws -> (
+        HTTPResponse, HTTPBody?
+    ) {
+        var urlRequest = try URLRequest(request, baseURL: baseURL)
+        if let requestBody { urlRequest.httpBody = try await Data(collecting: requestBody, upTo: .max) }
+
+        /// Use `dataTask(with:completionHandler:)` here because `data(for:[delegate:]) async` is only available on
+        /// Darwin platforms newer than our minimum deployment target, and not at all on Linux.
+        let (response, maybeResponseBodyData): (URLResponse, Data?) = try await withCheckedThrowingContinuation {
+            continuation in
+            let task = self.dataTask(with: urlRequest) { [urlRequest] data, response, error in
+                if let error {
+                    continuation.resume(throwing: error)
+                    return
+                }
+                guard let response else {
+                    continuation.resume(throwing: URLSessionTransportError.noResponse(url: urlRequest.url))
+                    return
+                }
+                continuation.resume(with: .success((response, data)))
+            }
+            task.resume()
+        }
+
+        let maybeResponseBody = maybeResponseBodyData.map { data in
+            HTTPBody(data, length: HTTPBody.Length(from: response), iterationBehavior: .multiple)
+        }
+        return (try HTTPResponse(response), maybeResponseBody)
+    }
+}
+
+extension URLSessionTransport.Configuration.Implementation {
+    static var platformSupportsStreaming: Bool {
+        #if canImport(Darwin)
+        guard #available(macOS 12, iOS 15, tvOS 15, watchOS 8, *) else { return false }
+        _ = URLSession.bidirectionalStreamingRequest
+        return true
+        #else
+        return false
+        #endif
+    }
+
+    static var platformDefault: Self {
+        guard platformSupportsStreaming else { return .buffering }
+        return .streaming(
+            requestBodyStreamBufferSize: 16 * 1024,
+            responseBodyStreamWatermarks: (low: 16 * 1024, high: 32 * 1024)
+        )
     }
 }

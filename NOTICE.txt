@@ -32,3 +32,21 @@ This product contains derivations of various scripts from SwiftNIO.
     * https://www.apache.org/licenses/LICENSE-2.0
   * HOMEPAGE:
     * https://github.com/apple/swift-nio
+
+-------------------------------------------------------------------------------
+
+This product contains AsyncSequence implementations from Swift Async Algorithms.
+
+  * LICENSE (Apache License 2.0):
+    * https://github.com/apple/swift-async-algorithms/blob/main/LICENSE.txt
+  * HOMEPAGE:
+    * https://github.com/apple/swift-async-algorithms
+
+-------------------------------------------------------------------------------
+
+This product contains AsyncSequence implementations from Swift.
+
+  * LICENSE (Apache License 2.0):
+    * https://github.com/apple/swift/blob/main/LICENSE.txt
+  * HOMEPAGE:
+    * https://github.com/apple/swift

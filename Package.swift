@@ -24,7 +24,15 @@ swiftSettings.append(
     // Require `any` for existential types.
     .enableUpcomingFeature("ExistentialAny")
 )
+
+// Strict concurrency is enabled in CI; use this environment variable to enable it locally.
+if ProcessInfo.processInfo.environment["SWIFT_OPENAPI_STRICT_CONCURRENCY"].flatMap(Bool.init) ?? false {
+    swiftSettings.append(contentsOf: [
+        .define("SWIFT_OPENAPI_STRICT_CONCURRENCY"), .enableExperimentalFeature("StrictConcurrency"),
+    ])
+}
 #endif
+
 
 let package = Package(
     name: "swift-openapi-urlsession",
@@ -40,19 +48,29 @@ let package = Package(
     dependencies: [
         .package(url: "https://github.com/apple/swift-openapi-runtime", .upToNextMinor(from: "0.3.0")),
         .package(url: "https://github.com/apple/swift-docc-plugin", from: "1.0.0"),
+        .package(url: "https://github.com/apple/swift-collections", from: "1.0.0"),
     ],
     targets: [
         .target(
             name: "OpenAPIURLSession",
             dependencies: [
+                .product(name: "DequeModule", package: "swift-collections"),
                 .product(name: "OpenAPIRuntime", package: "swift-openapi-runtime"),
             ],
             swiftSettings: swiftSettings
         ),
         .testTarget(
             name: "OpenAPIURLSessionTests",
-            dependencies: ["OpenAPIURLSession"],
+            dependencies: [
+                "OpenAPIURLSession",
+                .product(name: "NIOTestUtils", package: "swift-nio"),
+            ],
             swiftSettings: swiftSettings
         ),
     ]
 )
+
+// Test-only dependencies.
+package.dependencies += [
+    .package(url: "https://github.com/apple/swift-nio", from: "2.62.0")
+]
