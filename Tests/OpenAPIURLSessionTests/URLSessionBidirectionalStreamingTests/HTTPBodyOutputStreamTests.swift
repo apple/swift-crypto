@@ -60,10 +60,12 @@ class HTTPBodyOutputStreamBridgeTests: XCTestCase {
         XCTAssertNil(inputStream.streamError)
 
         // Check the output stream closes gracefully in response to the input stream closing.
-        HTTPBodyOutputStreamBridge.streamQueue.asyncAndWait {
-            XCTAssertEqual(requestStream.outputStream.streamStatus, .closed)
-            XCTAssertNil(requestStream.outputStream.streamError)
-        }
+        HTTPBodyOutputStreamBridge.streamQueue.asyncAndWait(
+            execute: DispatchWorkItem {
+                XCTAssertEqual(requestStream.outputStream.streamStatus, .closed)
+                XCTAssertNil(requestStream.outputStream.streamError)
+            }
+        )
     }
 
     func testHTTPBodyOutputStreamBridgeBackpressure() async throws {

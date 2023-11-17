@@ -305,7 +305,7 @@ class URLSessionBidirectionalStreamingTests: XCTestCase {
         // Just count the bytes received and verify the total matches what the server sent.
         case count
         // Add some artificial delay to simulate business logic to show how the backpressure mechanism works (or not).
-        case delay(Duration)
+        case delay(TimeAmount)
     }
 
     func testStreamingDownload(
@@ -387,7 +387,7 @@ class URLSessionBidirectionalStreamingTests: XCTestCase {
                 for try await receivedResponseChunk in responseBody! {
                     print("Client received some response body bytes (numBytes: \(receivedResponseChunk.count))")
                     print("Client doing fake work for \(delay)s")
-                    try await Task.sleep(for: delay)
+                    try await Task.sleep(nanoseconds: UInt64(delay.nanoseconds))
                 }
             }
 
