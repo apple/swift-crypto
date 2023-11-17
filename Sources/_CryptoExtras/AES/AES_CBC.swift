@@ -113,7 +113,7 @@ extension AES {
         ///   - iv: The initialization vector.
         ///   - noPadding: If this is set to `true`, padding won't be removed.
         /// - Returns: The decrypted message.
-        public static func decrypt<Ciphertext: DataProtocol>(_ ciphertext: Ciphertext, using key: SymmetricKey, iv: AES._CBC.IV, noPadding: Bool = false) throws -> Data {
+        public static func decrypt<Ciphertext: DataProtocol>(_ ciphertext: Ciphertext, using key: SymmetricKey, iv: AES._CBC.IV, noPadding: Bool) throws -> Data {
             guard [128, 192, 256].contains(key.bitCount) else {
                 throw CryptoKitError.incorrectKeySize
             }
