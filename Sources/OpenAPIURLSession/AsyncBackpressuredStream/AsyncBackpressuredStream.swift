@@ -346,7 +346,20 @@ extension AsyncBackpressuredStream {
         }
 
         func write<S: Sequence>(contentsOf sequence: S) throws -> Source.WriteResult where S.Element == Element {
-            let action = self.lock.withLock { return self.stateMachine.write(sequence) }
+            let action = self.lock.withLock {
+                let stateBefore = self.stateMachine.state
+                let action = self.stateMachine.write(sequence)
+                let stateAfter = self.stateMachine.state
+                debug("""
+                ---
+                event: write
+                state before: \(stateBefore)
+                state after: \(stateAfter)
+                action: \(action)
+                ---
+                """)
+                return action
+            }
 
             switch action {
             case .returnProduceMore: return .produceMore
@@ -385,7 +398,18 @@ extension AsyncBackpressuredStream {
             onProduceMore: @escaping @Sendable (Result<Void, any Error>) -> Void
         ) {
             let action = self.lock.withLock {
-                return self.stateMachine.enqueueProducer(writeToken: writeToken, onProduceMore: onProduceMore)
+                let stateBefore = self.stateMachine.state
+                let action = self.stateMachine.enqueueProducer(writeToken: writeToken, onProduceMore: onProduceMore)
+                let stateAfter = self.stateMachine.state
+                debug("""
+                ---
+                event: \(#function)
+                state before: \(stateBefore)
+                state after: \(stateAfter)
+                action: \(action)
+                ---
+                """)
+                return action
             }
 
             switch action {
@@ -449,7 +473,20 @@ extension AsyncBackpressuredStream {
         }
 
         func next() async throws -> Element? {
-            let action = self.lock.withLock { return self.stateMachine.next() }
+            let action = self.lock.withLock {
+                let stateBefore = self.stateMachine.state
+                let action = self.stateMachine.next()
+                let stateAfter = self.stateMachine.state
+                debug("""
+                ---
+                event: next
+                state before: \(stateBefore)
+                state after: \(stateAfter)
+                action: \(action)
+                ---
+                """)
+                return action
+            }
 
             switch action {
             case .returnElement(let element): return element
@@ -476,7 +513,20 @@ extension AsyncBackpressuredStream {
         func suspendNext() async throws -> Element? {
             return try await withTaskCancellationHandler {
                 return try await withCheckedThrowingContinuation { continuation in
-                    let action = self.lock.withLock { return self.stateMachine.suspendNext(continuation: continuation) }
+                    let action = self.lock.withLock {
+                        let stateBefore = self.stateMachine.state
+                        let action = self.stateMachine.suspendNext(continuation: continuation)
+                        let stateAfter = self.stateMachine.state
+                        debug("""
+                        ---
+                        event: \(#function)
+                        state before: \(stateBefore)
+                        state after: \(stateAfter)
+                        action: \(action)
+                        ---
+                        """)
+                        return action
+                    }
 
                     switch action {
                     case .resumeContinuationWithElement(let continuation, let element):
@@ -1239,6 +1289,16 @@ extension AsyncBackpressuredStream {
 
                 guard shouldProduceMore else {
                     // We don't have any new demand, so we can just return the element.
+                    self.state = .streaming(
+                        backPressureStrategy: backPressureStrategy,
+                        buffer: buffer,
+                        consumerContinuation: nil,
+                        producerContinuations: producerContinuations,
+                        cancelledAsyncProducers: cancelledAsyncProducers,
+                        hasOutstandingDemand: hasOutstandingDemand,
+                        iteratorInitialized: iteratorInitialized,
+                        onTerminate: onTerminate
+                    )
                     return .resumeContinuationWithElement(continuation, element)
                 }
                 let producers = Array(producerContinuations.map { $0.1 })
