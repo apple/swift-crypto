@@ -164,7 +164,8 @@ final class BidirectionalStreamingURLSessionDelegate: NSObject, URLSessionTaskDe
     {
         callbackLock.withLock {
             debug("Task delegate: didReceive response")
-            self.responseContinuation?.resume(returning: response)
+            responseContinuation?.resume(returning: response)
+            responseContinuation = nil
             return .allow
         }
     }
@@ -173,7 +174,10 @@ final class BidirectionalStreamingURLSessionDelegate: NSObject, URLSessionTaskDe
         callbackLock.withLock {
             debug("Task delegate: didCompleteWithError (error: \(String(describing: error)))")
             responseBodyStreamSource.finish(throwing: error)
-            if let error { responseContinuation?.resume(throwing: error) }
+            if let error {
+                responseContinuation?.resume(throwing: error)
+                responseContinuation = nil
+            }
         }
     }
 }

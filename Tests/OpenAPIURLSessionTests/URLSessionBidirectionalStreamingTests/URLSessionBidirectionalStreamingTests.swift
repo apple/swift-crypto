@@ -238,6 +238,15 @@ class URLSessionBidirectionalStreamingTests: XCTestCase {
         }
     }
 
+    func testStreamingDownload_1kChunk_100Chunks_100BDownloadWatermark() async throws {
+        try await testStreamingDownload(
+            responseChunk: (1...1024).map { _ in .random(in: (.min..<(.max))) }[...],
+            numResponseChunks: 100,
+            responseStreamWatermarks: (low: 100, high: 100),
+            verification: .none
+        )
+    }
+
     func testStreamingDownload_1kChunk_10kChunks_100BDownloadWatermark() async throws {
         try await testStreamingDownload(
             responseChunk: (1...1024).map { _ in .random(in: (.min..<(.max))) }[...],
@@ -306,6 +315,8 @@ class URLSessionBidirectionalStreamingTests: XCTestCase {
         case count
         // Add some artificial delay to simulate business logic to show how the backpressure mechanism works (or not).
         case delay(TimeAmount)
+        // Do no verification: useful for just pulling as fast as possible for testing for races.
+        case none
     }
 
     func testStreamingDownload(
@@ -389,6 +400,7 @@ class URLSessionBidirectionalStreamingTests: XCTestCase {
                     debug("Client doing fake work for \(delay)s")
                     try await Task.sleep(nanoseconds: UInt64(delay.nanoseconds))
                 }
+            case .none: break
             }
 
             group.cancelAll()
