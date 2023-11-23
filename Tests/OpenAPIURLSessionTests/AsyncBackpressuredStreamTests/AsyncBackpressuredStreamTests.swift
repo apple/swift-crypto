@@ -51,7 +51,7 @@ final class AsyncBackpressuredStreamTests: XCTestCase {
             group.addTask {
                 while true {
                     backPressureEventContinuation.yield(())
-                    print("Yielding")
+                    debug("Yielding")
                     try await source.asyncWrite(contentsOf: [1])
                 }
             }
@@ -64,12 +64,12 @@ final class AsyncBackpressuredStreamTests: XCTestCase {
             await backPressureEventIterator.next()
             await backPressureEventIterator.next()
 
-            print("Waited 4 times")
+            debug("Waited 4 times")
 
             _ = try await iterator.next()
             _ = try await iterator.next()
             _ = try await iterator.next()
-            print("Consumed three")
+            debug("Consumed three")
 
             await backPressureEventIterator.next()
             await backPressureEventIterator.next()
@@ -91,12 +91,12 @@ final class AsyncBackpressuredStreamTests: XCTestCase {
             group.addTask {
                 @Sendable func yield() {
                     backPressureEventContinuation.yield(())
-                    print("Yielding")
+                    debug("Yielding")
                     source.write(contentsOf: [1]) { result in
                         switch result {
                         case .success: yield()
 
-                        case .failure: print("Stopping to yield")
+                        case .failure: debug("Stopping to yield")
                         }
                     }
                 }
@@ -112,12 +112,12 @@ final class AsyncBackpressuredStreamTests: XCTestCase {
             await backPressureEventIterator.next()
             await backPressureEventIterator.next()
 
-            print("Waited 4 times")
+            debug("Waited 4 times")
 
             _ = try await iterator.next()
             _ = try await iterator.next()
             _ = try await iterator.next()
-            print("Consumed three")
+            debug("Consumed three")
 
             await backPressureEventIterator.next()
             await backPressureEventIterator.next()

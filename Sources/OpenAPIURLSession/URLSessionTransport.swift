@@ -20,6 +20,7 @@ import Foundation
 @preconcurrency import struct Foundation.URLComponents
 @preconcurrency import struct Foundation.Data
 @preconcurrency import protocol Foundation.LocalizedError
+@preconcurrency import class Foundation.FileHandle
 #if canImport(FoundationNetworking)
 @preconcurrency import struct FoundationNetworking.URLRequest
 @preconcurrency import class FoundationNetworking.URLSession
@@ -230,10 +231,17 @@ var debugLoggingEnabled: Bool {
     get { _debugLoggingEnabled.withLockedValue { $0 } }
     set { _debugLoggingEnabled.withLockedValue { $0 = newValue } }
 }
-func debug(_ items: Any..., separator: String = " ", terminator: String = "\n") {
+private let _standardErrorLock = LockStorage.create(value: FileHandle.standardError)
+func debug(_ message: @autoclosure () -> String, function: String = #function, file: String = #file, line: UInt = #line)
+{
     assert(
         {
-            if debugLoggingEnabled { print(items, separator: separator, terminator: terminator) }
+            if debugLoggingEnabled {
+                _standardErrorLock.withLockedValue {
+                    let logLine = "[\(function) \(file.split(separator: "/").last!):\(line)] \(message())\n"
+                    $0.write(Data((logLine).utf8))
+                }
+            }
             return true
         }()
     )

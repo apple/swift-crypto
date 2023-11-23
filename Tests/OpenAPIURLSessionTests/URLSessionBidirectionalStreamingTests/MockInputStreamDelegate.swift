@@ -14,6 +14,7 @@
 #if canImport(Darwin)
 
 import Foundation
+@testable import OpenAPIURLSession
 
 /// Reads one byte at a time from the stream, regardless of how many bytes are available.
 ///
@@ -39,7 +40,7 @@ final class MockInputStreamDelegate: NSObject, StreamDelegate {
         self.inputStream.open()
     }
 
-    deinit { print("Input stream delegate deinit") }
+    deinit { debug("Input stream delegate deinit") }
 
     private func readAndResumeContinuation() {
         dispatchPrecondition(condition: .onQueue(Self.streamQueue))
@@ -52,15 +53,15 @@ final class MockInputStreamDelegate: NSObject, StreamDelegate {
         }
         switch buffer.count {
         case -1:
-            print("Input stream delegate error reading from stream: \(inputStream.streamError!)")
+            debug("Input stream delegate error reading from stream: \(inputStream.streamError!)")
             inputStream.close()
             continuation.resume(throwing: inputStream.streamError!)
         case 0:
-            print("Input stream delegate reached end of stream; will close stream")
+            debug("Input stream delegate reached end of stream; will close stream")
             self.close()
             continuation.resume(returning: nil)
         case let numBytesRead where numBytesRead > 0:
-            print("Input stream delegate read \(numBytesRead) bytes from stream: \(buffer)")
+            debug("Input stream delegate read \(numBytesRead) bytes from stream: \(buffer)")
             continuation.resume(returning: buffer)
         default: preconditionFailure()
         }
@@ -85,12 +86,12 @@ final class MockInputStreamDelegate: NSObject, StreamDelegate {
     func close(withError error: (any Error)? = nil) {
         self.inputStream.close()
         Self.streamQueue.async { self.state = .closed(error) }
-        print("Input stream delegate closed stream with error: \(String(describing: error))")
+        debug("Input stream delegate closed stream with error: \(String(describing: error))")
     }
 
     func stream(_ stream: Stream, handle event: Stream.Event) {
         dispatchPrecondition(condition: .onQueue(Self.streamQueue))
-        print("Input stream delegate received event: \(event)")
+        debug("Input stream delegate received event: \(event)")
         switch event {
         case .hasBytesAvailable:
             switch state {

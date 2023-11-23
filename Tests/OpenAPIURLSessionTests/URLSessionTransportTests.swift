@@ -24,7 +24,7 @@ import XCTest
 
 // swift-format-ignore: AllPublicDeclarationsHaveDocumentation
 class URLSessionTransportConverterTests: XCTestCase {
-    static override func setUp() { OpenAPIURLSession.debugLoggingEnabled = true }
+    static override func setUp() { OpenAPIURLSession.debugLoggingEnabled = false }
 
     func testRequestConversion() async throws {
         let request = HTTPRequest(
@@ -58,7 +58,7 @@ class URLSessionTransportConverterTests: XCTestCase {
 class URLSessionTransportBufferedTests: XCTestCase {
     var transport: (any ClientTransport)!
 
-    static override func setUp() { OpenAPIURLSession.debugLoggingEnabled = true }
+    static override func setUp() { OpenAPIURLSession.debugLoggingEnabled = false }
 
     override func setUp() async throws {
         transport = URLSessionTransport(configuration: .init(implementation: .buffering))
@@ -91,7 +91,7 @@ class URLSessionTransportBufferedTests: XCTestCase {
 class URLSessionTransportStreamingTests: XCTestCase {
     var transport: (any ClientTransport)!
 
-    static override func setUp() { OpenAPIURLSession.debugLoggingEnabled = true }
+    static override func setUp() { OpenAPIURLSession.debugLoggingEnabled = false }
 
     override func setUpWithError() throws {
         try XCTSkipUnless(URLSessionTransport.Configuration.Implementation.platformSupportsStreaming)
@@ -165,43 +165,43 @@ func testHTTPRedirect(
                 while let requestPart = try await requestPartIterator.next() {
                     switch requestPart {
                     case .head(let head):
-                        print("Server received head for \(head.uri)")
+                        debug("Server received head for \(head.uri)")
                         currentURI = head.uri
                     case .body(let buffer):
                         let currentURI = try XCTUnwrap(currentURI)
-                        print("Server received body bytes for \(currentURI) (numBytes: \(buffer.readableBytes))")
+                        debug("Server received body bytes for \(currentURI) (numBytes: \(buffer.readableBytes))")
                         accumulatedBody.writeImmutableBuffer(buffer)
                     case .end:
                         let currentURI = try XCTUnwrap(currentURI)
-                        print("Server received end for \(currentURI)")
+                        debug("Server received end for \(currentURI)")
                         XCTAssertEqual(accumulatedBody, ByteBuffer(string: requestBodyChunks.joined()))
                         switch currentURI {
                         case "/old":
-                            print("Server reseting body buffer")
+                            debug("Server reseting body buffer")
                             accumulatedBody = ByteBuffer()
                             try await outbound.write(
                                 .head(
                                     .init(version: .http1_1, status: .temporaryRedirect, headers: ["Location": "/new"])
                                 )
                             )
-                            print("Server sent head for \(currentURI)")
+                            debug("Server sent head for \(currentURI)")
                             try await outbound.write(.end(nil))
-                            print("Server sent end for \(currentURI)")
+                            debug("Server sent end for \(currentURI)")
                         case "/new":
                             try await outbound.write(.head(.init(version: .http1_1, status: .ok)))
-                            print("Server sent head for \(currentURI)")
+                            debug("Server sent head for \(currentURI)")
                             try await outbound.write(.end(nil))
-                            print("Server sent end for \(currentURI)")
+                            debug("Server sent end for \(currentURI)")
                         default: preconditionFailure()
                         }
                     }
                 }
             }
         }
-        print("Server running on 127.0.0.1:\(serverPort)")
+        debug("Server running on 127.0.0.1:\(serverPort)")
 
         // Send the request.
-        print("Client starting request")
+        debug("Client starting request")
         if expectFailureDueToIterationBehavior {
             await XCTAssertThrowsError(
                 try await transport.send(
@@ -218,7 +218,7 @@ func testHTTPRedirect(
                 baseURL: URL(string: "http://127.0.0.1:\(serverPort)")!,
                 operationID: "unused"
             )
-            print("Client received response head: \(response)")
+            debug("Client received response head: \(response)")
             XCTAssertEqual(response.status, .ok)
         }
 
@@ -248,17 +248,17 @@ func testHTTPBasicGet(transport: any ClientTransport) async throws {
                 }
             }
         }
-        print("Server running on 127.0.0.1:\(serverPort)")
+        debug("Server running on 127.0.0.1:\(serverPort)")
 
         // Send the request.
-        print("Client starting request")
+        debug("Client starting request")
         let (response, maybeResponseBody) = try await transport.send(
             HTTPRequest(method: .get, scheme: nil, authority: nil, path: requestPath),
             body: nil,
             baseURL: URL(string: "http://127.0.0.1:\(serverPort)")!,
             operationID: "unused"
         )
-        print("Client received response head: \(response)")
+        debug("Client received response head: \(response)")
         XCTAssertEqual(response.status, .ok)
         let receivedMessage = try await String(collecting: try XCTUnwrap(maybeResponseBody), upTo: .max)
         XCTAssertEqual(receivedMessage, responseBodyMessage)
@@ -292,21 +292,46 @@ func testHTTPBasicPost(transport: any ClientTransport) async throws {
                 }
             }
         }
-        print("Server running on 127.0.0.1:\(serverPort)")
+        debug("Server running on 127.0.0.1:\(serverPort)")
 
         // Send the request.
-        print("Client starting request")
+        debug("Client starting request")
         let (response, maybeResponseBody) = try await transport.send(
             HTTPRequest(method: .post, scheme: nil, authority: nil, path: requestPath),
             body: HTTPBody(requestBodyMessage),
             baseURL: URL(string: "http://127.0.0.1:\(serverPort)")!,
             operationID: "unused"
         )
-        print("Client received response head: \(response)")
+        debug("Client received response head: \(response)")
         XCTAssertEqual(response.status, .ok)
         let receivedMessage = try await String(collecting: try XCTUnwrap(maybeResponseBody), upTo: .max)
         XCTAssertEqual(receivedMessage, responseBodyMessage)
 
         group.cancelAll()
+    }
+}
+
+class URLSessionTransportDebugLoggingTests: XCTestCase {
+    func testDebugLoggingEnabled() {
+        let expectation = expectation(description: "message autoclosure evaluated")
+        func message() -> String {
+            expectation.fulfill()
+            return "message"
+        }
+        OpenAPIURLSession.debugLoggingEnabled = true
+        debug(message())
+        wait(for: [expectation], timeout: 0)
+    }
+
+    func testDebugLoggingDisabled() {
+        let expectation = expectation(description: "message autoclosure evaluated")
+        expectation.isInverted = true
+        func message() -> String {
+            expectation.fulfill()
+            return "message"
+        }
+        OpenAPIURLSession.debugLoggingEnabled = false
+        debug(message())
+        wait(for: [expectation], timeout: 0)
     }
 }

@@ -19,7 +19,7 @@ import XCTest
 
 // swift-format-ignore: AllPublicDeclarationsHaveDocumentation
 class HTTPBodyOutputStreamBridgeTests: XCTestCase {
-    static override func setUp() { OpenAPIURLSession.debugLoggingEnabled = true }
+    static override func setUp() { OpenAPIURLSession.debugLoggingEnabled = false }
 
     func testHTTPBodyOutputStreamInputOutput() async throws {
         let chunkSize = 71

@@ -23,7 +23,7 @@ import XCTest
 
 class URLSessionBidirectionalStreamingTests: XCTestCase {
     // swift-format-ignore: AllPublicDeclarationsHaveDocumentation
-    static override func setUp() { OpenAPIURLSession.debugLoggingEnabled = true }
+    static override func setUp() { OpenAPIURLSession.debugLoggingEnabled = false }
 
     func testBidirectionalEcho_PerChunkRatchet_1BChunk_1Chunks_1BUploadBuffer_1BDownloadWatermark() async throws {
         try await testBidirectionalEchoPerChunkRatchet(
@@ -329,23 +329,23 @@ class URLSessionBidirectionalStreamingTests: XCTestCase {
                                     )
                                 )
                             )
-                            print("Server sent response head")
+                            debug("Server sent response head")
                             for i in 1...numResponseChunks {
                                 try await outbound.write(.body(ByteBuffer(bytes: responseChunk)))
-                                print("Server sent body chunk \(i)/\(numResponseChunks) of \(responseChunk.count)")
+                                debug("Server sent body chunk \(i)/\(numResponseChunks) of \(responseChunk.count)")
                             }
                         case .body: preconditionFailure()
                         case .end:
                             try await outbound.write(.end(nil))
-                            print("Server sent response end")
+                            debug("Server sent response end")
                         }
                     }
                 }
             }
-            print("Server running on 127.0.0.1:\(serverPort)")
+            debug("Server running on 127.0.0.1:\(serverPort)")
 
             // Send the request.
-            print("Client starting request")
+            debug("Client starting request")
             let (response, responseBody) = try await URLSession.shared.bidirectionalStreamingRequest(
                 for: HTTPRequest(method: .get, scheme: nil, authority: nil, path: "/"),
                 baseURL: URL(string: "http://127.0.0.1:\(serverPort)")!,
@@ -353,7 +353,7 @@ class URLSessionBidirectionalStreamingTests: XCTestCase {
                 requestStreamBufferSize: 16 * 1024 * 1024,
                 responseStreamWatermarks: responseStreamWatermarks
             )
-            print("Client received response head: \(response)")
+            debug("Client received response head: \(response)")
             XCTAssertEqual(response.status, .ok)
 
             switch verification {
@@ -362,10 +362,10 @@ class URLSessionBidirectionalStreamingTests: XCTestCase {
                 var unprocessedBytes = ByteBuffer()
                 var numProcessedChunks = 0
                 for try await receivedResponseChunk in responseBody! {
-                    print("Client received some response body bytes (numBytes: \(receivedResponseChunk.count))")
+                    debug("Client received some response body bytes (numBytes: \(receivedResponseChunk.count))")
                     unprocessedBytes.writeBytes(receivedResponseChunk)
                     while unprocessedBytes.readableBytes >= responseChunk.count {
-                        print("Client reconstructing and verifying chunk \(numProcessedChunks+1)/\(numResponseChunks)")
+                        debug("Client reconstructing and verifying chunk \(numProcessedChunks+1)/\(numResponseChunks)")
                         XCTAssertEqual(
                             ArraySlice(unprocessedBytes.readBytes(length: responseChunk.count)!),
                             responseChunk
@@ -379,14 +379,14 @@ class URLSessionBidirectionalStreamingTests: XCTestCase {
             case .count:
                 var numBytesReceived = 0
                 for try await receivedResponseChunk in responseBody! {
-                    print("Client received some response body bytes (numBytes: \(receivedResponseChunk.count))")
+                    debug("Client received some response body bytes (numBytes: \(receivedResponseChunk.count))")
                     numBytesReceived += receivedResponseChunk.count
                 }
                 XCTAssertEqual(numBytesReceived, responseChunk.count * numResponseChunks)
             case .delay(let delay):
                 for try await receivedResponseChunk in responseBody! {
-                    print("Client received some response body bytes (numBytes: \(receivedResponseChunk.count))")
-                    print("Client doing fake work for \(delay)s")
+                    debug("Client received some response body bytes (numBytes: \(receivedResponseChunk.count))")
+                    debug("Client doing fake work for \(delay)s")
                     try await Task.sleep(nanoseconds: UInt64(delay.nanoseconds))
                 }
             }

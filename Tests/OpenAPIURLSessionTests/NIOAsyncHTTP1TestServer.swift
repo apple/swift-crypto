@@ -14,6 +14,7 @@
 import NIOCore
 import NIOPosix
 import NIOHTTP1
+@testable import OpenAPIURLSession
 
 final class AsyncTestHTTP1Server {
 
@@ -58,10 +59,10 @@ final class AsyncTestHTTP1Server {
                     for try await connectionChannel in inbound {
                         group.addTask {
                             do {
-                                print("Sevrer handling new connection")
+                                debug("Sevrer handling new connection")
                                 try await connectionHandler(connectionChannel)
-                                print("Server done handling connection")
-                            } catch { print("Server error handling connection: \(error)") }
+                                debug("Server done handling connection")
+                            } catch { debug("Server error handling connection: \(error)") }
                         }
                     }
                 }
