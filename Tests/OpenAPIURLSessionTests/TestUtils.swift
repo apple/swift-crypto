@@ -153,14 +153,34 @@ final class LockedValueBox<Value>: @unchecked Sendable where Value: Sendable {
     }
 }
 
+#if swift(<5.9)
 extension AsyncStream {
-    // We have this here until we drop 5.8, since it's in the standard library in Swift 5.9+.
     static func makeStream(
         of elementType: Element.Type = Element.self,
         bufferingPolicy limit: Self.Continuation.BufferingPolicy = .unbounded
     ) -> (stream: Self, continuation: Self.Continuation) {
         var continuation: Self.Continuation!
-        let stream = Self(elementType, bufferingPolicy: limit) { continuation = $0 }
+        let stream = Self(bufferingPolicy: limit) { continuation = $0 }
         return (stream, continuation)
+    }
+}
+
+extension AsyncThrowingStream {
+    static func makeStream(
+        of elementType: Element.Type = Element.self,
+        throwing failureType: Failure.Type = Failure.self,
+        bufferingPolicy limit: Self.Continuation.BufferingPolicy = .unbounded
+    ) -> (stream: Self, continuation: Self.Continuation) where Failure == Error {
+        var continuation: Self.Continuation!
+        let stream = Self(bufferingPolicy: limit) { continuation = $0 }
+        return (stream, continuation!)
+    }
+}
+#endif  // #if swift(<5.9)
+
+extension AsyncSequence {
+    /// Collect all elements in the sequence into an array.
+    func collect() async throws -> [Element] {
+        try await self.reduce(into: []) { accumulated, next in accumulated.append(next) }
     }
 }

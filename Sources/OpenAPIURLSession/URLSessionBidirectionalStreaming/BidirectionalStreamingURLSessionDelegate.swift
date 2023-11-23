@@ -53,14 +53,16 @@ final class BidirectionalStreamingURLSessionDelegate: NSObject, URLSessionTaskDe
 
     let requestBody: HTTPBody?
     var hasAlreadyIteratedRequestBody: Bool
-    var hasSuspendedURLSessionTask: Bool
+    /// In addition to the callback lock, there is one point of rentrancy, where the response stream callback gets fired
+    /// immediately, for this we have a different lock, which protects `hasSuspendedURLSessionTask`.
+    var hasSuspendedURLSessionTask: LockedValueBox<Bool>
     let requestStreamBufferSize: Int
     var requestStream: HTTPBodyOutputStreamBridge?
 
     typealias ResponseContinuation = CheckedContinuation<URLResponse, any Error>
     var responseContinuation: ResponseContinuation?
 
-    typealias ResponseBodyStream = AsyncBackpressuredStream<HTTPBody.ByteChunk, any Error>
+    typealias ResponseBodyStream = BufferedStream<HTTPBody.ByteChunk>
     var responseBodyStream: ResponseBodyStream
     var responseBodyStreamSource: ResponseBodyStream.Source
 
@@ -74,22 +76,19 @@ final class BidirectionalStreamingURLSessionDelegate: NSObject, URLSessionTaskDe
     ///
     /// Therefore, even though the `suspend()`, `resume()`, and `cancel()` URLSession methods are thread-safe, we need
     /// to protect any mutable state within the delegate itself.
-    let callbackLock = NIOLock()
-
-    /// In addition to the callback lock, there is one point of rentrancy, where the response stream callback gets fired
-    /// immediately, for this we have a different lock, which protects `hasSuspendedURLSessionTask`.
-    let hasSuspendedURLSessionTaskLock = NIOLock()
+    let callbackLock = Lock()
 
     /// Use `bidirectionalStreamingRequest(for:baseURL:requestBody:requestStreamBufferSize:responseStreamWatermarks:)`.
     init(requestBody: HTTPBody?, requestStreamBufferSize: Int, responseStreamWatermarks: (low: Int, high: Int)) {
         self.requestBody = requestBody
         self.hasAlreadyIteratedRequestBody = false
-        self.hasSuspendedURLSessionTask = false
+        self.hasSuspendedURLSessionTask = LockedValueBox(false)
         self.requestStreamBufferSize = requestStreamBufferSize
-        (self.responseBodyStream, self.responseBodyStreamSource) = AsyncBackpressuredStream.makeStream(
-            backPressureStrategy: .highLowWatermarkWithElementCounts(
-                lowWatermark: responseStreamWatermarks.low,
-                highWatermark: responseStreamWatermarks.high
+        (self.responseBodyStream, self.responseBodyStreamSource) = ResponseBodyStream.makeStream(
+            backPressureStrategy: .customWatermark(
+                low: responseStreamWatermarks.low,
+                high: responseStreamWatermarks.high,
+                waterLevelForElement: { $0.count }
             )
         )
     }
@@ -125,8 +124,9 @@ final class BidirectionalStreamingURLSessionDelegate: NSObject, URLSessionTaskDe
             do {
                 switch try responseBodyStreamSource.write(contentsOf: CollectionOfOne(ArraySlice(data))) {
                 case .produceMore: break
-                case .enqueueCallback(let writeToken):
-                    let shouldActuallyEnqueueCallback = hasSuspendedURLSessionTaskLock.withLock {
+                case .enqueueCallback(let callbackToken):
+                    let shouldActuallyEnqueueCallback = hasSuspendedURLSessionTask.withLockedValue {
+                        hasSuspendedURLSessionTask in
                         if hasSuspendedURLSessionTask {
                             debug("Task delegate: already suspended task, not enqueing another writer callback")
                             return false
@@ -137,13 +137,13 @@ final class BidirectionalStreamingURLSessionDelegate: NSObject, URLSessionTaskDe
                         return true
                     }
                     if shouldActuallyEnqueueCallback {
-                        responseBodyStreamSource.enqueueCallback(writeToken: writeToken) { result in
-                            self.hasSuspendedURLSessionTaskLock.withLock {
+                        responseBodyStreamSource.enqueueCallback(callbackToken: callbackToken) { result in
+                            self.hasSuspendedURLSessionTask.withLockedValue { hasSuspendedURLSessionTask in
                                 switch result {
                                 case .success:
                                     debug("Task delegate: response stream callback, resuming task")
                                     dataTask.resume()
-                                    self.hasSuspendedURLSessionTask = false
+                                    hasSuspendedURLSessionTask = false
                                 case .failure(let error):
                                     debug("Task delegate: response stream callback, cancelling task, error: \(error)")
                                     dataTask.cancel()
