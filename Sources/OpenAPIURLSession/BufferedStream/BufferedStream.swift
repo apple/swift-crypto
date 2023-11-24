@@ -136,7 +136,7 @@ internal struct BufferedStream<Element> {
         @usableFromInline
         let storage: _BackPressuredStorage
 
-        @inlinable
+        @usableFromInline
         init(storage: _BackPressuredStorage) {
             self.storage = storage
         }
@@ -171,7 +171,7 @@ extension BufferedStream: AsyncSequence {
             @usableFromInline
             let storage: _BackPressuredStorage
 
-            @inlinable
+            @usableFromInline
             init(storage: _BackPressuredStorage) {
                 self.storage = storage
                 self.storage.iteratorInitialized()
@@ -191,7 +191,7 @@ extension BufferedStream: AsyncSequence {
         @usableFromInline
         var implementation: _Implementation
 
-        @inlinable
+        @usableFromInline
         init(implementation: _Implementation) {
             self.implementation = implementation
         }
@@ -237,7 +237,7 @@ internal struct _ManagedCriticalState<State>: @unchecked Sendable {
     @usableFromInline
     let lock: LockedValueBox<State>
 
-    @inlinable
+    @usableFromInline
     internal init(_ initial: State) {
         self.lock = .init(initial)
     }
@@ -252,7 +252,7 @@ internal struct _ManagedCriticalState<State>: @unchecked Sendable {
 
 @usableFromInline
 internal struct AlreadyFinishedError: Error {
-    @inlinable
+    @usableFromInline
     init() {}
 }
 
@@ -289,7 +289,7 @@ extension BufferedStream {
                 )
             }
 
-            @inlinable
+            @usableFromInline
             init(internalBackPressureStrategy: _InternalBackPressureStrategy) {
                 self._internalBackPressureStrategy = internalBackPressureStrategy
             }
@@ -329,7 +329,7 @@ extension BufferedStream {
             @usableFromInline
             let storage: _BackPressuredStorage
 
-            @inlinable
+            @usableFromInline
             init(storage: _BackPressuredStorage) {
                 self.storage = storage
             }
@@ -359,7 +359,7 @@ extension BufferedStream {
         @usableFromInline
         var _backing: _Backing
 
-        @inlinable
+        @usableFromInline
         internal init(storage: _BackPressuredStorage) {
             self._backing = .init(storage: storage)
         }
@@ -580,7 +580,7 @@ extension BufferedStream {
         return (.init(storage: storage), source)
     }
 
-    @inlinable
+    @usableFromInline
     init(storage: _BackPressuredStorage) {
         self.implementation = .backpressured(.init(storage: storage))
     }
@@ -609,7 +609,7 @@ extension BufferedStream {
         ///   - low: The low watermark where demand should start.
         ///   - high: The high watermark where demand should be stopped.
         ///   - waterLevelForElement: Function to compute the contribution to the water level for a given element.
-        @inlinable
+        @usableFromInline
         init(low: Int, high: Int, waterLevelForElement: (@Sendable (Element) -> Int)? = nil) {
             precondition(low <= high)
             self._low = low
@@ -618,7 +618,7 @@ extension BufferedStream {
             self._waterLevelForElement = waterLevelForElement
         }
 
-        @inlinable
+        @usableFromInline
         mutating func didYield(elements: Deque<Element>.SubSequence) -> Bool {
             if let waterLevelForElement = self._waterLevelForElement {
                 self._current += elements.reduce(0) { $0 + waterLevelForElement($1) }
@@ -630,7 +630,7 @@ extension BufferedStream {
             return self._current < self._high
         }
 
-        @inlinable
+        @usableFromInline
         mutating func didConsume(elements: Deque<Element>.SubSequence) -> Bool {
             if let waterLevelForElement = self._waterLevelForElement {
                 self._current -= elements.reduce(0) { $0 + waterLevelForElement($1) }
@@ -642,7 +642,7 @@ extension BufferedStream {
             return self._current < self._low
         }
 
-        @inlinable
+        @usableFromInline
         mutating func didConsume(element: Element) -> Bool {
             if let waterLevelForElement = self._waterLevelForElement {
                 self._current -= waterLevelForElement(element)
@@ -669,7 +669,7 @@ extension BufferedStream {
             }
         }
 
-        @inlinable
+        @usableFromInline
         mutating func didConsume(elements: Deque<Element>.SubSequence) -> Bool {
             switch self {
             case .watermark(var strategy):
@@ -679,7 +679,7 @@ extension BufferedStream {
             }
         }
 
-        @inlinable
+        @usableFromInline
         mutating func didConsume(element: Element) -> Bool {
             switch self {
             case .watermark(var strategy):
@@ -714,7 +714,7 @@ extension BufferedStream {
             }
         }
 
-        @inlinable
+        @usableFromInline
         init(
             backPressureStrategy: _InternalBackPressureStrategy
         ) {
@@ -1026,7 +1026,7 @@ extension BufferedStream {
                 @usableFromInline
                 var onTermination: (@Sendable () -> Void)?
 
-                @inlinable
+                @usableFromInline
                 init(
                     backPressureStrategy: _InternalBackPressureStrategy,
                     iteratorInitialized: Bool,
@@ -1065,7 +1065,7 @@ extension BufferedStream {
                 @usableFromInline
                 var hasOutstandingDemand: Bool
 
-                @inlinable
+                @usableFromInline
                 init(
                     backPressureStrategy: _InternalBackPressureStrategy,
                     iteratorInitialized: Bool,
@@ -1102,7 +1102,7 @@ extension BufferedStream {
                 @usableFromInline
                 var onTermination: (@Sendable () -> Void)?
 
-                @inlinable
+                @usableFromInline
                 init(
                     iteratorInitialized: Bool,
                     buffer: Deque<Element>,
@@ -1188,7 +1188,7 @@ extension BufferedStream {
         /// it is a customizable extension of the state machine.
         ///
         /// - Parameter backPressureStrategy: The back-pressure strategy.
-        @inlinable
+        @usableFromInline
         init(
             backPressureStrategy: _InternalBackPressureStrategy
         ) {

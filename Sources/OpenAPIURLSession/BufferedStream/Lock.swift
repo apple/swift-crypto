@@ -134,7 +134,7 @@ final class LockStorage<Value>: ManagedBuffer<Value, LockPrimitive> {
     }
   }
 
-  @inlinable
+  @usableFromInline
   deinit {
     self.withUnsafeMutablePointerToElements { lockPtr in
       LockOperations.destroy(lockPtr)
@@ -176,7 +176,7 @@ struct Lock {
   internal let _storage: LockStorage<Void>
 
   /// Create a new lock.
-  @inlinable
+  @usableFromInline
   init() {
     self._storage = .create(value: ())
   }
@@ -240,7 +240,7 @@ struct LockedValueBox<Value> {
   @usableFromInline
   let storage: LockStorage<Value>
 
-  @inlinable
+  @usableFromInline
   init(_ value: Value) {
     self.storage = .create(value: value)
   }
