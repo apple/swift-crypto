@@ -142,8 +142,7 @@ extension HTTPBody.Length {
         if urlResponse.expectedContentLength == -1 {
             self = .unknown
         } else {
-            // TODO: Content-Length will change to Int64: https://github.com/apple/swift-openapi-generator/issues/354
-            self = .known(Int(urlResponse.expectedContentLength))
+            self = .known(urlResponse.expectedContentLength)
         }
     }
 }

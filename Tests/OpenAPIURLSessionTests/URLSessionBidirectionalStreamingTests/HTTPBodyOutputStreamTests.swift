@@ -30,7 +30,11 @@ class HTTPBodyOutputStreamBridgeTests: XCTestCase {
         let requestBytes = (0...numBytes).map { UInt8($0) }
         let requestChunks = requestBytes.chunks(of: chunkSize)
         let requestByteSequence = MockAsyncSequence(elementsToVend: requestChunks, gatingProduction: false)
-        let requestBody = HTTPBody(requestByteSequence, length: .known(requestBytes.count), iterationBehavior: .single)
+        let requestBody = HTTPBody(
+            requestByteSequence,
+            length: .known(Int64(requestBytes.count)),
+            iterationBehavior: .single
+        )
 
         // Create a pair of bound streams with a tiny buffer to be the bottleneck for backpressure.
         var inputStream: InputStream?
@@ -77,7 +81,11 @@ class HTTPBodyOutputStreamBridgeTests: XCTestCase {
         let requestBytes = (0...numBytes).map { UInt8($0) }
         let requestChunks = requestBytes.chunks(of: chunkSize)
         let requestByteSequence = MockAsyncSequence(elementsToVend: requestChunks, gatingProduction: true)
-        let requestBody = HTTPBody(requestByteSequence, length: .known(requestBytes.count), iterationBehavior: .single)
+        let requestBody = HTTPBody(
+            requestByteSequence,
+            length: .known(Int64(requestBytes.count)),
+            iterationBehavior: .single
+        )
 
         // Create a pair of bound streams with a tiny buffer to be the bottleneck for backpressure.
         var inputStream: InputStream?
@@ -129,7 +137,11 @@ class HTTPBodyOutputStreamBridgeTests: XCTestCase {
         let requestBytes = (0...numBytes).map { UInt8($0) }
         let requestChunks = requestBytes.chunks(of: chunkSize)
         let requestByteSequence = MockAsyncSequence(elementsToVend: requestChunks, gatingProduction: true)
-        let requestBody = HTTPBody(requestByteSequence, length: .known(requestBytes.count), iterationBehavior: .single)
+        let requestBody = HTTPBody(
+            requestByteSequence,
+            length: .known(Int64(requestBytes.count)),
+            iterationBehavior: .single
+        )
 
         // Create a pair of bound streams with a tiny buffer to be the bottleneck for backpressure.
         var inputStream: InputStream?
@@ -183,7 +195,11 @@ class HTTPBodyOutputStreamBridgeTests: XCTestCase {
         let requestBytes = (0...numBytes).map { UInt8($0) }
         let requestChunks = requestBytes.chunks(of: chunkSize)
         let requestByteSequence = MockAsyncSequence(elementsToVend: requestChunks, gatingProduction: true)
-        let requestBody = HTTPBody(requestByteSequence, length: .known(requestBytes.count), iterationBehavior: .single)
+        let requestBody = HTTPBody(
+            requestByteSequence,
+            length: .known(Int64(requestBytes.count)),
+            iterationBehavior: .single
+        )
 
         // Create a pair of bound streams with a tiny buffer to be the bottleneck for backpressure.
         var inputStream: InputStream?
@@ -240,7 +256,11 @@ class HTTPBodyOutputStreamBridgeTests: XCTestCase {
         let requestBytes = (0...numBytes).map { UInt8($0) }
         let requestChunks = requestBytes.chunks(of: chunkSize)
         let requestByteSequence = MockAsyncSequence(elementsToVend: requestChunks, gatingProduction: true)
-        let requestBody = HTTPBody(requestByteSequence, length: .known(requestBytes.count), iterationBehavior: .single)
+        let requestBody = HTTPBody(
+            requestByteSequence,
+            length: .known(Int64(requestBytes.count)),
+            iterationBehavior: .single
+        )
 
         // Create a pair of bound streams with a tiny buffer to be the bottleneck for backpressure.
         var inputStream: InputStream?

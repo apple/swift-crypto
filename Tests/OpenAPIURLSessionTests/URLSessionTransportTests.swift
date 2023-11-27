@@ -146,13 +146,13 @@ class URLSessionTransportPlatformSupportTests: XCTestCase {
 
 func testHTTPRedirect(
     transport: any ClientTransport,
-    requestBodyIterationBehavior: HTTPBody.IterationBehavior,
+    requestBodyIterationBehavior: IterationBehavior,
     expectFailureDueToIterationBehavior: Bool
 ) async throws {
     let requestBodyChunks = ["✊", "✊", " ", "knock", " ", "knock!"]
     let requestBody = HTTPBody(
         requestBodyChunks.async,
-        length: .known(requestBodyChunks.joined().lengthOfBytes(using: .utf8)),
+        length: .known(Int64(requestBodyChunks.joined().lengthOfBytes(using: .utf8))),
         iterationBehavior: requestBodyIterationBehavior
     )
 
