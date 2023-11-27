@@ -21,7 +21,7 @@ import OpenAPIRuntime
 import XCTest
 @testable import OpenAPIURLSession
 
-class URLSessionBidirectionalStreamingTests: XCTestCase {
+@available(macOS 12, iOS 15, tvOS 15, watchOS 8, *) class URLSessionBidirectionalStreamingTests: XCTestCase {
     // swift-format-ignore: AllPublicDeclarationsHaveDocumentation
     static override func setUp() { OpenAPIURLSession.debugLoggingEnabled = false }
 
