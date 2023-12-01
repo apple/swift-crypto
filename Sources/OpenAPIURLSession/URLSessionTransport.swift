@@ -17,15 +17,15 @@ import HTTPTypes
 import Foundation
 #else
 @preconcurrency import struct Foundation.URL
-@preconcurrency import struct Foundation.URLComponents
-@preconcurrency import struct Foundation.Data
-@preconcurrency import protocol Foundation.LocalizedError
-@preconcurrency import class Foundation.FileHandle
+import struct Foundation.URLComponents
+import struct Foundation.Data
+import protocol Foundation.LocalizedError
+import class Foundation.FileHandle
 #if canImport(FoundationNetworking)
 @preconcurrency import struct FoundationNetworking.URLRequest
-@preconcurrency import class FoundationNetworking.URLSession
-@preconcurrency import class FoundationNetworking.URLResponse
-@preconcurrency import class FoundationNetworking.HTTPURLResponse
+import class FoundationNetworking.URLSession
+import class FoundationNetworking.URLResponse
+import class FoundationNetworking.HTTPURLResponse
 #endif
 #endif
 
