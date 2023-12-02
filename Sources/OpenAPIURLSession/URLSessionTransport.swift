@@ -82,14 +82,14 @@ public struct URLSessionTransport: ClientTransport {
             case streaming(requestBodyStreamBufferSize: Int, responseBodyStreamWatermarks: (low: Int, high: Int))
         }
 
-        var implemenation: Implementation
+        var implementation: Implementation
 
         init(session: URLSession = .shared, implementation: Implementation = .platformDefault) {
             self.session = session
             if case .streaming = implementation {
                 precondition(Implementation.platformSupportsStreaming, "Streaming not supported on platform")
             }
-            self.implemenation = implementation
+            self.implementation = implementation
         }
     }
 
@@ -111,7 +111,7 @@ public struct URLSessionTransport: ClientTransport {
     public func send(_ request: HTTPRequest, body requestBody: HTTPBody?, baseURL: URL, operationID: String)
         async throws -> (HTTPResponse, HTTPBody?)
     {
-        switch self.configuration.implemenation {
+        switch self.configuration.implementation {
         case .streaming(let requestBodyStreamBufferSize, let responseBodyStreamWatermarks):
             #if canImport(Darwin)
             guard #available(macOS 12, iOS 15, tvOS 15, watchOS 8, *) else {
