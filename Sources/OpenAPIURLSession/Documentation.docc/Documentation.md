@@ -21,29 +21,18 @@ Note: Streaming support only available on macOS 12+, iOS 15+, tvOS 15+, watchOS 
 Add the package dependency in your `Package.swift`:
 
 ```swift
-.package(
-    url: "https://github.com/apple/swift-openapi-urlsession",
-    exact: "1.0.0-alpha.1"
-),
+.package(url: "https://github.com/apple/swift-openapi-urlsession", from: "1.0.0"),
 ```
-
-Note that this repository does not have a 1.0 tag yet, so the API is not stable.
 
 Next, in your target, add `OpenAPIURLSession` to your dependencies:
 
 ```swift
 .target(name: "MyTarget", dependencies: [
     .product(name: "OpenAPIURLSession", package: "swift-openapi-urlsession"),
-],
+]),
 ```
 
 Then, to get started, check out ``URLSessionTransport``.
-
-### Reporting issues
-
-Please report any issues related to this library in the
-[swift-openapi-generator](https://github.com/apple/swift-openapi-generator/issues)
-repository.
 
 ## Topics
 
