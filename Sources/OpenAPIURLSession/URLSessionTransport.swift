@@ -24,6 +24,7 @@ import class Foundation.FileHandle
 #if canImport(FoundationNetworking)
 @preconcurrency import struct FoundationNetworking.URLRequest
 import class FoundationNetworking.URLSession
+import class FoundationNetworking.URLSessionTask
 import class FoundationNetworking.URLResponse
 import class FoundationNetworking.HTTPURLResponse
 #endif
@@ -243,31 +244,50 @@ extension URLSession {
     func bufferedRequest(for request: HTTPRequest, baseURL: URL, requestBody: HTTPBody?) async throws -> (
         HTTPResponse, HTTPBody?
     ) {
+        try Task.checkCancellation()
         var urlRequest = try URLRequest(request, baseURL: baseURL)
         if let requestBody { urlRequest.httpBody = try await Data(collecting: requestBody, upTo: .max) }
+        try Task.checkCancellation()
 
         /// Use `dataTask(with:completionHandler:)` here because `data(for:[delegate:]) async` is only available on
         /// Darwin platforms newer than our minimum deployment target, and not at all on Linux.
-        let (response, maybeResponseBodyData): (URLResponse, Data?) = try await withCheckedThrowingContinuation {
-            continuation in
-            let task = self.dataTask(with: urlRequest) { [urlRequest] data, response, error in
-                if let error {
-                    continuation.resume(throwing: error)
-                    return
+        let taskBox: LockedValueBox<URLSessionTask?> = .init(nil)
+        return try await withTaskCancellationHandler {
+            let (response, maybeResponseBodyData): (URLResponse, Data?) = try await withCheckedThrowingContinuation {
+                continuation in
+                let task = self.dataTask(with: urlRequest) { [urlRequest] data, response, error in
+                    if let error {
+                        continuation.resume(throwing: error)
+                        return
+                    }
+                    guard let response else {
+                        continuation.resume(throwing: URLSessionTransportError.noResponse(url: urlRequest.url))
+                        return
+                    }
+                    continuation.resume(with: .success((response, data)))
                 }
-                guard let response else {
-                    continuation.resume(throwing: URLSessionTransportError.noResponse(url: urlRequest.url))
-                    return
+                // Swift concurrency task cancelled here.
+                taskBox.withLockedValue { boxedTask in
+                    guard task.state == .suspended else {
+                        debug("URLSession task cannot be resumed, probably because it was cancelled by onCancel.")
+                        return
+                    }
+                    task.resume()
+                    boxedTask = task
                 }
-                continuation.resume(with: .success((response, data)))
             }
-            task.resume()
-        }
 
-        let maybeResponseBody = maybeResponseBodyData.map { data in
-            HTTPBody(data, length: HTTPBody.Length(from: response), iterationBehavior: .multiple)
+            let maybeResponseBody = maybeResponseBodyData.map { data in
+                HTTPBody(data, length: HTTPBody.Length(from: response), iterationBehavior: .multiple)
+            }
+            return (try HTTPResponse(response), maybeResponseBody)
+        } onCancel: {
+            taskBox.withLockedValue { boxedTask in
+                debug("Concurrency task cancelled, cancelling URLSession task.")
+                boxedTask?.cancel()
+                boxedTask = nil
+            }
         }
-        return (try HTTPResponse(response), maybeResponseBody)
     }
 }
 

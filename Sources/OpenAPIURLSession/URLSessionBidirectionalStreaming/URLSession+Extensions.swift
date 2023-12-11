@@ -32,6 +32,7 @@ import Foundation
             task = dataTask(with: urlRequest)
         }
         return try await withTaskCancellationHandler {
+            try Task.checkCancellation()
             let delegate = BidirectionalStreamingURLSessionDelegate(
                 requestBody: requestBody,
                 requestStreamBufferSize: requestStreamBufferSize,
@@ -47,8 +48,10 @@ import Foundation
                 length: .init(from: response),
                 iterationBehavior: .single
             )
+            try Task.checkCancellation()
             return (try HTTPResponse(response), responseBody)
         } onCancel: {
+            debug("Concurrency task cancelled, cancelling URLSession task.")
             task.cancel()
         }
     }

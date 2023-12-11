@@ -56,7 +56,7 @@ class URLSessionTransportConverterTests: XCTestCase {
 
 // swift-format-ignore: AllPublicDeclarationsHaveDocumentation
 class URLSessionTransportBufferedTests: XCTestCase {
-    var transport: (any ClientTransport)!
+    var transport: URLSessionTransport!
 
     static override func setUp() { OpenAPIURLSession.debugLoggingEnabled = false }
 
@@ -66,7 +66,7 @@ class URLSessionTransportBufferedTests: XCTestCase {
 
     func testBasicGet() async throws { try await testHTTPBasicGet(transport: transport) }
 
-    func testBasicPost() async throws { try await testHTTPBasicGet(transport: transport) }
+    func testBasicPost() async throws { try await testHTTPBasicPost(transport: transport) }
 
     #if canImport(Darwin)  // Only passes on Darwin because Linux doesn't replay the request body on 307.
     func testHTTPRedirect_multipleIterationBehavior_succeeds() async throws {
@@ -89,7 +89,7 @@ class URLSessionTransportBufferedTests: XCTestCase {
 
 // swift-format-ignore: AllPublicDeclarationsHaveDocumentation
 class URLSessionTransportStreamingTests: XCTestCase {
-    var transport: (any ClientTransport)!
+    var transport: URLSessionTransport!
 
     static override func setUp() { OpenAPIURLSession.debugLoggingEnabled = false }
 
@@ -107,7 +107,7 @@ class URLSessionTransportStreamingTests: XCTestCase {
 
     func testBasicGet() async throws { try await testHTTPBasicGet(transport: transport) }
 
-    func testBasicPost() async throws { try await testHTTPBasicGet(transport: transport) }
+    func testBasicPost() async throws { try await testHTTPBasicPost(transport: transport) }
 
     #if canImport(Darwin)  // Only passes on Darwin because Linux doesn't replay the request body on 307.
     func testHTTPRedirect_multipleIterationBehavior_succeeds() async throws {
