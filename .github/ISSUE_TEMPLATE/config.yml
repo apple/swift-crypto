@@ -1,0 +1,6 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 🐞 Open an issue on the Swift OpenAPI Generator repository
+    url: https://github.com/apple/swift-openapi-generator/issues
+    about: >
+      Issues for all repositories in the Swift OpenAPI Generator project are centralized in the swift-openapi-generator repository.
