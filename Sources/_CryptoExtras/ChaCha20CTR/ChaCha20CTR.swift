@@ -16,7 +16,11 @@
 @_implementationOnly import CCryptoBoringSSLShims
 import Crypto
 @_implementationOnly import CryptoBoringWrapper
+#if canImport(Darwin) || swift(>=5.9.1)
 import Foundation
+#else
+@preconcurrency import Foundation
+#endif
 
 typealias ChaCha20CTRImpl = OpenSSLChaCha20CTRImpl
 
@@ -51,7 +55,7 @@ extension Insecure {
 }
 
 extension Insecure.ChaCha20CTR {
-    public struct Nonce: ContiguousBytes, Sequence {
+    public struct Nonce: Sendable, ContiguousBytes, Sequence {
         let bytes: Data
 
         /// Generates a fresh random Nonce. Unless required by a specification to provide a specific Nonce, this is the recommended initializer.
@@ -83,7 +87,7 @@ extension Insecure.ChaCha20CTR {
         }
     }
 
-    public struct Counter: ContiguousBytes {
+    public struct Counter: Sendable, ContiguousBytes {
         let counter: UInt32
 
         /// Generates a fresh Counter set to 0. Unless required by a specification to provide a specific Counter, this is the recommended initializer.

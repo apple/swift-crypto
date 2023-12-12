@@ -159,7 +159,7 @@ extension _RSA.Signing {
 }
 
 extension _RSA.Signing {
-    public struct RSASignature: ContiguousBytes {
+    public struct RSASignature: Sendable, ContiguousBytes {
         public var rawRepresentation: Data
 
         public init<D: DataProtocol>(rawRepresentation: D) {
@@ -177,7 +177,7 @@ extension _RSA.Signing {
 }
 
 extension _RSA.Signing {
-    public struct Padding {
+    public struct Padding: Sendable {
         internal enum Backing {
             case pkcs1v1_5
             case pss
@@ -305,7 +305,7 @@ extension _RSA.Signing.PublicKey {
 }
 
 extension _RSA.Signing {
-    public struct KeySize {
+    public struct KeySize: Sendable {
         public let bitCount: Int
 
         /// RSA key size of 2048 bits
@@ -399,7 +399,7 @@ extension _RSA.Encryption {
 }
 
 extension _RSA.Encryption {
-    public struct Padding {
+    public struct Padding: Sendable {
         internal enum Backing {
             case pkcs1_oaep(Digest)
         }

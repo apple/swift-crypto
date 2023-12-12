@@ -16,7 +16,11 @@ import Crypto
 @_implementationOnly import CCryptoBoringSSL
 @_implementationOnly import CCryptoBoringSSLShims
 @_implementationOnly import CryptoBoringWrapper
+#if canImport(Darwin) || swift(>=5.9.1)
 import Foundation
+#else
+@preconcurrency import Foundation
+#endif
 
 /// Types associated with the AES GCM SIV algorithm
 extension AES.GCM {
@@ -81,7 +85,7 @@ extension AES.GCM {
 }
 
 extension AES.GCM._SIV {
-    public struct Nonce: ContiguousBytes, Sequence {
+    public struct Nonce: Sendable, ContiguousBytes, Sequence {
         let bytes: Data
 
         /// Generates a fresh random Nonce. Unless required by a specification to provide a specific Nonce, this is the recommended initializer.
@@ -115,7 +119,7 @@ extension AES.GCM._SIV {
 }
 
 extension AES.GCM._SIV {
-    public struct SealedBox {
+    public struct SealedBox: Sendable {
         /// The combined representation ( nonce || ciphertext || tag)
         public let combined: Data
         /// The authentication tag
