@@ -18,7 +18,7 @@ import Foundation
 extension AES {
     /// The Advanced Encryption Standard (AES) Cipher Block Chaining (CBC) cipher
     /// suite.
-    public enum _CBC {
+    public enum _CBC: Sendable {
         private static var blockSize: Int { 16 }
 
         private static func encryptBlockInPlace(
@@ -143,7 +143,7 @@ extension AES {
 
 extension AES._CBC {
     /// An initialization vector.
-    public struct IV {
+    public struct IV: Sendable {
         // AES CBC uses a 128-bit IV.
         var ivBytes: (
             UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8,
