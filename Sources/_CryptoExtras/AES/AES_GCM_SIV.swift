@@ -25,7 +25,7 @@ import Foundation
 /// Types associated with the AES GCM SIV algorithm
 extension AES.GCM {
     /// AES in GCM SIV mode with 128-bit tags.
-    public enum _SIV: Sendable {
+    public enum _SIV {
         static let tagByteCount = 16
         static let nonceByteCount = 12
 

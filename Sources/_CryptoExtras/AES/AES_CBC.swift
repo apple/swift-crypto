@@ -18,7 +18,7 @@ import Foundation
 extension AES {
     /// The Advanced Encryption Standard (AES) Cipher Block Chaining (CBC) cipher
     /// suite.
-    public enum _CBC: Sendable {
+    public enum _CBC {
         private static var blockSize: Int { 16 }
 
         private static func encryptBlockInPlace(
