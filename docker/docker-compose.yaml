@@ -38,7 +38,7 @@ services:
     
   cxx-interop-build:
     <<: *common
-    command: /bin/bash -xcl "swift build -Xswiftc -cxx-interoperability-mode=default"
+    command: /bin/bash -xcl "./scripts/cxx-interop-compatibility.sh"
 
   # util
 
