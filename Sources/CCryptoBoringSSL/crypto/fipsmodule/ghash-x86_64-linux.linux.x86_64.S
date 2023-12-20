@@ -167,7 +167,7 @@ _CET_ENDBR
 	movdqu	%xmm0,64(%rdi)
 .byte	102,15,58,15,227,8
 	movdqu	%xmm4,80(%rdi)
-	.byte	0xf3,0xc3
+	ret
 .cfi_endproc	
 
 .size	gcm_init_clmul,.-gcm_init_clmul
@@ -223,7 +223,7 @@ _CET_ENDBR
 	pxor	%xmm1,%xmm0
 .byte	102,15,56,0,197
 	movdqu	%xmm0,(%rdi)
-	.byte	0xf3,0xc3
+	ret
 .cfi_endproc	
 .size	gcm_gmult_clmul,.-gcm_gmult_clmul
 .globl	gcm_ghash_clmul
@@ -612,7 +612,7 @@ _CET_ENDBR
 .Ldone:
 .byte	102,65,15,56,0,194
 	movdqu	%xmm0,(%rdi)
-	.byte	0xf3,0xc3
+	ret
 .cfi_endproc	
 
 .size	gcm_ghash_clmul,.-gcm_ghash_clmul
@@ -724,7 +724,7 @@ _CET_ENDBR
 	vmovdqu	%xmm5,-16(%rdi)
 
 	vzeroupper
-	.byte	0xf3,0xc3
+	ret
 
 .cfi_endproc	
 .size	gcm_init_avx,.-gcm_init_avx
@@ -1115,7 +1115,7 @@ _CET_ENDBR
 	vpshufb	%xmm13,%xmm10,%xmm10
 	vmovdqu	%xmm10,(%rdi)
 	vzeroupper
-	.byte	0xf3,0xc3
+	ret
 .cfi_endproc	
 
 .size	gcm_ghash_avx,.-gcm_ghash_avx

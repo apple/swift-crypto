@@ -60,7 +60,7 @@ extension DataProtocol {
     var hexString: String {
         get {
             let hexLen = self.count * 2
-            return String.init(unsafeUninitializedCapacity: hexLen) { buf in
+            let bytes = Array(unsafeUninitializedCapacity: hexLen) { buf, count in
                 var offset = 0
 
                 self.regions.forEach { (_) in
@@ -70,8 +70,9 @@ extension DataProtocol {
                         offset += 1
                     }
                 }
-                return offset
+                count = offset
             }
+            return String(decoding: bytes, as: UTF8.self)
         }
     }
 }

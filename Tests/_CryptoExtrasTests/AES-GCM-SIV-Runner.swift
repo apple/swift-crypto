@@ -34,7 +34,7 @@ struct AESGCMTestVector: Codable {
     let result: String
 }
 
-class AESGCMSIVTests: XCTestCase {
+final class AESGCMSIVTests: XCTestCase {
     func testPropertiesStayTheSameAfterFailedOpening() throws {
         let message = Data("this is a message".utf8)
         let sealed = try AES.GCM._SIV.seal(message, using: SymmetricKey(size: .bits128))

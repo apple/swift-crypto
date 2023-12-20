@@ -14,7 +14,7 @@
 import Foundation
 import Crypto
 
-#if canImport(Security)
+#if CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
 fileprivate typealias BackingPublicKey = SecurityRSAPublicKey
 fileprivate typealias BackingPrivateKey = SecurityRSAPrivateKey
 #else
@@ -44,7 +44,7 @@ extension _RSA {
 }
 
 extension _RSA.Signing {
-    public struct PublicKey {
+    public struct PublicKey: Sendable {
         private var backing: BackingPublicKey
 
         /// Construct an RSA public key from a PEM representation.
@@ -54,7 +54,7 @@ extension _RSA.Signing {
         public init(pemRepresentation: String) throws {
             self.backing = try BackingPublicKey(pemRepresentation: pemRepresentation)
 
-            if self.keySizeInBits < 1024 || self.keySizeInBits % 8 != 0 {
+            guard self.keySizeInBits >= 1024 else {
                 throw CryptoKitError.incorrectParameterSize
             }
         }
@@ -66,7 +66,7 @@ extension _RSA.Signing {
         public init<Bytes: DataProtocol>(derRepresentation: Bytes) throws {
             self.backing = try BackingPublicKey(derRepresentation: derRepresentation)
 
-            if self.keySizeInBits < 1024 || self.keySizeInBits % 8 != 0 {
+            guard self.keySizeInBits >= 1024 else {
                 throw CryptoKitError.incorrectParameterSize
             }
         }
@@ -98,7 +98,7 @@ extension _RSA.Signing {
 }
 
 extension _RSA.Signing {
-    public struct PrivateKey {
+    public struct PrivateKey: Sendable {
         private var backing: BackingPrivateKey
 
         /// Construct an RSA private key from a PEM representation.
@@ -108,7 +108,7 @@ extension _RSA.Signing {
         public init(pemRepresentation: String) throws {
             self.backing = try BackingPrivateKey(pemRepresentation: pemRepresentation)
 
-            if self.keySizeInBits < 1024 || self.keySizeInBits % 8 != 0 {
+            guard self.keySizeInBits >= 1024 else {
                 throw CryptoKitError.incorrectParameterSize
             }
         }
@@ -120,7 +120,7 @@ extension _RSA.Signing {
         public init<Bytes: DataProtocol>(derRepresentation: Bytes) throws {
             self.backing = try BackingPrivateKey(derRepresentation: derRepresentation)
 
-            if self.keySizeInBits < 1024 || self.keySizeInBits % 8 != 0 {
+            guard self.keySizeInBits >= 1024 else {
                 throw CryptoKitError.incorrectParameterSize
             }
         }
@@ -144,6 +144,10 @@ extension _RSA.Signing {
             self.backing.pemRepresentation
         }
 
+        public var pkcs8PEMRepresentation: String {
+            self.backing.pkcs8PEMRepresentation
+        }
+
         public var keySizeInBits: Int {
             self.backing.keySizeInBits
         }
@@ -155,7 +159,7 @@ extension _RSA.Signing {
 }
 
 extension _RSA.Signing {
-    public struct RSASignature: ContiguousBytes {
+    public struct RSASignature: Sendable, ContiguousBytes {
         public var rawRepresentation: Data
 
         public init<D: DataProtocol>(rawRepresentation: D) {
@@ -173,7 +177,7 @@ extension _RSA.Signing {
 }
 
 extension _RSA.Signing {
-    public struct Padding {
+    public struct Padding: Sendable {
         internal enum Backing {
             case pkcs1v1_5
             case pss
@@ -301,7 +305,7 @@ extension _RSA.Signing.PublicKey {
 }
 
 extension _RSA.Signing {
-    public struct KeySize {
+    public struct KeySize: Sendable {
         public let bitCount: Int
 
         /// RSA key size of 2048 bits
@@ -388,19 +392,20 @@ extension _RSA.Encryption {
         
         public var derRepresentation: Data { self.backing.derRepresentation }
         public var pemRepresentation: String { self.backing.pemRepresentation }
+        public var pkcs8PEMRepresentation: String { self.backing.pkcs8PEMRepresentation }
         public var keySizeInBits: Int { self.backing.keySizeInBits }
         public var publicKey: _RSA.Encryption.PublicKey { .init(self.backing.publicKey) }
     }
 }
 
 extension _RSA.Encryption {
-    public struct Padding {
+    public struct Padding: Sendable {
         internal enum Backing {
-            case pkcs1_oaep
+            case pkcs1_oaep(Digest)
         }
-        
+
         internal var backing: Backing
-        
+
         private init(_ backing: Backing) {
             self.backing = backing
         }
@@ -408,7 +413,13 @@ extension _RSA.Encryption {
         /// PKCS#1 OAEP padding
         ///
         /// As defined by [RFC 8017 § 7.1](https://datatracker.ietf.org/doc/html/rfc8017#section-7.1).
-        public static let PKCS1_OAEP = Self(.pkcs1_oaep)
+        public static let PKCS1_OAEP = Self(.pkcs1_oaep(.sha1))
+        public static let PKCS1_OAEP_SHA256 = Self(.pkcs1_oaep(.sha256))
+    }
+
+    internal enum Digest {
+        case sha1
+        case sha256
     }
 }
 

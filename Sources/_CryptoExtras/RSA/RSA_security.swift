@@ -14,10 +14,11 @@
 import Foundation
 import Crypto
 
-#if canImport(Security)
+#if CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
 @_implementationOnly import Security
 
-internal struct SecurityRSAPublicKey {
+// unchecked sendable until `SecKey` gets sendable annotations
+internal struct SecurityRSAPublicKey: @unchecked Sendable {
     private var backing: SecKey
 
     init(pemRepresentation: String) throws {
@@ -61,8 +62,7 @@ internal struct SecurityRSAPublicKey {
     }
 
     var keySizeInBits: Int {
-        let attributes = SecKeyCopyAttributes(self.backing)! as NSDictionary
-        return (attributes[kSecAttrKeySizeInBits]! as! NSNumber).intValue
+        SecKeyGetBlockSize(self.backing) * 8
     }
 
     fileprivate init(_ backing: SecKey) {
@@ -70,8 +70,8 @@ internal struct SecurityRSAPublicKey {
     }
 }
 
-
-internal struct SecurityRSAPrivateKey {
+// unchecked sendable until `SecKey` gets sendable annotations
+internal struct SecurityRSAPrivateKey: @unchecked Sendable {
     private var backing: SecKey
 
     init(pemRepresentation: String) throws {
@@ -145,9 +145,18 @@ internal struct SecurityRSAPrivateKey {
         return ASN1.PEMDocument(type: _RSA.PKCS1KeyType, derBytes: self.derRepresentation).pemString
     }
 
+    var pkcs8PEMRepresentation: String {
+        let pkcs1Bytes = self.derRepresentation
+        let pkcs8Bytes = Data(privateKeyPKCS8BytesForPKCS1Bytes: pkcs1Bytes)
+        let pemString = ASN1.PEMDocument(type: _RSA.PKCS8KeyType, derBytes: pkcs8Bytes).pemString
+
+        // The BoringSSL implementation returns this string with a trailing newline. For consistency,
+        // we'll do the same here.
+        return pemString.appending("\n")
+    }
+
     var keySizeInBits: Int {
-        let attributes = SecKeyCopyAttributes(self.backing)! as NSDictionary
-        return (attributes[kSecAttrKeySizeInBits]! as! NSNumber).intValue
+        SecKeyGetBlockSize(self.backing) * 8
     }
 
     var publicKey: SecurityRSAPublicKey {
@@ -258,8 +267,13 @@ extension SecKeyAlgorithm {
     
     fileprivate init(padding: _RSA.Encryption.Padding) throws {
         switch padding.backing {
-        case .pkcs1_oaep:
-            self = .rsaEncryptionOAEPSHA1
+        case .pkcs1_oaep(let digest):
+            switch digest {
+            case .sha1:
+                self = .rsaEncryptionOAEPSHA1
+            case .sha256:
+                self = .rsaEncryptionOAEPSHA256
+            }
         }
     }
 }
@@ -371,6 +385,35 @@ extension Data {
         bytes.append(0x03)  // BITSTRING marker
         bytes.appendAsASN1NodeLength(keyLength)
         bytes.append(UInt8(0))  // No padding bits
+        bytes.append(contentsOf: pkcs1Bytes)
+
+        self = bytes
+    }
+
+    static let pkcs8versionIdentifierBytes = Data([
+        0x02, 0x01, 0x00,  // Version, INTEGER 0
+    ])
+
+    fileprivate init(privateKeyPKCS8BytesForPKCS1Bytes pkcs1Bytes: Data) {
+        // The PKCS8 encoding of a private key is very similar to the
+        // SPKI encoding of a public key, as implemented in `Data(spkiBytesForPKCS1Bytes:)` above.
+        // The difference is that PKCS 8 includes a VERSION field, and
+        // uses an OCTET STREAM instead of a BIT STREAM.
+        let versionLength = Self.pkcs8versionIdentifierBytes.count
+        let keyLength = (pkcs1Bytes.count)
+        let octetStringOverhead = keyLength._bytesNeededToEncodeASN1Length + 1
+        let totalLengthOfSequencePayload = versionLength + Self.rsaAlgorithmIdentifierBytes.count + octetStringOverhead + keyLength
+
+        var bytes = Data()
+        bytes.reserveCapacity(1 + totalLengthOfSequencePayload._bytesNeededToEncodeASN1Length + totalLengthOfSequencePayload)
+
+        bytes.append(0x30)  // SEQUENCE marker.
+        bytes.appendAsASN1NodeLength(totalLengthOfSequencePayload)
+        bytes.append(Self.pkcs8versionIdentifierBytes)
+        bytes.append(Self.rsaAlgorithmIdentifierBytes)
+
+        bytes.append(0x04)  // OCTET STRING marker
+        bytes.appendAsASN1NodeLength(keyLength)
         bytes.append(contentsOf: pkcs1Bytes)
 
         self = bytes

@@ -1,4 +1,4 @@
-// swift-tools-version:5.6
+// swift-tools-version:5.7
 //===----------------------------------------------------------------------===//
 //
 // This source file is part of the SwiftCrypto open source project
@@ -20,7 +20,7 @@
 // Sources/CCryptoBoringSSL directory. The source repository is at
 // https://boringssl.googlesource.com/boringssl.
 //
-// BoringSSL Commit: 7ae2b910c13017b63f1a8bd6c8decfce692869b0
+// BoringSSL Commit: 3309ca66385ecb0c37f1ac1be9f88712e25aa8ec
 
 import PackageDescription
 
@@ -130,7 +130,8 @@ let package = Package(
             ],
             exclude: [
                 "CMakeLists.txt",
-            ]
+            ],
+            swiftSettings: swiftSettings
         ),
         .target(
             name: "CryptoBoringWrapper",

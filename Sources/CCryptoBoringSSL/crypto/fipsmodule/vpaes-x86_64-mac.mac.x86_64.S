@@ -106,7 +106,7 @@ L$enc_entry:
 	movdqa	64(%r11,%r10,1),%xmm1
 	pxor	%xmm4,%xmm0
 .byte	102,15,56,0,193
-	.byte	0xf3,0xc3
+	ret
 
 
 
@@ -281,7 +281,7 @@ L$enc2x_entry:
 	pxor	%xmm12,%xmm6
 .byte	102,15,56,0,193
 .byte	102,15,56,0,241
-	.byte	0xf3,0xc3
+	ret
 
 
 
@@ -389,7 +389,7 @@ L$dec_entry:
 .byte	102,15,56,0,195
 	pxor	%xmm4,%xmm0
 .byte	102,15,56,0,194
-	.byte	0xf3,0xc3
+	ret
 
 
 
@@ -567,7 +567,7 @@ L$schedule_mangle_last_dec:
 	pxor	%xmm5,%xmm5
 	pxor	%xmm6,%xmm6
 	pxor	%xmm7,%xmm7
-	.byte	0xf3,0xc3
+	ret
 
 
 
@@ -596,7 +596,7 @@ _vpaes_schedule_192_smear:
 	pxor	%xmm0,%xmm6
 	movdqa	%xmm6,%xmm0
 	movhlps	%xmm1,%xmm6
-	.byte	0xf3,0xc3
+	ret
 
 
 
@@ -674,7 +674,7 @@ _vpaes_schedule_low_round:
 
 	pxor	%xmm7,%xmm0
 	movdqa	%xmm0,%xmm7
-	.byte	0xf3,0xc3
+	ret
 
 
 
@@ -700,7 +700,7 @@ _vpaes_schedule_transform:
 	movdqa	16(%r11),%xmm0
 .byte	102,15,56,0,193
 	pxor	%xmm2,%xmm0
-	.byte	0xf3,0xc3
+	ret
 
 
 
@@ -794,7 +794,7 @@ L$schedule_mangle_both:
 	addq	$-16,%r8
 	andq	$0x30,%r8
 	movdqu	%xmm3,(%rdx)
-	.byte	0xf3,0xc3
+	ret
 
 
 
@@ -822,7 +822,7 @@ _CET_ENDBR
 	movl	$0x30,%r8d
 	call	_vpaes_schedule_core
 	xorl	%eax,%eax
-	.byte	0xf3,0xc3
+	ret
 
 
 
@@ -847,7 +847,7 @@ _CET_ENDBR
 	xorl	$32,%r8d
 	call	_vpaes_schedule_core
 	xorl	%eax,%eax
-	.byte	0xf3,0xc3
+	ret
 
 
 
@@ -866,7 +866,7 @@ _CET_ENDBR
 	call	_vpaes_preheat
 	call	_vpaes_encrypt_core
 	movdqu	%xmm0,(%rsi)
-	.byte	0xf3,0xc3
+	ret
 
 
 
@@ -881,7 +881,7 @@ _CET_ENDBR
 	call	_vpaes_preheat
 	call	_vpaes_decrypt_core
 	movdqu	%xmm0,(%rsi)
-	.byte	0xf3,0xc3
+	ret
 
 
 .globl	_vpaes_cbc_encrypt
@@ -925,7 +925,7 @@ L$cbc_dec_loop:
 L$cbc_done:
 	movdqu	%xmm6,(%r8)
 L$cbc_abort:
-	.byte	0xf3,0xc3
+	ret
 
 
 .globl	_vpaes_ctr32_encrypt_blocks
@@ -989,7 +989,7 @@ L$ctr32_loop:
 
 L$ctr32_done:
 L$ctr32_abort:
-	.byte	0xf3,0xc3
+	ret
 
 
 
@@ -1010,7 +1010,7 @@ _vpaes_preheat:
 	movdqa	64(%r10),%xmm12
 	movdqa	80(%r10),%xmm15
 	movdqa	96(%r10),%xmm14
-	.byte	0xf3,0xc3
+	ret
 
 
 

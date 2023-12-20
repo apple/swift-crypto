@@ -59,7 +59,7 @@
 
 #include "CCryptoBoringSSL_base.h"
 
-#include "CCryptoBoringSSL_evp_errors.h"
+#include "CCryptoBoringSSL_evp_errors.h"  // IWYU pragma: export
 #include "CCryptoBoringSSL_thread.h"
 
 // OpenSSL included digest and cipher functions in this header so we include

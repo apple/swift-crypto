@@ -66,6 +66,7 @@
 
 #include <stddef.h>
 #include <stdint.h>
+#include <stdlib.h>
 #include <sys/types.h>
 
 #if defined(__MINGW32__)
@@ -116,7 +117,7 @@ extern "C" {
 // A consumer may use this symbol in the preprocessor to temporarily build
 // against multiple revisions of BoringSSL at the same time. It is not
 // recommended to do so for longer than is necessary.
-#define BORINGSSL_API_VERSION 26
+#define BORINGSSL_API_VERSION 27
 
 #if defined(BORINGSSL_SHARED_LIBRARY)
 
@@ -391,6 +392,13 @@ typedef struct x509_trust_st X509_TRUST;
 
 typedef void *OPENSSL_BLOCK;
 
+// BSSL_CHECK aborts if |condition| is not true.
+#define BSSL_CHECK(condition) \
+  do {                        \
+    if (!(condition)) {       \
+      abort();                \
+    }                         \
+  } while (0);
 
 #if defined(__cplusplus)
 }  // extern C

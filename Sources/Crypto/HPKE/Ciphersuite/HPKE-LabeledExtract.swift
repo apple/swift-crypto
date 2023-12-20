@@ -41,12 +41,12 @@ internal func LabeledExtract(salt: Data?, label: Data, ikm: ContiguousBytes?, su
     return kdf.extract(salt: salt ?? Data(), ikm: SymmetricKey(data: labeled_ikm))
 }
 
-internal func LabeledExpand(prk: SymmetricKey, label: Data, info: Data, outputByteCount: UInt16, suiteID: Data, kdf: HPKE.KDF) -> SymmetricKey {
+internal func LabeledExpand<Info: DataProtocol>(prk: SymmetricKey, label: Data, info: Info, outputByteCount: UInt16, suiteID: Data, kdf: HPKE.KDF) -> SymmetricKey {
     var labeled_info = I2OSP(value: Int(outputByteCount), outputByteCount: 2)
     labeled_info.append(protocolLabel)
     labeled_info.append(suiteID)
     labeled_info.append(label)
-    labeled_info.append(info)
+    labeled_info.append(contentsOf: info)
     return kdf.expand(prk: prk, info: labeled_info, outputByteCount: Int(outputByteCount))
 }
 

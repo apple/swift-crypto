@@ -56,6 +56,12 @@ extension HPKE {
             let kem: HPKE.KEM
             let key: DHPK
 
+            #if !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
+            typealias EncapsulationResult = CryptoKit.KEM.EncapsulationResult
+            #else
+            typealias EncapsulationResult = Crypto.KEM.EncapsulationResult
+            #endif
+
             init(_ publicKey: DHPK, kem: HPKE.KEM) throws {
                 // TODO: Validate Ciphersuite Mismatches
                 _ = try publicKey.hpkeRepresentation(kem: kem)
@@ -63,14 +69,14 @@ extension HPKE {
                 self.kem = kem
             }
             
-            func encapsulate() throws -> Crypto.KEM.EncapsulationResult {
+            func encapsulate() throws -> EncapsulationResult {
                 let ephemeralKeys = DHPK.EphemeralPrivateKey()
                 let dh =
                 try ephemeralKeys.sharedSecretFromKeyAgreement(with: key)
                 
                 let enc = try! ephemeralKeys.publicKey.hpkeRepresentation(kem: kem)
                 let selfRepresentation = try self.key.hpkeRepresentation(kem: kem)
-                return Crypto.KEM.EncapsulationResult(sharedSecret: HPKE.KexUtils.ExtractAndExpand(dh: dh,
+                return EncapsulationResult(sharedSecret: HPKE.KexUtils.ExtractAndExpand(dh: dh,
                                                                                             enc: enc,
                                                                                             pkRm: selfRepresentation,
                                                                                             kem: kem,

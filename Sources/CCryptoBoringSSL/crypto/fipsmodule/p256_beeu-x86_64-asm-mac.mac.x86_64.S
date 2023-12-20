@@ -317,7 +317,7 @@ L$beeu_finish:
 
 	popq	%rbp
 
-	.byte	0xf3,0xc3
+	ret
 
 
 

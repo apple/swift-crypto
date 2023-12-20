@@ -1264,7 +1264,7 @@ _CET_ENDBR
 	leaq	(%rsi),%rsp
 .cfi_def_cfa_register	%rsp
 .Lepilogue:
-	.byte	0xf3,0xc3
+	ret
 .cfi_endproc	
 .size	sha1_block_data_order,.-sha1_block_data_order
 .type	sha1_block_data_order_shaext,@function
@@ -1434,7 +1434,7 @@ _shaext_shortcut:
 	pshufd	$27,%xmm1,%xmm1
 	movdqu	%xmm0,(%rdi)
 	movd	%xmm1,16(%rdi)
-	.byte	0xf3,0xc3
+	ret
 .cfi_endproc	
 .size	sha1_block_data_order_shaext,.-sha1_block_data_order_shaext
 .type	sha1_block_data_order_ssse3,@function
@@ -2622,7 +2622,7 @@ _ssse3_shortcut:
 	leaq	(%r11),%rsp
 .cfi_def_cfa_register	%rsp
 .Lepilogue_ssse3:
-	.byte	0xf3,0xc3
+	ret
 .cfi_endproc	
 .size	sha1_block_data_order_ssse3,.-sha1_block_data_order_ssse3
 .type	sha1_block_data_order_avx,@function
@@ -3750,7 +3750,7 @@ _avx_shortcut:
 	leaq	(%r11),%rsp
 .cfi_def_cfa_register	%rsp
 .Lepilogue_avx:
-	.byte	0xf3,0xc3
+	ret
 .cfi_endproc	
 .size	sha1_block_data_order_avx,.-sha1_block_data_order_avx
 .type	sha1_block_data_order_avx2,@function
@@ -5443,7 +5443,7 @@ _avx2_shortcut:
 	leaq	(%r11),%rsp
 .cfi_def_cfa_register	%rsp
 .Lepilogue_avx2:
-	.byte	0xf3,0xc3
+	ret
 .cfi_endproc	
 .size	sha1_block_data_order_avx2,.-sha1_block_data_order_avx2
 .section	.rodata
