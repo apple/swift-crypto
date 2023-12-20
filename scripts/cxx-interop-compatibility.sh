@@ -18,7 +18,6 @@ set -eu
 sourcedir=$(dirname "$(readlink -f $0)")/..
 workingdir=$(mktemp -d)
 projectname=$(basename $workingdir)
-packagename=${CXX_INTEROP_BUILD_PACKAGE_NAME:-swift-crypto}
 
 cd $workingdir
 swift package init
@@ -46,16 +45,11 @@ let package = Package(
             // Depend on all products of swift-crypto to make sure they're all
             // compatible with cxx interop.
             dependencies: [
-                .product(name: "Crypto", package: "$packagename"),
-                .product(name: "_CryptoExtras", package: "$packagename")
+                .product(name: "Crypto", package: "swift-crypto"),
+                .product(name: "_CryptoExtras", package: "swift-crypto")
             ],
             swiftSettings: [.interoperabilityMode(.Cxx)]
-        ),
-        .testTarget(
-            name: "interopTests",
-            dependencies: ["interop"],
-            swiftSettings: [.interoperabilityMode(.Cxx)]
-        ),
+        )
     ]
 )
 EOF

@@ -19,8 +19,6 @@ services:
     
   cxx-interop-build:
     image: swift-crypto:22.04-5.10
-    environment:
-      - CXX_INTEROP_BUILD_PACKAGE_NAME=code
 
   shell:
     image: swift-crypto:22.04-5.10
