@@ -143,7 +143,7 @@ extension AES {
 
 extension AES._CBC {
     /// An initialization vector.
-    public struct IV {
+    public struct IV: Sendable {
         // AES CBC uses a 128-bit IV.
         var ivBytes: (
             UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8,

@@ -17,7 +17,8 @@ import Crypto
 #if CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
 @_implementationOnly import Security
 
-internal struct SecurityRSAPublicKey {
+// unchecked sendable until `SecKey` gets sendable annotations
+internal struct SecurityRSAPublicKey: @unchecked Sendable {
     private var backing: SecKey
 
     init(pemRepresentation: String) throws {
@@ -69,8 +70,8 @@ internal struct SecurityRSAPublicKey {
     }
 }
 
-
-internal struct SecurityRSAPrivateKey {
+// unchecked sendable until `SecKey` gets sendable annotations
+internal struct SecurityRSAPrivateKey: @unchecked Sendable {
     private var backing: SecKey
 
     init(pemRepresentation: String) throws {

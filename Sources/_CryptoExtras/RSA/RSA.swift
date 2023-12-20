@@ -44,7 +44,7 @@ extension _RSA {
 }
 
 extension _RSA.Signing {
-    public struct PublicKey {
+    public struct PublicKey: Sendable {
         private var backing: BackingPublicKey
 
         /// Construct an RSA public key from a PEM representation.
@@ -98,7 +98,7 @@ extension _RSA.Signing {
 }
 
 extension _RSA.Signing {
-    public struct PrivateKey {
+    public struct PrivateKey: Sendable {
         private var backing: BackingPrivateKey
 
         /// Construct an RSA private key from a PEM representation.

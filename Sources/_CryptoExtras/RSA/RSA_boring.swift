@@ -20,7 +20,7 @@ import Crypto
 @_implementationOnly import CCryptoBoringSSL
 @_implementationOnly import CCryptoBoringSSLShims
 
-internal struct BoringSSLRSAPublicKey {
+internal struct BoringSSLRSAPublicKey: Sendable {
     private var backing: Backing
 
     init(pemRepresentation: String) throws {
@@ -57,7 +57,7 @@ internal struct BoringSSLRSAPublicKey {
 }
 
 
-internal struct BoringSSLRSAPrivateKey {
+internal struct BoringSSLRSAPrivateKey: Sendable {
     private var backing: Backing
 
     init(pemRepresentation: String) throws {
