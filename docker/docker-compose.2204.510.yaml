@@ -16,6 +16,9 @@ services:
 
   cmake:
     image: swift-crypto:22.04-5.10
+    
+  cxx-interop-build:
+    image: swift-crypto:22.04-5.10
 
   shell:
     image: swift-crypto:22.04-5.10
