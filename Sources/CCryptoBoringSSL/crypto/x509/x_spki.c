@@ -60,6 +60,8 @@
 #include <CCryptoBoringSSL_asn1t.h>
 #include <CCryptoBoringSSL_x509.h>
 
+#include "internal.h"
+
 
 ASN1_SEQUENCE(NETSCAPE_SPKAC) = {
     ASN1_SIMPLE(NETSCAPE_SPKAC, pubkey, X509_PUBKEY),
