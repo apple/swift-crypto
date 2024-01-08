@@ -65,7 +65,6 @@
 #include <CCryptoBoringSSL_pool.h>
 #include <CCryptoBoringSSL_thread.h>
 #include <CCryptoBoringSSL_x509.h>
-#include <CCryptoBoringSSL_x509v3.h>
 
 #include "../asn1/internal.h"
 #include "../bytestring/internal.h"

@@ -259,6 +259,12 @@ OPENSSL_EXPORT void OPENSSL_reset_malloc_counter_for_testing(void);
 OPENSSL_INLINE void OPENSSL_reset_malloc_counter_for_testing(void) {}
 #endif
 
+#if defined(__has_builtin)
+#define OPENSSL_HAS_BUILTIN(x) __has_builtin(x)
+#else
+#define OPENSSL_HAS_BUILTIN(x) 0
+#endif
+
 
 // Pointer utility functions.
 
@@ -1134,6 +1140,110 @@ static inline uint64_t CRYPTO_rotr_u64(uint64_t value, int shift) {
 }
 
 
+// Arithmetic functions.
+
+// CRYPTO_addc_* returns |x + y + carry|, and sets |*out_carry| to the carry
+// bit. |carry| must be zero or one.
+#if OPENSSL_HAS_BUILTIN(__builtin_addc)
+
+#define CRYPTO_GENERIC_ADDC(x, y, carry, out_carry) \
+  (_Generic((x),                                    \
+      unsigned: __builtin_addc,                     \
+      unsigned long: __builtin_addcl,               \
+      unsigned long long: __builtin_addcll))((x), (y), (carry), (out_carry))
+
+static inline uint32_t CRYPTO_addc_u32(uint32_t x, uint32_t y, uint32_t carry,
+                                       uint32_t *out_carry) {
+  assert(carry <= 1);
+  return CRYPTO_GENERIC_ADDC(x, y, carry, out_carry);
+}
+
+static inline uint64_t CRYPTO_addc_u64(uint64_t x, uint64_t y, uint64_t carry,
+                                       uint64_t *out_carry) {
+  assert(carry <= 1);
+  return CRYPTO_GENERIC_ADDC(x, y, carry, out_carry);
+}
+
+#else
+
+static inline uint32_t CRYPTO_addc_u32(uint32_t x, uint32_t y, uint32_t carry,
+                                       uint32_t *out_carry) {
+  assert(carry <= 1);
+  uint64_t ret = carry;
+  ret += (uint64_t)x + y;
+  *out_carry = (uint32_t)(ret >> 32);
+  return (uint32_t)ret;
+}
+
+static inline uint64_t CRYPTO_addc_u64(uint64_t x, uint64_t y, uint64_t carry,
+                                       uint64_t *out_carry) {
+  assert(carry <= 1);
+#if defined(BORINGSSL_HAS_UINT128)
+  uint128_t ret = carry;
+  ret += (uint128_t)x + y;
+  *out_carry = (uint64_t)(ret >> 64);
+  return (uint64_t)ret;
+#else
+  x += carry;
+  carry = x < carry;
+  uint64_t ret = x + y;
+  carry += ret < x;
+  *out_carry = carry;
+  return ret;
+#endif
+}
+#endif
+
+// CRYPTO_subc_* returns |x - y - borrow|, and sets |*out_borrow| to the borrow
+// bit. |borrow| must be zero or one.
+#if OPENSSL_HAS_BUILTIN(__builtin_subc)
+
+#define CRYPTO_GENERIC_SUBC(x, y, borrow, out_borrow) \
+  (_Generic((x),                                      \
+      unsigned: __builtin_subc,                       \
+      unsigned long: __builtin_subcl,                 \
+      unsigned long long: __builtin_subcll))((x), (y), (borrow), (out_borrow))
+
+static inline uint32_t CRYPTO_subc_u32(uint32_t x, uint32_t y, uint32_t borrow,
+                                       uint32_t *out_borrow) {
+  assert(borrow <= 1);
+  return CRYPTO_GENERIC_SUBC(x, y, borrow, out_borrow);
+}
+
+static inline uint64_t CRYPTO_subc_u64(uint64_t x, uint64_t y, uint64_t borrow,
+                                       uint64_t *out_borrow) {
+  assert(borrow <= 1);
+  return CRYPTO_GENERIC_SUBC(x, y, borrow, out_borrow);
+}
+
+#else
+
+static inline uint32_t CRYPTO_subc_u32(uint32_t x, uint32_t y, uint32_t borrow,
+                                       uint32_t *out_borrow) {
+  assert(borrow <= 1);
+  uint32_t ret = x - y - borrow;
+  *out_borrow = (x < y) | ((x == y) & borrow);
+  return ret;
+}
+
+static inline uint64_t CRYPTO_subc_u64(uint64_t x, uint64_t y, uint64_t borrow,
+                                       uint64_t *out_borrow) {
+  assert(borrow <= 1);
+  uint64_t ret = x - y - borrow;
+  *out_borrow = (x < y) | ((x == y) & borrow);
+  return ret;
+}
+#endif
+
+#if defined(OPENSSL_64_BIT)
+#define CRYPTO_addc_w CRYPTO_addc_u64
+#define CRYPTO_subc_w CRYPTO_subc_u64
+#else
+#define CRYPTO_addc_w CRYPTO_addc_u32
+#define CRYPTO_subc_w CRYPTO_subc_u32
+#endif
+
+
 // FIPS functions.
 
 #if defined(BORINGSSL_FIPS)
@@ -1340,6 +1450,15 @@ OPENSSL_INLINE int CRYPTO_is_ADX_capable(void) {
 #endif
 }
 
+// SHA-1 and SHA-256 are defined as a single extension.
+OPENSSL_INLINE int CRYPTO_is_x86_SHA_capable(void) {
+#if defined(__SHA__)
+  return 1;
+#else
+  return (OPENSSL_get_ia32cap(2) & (1u << 29)) != 0;
+#endif
+}
+
 #endif  // OPENSSL_X86 || OPENSSL_X86_64
 
 #if defined(OPENSSL_ARM) || defined(OPENSSL_AARCH64)
@@ -1406,6 +1525,41 @@ OPENSSL_INLINE int CRYPTO_is_ARMv8_PMULL_capable(void) {
   return 0;
 #else
   return (OPENSSL_get_armcap() & ARMV8_PMULL) != 0;
+#endif
+}
+
+OPENSSL_INLINE int CRYPTO_is_ARMv8_SHA1_capable(void) {
+  // SHA-1 and SHA-2 (only) share |__ARM_FEATURE_SHA2| but otherwise
+  // are dealt with independently.
+#if defined(OPENSSL_STATIC_ARMCAP_SHA1) || defined(__ARM_FEATURE_SHA2)
+  return 1;
+#elif defined(OPENSSL_STATIC_ARMCAP)
+  return 0;
+#else
+  return (OPENSSL_get_armcap() & ARMV8_SHA1) != 0;
+#endif
+}
+
+OPENSSL_INLINE int CRYPTO_is_ARMv8_SHA256_capable(void) {
+  // SHA-1 and SHA-2 (only) share |__ARM_FEATURE_SHA2| but otherwise
+  // are dealt with independently.
+#if defined(OPENSSL_STATIC_ARMCAP_SHA256) || defined(__ARM_FEATURE_SHA2)
+  return 1;
+#elif defined(OPENSSL_STATIC_ARMCAP)
+  return 0;
+#else
+  return (OPENSSL_get_armcap() & ARMV8_SHA256) != 0;
+#endif
+}
+
+OPENSSL_INLINE int CRYPTO_is_ARMv8_SHA512_capable(void) {
+  // There is no |OPENSSL_STATIC_ARMCAP_SHA512|.
+#if defined(__ARM_FEATURE_SHA512)
+  return 1;
+#elif defined(OPENSSL_STATIC_ARMCAP)
+  return 0;
+#else
+  return (OPENSSL_get_armcap() & ARMV8_SHA512) != 0;
 #endif
 }
 

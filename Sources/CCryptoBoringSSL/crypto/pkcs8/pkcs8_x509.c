@@ -70,9 +70,10 @@
 #include <CCryptoBoringSSL_rand.h>
 #include <CCryptoBoringSSL_x509.h>
 
-#include "internal.h"
 #include "../bytestring/internal.h"
 #include "../internal.h"
+#include "../x509/internal.h"
+#include "internal.h"
 
 
 int pkcs12_iterations_acceptable(uint64_t iterations) {
