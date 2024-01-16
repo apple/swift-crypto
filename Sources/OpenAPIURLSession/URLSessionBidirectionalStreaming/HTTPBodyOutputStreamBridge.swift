@@ -36,7 +36,10 @@ final class HTTPBodyOutputStreamBridge: NSObject, StreamDelegate {
         self.outputStream.open()
     }
 
-    deinit { debug("Output stream delegate deinit") }
+    deinit {
+        debug("Output stream delegate deinit")
+        self.outputStream.delegate = nil
+    }
 
     func performAction(_ action: State.Action) {
         debug("Output stream delegate performing action from state machine: \(action)")
