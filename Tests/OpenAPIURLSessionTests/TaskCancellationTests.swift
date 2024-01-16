@@ -150,11 +150,11 @@ func testTaskCancelled(_ cancellationPoint: CancellationPoint, transport: URLSes
                 await XCTAssertThrowsError(try await task.value) { error in XCTAssertTrue(error is CancellationError) }
             case .beforeSendingRequestBody, .partwayThroughSendingRequestBody:
                 await XCTAssertThrowsError(try await task.value) { error in
-                    guard let urlError = error as? URLError else {
-                        XCTFail()
-                        return
+                    switch error {
+                    case is CancellationError: break
+                    case is URLError: XCTAssertEqual((error as! URLError).code, .cancelled)
+                    default: XCTFail("Unexpected error: \(error)")
                     }
-                    XCTAssertEqual(urlError.code, .cancelled)
                 }
             case .beforeConsumingResponseBody, .partwayThroughConsumingResponseBody, .afterConsumingResponseBody:
                 try await task.value

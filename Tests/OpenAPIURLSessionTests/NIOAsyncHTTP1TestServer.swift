@@ -59,7 +59,7 @@ final class AsyncTestHTTP1Server {
                     for try await connectionChannel in inbound {
                         group.addTask {
                             do {
-                                debug("Sevrer handling new connection")
+                                debug("Server handling new connection")
                                 try await connectionHandler(connectionChannel)
                                 debug("Server done handling connection")
                             } catch { debug("Server error handling connection: \(error)") }

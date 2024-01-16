@@ -20,44 +20,47 @@ struct MockAsyncSequence<Element>: AsyncSequence, Sendable where Element: Sendab
     var elementsToVend: [Element]
     private let _elementsVended: LockedValueBox<[Element]>
     var elementsVended: [Element] { _elementsVended.withValue { $0 } }
-    private let semaphore: DispatchSemaphore?
+    private let gateOpeningsStream: AsyncStream<Void>
+    private let gateOpeningsContinuation: AsyncStream<Void>.Continuation
 
     init(elementsToVend: [Element], gatingProduction: Bool) {
         self.elementsToVend = elementsToVend
         self._elementsVended = LockedValueBox([])
-        self.semaphore = gatingProduction ? DispatchSemaphore(value: 0) : nil
+        (self.gateOpeningsStream, self.gateOpeningsContinuation) = AsyncStream.makeStream(of: Void.self)
+        if !gatingProduction { openGate() }
     }
 
-    func openGate(for count: Int) { for _ in 0..<count { semaphore?.signal() } }
+    func openGate(for count: Int) { for _ in 0..<count { self.gateOpeningsContinuation.yield() } }
 
     func openGate() {
         openGate(for: elementsToVend.count + 1)  // + 1 for the nil
     }
 
     func makeAsyncIterator() -> AsyncIterator {
-        AsyncIterator(elementsToVend: elementsToVend[...], semaphore: semaphore, elementsVended: _elementsVended)
+        AsyncIterator(
+            elementsToVend: elementsToVend[...],
+            gateOpenings: gateOpeningsStream.makeAsyncIterator(),
+            elementsVended: _elementsVended
+        )
     }
 
     final class AsyncIterator: AsyncIteratorProtocol {
         var elementsToVend: ArraySlice<Element>
-        var semaphore: DispatchSemaphore?
+        var gateOpenings: AsyncStream<Void>.Iterator
         var elementsVended: LockedValueBox<[Element]>
 
         init(
             elementsToVend: ArraySlice<Element>,
-            semaphore: DispatchSemaphore?,
+            gateOpenings: AsyncStream<Void>.Iterator,
             elementsVended: LockedValueBox<[Element]>
         ) {
             self.elementsToVend = elementsToVend
-            self.semaphore = semaphore
+            self.gateOpenings = gateOpenings
             self.elementsVended = elementsVended
         }
 
         func next() async throws -> Element? {
-            await withCheckedContinuation { continuation in
-                semaphore?.wait()
-                continuation.resume()
-            }
+            guard await gateOpenings.next() != nil else { throw CancellationError() }
             guard let element = elementsToVend.popFirst() else { return nil }
             elementsVended.withValue { $0.append(element) }
             return element
