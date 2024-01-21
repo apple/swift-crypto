@@ -136,5 +136,5 @@ To do so, please use the following dependency in your `Package.swift`:
 
 ### Developing Swift Crypto on macOS
 
-Swift Crypto normally defers to the OS implementation of CryptoKit on macOS. Naturally, this makes developing Swift Crypto on macOS tricky. To get Swift Crypto to build the open source implementation on macOS, in `Package.swift`, uncomment the line that reads: `//.define("CRYPTO_IN_SWIFTPM_FORCE_BUILD_API")`, as this will force Swift Crypto to build its public API.
+Swift Crypto normally defers to the OS implementation of CryptoKit on macOS. Naturally, this makes developing Swift Crypto on macOS tricky. To get Swift Crypto to build the open source implementation on macOS, in `Package.swift`, change `let development = false` to `let development = true`, as this will force Swift Crypto to build its public API.
 
