@@ -241,7 +241,7 @@ rm -f $DSTROOT/crypto/fipsmodule/bcm.c
 echo "REMOVING libssl"
 (
     cd "$DSTROOT"
-    rm "include/openssl/ssl.h" "include/openssl/srtp.h" "include/openssl/ssl3.h" "include/openssl/tls1.h"
+    rm "include/openssl/dtls1.h" "include/openssl/ssl.h" "include/openssl/srtp.h" "include/openssl/ssl3.h" "include/openssl/tls1.h"
     rm -rf "ssl"
 )
 
@@ -326,7 +326,6 @@ cat << EOF > "$DSTROOT/include/CCryptoBoringSSL.h"
 #include "CCryptoBoringSSL_cpu.h"
 #include "CCryptoBoringSSL_curve25519.h"
 #include "CCryptoBoringSSL_des.h"
-#include "CCryptoBoringSSL_dtls1.h"
 #include "CCryptoBoringSSL_e_os2.h"
 #include "CCryptoBoringSSL_ec.h"
 #include "CCryptoBoringSSL_ec_key.h"
