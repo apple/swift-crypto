@@ -25,9 +25,10 @@ final class TestRSAEncryption: XCTestCase {
         try wycheproofTest(
             jsonName: "rsa_oaep_2048_sha256_mgf1sha256_test",
             testFunction: self.testOAEPGroup)
-        try wycheproofTest(
+        try XCTAssertThrowsError(wycheproofTest(
             jsonName: "rsa_oaep_misc_test",
             testFunction: self.testOAEPGroup)
+        )
     }
     
     private func testOAEPGroup(_ group: RSAEncryptionOAEPTestGroup) throws {

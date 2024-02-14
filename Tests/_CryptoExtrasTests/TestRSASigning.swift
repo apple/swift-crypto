@@ -19,10 +19,6 @@ import _CryptoExtras
 final class TestRSASigning: XCTestCase {
     func test_wycheproofPKCS1Vectors() throws {
         try wycheproofTest(
-            jsonName: "rsa_signature_test",
-            testFunction: self.testPKCS1Group)
-
-        try wycheproofTest(
             jsonName: "rsa_signature_2048_sha256_test",
             testFunction: self.testPKCS1Group)
 
@@ -41,6 +37,11 @@ final class TestRSASigning: XCTestCase {
         try wycheproofTest(
             jsonName: "rsa_signature_4096_sha512_test",
             testFunction: self.testPKCS1Group)
+        
+        try XCTAssertThrowsError(wycheproofTest(
+            jsonName: "rsa_signature_test",
+            testFunction: self.testPKCS1Group)
+        )
     }
 
     func test_wycheproofPSSVectors() throws {
@@ -286,13 +287,14 @@ final class TestRSASigning: XCTestCase {
             (_RSA.Signing.PrivateKey(keySize: .bits2048), 2048),
             (_RSA.Signing.PrivateKey(keySize: .bits3072), 3072),
             (_RSA.Signing.PrivateKey(keySize: .bits4096), 4096),
-            (_RSA.Signing.PrivateKey(keySize: .init(bitCount: 1024)), 1024),
         ]
-
+    
         for (key, size) in keysAndSizes {
             XCTAssertEqual(size, key.keySizeInBits)
             XCTAssertEqual(size, key.publicKey.keySizeInBits)
         }
+        
+        try XCTAssertThrowsError((_RSA.Signing.PrivateKey(keySize: .init(bitCount: 1024)), 1024))
     }
 
     func testRejectSmallKeys() throws {
