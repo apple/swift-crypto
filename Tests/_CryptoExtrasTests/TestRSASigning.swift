@@ -19,6 +19,10 @@ import _CryptoExtras
 final class TestRSASigning: XCTestCase {
     func test_wycheproofPKCS1Vectors() throws {
         try wycheproofTest(
+            jsonName: "rsa_signature_test",
+            testFunction: self.testPKCS1Group)
+        
+        try wycheproofTest(
             jsonName: "rsa_signature_2048_sha256_test",
             testFunction: self.testPKCS1Group)
 
@@ -37,11 +41,6 @@ final class TestRSASigning: XCTestCase {
         try wycheproofTest(
             jsonName: "rsa_signature_4096_sha512_test",
             testFunction: self.testPKCS1Group)
-        
-        try XCTAssertThrowsError(wycheproofTest(
-            jsonName: "rsa_signature_test",
-            testFunction: self.testPKCS1Group)
-        )
     }
 
     func test_wycheproofPSSVectors() throws {
@@ -287,6 +286,7 @@ final class TestRSASigning: XCTestCase {
             (_RSA.Signing.PrivateKey(keySize: .bits2048), 2048),
             (_RSA.Signing.PrivateKey(keySize: .bits3072), 3072),
             (_RSA.Signing.PrivateKey(keySize: .bits4096), 4096),
+            (_RSA.Signing.PrivateKey(unsafeKeySize: .init(bitCount: 1024)), 1024),
         ]
     
         for (key, size) in keysAndSizes {
@@ -678,8 +678,16 @@ final class TestRSASigning: XCTestCase {
     }
 
     private func testPKCS1Group(_ group: RSAPKCS1TestGroup) throws {
-        let derKey = try _RSA.Signing.PublicKey(derRepresentation: group.keyDerBytes)
-        let pemKey = try _RSA.Signing.PublicKey(pemRepresentation: group.keyPem)
+        let derKey: _RSA.Signing.PublicKey
+        let pemKey: _RSA.Signing.PublicKey
+        
+        if group.keysize < 2048 {
+            derKey = try _RSA.Signing.PublicKey(unsafeDERRepresentation: group.keyDerBytes)
+            pemKey = try _RSA.Signing.PublicKey(unsafePEMRepresentation: group.keyPem)
+        } else {
+            derKey = try _RSA.Signing.PublicKey(derRepresentation: group.keyDerBytes)
+            pemKey = try _RSA.Signing.PublicKey(pemRepresentation: group.keyPem)
+        }
 
         XCTAssertEqual(derKey.derRepresentation, pemKey.derRepresentation)
         XCTAssertEqual(derKey.pemRepresentation, pemKey.pemRepresentation)
@@ -779,6 +787,7 @@ struct RSAPKCS1TestGroup: Codable {
     var keyPem: String
     var sha: String
     var tests: [RSATest]
+    var keysize: Int
 
     var keyDerBytes: Data {
         return try! Data(hexString: self.keyDer)

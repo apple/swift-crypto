@@ -20,20 +20,27 @@ final class TestRSAEncryption: XCTestCase {
     
     func test_wycheproofOAEPVectors() throws {
         try wycheproofTest(
+            jsonName: "rsa_oaep_misc_test",
+            testFunction: self.testOAEPGroup)
+        try wycheproofTest(
             jsonName: "rsa_oaep_2048_sha1_mgf1sha1_test",
             testFunction: self.testOAEPGroup)
         try wycheproofTest(
             jsonName: "rsa_oaep_2048_sha256_mgf1sha256_test",
             testFunction: self.testOAEPGroup)
-        try XCTAssertThrowsError(wycheproofTest(
-            jsonName: "rsa_oaep_misc_test",
-            testFunction: self.testOAEPGroup)
-        )
     }
     
     private func testOAEPGroup(_ group: RSAEncryptionOAEPTestGroup) throws {
-        let derPrivKey = try _RSA.Encryption.PrivateKey(derRepresentation: group.privateKeyDerBytes)
-        let pemPrivKey = try _RSA.Encryption.PrivateKey(pemRepresentation: group.privateKeyPem)
+        let derPrivKey: _RSA.Encryption.PrivateKey
+        let pemPrivKey: _RSA.Encryption.PrivateKey
+        
+        if group.keysize < 2048 {
+            derPrivKey = try _RSA.Encryption.PrivateKey(unsafeDERRepresentation: group.privateKeyDerBytes)
+            pemPrivKey = try _RSA.Encryption.PrivateKey(unsafePEMRepresentation: group.privateKeyPem)
+        } else {
+            derPrivKey = try _RSA.Encryption.PrivateKey(derRepresentation: group.privateKeyDerBytes)
+            pemPrivKey = try _RSA.Encryption.PrivateKey(pemRepresentation: group.privateKeyPem)
+        }
 
         XCTAssertEqual(derPrivKey.derRepresentation, pemPrivKey.derRepresentation)
         XCTAssertEqual(derPrivKey.pemRepresentation, pemPrivKey.pemRepresentation)
@@ -78,6 +85,7 @@ struct RSAEncryptionOAEPTestGroup: Codable {
     var sha: String
     var tests: [RSAEncryptionTest]
     var mgfSha: String
+    var keysize: Int
 
     var privateKeyDerBytes: Data {
         return try! Data(hexString: self.privateKeyPkcs8)
