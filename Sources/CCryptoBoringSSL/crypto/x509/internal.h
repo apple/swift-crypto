@@ -170,7 +170,6 @@ struct x509_st {
   uint32_t ex_flags;
   uint32_t ex_kusage;
   uint32_t ex_xkusage;
-  uint32_t ex_nscert;
   ASN1_OCTET_STRING *skid;
   AUTHORITY_KEYID *akid;
   STACK_OF(DIST_POINT) *crldp;
@@ -588,6 +587,13 @@ GENERAL_NAMES *v2i_GENERAL_NAMES(const X509V3_EXT_METHOD *method,
 // TODO(https://crbug.com/boringssl/407): Make |issuer| const once the
 // |X509_NAME| issue is resolved.
 int X509_check_akid(X509 *issuer, const AUTHORITY_KEYID *akid);
+
+int X509_is_valid_trust_id(int trust);
+
+int X509_PURPOSE_get_trust(const X509_PURPOSE *xp);
+
+// TODO(https://crbug.com/boringssl/695): Remove this.
+int DIST_POINT_set_dpname(DIST_POINT_NAME *dpn, X509_NAME *iname);
 
 
 #if defined(__cplusplus)

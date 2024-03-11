@@ -63,6 +63,7 @@
 #include <CCryptoBoringSSL_stack.h>
 #include <CCryptoBoringSSL_thread.h>
 #include <CCryptoBoringSSL_x509.h>
+#include <CCryptoBoringSSL_x509v3.h>
 
 #include <assert.h>
 

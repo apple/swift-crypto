@@ -235,12 +235,28 @@ typedef __uint128_t uint128_t;
 #define OPENSSL_FALLTHROUGH
 #endif
 
-// For convenience in testing 64-bit generic code, we allow disabling SSE2
-// intrinsics via |OPENSSL_NO_SSE2_FOR_TESTING|. x86_64 always has SSE2
-// available, so we would otherwise need to test such code on a non-x86_64
-// platform.
-#if defined(__SSE2__) && !defined(OPENSSL_NO_SSE2_FOR_TESTING)
+// GCC-like compilers indicate SSE2 with |__SSE2__|. MSVC leaves the caller to
+// know that x86_64 has SSE2, and uses _M_IX86_FP to indicate SSE2 on x86.
+// https://learn.microsoft.com/en-us/cpp/preprocessor/predefined-macros?view=msvc-170
+#if defined(__SSE2__) || defined(_M_AMD64) || defined(_M_X64) || \
+    (defined(_M_IX86_FP) && _M_IX86_FP >= 2)
 #define OPENSSL_SSE2
+#endif
+
+#if defined(OPENSSL_X86) && !defined(OPENSSL_NO_ASM) && !defined(OPENSSL_SSE2)
+#error \
+    "x86 assembly requires SSE2. Build with -msse2 (recommended), or disable assembly optimizations with -DOPENSSL_NO_ASM."
+#endif
+
+// For convenience in testing the fallback code, we allow disabling SSE2
+// intrinsics via |OPENSSL_NO_SSE2_FOR_TESTING|. We require SSE2 on x86 and
+// x86_64, so we would otherwise need to test such code on a non-x86 platform.
+//
+// This does not remove the above requirement for SSE2 support with assembly
+// optimizations. It only disables some intrinsics-based optimizations so that
+// we can test the fallback code on CI.
+#if defined(OPENSSL_SSE2) && defined(OPENSSL_NO_SSE2_FOR_TESTING)
+#undef OPENSSL_SSE2
 #endif
 
 #if defined(__GNUC__) || defined(__clang__)
@@ -255,8 +271,20 @@ typedef __uint128_t uint128_t;
 // should be called in between independent tests, at a point where failure from
 // a previous test will not impact subsequent ones.
 OPENSSL_EXPORT void OPENSSL_reset_malloc_counter_for_testing(void);
+
+// OPENSSL_disable_malloc_failures_for_testing, when malloc testing is enabled,
+// disables simulated malloc failures. Calls to |OPENSSL_malloc| will not
+// increment the malloc counter or synthesize failures. This may be used to skip
+// simulating malloc failures in some region of code.
+OPENSSL_EXPORT void OPENSSL_disable_malloc_failures_for_testing(void);
+
+// OPENSSL_enable_malloc_failures_for_testing, when malloc testing is enabled,
+// re-enables simulated malloc failures.
+OPENSSL_EXPORT void OPENSSL_enable_malloc_failures_for_testing(void);
 #else
 OPENSSL_INLINE void OPENSSL_reset_malloc_counter_for_testing(void) {}
+OPENSSL_INLINE void OPENSSL_disable_malloc_failures_for_testing(void) {}
+OPENSSL_INLINE void OPENSSL_enable_malloc_failures_for_testing(void) {}
 #endif
 
 #if defined(__has_builtin)
@@ -877,14 +905,12 @@ typedef struct {
 #define CRYPTO_EX_DATA_CLASS_INIT_WITH_APP_DATA \
     {CRYPTO_MUTEX_INIT, NULL, NULL, 0, 1}
 
-// CRYPTO_get_ex_new_index allocates a new index for |ex_data_class| and writes
-// it to |*out_index|. Each class of object should provide a wrapper function
-// that uses the correct |CRYPTO_EX_DATA_CLASS|. It returns one on success and
-// zero otherwise.
-OPENSSL_EXPORT int CRYPTO_get_ex_new_index(CRYPTO_EX_DATA_CLASS *ex_data_class,
-                                           int *out_index, long argl,
-                                           void *argp,
-                                           CRYPTO_EX_free *free_func);
+// CRYPTO_get_ex_new_index_ex allocates a new index for |ex_data_class|. Each
+// class of object should provide a wrapper function that uses the correct
+// |CRYPTO_EX_DATA_CLASS|. It returns the new index on success and -1 on error.
+OPENSSL_EXPORT int CRYPTO_get_ex_new_index_ex(
+    CRYPTO_EX_DATA_CLASS *ex_data_class, long argl, void *argp,
+    CRYPTO_EX_free *free_func);
 
 // CRYPTO_set_ex_data sets an extra data pointer on a given object. Each class
 // of object should provide a wrapper function.
@@ -1331,7 +1357,8 @@ OPENSSL_INLINE int boringssl_fips_break_test(const char *test) {
 //     ECX for CPUID where EAX = 7
 //
 // Note: the CPUID bits are pre-adjusted for the OSXSAVE bit and the YMM and XMM
-// bits in XCR0, so it is not necessary to check those.
+// bits in XCR0, so it is not necessary to check those. (WARNING: See caveats
+// in cpu_intel.c.)
 //
 // From C, this symbol should only be accessed with |OPENSSL_get_ia32cap|.
 extern uint32_t OPENSSL_ia32cap_P[4];
@@ -1398,6 +1425,9 @@ OPENSSL_INLINE int CRYPTO_is_AESNI_capable(void) {
 #endif
 }
 
+// We intentionally avoid defining a |CRYPTO_is_XSAVE_capable| function. See
+// |CRYPTO_cpu_perf_is_like_silvermont|.
+
 OPENSSL_INLINE int CRYPTO_is_AVX_capable(void) {
 #if defined(__AVX__)
   return 1;
@@ -1407,19 +1437,16 @@ OPENSSL_INLINE int CRYPTO_is_AVX_capable(void) {
 }
 
 OPENSSL_INLINE int CRYPTO_is_RDRAND_capable(void) {
-  // The GCC/Clang feature name and preprocessor symbol for RDRAND are "rdrnd"
-  // and |__RDRND__|, respectively.
-#if defined(__RDRND__)
-  return 1;
-#else
+  // We intentionally do not check |__RDRND__| here. On some AMD processors, we
+  // will act as if the hardware is RDRAND-incapable, even it actually supports
+  // it. See cpu_intel.c.
   return (OPENSSL_get_ia32cap(1) & (1u << 30)) != 0;
-#endif
 }
 
 // See Intel manual, volume 2A, table 3-8.
 
 OPENSSL_INLINE int CRYPTO_is_BMI1_capable(void) {
-#if defined(__BMI1__)
+#if defined(__BMI__)
   return 1;
 #else
   return (OPENSSL_get_ia32cap(2) & (1u << 3)) != 0;
@@ -1452,11 +1479,51 @@ OPENSSL_INLINE int CRYPTO_is_ADX_capable(void) {
 
 // SHA-1 and SHA-256 are defined as a single extension.
 OPENSSL_INLINE int CRYPTO_is_x86_SHA_capable(void) {
-#if defined(__SHA__)
-  return 1;
-#else
+  // We should check __SHA__ here, but for now we ignore it. We've run into a
+  // few places where projects build with -march=goldmont, but need a build that
+  // does not require SHA extensions:
+  //
+  // - Some CrOS toolchain definitions are incorrect and build with
+  //   -march=goldmont when targetting boards that are not Goldmont. b/320482539
+  //   tracks fixing this.
+  //
+  // - Sometimes projects build with -march=goldmont as a rough optimized
+  //   baseline. However, Intel CPU capabilities are not strictly linear, so
+  //   this does not quite work. Some combination of -mtune and
+  //   -march=x86-64-v{1,2,3,4} would be a better strategy here.
+  //
+  // - QEMU versions before 8.2 do not support SHA extensions and disable it
+  //   with a warning. Projects that target Goldmont and test on QEMU will
+  //   break. The long-term fix is to update to 8.2. A principled short-term fix
+  //   would be -march=goldmont -mno-sha, to reflect that the binary needs to
+  //   run on both QEMU-8.1-Goldmont and actual-Goldmont.
+  //
+  // TODO(b/320482539): Once the CrOS toolchain is fixed, try this again.
   return (OPENSSL_get_ia32cap(2) & (1u << 29)) != 0;
-#endif
+}
+
+// CRYPTO_cpu_perf_is_like_silvermont returns one if, based on a heuristic, the
+// CPU has Silvermont-like performance characteristics. It is often faster to
+// run different codepaths on these CPUs than the available instructions would
+// otherwise select. See chacha-x86_64.pl.
+//
+// Bonnell, Silvermont's predecessor in the Atom lineup, will also be matched by
+// this. |OPENSSL_cpuid_setup| forces Knights Landing to also be matched by
+// this. Goldmont (Silvermont's successor in the Atom lineup) added XSAVE so it
+// isn't matched by this. Various sources indicate AMD first implemented MOVBE
+// and XSAVE at the same time in Jaguar, so it seems like AMD chips will not be
+// matched by this. That seems to be the case for other x86(-64) CPUs.
+OPENSSL_INLINE int CRYPTO_cpu_perf_is_like_silvermont(void) {
+  // WARNING: This MUST NOT be used to guard the execution of the XSAVE
+  // instruction. This is the "hardware supports XSAVE" bit, not the OSXSAVE bit
+  // that indicates whether we can safely execute XSAVE. This bit may be set
+  // even when XSAVE is disabled (by the operating system). See the comment in
+  // cpu_intel.c and check how the users of this bit use it.
+  //
+  // We do not use |__XSAVE__| for static detection because the hack in
+  // |OPENSSL_cpuid_setup| for Knights Landing CPUs needs to override it.
+  int hardware_supports_xsave = (OPENSSL_get_ia32cap(1) & (1u << 26)) != 0;
+  return !hardware_supports_xsave && CRYPTO_is_MOVBE_capable();
 }
 
 #endif  // OPENSSL_X86 || OPENSSL_X86_64
