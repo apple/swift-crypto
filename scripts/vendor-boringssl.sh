@@ -187,6 +187,7 @@ echo "GENERATING assembly helpers"
 
 PATTERNS=(
 'include/openssl/*.h'
+'include/openssl/experimental/*.h'
 'ssl/*.h'
 'ssl/*.cc'
 'crypto/*.h'
@@ -269,13 +270,18 @@ echo "RENAMING header files"
     rmdir "include/openssl"
 
     # Now change the imports from "<openssl/X> to "<CCryptoBoringSSL_X>", apply the same prefix to the 'boringssl_prefix_symbols' headers.
-    find . -name "*.[ch]" -or -name "*.cc" -or -name "*.S" | xargs $sed -i -e 's+include <openssl/+include <CCryptoBoringSSL_+' -e 's+include <boringssl_prefix_symbols+include <CCryptoBoringSSL_boringssl_prefix_symbols+' -e 's+include "openssl/+include "CCryptoBoringSSL_+'
+    find . -name "*.[ch]" -or -name "*.cc" -or -name "*.S" | xargs $sed -i -e 's+include <openssl/\([[:alpha:]/]*/\)\{0,1\}+include <\1CCryptoBoringSSL_+' -e 's+include <boringssl_prefix_symbols+include <CCryptoBoringSSL_boringssl_prefix_symbols+' -e 's+include "openssl/\([[:alpha:]/]*/\)\{0,1\}+include "\1CCryptoBoringSSL_+'
 
     # Okay now we need to rename the headers adding the prefix "CCryptoBoringSSL_".
     pushd include
-    find . -name "*.h" | $sed -e "s_./__" | xargs -I {} mv {} CCryptoBoringSSL_{}
+    while IFS= read -r -u3 -d $'\0' file; do
+        dir=$(dirname "${file}")
+        base=$(basename "${file}")
+        mv "${file}" "${dir}/CCryptoBoringSSL_${base}"
+    done 3< <(find . -name "*.h" -print0 | sort -rz)
+
     # Finally, make sure we refer to them by their prefixed names, and change any includes from angle brackets to quotation marks.
-    find . -name "*.h" | xargs $sed -i -e 's/include "/include "CCryptoBoringSSL_/' -e 's/include <CCryptoBoringSSL_\(.*\)>/include "CCryptoBoringSSL_\1"/'
+    find . -name "*.h" | xargs $sed -i -e 's+include "\([[:alpha:]/]*/\)\{0,1\}+include "\1CCryptoBoringSSL_+' -e 's+include <\([[:alpha:]/]*/\)\{0,1\}CCryptoBoringSSL_\(.*\)>+include "\1CCryptoBoringSSL_\2"+'
     popd
 )
 

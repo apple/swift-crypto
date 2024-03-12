@@ -15,6 +15,7 @@ section	.text	code align=64
 %else
 section	.text	code
 %endif
+;extern	_OPENSSL_ia32cap_P
 global	_bn_mul_mont
 align	16
 _bn_mul_mont:
@@ -71,6 +72,123 @@ L$002page_walk_done:
 	mov	DWORD [20+esp],esi
 	lea	ebx,[edi-3]
 	mov	DWORD [24+esp],edx
+	lea	eax,[_OPENSSL_ia32cap_P]
+	bt	DWORD [eax],26
+	jnc	NEAR L$003non_sse2
+	mov	eax,-1
+	movd	mm7,eax
+	mov	esi,DWORD [8+esp]
+	mov	edi,DWORD [12+esp]
+	mov	ebp,DWORD [16+esp]
+	xor	edx,edx
+	xor	ecx,ecx
+	movd	mm4,DWORD [edi]
+	movd	mm5,DWORD [esi]
+	movd	mm3,DWORD [ebp]
+	pmuludq	mm5,mm4
+	movq	mm2,mm5
+	movq	mm0,mm5
+	pand	mm0,mm7
+	pmuludq	mm5,[20+esp]
+	pmuludq	mm3,mm5
+	paddq	mm3,mm0
+	movd	mm1,DWORD [4+ebp]
+	movd	mm0,DWORD [4+esi]
+	psrlq	mm2,32
+	psrlq	mm3,32
+	inc	ecx
+align	16
+L$0041st:
+	pmuludq	mm0,mm4
+	pmuludq	mm1,mm5
+	paddq	mm2,mm0
+	paddq	mm3,mm1
+	movq	mm0,mm2
+	pand	mm0,mm7
+	movd	mm1,DWORD [4+ecx*4+ebp]
+	paddq	mm3,mm0
+	movd	mm0,DWORD [4+ecx*4+esi]
+	psrlq	mm2,32
+	movd	DWORD [28+ecx*4+esp],mm3
+	psrlq	mm3,32
+	lea	ecx,[1+ecx]
+	cmp	ecx,ebx
+	jl	NEAR L$0041st
+	pmuludq	mm0,mm4
+	pmuludq	mm1,mm5
+	paddq	mm2,mm0
+	paddq	mm3,mm1
+	movq	mm0,mm2
+	pand	mm0,mm7
+	paddq	mm3,mm0
+	movd	DWORD [28+ecx*4+esp],mm3
+	psrlq	mm2,32
+	psrlq	mm3,32
+	paddq	mm3,mm2
+	movq	[32+ebx*4+esp],mm3
+	inc	edx
+L$005outer:
+	xor	ecx,ecx
+	movd	mm4,DWORD [edx*4+edi]
+	movd	mm5,DWORD [esi]
+	movd	mm6,DWORD [32+esp]
+	movd	mm3,DWORD [ebp]
+	pmuludq	mm5,mm4
+	paddq	mm5,mm6
+	movq	mm0,mm5
+	movq	mm2,mm5
+	pand	mm0,mm7
+	pmuludq	mm5,[20+esp]
+	pmuludq	mm3,mm5
+	paddq	mm3,mm0
+	movd	mm6,DWORD [36+esp]
+	movd	mm1,DWORD [4+ebp]
+	movd	mm0,DWORD [4+esi]
+	psrlq	mm2,32
+	psrlq	mm3,32
+	paddq	mm2,mm6
+	inc	ecx
+	dec	ebx
+L$006inner:
+	pmuludq	mm0,mm4
+	pmuludq	mm1,mm5
+	paddq	mm2,mm0
+	paddq	mm3,mm1
+	movq	mm0,mm2
+	movd	mm6,DWORD [36+ecx*4+esp]
+	pand	mm0,mm7
+	movd	mm1,DWORD [4+ecx*4+ebp]
+	paddq	mm3,mm0
+	movd	mm0,DWORD [4+ecx*4+esi]
+	psrlq	mm2,32
+	movd	DWORD [28+ecx*4+esp],mm3
+	psrlq	mm3,32
+	paddq	mm2,mm6
+	dec	ebx
+	lea	ecx,[1+ecx]
+	jnz	NEAR L$006inner
+	mov	ebx,ecx
+	pmuludq	mm0,mm4
+	pmuludq	mm1,mm5
+	paddq	mm2,mm0
+	paddq	mm3,mm1
+	movq	mm0,mm2
+	pand	mm0,mm7
+	paddq	mm3,mm0
+	movd	DWORD [28+ecx*4+esp],mm3
+	psrlq	mm2,32
+	psrlq	mm3,32
+	movd	mm6,DWORD [36+ebx*4+esp]
+	paddq	mm3,mm2
+	paddq	mm3,mm6
+	movq	[32+ebx*4+esp],mm3
+	lea	edx,[1+edx]
+	cmp	edx,ebx
+	jle	NEAR L$005outer
+	emms
+	jmp	NEAR L$007common_tail
+align	16
+L$003non_sse2:
 	mov	esi,DWORD [8+esp]
 	lea	ebp,[1+ebx]
 	mov	edi,DWORD [12+esp]
@@ -81,12 +199,12 @@ L$002page_walk_done:
 	lea	eax,[4+ebx*4+edi]
 	or	ebp,edx
 	mov	edi,DWORD [edi]
-	jz	NEAR L$003bn_sqr_mont
+	jz	NEAR L$008bn_sqr_mont
 	mov	DWORD [28+esp],eax
 	mov	eax,DWORD [esi]
 	xor	edx,edx
 align	16
-L$004mull:
+L$009mull:
 	mov	ebp,edx
 	mul	edi
 	add	ebp,eax
@@ -95,7 +213,7 @@ L$004mull:
 	mov	eax,DWORD [ecx*4+esi]
 	cmp	ecx,ebx
 	mov	DWORD [28+ecx*4+esp],ebp
-	jl	NEAR L$004mull
+	jl	NEAR L$009mull
 	mov	ebp,edx
 	mul	edi
 	mov	edi,DWORD [20+esp]
@@ -113,9 +231,9 @@ L$004mull:
 	mov	eax,DWORD [4+esi]
 	adc	edx,0
 	inc	ecx
-	jmp	NEAR L$0052ndmadd
+	jmp	NEAR L$0102ndmadd
 align	16
-L$0061stmadd:
+L$0111stmadd:
 	mov	ebp,edx
 	mul	edi
 	add	ebp,DWORD [32+ecx*4+esp]
@@ -126,7 +244,7 @@ L$0061stmadd:
 	adc	edx,0
 	cmp	ecx,ebx
 	mov	DWORD [28+ecx*4+esp],ebp
-	jl	NEAR L$0061stmadd
+	jl	NEAR L$0111stmadd
 	mov	ebp,edx
 	mul	edi
 	add	eax,DWORD [32+ebx*4+esp]
@@ -149,7 +267,7 @@ L$0061stmadd:
 	adc	edx,0
 	mov	ecx,1
 align	16
-L$0052ndmadd:
+L$0102ndmadd:
 	mov	ebp,edx
 	mul	edi
 	add	ebp,DWORD [32+ecx*4+esp]
@@ -160,7 +278,7 @@ L$0052ndmadd:
 	adc	edx,0
 	cmp	ecx,ebx
 	mov	DWORD [24+ecx*4+esp],ebp
-	jl	NEAR L$0052ndmadd
+	jl	NEAR L$0102ndmadd
 	mov	ebp,edx
 	mul	edi
 	add	ebp,DWORD [32+ebx*4+esp]
@@ -183,9 +301,9 @@ L$0052ndmadd:
 	xor	ecx,ecx
 	xor	edx,edx
 	mov	eax,DWORD [esi]
-	jmp	NEAR L$0061stmadd
+	jmp	NEAR L$0111stmadd
 align	16
-L$003bn_sqr_mont:
+L$008bn_sqr_mont:
 	mov	DWORD [esp],ebx
 	mov	DWORD [12+esp],ecx
 	mov	eax,edi
@@ -196,7 +314,7 @@ L$003bn_sqr_mont:
 	and	ebx,1
 	inc	ecx
 align	16
-L$008sqr:
+L$012sqr:
 	mov	eax,DWORD [ecx*4+esi]
 	mov	ebp,edx
 	mul	edi
@@ -208,7 +326,7 @@ L$008sqr:
 	cmp	ecx,DWORD [esp]
 	mov	ebx,eax
 	mov	DWORD [28+ecx*4+esp],ebp
-	jl	NEAR L$008sqr
+	jl	NEAR L$012sqr
 	mov	eax,DWORD [ecx*4+esi]
 	mov	ebp,edx
 	mul	edi
@@ -232,7 +350,7 @@ L$008sqr:
 	mov	eax,DWORD [4+esi]
 	mov	ecx,1
 align	16
-L$0093rdmadd:
+L$0133rdmadd:
 	mov	ebp,edx
 	mul	edi
 	add	ebp,DWORD [32+ecx*4+esp]
@@ -251,7 +369,7 @@ L$0093rdmadd:
 	adc	edx,0
 	cmp	ecx,ebx
 	mov	DWORD [24+ecx*4+esp],ebp
-	jl	NEAR L$0093rdmadd
+	jl	NEAR L$0133rdmadd
 	mov	ebp,edx
 	mul	edi
 	add	ebp,DWORD [32+ebx*4+esp]
@@ -279,12 +397,12 @@ L$0093rdmadd:
 	xor	ebp,ebp
 	cmp	ecx,ebx
 	lea	ecx,[1+ecx]
-	je	NEAR L$010sqrlast
+	je	NEAR L$014sqrlast
 	mov	ebx,edx
 	shr	edx,1
 	and	ebx,1
 align	16
-L$011sqradd:
+L$015sqradd:
 	mov	eax,DWORD [ecx*4+esi]
 	mov	ebp,edx
 	mul	edi
@@ -300,13 +418,13 @@ L$011sqradd:
 	cmp	ecx,DWORD [esp]
 	mov	DWORD [28+ecx*4+esp],ebp
 	mov	ebx,eax
-	jle	NEAR L$011sqradd
+	jle	NEAR L$015sqradd
 	mov	ebp,edx
 	add	edx,edx
 	shr	ebp,31
 	add	edx,ebx
 	adc	ebp,0
-L$010sqrlast:
+L$014sqrlast:
 	mov	edi,DWORD [20+esp]
 	mov	esi,DWORD [16+esp]
 	imul	edi,DWORD [32+esp]
@@ -321,7 +439,7 @@ L$010sqrlast:
 	adc	edx,0
 	mov	ecx,1
 	mov	eax,DWORD [4+esi]
-	jmp	NEAR L$0093rdmadd
+	jmp	NEAR L$0133rdmadd
 align	16
 L$007common_tail:
 	mov	ebp,DWORD [16+esp]
@@ -331,19 +449,19 @@ L$007common_tail:
 	mov	ecx,ebx
 	xor	edx,edx
 align	16
-L$012sub:
+L$016sub:
 	sbb	eax,DWORD [edx*4+ebp]
 	mov	DWORD [edx*4+edi],eax
 	dec	ecx
 	mov	eax,DWORD [4+edx*4+esi]
 	lea	edx,[1+edx]
-	jge	NEAR L$012sub
+	jge	NEAR L$016sub
 	sbb	eax,0
 	mov	edx,-1
 	xor	edx,eax
-	jmp	NEAR L$013copy
+	jmp	NEAR L$017copy
 align	16
-L$013copy:
+L$017copy:
 	mov	esi,DWORD [32+ebx*4+esp]
 	mov	ebp,DWORD [ebx*4+edi]
 	mov	DWORD [32+ebx*4+esp],ecx
@@ -352,7 +470,7 @@ L$013copy:
 	or	ebp,esi
 	mov	DWORD [ebx*4+edi],ebp
 	dec	ebx
-	jge	NEAR L$013copy
+	jge	NEAR L$017copy
 	mov	esp,DWORD [24+esp]
 	mov	eax,1
 L$000just_leave:
@@ -366,6 +484,8 @@ db	112,108,105,99,97,116,105,111,110,32,102,111,114,32,120,56
 db	54,44,32,67,82,89,80,84,79,71,65,77,83,32,98,121
 db	32,60,97,112,112,114,111,64,111,112,101,110,115,115,108,46
 db	111,114,103,62,0
+segment	.bss
+common	_OPENSSL_ia32cap_P 16
 %else
 ; Work around https://bugzilla.nasm.us/show_bug.cgi?id=3392738
 ret
