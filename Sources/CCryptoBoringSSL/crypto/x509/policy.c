@@ -19,10 +19,8 @@
 #include <CCryptoBoringSSL_mem.h>
 #include <CCryptoBoringSSL_obj.h>
 #include <CCryptoBoringSSL_stack.h>
-#include <CCryptoBoringSSL_x509v3.h>
 
 #include "../internal.h"
-#include "../x509v3/internal.h"
 #include "internal.h"
 
 

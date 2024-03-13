@@ -31,7 +31,6 @@
 #include "CCryptoBoringSSL_cpu.h"
 #include "CCryptoBoringSSL_curve25519.h"
 #include "CCryptoBoringSSL_des.h"
-#include "CCryptoBoringSSL_dtls1.h"
 #include "CCryptoBoringSSL_e_os2.h"
 #include "CCryptoBoringSSL_ec.h"
 #include "CCryptoBoringSSL_ec_key.h"

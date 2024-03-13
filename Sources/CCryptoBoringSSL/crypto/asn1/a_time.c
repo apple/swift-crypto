@@ -55,7 +55,7 @@
  * [including the GNU Public Licence.] */
 
 #include <CCryptoBoringSSL_asn1.h>
-#include <CCryptoBoringSSL_time.h>
+#include <CCryptoBoringSSL_posix_time.h>
 
 #include <string.h>
 #include <time.h>

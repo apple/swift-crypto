@@ -1,4 +1,4 @@
-// swift-tools-version:5.7
+// swift-tools-version:5.8
 //===----------------------------------------------------------------------===//
 //
 // This source file is part of the SwiftCrypto open source project
@@ -20,7 +20,7 @@
 // Sources/CCryptoBoringSSL directory. The source repository is at
 // https://boringssl.googlesource.com/boringssl.
 //
-// BoringSSL Commit: 3309ca66385ecb0c37f1ac1be9f88712e25aa8ec
+// BoringSSL Commit: dbad745811195c00b729efd0ee0a09b7d9fce1d2
 
 import PackageDescription
 

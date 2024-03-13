@@ -58,7 +58,7 @@
 #include <CCryptoBoringSSL_bytestring.h>
 #include <CCryptoBoringSSL_err.h>
 #include <CCryptoBoringSSL_mem.h>
-#include <CCryptoBoringSSL_time.h>
+#include <CCryptoBoringSSL_posix_time.h>
 
 #include <stdlib.h>
 #include <string.h>

@@ -60,7 +60,40 @@ void CRYPTO_hchacha20(uint8_t out[32], const uint8_t key[32],
   OPENSSL_memcpy(&out[16], &x[12], sizeof(uint32_t) * 4);
 }
 
-#if defined(CHACHA20_ASM)
+#if defined(CHACHA20_ASM_NOHW)
+static void ChaCha20_ctr32(uint8_t *out, const uint8_t *in, size_t in_len,
+                           const uint32_t key[8], const uint32_t counter[4]) {
+#if defined(CHACHA20_ASM_NEON)
+  if (ChaCha20_ctr32_neon_capable(in_len)) {
+    ChaCha20_ctr32_neon(out, in, in_len, key, counter);
+    return;
+  }
+#endif
+#if defined(CHACHA20_ASM_AVX2)
+  if (ChaCha20_ctr32_avx2_capable(in_len)) {
+    ChaCha20_ctr32_avx2(out, in, in_len, key, counter);
+    return;
+  }
+#endif
+#if defined(CHACHA20_ASM_SSSE3_4X)
+  if (ChaCha20_ctr32_ssse3_4x_capable(in_len)) {
+    ChaCha20_ctr32_ssse3_4x(out, in, in_len, key, counter);
+    return;
+  }
+#endif
+#if defined(CHACHA20_ASM_SSSE3)
+  if (ChaCha20_ctr32_ssse3_capable(in_len)) {
+    ChaCha20_ctr32_ssse3(out, in, in_len, key, counter);
+    return;
+  }
+#endif
+  if (in_len > 0) {
+    ChaCha20_ctr32_nohw(out, in, in_len, key, counter);
+  }
+}
+#endif
+
+#if defined(CHACHA20_ASM_NOHW)
 
 void CRYPTO_chacha_20(uint8_t *out, const uint8_t *in, size_t in_len,
                       const uint8_t key[32], const uint8_t nonce[12],

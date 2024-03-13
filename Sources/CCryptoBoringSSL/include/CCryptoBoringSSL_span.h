@@ -26,6 +26,10 @@ extern "C++" {
 #include <algorithm>
 #include <type_traits>
 
+#if __cplusplus >= 201703L
+#include <string_view>
+#endif
+
 BSSL_NAMESPACE_BEGIN
 
 template <typename T>
@@ -40,20 +44,7 @@ class SpanBase {
                 "Span<T> must be derived from SpanBase<const T>");
 
   friend bool operator==(Span<T> lhs, Span<T> rhs) {
-    // MSVC issues warning C4996 because std::equal is unsafe. The pragma to
-    // suppress the warning mysteriously has no effect, hence this
-    // implementation. See
-    // https://msdn.microsoft.com/en-us/library/aa985974.aspx.
-    if (lhs.size() != rhs.size()) {
-      return false;
-    }
-    for (T *l = lhs.begin(), *r = rhs.begin(); l != lhs.end() && r != rhs.end();
-         ++l, ++r) {
-      if (*l != *r) {
-        return false;
-      }
-    }
-    return true;
+    return std::equal(lhs.begin(), lhs.end(), rhs.begin(), rhs.end());
   }
 
   friend bool operator!=(Span<T> lhs, Span<T> rhs) { return !(lhs == rhs); }
@@ -94,8 +85,6 @@ class SpanBase {
 template <typename T>
 class Span : private internal::SpanBase<const T> {
  private:
-  static const size_t npos = static_cast<size_t>(-1);
-
   // Heuristically test whether C is a container type that can be converted into
   // a Span by checking for data() and size() member functions.
   //
@@ -106,6 +95,19 @@ class Span : private internal::SpanBase<const T> {
       std::is_integral<decltype(std::declval<C>().size())>::value>;
 
  public:
+  static const size_t npos = static_cast<size_t>(-1);
+
+  using element_type = T;
+  using value_type = std::remove_cv_t<T>;
+  using size_type = size_t;
+  using difference_type = ptrdiff_t;
+  using pointer = T *;
+  using const_pointer = const T *;
+  using reference = T &;
+  using const_reference = const T &;
+  using iterator = T *;
+  using const_iterator = const T *;
+
   constexpr Span() : Span(nullptr, 0) {}
   constexpr Span(T *ptr, size_t len) : data_(ptr), size_(len) {}
 
@@ -126,10 +128,10 @@ class Span : private internal::SpanBase<const T> {
   constexpr size_t size() const { return size_; }
   constexpr bool empty() const { return size_ == 0; }
 
-  constexpr T *begin() const { return data_; }
-  constexpr const T *cbegin() const { return data_; }
-  constexpr T *end() const { return data_ + size_; }
-  constexpr const T *cend() const { return end(); }
+  constexpr iterator begin() const { return data_; }
+  constexpr const_iterator cbegin() const { return data_; }
+  constexpr iterator end() const { return data_ + size_; }
+  constexpr const_iterator cend() const { return end(); }
 
   constexpr T &front() const {
     if (size_ == 0) {
@@ -211,6 +213,16 @@ template <typename T, size_t size>
 constexpr Span<const T> MakeConstSpan(T (&array)[size]) {
   return array;
 }
+
+#if __cplusplus >= 201703L
+inline Span<const uint8_t> StringAsBytes(std::string_view s) {
+  return MakeConstSpan(reinterpret_cast<const uint8_t *>(s.data()), s.size());
+}
+
+inline std::string_view BytesAsStringView(bssl::Span<const uint8_t> b) {
+  return std::string_view(reinterpret_cast<const char *>(b.data()), b.size());
+}
+#endif
 
 BSSL_NAMESPACE_END
 

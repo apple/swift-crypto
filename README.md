@@ -116,7 +116,8 @@ Swift Crypto      | Minimum Swift Version
 `2.1.0 ..< 2.2.0` | 5.4
 `2.2.0 ..< 2.4.2` | 5.5
 `2.4.2 ..< 3.1.0` | 5.6
-`3.1.0 ...`       | 5.7
+`3.1.0 ..< 3.3.0` | 5.7
+`3.3.0 ...`       | 5.8
 
 ### Compatibility
 
@@ -136,5 +137,5 @@ To do so, please use the following dependency in your `Package.swift`:
 
 ### Developing Swift Crypto on macOS
 
-Swift Crypto normally defers to the OS implementation of CryptoKit on macOS. Naturally, this makes developing Swift Crypto on macOS tricky. To get Swift Crypto to build the open source implementation on macOS, in `Package.swift`, uncomment the line that reads: `//.define("CRYPTO_IN_SWIFTPM_FORCE_BUILD_API")`, as this will force Swift Crypto to build its public API.
+Swift Crypto normally defers to the OS implementation of CryptoKit on macOS. Naturally, this makes developing Swift Crypto on macOS tricky. To get Swift Crypto to build the open source implementation on macOS, in `Package.swift`, change `let development = false` to `let development = true`, as this will force Swift Crypto to build its public API.
 
