@@ -2,7 +2,7 @@
 //
 // This source file is part of the SwiftCrypto open source project
 //
-// Copyright (c) 2021 Apple Inc. and the SwiftCrypto project authors
+// Copyright (c) 2021-2024 Apple Inc. and the SwiftCrypto project authors
 // Licensed under Apache License v2.0
 //
 // See LICENSE.txt for license information
@@ -11,7 +11,12 @@
 // SPDX-License-Identifier: Apache-2.0
 //
 //===----------------------------------------------------------------------===//
+import Crypto
+#if canImport(Darwin) || swift(>=5.9.1)
 import Foundation
+#else
+@preconcurrency import Foundation
+#endif
 
 #if !canImport(CommonCrypto)
 @_implementationOnly import CCryptoBoringSSL
@@ -39,7 +44,6 @@ internal struct BoringSSLPBKDF2<H: HashFunction> {
         } else if H.self == SHA512.self {
             digest = CCryptoBoringSSL_EVP_sha512()
         } else {
-            // TODO: Use a better error
             throw CryptoKitError.incorrectParameterSize
         }
 

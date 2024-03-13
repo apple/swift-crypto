@@ -2,7 +2,7 @@
 //
 // This source file is part of the SwiftCrypto open source project
 //
-// Copyright (c) 2021 Apple Inc. and the SwiftCrypto project authors
+// Copyright (c) 2021-2024 Apple Inc. and the SwiftCrypto project authors
 // Licensed under Apache License v2.0
 //
 // See LICENSE.txt for license information
@@ -12,8 +12,8 @@
 //
 //===----------------------------------------------------------------------===//
 import XCTest
-
-@testable import Crypto
+import Crypto
+@testable import _CryptoExtras
 
 // Test Vectors are coming from https://tools.ietf.org/html/rfc6070
 class PBKDF2Tests: XCTestCase {
@@ -39,22 +39,22 @@ class PBKDF2Tests: XCTestCase {
         let (contiguousInput, discontiguousInput) = vector.inputSecret.asDataProtocols()
         let (contiguousSalt, discontiguousSalt) = vector.salt.asDataProtocols()
         
-        let DK1 = try PBKDF2<H>.deriveKey(from: contiguousInput, salt: contiguousSalt,
-                                      outputByteCount: vector.outputLength,
-                                      rounds: vector.rounds)
+        let DK1 = try KDF.Insecure.PBKDF2<H>.deriveKey(from: contiguousInput, salt: contiguousSalt,
+                                                       outputByteCount: vector.outputLength,
+                                                       rounds: vector.rounds)
         
-        let DK2 = try PBKDF2<H>.deriveKey(from: discontiguousInput, salt: contiguousSalt,
-                                      outputByteCount: vector.outputLength,
-                                      rounds: vector.rounds)
+        let DK2 = try KDF.Insecure.PBKDF2<H>.deriveKey(from: discontiguousInput, salt: contiguousSalt,
+                                                       outputByteCount: vector.outputLength,
+                                                       rounds: vector.rounds)
         
-        let DK3 = try PBKDF2<H>.deriveKey(from: contiguousInput, salt: discontiguousSalt,
-                                      outputByteCount: vector.outputLength,
-                                      rounds: vector.rounds)
+        let DK3 = try KDF.Insecure.PBKDF2<H>.deriveKey(from: contiguousInput, salt: discontiguousSalt,
+                                                       outputByteCount: vector.outputLength,
+                                                       rounds: vector.rounds)
         
-        let DK4 = try PBKDF2<H>.deriveKey(from: discontiguousInput, salt: discontiguousSalt,
-                                      outputByteCount: vector.outputLength,
-                                      rounds: vector.rounds)
-                
+        let DK4 = try KDF.Insecure.PBKDF2<H>.deriveKey(from: discontiguousInput, salt: discontiguousSalt,
+                                                       outputByteCount: vector.outputLength,
+                                                       rounds: vector.rounds)
+        
         let expectedDK = SymmetricKey(data: vector.derivedKey)
         XCTAssertEqual(DK1, expectedDK)
         XCTAssertEqual(DK2, expectedDK)
