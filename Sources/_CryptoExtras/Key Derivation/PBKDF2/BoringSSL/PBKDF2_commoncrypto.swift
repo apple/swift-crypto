@@ -45,9 +45,10 @@ internal struct CommonCryptoPBKDF2<H: HashFunction> {
         } else {
             throw CryptoKitError.incorrectParameterSize
         }
-        
+        // This should be SecureBytes, but we can't use that here.
         var derivedKeyData = Data(count: outputByteCount)
         let derivedCount = derivedKeyData.count
+        
         let derivationStatus = derivedKeyData.withUnsafeMutableBytes { derivedKeyBytes -> Int32 in
             let keyBuffer: UnsafeMutablePointer<UInt8> =
                 derivedKeyBytes.baseAddress!.assumingMemoryBound(to: UInt8.self)
@@ -70,9 +71,11 @@ internal struct CommonCryptoPBKDF2<H: HashFunction> {
                 }
             }
         }
+        
         if derivationStatus != kCCSuccess {
             throw CryptoKitError.underlyingCoreCryptoError(error: derivationStatus)
         }
+        
         return SymmetricKey(data: derivedKeyData)
     }
 }
