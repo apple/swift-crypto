@@ -15,7 +15,7 @@
 #ifndef OPENSSL_HEADER_SPX_H
 #define OPENSSL_HEADER_SPX_H
 
-#include <CCryptoBoringSSL_base.h>
+#include "CCryptoBoringSSL_base.h"
 
 #if defined(__cplusplus)
 extern "C" {

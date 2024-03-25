@@ -16,7 +16,7 @@
 #define OPENSSL_HEADER_CRYPTO_KYBER_INTERNAL_H
 
 #include <CCryptoBoringSSL_base.h>
-#include <CCryptoBoringSSL_kyber.h>
+#include <experimental/CCryptoBoringSSL_kyber.h>
 
 #if defined(__cplusplus)
 extern "C" {

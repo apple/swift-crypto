@@ -1870,6 +1870,14 @@ Lrounds_16_xx:
 
 
 
+LK256_shortcut_neon:
+@ PC is 8 bytes ahead in Arm mode and 4 bytes ahead in Thumb mode.
+#if defined(__thumb2__)
+.word	K256-(LK256_add_neon+4)
+#else
+.word	K256-(LK256_add_neon+8)
+#endif
+
 .globl	_sha256_block_data_order_neon
 .private_extern	_sha256_block_data_order_neon
 #ifdef __thumb2__
@@ -1881,10 +1889,21 @@ _sha256_block_data_order_neon:
 	stmdb	sp!,{r4,r5,r6,r7,r8,r9,r10,r11,r12,lr}
 
 	sub	r11,sp,#16*4+16
-	@ In Arm mode, the following ADR runs up against the limits of encodable
-	@ offsets. It only fits because the offset, when the ADR is placed here,
-	@ is a multiple of 16.
-	adr	r14,K256
+
+	@ K256 is just at the boundary of being easily referenced by an ADR from
+	@ this function. In Arm mode, when building with __ARM_ARCH=6, it does
+	@ not fit. By moving code around, we could make it fit, but this is too
+	@ fragile. For simplicity, just load the offset from
+	@ .LK256_shortcut_neon.
+	@
+	@ TODO(davidben): adrl would avoid a load, but clang-assembler does not
+	@ support it. We might be able to emulate it with a macro, but Android's
+	@ did not work when I tried it.
+	@ https://android.googlesource.com/platform/ndk/+/refs/heads/master/docs/ClangMigration.md#arm
+	ldr	r14,LK256_shortcut_neon
+LK256_add_neon:
+	add	r14,pc,r14
+
 	bic	r11,r11,#15		@ align for 128-bit stores
 	mov	r12,sp
 	mov	sp,r11			@ alloca
@@ -2666,12 +2685,12 @@ L_00_48:
 #  define INST(a,b,c,d)	.byte	a,b,c,d
 # endif
 
-LK256_shortcut:
+LK256_shortcut_hw:
 @ PC is 8 bytes ahead in Arm mode and 4 bytes ahead in Thumb mode.
 #if defined(__thumb2__)
-.word	K256-(LK256_add+4)
+.word	K256-(LK256_add_hw+4)
 #else
-.word	K256-(LK256_add+8)
+.word	K256-(LK256_add_hw+8)
 #endif
 
 .globl	_sha256_block_data_order_hw
@@ -2683,9 +2702,9 @@ LK256_shortcut:
 _sha256_block_data_order_hw:
 	@ K256 is too far to reference from one ADR command in Thumb mode. In
 	@ Arm mode, we could make it fit by aligning the ADR offset to a 64-byte
-	@ boundary. For simplicity, just load the offset from .LK256_shortcut.
-	ldr	r3,LK256_shortcut
-LK256_add:
+	@ boundary. For simplicity, just load the offset from .LK256_shortcut_hw.
+	ldr	r3,LK256_shortcut_hw
+LK256_add_hw:
 	add	r3,pc,r3
 
 	vld1.32	{q0,q1},[r0]
