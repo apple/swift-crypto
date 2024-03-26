@@ -88,6 +88,9 @@ let package = Package(
                 "crypto/bio/socket_helper.c",
                 "crypto/bio/socket.c"
             ],
+            resources: [
+                .copy("PrivacyInfo.xcprivacy"),
+            ],
             cSettings: [
                 // These defines come from BoringSSL's build system
                 .define("_HAS_EXCEPTIONS", to: "0", .when(platforms: [Platform.windows])),
@@ -106,6 +109,9 @@ let package = Package(
             dependencies: ["CCryptoBoringSSL"],
             exclude: [
                 "CMakeLists.txt"
+            ],
+            resources: [
+                .copy("PrivacyInfo.xcprivacy"),
             ]
         ),
         .target(
@@ -117,6 +123,9 @@ let package = Package(
                 "Digests/Digests.swift.gyb",
                 "Key Agreement/ECDH.swift.gyb",
                 "Signatures/ECDSA.swift.gyb",
+            ],
+            resources: [
+                .copy("PrivacyInfo.xcprivacy"),
             ],
             swiftSettings: swiftSettings
         ),
@@ -131,6 +140,9 @@ let package = Package(
             exclude: [
                 "CMakeLists.txt",
             ],
+            resources: [
+                .copy("PrivacyInfo.xcprivacy"),
+            ],
             swiftSettings: swiftSettings
         ),
         .target(
@@ -141,6 +153,9 @@ let package = Package(
             ],
             exclude: [
                 "CMakeLists.txt",
+            ],
+            resources: [
+                .copy("PrivacyInfo.xcprivacy"),
             ]
         ),
         .executableTarget(name: "crypto-shasum", dependencies: ["Crypto"]),
