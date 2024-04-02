@@ -167,6 +167,7 @@ echo "CLONING boringssl"
 mkdir -p "$SRCROOT"
 git clone https://boringssl.googlesource.com/boringssl "$SRCROOT"
 cd "$SRCROOT"
+git checkout dbad745811195c00b729efd0ee0a09b7d9fce1d2 # FIXME: Temporarily using fixed version due to latest being incompatible
 BORINGSSL_REVISION=$(git rev-parse HEAD)
 cd "$HERE"
 echo "CLONED boringssl@${BORINGSSL_REVISION}"
