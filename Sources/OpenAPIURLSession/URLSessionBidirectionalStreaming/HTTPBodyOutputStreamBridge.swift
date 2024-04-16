@@ -38,7 +38,7 @@ final class HTTPBodyOutputStreamBridge: NSObject, StreamDelegate {
 
     deinit {
         debug("Output stream delegate deinit")
-        self.outputStream.delegate = nil
+        outputStream.delegate = nil
     }
 
     func performAction(_ action: State.Action) {
@@ -48,7 +48,7 @@ final class HTTPBodyOutputStreamBridge: NSObject, StreamDelegate {
         case .none: return
         case .resumeProducer(let producerContinuation):
             producerContinuation.resume()
-            performAction(self.state.resumedProducer())
+            performAction(state.resumedProducer())
         case .writeBytes(let chunk): writePendingBytes(chunk)
         case .cancelProducerAndCloseStream(let producerContinuation):
             producerContinuation.resume(throwing: CancellationError())
@@ -75,7 +75,7 @@ final class HTTPBodyOutputStreamBridge: NSObject, StreamDelegate {
                 self.performAction(self.state.wroteFinalChunk())
             }
         }
-        self.performAction(self.state.startedProducerTask(task))
+        performAction(state.startedProducerTask(task))
     }
 
     private func writePendingBytes(_ bytesToWrite: Chunk) {
@@ -83,23 +83,20 @@ final class HTTPBodyOutputStreamBridge: NSObject, StreamDelegate {
         precondition(!bytesToWrite.isEmpty, "\(#function) must be called with non-empty bytes")
         guard outputStream.streamStatus == .open else {
             debug("Output stream closed unexpectedly.")
-            performAction(self.state.wroteBytes(numBytesWritten: 0, streamStillHasSpaceAvailable: false))
+            performAction(state.wroteBytes(numBytesWritten: 0, streamStillHasSpaceAvailable: false))
             return
         }
         switch bytesToWrite.withUnsafeBytes({ outputStream.write($0.baseAddress!, maxLength: bytesToWrite.count) }) {
         case 0:
             debug("Output stream delegate reached end of stream when writing.")
-            performAction(self.state.endEncountered())
+            performAction(state.endEncountered())
         case -1:
             debug("Output stream delegate encountered error writing to stream: \(outputStream.streamError!).")
-            performAction(self.state.errorOccurred(outputStream.streamError!))
+            performAction(state.errorOccurred(outputStream.streamError!))
         case let written where written > 0:
             debug("Output stream delegate wrote \(written) bytes to stream.")
             performAction(
-                self.state.wroteBytes(
-                    numBytesWritten: written,
-                    streamStillHasSpaceAvailable: outputStream.hasSpaceAvailable
-                )
+                state.wroteBytes(numBytesWritten: written, streamStillHasSpaceAvailable: outputStream.hasSpaceAvailable)
             )
         default: preconditionFailure("OutputStream.write(_:maxLength:) returned undocumented value")
         }
@@ -115,9 +112,9 @@ final class HTTPBodyOutputStreamBridge: NSObject, StreamDelegate {
                 return
             }
             startWriterTask()
-        case .hasSpaceAvailable: performAction(self.state.spaceBecameAvailable())
-        case .errorOccurred: performAction(self.state.errorOccurred(stream.streamError!))
-        case .endEncountered: performAction(self.state.endEncountered())
+        case .hasSpaceAvailable: performAction(state.spaceBecameAvailable())
+        case .errorOccurred: performAction(state.errorOccurred(stream.streamError!))
+        case .endEncountered: performAction(state.endEncountered())
         default:
             debug("Output stream ignoring event: \(event).")
             break

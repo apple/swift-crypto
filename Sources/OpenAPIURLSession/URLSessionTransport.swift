@@ -105,7 +105,7 @@ public struct URLSessionTransport: ClientTransport {
     public func send(_ request: HTTPRequest, body requestBody: HTTPBody?, baseURL: URL, operationID: String)
         async throws -> (HTTPResponse, HTTPBody?)
     {
-        switch self.configuration.implementation {
+        switch configuration.implementation {
         case .streaming(let requestBodyStreamBufferSize, let responseBodyStreamWatermarks):
             #if canImport(Darwin)
             guard #available(macOS 12, iOS 15, tvOS 15, watchOS 8, *) else {
@@ -193,9 +193,7 @@ extension URLRequest {
         }
         self.init(url: url)
         self.httpMethod = request.method.rawValue
-        for header in request.headerFields {
-            self.setValue(header.value, forHTTPHeaderField: header.name.canonicalName)
-        }
+        for header in request.headerFields { setValue(header.value, forHTTPHeaderField: header.name.canonicalName) }
     }
 }
 
