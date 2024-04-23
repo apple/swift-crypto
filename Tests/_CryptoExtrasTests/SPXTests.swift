@@ -19,8 +19,16 @@ import _CryptoExtras
 
 final class SPXTests: XCTestCase {
     func testSPX() {
-        let privateKey = _SPX.PrivateKey()
-        let publicKey = _SPX.PublicKey(privateKey: privateKey)
+        let privateKey = SPX.PrivateKey()
+        let publicKey = SPX.PublicKey(privateKey: privateKey)
+        let message = "Hello, World!".utf8.map { UInt8($0) }
+        let signature = privateKey.signature(for: message)
+        XCTAssertTrue(publicKey.isValidSignature(signature, for: message))
+    }
+
+    func testSPXPublicKeyFromPrivateKey() {
+        let privateKey = SPX.PrivateKey()
+        let publicKey = privateKey.publicKey
         let message = "Hello, World!".utf8.map { UInt8($0) }
         let signature = privateKey.signature(for: message)
         XCTAssertTrue(publicKey.isValidSignature(signature, for: message))
@@ -29,16 +37,34 @@ final class SPXTests: XCTestCase {
     func testSPXWithSeed() {
         // The seed provided here is 64 bytes long, but the SPX implementation only uses the first 48 bytes.
         let seed: [UInt8] = (0..<64).map { _ in UInt8.random(in: 0...255) }
-        let privateKey = _SPX.PrivateKey(from: seed)
-        let publicKey = _SPX.PublicKey(privateKey: privateKey)
+        let privateKey = SPX.PrivateKey(from: seed)
+        let publicKey = SPX.PublicKey(privateKey: privateKey)
+        let message = "Hello, World!".utf8.map { UInt8($0) }
+        let signature = privateKey.signature(for: message)
+        XCTAssertTrue(publicKey.isValidSignature(signature, for: message))
+    }
+    
+    func testSPXWithSeedAndPublicKeyFromPrivateKey() {
+        // The seed provided here is 64 bytes long, but the SPX implementation only uses the first 48 bytes.
+        let seed: [UInt8] = (0..<64).map { _ in UInt8.random(in: 0...255) }
+        let privateKey = SPX.PrivateKey(from: seed)
+        let publicKey = privateKey.publicKey
         let message = "Hello, World!".utf8.map { UInt8($0) }
         let signature = privateKey.signature(for: message)
         XCTAssertTrue(publicKey.isValidSignature(signature, for: message))
     }
 
     func testSPXWithRandomizedSignature() {
-        let privateKey = _SPX.PrivateKey()
-        let publicKey = _SPX.PublicKey(privateKey: privateKey)
+        let privateKey = SPX.PrivateKey()
+        let publicKey = SPX.PublicKey(privateKey: privateKey)
+        let message = "Hello, World!".utf8.map { UInt8($0) }
+        let signature = privateKey.signature(for: message, randomized: true)
+        XCTAssertTrue(publicKey.isValidSignature(signature, for: message))
+    }
+    
+    func testSPXWithRandomizedSignatureAndPublicKeyFromPrivateKey() {
+        let privateKey = SPX.PrivateKey()
+        let publicKey = privateKey.publicKey
         let message = "Hello, World!".utf8.map { UInt8($0) }
         let signature = privateKey.signature(for: message, randomized: true)
         XCTAssertTrue(publicKey.isValidSignature(signature, for: message))
@@ -47,8 +73,18 @@ final class SPXTests: XCTestCase {
     func testSPXWithSeedAndRandomizedSignature() {
         // The seed provided here is 64 bytes long, but the SPX implementation only uses the first 48 bytes.
         let seed: [UInt8] = (0..<64).map { _ in UInt8.random(in: 0...255) }
-        let privateKey = _SPX.PrivateKey(from: seed)
-        let publicKey = _SPX.PublicKey(privateKey: privateKey)
+        let privateKey = SPX.PrivateKey(from: seed)
+        let publicKey = SPX.PublicKey(privateKey: privateKey)
+        let message = "Hello, World!".utf8.map { UInt8($0) }
+        let signature = privateKey.signature(for: message, randomized: true)
+        XCTAssertTrue(publicKey.isValidSignature(signature, for: message))
+    }
+    
+    func testSPXWithSeedAndRandomizedSignatureAndPublicKeyFromPrivateKey() {
+        // The seed provided here is 64 bytes long, but the SPX implementation only uses the first 48 bytes.
+        let seed: [UInt8] = (0..<64).map { _ in UInt8.random(in: 0...255) }
+        let privateKey = SPX.PrivateKey(from: seed)
+        let publicKey = privateKey.publicKey
         let message = "Hello, World!".utf8.map { UInt8($0) }
         let signature = privateKey.signature(for: message, randomized: true)
         XCTAssertTrue(publicKey.isValidSignature(signature, for: message))
