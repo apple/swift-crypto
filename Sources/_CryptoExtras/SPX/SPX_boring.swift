@@ -36,9 +36,9 @@ extension SPX {
         
         public init(from seed: [UInt8]) {
             self.pointer = UnsafeMutablePointer<UInt8>.allocate(capacity: 64)
-            let seedPointer = UnsafeMutablePointer<UInt8>.allocate(capacity: 3 * 16)
-            seedPointer.initialize(from: seed, count: 3 * 16)
-            CCryptoBoringSSL_spx_generate_key_from_seed(UnsafeMutablePointer<UInt8>.allocate(capacity: 32), self.pointer, seedPointer)
+            let seedPtr = UnsafeMutablePointer<UInt8>.allocate(capacity: 3 * 16)
+            seedPtr.initialize(from: seed, count: 3 * 16)
+            CCryptoBoringSSL_spx_generate_key_from_seed(UnsafeMutablePointer<UInt8>.allocate(capacity: 32), self.pointer, seedPtr)
         }
         
         public var bytes: [UInt8] {
@@ -49,13 +49,24 @@ extension SPX {
             return PublicKey(privateKey: self)
         }
         
-        public func signature(for message: [UInt8], randomized: Bool = false) -> Signature {
-            let messagePointer = UnsafeMutablePointer<UInt8>.allocate(capacity: message.count)
-            messagePointer.initialize(from: message, count: message.count)
-            let signaturePointer = UnsafeMutablePointer<UInt8>.allocate(capacity: 7856)
-            CCryptoBoringSSL_spx_sign(signaturePointer, self.pointer, messagePointer, message.count, randomized ? 1 : 0)
-            let signatureBytes = Array(UnsafeBufferPointer(start: signaturePointer, count: 7856))
-            return Signature(signatureBytes: signatureBytes)
+        public func signature<D: Digest>(for digest: D, randomized: Bool = false) -> Signature {
+            let output = Array<UInt8>(unsafeUninitializedCapacity: 7856) { bufferPtr, length in
+                digest.withUnsafeBytes { digestPtr in
+                    CCryptoBoringSSL_spx_sign(
+                        bufferPtr.baseAddress,
+                        self.pointer,
+                        digestPtr.baseAddress,
+                        digestPtr.count,
+                        randomized ? 1 : 0
+                    )
+                }
+                length = 7856
+            }
+            return Signature(signatureBytes: output)
+        }
+
+        public func signature<D: DataProtocol>(for data: D, randomized: Bool = false) -> Signature {
+            self.signature(for: SHA256.hash(data: data), randomized: randomized)
         }
     }
 }
@@ -73,16 +84,22 @@ extension SPX {
             return Array(UnsafeBufferPointer(start: self.pointer, count: 32))
         }
         
-        public func isValidSignature(_ signature: Signature, for message: [UInt8]) -> Bool {
-            let messagePointer = UnsafeMutablePointer<UInt8>.allocate(capacity: message.count)
-            messagePointer.initialize(from: message, count: message.count)
-            var signatureBytes: [UInt8] = []
-            signature.withUnsafeBytes {
-                signatureBytes.append(contentsOf: $0)
+        public func isValidSignature<D: Digest>(_ signature: Signature, for digest: D) -> Bool {
+            return signature.withUnsafeBytes { signaturePtr in
+                let rc: CInt = digest.withUnsafeBytes { digestPtr in
+                    return CCryptoBoringSSL_spx_verify(
+                        signaturePtr.baseAddress,
+                        self.pointer,
+                        digestPtr.baseAddress,
+                        digestPtr.count
+                    )
+                }
+                return rc == 1
             }
-            let signaturePointer = UnsafeMutablePointer<UInt8>.allocate(capacity: signatureBytes.count)
-            signaturePointer.initialize(from: signatureBytes, count: signatureBytes.count)
-            return (CCryptoBoringSSL_spx_verify(signaturePointer, self.pointer, messagePointer, message.count) == 1)
+        }
+        
+        public func isValidSignature<D: DataProtocol>(_ signature: Signature, for data: D) -> Bool {
+            self.isValidSignature(signature, for: SHA256.hash(data: data))
         }
     }
 }
