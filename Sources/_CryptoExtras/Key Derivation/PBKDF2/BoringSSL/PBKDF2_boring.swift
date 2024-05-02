@@ -22,7 +22,7 @@ import Foundation
 @_implementationOnly import CCryptoBoringSSL
 @_implementationOnly import CCryptoBoringSSLShims
 
-internal struct BoringSSLPBKDF2<H: HashFunction> {
+internal struct BoringSSLPBKDF2 {
     /// Derives a secure key using the provided hash function, passphrase and salt.
     ///
     /// - Parameters:
@@ -31,38 +31,19 @@ internal struct BoringSSLPBKDF2<H: HashFunction> {
     ///    - outputByteCount: The length in bytes of resulting symmetric key.
     ///    - rounds: The number of rounds which should be used to perform key derivation.
     /// - Returns: The derived symmetric key.
-    public static func deriveKey<Passphrase: DataProtocol, Salt: DataProtocol>(from password: Passphrase, salt: Salt, outputByteCount: Int, rounds: Int) throws -> SymmetricKey {
-        let digest: OpaquePointer
-        if H.self == Insecure.MD5.self {
-            digest = CCryptoBoringSSL_EVP_md5()
-        } else if H.self == Insecure.SHA1.self {
-            digest = CCryptoBoringSSL_EVP_sha1()
-        } else if H.self == SHA256.self {
-            digest = CCryptoBoringSSL_EVP_sha256()
-        } else if H.self == SHA384.self {
-            digest = CCryptoBoringSSL_EVP_sha384()
-        } else if H.self == SHA512.self {
-            digest = CCryptoBoringSSL_EVP_sha512()
-        } else {
-            throw CryptoKitError.incorrectParameterSize
-        }
+    public static func deriveKey<Passphrase: DataProtocol, Salt: DataProtocol>(from password: Passphrase, salt: Salt, using hashFunction: KDF.Insecure.PBKDF2.HashFunction, outputByteCount: Int, rounds: Int) throws -> SymmetricKey {
         // This should be SecureBytes, but we can't use that here.
         var derivedKeyData = Data(count: outputByteCount)
-        let derivedCount = derivedKeyData.count
         
         let rc = derivedKeyData.withUnsafeMutableBytes { derivedKeyBytes -> Int32 in
-            let keyBuffer: UnsafeMutablePointer<UInt8> =
-                derivedKeyBytes.baseAddress!.assumingMemoryBound(to: UInt8.self)
             let saltBytes: ContiguousBytes = salt.regions.count == 1 ? salt.regions.first! : Array(salt)
             return saltBytes.withUnsafeBytes { saltBytes -> Int32 in
-                let saltBuffer = saltBytes.baseAddress!.assumingMemoryBound(to: UInt8.self)
                 let passwordBytes: ContiguousBytes = password.regions.count == 1 ? password.regions.first! : Array(password)
                 return passwordBytes.withUnsafeBytes { passwordBytes -> Int32 in
-                    let passwordBuffer = passwordBytes.baseAddress!.assumingMemoryBound(to: Int8.self)
-                    return CCryptoBoringSSL_PKCS5_PBKDF2_HMAC(passwordBuffer, password.count,
-                                                       saltBuffer, salt.count,
-                                                       UInt32(rounds), digest,
-                                                       derivedCount, keyBuffer)
+                    return CCryptoBoringSSL_PKCS5_PBKDF2_HMAC(passwordBytes.baseAddress!, passwordBytes.count,
+                                                              saltBytes.baseAddress!, saltBytes.count,
+                                                              UInt32(rounds), hashFunction.digest,
+                                                              derivedKeyBytes.count, derivedKeyBytes.baseAddress!)
                 }
             }
         }
@@ -72,6 +53,25 @@ internal struct BoringSSLPBKDF2<H: HashFunction> {
         }
 
         return SymmetricKey(data: derivedKeyData)
+    }
+}
+
+extension KDF.Insecure.PBKDF2.HashFunction {
+    var digest: OpaquePointer {
+        switch self {
+        case .md5:
+            return CCryptoBoringSSL_EVP_md5()
+        case .sha1:
+            return CCryptoBoringSSL_EVP_sha1()
+        case .sha224:
+            return CCryptoBoringSSL_EVP_sha224()
+        case .sha256:
+            return CCryptoBoringSSL_EVP_sha256()
+        case .sha384:
+            return CCryptoBoringSSL_EVP_sha384()
+        case .sha512:
+            return CCryptoBoringSSL_EVP_sha512()
+        }
     }
 }
 

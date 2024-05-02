@@ -26,17 +26,27 @@ fileprivate typealias BackingPBKDF2 = BoringSSLPBKDF2
 
 extension KDF.Insecure {
     /// An implementation of PBKDF2 key derivation function.
-    public struct PBKDF2<H: HashFunction> {
+    public struct PBKDF2 {
         /// Derives a symmetric key using the PBKDF2 algorithm.
         ///
         /// - Parameters:
         ///    - password: The passphrase, which should be used as a basis for the key. This can be any type that conforms to `DataProtocol`, like `Data` or an array of `UInt8` instances.
         ///    - salt: The salt to use for key derivation.
+        ///    - hashFunction: The hash function to use for key derivation.
         ///    - outputByteCount: The length in bytes of resulting symmetric key.
         ///    - rounds: The number of rounds which should be used to perform key derivation.
         /// - Returns: The derived symmetric key.
-        public static func deriveKey<Passphrase: DataProtocol, Salt: DataProtocol>(from password: Passphrase, salt: Salt, outputByteCount: Int, rounds: Int = 300_000_000) throws -> SymmetricKey {
-            return try BackingPBKDF2<H>.deriveKey(from: password, salt: salt, outputByteCount: outputByteCount, rounds: rounds)
+        public static func deriveKey<Passphrase: DataProtocol, Salt: DataProtocol>(from password: Passphrase, salt: Salt, using hashFunction: HashFunction, outputByteCount: Int, rounds: Int = 300_000_000) throws -> SymmetricKey {
+            return try BackingPBKDF2.deriveKey(from: password, salt: salt, using: hashFunction, outputByteCount: outputByteCount, rounds: rounds)
+        }
+        
+        public enum HashFunction {
+            case md5
+            case sha1
+            case sha224
+            case sha256
+            case sha384
+            case sha512
         }
     }
 }

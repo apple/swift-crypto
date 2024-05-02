@@ -32,24 +32,23 @@ internal struct BoringSSLScrypt {
     ///    - blockSize: The block size to be used by the algorithm.
     ///    - parallelism: The parallelism factor indicating how many threads should be run in parallel.
     /// - Returns: The derived symmetric key.
-    static func deriveKey<Passphrase: DataProtocol, Salt: DataProtocol>(from password: Passphrase, salt: Salt, outputByteCount: Int, rounds: Int, blockSize: Int, parallelism: Int) throws -> SymmetricKey {
+    static func deriveKey<Passphrase: DataProtocol, Salt: DataProtocol>(from password: Passphrase, salt: Salt, outputByteCount: Int, rounds: Int, blockSize: Int, parallelism: Int, maxMemory: Int? = nil) throws -> SymmetricKey {
         // This should be SecureBytes, but we can't use that here.
         var derivedKeyData = Data(count: outputByteCount)
-        let derivedCount = derivedKeyData.count
         
         // This computes the maximum amount of memory that will be used by the scrypt algorithm with an additional memory page to spare. This value will be used by the BoringSSL as the memory limit for the algorithm.
-        let maxMemory = 128 * rounds * blockSize * parallelism + 4096
+        let maxMemory = maxMemory ?? 128 * rounds * blockSize * parallelism + Int(vm_page_size)
         
         let result = derivedKeyData.withUnsafeMutableBytes { derivedKeyBytes -> Int32 in
-            let keyBuffer: UnsafeMutablePointer<UInt8> =
-            derivedKeyBytes.baseAddress!.assumingMemoryBound(to: UInt8.self)
             let saltBytes: ContiguousBytes = salt.regions.count == 1 ? salt.regions.first! : Array(salt)
             return saltBytes.withUnsafeBytes { saltBytes -> Int32 in
-                let saltBuffer = saltBytes.baseAddress!.assumingMemoryBound(to: UInt8.self)
                 let passwordBytes: ContiguousBytes = password.regions.count == 1 ? password.regions.first! : Array(password)
                 return passwordBytes.withUnsafeBytes { passwordBytes -> Int32 in
-                    let passwordBuffer = passwordBytes.baseAddress!.assumingMemoryBound(to: Int8.self)
-                    return CCryptoBoringSSL_EVP_PBE_scrypt(passwordBuffer, password.count, saltBuffer, salt.count, UInt64(rounds), UInt64(blockSize), UInt64(parallelism), maxMemory, keyBuffer, derivedCount)
+                    return CCryptoBoringSSL_EVP_PBE_scrypt(passwordBytes.baseAddress!, passwordBytes.count, 
+                                                           saltBytes.baseAddress!, saltBytes.count,
+                                                           UInt64(rounds), UInt64(blockSize), 
+                                                           UInt64(parallelism), maxMemory,
+                                                           derivedKeyBytes.baseAddress!, derivedKeyBytes.count)
                 }
             }
         }

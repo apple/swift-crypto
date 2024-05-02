@@ -35,23 +35,23 @@ class PBKDF2Tests: XCTestCase {
         }
     }
         
-    func oneshotTesting<H: HashFunction>(_ vector: RFCTestVector, hash: H.Type) throws {
+    func oneshotTesting(_ vector: RFCTestVector, hash: KDF.Insecure.PBKDF2.HashFunction) throws {
         let (contiguousInput, discontiguousInput) = vector.inputSecret.asDataProtocols()
         let (contiguousSalt, discontiguousSalt) = vector.salt.asDataProtocols()
         
-        let DK1 = try KDF.Insecure.PBKDF2<H>.deriveKey(from: contiguousInput, salt: contiguousSalt,
+        let DK1 = try KDF.Insecure.PBKDF2.deriveKey(from: contiguousInput, salt: contiguousSalt, using: hash,
                                                        outputByteCount: vector.outputLength,
                                                        rounds: vector.rounds)
         
-        let DK2 = try KDF.Insecure.PBKDF2<H>.deriveKey(from: discontiguousInput, salt: contiguousSalt,
+        let DK2 = try KDF.Insecure.PBKDF2.deriveKey(from: discontiguousInput, salt: contiguousSalt, using: hash,
                                                        outputByteCount: vector.outputLength,
                                                        rounds: vector.rounds)
         
-        let DK3 = try KDF.Insecure.PBKDF2<H>.deriveKey(from: contiguousInput, salt: discontiguousSalt,
+        let DK3 = try KDF.Insecure.PBKDF2.deriveKey(from: contiguousInput, salt: discontiguousSalt, using: hash,
                                                        outputByteCount: vector.outputLength,
                                                        rounds: vector.rounds)
         
-        let DK4 = try KDF.Insecure.PBKDF2<H>.deriveKey(from: discontiguousInput, salt: discontiguousSalt,
+        let DK4 = try KDF.Insecure.PBKDF2.deriveKey(from: discontiguousInput, salt: discontiguousSalt, using: hash,
                                                        outputByteCount: vector.outputLength,
                                                        rounds: vector.rounds)
         
@@ -62,7 +62,7 @@ class PBKDF2Tests: XCTestCase {
         XCTAssertEqual(DK4, expectedDK)
     }
         
-    func testRFCVector<H: HashFunction>(_ vector: RFCTestVector, hash: H.Type) throws {
+    func testRFCVector(_ vector: RFCTestVector, hash: KDF.Insecure.PBKDF2.HashFunction) throws {
         try oneshotTesting(vector, hash: hash)
     }
     
@@ -72,7 +72,7 @@ class PBKDF2Tests: XCTestCase {
         
         for vector in vectors {
             precondition(vector.hash == "SHA-1")
-            try orFail { try self.testRFCVector(vector, hash: Insecure.SHA1.self) }
+            try orFail { try self.testRFCVector(vector, hash: .sha1) }
         }
     }
 }
