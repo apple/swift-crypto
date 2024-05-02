@@ -36,7 +36,7 @@ extension KDF.Insecure {
         ///    - outputByteCount: The length in bytes of resulting symmetric key.
         ///    - rounds: The number of rounds which should be used to perform key derivation.
         /// - Returns: The derived symmetric key.
-        public static func deriveKey<Passphrase: DataProtocol, Salt: DataProtocol>(from password: Passphrase, salt: Salt, using hashFunction: HashFunction, outputByteCount: Int, rounds: Int = 300_000_000) throws -> SymmetricKey {
+        public static func deriveKey<Passphrase: DataProtocol, Salt: DataProtocol>(from password: Passphrase, salt: Salt, using hashFunction: HashFunction, outputByteCount: Int, rounds: Int) throws -> SymmetricKey {
             return try BackingPBKDF2.deriveKey(from: password, salt: salt, using: hashFunction, outputByteCount: outputByteCount, rounds: rounds)
         }
         
