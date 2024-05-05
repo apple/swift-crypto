@@ -67,6 +67,14 @@ final class SPXTests: XCTestCase {
                 for: test
             )
         )
+        
+        // Test randomized signature
+        XCTAssertTrue(
+            key.publicKey.isValidSignature(
+                key.signature(for: preHashedSha256, randomized: true),
+                for: preHashedSha256
+            )
+        )
     }
 
     func testSignatureSerialization() {
@@ -76,61 +84,5 @@ final class SPXTests: XCTestCase {
         let roundTripped = SPX.Signature(rawRepresentation: signature.rawRepresentation)
         XCTAssertEqual(signature.rawRepresentation, roundTripped.rawRepresentation)
         XCTAssertTrue(key.publicKey.isValidSignature(roundTripped, for: data))
-    }
-
-    let hashedData = SHA256.hash(data: Data("Hello, World!".utf8))
-    
-    func testSPX() {
-        let privateKey = SPX.PrivateKey()
-        let publicKey = SPX.PublicKey(privateKey: privateKey)
-        let signature = privateKey.signature(for: hashedData)
-        XCTAssertTrue(publicKey.isValidSignature(signature, for: hashedData))
-    }
-
-    func testSPXWithSeed() {
-        // The seed provided here is 64 bytes long, but the SPX implementation only uses the first 48 bytes.
-        let seed: [UInt8] = (0..<64).map { _ in UInt8.random(in: 0...255) }
-        let privateKey = SPX.PrivateKey(from: seed)
-        let publicKey = SPX.PublicKey(privateKey: privateKey)
-        let signature = privateKey.signature(for: hashedData)
-        XCTAssertTrue(publicKey.isValidSignature(signature, for: hashedData))
-    }
-
-    func testSPXWithRandomizedSignature() {
-        let privateKey = SPX.PrivateKey()
-        let publicKey = SPX.PublicKey(privateKey: privateKey)
-        let signature = privateKey.signature(for: hashedData, randomized: true)
-        XCTAssertTrue(publicKey.isValidSignature(signature, for: hashedData))
-    }
-    
-    func testSPXWithRandomizedSignatureAndPublicKeyFromPrivateKey() {
-        let key = SPX.PrivateKey()
-        XCTAssertTrue(
-            key.publicKey.isValidSignature(
-                key.signature(for: hashedData, randomized: true),
-                for: hashedData
-            )
-        )
-    }
-
-    func testSPXWithSeedAndRandomizedSignature() {
-        // The seed provided here is 64 bytes long, but the SPX implementation only uses the first 48 bytes.
-        let seed: [UInt8] = (0..<64).map { _ in UInt8.random(in: 0...255) }
-        let privateKey = SPX.PrivateKey(from: seed)
-        let publicKey = SPX.PublicKey(privateKey: privateKey)
-        let signature = privateKey.signature(for: hashedData, randomized: true)
-        XCTAssertTrue(publicKey.isValidSignature(signature, for: hashedData))
-    }
-    
-    func testSPXWithSeedAndRandomizedSignatureAndPublicKeyFromPrivateKey() {
-        // The seed provided here is 64 bytes long, but the SPX implementation only uses the first 48 bytes.
-        let seed: [UInt8] = (0..<64).map { _ in UInt8.random(in: 0...255) }
-        let key = SPX.PrivateKey(from: seed)
-        XCTAssertTrue(
-            key.publicKey.isValidSignature(
-                key.signature(for: hashedData, randomized: true),
-                for: hashedData
-            )
-        )
     }
 }

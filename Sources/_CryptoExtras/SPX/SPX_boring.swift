@@ -75,9 +75,16 @@ extension SPX {
     public struct PublicKey: Sendable {
         private let pointer: UnsafeMutablePointer<UInt8>
         
-        public init(privateKey: PrivateKey) {
+        fileprivate init(privateKey: PrivateKey) {
             self.pointer = UnsafeMutablePointer<UInt8>.allocate(capacity: 32)
             self.pointer.initialize(from: privateKey.bytes.suffix(32), count: 32)
+        }
+        
+        public init(from seed: [UInt8]) {
+            self.pointer = UnsafeMutablePointer<UInt8>.allocate(capacity: 32)
+            let seedPtr = UnsafeMutablePointer<UInt8>.allocate(capacity: 3 * 16)
+            seedPtr.initialize(from: seed, count: 3 * 16)
+            CCryptoBoringSSL_spx_generate_key_from_seed(self.pointer, UnsafeMutablePointer<UInt8>.allocate(capacity: 64), seedPtr)
         }
         
         public var bytes: [UInt8] {
