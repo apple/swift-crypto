@@ -15,69 +15,30 @@
 import Crypto
 import Foundation
 
+@usableFromInline
+typealias AESCTRImpl = OpenSSLAESCTRImpl
+
 extension AES {
+
     public enum _CTR {
-        private static func encryptInPlace(
-            _ plaintext: UnsafeMutableRawBufferPointer,
-            using key: SymmetricKey,
-            nonce: AES._CTR.Nonce
-        ) throws {
-            precondition(MemoryLayout<AES._CTR.Nonce>.size == 16)
-
-            guard [128, 192, 256].contains(key.bitCount) else {
-                throw CryptoKitError.incorrectKeySize
-            }
-
-            var nonce = nonce
-
-            for offset in stride(from: 0, to: plaintext.count, by: MemoryLayout<AES._CTR.Nonce>.size) {
-                var nonceCopy = nonce
-
-                try nonceCopy.withUnsafeMutableBytes { noncePtr in
-                    var noncePtr = noncePtr
-                    try AES.permute(&noncePtr, key: key)
-                    let remainingPlaintextBytes = plaintext.count &- offset
-
-                    for i in 0..<min(remainingPlaintextBytes, MemoryLayout<AES._CTR.Nonce>.size) {
-                        plaintext[offset &+ i] ^= noncePtr[i]
-                    }
-                }
-
-                nonce.incrementCounter()
-            }
-        }
-
+        @inlinable
         public static func encrypt<Plaintext: DataProtocol>(
             _ plaintext: Plaintext,
             using key: SymmetricKey,
             nonce: AES._CTR.Nonce
         ) throws -> Data {
-            var flattenedPlaintext = Data(plaintext)
-            try flattenedPlaintext.withUnsafeMutableBytes {
-                try Self.encryptInPlace($0, using: key, nonce: nonce)
-            }
-            return flattenedPlaintext
+            let bytes: ContiguousBytes = plaintext.regions.count == 1 ? plaintext.regions.first! : Array(plaintext)
+            return try AESCTRImpl.encrypt(bytes, using: key, nonce: nonce)
         }
 
-        private static func decryptInPlace(
-            _ ciphertext: UnsafeMutableRawBufferPointer,
-            using key: SymmetricKey,
-            nonce: AES._CTR.Nonce
-        ) throws {
-            // Surprise, CTR mode is symmetric in encryption/decryption!
-            try Self.encryptInPlace(ciphertext, using: key, nonce: nonce)
-        }
-
+        @inlinable
         public static func decrypt<Ciphertext: DataProtocol>(
             _ ciphertext: Ciphertext,
             using key: SymmetricKey,
             nonce: AES._CTR.Nonce
         ) throws -> Data {
-            var flattenedCiphertext = Data(ciphertext)
-            try flattenedCiphertext.withUnsafeMutableBytes {
-                try Self.decryptInPlace($0, using: key, nonce: nonce)
-            }
-            return flattenedCiphertext
+            // Surprise, CTR mode is symmetric in encryption/decryption!
+            try Self.encrypt(ciphertext, using: key, nonce: nonce)
         }
     }
 }
@@ -111,21 +72,6 @@ extension AES._CTR {
 
             Swift.withUnsafeMutableBytes(of: &self.nonceBytes) { bytesPtr in
                 bytesPtr.copyBytes(from: nonceBytes)
-            }
-        }
-
-        mutating func incrementCounter() {
-            var (newValue, overflow) = UInt32(bigEndian: self.nonceBytes.2).addingReportingOverflow(1)
-            self.nonceBytes.2 = newValue.bigEndian
-
-            if overflow {
-                (newValue, overflow) = UInt32(bigEndian: self.nonceBytes.1).addingReportingOverflow(1)
-                self.nonceBytes.1 = newValue.bigEndian
-            }
-
-            if overflow {
-                // If this overflows that's fine: we'll have overflowed everything and gone back to 0.
-                self.nonceBytes.0 = (UInt64(bigEndian: self.nonceBytes.0) &+ 1).bigEndian
             }
         }
 
