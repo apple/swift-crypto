@@ -12,9 +12,10 @@
 //
 //===----------------------------------------------------------------------===//
 
-#if CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
+// TODO: Once we support RSA blind signing with Security.framework, reinstate conditional compilation of this file.
+//#if CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
 // This is only used when bulding with BoringSSL.
-#else
+//#else
 @_implementationOnly import CCryptoBoringSSL
 import Foundation
 import Crypto
@@ -93,4 +94,25 @@ extension FixedWidthInteger {
         return try block(&bn)
     }
 }
-#endif
+
+extension BIGNUM {
+    /// Construct a BoringSSL `BIGNUM` from a hex string.
+    ///
+    /// - Parameter hexString: Hex byte string (big-endian, no `0x` prefix, may start with `-` for a negative number).
+    init(hexString: String) throws {
+        self = BIGNUM()
+        try hexString.withCString { hexStringPtr in
+            /// `BN_hex2bin` takes a `BIGNUM **` so we need a double WUMP dance.
+            try withUnsafeMutablePointer(to: &self) { selfPtr in
+                var selfPtr: UnsafeMutablePointer<BIGNUM>? = selfPtr
+                try withUnsafeMutablePointer(to: &selfPtr) { selfPtrPtr in
+                    /// `BN_hex2bin` returns the number of bytes of `in` processed or zero on error.
+                    guard CCryptoBoringSSL_BN_hex2bn(selfPtrPtr, hexStringPtr) == hexString.count else {
+                        throw CryptoKitError.incorrectParameterSize
+                    }
+                }
+            }
+        }
+    }
+}
+//#endif

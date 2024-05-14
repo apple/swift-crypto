@@ -11,9 +11,11 @@
 // SPDX-License-Identifier: Apache-2.0
 //
 //===----------------------------------------------------------------------===//
-#if CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
+
+// TODO: Once we support RSA blind signing with Security.framework, reinstate conditional compilation of this file.
+//#if CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
 // Nothing to do in this case
-#else
+//#else
 @_implementationOnly import CCryptoBoringSSL
 import Crypto
 
@@ -55,4 +57,4 @@ struct DigestType {
         }
     }
 }
-#endif
+//#endif

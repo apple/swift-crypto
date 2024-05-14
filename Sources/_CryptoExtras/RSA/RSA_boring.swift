@@ -14,9 +14,10 @@
 import Foundation
 import Crypto
 
-#if CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
+// TODO: Once we support RSA blind signing with Security.framework, reinstate conditional compilation of this file.
+//#if CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
 // Nothing; this is implemented in RSA_security
-#else
+//#else
 @_implementationOnly import CCryptoBoringSSL
 @_implementationOnly import CCryptoBoringSSLShims
 
@@ -29,6 +30,10 @@ internal struct BoringSSLRSAPublicKey: Sendable {
 
     init<Bytes: DataProtocol>(derRepresentation: Bytes) throws {
         self.backing = try Backing(derRepresentation: derRepresentation)
+    }
+
+    init(nHexString: String, eHexString: String) throws {
+        self.backing = try Backing(nHexString: nHexString, eHexString: eHexString)
     }
 
     var pkcs1DERRepresentation: Data {
@@ -72,6 +77,10 @@ internal struct BoringSSLRSAPrivateKey: Sendable {
         self.backing = try Backing(keySize: keySize)
     }
 
+    init(nHexString: String, eHexString: String, dHexString: String) throws {
+        self.backing = try Backing(nHexString: nHexString, eHexString: eHexString, dHexString: dHexString)
+    }
+
     var derRepresentation: Data {
         self.backing.derRepresentation
     }
@@ -100,6 +109,10 @@ extension BoringSSLRSAPrivateKey {
     
     internal func decrypt<D: DataProtocol>(_ data: D, padding: _RSA.Encryption.Padding) throws -> Data {
         return try self.backing.decrypt(data, padding: padding)
+    }
+
+    internal func blindSignature<D: DataProtocol>(_ blindedMessage: D) throws -> _RSA.BlindSigning.BlindSignature {
+        return try self.backing.blindSignature(blindedMessage)
     }
  }
 
@@ -204,6 +217,18 @@ extension BoringSSLRSAPublicKey {
             }
         }
 
+        fileprivate init(nHexString: String, eHexString: String) throws {
+            let n = try BIGNUM(hexString: nHexString)
+            let e = try BIGNUM(hexString: eHexString)
+            self.pointer = CCryptoBoringSSL_EVP_PKEY_new()
+            withUnsafePointer(to: n) { nPtr in
+                withUnsafePointer(to: e) { ePtr in
+                    let rsaPtr = CCryptoBoringSSL_RSA_new_public_key(nPtr, ePtr)
+                    CCryptoBoringSSL_EVP_PKEY_assign_RSA(self.pointer, rsaPtr)
+                }
+            }
+        }
+
         fileprivate var pkcs1DERRepresentation: Data {
             return BIOHelper.withWritableMemoryBIO { bio in
                 let rsaPublicKey = CCryptoBoringSSL_EVP_PKEY_get0_RSA(self.pointer)
@@ -261,6 +286,17 @@ extension BoringSSLRSAPublicKey {
                             hashDigestType.dispatchTable,
                             hashDigestType.dispatchTable,
                             CInt(hashDigestType.digestLength),
+                            signaturePtr.baseAddress,
+                            signaturePtr.count
+                        )
+                    case .pssZero:
+                        return CCryptoBoringSSLShims_RSA_verify_pss_mgf1(
+                            rsaPublicKey,
+                            digestPtr.baseAddress,
+                            digestPtr.count,
+                            hashDigestType.dispatchTable,
+                            hashDigestType.dispatchTable,
+                            CInt(0),
                             signaturePtr.baseAddress,
                             signaturePtr.count
                         )
@@ -421,6 +457,21 @@ extension BoringSSLRSAPrivateKey {
             }
         }
 
+        fileprivate init(nHexString: String, eHexString: String, dHexString: String) throws {
+            let n = try BIGNUM(hexString: nHexString)
+            let e = try BIGNUM(hexString: eHexString)
+            let d = try BIGNUM(hexString: dHexString)
+            self.pointer = CCryptoBoringSSL_EVP_PKEY_new()
+            withUnsafePointer(to: n) { nPtr in
+                withUnsafePointer(to: e) { ePtr in
+                    withUnsafePointer(to: d) { dPtr in
+                        let rsaPtr = CCryptoBoringSSL_RSA_new_private_key_no_crt(nPtr, ePtr, dPtr)
+                        CCryptoBoringSSL_EVP_PKEY_assign_RSA(self.pointer, rsaPtr)
+                    }
+                }
+            }
+        }
+
         fileprivate var derRepresentation: Data {
             return BIOHelper.withWritableMemoryBIO { bio in
                 let rsaPrivateKey = CCryptoBoringSSL_EVP_PKEY_get0_RSA(self.pointer)
@@ -505,6 +556,18 @@ extension BoringSSLRSAPrivateKey {
                             hashDigestType.dispatchTable,
                             CInt(hashDigestType.digestLength)
                         )
+                    case .pssZero:
+                        return CCryptoBoringSSLShims_RSA_sign_pss_mgf1(
+                            rsaPrivateKey,
+                            &outputLength,
+                            bufferPtr.baseAddress,
+                            bufferPtr.count,
+                            digestPtr.baseAddress,
+                            digestPtr.count,
+                            hashDigestType.dispatchTable,
+                            hashDigestType.dispatchTable,
+                            CInt(0)
+                        )
                     }
                 }
                 if rc != 1 {
@@ -564,9 +627,76 @@ extension BoringSSLRSAPrivateKey {
             return output
         }
 
+        fileprivate func blindSignature<D: DataProtocol>(_ blindedMessage: D) throws -> _RSA.BlindSigning.BlindSignature {
+            let rsaPrivateKey = CCryptoBoringSSL_EVP_PKEY_get0_RSA(self.pointer)
+            let signatureByteCount = Int(CCryptoBoringSSL_RSA_size(rsaPrivateKey))
+
+            guard blindedMessage.count == signatureByteCount else {
+                throw CryptoKitError.incorrectParameterSize
+            }
+
+            let blindedMessageBytes: ContiguousBytes = blindedMessage.regions.count == 1 ? blindedMessage.regions.first! : Array(blindedMessage)
+
+            let signatureBytes = try Array<UInt8>(unsafeUninitializedCapacity: signatureByteCount) { signatureBufferPtr, signatureBufferCount in
+                try blindedMessageBytes.withUnsafeBytes { blindedMessageBufferPtr in
+                    /// NOTE: BoringSSL promotes the use of `RSA_sign_raw` over `RSA_private_encrypt`.
+                    var outputCount = 0
+                    guard CCryptoBoringSSL_RSA_sign_raw(
+                        rsaPrivateKey,
+                        &outputCount,
+                        signatureBufferPtr.baseAddress,
+                        signatureBufferPtr.count,
+                        blindedMessageBufferPtr.baseAddress,
+                        blindedMessageBufferPtr.count,
+                        RSA_NO_PADDING
+                    ) == 1 else {
+                        throw CryptoKitError.internalBoringSSLError()
+                    }
+                    precondition(outputCount == signatureByteCount)
+                    signatureBufferCount = outputCount
+                }
+            }
+            let signature = _RSA.BlindSigning.BlindSignature(signatureBytes: signatureBytes)
+
+            // NOTE: Verification is part of the specification.
+            try self.verifyBlindSignature(signature, for: blindedMessageBytes)
+
+            return _RSA.BlindSigning.BlindSignature(signatureBytes: signatureBytes)
+        }
+
+        fileprivate func verifyBlindSignature<D: ContiguousBytes>(_ signature: _RSA.BlindSigning.BlindSignature, for blindedMessage: D) throws {
+            try signature.withUnsafeBytes { signatureBufferPtr in
+                try blindedMessage.withUnsafeBytes { blindedMessageBufferPtr in
+                    try withUnsafeTemporaryAllocation(byteCount: blindedMessageBufferPtr.count, alignment: 1) { verificationBufferPtr in
+                        let rsaPublicKey = CCryptoBoringSSL_EVP_PKEY_get0_RSA(self.pointer)
+                        var outputCount = 0
+                        /// NOTE: BoringSSL promotes the use of `RSA_verify_raw` over `RSA_public_decrypt`.
+                        guard CCryptoBoringSSL_RSA_verify_raw(
+                            rsaPublicKey,
+                            &outputCount,
+                            verificationBufferPtr.baseAddress,
+                            verificationBufferPtr.count,
+                            signatureBufferPtr.baseAddress,
+                            signatureBufferPtr.count,
+                            RSA_NO_PADDING
+                        ) == 1 else {
+                            throw CryptoKitError.internalBoringSSLError()
+                        }
+                        guard
+                            outputCount == blindedMessageBufferPtr.count,
+                            memcmp(verificationBufferPtr.baseAddress!, blindedMessageBufferPtr.baseAddress!, blindedMessageBufferPtr.count) == 0
+                        else {
+                            // "Signing failure" in RFC9474.
+                            throw CryptoKitError.authenticationFailure
+                        }
+                    }
+                }
+            }
+        }
+
         deinit {
             CCryptoBoringSSL_EVP_PKEY_free(self.pointer)
         }
     }
 }
-#endif
+//#endif

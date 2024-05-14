@@ -198,7 +198,7 @@ extension SecurityRSAPrivateKey {
 extension SecurityRSAPublicKey {
     func isValidSignature<D: Digest>(_ signature: _RSA.Signing.RSASignature, for digest: D, padding: _RSA.Signing.Padding) -> Bool {
         do {
-            let algorithm = try SecKeyAlgorithm(digestType: D.self, padding: padding)
+            let algorithm = try SecKeyAlgorithm.init(digestType: D.self, padding: padding)
             let digestToValidate = Data(digest)
             var error: Unmanaged<CFError>? = nil
             let result = SecKeyVerifySignature(self.backing,
@@ -231,35 +231,23 @@ extension SecurityRSAPublicKey {
 
 extension SecKeyAlgorithm {
     fileprivate init<D: Digest>(digestType: D.Type = D.self, padding: _RSA.Signing.Padding) throws {
-        switch digestType {
-        case is Insecure.SHA1.Digest.Type:
-            switch padding.backing {
-            case .pss:
-                self = .rsaSignatureDigestPSSSHA1
-            case .pkcs1v1_5:
-                self = .rsaSignatureDigestPKCS1v15SHA1
-            }
-        case is SHA256.Digest.Type:
-            switch padding.backing {
-            case .pss:
-                self = .rsaSignatureDigestPSSSHA256
-            case .pkcs1v1_5:
-                self = .rsaSignatureDigestPKCS1v15SHA256
-            }
-        case is SHA384.Digest.Type:
-            switch padding.backing {
-            case .pss:
-                self = .rsaSignatureDigestPSSSHA384
-            case .pkcs1v1_5:
-                self = .rsaSignatureDigestPKCS1v15SHA384
-            }
-        case is SHA512.Digest.Type:
-            switch padding.backing {
-            case .pss:
-                self = .rsaSignatureDigestPSSSHA512
-            case .pkcs1v1_5:
-                self = .rsaSignatureDigestPKCS1v15SHA512
-            }
+        switch (digestType, padding.backing) {
+        case (is Insecure.SHA1.Digest.Type, .pss):
+            self = .rsaSignatureDigestPSSSHA1
+        case (is Insecure.SHA1.Digest.Type, .pkcs1v1_5):
+            self = .rsaSignatureDigestPKCS1v15SHA1
+        case (is SHA256.Digest.Type, .pss):
+            self = .rsaSignatureDigestPSSSHA256
+        case (is SHA256.Digest.Type, .pkcs1v1_5):
+            self = .rsaSignatureDigestPKCS1v15SHA256
+        case (is SHA384.Digest.Type, .pss):
+            self = .rsaSignatureDigestPSSSHA384
+        case (is SHA384.Digest.Type, .pkcs1v1_5):
+            self = .rsaSignatureDigestPKCS1v15SHA384
+        case (is SHA512.Digest.Type, .pss):
+            self = .rsaSignatureDigestPSSSHA512
+        case (is SHA512.Digest.Type, .pkcs1v1_5):
+            self = .rsaSignatureDigestPKCS1v15SHA512
         default:
             throw CryptoKitError.incorrectParameterSize
         }
