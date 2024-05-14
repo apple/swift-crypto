@@ -34,15 +34,39 @@ extension SPX {
             CCryptoBoringSSL_spx_generate_key(UnsafeMutablePointer<UInt8>.allocate(capacity: 32), self.pointer)
         }
         
-        public init(from seed: [UInt8]) {
-            self.pointer = UnsafeMutablePointer<UInt8>.allocate(capacity: 64)
+        public init(from seed: [UInt8]) throws {
+            guard seed.count >= (3 * 16) else {
+                throw CryptoKitError.incorrectKeySize
+            }
             let seedPtr = UnsafeMutablePointer<UInt8>.allocate(capacity: 3 * 16)
             seedPtr.initialize(from: seed, count: 3 * 16)
+            self.pointer = UnsafeMutablePointer<UInt8>.allocate(capacity: 64)
             CCryptoBoringSSL_spx_generate_key_from_seed(UnsafeMutablePointer<UInt8>.allocate(capacity: 32), self.pointer, seedPtr)
         }
+
+        public init<Bytes: DataProtocol>(derRepresentation: Bytes) throws {
+            guard derRepresentation.count == 64 else {
+                throw CryptoKitError.incorrectKeySize
+            }
+            self.pointer = UnsafeMutablePointer<UInt8>.allocate(capacity: 64)
+            self.pointer.initialize(from: derRepresentation.regions.flatMap { $0 }, count: 64)
+        }
         
+        public init(pemRepresentation: String) throws {
+            let document = try ASN1.PEMDocument(pemString: pemRepresentation)
+            self = try .init(derRepresentation: document.derBytes)
+        }
+
         public var bytes: [UInt8] {
             return Array(UnsafeBufferPointer(start: self.pointer, count: 64))
+        }
+        
+        public var derRepresentation: Data {
+            return Data(UnsafeBufferPointer(start: self.pointer, count: 64))
+        }
+        
+        public var pemRepresentation: String {
+            return ASN1.PEMDocument(type: SPX.KeyType, derBytes: self.derRepresentation).pemString
         }
 
         public var publicKey: PublicKey {
@@ -80,15 +104,39 @@ extension SPX {
             self.pointer.initialize(from: privateKey.bytes.suffix(32), count: 32)
         }
         
-        public init(from seed: [UInt8]) {
-            self.pointer = UnsafeMutablePointer<UInt8>.allocate(capacity: 32)
+        public init(from seed: [UInt8]) throws {
+            guard seed.count >= (3 * 16) else {
+                throw CryptoKitError.incorrectKeySize
+            }
             let seedPtr = UnsafeMutablePointer<UInt8>.allocate(capacity: 3 * 16)
             seedPtr.initialize(from: seed, count: 3 * 16)
+            self.pointer = UnsafeMutablePointer<UInt8>.allocate(capacity: 32)
             CCryptoBoringSSL_spx_generate_key_from_seed(self.pointer, UnsafeMutablePointer<UInt8>.allocate(capacity: 64), seedPtr)
         }
         
+        public init<Bytes: DataProtocol>(derRepresentation: Bytes) throws {
+            guard derRepresentation.count == 32 else {
+                throw CryptoKitError.incorrectKeySize
+            }
+            self.pointer = UnsafeMutablePointer<UInt8>.allocate(capacity: 32)
+            self.pointer.initialize(from: derRepresentation.regions.flatMap { $0 }, count: 32)
+        }
+        
+        public init(pemRepresentation: String) throws {
+            let document = try ASN1.PEMDocument(pemString: pemRepresentation)
+            self = try .init(derRepresentation: document.derBytes)
+        }
+
         public var bytes: [UInt8] {
             return Array(UnsafeBufferPointer(start: self.pointer, count: 32))
+        }
+        
+        public var derRepresentation: Data {
+            return Data(UnsafeBufferPointer(start: self.pointer, count: 32))
+        }
+        
+        public var pemRepresentation: String {
+            return ASN1.PEMDocument(type: SPX.PublicKeyType, derBytes: self.derRepresentation).pemString
         }
         
         public func isValidSignature<D: Digest>(_ signature: Signature, for digest: D) -> Bool {
@@ -127,4 +175,10 @@ extension SPX {
             try self.rawRepresentation.withUnsafeBytes(body)
         }
     }
+}
+
+extension SPX {
+    static let KeyType = "PRIVATE KEY"
+    
+    static let PublicKeyType = "PUBLIC KEY"
 }
