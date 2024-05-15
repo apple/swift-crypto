@@ -25,7 +25,7 @@
 import PackageDescription
 
 // To develop this on Apple platforms, set this to true
-let development = true
+let development = false
 
 let swiftSettings: [SwiftSetting]
 let dependencies: [Target.Dependency]
