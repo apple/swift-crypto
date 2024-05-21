@@ -167,7 +167,11 @@ let package = Package(
             ],
             swiftSettings: swiftSettings
         ),
-        .testTarget(name: "_CryptoExtrasTests", dependencies: ["_CryptoExtras"]),
+        .testTarget(
+            name: "_CryptoExtrasTests",
+            dependencies: ["_CryptoExtras"],
+            swiftSettings: swiftSettings
+        ),
     ],
     cxxLanguageStandard: .cxx11
 )

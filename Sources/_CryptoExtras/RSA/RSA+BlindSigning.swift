@@ -14,9 +14,13 @@
 import Foundation
 import Crypto
 
-// TODO: Provide an implementation using Security.framework.
+#if CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
+fileprivate typealias BackingPublicKey = SecurityRSAPublicKey
+fileprivate typealias BackingPrivateKey = SecurityRSAPrivateKey
+#else
 fileprivate typealias BackingPublicKey = BoringSSLRSAPublicKey
 fileprivate typealias BackingPrivateKey = BoringSSLRSAPrivateKey
+#endif
 
 extension _RSA {
     public enum BlindSigning {}
@@ -75,15 +79,6 @@ extension _RSA.BlindSigning {
             guard self.keySizeInBits >= 1024 else {
                 throw CryptoKitError.incorrectParameterSize
             }
-        }
-
-        /// Construct an RSA public key with the specified parameters.
-        ///
-        /// This constructor is used in tests in cases where test vectors provide the key information this way.
-        ///
-        /// - TODO: Accept `ArbitraryPrecisionInteger` params once SPI is available to `_CryptoExtras`.
-        internal init(nHexString: String, eHexString: String) throws {
-            self.backing = try BackingPublicKey(nHexString: nHexString, eHexString: eHexString)
         }
 
         public var pkcs1DERRepresentation: Data {
@@ -187,15 +182,6 @@ extension _RSA.BlindSigning {
                 throw CryptoKitError.incorrectParameterSize
             }
             self.backing = try BackingPrivateKey(keySize: keySize)
-        }
-
-        /// Construct an RSA private key with the specified parameters.
-        ///
-        /// This constructor is used in tests in cases where test vectors provide the key information this way.
-        ///
-        /// - TODO: Accept `ArbitraryPrecisionInteger` params once SPI is available to `_CryptoExtras`.
-        internal init(nHexString: String, eHexString: String, dHexString: String) throws {
-            self.backing = try BackingPrivateKey(nHexString: nHexString, eHexString: eHexString, dHexString: dHexString)
         }
 
         public var derRepresentation: Data {

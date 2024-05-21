@@ -195,10 +195,20 @@ extension SecurityRSAPrivateKey {
     }
 }
 
+extension SecurityRSAPrivateKey {
+    internal func blindSignature<D: DataProtocol>(_ blindedMessage: D) throws -> _RSA.BlindSigning.BlindSignature {
+        var error: Unmanaged<CFError>? = nil
+        guard let signature = SecKeyCreateSignature(self.backing, .rsaSignatureRaw, Data(blindedMessage) as CFData, &error) else {
+            throw error!.takeRetainedValue() as Error
+        }
+        return _RSA.BlindSigning.BlindSignature(rawRepresentation: signature as Data)
+    }
+}
+
 extension SecurityRSAPublicKey {
     func isValidSignature<D: Digest>(_ signature: _RSA.Signing.RSASignature, for digest: D, padding: _RSA.Signing.Padding) -> Bool {
         do {
-            let algorithm = try SecKeyAlgorithm.init(digestType: D.self, padding: padding)
+            let algorithm = try SecKeyAlgorithm(digestType: D.self, padding: padding)
             let digestToValidate = Data(digest)
             var error: Unmanaged<CFError>? = nil
             let result = SecKeyVerifySignature(self.backing,
@@ -248,6 +258,9 @@ extension SecKeyAlgorithm {
             self = .rsaSignatureDigestPSSSHA512
         case (is SHA512.Digest.Type, .pkcs1v1_5):
             self = .rsaSignatureDigestPKCS1v15SHA512
+        case (_, .pssZero):
+            // Unsupported.
+            throw CryptoKitError.incorrectParameterSize
         default:
             throw CryptoKitError.incorrectParameterSize
         }

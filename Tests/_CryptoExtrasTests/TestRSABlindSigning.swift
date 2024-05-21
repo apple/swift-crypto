@@ -40,7 +40,14 @@ final class TestRSABlindSigning: XCTestCase {
             relativeTo: URL(fileURLWithPath: #file)
         ))
 
-        for testVector in testVectors {
+        // Security framework doesn't have the API we need to support the PSSZERO variants.
+        #if CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
+        let filteredTestVectors = testVectors.filter { $0.parameters.padding.backing != .pssZero }
+        #else
+        let filteredTestVectors = testVectors
+        #endif
+
+        for testVector in filteredTestVectors {
             // Prepare
             do {
                 let message = try Data(hexString: testVector.msg)
@@ -64,7 +71,9 @@ final class TestRSABlindSigning: XCTestCase {
                 let privateKey = try _RSA.BlindSigning.PrivateKey(
                     nHexString: testVector.n,
                     eHexString: testVector.e,
-                    dHexString: testVector.d
+                    dHexString: testVector.d,
+                    pHexString: testVector.p,
+                    qHexString: testVector.q
                 )
                 let blindedMessage = try Data(hexString: testVector.blinded_msg)
                 let blindSignature = try privateKey.blindSignature(for: blindedMessage)

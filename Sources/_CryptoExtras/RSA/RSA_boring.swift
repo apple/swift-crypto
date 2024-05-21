@@ -14,10 +14,9 @@
 import Foundation
 import Crypto
 
-// TODO: Once we support RSA blind signing with Security.framework, reinstate conditional compilation of this file.
-//#if CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
+#if CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
 // Nothing; this is implemented in RSA_security
-//#else
+#else
 @_implementationOnly import CCryptoBoringSSL
 @_implementationOnly import CCryptoBoringSSLShims
 
@@ -30,10 +29,6 @@ internal struct BoringSSLRSAPublicKey: Sendable {
 
     init<Bytes: DataProtocol>(derRepresentation: Bytes) throws {
         self.backing = try Backing(derRepresentation: derRepresentation)
-    }
-
-    init(nHexString: String, eHexString: String) throws {
-        self.backing = try Backing(nHexString: nHexString, eHexString: eHexString)
     }
 
     var pkcs1DERRepresentation: Data {
@@ -75,10 +70,6 @@ internal struct BoringSSLRSAPrivateKey: Sendable {
 
     init(keySize: _RSA.Signing.KeySize) throws {
         self.backing = try Backing(keySize: keySize)
-    }
-
-    init(nHexString: String, eHexString: String, dHexString: String) throws {
-        self.backing = try Backing(nHexString: nHexString, eHexString: eHexString, dHexString: dHexString)
     }
 
     var derRepresentation: Data {
@@ -213,18 +204,6 @@ extension BoringSSLRSAPublicKey {
                 } catch {
                     CCryptoBoringSSL_EVP_PKEY_free(self.pointer)
                     throw error
-                }
-            }
-        }
-
-        fileprivate init(nHexString: String, eHexString: String) throws {
-            let n = try BIGNUM(hexString: nHexString)
-            let e = try BIGNUM(hexString: eHexString)
-            self.pointer = CCryptoBoringSSL_EVP_PKEY_new()
-            withUnsafePointer(to: n) { nPtr in
-                withUnsafePointer(to: e) { ePtr in
-                    let rsaPtr = CCryptoBoringSSL_RSA_new_public_key(nPtr, ePtr)
-                    CCryptoBoringSSL_EVP_PKEY_assign_RSA(self.pointer, rsaPtr)
                 }
             }
         }
@@ -457,21 +436,6 @@ extension BoringSSLRSAPrivateKey {
             }
         }
 
-        fileprivate init(nHexString: String, eHexString: String, dHexString: String) throws {
-            let n = try BIGNUM(hexString: nHexString)
-            let e = try BIGNUM(hexString: eHexString)
-            let d = try BIGNUM(hexString: dHexString)
-            self.pointer = CCryptoBoringSSL_EVP_PKEY_new()
-            withUnsafePointer(to: n) { nPtr in
-                withUnsafePointer(to: e) { ePtr in
-                    withUnsafePointer(to: d) { dPtr in
-                        let rsaPtr = CCryptoBoringSSL_RSA_new_private_key_no_crt(nPtr, ePtr, dPtr)
-                        CCryptoBoringSSL_EVP_PKEY_assign_RSA(self.pointer, rsaPtr)
-                    }
-                }
-            }
-        }
-
         fileprivate var derRepresentation: Data {
             return BIOHelper.withWritableMemoryBIO { bio in
                 let rsaPrivateKey = CCryptoBoringSSL_EVP_PKEY_get0_RSA(self.pointer)
@@ -699,4 +663,4 @@ extension BoringSSLRSAPrivateKey {
         }
     }
 }
-//#endif
+#endif
