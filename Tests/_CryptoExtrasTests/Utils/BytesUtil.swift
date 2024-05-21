@@ -12,6 +12,7 @@
 //
 //===----------------------------------------------------------------------===//
 import Foundation
+import XCTest
 
 enum ByteHexEncodingErrors: Error {
     case incorrectHexValue
@@ -70,7 +71,7 @@ extension DataProtocol {
                         offset += 1
                     }
                 }
-                count = offset
+                count = offset * 2
             }
             return String(decoding: bytes, as: UTF8.self)
         }
@@ -99,4 +100,10 @@ extension Data {
         }
     }
 
+}
+
+final class BytesUtilTests: XCTestCase {
+    func testHexStringUtils() throws {
+        XCTAssertEqual(try Data(hexString: "deadbeef").hexString, "deadbeef")
+    }
 }
