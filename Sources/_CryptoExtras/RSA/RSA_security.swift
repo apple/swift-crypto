@@ -197,11 +197,35 @@ extension SecurityRSAPrivateKey {
 
 extension SecurityRSAPrivateKey {
     internal func blindSignature<D: DataProtocol>(_ blindedMessage: D) throws -> _RSA.BlindSigning.BlindSignature {
+        let blindedMessageBytes = Data(blindedMessage)
+
+        let signatureByteCount = (self.keySizeInBits + 7) / 8
+        guard blindedMessageBytes.count == signatureByteCount else {
+            throw CryptoKitError.incorrectParameterSize
+        }
+
         var error: Unmanaged<CFError>? = nil
-        guard let signature = SecKeyCreateSignature(self.backing, .rsaSignatureRaw, Data(blindedMessage) as CFData, &error) else {
+        guard let signatureBytes = SecKeyCreateSignature(
+            self.backing,
+            .rsaSignatureRaw,
+            blindedMessageBytes as CFData,
+            &error
+        ) else {
             throw error!.takeRetainedValue() as Error
         }
-        return _RSA.BlindSigning.BlindSignature(rawRepresentation: signature as Data)
+
+        guard SecKeyVerifySignature(
+            SecKeyCopyPublicKey(self.backing)!,
+            .rsaSignatureRaw,
+            blindedMessageBytes as CFData,
+            signatureBytes,
+            &error
+        ) else {
+            // "Signing failure" in RFC9474.
+            throw CryptoKitError.authenticationFailure
+        }
+
+        return _RSA.BlindSigning.BlindSignature(rawRepresentation: signatureBytes as Data)
     }
 }
 
