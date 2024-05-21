@@ -34,12 +34,12 @@ extension SPX {
             CCryptoBoringSSL_spx_generate_key(UnsafeMutablePointer<UInt8>.allocate(capacity: 32), self.pointer)
         }
         
-        public init(from seed: [UInt8]) throws {
+        public init(from seed: some DataProtocol) throws {
             guard seed.count >= (3 * 16) else {
                 throw CryptoKitError.incorrectKeySize
             }
             let seedPtr = UnsafeMutablePointer<UInt8>.allocate(capacity: 3 * 16)
-            seedPtr.initialize(from: seed, count: 3 * 16)
+            seedPtr.initialize(from: seed.regions.flatMap { $0 }, count: 3 * 16)
             self.pointer = UnsafeMutablePointer<UInt8>.allocate(capacity: 64)
             CCryptoBoringSSL_spx_generate_key_from_seed(UnsafeMutablePointer<UInt8>.allocate(capacity: 32), self.pointer, seedPtr)
         }
@@ -104,12 +104,12 @@ extension SPX {
             self.pointer.initialize(from: privateKey.bytes.suffix(32), count: 32)
         }
         
-        public init(from seed: [UInt8]) throws {
+        public init(from seed: some DataProtocol) throws {
             guard seed.count >= (3 * 16) else {
                 throw CryptoKitError.incorrectKeySize
             }
             let seedPtr = UnsafeMutablePointer<UInt8>.allocate(capacity: 3 * 16)
-            seedPtr.initialize(from: seed, count: 3 * 16)
+            seedPtr.initialize(from: seed.regions.flatMap { $0 }, count: 3 * 16)
             self.pointer = UnsafeMutablePointer<UInt8>.allocate(capacity: 32)
             CCryptoBoringSSL_spx_generate_key_from_seed(self.pointer, UnsafeMutablePointer<UInt8>.allocate(capacity: 64), seedPtr)
         }
