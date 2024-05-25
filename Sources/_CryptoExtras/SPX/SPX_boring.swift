@@ -72,25 +72,21 @@ extension SPX {
         public var publicKey: PublicKey {
             return PublicKey(privateKey: self)
         }
-        
-        public func signature<D: Digest>(for digest: D, randomized: Bool = false) -> Signature {
+
+        public func signature<D: DataProtocol>(for data: D, randomized: Bool = false) -> Signature {
             let output = Array<UInt8>(unsafeUninitializedCapacity: 7856) { bufferPtr, length in
-                digest.withUnsafeBytes { digestPtr in
+                data.regions.first!.withUnsafeBytes { dataPtr in
                     CCryptoBoringSSL_spx_sign(
                         bufferPtr.baseAddress,
                         self.pointer,
-                        digestPtr.baseAddress,
-                        digestPtr.count,
+                        dataPtr.baseAddress,
+                        dataPtr.count,
                         randomized ? 1 : 0
                     )
                 }
                 length = 7856
             }
             return Signature(signatureBytes: output)
-        }
-
-        public func signature<D: DataProtocol>(for data: D, randomized: Bool = false) -> Signature {
-            self.signature(for: SHA256.hash(data: data), randomized: randomized)
         }
     }
 }
@@ -139,22 +135,18 @@ extension SPX {
             return ASN1.PEMDocument(type: SPX.PublicKeyType, derBytes: self.derRepresentation).pemString
         }
         
-        public func isValidSignature<D: Digest>(_ signature: Signature, for digest: D) -> Bool {
+        public func isValidSignature<D: DataProtocol>(_ signature: Signature, for data: D) -> Bool {
             return signature.withUnsafeBytes { signaturePtr in
-                let rc: CInt = digest.withUnsafeBytes { digestPtr in
+                let rc: CInt = data.regions.first!.withUnsafeBytes { dataPtr in
                     return CCryptoBoringSSL_spx_verify(
                         signaturePtr.baseAddress,
                         self.pointer,
-                        digestPtr.baseAddress,
-                        digestPtr.count
+                        dataPtr.baseAddress,
+                        dataPtr.count
                     )
                 }
                 return rc == 1
             }
-        }
-        
-        public func isValidSignature<D: DataProtocol>(_ signature: Signature, for data: D) -> Bool {
-            self.isValidSignature(signature, for: SHA256.hash(data: data))
         }
     }
 }

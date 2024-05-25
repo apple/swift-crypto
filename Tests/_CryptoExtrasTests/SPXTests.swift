@@ -28,42 +28,9 @@ final class SPXTests: XCTestCase {
     private func testSPXSigning(_ key: SPX.PrivateKey) {
         let test = Data("Hello, World!".utf8)
 
-        // Test pre hashed.
-        let preHashedSha256 = SHA256.hash(data: test)
-        XCTAssertTrue(
-            key.publicKey.isValidSignature(
-                key.signature(for: preHashedSha256),
-                for: preHashedSha256
-            )
-        )
-
-        // Test pre-hashed with other hash function
-        let preHashedSha512 = SHA512.hash(data: test)
-        XCTAssertTrue(
-            key.publicKey.isValidSignature(
-                key.signature(for: preHashedSha512),
-                for: preHashedSha512
-            )
-        )
-
-        // Test unhashed
         XCTAssertTrue(
             key.publicKey.isValidSignature(
                 key.signature(for: test),
-                for: test
-            )
-        )
-
-        // Test unhashed corresponds to SHA256
-        XCTAssertTrue(
-            key.publicKey.isValidSignature(
-                key.signature(for: test),
-                for: preHashedSha256
-            )
-        )
-        XCTAssertTrue(
-            key.publicKey.isValidSignature(
-                key.signature(for: preHashedSha256),
                 for: test
             )
         )
@@ -71,8 +38,8 @@ final class SPXTests: XCTestCase {
         // Test randomized signature
         XCTAssertTrue(
             key.publicKey.isValidSignature(
-                key.signature(for: preHashedSha256, randomized: true),
-                for: preHashedSha256
+                key.signature(for: test, randomized: true),
+                for: test
             )
         )
     }
@@ -150,7 +117,6 @@ final class SPXTests: XCTestCase {
     
     func testSPXSigningDeterministicFile() throws {
         try spxTest(jsonName: "spx_tests_deterministic") { testVector in
-            let seed = try Data(hexString: testVector.seed)
             let message = try Data(hexString: testVector.msg)
             let secretKey = try SPX.PrivateKey(derRepresentation: Data(hexString: testVector.sk))
             let expectedSignature = try SPX.Signature(rawRepresentation: Data(hexString: testVector.sm).prefix(7856))
