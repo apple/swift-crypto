@@ -246,7 +246,7 @@ extension _RSA.Signing {
         internal enum Backing {
             case pkcs1v1_5
             case pss
-            case pssZero
+            case pssZero // NOTE: this is internal-only, for RSABSSA.
         }
 
         internal var backing: Backing

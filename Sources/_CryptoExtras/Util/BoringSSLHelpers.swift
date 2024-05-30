@@ -182,7 +182,7 @@ extension _RSA.BlindSigning.PublicKey {
     ///
     /// Only the BoringSSL backend provides APIs to create the key from its parameters so we first create a BoringSSL
     /// key, serialize it to PEM format, and then construct a platform specific key from the PEM representation.
-    internal init(nHexString: String, eHexString: String) throws {
+    internal init(nHexString: String, eHexString: String, parameters: Parameters) throws {
         var n = try BIGNUM(hexString: nHexString)
         defer { CCryptoBoringSSL_BN_clear_free(&n) }
         var e = try BIGNUM(hexString: eHexString)
@@ -199,7 +199,7 @@ extension _RSA.BlindSigning.PublicKey {
         }
 
         // Create a key (which might be backed by Security framework) from PEM representation.
-        try self.init(pemRepresentation: pemRepresentation)
+        try self.init(pemRepresentation: pemRepresentation, parameters: parameters)
     }
 }
 
@@ -211,7 +211,7 @@ extension _RSA.BlindSigning.PrivateKey {
     ///
     /// Only the BoringSSL backend provides APIs to create the key from its parameters so we first create a BoringSSL
     /// key, serialize it to PEM format, and then construct a platform specific key from the PEM representation.
-    internal init(nHexString: String, eHexString: String, dHexString: String, pHexString: String, qHexString: String) throws {
+    internal init(nHexString: String, eHexString: String, dHexString: String, pHexString: String, qHexString: String, parameters: Parameters) throws {
         var n = try BIGNUM(hexString: nHexString)
         defer { CCryptoBoringSSL_BN_clear_free(&n) }
         var e = try BIGNUM(hexString: eHexString)
@@ -244,6 +244,6 @@ extension _RSA.BlindSigning.PrivateKey {
         }
 
         // Create a key (which might be backed by Security framework) from PEM representation.
-        try self.init(pemRepresentation: pemRepresentation)
+        try self.init(pemRepresentation: pemRepresentation, parameters: parameters)
     }
 }

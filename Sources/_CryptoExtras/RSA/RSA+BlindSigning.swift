@@ -27,15 +27,19 @@ extension _RSA {
 }
 
 extension _RSA.BlindSigning {
-    public struct PublicKey: Sendable {
+    public struct PublicKey<H: HashFunction>: Sendable where H: Sendable {
+        public typealias Parameters = _RSA.BlindSigning.Parameters<H>
+
         private var backing: BackingPublicKey
+        private let parameters: Parameters
 
         /// Construct an RSA public key from a PEM representation.
         ///
         /// This constructor supports key sizes of 2048 bits or more. Users should validate that key sizes are appropriate
         /// for their use-case.
-        public init(pemRepresentation: String) throws {
+        public init(pemRepresentation: String, parameters: Parameters = .RSABSSA_SHA384_PSS_Randomized) throws {
             self.backing = try BackingPublicKey(pemRepresentation: pemRepresentation)
+            self.parameters = parameters
 
             guard self.keySizeInBits >= 2048 else {
                 throw CryptoKitError.incorrectParameterSize
@@ -47,21 +51,22 @@ extension _RSA.BlindSigning {
         /// This constructor supports key sizes of 1024 bits or more. Users should validate that key sizes are appropriate
         /// for their use-case.
         /// - Warning: Key sizes less than 2048 are not recommended and should only be used for compatibility reasons.
-        public init(unsafePEMRepresentation pemRepresentation: String) throws {
+        public init(unsafePEMRepresentation pemRepresentation: String, parameters: Parameters = .RSABSSA_SHA384_PSS_Randomized) throws {
             self.backing = try BackingPublicKey(pemRepresentation: pemRepresentation)
+            self.parameters = parameters
 
             guard self.keySizeInBits >= 1024 else {
                 throw CryptoKitError.incorrectParameterSize
             }
-
         }
 
         /// Construct an RSA public key from a DER representation.
         ///
         /// This constructor supports key sizes of 2048 bits or more. Users should validate that key sizes are appropriate
         /// for their use-case.
-        public init<Bytes: DataProtocol>(derRepresentation: Bytes) throws {
+        public init<Bytes: DataProtocol>(derRepresentation: Bytes, parameters: Parameters = .RSABSSA_SHA384_PSS_Randomized) throws {
             self.backing = try BackingPublicKey(derRepresentation: derRepresentation)
+            self.parameters = parameters
 
             guard self.keySizeInBits >= 2048 else {
                 throw CryptoKitError.incorrectParameterSize
@@ -73,8 +78,9 @@ extension _RSA.BlindSigning {
         /// This constructor supports key sizes of 1024 bits or more. Users should validate that key sizes are appropriate
         /// for their use-case.
         /// - Warning: Key sizes less than 2048 are not recommended and should only be used for compatibility reasons.
-        public init<Bytes: DataProtocol>(unsafeDERRepresentation derRepresentation: Bytes) throws {
+        public init<Bytes: DataProtocol>(unsafeDERRepresentation derRepresentation: Bytes, parameters: Parameters = .RSABSSA_SHA384_PSS_Randomized) throws {
             self.backing = try BackingPublicKey(derRepresentation: derRepresentation)
+            self.parameters = parameters
 
             guard self.keySizeInBits >= 1024 else {
                 throw CryptoKitError.incorrectParameterSize
@@ -101,22 +107,27 @@ extension _RSA.BlindSigning {
             self.backing.keySizeInBits
         }
 
-        fileprivate init(_ backing: BackingPublicKey) {
+        fileprivate init(_ backing: BackingPublicKey, _ parameters: Parameters) {
             self.backing = backing
+            self.parameters = parameters
         }
     }
 }
 
 extension _RSA.BlindSigning {
-    public struct PrivateKey: Sendable {
+    public struct PrivateKey<H: HashFunction>: Sendable where H: Sendable {
+        public typealias Parameters = _RSA.BlindSigning.Parameters<H>
+
         private var backing: BackingPrivateKey
+        private let parameters: Parameters
 
         /// Construct an RSA private key from a PEM representation.
         ///
         /// This constructor supports key sizes of 2048 bits or more. Users should validate that key sizes are appropriate
         /// for their use-case.
-        public init(pemRepresentation: String) throws {
+        public init(pemRepresentation: String, parameters: Parameters = .RSABSSA_SHA384_PSS_Randomized) throws {
             self.backing = try BackingPrivateKey(pemRepresentation: pemRepresentation)
+            self.parameters = parameters
 
             guard self.keySizeInBits >= 2048 else {
                 throw CryptoKitError.incorrectParameterSize
@@ -128,8 +139,9 @@ extension _RSA.BlindSigning {
         /// This constructor supports key sizes of 1024 bits or more. Users should validate that key sizes are appropriate
         /// for their use-case.
         /// - Warning: Key sizes less than 2048 are not recommended and should only be used for compatibility reasons.
-        public init(unsafePEMRepresentation pemRepresentation: String) throws {
+        public init(unsafePEMRepresentation pemRepresentation: String, parameters: Parameters = .RSABSSA_SHA384_PSS_Randomized) throws {
             self.backing = try BackingPrivateKey(pemRepresentation: pemRepresentation)
+            self.parameters = parameters
 
             guard self.keySizeInBits >= 1024 else {
                 throw CryptoKitError.incorrectParameterSize
@@ -140,8 +152,9 @@ extension _RSA.BlindSigning {
         ///
         /// This constructor supports key sizes of 2048 bits or more. Users should validate that key sizes are appropriate
         /// for their use-case.
-        public init<Bytes: DataProtocol>(derRepresentation: Bytes) throws {
+        public init<Bytes: DataProtocol>(derRepresentation: Bytes, parameters: Parameters = .RSABSSA_SHA384_PSS_Randomized) throws {
             self.backing = try BackingPrivateKey(derRepresentation: derRepresentation)
+            self.parameters = parameters
 
             guard self.keySizeInBits >= 2048 else {
                 throw CryptoKitError.incorrectParameterSize
@@ -153,8 +166,9 @@ extension _RSA.BlindSigning {
         /// This constructor supports key sizes of 1024 bits or more. Users should validate that key sizes are appropriate
         /// for their use-case.
         /// - Warning: Key sizes less than 2048 are not recommended and should only be used for compatibility reasons.
-        public init<Bytes: DataProtocol>(unsafeDERRepresentation derRepresentation: Bytes) throws {
+        public init<Bytes: DataProtocol>(unsafeDERRepresentation derRepresentation: Bytes, parameters: Parameters = .RSABSSA_SHA384_PSS_Randomized) throws {
             self.backing = try BackingPrivateKey(derRepresentation: derRepresentation)
+            self.parameters = parameters
 
             guard self.keySizeInBits >= 1024 else {
                 throw CryptoKitError.incorrectParameterSize
@@ -165,11 +179,12 @@ extension _RSA.BlindSigning {
         ///
         /// This constructor will refuse to generate keys smaller than 2048 bits. Callers that want to enforce minimum
         /// key size requirements should validate `keySize` before use.
-        public init(keySize: _RSA.Signing.KeySize) throws {
+        public init(keySize: _RSA.Signing.KeySize, parameters: Parameters = .RSABSSA_SHA384_PSS_Randomized) throws {
             guard keySize.bitCount >= 2048 else {
                 throw CryptoKitError.incorrectParameterSize
             }
             self.backing = try BackingPrivateKey(keySize: keySize)
+            self.parameters = parameters
         }
 
         /// Randomly generate a new RSA private key of a given size.
@@ -177,11 +192,12 @@ extension _RSA.BlindSigning {
         /// This constructor will refuse to generate keys smaller than 1024 bits. Callers that want to enforce minimum
         /// key size requirements should validate `unsafekeySize` before use.
         /// - Warning: Key sizes less than 2048 are not recommended and should only be used for compatibility reasons.
-        public init(unsafeKeySize keySize: _RSA.Signing.KeySize) throws {
+        public init(unsafeKeySize keySize: _RSA.Signing.KeySize, parameters: Parameters = .RSABSSA_SHA384_PSS_Randomized) throws {
             guard keySize.bitCount >= 1024 else {
                 throw CryptoKitError.incorrectParameterSize
             }
             self.backing = try BackingPrivateKey(keySize: keySize)
+            self.parameters = parameters
         }
 
         public var derRepresentation: Data {
@@ -200,8 +216,8 @@ extension _RSA.BlindSigning {
             self.backing.keySizeInBits
         }
 
-        public var publicKey: _RSA.BlindSigning.PublicKey {
-            _RSA.BlindSigning.PublicKey(self.backing.publicKey)
+        public var publicKey: _RSA.BlindSigning.PublicKey<H> {
+            _RSA.BlindSigning.PublicKey(self.backing.publicKey, self.parameters)
         }
     }
 }
@@ -233,7 +249,7 @@ extension _RSA.BlindSigning {
     /// The RECOMMENDED variants are RSABSSA-SHA384-PSS-Randomized or RSABSSA-SHA384-PSSZERO-Randomized.
     ///
     /// - Seealso: [RFC 9474: RSABSSA Variants](https://www.rfc-editor.org/rfc/rfc9474.html#name-rsabssa-variants).
-    public struct Parameters<H: HashFunction> {
+    public struct Parameters<H: HashFunction>: Sendable where H: Sendable {
         enum Preparation { case identity, randomized }
         var padding: _RSA.Signing.Padding
         var preparation: Preparation
@@ -293,17 +309,48 @@ extension _RSA.BlindSigning.Parameters where H == SHA384 {
     internal static let RSABSSA_SHA384_PSSZERO_Deterministic = Self<SHA384>(padding: .PSSZERO, preparation: .identity)
 }
 
+extension _RSA.BlindSigning {
+    /// An input ready to be blinded, possibly prepended with random bytes.
+    /* public when ready */ struct PreparedMessage {
+        var rawRepresentation: Data
+    }
+}
+
+extension _RSA.BlindSigning {
+    /// The blinding inverse for a blinded messaeg, used to unblind a blind signature.
+    /* public when ready */ struct BlindInverse {
+        var inverse: /* ArbitraryPrecisionInteger when SPI */ Any
+
+        init() { fatalError("not yet implemented") }
+    }
+}
+
+extension _RSA.BlindSigning {
+    /// An encoded, blinded message ready to be signed.
+    public struct BlindedMessage {
+        /// The raw representation of the key as a collection of contiguous bytes.
+        public var rawRepresentation: Data
+
+        /// Creates a blinded message for signing from its representation in bytes.
+        ///
+        /// - Parameters:
+        ///   - data: The bytes from which to create the blinded message.
+        public init(rawRepresentation: Data) {
+            self.rawRepresentation = rawRepresentation
+        }
+    }
+}
+
 extension _RSA.BlindSigning.PrivateKey {
     /// Generate a blind signature with the given key for a blinded message.
     ///
-    /// - Parameter blindedMessage: The blinded message to sign.
+    /// - Parameter message: The blinded message to sign.
     /// - Returns: A blind signature.
     /// - Throws: If there is a failure producing the signature.
     ///
     /// - Seealso: [RFC 9474: BlindSign](https://www.rfc-editor.org/rfc/rfc9474.html#name-blindsign).
-    /// - TODO: Should this accept a new `BlindedMesage` type to help guide protocol usage?
-    public func blindSignature<D: DataProtocol>(for blindedMessage: D) throws -> _RSA.BlindSigning.BlindSignature {
-        try self.backing.blindSignature(blindedMessage)
+    public func blindSignature(for message: _RSA.BlindSigning.BlindedMessage) throws -> _RSA.BlindSigning.BlindSignature {
+        try self.backing.blindSignature(message.rawRepresentation)
     }
 }
 
@@ -312,19 +359,17 @@ extension _RSA.BlindSigning {
     /// Prepare a message to be signed using the blind signing protocol.
     ///
     /// - Parameter message: The message to be signed.
-    /// - Parameter pararmeters: The parameters for the blind signing protocol.
     /// - Returns: A preprared mesage, modified according to the parameters provided.
     ///
     /// - Seealso: [RFC 9474: Prepare](https://www.rfc-editor.org/rfc/rfc9474.html#name-prepare).
     ///
     /// - TODO: Needs `SecureBytes` SPI from `Crypto`.
-    /// - TODO: Should this return a new `PreparedMessage` type to help guide protocol usage?
     /* public when ready */ static func prepare<D: DataProtocol, H: HashFunction>(
         _ message: D,
         parameters: _RSA.BlindSigning.Parameters<H> = .RSABSSA_SHA384_PSS_Randomized
-    ) -> some DataProtocol {
+    ) -> _RSA.BlindSigning.PreparedMessage {
         switch parameters.preparation {
-        case .identity: return Data(message)
+        case .identity: return PreparedMessage(rawRepresentation: Data(message))
         case .randomized: // return Data(SecureBytes(count: 32) + message)
             fatalError("not yet implemented")
         }
@@ -335,38 +380,27 @@ extension _RSA.BlindSigning.PublicKey {
     /// Blind a message to be signed by the server using the blind signing protocol.
     ///
     /// - Parameter message: The message to be signed.
-    /// - Parameter pararmeters: The parameters for the blind signing protocol.
     /// - Returns: The blinded message, and its inverse for unblinding its blind signature.
     ///
     /// - Seealso: [RFC 9474: Blind](https://www.rfc-editor.org/rfc/rfc9474.html#name-blind).
-    ///
-    /// - TODO: Needs `ArbitraryPrecisionInteger` SPI from `Crypto`.
-    /// - TODO: Should this accept a new `PreparedMessage` type to help guide protocol usage?
-    /// - TODO: Should this return a new `BlindedMessage` type to help guide protocol usage?
-    /* public when ready */ func blind<D: DataProtocol, H: HashFunction>(
-        _ message: D,
-        parameters: _RSA.BlindSigning.Parameters<H> = .RSABSSA_SHA384_PSS_Randomized
-    ) throws -> (blindedMessage: /* some DataProtocol */ Any, blindInverse: /* ArbitraryPrecisionInteger when available */ Any) {
+    /* public when ready */ func blind(
+        _ message: _RSA.BlindSigning.PreparedMessage
+    ) throws -> (blindedMessage: _RSA.BlindSigning.BlindedMessage, blindInverse: _RSA.BlindSigning.BlindInverse) {
         fatalError("not yet implemented")
     }
 
     /// Unblinds the message and produce a signature for the message.
     ///
-    /// - Parameter blindSignature: The signature of the blinded message.
+    /// - Parameter signature: The signature of the blinded message.
     /// - Parameter message: The message to be signed.
     /// - Parameter blindInverse: The inverse from the message blinding.
-    /// - Parameter pararmeters: The parameters for the blind signing protocol.
     /// - Returns: The signature of the message.
     ///
     /// - Seealso: [RFC 9474: Finalize](https://www.rfc-editor.org/rfc/rfc9474.html#name-finalize).
-    ///
-    /// - TODO: Needs `ArbitraryPrecisionInteger` SPI from `Crypto`.
-    /// - TODO: Should this accept a new `PreparedMessage` type to help guide protocol usage?
-    /* public when ready */ func finalize<D: DataProtocol, H: HashFunction>(
-        _ blindSignature: _RSA.BlindSigning.BlindSignature,
-        for message: D,
-        blindInverse: /* ArbitraryPrecisionInteger when available */ Any,
-        parameters: _RSA.BlindSigning.Parameters<H> = .RSABSSA_SHA384_PSS_Randomized
+    /* public when ready */ func finalize(
+        _ signature: _RSA.BlindSigning.BlindSignature,
+        for message: _RSA.BlindSigning.PreparedMessage,
+        blindInverse: _RSA.BlindSigning.BlindInverse
     ) throws -> _RSA.Signing.RSASignature {
         fatalError("not yet implemented")
     }
@@ -375,19 +409,16 @@ extension _RSA.BlindSigning.PublicKey {
     ///
     /// - Parameter signature: The signature to verify.
     /// - Parameter message: The message the signature is for.
-    /// - Parameter pararmeters: The parameters for the blind signing protocol.
     /// - Returns: True if the signature is valid; false otherwise.
     ///
     /// - Seealso: [RFC 9474: Verification](https://www.rfc-editor.org/rfc/rfc9474.html#name-verification).
     ///
     /// - TODO: Needs `ArbitraryPrecisionInteger` SPI from `Crypto`.
     /// - TODO: Should this accept a new `PreparedMessage` type to help guide protocol usage?
-    public func isValidSignature<D: DataProtocol, H: HashFunction>(
+    public func isValidSignature<D: DataProtocol>(
         _ signature: _RSA.Signing.RSASignature,
-        for message: D,
-        parameters: _RSA.BlindSigning.Parameters<H> = .RSABSSA_SHA384_PSS_Randomized
+        for message: D
     ) -> Bool {
-        let digest = H.hash(data: message)
-        return self.backing.isValidSignature(signature, for: digest, padding: parameters.padding)
+        self.backing.isValidSignature(signature, for: H.hash(data: message), padding: parameters.padding)
     }
 }
