@@ -342,7 +342,7 @@ extension _RSA.BlindSigning.PrivateKey {
     ///
     /// - Seealso: [RFC 9474: BlindSign](https://www.rfc-editor.org/rfc/rfc9474.html#name-blindsign).
     public func blindSignature(for message: _RSA.BlindSigning.BlindedMessage) throws -> _RSA.BlindSigning.BlindSignature {
-        try self.backing.blindSignature(message.rawRepresentation)
+        try self.backing.blindSignature(for: message.rawRepresentation)
     }
 }
 

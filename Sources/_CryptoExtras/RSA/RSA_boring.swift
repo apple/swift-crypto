@@ -100,8 +100,8 @@ extension BoringSSLRSAPrivateKey {
         return try self.backing.decrypt(data, padding: padding)
     }
 
-    internal func blindSignature<D: DataProtocol>(_ blindedMessage: D) throws -> _RSA.BlindSigning.BlindSignature {
-        return try self.backing.blindSignature(blindedMessage)
+    internal func blindSignature<D: DataProtocol>(for message: D) throws -> _RSA.BlindSigning.BlindSignature {
+        return try self.backing.blindSignature(for: message)
     }
  }
 
@@ -589,18 +589,18 @@ extension BoringSSLRSAPrivateKey {
             return output
         }
 
-        fileprivate func blindSignature<D: DataProtocol>(_ blindedMessage: D) throws -> _RSA.BlindSigning.BlindSignature {
+        fileprivate func blindSignature<D: DataProtocol>(for message: D) throws -> _RSA.BlindSigning.BlindSignature {
             let rsaPrivateKey = CCryptoBoringSSL_EVP_PKEY_get0_RSA(self.pointer)
             let signatureByteCount = Int(CCryptoBoringSSL_RSA_size(rsaPrivateKey))
 
-            guard blindedMessage.count == signatureByteCount else {
+            guard message.count == signatureByteCount else {
                 throw CryptoKitError.incorrectParameterSize
             }
 
-            let blindedMessageBytes: ContiguousBytes = blindedMessage.regions.count == 1 ? blindedMessage.regions.first! : Array(blindedMessage)
+            let messageBytes: ContiguousBytes = message.regions.count == 1 ? message.regions.first! : Array(message)
 
             let signatureBytes = try Array<UInt8>(unsafeUninitializedCapacity: signatureByteCount) { signatureBufferPtr, signatureBufferCount in
-                try blindedMessageBytes.withUnsafeBytes { blindedMessageBufferPtr in
+                try messageBytes.withUnsafeBytes { messageBufferPtr in
                     /// NOTE: BoringSSL promotes the use of `RSA_sign_raw` over `RSA_private_encrypt`.
                     var outputCount = 0
                     guard CCryptoBoringSSL_RSA_sign_raw(
@@ -608,8 +608,8 @@ extension BoringSSLRSAPrivateKey {
                         &outputCount,
                         signatureBufferPtr.baseAddress,
                         signatureBufferPtr.count,
-                        blindedMessageBufferPtr.baseAddress,
-                        blindedMessageBufferPtr.count,
+                        messageBufferPtr.baseAddress,
+                        messageBufferPtr.count,
                         RSA_NO_PADDING
                     ) == 1 else {
                         if ERR_GET_REASON(CCryptoBoringSSL_ERR_get_error()) == RSA_R_DATA_TOO_LARGE_FOR_MODULUS {
@@ -625,7 +625,7 @@ extension BoringSSLRSAPrivateKey {
             let signature = _RSA.BlindSigning.BlindSignature(signatureBytes: signatureBytes)
 
             // NOTE: Verification is part of the specification.
-            try self.verifyBlindSignature(signature, for: blindedMessageBytes)
+            try self.verifyBlindSignature(signature, for: messageBytes)
 
             return _RSA.BlindSigning.BlindSignature(signatureBytes: signatureBytes)
         }
