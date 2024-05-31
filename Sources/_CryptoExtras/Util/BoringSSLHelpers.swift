@@ -12,7 +12,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-// NOTE: This file is unconditionally compiled because some helpers are used to create Security.fw keys from test vectors.
+// NOTE: This file is unconditionally compiled because RSABSSA is implemented using BoringSSL on all platforms.
 @_implementationOnly import CCryptoBoringSSL
 @_implementationOnly import CCryptoBoringSSLShims
 import Foundation

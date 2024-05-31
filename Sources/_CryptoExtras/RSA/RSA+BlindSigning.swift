@@ -14,13 +14,9 @@
 import Foundation
 import Crypto
 
-#if CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
-fileprivate typealias BackingPublicKey = SecurityRSAPublicKey
-fileprivate typealias BackingPrivateKey = SecurityRSAPrivateKey
-#else
+// NOTE: RSABSSA API is implemented using BoringSSL on all platforms.
 fileprivate typealias BackingPublicKey = BoringSSLRSAPublicKey
 fileprivate typealias BackingPrivateKey = BoringSSLRSAPrivateKey
-#endif
 
 extension _RSA {
     public enum BlindSigning {}
@@ -271,9 +267,7 @@ extension _RSA.BlindSigning.Parameters where H == SHA384 {
     /// and 0 as the EMSA-PSS sLen option (0-byte salt length); it also uses the randomized preparation function.
     ///
     /// - Seealso: [RFC 9474: RSABSSA Variants](https://www.rfc-editor.org/rfc/rfc9474.html#name-rsabssa-variants).
-    ///
-    /// - NOTE: This is internal for now because Security backend doesn't support PSSZERO.
-    internal static let RSABSSA_SHA384_PSSZERO_Randomized = Self<SHA384>(padding: .PSSZERO, preparation: .randomized)
+    public static let RSABSSA_SHA384_PSSZERO_Randomized = Self<SHA384>(padding: .PSSZERO, preparation: .randomized)
 
     /// RSABSSA-SHA384-PSS-Deterministic
     ///
@@ -304,9 +298,7 @@ extension _RSA.BlindSigning.Parameters where H == SHA384 {
     /// randomized message preparation.
     ///
     /// - Seealso: [RFC 9474: RSABSSA Variants](https://www.rfc-editor.org/rfc/rfc9474.html#name-rsabssa-variants).
-    ///
-    /// - NOTE: This is internal for now because Security backend doesn't support PSSZERO.
-    internal static let RSABSSA_SHA384_PSSZERO_Deterministic = Self<SHA384>(padding: .PSSZERO, preparation: .identity)
+    public static let RSABSSA_SHA384_PSSZERO_Deterministic = Self<SHA384>(padding: .PSSZERO, preparation: .identity)
 }
 
 extension _RSA.BlindSigning {

@@ -14,9 +14,7 @@
 import Foundation
 import Crypto
 
-#if CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
-// Nothing; this is implemented in RSA_security
-#else
+// NOTE: This file is unconditionally compiled because RSABSSA is implemented using BoringSSL on all platforms.
 @_implementationOnly import CCryptoBoringSSL
 @_implementationOnly import CCryptoBoringSSLShims
 
@@ -667,4 +665,3 @@ extension BoringSSLRSAPrivateKey {
         }
     }
 }
-#endif

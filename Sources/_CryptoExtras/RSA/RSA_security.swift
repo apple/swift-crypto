@@ -195,40 +195,6 @@ extension SecurityRSAPrivateKey {
     }
 }
 
-extension SecurityRSAPrivateKey {
-    internal func blindSignature<D: DataProtocol>(_ blindedMessage: D) throws -> _RSA.BlindSigning.BlindSignature {
-        let blindedMessageBytes = Data(blindedMessage)
-
-        let signatureByteCount = (self.keySizeInBits + 7) / 8
-        guard blindedMessageBytes.count == signatureByteCount else {
-            throw CryptoKitError.incorrectParameterSize
-        }
-
-        var error: Unmanaged<CFError>? = nil
-        guard let signatureBytes = SecKeyCreateSignature(
-            self.backing,
-            .rsaSignatureRaw,
-            blindedMessageBytes as CFData,
-            &error
-        ) else {
-            throw error!.takeRetainedValue() as Error
-        }
-
-        guard SecKeyVerifySignature(
-            SecKeyCopyPublicKey(self.backing)!,
-            .rsaSignatureRaw,
-            blindedMessageBytes as CFData,
-            signatureBytes,
-            &error
-        ) else {
-            // "Signing failure" in RFC9474.
-            throw CryptoKitError.authenticationFailure
-        }
-
-        return _RSA.BlindSigning.BlindSignature(rawRepresentation: signatureBytes as Data)
-    }
-}
-
 extension SecurityRSAPublicKey {
     func isValidSignature<D: Digest>(_ signature: _RSA.Signing.RSASignature, for digest: D, padding: _RSA.Signing.Padding) -> Bool {
         do {
@@ -283,7 +249,7 @@ extension SecKeyAlgorithm {
         case (is SHA512.Digest.Type, .pkcs1v1_5):
             self = .rsaSignatureDigestPKCS1v15SHA512
         case (_, .pssZero):
-            // Unsupported.
+            // Explicitly unsupported: only used in RSABSSA, which is implemented using BoringSSL on all platforms.
             throw CryptoKitError.incorrectParameterSize
         default:
             throw CryptoKitError.incorrectParameterSize
