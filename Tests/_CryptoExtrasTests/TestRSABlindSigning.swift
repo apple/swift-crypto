@@ -11,7 +11,6 @@
 // SPDX-License-Identifier: Apache-2.0
 //
 //===----------------------------------------------------------------------===//
-import Foundation
 import XCTest
 import Crypto
 @testable import _CryptoExtras
@@ -54,19 +53,24 @@ final class TestRSABlindSigning: XCTestCase {
             // Prepare
             do {
                 let message = try Data(hexString: testVector.msg)
+                let preparedMessage = _RSA.BlindSigning.prepare(message, parameters: testVector.parameters)
                 switch testVector.parameters.preparation {
                 case .identity:
-                    let preparedMessage = _RSA.BlindSigning.prepare(message, parameters: testVector.parameters)
                     XCTAssertEqual(preparedMessage.rawRepresentation, message)
                 case .randomized:
-                    break  // Until we have SPI secure bytes.
-                    let preparedMessage = _RSA.BlindSigning.prepare(message, parameters: testVector.parameters)
                     XCTAssertEqual(preparedMessage.rawRepresentation.dropFirst(32), message)
                 }
             }
 
             // Blind
             do {
+                let publicKey = try _RSA.BlindSigning.PublicKey(nHexString: testVector.n, eHexString: testVector.e, parameters: testVector.parameters)
+                let preparedMessage = try _RSA.BlindSigning.PreparedMessage(rawRepresentation: Data(hexString: testVector.prepared_msg))
+                let (blindedMessage, blindInverse) = try publicKey.blind(preparedMessage)
+                // NOTE: Sadly we can't validate the blinded message against the test vectors because BoringSSL doesn't
+                // have the APIs we would need to specify a fixed salt value.
+                XCTAssertEqual(blindedMessage.rawRepresentation.hexString.count, testVector.blinded_msg.count)
+                XCTAssertEqual(blindInverse.rawRepresentation.hexString.count, testVector.inv.count)
             }
 
             // BlindSign
@@ -89,6 +93,15 @@ final class TestRSABlindSigning: XCTestCase {
 
             // Finalize
             do {
+                let publicKey = try _RSA.BlindSigning.PublicKey(nHexString: testVector.n, eHexString: testVector.e, parameters: testVector.parameters)
+                let blindSignature = try _RSA.BlindSigning.BlindSignature(rawRepresentation: Data(hexString: testVector.blind_sig))
+                let preparedMessage = try _RSA.BlindSigning.PreparedMessage(rawRepresentation: Data(hexString: testVector.prepared_msg))
+                let blindInverse = try _RSA.BlindSigning.BlindInverse(rawRepresentation: Data(hexString: testVector.inv))
+                let signature = try publicKey.finalize(blindSignature, for: preparedMessage, blindInverse: blindInverse)
+                XCTAssertEqual(
+                    signature.rawRepresentation.hexString,
+                    try Data(hexString: testVector.sig).hexString
+                )
             }
 
             // Verification
@@ -96,33 +109,7 @@ final class TestRSABlindSigning: XCTestCase {
                 let publicKey = try _RSA.BlindSigning.PublicKey(nHexString: testVector.n, eHexString: testVector.e, parameters: testVector.parameters)
                 let signature = try _RSA.Signing.RSASignature(rawRepresentation: Data(hexString: testVector.sig))
                 let preparedMessage = try _RSA.BlindSigning.PreparedMessage(rawRepresentation: Data(hexString: testVector.prepared_msg))
-                XCTAssert(publicKey.isValidSignature(signature, for: preparedMessage.rawRepresentation))
-            }
-        }
-    }
-
-    func testBlindSign_keyParameterCombinations() throws {
-        let keySizes: [_RSA.Signing.KeySize] = [
-            .bits2048,
-            .bits3072,
-        ]
-        let parameters: [_RSA.BlindSigning.Parameters] = [
-            .RSABSSA_SHA384_PSSZERO_Deterministic,
-            .RSABSSA_SHA384_PSSZERO_Randomized,
-            .RSABSSA_SHA384_PSS_Deterministic,
-            .RSABSSA_SHA384_PSS_Randomized,
-        ]
-
-        for keySize in keySizes {
-            for parameters in parameters {
-                let privateKey = try _RSA.BlindSigning.PrivateKey(keySize: keySize, parameters: parameters)
-
-                // Until we have the client operations, fake a blinded message with appropriate size for key modulus.
-                let signingKey = try _RSA.Signing.PrivateKey(pemRepresentation: privateKey.pemRepresentation)
-                let blindedMessageProxyBytes = try signingKey.signature(for: SHA384.hash(data: Data("plaintext".utf8)), padding: .PSS).rawRepresentation
-                let blindedMessageProxy = _RSA.BlindSigning.BlindedMessage(rawRepresentation: blindedMessageProxyBytes)
-
-                _ = try privateKey.blindSignature(for: blindedMessageProxy)
+                XCTAssert(publicKey.isValidSignature(signature, for: preparedMessage))
             }
         }
     }
@@ -175,35 +162,5 @@ final class TestRSABlindSigning: XCTestCase {
                 return
             }
         }
-    }
-
-    func testEndToEndAPIUsage() throws {
-        try XCTSkipIf(true, "Until the client operations are implemented, this is just here to check the types compose")
-
-        // 1. [Issuer] Create private key (other initializers are available).
-        let privateKeyPEM = "This will not work, just here to test the API."
-        let privateKey = try _RSA.BlindSigning.PrivateKey(pemRepresentation: privateKeyPEM, parameters: .RSABSSA_SHA384_PSS_Randomized)
-
-        // 2. [Client] Create public key (other initializers are available).
-        let publicKeyPEM = "This will not work, just here to test the API."
-        let publicKey = try _RSA.BlindSigning.PublicKey(pemRepresentation: publicKeyPEM, parameters: .RSABSSA_SHA384_PSS_Randomized)
-
-        // 3. [Client] Have a message they wish to use.
-        let message = Data("This is some input data".utf8)
-
-        // 4. [Client] Prepare the message.
-        let preparedMessage = _RSA.BlindSigning.prepare(message, parameters: .RSABSSA_SHA384_PSS_Randomized)
-
-        // 5. [Client] Blind the message.
-        let (blindedMessage, blindInverse) = try publicKey.blind(preparedMessage)
-
-        // 6. [Issuer] Blind sign.
-        let blindSignature = try privateKey.blindSignature(for: blindedMessage)
-
-        // 7. [Client] Finalize.
-        let unblindedSignature = try publicKey.finalize(blindSignature, for: preparedMessage, blindInverse: blindInverse)
-
-        // 8. [Verifier] Verify.
-        _ = publicKey.isValidSignature(unblindedSignature, for: preparedMessage.rawRepresentation)
     }
 }

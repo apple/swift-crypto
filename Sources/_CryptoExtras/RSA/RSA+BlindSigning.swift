@@ -246,8 +246,10 @@ extension _RSA.BlindSigning {
     ///
     /// - Seealso: [RFC 9474: RSABSSA Variants](https://www.rfc-editor.org/rfc/rfc9474.html#name-rsabssa-variants).
     public struct Parameters<H: HashFunction>: Sendable where H: Sendable {
+        enum Padding { case PSS, PSSZERO }
+        var padding: Padding
+
         enum Preparation { case identity, randomized }
-        var padding: _RSA.Signing.Padding
         var preparation: Preparation
     }
 }
@@ -303,30 +305,30 @@ extension _RSA.BlindSigning.Parameters where H == SHA384 {
 
 extension _RSA.BlindSigning {
     /// An input ready to be blinded, possibly prepended with random bytes.
-    /* public when ready */ struct PreparedMessage {
+    ///
+    /// Users should not attempt to create values of this type; it is created and returned by the prepare operation.
+    public struct PreparedMessage {
         var rawRepresentation: Data
     }
-}
 
-extension _RSA.BlindSigning {
     /// The blinding inverse for a blinded messaeg, used to unblind a blind signature.
-    /* public when ready */ struct BlindInverse {
-        var inverse: /* ArbitraryPrecisionInteger when SPI */ Any
-
-        init() { fatalError("not yet implemented") }
+    ///
+    /// Users should not attempt to create values of this type; it is created and returned by the blind operation.
+    public struct BlindInverse {
+        var rawRepresentation: Data
     }
-}
 
-extension _RSA.BlindSigning {
     /// An encoded, blinded message ready to be signed.
+    ///
+    /// Clients should not attempt to create values of this type; it is created and returned by the blind operation.
+    ///
+    /// Issuers can construct values of this type with the bytes they receive from the clients for blind signing.
+    ///
+    /// - TODO: I think this one can probably go away and just return data and take a DataProtocol.
     public struct BlindedMessage {
         /// The raw representation of the key as a collection of contiguous bytes.
         public var rawRepresentation: Data
 
-        /// Creates a blinded message for signing from its representation in bytes.
-        ///
-        /// - Parameters:
-        ///   - data: The bytes from which to create the blinded message.
         public init(rawRepresentation: Data) {
             self.rawRepresentation = rawRepresentation
         }
@@ -354,16 +356,15 @@ extension _RSA.BlindSigning {
     /// - Returns: A preprared mesage, modified according to the parameters provided.
     ///
     /// - Seealso: [RFC 9474: Prepare](https://www.rfc-editor.org/rfc/rfc9474.html#name-prepare).
-    ///
-    /// - TODO: Needs `SecureBytes` SPI from `Crypto`.
-    /* public when ready */ static func prepare<D: DataProtocol, H: HashFunction>(
+    public static func prepare<D: DataProtocol, H: HashFunction>(
         _ message: D,
         parameters: _RSA.BlindSigning.Parameters<H> = .RSABSSA_SHA384_PSS_Randomized
     ) -> _RSA.BlindSigning.PreparedMessage {
         switch parameters.preparation {
-        case .identity: return PreparedMessage(rawRepresentation: Data(message))
-        case .randomized: // return Data(SecureBytes(count: 32) + message)
-            fatalError("not yet implemented")
+        case .identity:
+            return PreparedMessage(rawRepresentation: Data(message))
+        case .randomized:
+            return PreparedMessage(rawRepresentation: Data(SystemRandomNumberGenerator.randomBytes(count: 32)) + message)
         }
     }
 }
@@ -375,10 +376,10 @@ extension _RSA.BlindSigning.PublicKey {
     /// - Returns: The blinded message, and its inverse for unblinding its blind signature.
     ///
     /// - Seealso: [RFC 9474: Blind](https://www.rfc-editor.org/rfc/rfc9474.html#name-blind).
-    /* public when ready */ func blind(
+    public func blind(
         _ message: _RSA.BlindSigning.PreparedMessage
     ) throws -> (blindedMessage: _RSA.BlindSigning.BlindedMessage, blindInverse: _RSA.BlindSigning.BlindInverse) {
-        fatalError("not yet implemented")
+        return try self.backing.blind(message, parameters: self.parameters)
     }
 
     /// Unblinds the message and produce a signature for the message.
@@ -389,28 +390,30 @@ extension _RSA.BlindSigning.PublicKey {
     /// - Returns: The signature of the message.
     ///
     /// - Seealso: [RFC 9474: Finalize](https://www.rfc-editor.org/rfc/rfc9474.html#name-finalize).
-    /* public when ready */ func finalize(
+    public func finalize(
         _ signature: _RSA.BlindSigning.BlindSignature,
         for message: _RSA.BlindSigning.PreparedMessage,
         blindInverse: _RSA.BlindSigning.BlindInverse
     ) throws -> _RSA.Signing.RSASignature {
-        fatalError("not yet implemented")
+        return try self.backing.finalize(signature, for: message, blindInverse: blindInverse, parameters: self.parameters)
     }
 
     /// Validate a signature for a prepared message.
     ///
     /// - Parameter signature: The signature to verify.
-    /// - Parameter message: The message the signature is for.
+    /// - Parameter message: The prepared message used in the blind signature protocol.
     /// - Returns: True if the signature is valid; false otherwise.
     ///
     /// - Seealso: [RFC 9474: Verification](https://www.rfc-editor.org/rfc/rfc9474.html#name-verification).
-    ///
-    /// - TODO: Needs `ArbitraryPrecisionInteger` SPI from `Crypto`.
-    /// - TODO: Should this accept a new `PreparedMessage` type to help guide protocol usage?
-    public func isValidSignature<D: DataProtocol>(
+    public func isValidSignature(
         _ signature: _RSA.Signing.RSASignature,
-        for message: D
+        for message: _RSA.BlindSigning.PreparedMessage
     ) -> Bool {
-        self.backing.isValidSignature(signature, for: H.hash(data: message), padding: parameters.padding)
+        switch parameters.padding {
+        case .PSS:
+            return self.backing.isValidSignature(signature, for: H.hash(data: message.rawRepresentation), padding: .PSS)
+        case .PSSZERO:
+            return self.backing.isValidSignature(signature, for: H.hash(data: message.rawRepresentation), padding: .PSSZERO)
+        }
     }
 }
