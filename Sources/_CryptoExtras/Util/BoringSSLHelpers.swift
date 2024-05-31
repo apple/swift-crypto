@@ -120,10 +120,10 @@ extension BIGNUM {
             withUnsafePointer(to: self) { selfPtr in
                 withUnsafePointer(to: rhs) { rhsPtr in
                     if let modulus {
-                        let bnCtx = CCryptoBoringSSL_BN_CTX_new()!
-                        defer { CCryptoBoringSSL_BN_CTX_free(bnCtx) }
                         return withUnsafePointer(to: modulus) { modulusPtr in
-                            CCryptoBoringSSL_BN_mod_sub(resultPtr, selfPtr, rhsPtr, modulusPtr, bnCtx)
+                            withNewBignumContext { bnCtxPtr in
+                                CCryptoBoringSSL_BN_mod_sub(resultPtr, selfPtr, rhsPtr, modulusPtr, bnCtxPtr)
+                            }
                         }
                     } else {
                         return CCryptoBoringSSL_BN_sub(resultPtr, selfPtr, rhsPtr)
@@ -142,12 +142,12 @@ extension BIGNUM {
         let rc = withUnsafeMutablePointer(to: &result) { resultPtr in
             withUnsafePointer(to: self) { selfPtr in
                 withUnsafePointer(to: mod) { modPtr in
-                    let bnCtx = CCryptoBoringSSL_BN_CTX_new()!
-                    defer { CCryptoBoringSSL_BN_CTX_free(bnCtx) }
-                    if nonNegative {
-                        return CCryptoBoringSSL_BN_nnmod(resultPtr, selfPtr, modPtr, bnCtx)
-                    } else {
-                        return CCryptoBoringSSLShims_BN_mod(resultPtr, selfPtr, modPtr, bnCtx)
+                    withNewBignumContext { bnCtxPtr in
+                        if nonNegative {
+                            return CCryptoBoringSSL_BN_nnmod(resultPtr, selfPtr, modPtr, bnCtxPtr)
+                        } else {
+                            return CCryptoBoringSSLShims_BN_mod(resultPtr, selfPtr, modPtr, bnCtxPtr)
+                        }
                     }
                 }
             }
@@ -163,9 +163,9 @@ extension BIGNUM {
         let rc = withUnsafeMutablePointer(to: &result) { resultPtr in
             withUnsafePointer(to: self) { selfPtr in
                 withUnsafePointer(to: mod) { modPtr in
-                    let bnCtx = CCryptoBoringSSL_BN_CTX_new()!
-                    defer { CCryptoBoringSSL_BN_CTX_free(bnCtx) }
-                    return CCryptoBoringSSL_BN_mod_inverse(resultPtr, selfPtr, modPtr, bnCtx)
+                    withNewBignumContext { bnCtxPtr in
+                        CCryptoBoringSSL_BN_mod_inverse(resultPtr, selfPtr, modPtr, bnCtxPtr)
+                    }
                 }
             }
         }
@@ -173,6 +173,13 @@ extension BIGNUM {
 
         return result
     }
+
+}
+
+fileprivate func withNewBignumContext<R>(_ body: (OpaquePointer /* BN_CTX* */) throws -> R) rethrows -> R {
+    let bnCtxPtr = CCryptoBoringSSL_BN_CTX_new()!
+    defer { CCryptoBoringSSL_BN_CTX_free(bnCtxPtr) }
+    return try body(bnCtxPtr)
 }
 
 extension _RSA.BlindSigning.PublicKey {
