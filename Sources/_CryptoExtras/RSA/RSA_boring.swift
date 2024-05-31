@@ -614,6 +614,10 @@ extension BoringSSLRSAPrivateKey {
                         blindedMessageBufferPtr.count,
                         RSA_NO_PADDING
                     ) == 1 else {
+                        if ERR_GET_REASON(CCryptoBoringSSL_ERR_get_error()) == RSA_R_DATA_TOO_LARGE_FOR_MODULUS {
+                            // "Message representative out of range" error in RFC9474.
+                            throw CryptoKitError.incorrectParameterSize
+                        }
                         throw CryptoKitError.internalBoringSSLError()
                     }
                     precondition(outputCount == signatureByteCount)
