@@ -17,12 +17,10 @@ import Foundation
 
 /// A wrapper around the OpenSSL BIGNUM object that is appropriately lifetime managed,
 /// and that provides better Swift types for this object.
-@usableFromInline
-struct ArbitraryPrecisionInteger {
+public struct ArbitraryPrecisionInteger { // TODO: this should be SPI
     private var _backing: BackingStorage
 
-    @usableFromInline
-    init() {
+    public init() {
         self._backing = BackingStorage()
     }
 
@@ -30,13 +28,15 @@ struct ArbitraryPrecisionInteger {
         self._backing = try BackingStorage(copying: original)
     }
 
-    @usableFromInline
-    init(_ original: ArbitraryPrecisionInteger) throws {
+    public init(copying original: UnsafeRawPointer) throws {
+        self._backing = try BackingStorage(copying: original.assumingMemoryBound(to: BIGNUM.self))
+    }
+
+    public init(_ original: ArbitraryPrecisionInteger) throws {
         self._backing = try BackingStorage(copying: original._backing)
     }
 
-    @usableFromInline
-    init(integerLiteral value: Int64) {
+    public init(integerLiteral value: Int64) {
         self._backing = BackingStorage(value)
     }
 }
@@ -88,8 +88,7 @@ extension ArbitraryPrecisionInteger {
 // MARK: - Extra initializers
 
 extension ArbitraryPrecisionInteger {
-    @usableFromInline
-    init<Bytes: ContiguousBytes>(bytes: Bytes) throws {
+    public init<Bytes: ContiguousBytes>(bytes: Bytes) throws {
         self._backing = try BackingStorage(bytes: bytes)
     }
 }
@@ -122,6 +121,19 @@ extension ArbitraryPrecisionInteger {
 
         return try self._backing.withUnsafeMutableBignumPointer(body)
     }
+
+    public func withUnsafeRawBignumPointer<T>(_ body: (UnsafeRawPointer) throws -> T) rethrows -> T {
+        try self._backing.withUnsafeBignumPointer(body)
+    }
+
+    public mutating func withUnsafeMutableRawBignumPointer<T>(_ body: (UnsafeMutableRawPointer) throws -> T) rethrows -> T {
+        if !isKnownUniquelyReferenced(&self._backing) {
+            // Failing to CoW is a fatal error here.
+            self._backing = try! BackingStorage(copying: self._backing)
+        }
+
+        return try self._backing.withUnsafeMutableBignumPointer(body)
+    }
 }
 
 extension ArbitraryPrecisionInteger.BackingStorage {
@@ -130,6 +142,14 @@ extension ArbitraryPrecisionInteger.BackingStorage {
     }
 
     func withUnsafeMutableBignumPointer<T>(_ body: (UnsafeMutablePointer<BIGNUM>) throws -> T) rethrows -> T {
+        try body(&self._backing)
+    }
+
+    func withUnsafeBignumPointer<T>(_ body: (UnsafeRawPointer) throws -> T) rethrows -> T {
+        try body(&self._backing)
+    }
+
+    func withUnsafeMutableBignumPointer<T>(_ body: (UnsafeMutableRawPointer) throws -> T) rethrows -> T {
         try body(&self._backing)
     }
 }
@@ -152,8 +172,7 @@ extension ArbitraryPrecisionInteger {
         }
     }
 
-    @usableFromInline
-    func squared() -> ArbitraryPrecisionInteger {
+    public func squared() -> ArbitraryPrecisionInteger {
         var result = ArbitraryPrecisionInteger()
         let rc = result.withUnsafeMutableBignumPointer { resultPtr in
             self.withUnsafeBignumPointer { selfPtr in
@@ -166,8 +185,7 @@ extension ArbitraryPrecisionInteger {
         return result
     }
 
-    @usableFromInline
-    func positiveSquareRoot() throws -> ArbitraryPrecisionInteger {
+    public func positiveSquareRoot() throws -> ArbitraryPrecisionInteger {
         var result = ArbitraryPrecisionInteger()
         let rc = result.withUnsafeMutableBignumPointer { resultPtr in
             self.withUnsafeBignumPointer { selfPtr in
@@ -183,8 +201,7 @@ extension ArbitraryPrecisionInteger {
         return result
     }
 
-    @usableFromInline
-    var byteCount: Int {
+    public var byteCount: Int {
         self._backing.withUnsafeBignumPointer {
             Int(CCryptoBoringSSL_BN_num_bytes($0))
         }
@@ -207,7 +224,7 @@ extension ArbitraryPrecisionInteger {
 
 extension ArbitraryPrecisionInteger: Equatable {
     @inlinable
-    static func == (lhs: ArbitraryPrecisionInteger, rhs: ArbitraryPrecisionInteger) -> Bool {
+    public static func == (lhs: ArbitraryPrecisionInteger, rhs: ArbitraryPrecisionInteger) -> Bool {
         self._compare(lhs: lhs, rhs: rhs) == 0
     }
 }
@@ -216,22 +233,22 @@ extension ArbitraryPrecisionInteger: Equatable {
 
 extension ArbitraryPrecisionInteger: Comparable {
     @inlinable
-    static func < (lhs: ArbitraryPrecisionInteger, rhs: ArbitraryPrecisionInteger) -> Bool {
+    public static func < (lhs: ArbitraryPrecisionInteger, rhs: ArbitraryPrecisionInteger) -> Bool {
         self._compare(lhs: lhs, rhs: rhs) < 0
     }
 
     @inlinable
-    static func <= (lhs: ArbitraryPrecisionInteger, rhs: ArbitraryPrecisionInteger) -> Bool {
+    public static func <= (lhs: ArbitraryPrecisionInteger, rhs: ArbitraryPrecisionInteger) -> Bool {
         self._compare(lhs: lhs, rhs: rhs) <= 0
     }
 
     @inlinable
-    static func > (lhs: ArbitraryPrecisionInteger, rhs: ArbitraryPrecisionInteger) -> Bool {
+    public static func > (lhs: ArbitraryPrecisionInteger, rhs: ArbitraryPrecisionInteger) -> Bool {
         self._compare(lhs: lhs, rhs: rhs) > 0
     }
 
     @inlinable
-    static func >= (lhs: ArbitraryPrecisionInteger, rhs: ArbitraryPrecisionInteger) -> Bool {
+    public static func >= (lhs: ArbitraryPrecisionInteger, rhs: ArbitraryPrecisionInteger) -> Bool {
         self._compare(lhs: lhs, rhs: rhs) >= 0
     }
 }
@@ -244,12 +261,11 @@ extension ArbitraryPrecisionInteger: ExpressibleByIntegerLiteral {}
 
 extension ArbitraryPrecisionInteger: AdditiveArithmetic {
     @inlinable
-    static var zero: ArbitraryPrecisionInteger {
+    public static var zero: ArbitraryPrecisionInteger {
         0
     }
 
-    @usableFromInline
-    static func + (lhs: ArbitraryPrecisionInteger, rhs: ArbitraryPrecisionInteger) -> ArbitraryPrecisionInteger {
+    public static func + (lhs: ArbitraryPrecisionInteger, rhs: ArbitraryPrecisionInteger) -> ArbitraryPrecisionInteger {
         var result = ArbitraryPrecisionInteger()
 
         let rc = result.withUnsafeMutableBignumPointer { resultPtr in
@@ -264,8 +280,7 @@ extension ArbitraryPrecisionInteger: AdditiveArithmetic {
         return result
     }
 
-    @usableFromInline
-    static func += (lhs: inout ArbitraryPrecisionInteger, rhs: ArbitraryPrecisionInteger) {
+    public static func += (lhs: inout ArbitraryPrecisionInteger, rhs: ArbitraryPrecisionInteger) {
         let rc = lhs.withUnsafeMutableBignumPointer { lhsPtr in
             rhs.withUnsafeBignumPointer { rhsPtr in
                 CCryptoBoringSSL_BN_add(lhsPtr, lhsPtr, rhsPtr)
@@ -274,8 +289,7 @@ extension ArbitraryPrecisionInteger: AdditiveArithmetic {
         precondition(rc == 1, "Unable to allocate memory for new ArbitraryPrecisionInteger")
     }
 
-    @usableFromInline
-    static func - (lhs: ArbitraryPrecisionInteger, rhs: ArbitraryPrecisionInteger) -> ArbitraryPrecisionInteger {
+    public static func - (lhs: ArbitraryPrecisionInteger, rhs: ArbitraryPrecisionInteger) -> ArbitraryPrecisionInteger {
         var result = ArbitraryPrecisionInteger()
 
         let rc = result.withUnsafeMutableBignumPointer { resultPtr in
@@ -290,8 +304,7 @@ extension ArbitraryPrecisionInteger: AdditiveArithmetic {
         return result
     }
 
-    @usableFromInline
-    static func -= (lhs: inout ArbitraryPrecisionInteger, rhs: ArbitraryPrecisionInteger) {
+    public static func -= (lhs: inout ArbitraryPrecisionInteger, rhs: ArbitraryPrecisionInteger) {
         let rc = lhs.withUnsafeMutableBignumPointer { lhsPtr in
             rhs.withUnsafeBignumPointer { rhsPtr in
                 CCryptoBoringSSL_BN_sub(lhsPtr, lhsPtr, rhsPtr)
@@ -304,11 +317,9 @@ extension ArbitraryPrecisionInteger: AdditiveArithmetic {
 // MARK: - Numeric
 
 extension ArbitraryPrecisionInteger: Numeric {
-    @usableFromInline
-    typealias Magnitude = Self
+    public typealias Magnitude = Self
 
-    @usableFromInline
-    var magnitude: Magnitude {
+    public var magnitude: Magnitude {
         if self._positive {
             return self
         }
@@ -322,8 +333,7 @@ extension ArbitraryPrecisionInteger: Numeric {
         return copy
     }
 
-    @usableFromInline
-    static func * (lhs: ArbitraryPrecisionInteger, rhs: ArbitraryPrecisionInteger) -> ArbitraryPrecisionInteger {
+    public static func * (lhs: ArbitraryPrecisionInteger, rhs: ArbitraryPrecisionInteger) -> ArbitraryPrecisionInteger {
         var result = ArbitraryPrecisionInteger()
 
         let rc = result.withUnsafeMutableBignumPointer { resultPtr in
@@ -340,8 +350,7 @@ extension ArbitraryPrecisionInteger: Numeric {
         return result
     }
 
-    @usableFromInline
-    static func *= (lhs: inout ArbitraryPrecisionInteger, rhs: ArbitraryPrecisionInteger) {
+    public static func *= (lhs: inout ArbitraryPrecisionInteger, rhs: ArbitraryPrecisionInteger) {
         let rc = lhs.withUnsafeMutableBignumPointer { lhsPtr in
             rhs.withUnsafeBignumPointer { rhsPtr in
                 ArbitraryPrecisionInteger.withUnsafeBN_CTX { bnCtx in
@@ -353,7 +362,7 @@ extension ArbitraryPrecisionInteger: Numeric {
     }
 
     @inlinable
-    init?<T: BinaryInteger>(exactly integer: T) {
+    public init?<T: BinaryInteger>(exactly integer: T) {
         fatalError("Not currently implemented")
     }
 }
@@ -361,8 +370,7 @@ extension ArbitraryPrecisionInteger: Numeric {
 // MARK: - SignedNumeric
 
 extension ArbitraryPrecisionInteger: SignedNumeric {
-    @usableFromInline
-    mutating func negate() {
+    public mutating func negate() {
         let signBit: CInt = self._positive ? 1 : 0
 
         self.withUnsafeMutableBignumPointer {
@@ -375,8 +383,7 @@ extension ArbitraryPrecisionInteger: SignedNumeric {
 
 extension Data {
     /// Serializes an ArbitraryPrecisionInteger padded out to a certain minimum size.
-    @usableFromInline
-    mutating func append(bytesOf integer: ArbitraryPrecisionInteger, paddedToSize paddingSize: Int) throws {
+    public mutating func append(bytesOf integer: ArbitraryPrecisionInteger, paddedToSize paddingSize: Int) throws {
         let byteCount = integer.byteCount
 
         guard paddingSize >= byteCount else {
@@ -403,8 +410,7 @@ extension Data {
 // MARK: - Printing
 
 extension ArbitraryPrecisionInteger: CustomDebugStringConvertible {
-    @usableFromInline
-    var debugDescription: String {
+    public var debugDescription: String {
         guard let bio = CCryptoBoringSSL_BIO_new(CCryptoBoringSSL_BIO_s_mem()) else {
             return "ArbitraryPrecisionInteger: (error generating representation)"
         }
