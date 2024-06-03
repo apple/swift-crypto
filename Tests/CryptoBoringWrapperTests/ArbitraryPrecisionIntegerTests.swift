@@ -11,9 +11,7 @@
 // SPDX-License-Identifier: Apache-2.0
 //
 //===----------------------------------------------------------------------===//
-#if CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
-#else
-@testable import Crypto
+@testable import CryptoBoringWrapper
 import XCTest
 
 final class ArbitraryPrecisionIntegerTests: XCTestCase {
@@ -43,7 +41,7 @@ final class ArbitraryPrecisionIntegerTests: XCTestCase {
     func testPositiveSquareRoot() {
         XCTAssertNoThrow(XCTAssertEqual(try ArbitraryPrecisionInteger(144).positiveSquareRoot(), 12))
         XCTAssertThrowsError(try ArbitraryPrecisionInteger(101).positiveSquareRoot()) { error in
-            guard case .some(.underlyingCoreCryptoError) = error as? CryptoKitError else {
+            guard case .some(.underlyingCoreCryptoError) = error as? CryptoBoringWrapperError else {
                 XCTFail("Unexpected error: \(error)")
                 return
             }
@@ -112,4 +110,3 @@ final class ArbitraryPrecisionIntegerTests: XCTestCase {
         XCTAssertTrue(two >= two)
     }
 }
-#endif // CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
