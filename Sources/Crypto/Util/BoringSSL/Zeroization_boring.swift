@@ -12,7 +12,7 @@
 //
 //===----------------------------------------------------------------------===//
 #if !canImport(Darwin)
-@_implementationOnly import CCryptoBoringSSL
+import CCryptoBoringSSL
 
 typealias errno_t = CInt
 

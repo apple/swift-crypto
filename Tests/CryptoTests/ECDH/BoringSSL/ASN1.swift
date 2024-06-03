@@ -20,7 +20,7 @@ import XCTest
 #if !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
 @testable import CryptoKit
 #else
-@_implementationOnly import CCryptoBoringSSL
+import CCryptoBoringSSL
 @testable import Crypto
 #endif
 

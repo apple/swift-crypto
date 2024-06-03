@@ -15,7 +15,7 @@
 #if CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
 // This is only used when bulding with BoringSSL.
 #else
-@_implementationOnly import CCryptoBoringSSL
+import CCryptoBoringSSL
 import Foundation
 import Crypto
 

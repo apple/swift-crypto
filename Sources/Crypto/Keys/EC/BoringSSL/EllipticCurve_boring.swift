@@ -14,7 +14,7 @@
 #if CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
 @_exported import CryptoKit
 #else
-@_implementationOnly import CCryptoBoringSSL
+import CCryptoBoringSSL
 import CryptoBoringWrapper
 
 /// A wrapper around BoringSSL's EC_GROUP object that handles reference counting and

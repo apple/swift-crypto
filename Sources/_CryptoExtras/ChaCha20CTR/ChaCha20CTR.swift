@@ -12,8 +12,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-@_implementationOnly import CCryptoBoringSSL
-@_implementationOnly import CCryptoBoringSSLShims
+import CCryptoBoringSSL
+import CCryptoBoringSSLShims
 import Crypto
 import CryptoBoringWrapper
 #if canImport(Darwin) || swift(>=5.9.1)

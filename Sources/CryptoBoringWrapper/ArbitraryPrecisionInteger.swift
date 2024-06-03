@@ -11,25 +11,21 @@
 // SPDX-License-Identifier: Apache-2.0
 //
 //===----------------------------------------------------------------------===//
-@_implementationOnly import CCryptoBoringSSL
-@_implementationOnly import CCryptoBoringSSLShims
+import CCryptoBoringSSL
+import CCryptoBoringSSLShims
 import Foundation
 
 /// A wrapper around the OpenSSL BIGNUM object that is appropriately lifetime managed,
 /// and that provides better Swift types for this object.
-public struct ArbitraryPrecisionInteger { // TODO: this should be SPI
+public struct ArbitraryPrecisionInteger {
     private var _backing: BackingStorage
 
     public init() {
         self._backing = BackingStorage()
     }
 
-    init(copying original: UnsafePointer<BIGNUM>) throws {
+    public init(copying original: UnsafePointer<BIGNUM>) throws {
         self._backing = try BackingStorage(copying: original)
-    }
-
-    public init(copying original: UnsafeRawPointer) throws {
-        self._backing = try BackingStorage(copying: original.assumingMemoryBound(to: BIGNUM.self))
     }
 
     public init(_ original: ArbitraryPrecisionInteger) throws {
@@ -109,24 +105,11 @@ extension ArbitraryPrecisionInteger.BackingStorage {
 // MARK: - Pointer helpers
 
 extension ArbitraryPrecisionInteger {
-    func withUnsafeBignumPointer<T>(_ body: (UnsafePointer<BIGNUM>) throws -> T) rethrows -> T {
+    public func withUnsafeBignumPointer<T>(_ body: (UnsafePointer<BIGNUM>) throws -> T) rethrows -> T {
         try self._backing.withUnsafeBignumPointer(body)
     }
 
-    mutating func withUnsafeMutableBignumPointer<T>(_ body: (UnsafeMutablePointer<BIGNUM>) throws -> T) rethrows -> T {
-        if !isKnownUniquelyReferenced(&self._backing) {
-            // Failing to CoW is a fatal error here.
-            self._backing = try! BackingStorage(copying: self._backing)
-        }
-
-        return try self._backing.withUnsafeMutableBignumPointer(body)
-    }
-
-    public func withUnsafeRawBignumPointer<T>(_ body: (UnsafeRawPointer) throws -> T) rethrows -> T {
-        try self._backing.withUnsafeBignumPointer(body)
-    }
-
-    public mutating func withUnsafeMutableRawBignumPointer<T>(_ body: (UnsafeMutableRawPointer) throws -> T) rethrows -> T {
+    public mutating func withUnsafeMutableBignumPointer<T>(_ body: (UnsafeMutablePointer<BIGNUM>) throws -> T) rethrows -> T {
         if !isKnownUniquelyReferenced(&self._backing) {
             // Failing to CoW is a fatal error here.
             self._backing = try! BackingStorage(copying: self._backing)
@@ -142,14 +125,6 @@ extension ArbitraryPrecisionInteger.BackingStorage {
     }
 
     func withUnsafeMutableBignumPointer<T>(_ body: (UnsafeMutablePointer<BIGNUM>) throws -> T) rethrows -> T {
-        try body(&self._backing)
-    }
-
-    func withUnsafeBignumPointer<T>(_ body: (UnsafeRawPointer) throws -> T) rethrows -> T {
-        try body(&self._backing)
-    }
-
-    func withUnsafeMutableBignumPointer<T>(_ body: (UnsafeMutableRawPointer) throws -> T) rethrows -> T {
         try body(&self._backing)
     }
 }
