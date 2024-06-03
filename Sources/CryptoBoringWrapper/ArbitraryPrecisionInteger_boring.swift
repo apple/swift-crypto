@@ -55,7 +55,7 @@ extension ArbitraryPrecisionInteger {
         init(copying original: UnsafePointer<BIGNUM>) throws {
             self._backing = BIGNUM()
             guard CCryptoBoringSSL_BN_copy(&self._backing, original) != nil else {
-                throw CryptoKitError.internalBoringSSLError()
+                throw CryptoBoringWrapperError.internalBoringSSLError()
             }
         }
 
@@ -64,7 +64,7 @@ extension ArbitraryPrecisionInteger {
 
             try original.withUnsafeMutableBignumPointer { bnPtr in
                 guard CCryptoBoringSSL_BN_copy(&self._backing, bnPtr) != nil else {
-                    throw CryptoKitError.internalBoringSSLError()
+                    throw CryptoBoringWrapperError.internalBoringSSLError()
                 }
             }
         }
@@ -102,7 +102,7 @@ extension ArbitraryPrecisionInteger.BackingStorage {
             CCryptoBoringSSLShims_BN_bin2bn(bytesPointer.baseAddress, bytesPointer.count, &self._backing)
         }
         guard rc != nil else {
-            throw CryptoKitError.internalBoringSSLError()
+            throw CryptoBoringWrapperError.internalBoringSSLError()
         }
     }
 }
@@ -178,7 +178,7 @@ extension ArbitraryPrecisionInteger {
         }
 
         guard rc == 1 else {
-            throw CryptoKitError.internalBoringSSLError()
+            throw CryptoBoringWrapperError.internalBoringSSLError()
         }
         return result
     }
@@ -380,7 +380,7 @@ extension Data {
         let byteCount = integer.byteCount
 
         guard paddingSize >= byteCount else {
-            throw CryptoKitError.incorrectParameterSize
+            throw CryptoBoringWrapperError.incorrectParameterSize
         }
 
         // To extend the data we need to write some zeroes into it.
