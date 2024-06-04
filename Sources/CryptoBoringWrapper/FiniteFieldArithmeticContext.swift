@@ -147,5 +147,23 @@ extension FiniteFieldArithmeticContext {
 
         return try ArbitraryPrecisionInteger(copying: actualOutputPointer)
     }
+
+    public func inverse(_ x: ArbitraryPrecisionInteger) throws -> ArbitraryPrecisionInteger {
+        var output = ArbitraryPrecisionInteger()
+
+        try x.withUnsafeBignumPointer { xPointer in
+            try self.fieldSize.withUnsafeBignumPointer { fieldSizePointer in
+                try output.withUnsafeMutableBignumPointer { outputPointer in
+                    let rc = CCryptoBoringSSL_BN_mod_inverse(outputPointer, xPointer, fieldSizePointer, self.bnCtx)
+                    guard rc == outputPointer else {
+                        throw CryptoBoringWrapperError.internalBoringSSLError()
+
+                    }
+                }
+            }
+        }
+
+        return output
+    }
 }
 #endif // CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
