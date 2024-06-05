@@ -69,7 +69,7 @@ final class TestRSABlindSigning: XCTestCase {
                 let (blindedMessage, blindInverse) = try publicKey.blind(preparedMessage)
                 // NOTE: Sadly we can't validate the blinded message against the test vectors because BoringSSL doesn't
                 // have the APIs we would need to specify a fixed salt value.
-                XCTAssertEqual(blindedMessage.rawRepresentation.hexString.count, testVector.blinded_msg.count)
+                XCTAssertEqual(blindedMessage.hexString.count, testVector.blinded_msg.count)
                 XCTAssertEqual(blindInverse.rawRepresentation.hexString.count, testVector.inv.count)
             }
 
@@ -83,7 +83,7 @@ final class TestRSABlindSigning: XCTestCase {
                     qHexString: testVector.q,
                     parameters: testVector.parameters
                 )
-                let blindedMessage = try _RSA.BlindSigning.BlindedMessage(rawRepresentation: Data(hexString: testVector.blinded_msg))
+                let blindedMessage = try Data(hexString: testVector.blinded_msg)
                 let blindSignature = try privateKey.blindSignature(for: blindedMessage)
                 XCTAssertEqual(
                     blindSignature.rawRepresentation.hexString,
@@ -155,7 +155,7 @@ final class TestRSABlindSigning: XCTestCase {
         2950c126425538ad676e23a26c0f3e0523a307c557e3a6471771a5635b704c56
         """
         let privateKey = try _RSA.BlindSigning.PrivateKey(pemRepresentation: privateKeyPEM)
-        let blindedMessage = try _RSA.BlindSigning.BlindedMessage(rawRepresentation: Data(hexString: blindedMessageHexString))
+        let blindedMessage = try Data(hexString: blindedMessageHexString)
         XCTAssertThrowsError(try privateKey.blindSignature(for: blindedMessage)) { error in
             guard let error = error as? CryptoKitError, case .incorrectParameterSize = error else {
                 XCTFail("Unexpected error: \(error)")

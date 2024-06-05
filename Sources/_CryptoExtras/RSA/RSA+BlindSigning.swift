@@ -317,22 +317,6 @@ extension _RSA.BlindSigning {
     public struct BlindInverse {
         var rawRepresentation: Data
     }
-
-    /// An encoded, blinded message ready to be signed.
-    ///
-    /// Clients should not attempt to create values of this type; it is created and returned by the blind operation.
-    ///
-    /// Issuers can construct values of this type with the bytes they receive from the clients for blind signing.
-    ///
-    /// - TODO: I think this one can probably go away and just return data and take a DataProtocol.
-    public struct BlindedMessage {
-        /// The raw representation of the key as a collection of contiguous bytes.
-        public var rawRepresentation: Data
-
-        public init(rawRepresentation: Data) {
-            self.rawRepresentation = rawRepresentation
-        }
-    }
 }
 
 extension _RSA.BlindSigning.PrivateKey {
@@ -343,8 +327,8 @@ extension _RSA.BlindSigning.PrivateKey {
     /// - Throws: If there is a failure producing the signature.
     ///
     /// - Seealso: [RFC 9474: BlindSign](https://www.rfc-editor.org/rfc/rfc9474.html#name-blindsign).
-    public func blindSignature(for message: _RSA.BlindSigning.BlindedMessage) throws -> _RSA.BlindSigning.BlindSignature {
-        try self.backing.blindSignature(for: message.rawRepresentation)
+    public func blindSignature<D: DataProtocol>(for message: D) throws -> _RSA.BlindSigning.BlindSignature {
+        try self.backing.blindSignature(for: message)
     }
 }
 
@@ -353,9 +337,12 @@ extension _RSA.BlindSigning {
     /// Prepare a message to be signed using the blind signing protocol.
     ///
     /// - Parameter message: The message to be signed.
+    /// - Parameter parameters: Parameters used in the blind signing protocol.
     /// - Returns: A preprared mesage, modified according to the parameters provided.
     ///
     /// - Seealso: [RFC 9474: Prepare](https://www.rfc-editor.org/rfc/rfc9474.html#name-prepare).
+    ///
+    /// - TODO: I think this should probably just be moved to PublicKey to keep the API cleaner.
     public static func prepare<D: DataProtocol, H: HashFunction>(
         _ message: D,
         parameters: _RSA.BlindSigning.Parameters<H> = .RSABSSA_SHA384_PSS_Randomized
@@ -378,8 +365,8 @@ extension _RSA.BlindSigning.PublicKey {
     /// - Seealso: [RFC 9474: Blind](https://www.rfc-editor.org/rfc/rfc9474.html#name-blind).
     public func blind(
         _ message: _RSA.BlindSigning.PreparedMessage
-    ) throws -> (blindedMessage: _RSA.BlindSigning.BlindedMessage, blindInverse: _RSA.BlindSigning.BlindInverse) {
-        return try self.backing.blind(message, parameters: self.parameters)
+    ) throws -> (blindedMessage: Data, blindInverse: _RSA.BlindSigning.BlindInverse) {
+        try self.backing.blind(message, parameters: self.parameters)
     }
 
     /// Unblinds the message and produce a signature for the message.
@@ -395,7 +382,7 @@ extension _RSA.BlindSigning.PublicKey {
         for message: _RSA.BlindSigning.PreparedMessage,
         blindInverse: _RSA.BlindSigning.BlindInverse
     ) throws -> _RSA.Signing.RSASignature {
-        return try self.backing.finalize(signature, for: message, blindInverse: blindInverse, parameters: self.parameters)
+        try self.backing.finalize(signature, for: message, blindInverse: blindInverse, parameters: self.parameters)
     }
 
     /// Validate a signature for a prepared message.

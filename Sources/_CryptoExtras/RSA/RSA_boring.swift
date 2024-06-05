@@ -117,7 +117,7 @@ extension BoringSSLRSAPublicKey {
     internal func blind<H: HashFunction>(
         _ message: _RSA.BlindSigning.PreparedMessage,
         parameters: _RSA.BlindSigning.Parameters<H>
-    ) throws -> (blindedMessage: _RSA.BlindSigning.BlindedMessage, blindInverse: _RSA.BlindSigning.BlindInverse) {
+    ) throws -> (blindedMessage: Data, blindInverse: _RSA.BlindSigning.BlindInverse) {
         return try self.backing.blind(message, parameters: parameters)
     }
 
@@ -347,7 +347,7 @@ extension BoringSSLRSAPublicKey {
         fileprivate func blind<H: HashFunction>(
             _ message: _RSA.BlindSigning.PreparedMessage,
             parameters: _RSA.BlindSigning.Parameters<H>
-        ) throws -> (blindedMessage: _RSA.BlindSigning.BlindedMessage, blindInverse: _RSA.BlindSigning.BlindInverse) {
+        ) throws -> (blindedMessage: Data, blindInverse: _RSA.BlindSigning.BlindInverse) {
             /// ```
             /// All BN_CTX_get() calls must be made before calling any other functions that use the ctx as an argument.
             /// ...
@@ -439,7 +439,7 @@ extension BoringSSLRSAPublicKey {
             }
 
             // 12. output blinded_msg, inv
-            let blindedMessage = _RSA.BlindSigning.BlindedMessage(rawRepresentation: Data(blindedMessageBytes))
+            let blindedMessage = Data(blindedMessageBytes)
             var invBytes = [UInt8](repeating: 0, count: outputSize)
             guard CCryptoBoringSSL_BN_bn2bin_padded(&invBytes, outputSize, inv) == 1 else {
                 throw CryptoKitError.internalBoringSSLError()
