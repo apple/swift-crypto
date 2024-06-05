@@ -52,8 +52,9 @@ final class TestRSABlindSigning: XCTestCase {
         for testVector in testVectors {
             // Prepare
             do {
+                let publicKey = try _RSA.BlindSigning.PublicKey(nHexString: testVector.n, eHexString: testVector.e, parameters: testVector.parameters)
                 let message = try Data(hexString: testVector.msg)
-                let preparedMessage = _RSA.BlindSigning.prepare(message, parameters: testVector.parameters)
+                let preparedMessage = publicKey.prepare(message)
                 switch testVector.parameters.preparation {
                 case .identity:
                     XCTAssertEqual(preparedMessage.rawRepresentation, message)

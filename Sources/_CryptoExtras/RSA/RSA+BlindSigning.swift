@@ -332,8 +332,7 @@ extension _RSA.BlindSigning.PrivateKey {
     }
 }
 
-
-extension _RSA.BlindSigning {
+extension _RSA.BlindSigning.PublicKey {
     /// Prepare a message to be signed using the blind signing protocol.
     ///
     /// - Parameter message: The message to be signed.
@@ -341,22 +340,15 @@ extension _RSA.BlindSigning {
     /// - Returns: A preprared mesage, modified according to the parameters provided.
     ///
     /// - Seealso: [RFC 9474: Prepare](https://www.rfc-editor.org/rfc/rfc9474.html#name-prepare).
-    ///
-    /// - TODO: I think this should probably just be moved to PublicKey to keep the API cleaner.
-    public static func prepare<D: DataProtocol, H: HashFunction>(
-        _ message: D,
-        parameters: _RSA.BlindSigning.Parameters<H> = .RSABSSA_SHA384_PSS_Randomized
-    ) -> _RSA.BlindSigning.PreparedMessage {
-        switch parameters.preparation {
+    public func prepare<D: DataProtocol>(_ message: D) -> _RSA.BlindSigning.PreparedMessage {
+        switch self.parameters.preparation {
         case .identity:
-            return PreparedMessage(rawRepresentation: Data(message))
+            return _RSA.BlindSigning.PreparedMessage(rawRepresentation: Data(message))
         case .randomized:
-            return PreparedMessage(rawRepresentation: Data(SystemRandomNumberGenerator.randomBytes(count: 32)) + message)
+            return _RSA.BlindSigning.PreparedMessage(rawRepresentation: Data(SystemRandomNumberGenerator.randomBytes(count: 32)) + message)
         }
     }
-}
 
-extension _RSA.BlindSigning.PublicKey {
     /// Blind a message to be signed by the server using the blind signing protocol.
     ///
     /// - Parameter message: The message to be signed.

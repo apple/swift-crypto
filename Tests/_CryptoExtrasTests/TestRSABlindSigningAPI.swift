@@ -27,7 +27,7 @@ final class TestRSABlindSigningAPI: XCTestCase {
         let message = Data("This is some input data".utf8)
 
         // [Client] Prepare the message.
-        let preparedMessage = _RSA.BlindSigning.prepare(message, parameters: parameters)
+        let preparedMessage = publicKey.prepare(message)
 
         // [Client] Blind the message to send to the server and get its blinding inverse.
         let (blindedMessage, blindInverse) = try publicKey.blind(preparedMessage)
