@@ -396,3 +396,19 @@ extension _RSA.BlindSigning.PublicKey {
         }
     }
 }
+
+extension _RSA.BlindSigning {
+    /// Errors defined in the RSA Blind Signatures protocol.
+    ///
+    /// - Seealso: [RFC 9474: Errors](https://www.rfc-editor.org/rfc/rfc9474.html#name-errors).
+    enum Error: Swift.Error {
+        case messageTooLong
+        case encodingError
+        case blindingError
+        case invalidInput
+        case signingFailure
+        case messageRepresentativeOutOfRange
+        case invalidSignature
+        case unexpectedInputSize
+    }
+}

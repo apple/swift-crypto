@@ -393,7 +393,12 @@ extension BoringSSLRSAPublicKey {
                     saltLength
                 )
             }) == 1 else {
-                throw CryptoKitError.internalBoringSSLError()
+                switch ERR_GET_REASON(CCryptoBoringSSL_ERR_get_error()) {
+                case RSA_R_DATA_TOO_LARGE_FOR_KEY_SIZE:
+                    throw _RSA.BlindSigning.Error.messageTooLong
+                default:
+                    throw CryptoKitError.internalBoringSSLError()
+                }
             }
 
             // 3. m = bytes_to_int(encoded_msg)
@@ -406,7 +411,7 @@ extension BoringSSLRSAPublicKey {
 
             // 5. If c is false, raise an "invalid input" error and stop
             guard c else {
-                throw CryptoKitError.invalidParameter
+                throw _RSA.BlindSigning.Error.invalidInput
             }
 
             // 6. r = random_integer_uniform(1, n)
@@ -478,7 +483,7 @@ extension BoringSSLRSAPublicKey {
 
             // 1. If len(blind_sig) != modulus_len, raise an "unexpected input size" error and stop
             guard signature.rawRepresentation.count == outputSize else {
-                throw CryptoKitError.invalidParameter
+                throw _RSA.BlindSigning.Error.unexpectedInputSize
             }
 
             // 2. z = bytes_to_int(blind_sig)
@@ -506,6 +511,7 @@ extension BoringSSLRSAPublicKey {
             }
 
             // 5. result = RSASSA-PSS-VERIFY(pk, msg, sig) with Hash, MGF, and salt_len as defined in the parameters
+            // 6. If result = "valid signature", output sig, else raise an "invalid signature" error and stop
             try sigBytes.withUnsafeBufferPointer { signatureBufferPtr in
                 try withUnsafeTemporaryAllocation(byteCount: outputSize, alignment: 1) { encodedMessageBufferPtr in
                     var outputCount = 0
@@ -522,7 +528,7 @@ extension BoringSSLRSAPublicKey {
                         throw CryptoKitError.internalBoringSSLError()
                     }
                     guard outputCount == outputSize else {
-                        throw CryptoKitError.authenticationFailure
+                        throw _RSA.BlindSigning.Error.invalidSignature
                     }
                     let hashDigestType = try DigestType(forDigestType: H.Digest.self)
                     let saltLength: Int32
@@ -539,13 +545,12 @@ extension BoringSSLRSAPublicKey {
                             encodedMessageBufferPtr.baseAddress,
                             saltLength
                         ) == 1 else {
-                            throw CryptoKitError.authenticationFailure
+                            throw CryptoKitError.internalBoringSSLError()
                         }
                     }
                 }
             }
 
-            // 6. If result = "valid signature", output sig, else raise an "invalid signature" error and stop
             return _RSA.Signing.RSASignature(signatureBytes: sigBytes)
         }
         deinit {
@@ -832,11 +837,12 @@ extension BoringSSLRSAPrivateKey {
                         messageBufferPtr.count,
                         RSA_NO_PADDING
                     ) == 1 else {
-                        if ERR_GET_REASON(CCryptoBoringSSL_ERR_get_error()) == RSA_R_DATA_TOO_LARGE_FOR_MODULUS {
-                            // "Message representative out of range" error in RFC9474.
-                            throw CryptoKitError.incorrectParameterSize
+                        switch ERR_GET_REASON(CCryptoBoringSSL_ERR_get_error()) {
+                        case RSA_R_DATA_TOO_LARGE_FOR_MODULUS:
+                            throw _RSA.BlindSigning.Error.messageRepresentativeOutOfRange
+                        default:
+                            throw CryptoKitError.internalBoringSSLError()
                         }
-                        throw CryptoKitError.internalBoringSSLError()
                     }
                     precondition(outputCount == signatureByteCount)
                     signatureBufferCount = outputCount
@@ -872,8 +878,7 @@ extension BoringSSLRSAPrivateKey {
                             outputCount == blindedMessageBufferPtr.count,
                             memcmp(verificationBufferPtr.baseAddress!, blindedMessageBufferPtr.baseAddress!, blindedMessageBufferPtr.count) == 0
                         else {
-                            // "Signing failure" in RFC9474.
-                            throw CryptoKitError.authenticationFailure
+                            throw _RSA.BlindSigning.Error.signingFailure
                         }
                     }
                 }
