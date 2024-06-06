@@ -77,6 +77,37 @@ final class TestRSAEncryption: XCTestCase {
             XCTAssertEqual(valid, test.expectedValidity, "test number \(test.tcId) failed, expected \(test.result) but got \(valid)")
         }
     }
+
+    func testConstructKeyFromRSANumbers() throws {
+        /// Check we can successfully construct keys from known valid values from a test vector.
+        for testVector in RFC9474TestVector.allValues {
+            _ = try _RSA.Encryption.PrivateKey(
+                n: Data(hexString: testVector.n),
+                e: Data(hexString: testVector.e),
+                d: Data(hexString: testVector.d),
+                p: Data(hexString: testVector.p),
+                q: Data(hexString: testVector.q)
+            )
+            _ = try _RSA.Encryption.PublicKey(
+                n: Data(hexString: testVector.n),
+                e: Data(hexString: testVector.e)
+            )
+        }
+        /// Also check that we can provide each argument as a different `ContiguousBytes` type.
+        /// NOTE: these calls use `try?` because they are guaranteed to fail; we're just checking these calls compile.
+        let bytesValues: [any ContiguousBytes] = [Data(), [UInt8]()]
+        _ = try? _RSA.Encryption.PrivateKey(
+            n: bytesValues.randomElement()!,
+            e: bytesValues.randomElement()!,
+            d: bytesValues.randomElement()!,
+            p: bytesValues.randomElement()!,
+            q: bytesValues.randomElement()!
+        )
+        _ = try? _RSA.Encryption.PublicKey(
+            n: bytesValues.randomElement()!,
+            e: bytesValues.randomElement()!
+        )
+    }
 }
 
 struct RSAEncryptionOAEPTestGroup: Codable {

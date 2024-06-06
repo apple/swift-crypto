@@ -43,6 +43,10 @@ internal struct SecurityRSAPublicKey: @unchecked Sendable {
         self.backing = unwrappedKey
     }
 
+    init(_ boringSSLKey: BoringSSLRSAPublicKey) throws {
+        try self.init(derRepresentation: boringSSLKey.derRepresentation)
+    }
+
     var pkcs1DERRepresentation: Data {
         var error: Unmanaged<CFError>? = nil
         let representation = SecKeyCopyExternalRepresentation(self.backing, &error)
@@ -133,6 +137,10 @@ internal struct SecurityRSAPrivateKey: @unchecked Sendable {
         }
 
         self.backing = unwrappedKey
+    }
+
+    init(_ boringSSLKey: BoringSSLRSAPrivateKey) throws {
+        try self.init(derRepresentation: boringSSLKey.derRepresentation)
     }
 
     var derRepresentation: Data {
