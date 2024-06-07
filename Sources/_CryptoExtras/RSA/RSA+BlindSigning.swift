@@ -245,7 +245,7 @@ extension _RSA.BlindSigning {
     /// The RECOMMENDED variants are RSABSSA-SHA384-PSS-Randomized or RSABSSA-SHA384-PSSZERO-Randomized.
     ///
     /// - Seealso: [RFC 9474: RSABSSA Variants](https://www.rfc-editor.org/rfc/rfc9474.html#name-rsabssa-variants).
-    public struct Parameters<H: HashFunction>: Sendable where H: Sendable {
+    public struct Parameters<H: HashFunction>: Sendable {
         enum Padding { case PSS, PSSZERO }
         var padding: Padding
 
