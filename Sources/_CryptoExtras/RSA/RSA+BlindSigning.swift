@@ -239,7 +239,7 @@ extension _RSA.BlindSigning {
 extension _RSA.BlindSigning {
     /// Parameters used in the blind signing protocol.
     ///
-    /// Users should not attempt to create parameters manaully and should use one of the static properties for
+    /// Users cannot create parameters manually and should use one of the static properties for
     /// a standard RSABSSA variant.
     ///
     /// The RECOMMENDED variants are RSABSSA-SHA384-PSS-Randomized or RSABSSA-SHA384-PSSZERO-Randomized.
@@ -313,14 +313,14 @@ extension _RSA.BlindSigning.Parameters where H == SHA384 {
 extension _RSA.BlindSigning {
     /// An input ready to be blinded, possibly prepended with random bytes.
     ///
-    /// Users should not attempt to create values of this type; it is created and returned by the prepare operation.
+    /// Users cannot create values of this type manually; it is created and returned by the prepare operation.
     public struct PreparedMessage {
         var rawRepresentation: Data
     }
 
-    /// The blinding inverse for a blinded messaeg, used to unblind a blind signature.
+    /// The blinding inverse for a blinded message, used to unblind a blind signature.
     ///
-    /// Users should not attempt to create values of this type; it is created and returned by the blind operation.
+    /// Users cannot create values of this type manually; it is created and returned by the blind operation.
     public struct BlindInverse {
         var rawRepresentation: Data
     }
@@ -344,7 +344,7 @@ extension _RSA.BlindSigning.PublicKey {
     ///
     /// - Parameter message: The message to be signed.
     /// - Parameter parameters: Parameters used in the blind signing protocol.
-    /// - Returns: A preprared mesage, modified according to the parameters provided.
+    /// - Returns: A prepared message, modified according to the parameters provided.
     ///
     /// - Seealso: [RFC 9474: Prepare](https://www.rfc-editor.org/rfc/rfc9474.html#name-prepare).
     public func prepare<D: DataProtocol>(_ message: D) -> _RSA.BlindSigning.PreparedMessage {
