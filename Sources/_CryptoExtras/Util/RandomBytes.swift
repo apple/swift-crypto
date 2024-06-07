@@ -19,8 +19,12 @@ extension UnsafeMutableRawBufferPointer {
             return
         }
 
-        precondition(count <= self.count)
+        #if canImport(Darwin) || os(Linux) || os(Android) || os(Windows)
         var rng = SystemRandomNumberGenerator()
+        #else
+        fatalError("No secure random number generator on this platform.")
+        #endif
+        precondition(count <= self.count)
 
         // We store bytes 64-bits at a time until we can't anymore.
         var targetPtr = self
@@ -43,11 +47,9 @@ extension UnsafeMutableRawBufferPointer {
 extension SystemRandomNumberGenerator {
     @inlinable
     static func randomBytes(count: Int) -> [UInt8] {
-        #if canImport(Darwin) || os(Linux) || os(Android) || os(Windows)
-        var rng = SystemRandomNumberGenerator()
-        return (0..<count).map { _ in rng.next() }
-        #else
-        fatalError("No secure random number generator on this platform.")
-        #endif
+        Array(unsafeUninitializedCapacity: count) { buffer, initializedCount in
+            UnsafeMutableRawBufferPointer(start: buffer.baseAddress, count: buffer.count).initializeWithRandomBytes(count: count)
+            initializedCount = count
+        }
     }
 }

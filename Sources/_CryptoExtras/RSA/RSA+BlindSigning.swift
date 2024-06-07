@@ -352,7 +352,10 @@ extension _RSA.BlindSigning.PublicKey {
         case .identity:
             return _RSA.BlindSigning.PreparedMessage(rawRepresentation: Data(message))
         case .randomized:
-            return _RSA.BlindSigning.PreparedMessage(rawRepresentation: Data(SystemRandomNumberGenerator.randomBytes(count: 32)) + message)
+            var preparedMessageBytes = Data(capacity: 32 + message.count)
+            preparedMessageBytes.append(contentsOf: SystemRandomNumberGenerator.randomBytes(count: 32))
+            preparedMessageBytes.append(contentsOf: message)
+            return _RSA.BlindSigning.PreparedMessage(rawRepresentation: preparedMessageBytes)
         }
     }
 
