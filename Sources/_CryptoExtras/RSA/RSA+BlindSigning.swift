@@ -23,7 +23,7 @@ extension _RSA {
 }
 
 extension _RSA.BlindSigning {
-    public struct PublicKey<H: HashFunction>: Sendable where H: Sendable {
+    public struct PublicKey<H: HashFunction>: Sendable {
         public typealias Parameters = _RSA.BlindSigning.Parameters<H>
 
         private var backing: BackingPublicKey
@@ -111,7 +111,7 @@ extension _RSA.BlindSigning {
 }
 
 extension _RSA.BlindSigning {
-    public struct PrivateKey<H: HashFunction>: Sendable where H: Sendable {
+    public struct PrivateKey<H: HashFunction>: Sendable {
         public typealias Parameters = _RSA.BlindSigning.Parameters<H>
 
         private var backing: BackingPrivateKey
