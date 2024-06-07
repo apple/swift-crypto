@@ -377,11 +377,6 @@ extension BoringSSLRSAPublicKey {
             // 2. If EMSA-PSS-ENCODE raises an error, re-raise the error and stop
             let hashDigestType = try! DigestType(forDigestType: H.Digest.self)
             let hash = H.hash(data: message.rawRepresentation)
-            let saltLength: Int32
-            switch parameters.padding {
-            case .PSS: saltLength = Int32(H.Digest.byteCount)
-            case .PSSZERO: saltLength = 0
-            }
             var encodedMessage = [UInt8](repeating: 0, count: outputSize)
             guard hash.withUnsafeBytes({ hashBufferPtr in
                 CCryptoBoringSSL_RSA_padding_add_PKCS1_PSS_mgf1(
@@ -390,7 +385,7 @@ extension BoringSSLRSAPublicKey {
                     hashBufferPtr.baseAddress,
                     hashDigestType.dispatchTable,
                     hashDigestType.dispatchTable,
-                    saltLength
+                    parameters.saltLength
                 )
             }) == 1 else {
                 switch ERR_GET_REASON(CCryptoBoringSSL_ERR_get_error()) {
@@ -531,11 +526,6 @@ extension BoringSSLRSAPublicKey {
                         throw _RSA.BlindSigning.Error.invalidSignature
                     }
                     let hashDigestType = try DigestType(forDigestType: H.Digest.self)
-                    let saltLength: Int32
-                    switch parameters.padding {
-                    case .PSS: saltLength = Int32(H.Digest.byteCount)
-                    case .PSSZERO: saltLength = 0
-                    }
                     try H.hash(data: message.rawRepresentation).withUnsafeBytes { messageHashBufferPtr in
                         guard CCryptoBoringSSL_RSA_verify_PKCS1_PSS_mgf1(
                             rsaPublicKey,
@@ -543,7 +533,7 @@ extension BoringSSLRSAPublicKey {
                             hashDigestType.dispatchTable,
                             hashDigestType.dispatchTable,
                             encodedMessageBufferPtr.baseAddress,
-                            saltLength
+                            parameters.saltLength
                         ) == 1 else {
                             throw CryptoKitError.internalBoringSSLError()
                         }

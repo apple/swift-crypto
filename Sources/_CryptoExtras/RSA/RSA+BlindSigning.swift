@@ -251,6 +251,13 @@ extension _RSA.BlindSigning {
 
         enum Preparation { case identity, randomized }
         var preparation: Preparation
+
+        var saltLength: Int32 {
+            switch self.padding {
+            case .PSS: return Int32(H.Digest.byteCount)
+            case .PSSZERO: return 0
+            }
+        }
     }
 }
 
