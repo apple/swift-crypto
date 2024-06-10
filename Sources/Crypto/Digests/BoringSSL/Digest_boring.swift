@@ -69,8 +69,7 @@ struct OpenSSLDigestImpl<H: BoringSSLBackedHashFunction> {
     internal func finalize() -> H.Digest {
         // To have a non-destructive finalize operation we must allocate.
         let copyContext = DigestContext(copying: self.context)
-        let digestBytes = copyContext.finalize()
-        return digestBytes.withUnsafeBytes {
+        return copyContext.finalize {
             // We force unwrap here because if the digest size is wrong it's an internal error.
             H.Digest(bufferPointer: $0)!
         }
@@ -107,17 +106,18 @@ class DigestContext {
     }
 
     // This finalize function is _destructive_: do not call it if you want to reuse the object!
-    func finalize() -> [UInt8] {
+    func finalize<R>(_ body: (UnsafeRawBufferPointer) -> R) -> R {
         let digestSize = CCryptoBoringSSL_EVP_MD_size(self.contextPointer.pointee.digest)
-        var digestBytes = Array(repeating: UInt8(0), count: digestSize)
         var count = UInt32(digestSize)
 
-        digestBytes.withUnsafeMutableBufferPointer { digestPointer in
+        return withUnsafeTemporaryAllocation(byteCount: digestSize, alignment: 1) { digestPointer in
+            defer {
+                digestPointer.zeroize()
+            }
             assert(digestPointer.count == count)
             CCryptoBoringSSL_EVP_DigestFinal(self.contextPointer, digestPointer.baseAddress, &count)
+            return body(UnsafeRawBufferPointer(digestPointer))
         }
-
-        return digestBytes
     }
 
     deinit {
