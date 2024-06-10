@@ -371,43 +371,32 @@ extension BoringSSLRSAPublicKey {
             guard z != nil else { throw CryptoKitError.internalBoringSSLError() }
 
             let rsaPublicKey = CCryptoBoringSSL_EVP_PKEY_get0_RSA(self.pointer)
-            let outputSize = Int(CCryptoBoringSSL_RSA_size(rsaPublicKey))
+            let n = CCryptoBoringSSL_RSA_get0_n(rsaPublicKey)
+            let e = CCryptoBoringSSL_RSA_get0_e(rsaPublicKey)
+            let modulusByteCount = Int(CCryptoBoringSSL_RSA_size(rsaPublicKey))
+
+            let montCtx = CCryptoBoringSSL_BN_MONT_CTX_new_for_modulus(n, bnCtx)
+            defer { CCryptoBoringSSL_BN_MONT_CTX_free(montCtx) }
 
             // 1. encoded_msg = EMSA-PSS-ENCODE(msg, bit_len(n)) with Hash, MGF, and salt_len as defined in the parameters
             // 2. If EMSA-PSS-ENCODE raises an error, re-raise the error and stop
             // 3. m = bytes_to_int(encoded_msg)
-            let hashDigestType = try! DigestType(forDigestType: H.Digest.self)
-            let hash = H.hash(data: message.rawRepresentation)
-            try withUnsafeTemporaryAllocation(of: UInt8.self, capacity: outputSize) { encodedMessageBufferPtr in
-                guard hash.withUnsafeBytes({ hashBufferPtr in
-                    CCryptoBoringSSL_RSA_padding_add_PKCS1_PSS_mgf1(
-                        rsaPublicKey,
-                        encodedMessageBufferPtr.baseAddress,
-                        hashBufferPtr.baseAddress,
-                        hashDigestType.dispatchTable,
-                        hashDigestType.dispatchTable,
-                        parameters.saltLength
-                    )
-                }) == 1 else {
-                    switch ERR_GET_REASON(CCryptoBoringSSL_ERR_get_error()) {
-                    case RSA_R_DATA_TOO_LARGE_FOR_KEY_SIZE:
-                        throw CryptoKitError(_RSA.BlindSigning.ProtocolError.messageTooLong)
-                    default:
-                        throw CryptoKitError.internalBoringSSLError()
-                    }
-                }
+            try withUnsafeTemporaryAllocation(of: UInt8.self, capacity: modulusByteCount) { encodedMessageBufferPtr in
+                try BlindSigningHelpers.EMSAPSSEncode(
+                    rsaPublicKey: rsaPublicKey,
+                    message: message,
+                    encodedMessageBufferPtr: encodedMessageBufferPtr,
+                    parameters: parameters
+                )
                 CCryptoBoringSSL_BN_bin2bn(encodedMessageBufferPtr.baseAddress, encodedMessageBufferPtr.count, m)
             }
 
             // 4. c = is_coprime(m, n)
-            let n = CCryptoBoringSSL_RSA_get0_n(rsaPublicKey)
             CCryptoBoringSSL_BN_gcd(gcd, m, n, bnCtx)
             let c = CCryptoBoringSSL_BN_is_one(gcd) == 1
 
             // 5. If c is false, raise an "invalid input" error and stop
-            if !c {
-                throw CryptoKitError(_RSA.BlindSigning.ProtocolError.invalidInput)
-            }
+            if !c { throw CryptoKitError(_RSA.BlindSigning.ProtocolError.invalidInput) }
 
             // 6. r = random_integer_uniform(1, n)
             // 7. inv = inverse_mod(r, n)
@@ -420,28 +409,18 @@ extension BoringSSLRSAPublicKey {
             } while (CCryptoBoringSSL_BN_mod_inverse(inv, r, n, bnCtx) == nil)
 
             // 9. x = RSAVP1(pk, r)
-            let e = CCryptoBoringSSL_RSA_get0_e(rsaPublicKey)
-            let montCtx = CCryptoBoringSSL_BN_MONT_CTX_new_for_modulus(n, bnCtx)
-            defer { CCryptoBoringSSL_BN_MONT_CTX_free(montCtx) }
             guard CCryptoBoringSSL_BN_mod_exp_mont(x, r, e, n, bnCtx, montCtx) == 1 else {
                 throw CryptoKitError.internalBoringSSLError()
             }
 
             // 10. z = (m * x) mod n
-            guard CCryptoBoringSSL_BN_mod_mul(z, m, x, n, bnCtx) == 1 else {
-                throw CryptoKitError.internalBoringSSLError()
-            }
+            try BlindSigningHelpers.multiply(result: z, m, x, mod: n, bnCtx)
 
             // 11. blinded_msg = int_to_bytes(z, modulus_len)
-            let blindedMessage = try withUnsafeTemporaryAllocation(of: UInt8.self, capacity: outputSize) { blindedMessageBufferPtr in
-                guard CCryptoBoringSSL_BN_bn2bin_padded(blindedMessageBufferPtr.baseAddress, blindedMessageBufferPtr.count, z) == 1 else {
-                    throw CryptoKitError.internalBoringSSLError()
-                }
-                return Data(blindedMessageBufferPtr)
-            }
+            let blindedMessage = try BlindSigningHelpers.intToBytes(z, modulusByteCount: modulusByteCount)
 
             // 12. output blinded_msg, inv
-            let blindInverse = try withUnsafeTemporaryAllocation(of: UInt8.self, capacity: outputSize) { invBufferPtr in
+            let blindInverse = try withUnsafeTemporaryAllocation(of: UInt8.self, capacity: modulusByteCount) { invBufferPtr in
                 guard CCryptoBoringSSL_BN_bn2bin_padded(invBufferPtr.baseAddress, invBufferPtr.count, inv) == 1 else {
                     throw CryptoKitError.internalBoringSSLError()
                 }
@@ -451,7 +430,7 @@ extension BoringSSLRSAPublicKey {
         }
 
         fileprivate func finalize<H: HashFunction>(
-            _ signature: _RSA.BlindSigning.BlindSignature,
+            _ blindSignature: _RSA.BlindSigning.BlindSignature,
             for message: _RSA.BlindSigning.PreparedMessage,
             blindInverse: _RSA.BlindSigning.BlindInverse,
             parameters: _RSA.BlindSigning.Parameters<H>
@@ -464,7 +443,7 @@ extension BoringSSLRSAPublicKey {
             /// BN_CTX_get() call.
             /// ```
             /// —— Extract from `man 3 BN_CTX_get`.
-            let bnCtx = CCryptoBoringSSL_BN_CTX_new()
+            guard let bnCtx = CCryptoBoringSSL_BN_CTX_new() else { throw CryptoKitError.internalBoringSSLError() }
             CCryptoBoringSSL_BN_CTX_start(bnCtx)
             defer {
                 CCryptoBoringSSL_BN_CTX_end(bnCtx)
@@ -476,72 +455,35 @@ extension BoringSSLRSAPublicKey {
             guard s != nil else { throw CryptoKitError.internalBoringSSLError() }
 
             let rsaPublicKey = CCryptoBoringSSL_EVP_PKEY_get0_RSA(self.pointer)
-            let outputSize = Int(CCryptoBoringSSL_RSA_size(rsaPublicKey))
+            let n = CCryptoBoringSSL_RSA_get0_n(rsaPublicKey)
+            let modulusByteCount = Int(CCryptoBoringSSL_RSA_size(rsaPublicKey))
 
             // 1. If len(blind_sig) != modulus_len, raise an "unexpected input size" error and stop
-            guard signature.rawRepresentation.count == outputSize else {
-                throw CryptoKitError(_RSA.BlindSigning.ProtocolError.unexpectedInputSize)
-            }
+            try BlindSigningHelpers.verifyBlindSignatureLength(blindSignature, modulusByteCount)
 
             // 2. z = bytes_to_int(blind_sig)
-            try signature.rawRepresentation.withUnsafeBytes { blindSignatureBytesPtr in
-                guard CCryptoBoringSSLShims_BN_bin2bn(blindSignatureBytesPtr.baseAddress, blindSignatureBytesPtr.count, z) == z else {
-                    throw CryptoKitError.internalBoringSSLError()
-                }
-            }
+            try BlindSigningHelpers.bytesToInt(blindSignature.rawRepresentation, z)
 
             // 3. s = (z * inv) mod n
-            try blindInverse.rawRepresentation.withUnsafeBytes { blindInverseBytesPtr in
-                guard CCryptoBoringSSLShims_BN_bin2bn(blindInverseBytesPtr.baseAddress, blindInverseBytesPtr.count, inv) == inv else {
-                    throw CryptoKitError.internalBoringSSLError()
-                }
-            }
-            let n = CCryptoBoringSSL_RSA_get0_n(rsaPublicKey)
-            guard CCryptoBoringSSL_BN_mod_mul(s, z, inv, n, bnCtx) == 1 else {
-                throw CryptoKitError.internalBoringSSLError()
-            }
+            try BlindSigningHelpers.bytesToInt(blindInverse.rawRepresentation, inv)
+            try BlindSigningHelpers.multiply(result: s, z, inv, mod: n, bnCtx)
 
             // 4. sig = int_to_bytes(s, modulus_len)
+            let sig = _RSA.Signing.RSASignature(
+                rawRepresentation: try BlindSigningHelpers.intToBytes(s, modulusByteCount: modulusByteCount)
+            )
+
             // 5. result = RSASSA-PSS-VERIFY(pk, msg, sig) with Hash, MGF, and salt_len as defined in the parameters
+            let result = try BlindSigningHelpers.RSASSAPSSVerify(rsaPublicKey: rsaPublicKey, modulusByteCount: modulusByteCount, message: message, signature: sig, parameters: parameters)
+
             // 6. If result = "valid signature", output sig, else raise an "invalid signature" error and stop
-            return try withUnsafeTemporaryAllocation(of: UInt8.self, capacity: outputSize) { signatureBufferPtr in
-                guard CCryptoBoringSSL_BN_bn2bin_padded(signatureBufferPtr.baseAddress, signatureBufferPtr.count, s) == 1 else {
-                    throw CryptoKitError.internalBoringSSLError()
-                }
-                try withUnsafeTemporaryAllocation(byteCount: outputSize, alignment: 1) { encodedMessageBufferPtr in
-                    var outputCount = 0
-                    /// NOTE: BoringSSL promotes the use of `RSA_verify_raw` over `RSA_public_decrypt`.
-                    guard CCryptoBoringSSL_RSA_verify_raw(
-                        rsaPublicKey,
-                        &outputCount,
-                        encodedMessageBufferPtr.baseAddress,
-                        encodedMessageBufferPtr.count,
-                        signatureBufferPtr.baseAddress,
-                        signatureBufferPtr.count,
-                        RSA_NO_PADDING
-                    ) == 1 else {
-                        throw CryptoKitError.internalBoringSSLError()
-                    }
-                    guard outputCount == outputSize else {
-                        throw CryptoKitError(_RSA.BlindSigning.ProtocolError.invalidSignature)
-                    }
-                    let hashDigestType = try DigestType(forDigestType: H.Digest.self)
-                    try H.hash(data: message.rawRepresentation).withUnsafeBytes { messageHashBufferPtr in
-                        guard CCryptoBoringSSL_RSA_verify_PKCS1_PSS_mgf1(
-                            rsaPublicKey,
-                            messageHashBufferPtr.baseAddress,
-                            hashDigestType.dispatchTable,
-                            hashDigestType.dispatchTable,
-                            encodedMessageBufferPtr.baseAddress,
-                            parameters.saltLength
-                        ) == 1 else {
-                            throw CryptoKitError.internalBoringSSLError()
-                        }
-                    }
-                }
-                return _RSA.Signing.RSASignature(rawRepresentation:  Data(signatureBufferPtr))
+            if result {
+                return sig
+            } else {
+                throw CryptoKitError(_RSA.BlindSigning.ProtocolError.invalidSignature)
             }
         }
+
         deinit {
             CCryptoBoringSSL_EVP_PKEY_free(self.pointer)
         }
@@ -876,6 +818,128 @@ extension BoringSSLRSAPrivateKey {
 
         deinit {
             CCryptoBoringSSL_EVP_PKEY_free(self.pointer)
+        }
+    }
+}
+
+/// This namespace enum just provides helper functions for some of the steps outlined in the RFC.
+enum BlindSigningHelpers {
+
+    fileprivate static func verifyBlindSignatureLength(
+        _ signature: _RSA.BlindSigning.BlindSignature,
+        _ modulusByteCount: Int
+    ) throws {
+        guard signature.rawRepresentation.count == modulusByteCount else {
+            throw CryptoKitError(_RSA.BlindSigning.ProtocolError.unexpectedInputSize)
+        }
+    }
+
+    fileprivate static func bytesToInt(
+        _ bytes: Data,
+        _ bnPtr: UnsafeMutablePointer<BIGNUM>!
+    ) throws {
+        try bytes.withUnsafeBytes { bytesPtr in
+            guard CCryptoBoringSSLShims_BN_bin2bn(bytesPtr.baseAddress, bytesPtr.count, bnPtr) == bnPtr else {
+                throw CryptoKitError.internalBoringSSLError()
+            }
+        }
+    }
+
+    fileprivate static func intToBytes(
+        _ bnPtr: UnsafePointer<BIGNUM>!,
+        _ bytesPtr: UnsafeMutableBufferPointer<UInt8>
+    ) throws {
+        guard CCryptoBoringSSL_BN_bn2bin_padded(bytesPtr.baseAddress, bytesPtr.count, bnPtr) == 1 else {
+            throw CryptoKitError.internalBoringSSLError()
+        }
+    }
+
+    fileprivate static func intToBytes(
+        _ bnPtr: UnsafePointer<BIGNUM>!,
+        modulusByteCount: Int
+    ) throws -> Data {
+        return try withUnsafeTemporaryAllocation(of: UInt8.self, capacity: modulusByteCount) { bytesPtr in
+            guard CCryptoBoringSSL_BN_bn2bin_padded(bytesPtr.baseAddress, bytesPtr.count, bnPtr) == 1 else {
+                throw CryptoKitError.internalBoringSSLError()
+            }
+            return Data(bytesPtr)
+        }
+    }
+
+    fileprivate static func multiply(
+        result: UnsafeMutablePointer<BIGNUM>!,
+        _ a: UnsafePointer<BIGNUM>!,
+        _ b: UnsafePointer<BIGNUM>!,
+        mod: UnsafePointer<BIGNUM>!,
+        _ bnCtx: OpaquePointer! /* BN_CTX */
+    ) throws {
+        guard CCryptoBoringSSL_BN_mod_mul(result, a, b, mod, bnCtx) == 1 else {
+            throw CryptoKitError.internalBoringSSLError()
+        }
+    }
+
+    fileprivate static func RSASSAPSSVerify<H: HashFunction>(
+        rsaPublicKey: OpaquePointer!,
+        modulusByteCount: Int,
+        message: _RSA.BlindSigning.PreparedMessage,
+        signature: _RSA.Signing.RSASignature,
+        parameters: _RSA.BlindSigning.Parameters<H>
+    ) throws -> Bool {
+        let hashDigestType = try DigestType(forDigestType: H.Digest.self)
+        return H.hash(data: message.rawRepresentation).withUnsafeBytes { messageHashBufferPtr in
+            withUnsafeTemporaryAllocation(byteCount: modulusByteCount, alignment: 1) { encodedMessageBufferPtr in
+                signature.withUnsafeBytes { signatureBufferPtr in
+                    var outputCount = 0
+                    guard
+                        /// NOTE: BoringSSL promotes the use of `RSA_verify_raw` over `RSA_public_decrypt`.
+                        CCryptoBoringSSL_RSA_verify_raw(
+                            rsaPublicKey,
+                            &outputCount,
+                            encodedMessageBufferPtr.baseAddress,
+                            encodedMessageBufferPtr.count,
+                            signatureBufferPtr.baseAddress,
+                            signatureBufferPtr.count,
+                            RSA_NO_PADDING
+                        ) == 1,
+                        outputCount == modulusByteCount,
+                        CCryptoBoringSSL_RSA_verify_PKCS1_PSS_mgf1(
+                            rsaPublicKey,
+                            messageHashBufferPtr.baseAddress,
+                            hashDigestType.dispatchTable,
+                            hashDigestType.dispatchTable,
+                            encodedMessageBufferPtr.baseAddress,
+                            parameters.saltLength
+                        ) == 1
+                    else { return false }
+                    return true
+                }
+            }
+        }
+    }
+
+    fileprivate static func EMSAPSSEncode<H: HashFunction>(
+        rsaPublicKey: OpaquePointer!,
+        message: _RSA.BlindSigning.PreparedMessage,
+        encodedMessageBufferPtr: UnsafeMutableBufferPointer<UInt8>,
+        parameters: _RSA.BlindSigning.Parameters<H>
+    ) throws {
+        let hashDigestType = try DigestType(forDigestType: H.Digest.self)
+        guard H.hash(data: message.rawRepresentation).withUnsafeBytes({ hashBufferPtr in
+            CCryptoBoringSSL_RSA_padding_add_PKCS1_PSS_mgf1(
+                rsaPublicKey,
+                encodedMessageBufferPtr.baseAddress,
+                hashBufferPtr.baseAddress,
+                hashDigestType.dispatchTable,
+                hashDigestType.dispatchTable,
+                parameters.saltLength
+            )
+        }) == 1 else {
+            switch ERR_GET_REASON(CCryptoBoringSSL_ERR_get_error()) {
+            case RSA_R_DATA_TOO_LARGE_FOR_KEY_SIZE:
+                throw CryptoKitError(_RSA.BlindSigning.ProtocolError.messageTooLong)
+            default:
+                throw CryptoKitError.internalBoringSSLError()
+            }
         }
     }
 }
