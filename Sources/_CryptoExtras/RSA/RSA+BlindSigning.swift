@@ -321,8 +321,19 @@ extension _RSA.BlindSigning {
     /// The blinding inverse for a blinded message, used to unblind a blind signature.
     ///
     /// Users cannot create values of this type manually; it is created and returned by the blind operation.
-    public struct BlindInverse {
+    public struct BlindingInverse {
         var rawRepresentation: Data
+    }
+
+    /// The blinded message and its blinding inverse for unblinding its blind signature.
+    ///
+    /// Users cannot create values of this type manually; it is created and returned by the blind operation.
+    public struct BlindingResult {
+        /// Blinded message to be sent to the issuer.
+        public var blindedMessage: Data
+
+        /// Blinding inverse for producing a signature for the prepared message from the blinded signature.
+        public var inverse: BlindingInverse
     }
 }
 
@@ -365,9 +376,7 @@ extension _RSA.BlindSigning.PublicKey {
     /// - Returns: The blinded message, and its inverse for unblinding its blind signature.
     ///
     /// - Seealso: [RFC 9474: Blind](https://www.rfc-editor.org/rfc/rfc9474.html#name-blind).
-    public func blind(
-        _ message: _RSA.BlindSigning.PreparedMessage
-    ) throws -> (blindedMessage: Data, blindInverse: _RSA.BlindSigning.BlindInverse) {
+    public func blind(_ message: _RSA.BlindSigning.PreparedMessage) throws -> _RSA.BlindSigning.BlindingResult {
         try self.backing.blind(message, parameters: self.parameters)
     }
 
@@ -382,9 +391,9 @@ extension _RSA.BlindSigning.PublicKey {
     public func finalize(
         _ signature: _RSA.BlindSigning.BlindSignature,
         for message: _RSA.BlindSigning.PreparedMessage,
-        blindInverse: _RSA.BlindSigning.BlindInverse
+        blindingInverse: _RSA.BlindSigning.BlindingInverse
     ) throws -> _RSA.Signing.RSASignature {
-        try self.backing.finalize(signature, for: message, blindInverse: blindInverse, parameters: self.parameters)
+        try self.backing.finalize(signature, for: message, blindingInverse: blindingInverse, parameters: self.parameters)
     }
 
     /// Validate a signature for a prepared message.

@@ -117,17 +117,17 @@ extension BoringSSLRSAPublicKey {
     internal func blind<H: HashFunction>(
         _ message: _RSA.BlindSigning.PreparedMessage,
         parameters: _RSA.BlindSigning.Parameters<H>
-    ) throws -> (blindedMessage: Data, blindInverse: _RSA.BlindSigning.BlindInverse) {
+    ) throws -> _RSA.BlindSigning.BlindingResult {
         return try self.backing.blind(message, parameters: parameters)
     }
 
     internal func finalize<H: HashFunction>(
             _ signature: _RSA.BlindSigning.BlindSignature,
             for message: _RSA.BlindSigning.PreparedMessage,
-            blindInverse: _RSA.BlindSigning.BlindInverse,
+            blindingInverse: _RSA.BlindSigning.BlindingInverse,
             parameters: _RSA.BlindSigning.Parameters<H>
     ) throws -> _RSA.Signing.RSASignature {
-        return try self.backing.finalize(signature, for: message, blindInverse: blindInverse, parameters: parameters)
+        return try self.backing.finalize(signature, for: message, blindingInverse: blindingInverse, parameters: parameters)
     }
 }
 
@@ -347,7 +347,7 @@ extension BoringSSLRSAPublicKey {
         fileprivate func blind<H: HashFunction>(
             _ message: _RSA.BlindSigning.PreparedMessage,
             parameters: _RSA.BlindSigning.Parameters<H>
-        ) throws -> (blindedMessage: Data, blindInverse: _RSA.BlindSigning.BlindInverse) {
+        ) throws -> _RSA.BlindSigning.BlindingResult {
             /// ```
             /// All BN_CTX_get() calls must be made before calling any other functions that use the ctx as an argument.
             /// ...
@@ -420,19 +420,19 @@ extension BoringSSLRSAPublicKey {
             let blindedMessage = try BlindSigningHelpers.intToBytes(z, modulusByteCount: modulusByteCount)
 
             // 12. output blinded_msg, inv
-            let blindInverse = try withUnsafeTemporaryAllocation(of: UInt8.self, capacity: modulusByteCount) { invBufferPtr in
+            let blindingInverse = try withUnsafeTemporaryAllocation(of: UInt8.self, capacity: modulusByteCount) { invBufferPtr in
                 guard CCryptoBoringSSL_BN_bn2bin_padded(invBufferPtr.baseAddress, invBufferPtr.count, inv) == 1 else {
                     throw CryptoKitError.internalBoringSSLError()
                 }
-                return _RSA.BlindSigning.BlindInverse(rawRepresentation: Data(invBufferPtr))
+                return _RSA.BlindSigning.BlindingInverse(rawRepresentation: Data(invBufferPtr))
             }
-            return (blindedMessage, blindInverse)
+            return _RSA.BlindSigning.BlindingResult(blindedMessage: blindedMessage, inverse: blindingInverse)
         }
 
         fileprivate func finalize<H: HashFunction>(
             _ blindSignature: _RSA.BlindSigning.BlindSignature,
             for message: _RSA.BlindSigning.PreparedMessage,
-            blindInverse: _RSA.BlindSigning.BlindInverse,
+            blindingInverse: _RSA.BlindSigning.BlindingInverse,
             parameters: _RSA.BlindSigning.Parameters<H>
         ) throws -> _RSA.Signing.RSASignature {
             /// ```
@@ -465,7 +465,7 @@ extension BoringSSLRSAPublicKey {
             try BlindSigningHelpers.bytesToInt(blindSignature.rawRepresentation, z)
 
             // 3. s = (z * inv) mod n
-            try BlindSigningHelpers.bytesToInt(blindInverse.rawRepresentation, inv)
+            try BlindSigningHelpers.bytesToInt(blindingInverse.rawRepresentation, inv)
             try BlindSigningHelpers.multiply(result: s, z, inv, mod: n, bnCtx)
 
             // 4. sig = int_to_bytes(s, modulus_len)

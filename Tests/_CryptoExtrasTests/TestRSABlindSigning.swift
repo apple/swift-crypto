@@ -67,11 +67,11 @@ final class TestRSABlindSigning: XCTestCase {
             do {
                 let publicKey = try _RSA.BlindSigning.PublicKey(nHexString: testVector.n, eHexString: testVector.e, parameters: testVector.parameters)
                 let preparedMessage = try _RSA.BlindSigning.PreparedMessage(rawRepresentation: Data(hexString: testVector.prepared_msg))
-                let (blindedMessage, blindInverse) = try publicKey.blind(preparedMessage)
+                let blindingResult = try publicKey.blind(preparedMessage)
                 // NOTE: Sadly we can't validate the blinded message against the test vectors because BoringSSL doesn't
                 // have the APIs we would need to specify a fixed salt value.
-                XCTAssertEqual(blindedMessage.hexString.count, testVector.blinded_msg.count)
-                XCTAssertEqual(blindInverse.rawRepresentation.hexString.count, testVector.inv.count)
+                XCTAssertEqual(blindingResult.blindedMessage.hexString.count, testVector.blinded_msg.count)
+                XCTAssertEqual(blindingResult.inverse.rawRepresentation.hexString.count, testVector.inv.count)
             }
 
             // BlindSign
@@ -97,8 +97,8 @@ final class TestRSABlindSigning: XCTestCase {
                 let publicKey = try _RSA.BlindSigning.PublicKey(nHexString: testVector.n, eHexString: testVector.e, parameters: testVector.parameters)
                 let blindSignature = try _RSA.BlindSigning.BlindSignature(rawRepresentation: Data(hexString: testVector.blind_sig))
                 let preparedMessage = try _RSA.BlindSigning.PreparedMessage(rawRepresentation: Data(hexString: testVector.prepared_msg))
-                let blindInverse = try _RSA.BlindSigning.BlindInverse(rawRepresentation: Data(hexString: testVector.inv))
-                let signature = try publicKey.finalize(blindSignature, for: preparedMessage, blindInverse: blindInverse)
+                let blindingInverse = try _RSA.BlindSigning.BlindingInverse(rawRepresentation: Data(hexString: testVector.inv))
+                let signature = try publicKey.finalize(blindSignature, for: preparedMessage, blindingInverse: blindingInverse)
                 XCTAssertEqual(
                     signature.rawRepresentation.hexString,
                     try Data(hexString: testVector.sig).hexString

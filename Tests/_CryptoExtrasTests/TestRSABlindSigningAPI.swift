@@ -43,13 +43,13 @@ final class TestRSABlindSigningAPI: XCTestCase {
                 let preparedMessage = publicKey.prepare(message)
 
                 // [Client] Blind the message to send to the server and get its blinding inverse.
-                let (blindedMessage, blindInverse) = try publicKey.blind(preparedMessage)
+                let blindingResult = try publicKey.blind(preparedMessage)
 
                 // [Issuer] Blind sign, construting the blinded message from the bytes received from the client.
-                let blindSignature = try privateKey.blindSignature(for: blindedMessage)
+                let blindSignature = try privateKey.blindSignature(for: blindingResult.blindedMessage)
 
                 // [Client] Finalize using the blind inverse to unblind the signature.
-                let unblindedSignature = try publicKey.finalize(blindSignature, for: preparedMessage, blindInverse: blindInverse)
+                let unblindedSignature = try publicKey.finalize(blindSignature, for: preparedMessage, blindingInverse: blindingResult.inverse)
 
                 // [Verifier] Verify the unblinded signature.
                 XCTAssert(publicKey.isValidSignature(unblindedSignature, for: preparedMessage))
