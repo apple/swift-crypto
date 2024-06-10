@@ -410,15 +410,38 @@ extension _RSA.BlindSigning.PublicKey {
 extension _RSA.BlindSigning {
     /// Errors defined in the RSA Blind Signatures protocol.
     ///
+    /// - NOTE: This type does not conform to `Swift.Error`, it is used to construct a `CryptoKitError`.
+    ///
     /// - Seealso: [RFC 9474: Errors](https://www.rfc-editor.org/rfc/rfc9474.html#name-errors).
-    enum Error: Swift.Error {
+    enum ProtocolError {
         case messageTooLong
         case encodingError
-        case blindingError
         case invalidInput
         case signingFailure
         case messageRepresentativeOutOfRange
         case invalidSignature
         case unexpectedInputSize
+    }
+}
+
+extension CryptoKitError {
+    /// Map an error from the RSA Blind Signatures protocol to a CryptoKitError.
+    init(_ error: _RSA.BlindSigning.ProtocolError) {
+        switch error {
+        case .messageTooLong:
+            self = .incorrectParameterSize
+        case .encodingError:
+            self = .incorrectParameterSize
+        case .invalidInput:
+            self = .incorrectParameterSize
+        case .signingFailure:
+            self = .authenticationFailure
+        case .messageRepresentativeOutOfRange:
+            self = .incorrectParameterSize
+        case .invalidSignature:
+            self = .authenticationFailure
+        case .unexpectedInputSize:
+            self = .incorrectParameterSize
+        }
     }
 }

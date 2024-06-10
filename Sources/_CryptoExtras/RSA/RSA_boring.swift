@@ -391,7 +391,7 @@ extension BoringSSLRSAPublicKey {
                 }) == 1 else {
                     switch ERR_GET_REASON(CCryptoBoringSSL_ERR_get_error()) {
                     case RSA_R_DATA_TOO_LARGE_FOR_KEY_SIZE:
-                        throw _RSA.BlindSigning.Error.messageTooLong
+                        throw CryptoKitError(_RSA.BlindSigning.ProtocolError.messageTooLong)
                     default:
                         throw CryptoKitError.internalBoringSSLError()
                     }
@@ -405,8 +405,8 @@ extension BoringSSLRSAPublicKey {
             let c = CCryptoBoringSSL_BN_is_one(gcd) == 1
 
             // 5. If c is false, raise an "invalid input" error and stop
-            guard c else {
-                throw _RSA.BlindSigning.Error.invalidInput
+            if !c {
+                throw CryptoKitError(_RSA.BlindSigning.ProtocolError.invalidInput)
             }
 
             // 6. r = random_integer_uniform(1, n)
@@ -480,7 +480,7 @@ extension BoringSSLRSAPublicKey {
 
             // 1. If len(blind_sig) != modulus_len, raise an "unexpected input size" error and stop
             guard signature.rawRepresentation.count == outputSize else {
-                throw _RSA.BlindSigning.Error.unexpectedInputSize
+                throw CryptoKitError(_RSA.BlindSigning.ProtocolError.unexpectedInputSize)
             }
 
             // 2. z = bytes_to_int(blind_sig)
@@ -523,7 +523,7 @@ extension BoringSSLRSAPublicKey {
                         throw CryptoKitError.internalBoringSSLError()
                     }
                     guard outputCount == outputSize else {
-                        throw _RSA.BlindSigning.Error.invalidSignature
+                        throw CryptoKitError(_RSA.BlindSigning.ProtocolError.invalidSignature)
                     }
                     let hashDigestType = try DigestType(forDigestType: H.Digest.self)
                     try H.hash(data: message.rawRepresentation).withUnsafeBytes { messageHashBufferPtr in
@@ -828,7 +828,7 @@ extension BoringSSLRSAPrivateKey {
                     ) == 1 else {
                         switch ERR_GET_REASON(CCryptoBoringSSL_ERR_get_error()) {
                         case RSA_R_DATA_TOO_LARGE_FOR_MODULUS:
-                            throw _RSA.BlindSigning.Error.messageRepresentativeOutOfRange
+                            throw CryptoKitError(_RSA.BlindSigning.ProtocolError.messageRepresentativeOutOfRange)
                         default:
                             throw CryptoKitError.internalBoringSSLError()
                         }
@@ -867,7 +867,7 @@ extension BoringSSLRSAPrivateKey {
                             outputCount == blindedMessageBufferPtr.count,
                             memcmp(verificationBufferPtr.baseAddress!, blindedMessageBufferPtr.baseAddress!, blindedMessageBufferPtr.count) == 0
                         else {
-                            throw _RSA.BlindSigning.Error.signingFailure
+                            throw CryptoKitError(_RSA.BlindSigning.ProtocolError.signingFailure)
                         }
                     }
                 }
