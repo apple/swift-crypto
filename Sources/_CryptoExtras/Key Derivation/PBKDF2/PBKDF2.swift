@@ -40,13 +40,19 @@ extension KDF.Insecure {
             return try BackingPBKDF2.deriveKey(from: password, salt: salt, using: hashFunction, outputByteCount: outputByteCount, rounds: rounds)
         }
         
-        public enum HashFunction {
-            case md5
-            case sha1
-            case sha224
-            case sha256
-            case sha384
-            case sha512
+        public struct HashFunction {
+            public let rawValue: String
+            
+            public static let md5 = HashFunction(rawValue: "md5")
+            public static let sha1 = HashFunction(rawValue: "sha1")
+            public static let sha224 = HashFunction(rawValue: "sha224")
+            public static let sha256 = HashFunction(rawValue: "sha256")
+            public static let sha384 = HashFunction(rawValue: "sha384")
+            public static let sha512 = HashFunction(rawValue: "sha512")
+            
+            public init(rawValue: String) {
+                self.rawValue = rawValue
+            }
         }
     }
 }
