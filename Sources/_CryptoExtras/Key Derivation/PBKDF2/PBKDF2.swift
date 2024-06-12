@@ -40,7 +40,7 @@ extension KDF.Insecure {
             return try BackingPBKDF2.deriveKey(from: password, salt: salt, using: hashFunction, outputByteCount: outputByteCount, rounds: rounds)
         }
         
-        public struct HashFunction {
+        public struct HashFunction: Equatable, Hashable {
             public let rawValue: String
             
             public static let md5 = HashFunction(rawValue: "md5")

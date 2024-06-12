@@ -58,18 +58,18 @@ internal struct BoringSSLPBKDF2 {
 
 extension KDF.Insecure.PBKDF2.HashFunction {
     var digest: OpaquePointer {
-        switch self.rawValue {
-        case "md5":
+        switch self {
+        case .md5:
             return CCryptoBoringSSL_EVP_md5()
-        case "sha1":
+        case .sha1:
             return CCryptoBoringSSL_EVP_sha1()
-        case "sha224":
+        case .sha224:
             return CCryptoBoringSSL_EVP_sha224()
-        case "sha256":
+        case .sha256:
             return CCryptoBoringSSL_EVP_sha256()
-        case "sha384":
+        case .sha384:
             return CCryptoBoringSSL_EVP_sha384()
-        case "sha512":
+        case .sha512:
             return CCryptoBoringSSL_EVP_sha512()
         default:
             preconditionFailure("Unsupported hash function: \(self.rawValue)")

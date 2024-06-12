@@ -63,18 +63,18 @@ internal struct CommonCryptoPBKDF2 {
 
 extension KDF.Insecure.PBKDF2.HashFunction {
     var ccHash: CCPBKDFAlgorithm {
-        switch self.rawValue {
-        case "md5":
+        switch self {
+        case .md5:
             return CCPBKDFAlgorithm(kCCHmacAlgMD5)
-        case "sha1":
+        case .sha1:
             return CCPBKDFAlgorithm(kCCPRFHmacAlgSHA1)
-        case "sha224":
+        case .sha224:
             return CCPBKDFAlgorithm(kCCPRFHmacAlgSHA224)
-        case "sha256":
+        case .sha256:
             return CCPBKDFAlgorithm(kCCPRFHmacAlgSHA256)
-        case "sha384":
+        case .sha384:
             return CCPBKDFAlgorithm(kCCPRFHmacAlgSHA384)
-        case "sha512":
+        case .sha512:
             return CCPBKDFAlgorithm(kCCPRFHmacAlgSHA512)
         default:
             preconditionFailure("Unsupported hash function: \(self.rawValue)")
