@@ -106,6 +106,7 @@ public struct HMAC<H: HashFunction>: MACAlgorithm {
     ///   - key: The symmetric key used to secure the computation.
     ///
     /// - Returns: The message authentication code.
+    @inlinable
     public static func authenticationCode<D: DataProtocol>(for data: D, using key: SymmetricKey) -> MAC {
         var authenticator = Self(key: key)
         authenticator.update(data: data)
@@ -148,6 +149,7 @@ public struct HMAC<H: HashFunction>: MACAlgorithm {
     ///
     /// - Parameters:
     ///   - data: The data for which to compute the authentication code.
+    @inlinable
     public mutating func update<D: DataProtocol>(data: D) {
         data.regions.forEach { (memoryRegion) in
             memoryRegion.withUnsafeBytes({ (bp) in
@@ -175,8 +177,8 @@ public struct HMAC<H: HashFunction>: MACAlgorithm {
     /// Adds data to be authenticated by MAC function. This can be called one or more times to append additional data.
     ///
     /// - Parameters:
-    ///   - data: The data to be authenticated.
-    /// - Throws: Throws if the HMAC has already been finalized.
+    ///   - bufferPointer: A pointer to the data for which to compute the authentication code.
+    @usableFromInline
     mutating func update(bufferPointer: UnsafeRawBufferPointer) {
         innerHasher.update(bufferPointer: bufferPointer)
     }
