@@ -54,7 +54,7 @@ final class SPXTests: XCTestCase {
     }
     
     func testSPXKeyGeneration() throws {
-        let seed: [UInt8] = Array(repeating: 0, count: (3 * 16))
+        let seed: [UInt8] = Array(repeating: 0, count: SPX.seedSizeInBytes)
         
         let expectedPublicKey: [UInt8] = [
             0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
@@ -119,7 +119,7 @@ final class SPXTests: XCTestCase {
         try spxTest(jsonName: "spx_tests_deterministic") { testVector in
             let message = try Data(hexString: testVector.msg)
             let secretKey = try SPX.PrivateKey(derRepresentation: Data(hexString: testVector.sk))
-            let expectedSignature = try SPX.Signature(rawRepresentation: Data(hexString: testVector.sm).prefix(7856))
+            let expectedSignature = try SPX.Signature(rawRepresentation: Data(hexString: testVector.sm).prefix(SPX.Signature.bytesCount))
             let signature = secretKey.signature(for: message)
             XCTAssertEqual(signature.rawRepresentation, expectedSignature.rawRepresentation)
         }

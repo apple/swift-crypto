@@ -30,26 +30,26 @@ extension SPX {
         private let pointer: UnsafeMutablePointer<UInt8>
         
         public init() {
-            self.pointer = UnsafeMutablePointer<UInt8>.allocate(capacity: 64)
-            CCryptoBoringSSL_spx_generate_key(UnsafeMutablePointer<UInt8>.allocate(capacity: 32), self.pointer)
+            self.pointer = UnsafeMutablePointer<UInt8>.allocate(capacity: SPX.PrivateKey.bytesCount)
+            CCryptoBoringSSL_spx_generate_key(UnsafeMutablePointer<UInt8>.allocate(capacity: SPX.PublicKey.bytesCount), self.pointer)
         }
         
         public init(from seed: some DataProtocol) throws {
-            guard seed.count >= (3 * 16) else {
+            guard seed.count >= SPX.seedSizeInBytes else {
                 throw CryptoKitError.incorrectKeySize
             }
-            let seedPtr = UnsafeMutablePointer<UInt8>.allocate(capacity: 3 * 16)
-            seedPtr.initialize(from: seed.regions.flatMap { $0 }, count: 3 * 16)
-            self.pointer = UnsafeMutablePointer<UInt8>.allocate(capacity: 64)
-            CCryptoBoringSSL_spx_generate_key_from_seed(UnsafeMutablePointer<UInt8>.allocate(capacity: 32), self.pointer, seedPtr)
+            let seedPtr = UnsafeMutablePointer<UInt8>.allocate(capacity: SPX.seedSizeInBytes)
+            seedPtr.initialize(from: seed.regions.flatMap { $0 }, count: SPX.seedSizeInBytes)
+            self.pointer = UnsafeMutablePointer<UInt8>.allocate(capacity: SPX.PrivateKey.bytesCount)
+            CCryptoBoringSSL_spx_generate_key_from_seed(UnsafeMutablePointer<UInt8>.allocate(capacity: SPX.PublicKey.bytesCount), self.pointer, seedPtr)
         }
 
         public init<Bytes: DataProtocol>(derRepresentation: Bytes) throws {
-            guard derRepresentation.count == 64 else {
+            guard derRepresentation.count == SPX.PrivateKey.bytesCount else {
                 throw CryptoKitError.incorrectKeySize
             }
-            self.pointer = UnsafeMutablePointer<UInt8>.allocate(capacity: 64)
-            self.pointer.initialize(from: derRepresentation.regions.flatMap { $0 }, count: 64)
+            self.pointer = UnsafeMutablePointer<UInt8>.allocate(capacity: SPX.PrivateKey.bytesCount)
+            self.pointer.initialize(from: derRepresentation.regions.flatMap { $0 }, count: SPX.PrivateKey.bytesCount)
         }
         
         public init(pemRepresentation: String) throws {
@@ -58,11 +58,11 @@ extension SPX {
         }
 
         public var bytes: [UInt8] {
-            return Array(UnsafeBufferPointer(start: self.pointer, count: 64))
+            return Array(UnsafeBufferPointer(start: self.pointer, count: SPX.PrivateKey.bytesCount))
         }
         
         public var derRepresentation: Data {
-            return Data(UnsafeBufferPointer(start: self.pointer, count: 64))
+            return Data(UnsafeBufferPointer(start: self.pointer, count: SPX.PrivateKey.bytesCount))
         }
         
         public var pemRepresentation: String {
@@ -74,7 +74,7 @@ extension SPX {
         }
 
         public func signature<D: DataProtocol>(for data: D, randomized: Bool = false) -> Signature {
-            let output = Array<UInt8>(unsafeUninitializedCapacity: 7856) { bufferPtr, length in
+            let output = Array<UInt8>(unsafeUninitializedCapacity: Signature.bytesCount) { bufferPtr, length in
                 data.regions.first!.withUnsafeBytes { dataPtr in
                     CCryptoBoringSSL_spx_sign(
                         bufferPtr.baseAddress,
@@ -84,10 +84,12 @@ extension SPX {
                         randomized ? 1 : 0
                     )
                 }
-                length = 7856
+                length = Signature.bytesCount
             }
             return Signature(signatureBytes: output)
         }
+        
+        public static let bytesCount = 64
     }
 }
 
@@ -96,26 +98,26 @@ extension SPX {
         private let pointer: UnsafeMutablePointer<UInt8>
         
         fileprivate init(privateKey: PrivateKey) {
-            self.pointer = UnsafeMutablePointer<UInt8>.allocate(capacity: 32)
-            self.pointer.initialize(from: privateKey.bytes.suffix(32), count: 32)
+            self.pointer = UnsafeMutablePointer<UInt8>.allocate(capacity: SPX.PublicKey.bytesCount)
+            self.pointer.initialize(from: privateKey.bytes.suffix(SPX.PublicKey.bytesCount), count: SPX.PublicKey.bytesCount)
         }
         
         public init(from seed: some DataProtocol) throws {
-            guard seed.count >= (3 * 16) else {
+            guard seed.count >= SPX.seedSizeInBytes else {
                 throw CryptoKitError.incorrectKeySize
             }
-            let seedPtr = UnsafeMutablePointer<UInt8>.allocate(capacity: 3 * 16)
-            seedPtr.initialize(from: seed.regions.flatMap { $0 }, count: 3 * 16)
-            self.pointer = UnsafeMutablePointer<UInt8>.allocate(capacity: 32)
-            CCryptoBoringSSL_spx_generate_key_from_seed(self.pointer, UnsafeMutablePointer<UInt8>.allocate(capacity: 64), seedPtr)
+            let seedPtr = UnsafeMutablePointer<UInt8>.allocate(capacity: SPX.seedSizeInBytes)
+            seedPtr.initialize(from: seed.regions.flatMap { $0 }, count: SPX.seedSizeInBytes)
+            self.pointer = UnsafeMutablePointer<UInt8>.allocate(capacity: SPX.PublicKey.bytesCount)
+            CCryptoBoringSSL_spx_generate_key_from_seed(self.pointer, UnsafeMutablePointer<UInt8>.allocate(capacity: SPX.PrivateKey.bytesCount), seedPtr)
         }
         
         public init<Bytes: DataProtocol>(derRepresentation: Bytes) throws {
-            guard derRepresentation.count == 32 else {
+            guard derRepresentation.count == SPX.PublicKey.bytesCount else {
                 throw CryptoKitError.incorrectKeySize
             }
-            self.pointer = UnsafeMutablePointer<UInt8>.allocate(capacity: 32)
-            self.pointer.initialize(from: derRepresentation.regions.flatMap { $0 }, count: 32)
+            self.pointer = UnsafeMutablePointer<UInt8>.allocate(capacity: SPX.PublicKey.bytesCount)
+            self.pointer.initialize(from: derRepresentation.regions.flatMap { $0 }, count: SPX.PublicKey.bytesCount)
         }
         
         public init(pemRepresentation: String) throws {
@@ -124,11 +126,11 @@ extension SPX {
         }
 
         public var bytes: [UInt8] {
-            return Array(UnsafeBufferPointer(start: self.pointer, count: 32))
+            return Array(UnsafeBufferPointer(start: self.pointer, count: SPX.PublicKey.bytesCount))
         }
         
         public var derRepresentation: Data {
-            return Data(UnsafeBufferPointer(start: self.pointer, count: 32))
+            return Data(UnsafeBufferPointer(start: self.pointer, count: SPX.PublicKey.bytesCount))
         }
         
         public var pemRepresentation: String {
@@ -148,6 +150,8 @@ extension SPX {
                 return rc == 1
             }
         }
+        
+        public static let bytesCount = 32
     }
 }
 
@@ -166,6 +170,8 @@ extension SPX {
         public func withUnsafeBytes<R>(_ body: (UnsafeRawBufferPointer) throws -> R) rethrows -> R {
             try self.rawRepresentation.withUnsafeBytes(body)
         }
+        
+        public static let bytesCount = 7856
     }
 }
 
@@ -173,4 +179,6 @@ extension SPX {
     static let KeyType = "PRIVATE KEY"
     
     static let PublicKeyType = "PUBLIC KEY"
+    
+    public static let seedSizeInBytes = 3 * 16
 }
