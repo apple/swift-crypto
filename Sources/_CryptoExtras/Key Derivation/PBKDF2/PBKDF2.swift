@@ -43,9 +43,9 @@ extension KDF.Insecure {
         public struct HashFunction: Equatable, Hashable {
             public let rawValue: String
             
-            public static let md5 = HashFunction(rawValue: "md5")
-            public static let sha1 = HashFunction(rawValue: "sha1")
-            public static let sha224 = HashFunction(rawValue: "sha224")
+            public static let insecure_md5 = HashFunction(rawValue: "insecure_md5")
+            public static let insecure_sha1 = HashFunction(rawValue: "insecure_sha1")
+            public static let insecure_sha224 = HashFunction(rawValue: "insecure_sha224")
             public static let sha256 = HashFunction(rawValue: "sha256")
             public static let sha384 = HashFunction(rawValue: "sha384")
             public static let sha512 = HashFunction(rawValue: "sha512")

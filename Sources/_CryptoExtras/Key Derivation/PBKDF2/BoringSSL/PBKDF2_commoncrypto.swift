@@ -30,7 +30,7 @@ internal struct CommonCryptoPBKDF2 {
     ///    - outputByteCount: The length in bytes of resulting symmetric key.
     ///    - rounds: The number of rounds which should be used to perform key derivation.
     /// - Returns: The derived symmetric key.
-    public static func deriveKey<Passphrase: DataProtocol, Salt: DataProtocol>(from password: Passphrase, salt: Salt, using hashFunction: KDF.Insecure.PBKDF2.HashFunction, outputByteCount: Int, rounds: Int) throws -> SymmetricKey {
+    static func deriveKey<Passphrase: DataProtocol, Salt: DataProtocol>(from password: Passphrase, salt: Salt, using hashFunction: KDF.Insecure.PBKDF2.HashFunction, outputByteCount: Int, rounds: Int) throws -> SymmetricKey {
         // This should be SecureBytes, but we can't use that here.
         var derivedKeyData = Data(count: outputByteCount)
         
@@ -64,11 +64,11 @@ internal struct CommonCryptoPBKDF2 {
 extension KDF.Insecure.PBKDF2.HashFunction {
     var ccHash: CCPBKDFAlgorithm {
         switch self {
-        case .md5:
+        case .insecure_md5:
             return CCPBKDFAlgorithm(kCCHmacAlgMD5)
-        case .sha1:
+        case .insecure_sha1:
             return CCPBKDFAlgorithm(kCCPRFHmacAlgSHA1)
-        case .sha224:
+        case .insecure_sha224:
             return CCPBKDFAlgorithm(kCCPRFHmacAlgSHA224)
         case .sha256:
             return CCPBKDFAlgorithm(kCCPRFHmacAlgSHA256)
