@@ -755,7 +755,7 @@ extension BoringSSLRSAPrivateKey {
 
             let messageBytes: ContiguousBytes = message.regions.count == 1 ? message.regions.first! : Array(message)
 
-            let signatureBytes = try Array<UInt8>(unsafeUninitializedCapacity: signatureByteCount) { signatureBufferPtr, signatureBufferCount in
+            let signature = try withUnsafeTemporaryAllocation(of: UInt8.self, capacity: signatureByteCount) { signatureBufferPtr in
                 try messageBytes.withUnsafeBytes { messageBufferPtr in
                     /// NOTE: BoringSSL promotes the use of `RSA_sign_raw` over `RSA_private_encrypt`.
                     var outputCount = 0
@@ -775,16 +775,15 @@ extension BoringSSLRSAPrivateKey {
                             throw CryptoKitError.internalBoringSSLError()
                         }
                     }
-                    precondition(outputCount == signatureByteCount)
-                    signatureBufferCount = outputCount
+                    precondition(outputCount == signatureBufferPtr.count)
                 }
+                return _RSA.BlindSigning.BlindSignature(rawRepresentation: Data(signatureBufferPtr))
             }
-            let signature = _RSA.BlindSigning.BlindSignature(signatureBytes: signatureBytes)
 
             // NOTE: Verification is part of the specification.
             try self.verifyBlindSignature(signature, for: messageBytes)
 
-            return _RSA.BlindSigning.BlindSignature(signatureBytes: signatureBytes)
+            return signature
         }
 
         fileprivate func verifyBlindSignature<D: ContiguousBytes>(_ signature: _RSA.BlindSigning.BlindSignature, for blindedMessage: D) throws {
