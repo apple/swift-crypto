@@ -381,15 +381,13 @@ extension BoringSSLRSAPublicKey {
             // 1. encoded_msg = EMSA-PSS-ENCODE(msg, bit_len(n)) with Hash, MGF, and salt_len as defined in the parameters
             // 2. If EMSA-PSS-ENCODE raises an error, re-raise the error and stop
             // 3. m = bytes_to_int(encoded_msg)
-            try withUnsafeTemporaryAllocation(of: UInt8.self, capacity: modulusByteCount) { encodedMessageBufferPtr in
-                try BlindSigningHelpers.EMSAPSSEncode(
-                    rsaPublicKey: rsaPublicKey,
-                    message: message,
-                    encodedMessageBufferPtr: encodedMessageBufferPtr,
-                    parameters: parameters
-                )
-                CCryptoBoringSSL_BN_bin2bn(encodedMessageBufferPtr.baseAddress, encodedMessageBufferPtr.count, m)
-            }
+            try BlindSigningHelpers.EMSAPSSEncode(
+                result: m,
+                rsaPublicKey: rsaPublicKey,
+                modulusByteCount: modulusByteCount,
+                message: message,
+                parameters: parameters
+            )
 
             // 4. c = is_coprime(m, n)
             CCryptoBoringSSL_BN_gcd(gcd, m, n, bnCtx)
@@ -420,12 +418,7 @@ extension BoringSSLRSAPublicKey {
             let blindedMessage = try BlindSigningHelpers.intToBytes(z, modulusByteCount: modulusByteCount)
 
             // 12. output blinded_msg, inv
-            let blindingInverse = try withUnsafeTemporaryAllocation(of: UInt8.self, capacity: modulusByteCount) { invBufferPtr in
-                guard CCryptoBoringSSL_BN_bn2bin_padded(invBufferPtr.baseAddress, invBufferPtr.count, inv) == 1 else {
-                    throw CryptoKitError.internalBoringSSLError()
-                }
-                return _RSA.BlindSigning.BlindingInverse(rawRepresentation: Data(invBufferPtr))
-            }
+            let blindingInverse = try BlindSigningHelpers.makeBlindingInverse(modulusByteCount: modulusByteCount, inv)
             return _RSA.BlindSigning.BlindingResult(blindedMessage: blindedMessage, inverse: blindingInverse)
         }
 
@@ -917,28 +910,44 @@ enum BlindSigningHelpers {
     }
 
     fileprivate static func EMSAPSSEncode<H: HashFunction>(
+        result: UnsafeMutablePointer<BIGNUM>!,
         rsaPublicKey: OpaquePointer!,
+        modulusByteCount: Int,
         message: _RSA.BlindSigning.PreparedMessage,
-        encodedMessageBufferPtr: UnsafeMutableBufferPointer<UInt8>,
         parameters: _RSA.BlindSigning.Parameters<H>
     ) throws {
-        let hashDigestType = try DigestType(forDigestType: H.Digest.self)
-        guard H.hash(data: message.rawRepresentation).withUnsafeBytes({ hashBufferPtr in
-            CCryptoBoringSSL_RSA_padding_add_PKCS1_PSS_mgf1(
-                rsaPublicKey,
-                encodedMessageBufferPtr.baseAddress,
-                hashBufferPtr.baseAddress,
-                hashDigestType.dispatchTable,
-                hashDigestType.dispatchTable,
-                parameters.saltLength
-            )
-        }) == 1 else {
-            switch ERR_GET_REASON(CCryptoBoringSSL_ERR_get_error()) {
-            case RSA_R_DATA_TOO_LARGE_FOR_KEY_SIZE:
-                throw CryptoKitError(_RSA.BlindSigning.ProtocolError.messageTooLong)
-            default:
+        try withUnsafeTemporaryAllocation(of: UInt8.self, capacity: modulusByteCount) { encodedMessageBufferPtr in
+            let hashDigestType = try DigestType(forDigestType: H.Digest.self)
+            guard H.hash(data: message.rawRepresentation).withUnsafeBytes({ hashBufferPtr in
+                CCryptoBoringSSL_RSA_padding_add_PKCS1_PSS_mgf1(
+                    rsaPublicKey,
+                    encodedMessageBufferPtr.baseAddress,
+                    hashBufferPtr.baseAddress,
+                    hashDigestType.dispatchTable,
+                    hashDigestType.dispatchTable,
+                    parameters.saltLength
+                )
+            }) == 1 else {
+                switch ERR_GET_REASON(CCryptoBoringSSL_ERR_get_error()) {
+                case RSA_R_DATA_TOO_LARGE_FOR_KEY_SIZE:
+                    throw CryptoKitError(_RSA.BlindSigning.ProtocolError.messageTooLong)
+                default:
+                    throw CryptoKitError.internalBoringSSLError()
+                }
+            }
+            CCryptoBoringSSL_BN_bin2bn(encodedMessageBufferPtr.baseAddress, encodedMessageBufferPtr.count, result)
+        }
+    }
+
+    fileprivate static func makeBlindingInverse(
+        modulusByteCount: Int,
+        _ inv: UnsafePointer<BIGNUM>!
+    ) throws -> _RSA.BlindSigning.BlindingInverse {
+        try withUnsafeTemporaryAllocation(of: UInt8.self, capacity: modulusByteCount) { invBufferPtr in
+            guard CCryptoBoringSSL_BN_bn2bin_padded(invBufferPtr.baseAddress, invBufferPtr.count, inv) == 1 else {
                 throw CryptoKitError.internalBoringSSLError()
             }
+            return _RSA.BlindSigning.BlindingInverse(rawRepresentation: Data(invBufferPtr))
         }
     }
 }
