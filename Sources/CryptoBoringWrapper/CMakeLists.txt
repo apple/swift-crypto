@@ -15,8 +15,8 @@
 add_library(CryptoBoringWrapper STATIC
   "AEAD/BoringSSLAEAD.swift"
   "ArbitraryPrecisionInteger.swift"
-  "FiniteFieldArithmeticContext.swift"
-  "CryptoKitErrors_boring.swift")
+  "CryptoKitErrors_boring.swift"
+  "FiniteFieldArithmeticContext.swift")
 
 target_include_directories(CryptoBoringWrapper PUBLIC
   $<TARGET_PROPERTY:CCryptoBoringSSL,INCLUDE_DIRECTORIES>
