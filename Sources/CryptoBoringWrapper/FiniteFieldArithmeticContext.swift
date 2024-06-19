@@ -25,9 +25,10 @@ import CCryptoBoringSSL
 /// Annoyingly, because of the way we have implemented ArbitraryPrecisionInteger, we can't actually use these temporary bignums
 /// ourselves.
 public final class FiniteFieldArithmeticContext {
-    private var fieldSize: ArbitraryPrecisionInteger
-    private var bnCtx: OpaquePointer
+    /* private but @usableFromInline */ @usableFromInline var fieldSize: ArbitraryPrecisionInteger
+    /* private but @usableFromInline */ @usableFromInline var bnCtx: OpaquePointer
 
+    @inlinable
     public init(fieldSize: ArbitraryPrecisionInteger) throws {
         self.fieldSize = fieldSize
         guard let bnCtx = CCryptoBoringSSL_BN_CTX_new() else {
@@ -37,6 +38,7 @@ public final class FiniteFieldArithmeticContext {
         self.bnCtx = bnCtx
     }
 
+    @inlinable
     deinit {
         CCryptoBoringSSL_BN_CTX_end(self.bnCtx)
         CCryptoBoringSSL_BN_CTX_free(self.bnCtx)
@@ -46,6 +48,7 @@ public final class FiniteFieldArithmeticContext {
 // MARK: - Arithmetic operations
 
 extension FiniteFieldArithmeticContext {
+    @inlinable
     public func square(_ input: ArbitraryPrecisionInteger) throws -> ArbitraryPrecisionInteger {
         var output = ArbitraryPrecisionInteger()
 
@@ -64,6 +67,7 @@ extension FiniteFieldArithmeticContext {
         return output
     }
 
+    @inlinable
     public func multiply(_ x: ArbitraryPrecisionInteger, _ y: ArbitraryPrecisionInteger) throws -> ArbitraryPrecisionInteger {
         var output = ArbitraryPrecisionInteger()
 
@@ -84,6 +88,7 @@ extension FiniteFieldArithmeticContext {
         return output
     }
 
+    @inlinable
     public func add(_ x: ArbitraryPrecisionInteger, _ y: ArbitraryPrecisionInteger) throws -> ArbitraryPrecisionInteger {
         var output = ArbitraryPrecisionInteger()
 
@@ -104,6 +109,7 @@ extension FiniteFieldArithmeticContext {
         return output
     }
 
+    @inlinable
     public func subtract(_ x: ArbitraryPrecisionInteger, from y: ArbitraryPrecisionInteger) throws -> ArbitraryPrecisionInteger {
         var output = ArbitraryPrecisionInteger()
 
@@ -125,6 +131,7 @@ extension FiniteFieldArithmeticContext {
         return output
     }
 
+    @inlinable
     public func positiveSquareRoot(_ x: ArbitraryPrecisionInteger) throws -> ArbitraryPrecisionInteger {
         let outputPointer = x.withUnsafeBignumPointer { xPointer in
             self.fieldSize.withUnsafeBignumPointer { fieldSizePointer in
