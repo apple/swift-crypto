@@ -13,7 +13,7 @@
 //===----------------------------------------------------------------------===//
 
 // NOTE: This file is unconditionally compiled because RSABSSA is implemented using BoringSSL on all platforms.
-@_implementationOnly import CCryptoBoringSSL
+import CCryptoBoringSSL
 import Crypto
 
 struct DigestType {

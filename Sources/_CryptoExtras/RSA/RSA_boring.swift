@@ -15,8 +15,8 @@ import Foundation
 import Crypto
 
 // NOTE: This file is unconditionally compiled because RSABSSA is implemented using BoringSSL on all platforms.
-@_implementationOnly import CCryptoBoringSSL
-@_implementationOnly import CCryptoBoringSSLShims
+import CCryptoBoringSSL
+import CCryptoBoringSSLShims
 
 internal struct BoringSSLRSAPublicKey: Sendable {
     private var backing: Backing
