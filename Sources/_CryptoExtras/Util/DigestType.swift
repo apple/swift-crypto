@@ -14,7 +14,7 @@
 #if CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
 // Nothing to do in this case
 #else
-@_implementationOnly import CCryptoBoringSSL
+import CCryptoBoringSSL
 import Crypto
 
 struct DigestType {

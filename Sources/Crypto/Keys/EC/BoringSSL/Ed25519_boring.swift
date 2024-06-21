@@ -14,8 +14,8 @@
 #if CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
 @_exported import CryptoKit
 #else
-@_implementationOnly import CCryptoBoringSSL
-@_implementationOnly import CCryptoBoringSSLShims
+import CCryptoBoringSSL
+import CCryptoBoringSSLShims
 import Foundation
 
 // For signing and verifying, we use BoringSSL's Ed25519, not the X25519 stuff.

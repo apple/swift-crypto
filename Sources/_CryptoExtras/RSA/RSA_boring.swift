@@ -17,8 +17,8 @@ import Crypto
 #if CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
 // Nothing; this is implemented in RSA_security
 #else
-@_implementationOnly import CCryptoBoringSSL
-@_implementationOnly import CCryptoBoringSSLShims
+import CCryptoBoringSSL
+import CCryptoBoringSSLShims
 
 internal struct BoringSSLRSAPublicKey: Sendable {
     private var backing: Backing
