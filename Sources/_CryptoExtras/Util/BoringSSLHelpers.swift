@@ -15,6 +15,7 @@
 // NOTE: This file is unconditionally compiled because RSABSSA is implemented using BoringSSL on all platforms.
 import CCryptoBoringSSL
 import CCryptoBoringSSLShims
+import CryptoBoringWrapper
 import Foundation
 import Crypto
 
@@ -93,95 +94,6 @@ extension FixedWidthInteger {
     }
 }
 
-extension BIGNUM {
-    /// Construct a BoringSSL `BIGNUM` from a hex string.
-    ///
-    /// - Parameter hexString: Hex byte string (big-endian, no `0x` prefix, may start with `-` for a negative number).
-    init(hexString: String) throws {
-        self = BIGNUM()
-        try hexString.withCString { hexStringPtr in
-            /// `BN_hex2bin` takes a `BIGNUM **` so we need a double WUMP dance.
-            try withUnsafeMutablePointer(to: &self) { selfPtr in
-                var selfPtr: UnsafeMutablePointer<BIGNUM>? = selfPtr
-                try withUnsafeMutablePointer(to: &selfPtr) { selfPtrPtr in
-                    /// `BN_hex2bin` returns the number of bytes of `in` processed or zero on error.
-                    guard CCryptoBoringSSL_BN_hex2bn(selfPtrPtr, hexStringPtr) == hexString.count else {
-                        throw CryptoKitError.incorrectParameterSize
-                    }
-                }
-            }
-        }
-    }
-
-    func sub(_ rhs: Self, modulo modulus: Self? = nil) -> Self {
-        var result = BIGNUM()
-
-        let rc = withUnsafeMutablePointer(to: &result) { resultPtr in
-            withUnsafePointer(to: self) { selfPtr in
-                withUnsafePointer(to: rhs) { rhsPtr in
-                    if let modulus {
-                        return withUnsafePointer(to: modulus) { modulusPtr in
-                            withNewBignumContext { bnCtxPtr in
-                                CCryptoBoringSSL_BN_mod_sub(resultPtr, selfPtr, rhsPtr, modulusPtr, bnCtxPtr)
-                            }
-                        }
-                    } else {
-                        return CCryptoBoringSSL_BN_sub(resultPtr, selfPtr, rhsPtr)
-                    }
-                }
-            }
-        }
-        precondition(rc == 1, "Unable to allocate memory for new BIGNUM")
-
-        return result
-    }
-
-    func modulo(_ mod: Self, nonNegative: Bool = false) -> Self {
-        var result = BIGNUM()
-
-        let rc = withUnsafeMutablePointer(to: &result) { resultPtr in
-            withUnsafePointer(to: self) { selfPtr in
-                withUnsafePointer(to: mod) { modPtr in
-                    withNewBignumContext { bnCtxPtr in
-                        if nonNegative {
-                            return CCryptoBoringSSL_BN_nnmod(resultPtr, selfPtr, modPtr, bnCtxPtr)
-                        } else {
-                            return CCryptoBoringSSLShims_BN_mod(resultPtr, selfPtr, modPtr, bnCtxPtr)
-                        }
-                    }
-                }
-            }
-        }
-        precondition(rc == 1, "Unable to allocate memory for new BIGNUM")
-
-        return result
-    }
-
-    func inverse(modulo mod: Self) -> Self {
-        var result = BIGNUM()
-
-        let rc = withUnsafeMutablePointer(to: &result) { resultPtr in
-            withUnsafePointer(to: self) { selfPtr in
-                withUnsafePointer(to: mod) { modPtr in
-                    withNewBignumContext { bnCtxPtr in
-                        CCryptoBoringSSL_BN_mod_inverse(resultPtr, selfPtr, modPtr, bnCtxPtr)
-                    }
-                }
-            }
-        }
-        precondition(rc != nil, "Unable to allocate memory for new BIGNUM")
-
-        return result
-    }
-
-}
-
-fileprivate func withNewBignumContext<R>(_ body: (OpaquePointer /* BN_CTX* */) throws -> R) rethrows -> R {
-    let bnCtxPtr = CCryptoBoringSSL_BN_CTX_new()!
-    defer { CCryptoBoringSSL_BN_CTX_free(bnCtxPtr) }
-    return try body(bnCtxPtr)
-}
-
 extension _RSA.BlindSigning.PublicKey {
     /// Construct a platform-specific RSA public key with the specified parameters.
     ///
@@ -190,13 +102,15 @@ extension _RSA.BlindSigning.PublicKey {
     /// Only the BoringSSL backend provides APIs to create the key from its parameters so we first create a BoringSSL
     /// key, serialize it to PEM format, and then construct a platform specific key from the PEM representation.
     internal init(nHexString: String, eHexString: String, parameters: Parameters) throws {
-        var n = try BIGNUM(hexString: nHexString)
-        defer { CCryptoBoringSSL_BN_clear_free(&n) }
-        var e = try BIGNUM(hexString: eHexString)
-        defer { CCryptoBoringSSL_BN_clear_free(&e) }
+        let n = try ArbitraryPrecisionInteger(hexString: nHexString)
+        let e = try ArbitraryPrecisionInteger(hexString: eHexString)
 
         // Create BoringSSL RSA key.
-        let rsaPtr = CCryptoBoringSSL_RSA_new_public_key(&n, &e)
+        guard let rsaPtr = (n.withUnsafeBignumPointer { n in
+            e.withUnsafeBignumPointer { e in
+                CCryptoBoringSSL_RSA_new_public_key(n, e)
+            }
+        }) else { throw CryptoKitError.internalBoringSSLError() }
         defer { CCryptoBoringSSL_RSA_free(rsaPtr) }
 
         // Get PEM representation for key.
@@ -219,29 +133,37 @@ extension _RSA.BlindSigning.PrivateKey {
     /// Only the BoringSSL backend provides APIs to create the key from its parameters so we first create a BoringSSL
     /// key, serialize it to PEM format, and then construct a platform specific key from the PEM representation.
     internal init(nHexString: String, eHexString: String, dHexString: String, pHexString: String, qHexString: String, parameters: Parameters) throws {
-        var n = try BIGNUM(hexString: nHexString)
-        defer { CCryptoBoringSSL_BN_clear_free(&n) }
-        var e = try BIGNUM(hexString: eHexString)
-        defer { CCryptoBoringSSL_BN_clear_free(&e) }
-        var d = try BIGNUM(hexString: dHexString)
-        defer { CCryptoBoringSSL_BN_clear_free(&d) }
-        var p = try BIGNUM(hexString: pHexString)
-        defer { CCryptoBoringSSL_BN_clear_free(&p) }
-        var q = try BIGNUM(hexString: qHexString)
-        defer { CCryptoBoringSSL_BN_clear_free(&q) }
+        let n = try ArbitraryPrecisionInteger(hexString: nHexString)
+        let e = try ArbitraryPrecisionInteger(hexString: eHexString)
+        let d = try ArbitraryPrecisionInteger(hexString: dHexString)
+        let p = try ArbitraryPrecisionInteger(hexString: pHexString)
+        let q = try ArbitraryPrecisionInteger(hexString: qHexString)
 
         // Compute the CRT params.
-        var one = try BIGNUM(hexString: "01")
-        defer { CCryptoBoringSSL_BN_clear_free(&one) }
-        var dp = d.modulo(p.sub(one))
-        defer { CCryptoBoringSSL_BN_clear_free(&dp) }
-        var dq = d.modulo(q.sub(one))
-        defer { CCryptoBoringSSL_BN_clear_free(&dq) }
-        var qi = q.inverse(modulo: p)
-        defer { CCryptoBoringSSL_BN_clear_free(&qi) }
+        let dp = try FiniteFieldArithmeticContext(fieldSize: p - 1).residue(d)
+        let dq = try FiniteFieldArithmeticContext(fieldSize: q - 1).residue(d)
+        guard let qi = try FiniteFieldArithmeticContext(fieldSize: p).inverse(q) else {
+            throw CryptoKitError.internalBoringSSLError()
+        }
 
         // Create BoringSSL RSA key.
-        let rsaPtr = CCryptoBoringSSL_RSA_new_private_key(&n, &e, &d, &p, &q, &dp, &dq, &qi)
+        guard let rsaPtr = (n.withUnsafeBignumPointer { n in
+            e.withUnsafeBignumPointer { e in
+                d.withUnsafeBignumPointer { d in
+                    p.withUnsafeBignumPointer { p in
+                        q.withUnsafeBignumPointer { q in
+                            dp.withUnsafeBignumPointer { dp in
+                                dq.withUnsafeBignumPointer { dq in
+                                    qi.withUnsafeBignumPointer { qi in
+                                        CCryptoBoringSSL_RSA_new_private_key(n, e, d, p, q, dp, dq, qi)
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }) else { throw CryptoKitError.internalBoringSSLError() }
         defer { CCryptoBoringSSL_RSA_free(rsaPtr) }
 
         // Get PEM representation for key.

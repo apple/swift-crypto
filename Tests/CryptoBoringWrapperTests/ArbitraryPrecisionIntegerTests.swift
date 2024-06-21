@@ -109,4 +109,60 @@ final class ArbitraryPrecisionIntegerTests: XCTestCase {
         XCTAssertFalse(two > two)
         XCTAssertTrue(two >= two)
     }
+
+    func testGCD() {
+        XCTAssertEqual(try ArbitraryPrecisionInteger.gcd(+9, +13), 1)
+        XCTAssertEqual(try ArbitraryPrecisionInteger.gcd(+9, -13), 1)
+        XCTAssertEqual(try ArbitraryPrecisionInteger.gcd(-9, +13), 1)
+        XCTAssertEqual(try ArbitraryPrecisionInteger.gcd(-9, -13), 1)
+
+        XCTAssertEqual(try ArbitraryPrecisionInteger.gcd(+13, +9), 1)
+        XCTAssertEqual(try ArbitraryPrecisionInteger.gcd(+13, -9), 1)
+        XCTAssertEqual(try ArbitraryPrecisionInteger.gcd(-13, +9), 1)
+        XCTAssertEqual(try ArbitraryPrecisionInteger.gcd(-13, -9), 1)
+
+        XCTAssertEqual(try ArbitraryPrecisionInteger.gcd(+9, +12), 3)
+        XCTAssertEqual(try ArbitraryPrecisionInteger.gcd(+9, -12), 3)
+        XCTAssertEqual(try ArbitraryPrecisionInteger.gcd(-9, +12), 3)
+        XCTAssertEqual(try ArbitraryPrecisionInteger.gcd(-9, -12), 3)
+
+        XCTAssertEqual(try ArbitraryPrecisionInteger.gcd(+12, +9), 3)
+        XCTAssertEqual(try ArbitraryPrecisionInteger.gcd(+12, -9), 3)
+        XCTAssertEqual(try ArbitraryPrecisionInteger.gcd(-12, +9), 3)
+        XCTAssertEqual(try ArbitraryPrecisionInteger.gcd(-12, -9), 3)
+    }
+
+    func testIsCoprime() {
+        XCTAssert(try ArbitraryPrecisionInteger(+9).isCoprime(with: +13))
+        XCTAssert(try ArbitraryPrecisionInteger(+9).isCoprime(with: -13))
+        XCTAssert(try ArbitraryPrecisionInteger(-9).isCoprime(with: +13))
+        XCTAssert(try ArbitraryPrecisionInteger(-9).isCoprime(with: -13))
+
+        XCTAssertFalse(try ArbitraryPrecisionInteger(+9).isCoprime(with: +27))
+        XCTAssertFalse(try ArbitraryPrecisionInteger(+9).isCoprime(with: -27))
+        XCTAssertFalse(try ArbitraryPrecisionInteger(-9).isCoprime(with: +27))
+        XCTAssertFalse(try ArbitraryPrecisionInteger(-9).isCoprime(with: -27))
+    }
+
+    func testRandom() throws {
+        XCTAssertEqual(try ArbitraryPrecisionInteger.random(inclusiveMin: 4, exclusiveMax: 5), 4)
+
+        var previousRandom = ArbitraryPrecisionInteger()
+        for _ in 1...1_000 {
+            let exclusiveMax = try ArbitraryPrecisionInteger(bytes: Data(repeating: UInt8.max, count: 2048/8))
+            let random = try ArbitraryPrecisionInteger.random(inclusiveMin: 42, exclusiveMax: exclusiveMax)
+            XCTAssert(random >= ArbitraryPrecisionInteger(42))
+            XCTAssert(random < exclusiveMax)
+            XCTAssert(random != previousRandom)
+            previousRandom = random
+        }
+    }
+
+    func testDataRoundtrip() throws {
+        for value: Int64 in [0, 1, 42, 256, 1024, .max] {
+            let integer = ArbitraryPrecisionInteger(integerLiteral: value)
+            let bytes = try Data(bytesOf: integer, paddedToSize: (value.bitWidth + 7) / 8)
+            XCTAssertEqual(try ArbitraryPrecisionInteger(bytes: bytes), integer)
+        }
+    }
 }
