@@ -11,11 +11,7 @@
 // SPDX-License-Identifier: Apache-2.0
 //
 //===----------------------------------------------------------------------===//
-#if CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
-@_exported import CryptoKit
-#else
-@_implementationOnly import CCryptoBoringSSL
-import Foundation
+import CCryptoBoringSSL
 
 /// A context for performing mathematical operations on ArbitraryPrecisionIntegers over a finite field.
 ///
@@ -28,21 +24,21 @@ import Foundation
 ///
 /// Annoyingly, because of the way we have implemented ArbitraryPrecisionInteger, we can't actually use these temporary bignums
 /// ourselves.
-@usableFromInline
-class FiniteFieldArithmeticContext {
-    private var fieldSize: ArbitraryPrecisionInteger
-    private var bnCtx: OpaquePointer
+public final class FiniteFieldArithmeticContext {
+    /* private but @usableFromInline */ @usableFromInline var fieldSize: ArbitraryPrecisionInteger
+    /* private but @usableFromInline */ @usableFromInline var bnCtx: OpaquePointer
 
-    @usableFromInline
-    init(fieldSize: ArbitraryPrecisionInteger) throws {
+    @inlinable
+    public init(fieldSize: ArbitraryPrecisionInteger) throws {
         self.fieldSize = fieldSize
         guard let bnCtx = CCryptoBoringSSL_BN_CTX_new() else {
-            throw CryptoKitError.internalBoringSSLError()
+            throw CryptoBoringWrapperError.internalBoringSSLError()
         }
         CCryptoBoringSSL_BN_CTX_start(bnCtx)
         self.bnCtx = bnCtx
     }
 
+    @inlinable
     deinit {
         CCryptoBoringSSL_BN_CTX_end(self.bnCtx)
         CCryptoBoringSSL_BN_CTX_free(self.bnCtx)
@@ -52,8 +48,8 @@ class FiniteFieldArithmeticContext {
 // MARK: - Arithmetic operations
 
 extension FiniteFieldArithmeticContext {
-    @usableFromInline
-    func square(_ input: ArbitraryPrecisionInteger) throws -> ArbitraryPrecisionInteger {
+    @inlinable
+    public func square(_ input: ArbitraryPrecisionInteger) throws -> ArbitraryPrecisionInteger {
         var output = ArbitraryPrecisionInteger()
 
         let rc = input.withUnsafeBignumPointer { inputPointer in
@@ -65,14 +61,14 @@ extension FiniteFieldArithmeticContext {
         }
 
         guard rc == 1 else {
-            throw CryptoKitError.internalBoringSSLError()
+            throw CryptoBoringWrapperError.internalBoringSSLError()
         }
 
         return output
     }
 
-    @usableFromInline
-    func multiply(_ x: ArbitraryPrecisionInteger, _ y: ArbitraryPrecisionInteger) throws -> ArbitraryPrecisionInteger {
+    @inlinable
+    public func multiply(_ x: ArbitraryPrecisionInteger, _ y: ArbitraryPrecisionInteger) throws -> ArbitraryPrecisionInteger {
         var output = ArbitraryPrecisionInteger()
 
         let rc = x.withUnsafeBignumPointer { xPointer in
@@ -86,14 +82,14 @@ extension FiniteFieldArithmeticContext {
         }
 
         guard rc == 1 else {
-            throw CryptoKitError.internalBoringSSLError()
+            throw CryptoBoringWrapperError.internalBoringSSLError()
         }
 
         return output
     }
 
-    @usableFromInline
-    func add(_ x: ArbitraryPrecisionInteger, _ y: ArbitraryPrecisionInteger) throws -> ArbitraryPrecisionInteger {
+    @inlinable
+    public func add(_ x: ArbitraryPrecisionInteger, _ y: ArbitraryPrecisionInteger) throws -> ArbitraryPrecisionInteger {
         var output = ArbitraryPrecisionInteger()
 
         let rc = x.withUnsafeBignumPointer { xPointer in
@@ -107,14 +103,14 @@ extension FiniteFieldArithmeticContext {
         }
 
         guard rc == 1 else {
-            throw CryptoKitError.internalBoringSSLError()
+            throw CryptoBoringWrapperError.internalBoringSSLError()
         }
 
         return output
     }
 
-    @usableFromInline
-    func subtract(_ x: ArbitraryPrecisionInteger, from y: ArbitraryPrecisionInteger) throws -> ArbitraryPrecisionInteger {
+    @inlinable
+    public func subtract(_ x: ArbitraryPrecisionInteger, from y: ArbitraryPrecisionInteger) throws -> ArbitraryPrecisionInteger {
         var output = ArbitraryPrecisionInteger()
 
         let rc = x.withUnsafeBignumPointer { xPointer in
@@ -129,14 +125,14 @@ extension FiniteFieldArithmeticContext {
         }
 
         guard rc == 1 else {
-            throw CryptoKitError.internalBoringSSLError()
+            throw CryptoBoringWrapperError.internalBoringSSLError()
         }
 
         return output
     }
 
-    @usableFromInline
-    func positiveSquareRoot(_ x: ArbitraryPrecisionInteger) throws -> ArbitraryPrecisionInteger {
+    @inlinable
+    public func positiveSquareRoot(_ x: ArbitraryPrecisionInteger) throws -> ArbitraryPrecisionInteger {
         let outputPointer = x.withUnsafeBignumPointer { xPointer in
             self.fieldSize.withUnsafeBignumPointer { fieldSizePointer in
                 // We can't pass a pointer in as BN_mod_sqrt may attempt to free it.
@@ -145,7 +141,7 @@ extension FiniteFieldArithmeticContext {
         }
 
         guard let actualOutputPointer = outputPointer else {
-            throw CryptoKitError.internalBoringSSLError()
+            throw CryptoBoringWrapperError.internalBoringSSLError()
         }
 
         // Ok, we own this pointer now.
@@ -156,4 +152,3 @@ extension FiniteFieldArithmeticContext {
         return try ArbitraryPrecisionInteger(copying: actualOutputPointer)
     }
 }
-#endif // CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API

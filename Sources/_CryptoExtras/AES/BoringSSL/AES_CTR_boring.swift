@@ -12,7 +12,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-@_implementationOnly import CCryptoBoringSSL
+import CCryptoBoringSSL
 import Crypto
 import Foundation
 

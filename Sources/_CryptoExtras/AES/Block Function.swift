@@ -13,9 +13,9 @@
 //===----------------------------------------------------------------------===//
 
 import Crypto
-@_implementationOnly import CCryptoBoringSSL
-@_implementationOnly import CCryptoBoringSSLShims
-@_implementationOnly import CryptoBoringWrapper
+import CCryptoBoringSSL
+import CCryptoBoringSSLShims
+import CryptoBoringWrapper
 import Foundation
 
 extension AES {

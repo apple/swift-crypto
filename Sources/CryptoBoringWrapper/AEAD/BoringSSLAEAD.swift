@@ -12,8 +12,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-@_implementationOnly import CCryptoBoringSSL
-@_implementationOnly import CCryptoBoringSSLShims
+import CCryptoBoringSSL
+import CCryptoBoringSSLShims
 import Foundation
 
 /// An abstraction over a BoringSSL AEAD
