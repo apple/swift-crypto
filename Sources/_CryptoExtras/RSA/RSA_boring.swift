@@ -375,13 +375,12 @@ extension BoringSSLRSAPublicKey {
             // 7. inv = inverse_mod(r, n)
             // 8. If inverse_mod fails, raise a "blinding error" error and stop
             // NOTE: We retry here until we get an appropriate r, which is suggested.
-            let (r, inv) = try {
-                while true {
-                    let r = try ArbitraryPrecisionInteger.random(inclusiveMin: 1, exclusiveMax: n)
-                    guard let inv = try finiteField.inverse(r) else { continue }
-                    return (r, inv)
-                }
-            }()
+            var r: ArbitraryPrecisionInteger
+            var inv: ArbitraryPrecisionInteger!
+            repeat {
+                r = try ArbitraryPrecisionInteger.random(inclusiveMin: 1, exclusiveMax: n)
+                inv = try finiteField.inverse(r)
+            } while inv == nil
 
             // 9. x = RSAVP1(pk, r)
             let x = try finiteField.pow(secret: r, e)
