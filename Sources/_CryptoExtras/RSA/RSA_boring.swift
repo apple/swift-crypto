@@ -717,7 +717,7 @@ extension BoringSSLRSAPrivateKey {
                         messageBufferPtr.count,
                         RSA_NO_PADDING
                     ) == 1 else {
-                        switch ERR_GET_REASON(CCryptoBoringSSL_ERR_get_error()) {
+                        switch ERR_GET_REASON(CCryptoBoringSSL_ERR_peek_last_error()) {
                         case RSA_R_DATA_TOO_LARGE_FOR_MODULUS:
                             throw CryptoKitError(_RSA.BlindSigning.ProtocolError.messageRepresentativeOutOfRange)
                         default:
@@ -829,7 +829,7 @@ enum BlindSigningHelpers {
                     parameters.saltLength
                 )
             }) == 1 else {
-                switch ERR_GET_REASON(CCryptoBoringSSL_ERR_get_error()) {
+                switch ERR_GET_REASON(CCryptoBoringSSL_ERR_peek_last_error()) {
                 case RSA_R_DATA_TOO_LARGE_FOR_KEY_SIZE:
                     throw CryptoKitError(_RSA.BlindSigning.ProtocolError.messageTooLong)
                 default:
