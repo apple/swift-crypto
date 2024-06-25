@@ -52,7 +52,7 @@ extension FiniteFieldArithmeticContext {
     public func residue(_ x: ArbitraryPrecisionInteger) throws -> ArbitraryPrecisionInteger {
         var result = ArbitraryPrecisionInteger()
 
-        guard (x.withUnsafeBignumPointer { xPtr in
+        guard x.withUnsafeBignumPointer({ xPtr in
             self.fieldSize.withUnsafeBignumPointer { modPtr in
                 result.withUnsafeMutableBignumPointer { resultPtr in
                     CCryptoBoringSSL_BN_nnmod(resultPtr, xPtr, modPtr, self.bnCtx)
@@ -174,7 +174,7 @@ extension FiniteFieldArithmeticContext {
     public func inverse(_ x: ArbitraryPrecisionInteger) throws -> ArbitraryPrecisionInteger? {
         var result = ArbitraryPrecisionInteger()
 
-        guard (result.withUnsafeMutableBignumPointer { resultPtr in
+        guard result.withUnsafeMutableBignumPointer({ resultPtr in
             x.withUnsafeBignumPointer { xPtr in
                 self.fieldSize.withUnsafeBignumPointer { modPtr in
                     CCryptoBoringSSL_BN_mod_inverse(resultPtr, xPtr , modPtr, self.bnCtx)

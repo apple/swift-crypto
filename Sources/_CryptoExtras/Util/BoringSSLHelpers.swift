@@ -106,7 +106,7 @@ extension _RSA.BlindSigning.PublicKey {
         let e = try ArbitraryPrecisionInteger(hexString: eHexString)
 
         // Create BoringSSL RSA key.
-        guard let rsaPtr = (n.withUnsafeBignumPointer { n in
+        guard let rsaPtr = n.withUnsafeBignumPointer({ n in
             e.withUnsafeBignumPointer { e in
                 CCryptoBoringSSL_RSA_new_public_key(n, e)
             }
@@ -147,7 +147,7 @@ extension _RSA.BlindSigning.PrivateKey {
         }
 
         // Create BoringSSL RSA key.
-        guard let rsaPtr = (n.withUnsafeBignumPointer { n in
+        guard let rsaPtr = n.withUnsafeBignumPointer({ n in
             e.withUnsafeBignumPointer { e in
                 d.withUnsafeBignumPointer { d in
                     p.withUnsafeBignumPointer { p in
