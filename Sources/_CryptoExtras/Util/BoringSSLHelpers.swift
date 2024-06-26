@@ -12,10 +12,10 @@
 //
 //===----------------------------------------------------------------------===//
 
-#if CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
-// This is only used when bulding with BoringSSL.
-#else
+// NOTE: This file is unconditionally compiled because RSABSSA is implemented using BoringSSL on all platforms.
 import CCryptoBoringSSL
+import CCryptoBoringSSLShims
+import CryptoBoringWrapper
 import Foundation
 import Crypto
 
@@ -93,4 +93,86 @@ extension FixedWidthInteger {
         return try block(&bn)
     }
 }
-#endif
+
+extension _RSA.BlindSigning.PublicKey {
+    /// Construct a platform-specific RSA public key with the specified parameters.
+    ///
+    /// This constructor is used in tests in cases where test vectors provide the key information this way.
+    ///
+    /// Only the BoringSSL backend provides APIs to create the key from its parameters so we first create a BoringSSL
+    /// key, serialize it to PEM format, and then construct a platform specific key from the PEM representation.
+    internal init(nHexString: String, eHexString: String, parameters: Parameters) throws {
+        let n = try ArbitraryPrecisionInteger(hexString: nHexString)
+        let e = try ArbitraryPrecisionInteger(hexString: eHexString)
+
+        // Create BoringSSL RSA key.
+        guard let rsaPtr = n.withUnsafeBignumPointer({ n in
+            e.withUnsafeBignumPointer { e in
+                CCryptoBoringSSL_RSA_new_public_key(n, e)
+            }
+        }) else { throw CryptoKitError.internalBoringSSLError() }
+        defer { CCryptoBoringSSL_RSA_free(rsaPtr) }
+
+        // Get PEM representation for key.
+        let pemRepresentation = BIOHelper.withWritableMemoryBIO { bio in
+            precondition(CCryptoBoringSSL_PEM_write_bio_RSAPublicKey(bio, rsaPtr) == 1)
+            return try! String(copyingUTF8MemoryBIO: bio)
+        }
+
+        // Create a key (which might be backed by Security framework) from PEM representation.
+        try self.init(pemRepresentation: pemRepresentation, parameters: parameters)
+    }
+}
+
+
+extension _RSA.BlindSigning.PrivateKey {
+    /// Construct a platform-specific RSA private key with the specified parameters.
+    ///
+    /// This constructor is used in tests in cases where test vectors provide the key information this way.
+    ///
+    /// Only the BoringSSL backend provides APIs to create the key from its parameters so we first create a BoringSSL
+    /// key, serialize it to PEM format, and then construct a platform specific key from the PEM representation.
+    internal init(nHexString: String, eHexString: String, dHexString: String, pHexString: String, qHexString: String, parameters: Parameters) throws {
+        let n = try ArbitraryPrecisionInteger(hexString: nHexString)
+        let e = try ArbitraryPrecisionInteger(hexString: eHexString)
+        let d = try ArbitraryPrecisionInteger(hexString: dHexString)
+        let p = try ArbitraryPrecisionInteger(hexString: pHexString)
+        let q = try ArbitraryPrecisionInteger(hexString: qHexString)
+
+        // Compute the CRT params.
+        let dp = try FiniteFieldArithmeticContext(fieldSize: p - 1).residue(d)
+        let dq = try FiniteFieldArithmeticContext(fieldSize: q - 1).residue(d)
+        guard let qi = try FiniteFieldArithmeticContext(fieldSize: p).inverse(q) else {
+            throw CryptoKitError.internalBoringSSLError()
+        }
+
+        // Create BoringSSL RSA key.
+        guard let rsaPtr = n.withUnsafeBignumPointer({ n in
+            e.withUnsafeBignumPointer { e in
+                d.withUnsafeBignumPointer { d in
+                    p.withUnsafeBignumPointer { p in
+                        q.withUnsafeBignumPointer { q in
+                            dp.withUnsafeBignumPointer { dp in
+                                dq.withUnsafeBignumPointer { dq in
+                                    qi.withUnsafeBignumPointer { qi in
+                                        CCryptoBoringSSL_RSA_new_private_key(n, e, d, p, q, dp, dq, qi)
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }) else { throw CryptoKitError.internalBoringSSLError() }
+        defer { CCryptoBoringSSL_RSA_free(rsaPtr) }
+
+        // Get PEM representation for key.
+        let pemRepresentation = BIOHelper.withWritableMemoryBIO { bio in
+            precondition(CCryptoBoringSSL_PEM_write_bio_RSAPrivateKey(bio, rsaPtr, nil, nil, 0, nil, nil) == 1)
+            return try! String(copyingUTF8MemoryBIO: bio)
+        }
+
+        // Create a key (which might be backed by Security framework) from PEM representation.
+        try self.init(pemRepresentation: pemRepresentation, parameters: parameters)
+    }
+}

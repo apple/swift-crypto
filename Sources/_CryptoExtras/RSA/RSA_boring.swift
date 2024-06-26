@@ -14,11 +14,10 @@
 import Foundation
 import Crypto
 
-#if CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
-// Nothing; this is implemented in RSA_security
-#else
+// NOTE: This file is unconditionally compiled because RSABSSA is implemented using BoringSSL on all platforms.
 import CCryptoBoringSSL
 import CCryptoBoringSSLShims
+import CryptoBoringWrapper
 
 internal struct BoringSSLRSAPublicKey: Sendable {
     private var backing: Backing
@@ -101,6 +100,10 @@ extension BoringSSLRSAPrivateKey {
     internal func decrypt<D: DataProtocol>(_ data: D, padding: _RSA.Encryption.Padding) throws -> Data {
         return try self.backing.decrypt(data, padding: padding)
     }
+
+    internal func blindSignature<D: DataProtocol>(for message: D) throws -> _RSA.BlindSigning.BlindSignature {
+        return try self.backing.blindSignature(for: message)
+    }
  }
 
 extension BoringSSLRSAPublicKey {
@@ -110,6 +113,22 @@ extension BoringSSLRSAPublicKey {
     
     internal func encrypt<D: DataProtocol>(_ data: D, padding: _RSA.Encryption.Padding) throws -> Data {
         return try self.backing.encrypt(data, padding: padding)
+    }
+
+    internal func blind<H: HashFunction>(
+        _ message: _RSA.BlindSigning.PreparedMessage,
+        parameters: _RSA.BlindSigning.Parameters<H>
+    ) throws -> _RSA.BlindSigning.BlindingResult {
+        return try self.backing.blind(message, parameters: parameters)
+    }
+
+    internal func finalize<H: HashFunction>(
+            _ signature: _RSA.BlindSigning.BlindSignature,
+            for message: _RSA.BlindSigning.PreparedMessage,
+            blindingInverse: _RSA.BlindSigning.BlindingInverse,
+            parameters: _RSA.BlindSigning.Parameters<H>
+    ) throws -> _RSA.Signing.RSASignature {
+        return try self.backing.finalize(signature, for: message, blindingInverse: blindingInverse, parameters: parameters)
     }
 }
 
@@ -264,6 +283,17 @@ extension BoringSSLRSAPublicKey {
                             signaturePtr.baseAddress,
                             signaturePtr.count
                         )
+                    case .pssZero:
+                        return CCryptoBoringSSLShims_RSA_verify_pss_mgf1(
+                            rsaPublicKey,
+                            digestPtr.baseAddress,
+                            digestPtr.count,
+                            hashDigestType.dispatchTable,
+                            hashDigestType.dispatchTable,
+                            CInt(0),
+                            signaturePtr.baseAddress,
+                            signaturePtr.count
+                        )
                     }
                 }
                 return rc == 1
@@ -313,6 +343,94 @@ extension BoringSSLRSAPublicKey {
                 }
             }
             return output
+        }
+
+        fileprivate func blind<H: HashFunction>(
+            _ message: _RSA.BlindSigning.PreparedMessage,
+            parameters: _RSA.BlindSigning.Parameters<H>
+        ) throws -> _RSA.BlindSigning.BlindingResult {
+            let rsaPublicKey = CCryptoBoringSSL_EVP_PKEY_get0_RSA(self.pointer)
+            let modulusByteCount = Int(CCryptoBoringSSL_RSA_size(rsaPublicKey))
+            let e = try ArbitraryPrecisionInteger(copying: CCryptoBoringSSL_RSA_get0_e(rsaPublicKey))
+            let n = try ArbitraryPrecisionInteger(copying: CCryptoBoringSSL_RSA_get0_n(rsaPublicKey))
+            let finiteField = try FiniteFieldArithmeticContext(fieldSize: n)
+
+            // 1. encoded_msg = EMSA-PSS-ENCODE(msg, bit_len(n)) with Hash, MGF, and salt_len as defined in the parameters
+            // 2. If EMSA-PSS-ENCODE raises an error, re-raise the error and stop
+            // 3. m = bytes_to_int(encoded_msg)
+            let m = try BlindSigningHelpers.EMSAPSSEncode(
+                rsaPublicKey: rsaPublicKey,
+                modulusByteCount: modulusByteCount,
+                message: message,
+                parameters: parameters
+            )
+
+            // 4. c = is_coprime(m, n)
+            let c = try m.isCoprime(with: n)
+
+            // 5. If c is false, raise an "invalid input" error and stop
+            if !c { throw CryptoKitError(_RSA.BlindSigning.ProtocolError.invalidInput) }
+
+            // 6. r = random_integer_uniform(1, n)
+            // 7. inv = inverse_mod(r, n)
+            // 8. If inverse_mod fails, raise a "blinding error" error and stop
+            // NOTE: We retry here until we get an appropriate r, which is suggested.
+            var r: ArbitraryPrecisionInteger
+            var inv: ArbitraryPrecisionInteger!
+            repeat {
+                r = try ArbitraryPrecisionInteger.random(inclusiveMin: 1, exclusiveMax: n)
+                inv = try finiteField.inverse(r)
+            } while inv == nil
+
+            // 9. x = RSAVP1(pk, r)
+            let x = try finiteField.pow(secret: r, e)
+
+            // 10. z = (m * x) mod n
+            let z = try finiteField.multiply(m, x)
+
+            // 11. blinded_msg = int_to_bytes(z, modulus_len)
+            let blindedMessage = try Data(bytesOf: z, paddedToSize: modulusByteCount)
+
+            // 12. output blinded_msg, inv
+            let blindingInverse = _RSA.BlindSigning.BlindingInverse(rawRepresentation: try Data(bytesOf: inv, paddedToSize: modulusByteCount))
+            return _RSA.BlindSigning.BlindingResult(blindedMessage: blindedMessage, inverse: blindingInverse)
+        }
+
+        fileprivate func finalize<H: HashFunction>(
+            _ blindSignature: _RSA.BlindSigning.BlindSignature,
+            for message: _RSA.BlindSigning.PreparedMessage,
+            blindingInverse: _RSA.BlindSigning.BlindingInverse,
+            parameters: _RSA.BlindSigning.Parameters<H>
+        ) throws -> _RSA.Signing.RSASignature {
+            let rsaPublicKey = CCryptoBoringSSL_EVP_PKEY_get0_RSA(self.pointer)
+            let modulusByteCount = Int(CCryptoBoringSSL_RSA_size(rsaPublicKey))
+            let n = try ArbitraryPrecisionInteger(copying: CCryptoBoringSSL_RSA_get0_n(rsaPublicKey))
+            let finiteField = try FiniteFieldArithmeticContext(fieldSize: n)
+
+            // 1. If len(blind_sig) != modulus_len, raise an "unexpected input size" error and stop
+            guard blindSignature.rawRepresentation.count == modulusByteCount else {
+                throw CryptoKitError(_RSA.BlindSigning.ProtocolError.unexpectedInputSize)
+            }
+
+            // 2. z = bytes_to_int(blind_sig)
+            let z = try ArbitraryPrecisionInteger(bytes: blindSignature.rawRepresentation)
+
+            // 3. s = (z * inv) mod n
+            let inv = try ArbitraryPrecisionInteger(bytes: blindingInverse.rawRepresentation)
+            let s = try finiteField.multiply(z, inv)
+
+            // 4. sig = int_to_bytes(s, modulus_len)
+            let sig = _RSA.Signing.RSASignature(rawRepresentation: try Data(bytesOf: s, paddedToSize: modulusByteCount))
+
+            // 5. result = RSASSA-PSS-VERIFY(pk, msg, sig) with Hash, MGF, and salt_len as defined in the parameters
+            let result = try BlindSigningHelpers.RSASSAPSSVerify(rsaPublicKey: rsaPublicKey, modulusByteCount: modulusByteCount, message: message, signature: sig, parameters: parameters)
+
+            // 6. If result = "valid signature", output sig, else raise an "invalid signature" error and stop
+            if result {
+                return sig
+            } else {
+                throw CryptoKitError(_RSA.BlindSigning.ProtocolError.invalidSignature)
+            }
         }
 
         deinit {
@@ -505,6 +623,18 @@ extension BoringSSLRSAPrivateKey {
                             hashDigestType.dispatchTable,
                             CInt(hashDigestType.digestLength)
                         )
+                    case .pssZero:
+                        return CCryptoBoringSSLShims_RSA_sign_pss_mgf1(
+                            rsaPrivateKey,
+                            &outputLength,
+                            bufferPtr.baseAddress,
+                            bufferPtr.count,
+                            digestPtr.baseAddress,
+                            digestPtr.count,
+                            hashDigestType.dispatchTable,
+                            hashDigestType.dispatchTable,
+                            CInt(0)
+                        )
                     }
                 }
                 if rc != 1 {
@@ -564,9 +694,149 @@ extension BoringSSLRSAPrivateKey {
             return output
         }
 
+        fileprivate func blindSignature<D: DataProtocol>(for message: D) throws -> _RSA.BlindSigning.BlindSignature {
+            let rsaPrivateKey = CCryptoBoringSSL_EVP_PKEY_get0_RSA(self.pointer)
+            let signatureByteCount = Int(CCryptoBoringSSL_RSA_size(rsaPrivateKey))
+
+            guard message.count == signatureByteCount else {
+                throw CryptoKitError.incorrectParameterSize
+            }
+
+            let messageBytes: ContiguousBytes = message.regions.count == 1 ? message.regions.first! : Array(message)
+
+            let signature = try withUnsafeTemporaryAllocation(of: UInt8.self, capacity: signatureByteCount) { signatureBufferPtr in
+                try messageBytes.withUnsafeBytes { messageBufferPtr in
+                    /// NOTE: BoringSSL promotes the use of `RSA_sign_raw` over `RSA_private_encrypt`.
+                    var outputCount = 0
+                    guard CCryptoBoringSSL_RSA_sign_raw(
+                        rsaPrivateKey,
+                        &outputCount,
+                        signatureBufferPtr.baseAddress,
+                        signatureBufferPtr.count,
+                        messageBufferPtr.baseAddress,
+                        messageBufferPtr.count,
+                        RSA_NO_PADDING
+                    ) == 1 else {
+                        switch ERR_GET_REASON(CCryptoBoringSSL_ERR_peek_last_error()) {
+                        case RSA_R_DATA_TOO_LARGE_FOR_MODULUS:
+                            throw CryptoKitError(_RSA.BlindSigning.ProtocolError.messageRepresentativeOutOfRange)
+                        default:
+                            throw CryptoKitError.internalBoringSSLError()
+                        }
+                    }
+                    precondition(outputCount == signatureBufferPtr.count)
+                }
+                return _RSA.BlindSigning.BlindSignature(rawRepresentation: Data(signatureBufferPtr))
+            }
+
+            // NOTE: Verification is part of the specification.
+            try self.verifyBlindSignature(signature, for: messageBytes)
+
+            return signature
+        }
+
+        fileprivate func verifyBlindSignature<D: ContiguousBytes>(_ signature: _RSA.BlindSigning.BlindSignature, for blindedMessage: D) throws {
+            try signature.withUnsafeBytes { signatureBufferPtr in
+                try blindedMessage.withUnsafeBytes { blindedMessageBufferPtr in
+                    try withUnsafeTemporaryAllocation(byteCount: blindedMessageBufferPtr.count, alignment: 1) { verificationBufferPtr in
+                        let rsaPublicKey = CCryptoBoringSSL_EVP_PKEY_get0_RSA(self.pointer)
+                        var outputCount = 0
+                        /// NOTE: BoringSSL promotes the use of `RSA_verify_raw` over `RSA_public_decrypt`.
+                        guard CCryptoBoringSSL_RSA_verify_raw(
+                            rsaPublicKey,
+                            &outputCount,
+                            verificationBufferPtr.baseAddress,
+                            verificationBufferPtr.count,
+                            signatureBufferPtr.baseAddress,
+                            signatureBufferPtr.count,
+                            RSA_NO_PADDING
+                        ) == 1 else {
+                            throw CryptoKitError.internalBoringSSLError()
+                        }
+                        guard
+                            outputCount == blindedMessageBufferPtr.count,
+                            memcmp(verificationBufferPtr.baseAddress!, blindedMessageBufferPtr.baseAddress!, blindedMessageBufferPtr.count) == 0
+                        else {
+                            throw CryptoKitError(_RSA.BlindSigning.ProtocolError.signingFailure)
+                        }
+                    }
+                }
+            }
+        }
+
         deinit {
             CCryptoBoringSSL_EVP_PKEY_free(self.pointer)
         }
     }
 }
-#endif
+
+/// This namespace enum just provides helper functions for some of the steps outlined in the RFC.
+enum BlindSigningHelpers {
+    fileprivate static func RSASSAPSSVerify<H: HashFunction>(
+        rsaPublicKey: OpaquePointer!,
+        modulusByteCount: Int,
+        message: _RSA.BlindSigning.PreparedMessage,
+        signature: _RSA.Signing.RSASignature,
+        parameters: _RSA.BlindSigning.Parameters<H>
+    ) throws -> Bool {
+        let hashDigestType = try DigestType(forDigestType: H.Digest.self)
+        return H.hash(data: message.rawRepresentation).withUnsafeBytes { messageHashBufferPtr in
+            withUnsafeTemporaryAllocation(byteCount: modulusByteCount, alignment: 1) { encodedMessageBufferPtr in
+                signature.withUnsafeBytes { signatureBufferPtr in
+                    var outputCount = 0
+                    guard
+                        /// NOTE: BoringSSL promotes the use of `RSA_verify_raw` over `RSA_public_decrypt`.
+                        CCryptoBoringSSL_RSA_verify_raw(
+                            rsaPublicKey,
+                            &outputCount,
+                            encodedMessageBufferPtr.baseAddress,
+                            encodedMessageBufferPtr.count,
+                            signatureBufferPtr.baseAddress,
+                            signatureBufferPtr.count,
+                            RSA_NO_PADDING
+                        ) == 1,
+                        outputCount == modulusByteCount,
+                        CCryptoBoringSSL_RSA_verify_PKCS1_PSS_mgf1(
+                            rsaPublicKey,
+                            messageHashBufferPtr.baseAddress,
+                            hashDigestType.dispatchTable,
+                            hashDigestType.dispatchTable,
+                            encodedMessageBufferPtr.baseAddress,
+                            parameters.saltLength
+                        ) == 1
+                    else { return false }
+                    return true
+                }
+            }
+        }
+    }
+
+    fileprivate static func EMSAPSSEncode<H: HashFunction>(
+        rsaPublicKey: OpaquePointer!,
+        modulusByteCount: Int,
+        message: _RSA.BlindSigning.PreparedMessage,
+        parameters: _RSA.BlindSigning.Parameters<H>
+    ) throws -> ArbitraryPrecisionInteger {
+        try withUnsafeTemporaryAllocation(of: UInt8.self, capacity: modulusByteCount) { encodedMessageBufferPtr in
+            let hashDigestType = try DigestType(forDigestType: H.Digest.self)
+            guard H.hash(data: message.rawRepresentation).withUnsafeBytes({ hashBufferPtr in
+                CCryptoBoringSSL_RSA_padding_add_PKCS1_PSS_mgf1(
+                    rsaPublicKey,
+                    encodedMessageBufferPtr.baseAddress,
+                    hashBufferPtr.baseAddress,
+                    hashDigestType.dispatchTable,
+                    hashDigestType.dispatchTable,
+                    parameters.saltLength
+                )
+            }) == 1 else {
+                switch ERR_GET_REASON(CCryptoBoringSSL_ERR_peek_last_error()) {
+                case RSA_R_DATA_TOO_LARGE_FOR_KEY_SIZE:
+                    throw CryptoKitError(_RSA.BlindSigning.ProtocolError.messageTooLong)
+                default:
+                    throw CryptoKitError.internalBoringSSLError()
+                }
+            }
+            return try ArbitraryPrecisionInteger(bytes: encodedMessageBufferPtr)
+        }
+    }
+}

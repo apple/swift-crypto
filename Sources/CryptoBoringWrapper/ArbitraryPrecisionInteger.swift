@@ -98,6 +98,14 @@ extension ArbitraryPrecisionInteger {
     public init<Bytes: ContiguousBytes>(bytes: Bytes) throws {
         self._backing = try BackingStorage(bytes: bytes)
     }
+
+    /// Create an `ArbitraryPrecisionInteger` from a hex string.
+    ///
+    /// - Parameter hexString: Hex byte string (big-endian, no `0x` prefix, may start with `-` for a negative number).
+    @inlinable
+    public init(hexString: String) throws {
+        self._backing = try BackingStorage(hexString: hexString)
+    }
 }
 
 extension ArbitraryPrecisionInteger.BackingStorage {
@@ -112,7 +120,26 @@ extension ArbitraryPrecisionInteger.BackingStorage {
             throw CryptoBoringWrapperError.internalBoringSSLError()
         }
     }
+
+    @inlinable
+    convenience init(hexString: String) throws {
+        self.init()
+        try hexString.withCString { hexStringPtr in
+            /// `BN_hex2bin` takes a `BIGNUM **` so we need a double WUMP dance.
+            try withUnsafeMutablePointer(to: &self._backing) { backingPtr in
+                var backingPtr: UnsafeMutablePointer<BIGNUM>? = backingPtr
+                try withUnsafeMutablePointer(to: &backingPtr) { backingPtrPtr in
+                    /// `BN_hex2bin` returns the number of bytes of `in` processed or zero on error.
+                    guard CCryptoBoringSSL_BN_hex2bn(backingPtrPtr, hexStringPtr) == hexString.count else {
+                        throw CryptoBoringWrapperError.incorrectParameterSize
+                    }
+                }
+            }
+        }
+    }
 }
+
+
 
 // MARK: - Pointer helpers
 
@@ -381,6 +408,49 @@ extension ArbitraryPrecisionInteger: SignedNumeric {
     }
 }
 
+// MARK: - Other arithmetic operations
+
+extension ArbitraryPrecisionInteger {
+    @inlinable
+    public static func gcd(_ a: ArbitraryPrecisionInteger, _ b: ArbitraryPrecisionInteger) throws -> ArbitraryPrecisionInteger {
+        var result = ArbitraryPrecisionInteger()
+
+        guard result.withUnsafeMutableBignumPointer({ resultPtr in
+            a.withUnsafeBignumPointer { aPtr in
+                b.withUnsafeBignumPointer { bPtr in
+                    ArbitraryPrecisionInteger.withUnsafeBN_CTX { bnCtx in
+                        CCryptoBoringSSL_BN_gcd(resultPtr, aPtr, bPtr, bnCtx)
+                    }
+                }
+            }
+        }) == 1 else {
+            throw CryptoBoringWrapperError.internalBoringSSLError()
+        }
+
+        return result
+    }
+
+    @inlinable
+    public func isCoprime(with other: ArbitraryPrecisionInteger) throws -> Bool {
+        try Self.gcd(self, other) == 1
+    }
+
+    @inlinable
+    public static func random(inclusiveMin: UInt64, exclusiveMax: ArbitraryPrecisionInteger) throws -> ArbitraryPrecisionInteger {
+        var result = ArbitraryPrecisionInteger()
+
+        guard result.withUnsafeMutableBignumPointer({ resultPtr in
+            exclusiveMax.withUnsafeBignumPointer { exclusiveMaxPtr in
+                CCryptoBoringSSL_BN_rand_range_ex(resultPtr, inclusiveMin, exclusiveMaxPtr)
+            }
+        }) == 1 else {
+            throw CryptoBoringWrapperError.internalBoringSSLError()
+        }
+
+        return result
+    }
+}
+
 // MARK: - Serializing
 
 extension Data {
@@ -407,6 +477,12 @@ extension Data {
         }
 
         assert(written == byteCount)
+    }
+
+    @inlinable
+    public init(bytesOf integer: ArbitraryPrecisionInteger, paddedToSize paddingSize: Int) throws {
+        self.init(capacity: paddingSize)
+        try self.append(bytesOf: integer, paddedToSize: paddingSize)
     }
 }
 
