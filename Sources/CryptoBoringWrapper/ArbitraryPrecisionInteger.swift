@@ -436,12 +436,12 @@ extension ArbitraryPrecisionInteger {
     }
 
     @inlinable
-    public static func random(inclusiveMin: UInt64, exclusiveMax: ArbitraryPrecisionInteger) throws -> ArbitraryPrecisionInteger {
+    public static func random(inclusiveMin: UInt, exclusiveMax: ArbitraryPrecisionInteger) throws -> ArbitraryPrecisionInteger {
         var result = ArbitraryPrecisionInteger()
 
         guard result.withUnsafeMutableBignumPointer({ resultPtr in
             exclusiveMax.withUnsafeBignumPointer { exclusiveMaxPtr in
-                CCryptoBoringSSL_BN_rand_range_ex(resultPtr, inclusiveMin, exclusiveMaxPtr)
+                CCryptoBoringSSL_BN_rand_range_ex(resultPtr, BN_ULONG(inclusiveMin), exclusiveMaxPtr)
             }
         }) == 1 else {
             throw CryptoBoringWrapperError.internalBoringSSLError()
