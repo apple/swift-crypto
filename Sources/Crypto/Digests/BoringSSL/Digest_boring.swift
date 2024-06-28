@@ -151,9 +151,7 @@ struct OpenSSLDigestImpl<H: BoringSSLBackedHashFunction> {
     }
 
     internal func finalize() -> H.Digest {
-        // To have a non-destructive finalize operation we must allocate.
-        let copyContext = DigestContext(copying: self.context)
-        return copyContext.finalize()
+        self.context.finalize()
     }
 }
 
@@ -177,13 +175,16 @@ fileprivate final class DigestContext<H: BoringSSLBackedHashFunction> {
         }
     }
 
-    // This finalize function is _destructive_: do not call it if you want to reuse the object!
     func finalize() -> H.Digest {
+        var copyContext = self.context
+        defer {
+            withUnsafeMutablePointer(to: &copyContext) { $0.zeroize() }
+        }
         return withUnsafeTemporaryAllocation(byteCount: H.digestSize, alignment: 1) { digestPointer in
             defer {
                 digestPointer.zeroize()
             }
-            guard H.finalize(&self.context, digest: digestPointer) else {
+            guard H.finalize(&copyContext, digest: digestPointer) else {
                 preconditionFailure("Unable to finalize digest state")
             }
             // We force unwrap here because if the digest size is wrong it's an internal error.
