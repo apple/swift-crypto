@@ -77,6 +77,27 @@ final class TestRSAEncryption: XCTestCase {
             XCTAssertEqual(valid, test.expectedValidity, "test number \(test.tcId) failed, expected \(test.result) but got \(valid)")
         }
     }
+    
+    func testUnsafeKeySize() throws {
+        try testUnsafeKeySize(1024)
+        try testUnsafeKeySize(1536)
+    }
+    
+    private func testUnsafeKeySize(_ keySizeInBits: Int) throws {
+        XCTAssert(keySizeInBits >= 1024 && keySizeInBits < 2048, "Unsafe key size must be in the range [1024, 2048)")
+        
+        let privKey = try _RSA.Encryption.PrivateKey(unsafeKeySize: .init(bitCount: keySizeInBits))
+        let derPrivKey = try _RSA.Encryption.PrivateKey(unsafeDERRepresentation: privKey.derRepresentation)
+        XCTAssert(derPrivKey.keySizeInBits == keySizeInBits)
+        let pemPrivKey = try _RSA.Encryption.PrivateKey(unsafePEMRepresentation: privKey.pemRepresentation)
+        XCTAssert(pemPrivKey.keySizeInBits == keySizeInBits)
+        
+        let pubKey = privKey.publicKey
+        let derPubKey = try _RSA.Encryption.PublicKey(unsafeDERRepresentation: pubKey.derRepresentation)
+        XCTAssert(derPubKey.keySizeInBits == keySizeInBits)
+        let pemPubKey = try _RSA.Encryption.PublicKey(unsafePEMRepresentation: pubKey.pemRepresentation)
+        XCTAssert(pemPubKey.keySizeInBits == keySizeInBits)
+    }
 }
 
 struct RSAEncryptionOAEPTestGroup: Codable {
