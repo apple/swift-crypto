@@ -246,6 +246,7 @@ extension _RSA.Signing {
         internal enum Backing {
             case pkcs1v1_5
             case pss
+            case pssZero // NOTE: this is internal-only, for RSABSSA.
         }
 
         internal var backing: Backing
@@ -266,6 +267,13 @@ extension _RSA.Signing {
         ///
         /// MGF1 is parameterised with a hash function. The salt length will be the size of the digest from the given hash function.
         public static let PSS = Self(.pss)
+
+        /// PSS padding using MGF1, with zero-length salt.
+        ///
+        /// MGF1 is parameterised with a hash function. The salt length is overriden to be zero.
+        ///
+        /// - NOTE: This is not API and is only accessible through the RSA Blind Signatures API.
+        internal static let PSSZERO = Self(.pssZero)
     }
 }
 
