@@ -14,9 +14,8 @@
 #if CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
 @_exported import CryptoKit
 #else
-import CCryptoBoringSSL
-import CCryptoBoringSSLShims
-import CryptoBoringWrapper
+@_implementationOnly import CCryptoBoringSSL
+@_implementationOnly import CCryptoBoringSSLShims
 import Foundation
 
 /// A wrapper around BoringSSL's ECDSA_SIG with some lifetime management.

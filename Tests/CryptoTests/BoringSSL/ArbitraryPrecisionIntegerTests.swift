@@ -11,7 +11,9 @@
 // SPDX-License-Identifier: Apache-2.0
 //
 //===----------------------------------------------------------------------===//
-@testable import CryptoBoringWrapper
+#if CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
+#else
+@testable import Crypto
 import XCTest
 
 final class ArbitraryPrecisionIntegerTests: XCTestCase {
@@ -41,7 +43,7 @@ final class ArbitraryPrecisionIntegerTests: XCTestCase {
     func testPositiveSquareRoot() {
         XCTAssertNoThrow(XCTAssertEqual(try ArbitraryPrecisionInteger(144).positiveSquareRoot(), 12))
         XCTAssertThrowsError(try ArbitraryPrecisionInteger(101).positiveSquareRoot()) { error in
-            guard case .some(.underlyingCoreCryptoError) = error as? CryptoBoringWrapperError else {
+            guard case .some(.underlyingCoreCryptoError) = error as? CryptoKitError else {
                 XCTFail("Unexpected error: \(error)")
                 return
             }
@@ -148,8 +150,8 @@ final class ArbitraryPrecisionIntegerTests: XCTestCase {
         XCTAssertEqual(try ArbitraryPrecisionInteger.random(inclusiveMin: 4, exclusiveMax: 5), 4)
 
         var previousRandom = ArbitraryPrecisionInteger()
-        for _ in 1...1_000 {
-            let exclusiveMax = try ArbitraryPrecisionInteger(bytes: Data(repeating: UInt8.max, count: 2048/8))
+        for _ in 1 ... 1000 {
+            let exclusiveMax = try ArbitraryPrecisionInteger(bytes: Data(repeating: UInt8.max, count: 2048 / 8))
             let random = try ArbitraryPrecisionInteger.random(inclusiveMin: 42, exclusiveMax: exclusiveMax)
             XCTAssert(random >= ArbitraryPrecisionInteger(42))
             XCTAssert(random < exclusiveMax)
@@ -166,3 +168,4 @@ final class ArbitraryPrecisionIntegerTests: XCTestCase {
         }
     }
 }
+#endif // CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
