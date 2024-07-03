@@ -12,10 +12,10 @@
 //
 //===----------------------------------------------------------------------===//
 
-import CCryptoBoringSSL
-import CCryptoBoringSSLShims
+@_implementationOnly import CCryptoBoringSSL
+@_implementationOnly import CCryptoBoringSSLShims
 import Crypto
-import CryptoBoringWrapper
+@_implementationOnly import CryptoBoringWrapper
 import Foundation
 
 enum OpenSSLChaCha20CTRImpl {

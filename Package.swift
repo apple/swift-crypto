@@ -127,7 +127,7 @@ let package = Package(
             resources: [
                 .copy("PrivacyInfo.xcprivacy"),
             ],
-            swiftSettings: swiftSettings
+            swiftSettings: swiftSettings + [.define("MODULE_IS_CRYPTO")]
         ),
         .target(
             name: "_CryptoExtras",
@@ -168,7 +168,6 @@ let package = Package(
             swiftSettings: swiftSettings
         ),
         .testTarget(name: "_CryptoExtrasTests", dependencies: ["_CryptoExtras"]),
-        .testTarget(name: "CryptoBoringWrapperTests", dependencies: ["CryptoBoringWrapper"]),
     ],
     cxxLanguageStandard: .cxx11
 )
