@@ -27,18 +27,23 @@ class URLSessionTransportConverterTests: XCTestCase {
     static override func setUp() { OpenAPIURLSession.debugLoggingEnabled = false }
 
     func testRequestConversion() async throws {
-        let request = HTTPRequest(
+        var request = HTTPRequest(
             method: .post,
             scheme: nil,
             authority: nil,
             path: "/hello%20world/Maria?greeting=Howdy",
-            headerFields: [.init("x-mumble2")!: "mumble"]
+            headerFields: [.init("x-mumble2")!: "mumble", .init("x-mumble2")!: "mumble"]
         )
+        let cookie = "uid=urlsession; sid=0123456789-9876543210"
+        request.headerFields[.cookie] = cookie
+        request.headerFields[.init("X-Emoji")!] = "😀"
         let urlRequest = try URLRequest(request, baseURL: URL(string: "http://example.com/api")!)
         XCTAssertEqual(urlRequest.url, URL(string: "http://example.com/api/hello%20world/Maria?greeting=Howdy"))
         XCTAssertEqual(urlRequest.httpMethod, "POST")
-        XCTAssertEqual(urlRequest.allHTTPHeaderFields?.count, 1)
-        XCTAssertEqual(urlRequest.value(forHTTPHeaderField: "x-mumble2"), "mumble")
+        XCTAssertEqual(urlRequest.allHTTPHeaderFields?.count, 3)
+        XCTAssertEqual(urlRequest.value(forHTTPHeaderField: "x-mumble2"), "mumble, mumble")
+        XCTAssertEqual(urlRequest.value(forHTTPHeaderField: "cookie"), cookie)
+        XCTAssertEqual(urlRequest.value(forHTTPHeaderField: "X-Emoji"), "ð")
     }
 
     func testResponseConversion() async throws {

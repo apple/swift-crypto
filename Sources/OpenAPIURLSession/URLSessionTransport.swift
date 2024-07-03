@@ -150,6 +150,9 @@ internal enum URLSessionTransportError: Error {
     /// Returned `URLResponse` could not be converted to `HTTPURLResponse`.
     case notHTTPResponse(URLResponse)
 
+    /// Returned `HTTPURLResponse` has an invalid status code
+    case invalidResponseStatusCode(HTTPURLResponse)
+
     /// Returned `URLResponse` was nil
     case noResponse(url: URL?)
 
@@ -162,14 +165,18 @@ extension HTTPResponse {
         guard let httpResponse = urlResponse as? HTTPURLResponse else {
             throw URLSessionTransportError.notHTTPResponse(urlResponse)
         }
-        var headerFields = HTTPFields()
-        for (headerName, headerValue) in httpResponse.allHeaderFields {
-            guard let rawName = headerName as? String, let name = HTTPField.Name(rawName),
-                let value = headerValue as? String
-            else { continue }
-            headerFields[name] = value
+        guard (0...999).contains(httpResponse.statusCode) else {
+            throw URLSessionTransportError.invalidResponseStatusCode(httpResponse)
         }
-        self.init(status: .init(code: httpResponse.statusCode), headerFields: headerFields)
+        self.init(status: .init(code: httpResponse.statusCode))
+        if let fields = httpResponse.allHeaderFields as? [String: String] {
+            self.headerFields.reserveCapacity(fields.count)
+            for (name, value) in fields {
+                if let name = HTTPField.Name(name) {
+                    self.headerFields.append(HTTPField(name: name, isoLatin1Value: value))
+                }
+            }
+        }
     }
 }
 
@@ -193,7 +200,50 @@ extension URLRequest {
         }
         self.init(url: url)
         self.httpMethod = request.method.rawValue
-        for header in request.headerFields { setValue(header.value, forHTTPHeaderField: header.name.canonicalName) }
+        var combinedFields = [HTTPField.Name: String](minimumCapacity: request.headerFields.count)
+        for field in request.headerFields {
+            if let existingValue = combinedFields[field.name] {
+                let separator = field.name == .cookie ? "; " : ", "
+                combinedFields[field.name] = "\(existingValue)\(separator)\(field.isoLatin1Value)"
+            } else {
+                combinedFields[field.name] = field.isoLatin1Value
+            }
+        }
+        var headerFields = [String: String](minimumCapacity: combinedFields.count)
+        for (name, value) in combinedFields { headerFields[name.rawName] = value }
+        self.allHTTPHeaderFields = headerFields
+    }
+}
+
+extension String { fileprivate var isASCII: Bool { self.utf8.allSatisfy { $0 & 0x80 == 0 } } }
+
+extension HTTPField {
+    fileprivate init(name: Name, isoLatin1Value: String) {
+        if isoLatin1Value.isASCII {
+            self.init(name: name, value: isoLatin1Value)
+        } else {
+            self = withUnsafeTemporaryAllocation(of: UInt8.self, capacity: isoLatin1Value.unicodeScalars.count) {
+                buffer in
+                for (index, scalar) in isoLatin1Value.unicodeScalars.enumerated() {
+                    if scalar.value > UInt8.max {
+                        buffer[index] = 0x20
+                    } else {
+                        buffer[index] = UInt8(truncatingIfNeeded: scalar.value)
+                    }
+                }
+                return HTTPField(name: name, value: buffer)
+            }
+        }
+    }
+
+    fileprivate var isoLatin1Value: String {
+        if self.value.isASCII { return self.value }
+        return self.withUnsafeBytesOfValue { buffer in
+            let scalars = buffer.lazy.map { UnicodeScalar(UInt32($0))! }
+            var string = ""
+            string.unicodeScalars.append(contentsOf: scalars)
+            return string
+        }
     }
 }
 
@@ -211,6 +261,8 @@ extension URLSessionTransportError: CustomStringConvertible {
                 "Invalid request URL from request path: \(path), method: \(method), relative to base URL: \(baseURL.absoluteString)"
         case .notHTTPResponse(let response):
             return "Received a non-HTTP response, of type: \(String(describing: type(of: response)))"
+        case .invalidResponseStatusCode(let response):
+            return "Received an HTTP response with invalid status code: \(response.statusCode))"
         case .noResponse(let url): return "Received a nil response for \(url?.absoluteString ?? "<nil URL>")"
         case .streamingNotSupported: return "Streaming is not supported on this platform"
         }
