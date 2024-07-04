@@ -11,7 +11,14 @@
 // SPDX-License-Identifier: Apache-2.0
 //
 //===----------------------------------------------------------------------===//
-import CCryptoBoringSSL
+#if MODULE_IS_CRYPTO && CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
+@_exported import CryptoKit
+#else
+@_implementationOnly import CCryptoBoringSSL
+import Foundation
+#if !MODULE_IS_CRYPTO
+import enum Crypto.CryptoKitError
+#endif
 
 /// A context for performing mathematical operations on ArbitraryPrecisionIntegers over a finite field.
 ///
@@ -24,21 +31,21 @@ import CCryptoBoringSSL
 ///
 /// Annoyingly, because of the way we have implemented ArbitraryPrecisionInteger, we can't actually use these temporary bignums
 /// ourselves.
-public final class FiniteFieldArithmeticContext {
-    /* private but @usableFromInline */ @usableFromInline var fieldSize: ArbitraryPrecisionInteger
-    /* private but @usableFromInline */ @usableFromInline var bnCtx: OpaquePointer
+@usableFromInline
+class FiniteFieldArithmeticContext {
+    private var fieldSize: ArbitraryPrecisionInteger
+    private var bnCtx: OpaquePointer
 
-    @inlinable
-    public init(fieldSize: ArbitraryPrecisionInteger) throws {
+    @usableFromInline
+    init(fieldSize: ArbitraryPrecisionInteger) throws {
         self.fieldSize = fieldSize
         guard let bnCtx = CCryptoBoringSSL_BN_CTX_new() else {
-            throw CryptoBoringWrapperError.internalBoringSSLError()
+            throw CryptoKitError.internalBoringSSLError()
         }
         CCryptoBoringSSL_BN_CTX_start(bnCtx)
         self.bnCtx = bnCtx
     }
 
-    @inlinable
     deinit {
         CCryptoBoringSSL_BN_CTX_end(self.bnCtx)
         CCryptoBoringSSL_BN_CTX_free(self.bnCtx)
@@ -48,8 +55,8 @@ public final class FiniteFieldArithmeticContext {
 // MARK: - Arithmetic operations
 
 extension FiniteFieldArithmeticContext {
-    @inlinable
-    public func residue(_ x: ArbitraryPrecisionInteger) throws -> ArbitraryPrecisionInteger {
+    @usableFromInline
+    func residue(_ x: ArbitraryPrecisionInteger) throws -> ArbitraryPrecisionInteger {
         var result = ArbitraryPrecisionInteger()
 
         guard x.withUnsafeBignumPointer({ xPtr in
@@ -59,15 +66,14 @@ extension FiniteFieldArithmeticContext {
                 }
             }
         }) == 1 else {
-            throw CryptoBoringWrapperError.internalBoringSSLError()
+            throw CryptoKitError.internalBoringSSLError()
         }
 
         return result
-
     }
 
-    @inlinable
-    public func square(_ input: ArbitraryPrecisionInteger) throws -> ArbitraryPrecisionInteger {
+    @usableFromInline
+    func square(_ input: ArbitraryPrecisionInteger) throws -> ArbitraryPrecisionInteger {
         var output = ArbitraryPrecisionInteger()
 
         let rc = input.withUnsafeBignumPointer { inputPointer in
@@ -79,14 +85,14 @@ extension FiniteFieldArithmeticContext {
         }
 
         guard rc == 1 else {
-            throw CryptoBoringWrapperError.internalBoringSSLError()
+            throw CryptoKitError.internalBoringSSLError()
         }
 
         return output
     }
 
-    @inlinable
-    public func multiply(_ x: ArbitraryPrecisionInteger, _ y: ArbitraryPrecisionInteger) throws -> ArbitraryPrecisionInteger {
+    @usableFromInline
+    func multiply(_ x: ArbitraryPrecisionInteger, _ y: ArbitraryPrecisionInteger) throws -> ArbitraryPrecisionInteger {
         var output = ArbitraryPrecisionInteger()
 
         let rc = x.withUnsafeBignumPointer { xPointer in
@@ -100,14 +106,14 @@ extension FiniteFieldArithmeticContext {
         }
 
         guard rc == 1 else {
-            throw CryptoBoringWrapperError.internalBoringSSLError()
+            throw CryptoKitError.internalBoringSSLError()
         }
 
         return output
     }
 
-    @inlinable
-    public func add(_ x: ArbitraryPrecisionInteger, _ y: ArbitraryPrecisionInteger) throws -> ArbitraryPrecisionInteger {
+    @usableFromInline
+    func add(_ x: ArbitraryPrecisionInteger, _ y: ArbitraryPrecisionInteger) throws -> ArbitraryPrecisionInteger {
         var output = ArbitraryPrecisionInteger()
 
         let rc = x.withUnsafeBignumPointer { xPointer in
@@ -121,14 +127,14 @@ extension FiniteFieldArithmeticContext {
         }
 
         guard rc == 1 else {
-            throw CryptoBoringWrapperError.internalBoringSSLError()
+            throw CryptoKitError.internalBoringSSLError()
         }
 
         return output
     }
 
-    @inlinable
-    public func subtract(_ x: ArbitraryPrecisionInteger, from y: ArbitraryPrecisionInteger) throws -> ArbitraryPrecisionInteger {
+    @usableFromInline
+    func subtract(_ x: ArbitraryPrecisionInteger, from y: ArbitraryPrecisionInteger) throws -> ArbitraryPrecisionInteger {
         var output = ArbitraryPrecisionInteger()
 
         let rc = x.withUnsafeBignumPointer { xPointer in
@@ -143,14 +149,14 @@ extension FiniteFieldArithmeticContext {
         }
 
         guard rc == 1 else {
-            throw CryptoBoringWrapperError.internalBoringSSLError()
+            throw CryptoKitError.internalBoringSSLError()
         }
 
         return output
     }
 
-    @inlinable
-    public func positiveSquareRoot(_ x: ArbitraryPrecisionInteger) throws -> ArbitraryPrecisionInteger {
+    @usableFromInline
+    func positiveSquareRoot(_ x: ArbitraryPrecisionInteger) throws -> ArbitraryPrecisionInteger {
         let outputPointer = x.withUnsafeBignumPointer { xPointer in
             self.fieldSize.withUnsafeBignumPointer { fieldSizePointer in
                 // We can't pass a pointer in as BN_mod_sqrt may attempt to free it.
@@ -159,7 +165,7 @@ extension FiniteFieldArithmeticContext {
         }
 
         guard let actualOutputPointer = outputPointer else {
-            throw CryptoBoringWrapperError.internalBoringSSLError()
+            throw CryptoKitError.internalBoringSSLError()
         }
 
         // Ok, we own this pointer now.
@@ -170,14 +176,14 @@ extension FiniteFieldArithmeticContext {
         return try ArbitraryPrecisionInteger(copying: actualOutputPointer)
     }
 
-    @inlinable
-    public func inverse(_ x: ArbitraryPrecisionInteger) throws -> ArbitraryPrecisionInteger? {
+    @usableFromInline
+    func inverse(_ x: ArbitraryPrecisionInteger) throws -> ArbitraryPrecisionInteger? {
         var result = ArbitraryPrecisionInteger()
 
         guard result.withUnsafeMutableBignumPointer({ resultPtr in
             x.withUnsafeBignumPointer { xPtr in
                 self.fieldSize.withUnsafeBignumPointer { modPtr in
-                    CCryptoBoringSSL_BN_mod_inverse(resultPtr, xPtr , modPtr, self.bnCtx)
+                    CCryptoBoringSSL_BN_mod_inverse(resultPtr, xPtr, modPtr, self.bnCtx)
                 }
             }
         }) != nil else { return nil }
@@ -185,24 +191,24 @@ extension FiniteFieldArithmeticContext {
         return result
     }
 
-    @inlinable
-    public func pow(_ x: ArbitraryPrecisionInteger, _ p: ArbitraryPrecisionInteger) throws -> ArbitraryPrecisionInteger {
+    @usableFromInline
+    func pow(_ x: ArbitraryPrecisionInteger, _ p: ArbitraryPrecisionInteger) throws -> ArbitraryPrecisionInteger {
         try self.pow(x, p) { r, x, p, m, ctx, _ in CCryptoBoringSSL_BN_mod_exp(r, x, p, m, ctx) }
     }
 
-    @inlinable
-    public func pow(secret x: ArbitraryPrecisionInteger, _ p: ArbitraryPrecisionInteger) throws -> ArbitraryPrecisionInteger {
-        guard x < self.fieldSize else { throw CryptoBoringWrapperError.incorrectParameterSize }
+    @usableFromInline
+    func pow(secret x: ArbitraryPrecisionInteger, _ p: ArbitraryPrecisionInteger) throws -> ArbitraryPrecisionInteger {
+        guard x < self.fieldSize else { throw CryptoKitError.incorrectParameterSize }
         return try self.pow(x, p, using: CCryptoBoringSSL_BN_mod_exp_mont)
     }
 
-    @inlinable
-    public func pow(secret x: ArbitraryPrecisionInteger, secret p: ArbitraryPrecisionInteger) throws -> ArbitraryPrecisionInteger {
-        guard x < self.fieldSize else { throw CryptoBoringWrapperError.incorrectParameterSize }
+    @usableFromInline
+    func pow(secret x: ArbitraryPrecisionInteger, secret p: ArbitraryPrecisionInteger) throws -> ArbitraryPrecisionInteger {
+        guard x < self.fieldSize else { throw CryptoKitError.incorrectParameterSize }
         return try self.pow(x, p, using: CCryptoBoringSSL_BN_mod_exp_mont_consttime)
     }
 
-    /* private but @usableFromInline */ @usableFromInline func pow(
+    fileprivate func pow(
         _ a: ArbitraryPrecisionInteger,
         _ b: ArbitraryPrecisionInteger,
         using method: (
@@ -227,14 +233,14 @@ extension FiniteFieldArithmeticContext {
                 }
             }
         }) == 1 else {
-            throw CryptoBoringWrapperError.internalBoringSSLError()
+            throw CryptoKitError.internalBoringSSLError()
         }
 
         return result
     }
 
     /// Some functions require a `BN_MONT_CTX` parameter: this obtains one for the field modulus with a scoped lifetime.
-    /* private but @usableFromInline */ @usableFromInline func withUnsafeBN_MONT_CTX<T>(_ body: (UnsafePointer<BN_MONT_CTX>) throws -> T) rethrows -> T {
+    fileprivate func withUnsafeBN_MONT_CTX<T>(_ body: (UnsafePointer<BN_MONT_CTX>) throws -> T) rethrows -> T {
         try self.fieldSize.withUnsafeBignumPointer { modPtr in
             // We force unwrap here because this call can only fail if the allocator is broken, and if
             // the allocator fails we don't have long to live anyway.
@@ -244,3 +250,4 @@ extension FiniteFieldArithmeticContext {
         }
     }
 }
+#endif // CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API

@@ -12,10 +12,10 @@
 //
 //===----------------------------------------------------------------------===//
 
-import CCryptoBoringSSL
-import CCryptoBoringSSLShims
+@_implementationOnly import CCryptoBoringSSL
+@_implementationOnly import CCryptoBoringSSLShims
 import Crypto
-import CryptoBoringWrapper
+@_implementationOnly import CryptoBoringWrapper
 #if canImport(Darwin) || swift(>=5.9.1)
 import Foundation
 #else

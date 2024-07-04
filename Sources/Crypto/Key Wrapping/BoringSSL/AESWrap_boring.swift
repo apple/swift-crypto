@@ -14,7 +14,7 @@
 #if CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
 @_exported import CryptoKit
 #else
-import CCryptoBoringSSL
+@_implementationOnly import CCryptoBoringSSL
 import Foundation
 
 enum BoringSSLAESWRAPImpl {

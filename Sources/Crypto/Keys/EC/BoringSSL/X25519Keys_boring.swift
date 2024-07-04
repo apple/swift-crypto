@@ -14,8 +14,8 @@
 #if CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
 @_exported import CryptoKit
 #else
-import CCryptoBoringSSL
-import CCryptoBoringSSLShims
+@_implementationOnly import CCryptoBoringSSL
+@_implementationOnly import CCryptoBoringSSLShims
 import Foundation
 
 extension Curve25519.KeyAgreement {
