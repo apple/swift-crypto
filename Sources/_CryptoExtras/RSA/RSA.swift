@@ -422,7 +422,7 @@ extension _RSA.Encryption {
         /// - Warning: Key sizes less than 2048 are not recommended and should only be used for compatibility reasons.
         public init(unsafePEMRepresentation pemRepresentation: String) throws {
             self.backing = try BackingPublicKey(pemRepresentation: pemRepresentation)
-            guard self.keySizeInBits >= 2048, self.keySizeInBits % 8 == 0 else { throw CryptoKitError.incorrectParameterSize }
+            guard self.keySizeInBits >= 1024, self.keySizeInBits % 8 == 0 else { throw CryptoKitError.incorrectParameterSize }
         }
 
         /// Construct an RSA public key from a DER representation.
