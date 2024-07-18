@@ -89,6 +89,8 @@ add_library(Crypto
   "Util/BoringSSL/CryptoKitErrors_boring.swift"
   "Util/BoringSSL/RNG_boring.swift"
   "Util/BoringSSL/SafeCompare_boring.swift"
+  "Util/BoringSSL/Shared/ArbitraryPrecisionInteger_boring.swift"
+  "Util/BoringSSL/Shared/FiniteFieldArithmeticContext_boring.swift"
   "Util/BoringSSL/Zeroization_boring.swift"
   "Util/PrettyBytes.swift"
   "Util/SafeCompare.swift"

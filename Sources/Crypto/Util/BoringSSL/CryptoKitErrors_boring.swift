@@ -14,7 +14,7 @@
 #if CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
 @_exported import CryptoKit
 #else
-import CCryptoBoringSSL
+@_implementationOnly import CCryptoBoringSSL
 
 extension CryptoKitError {
     /// A helper function that packs the value of `ERR_get_error` into the internal error field.

@@ -14,10 +14,10 @@
 
 // This is a copy ChaChaPoly_boring just with a different set aes algos
 
-import CCryptoBoringSSL
-import CCryptoBoringSSLShims
+@_implementationOnly import CCryptoBoringSSL
+@_implementationOnly import CCryptoBoringSSLShims
 import Crypto
-import CryptoBoringWrapper
+@_implementationOnly import CryptoBoringWrapper
 import Foundation
 
 extension BoringSSLAEAD {

@@ -12,11 +12,10 @@
 //
 //===----------------------------------------------------------------------===//
 
-import CCryptoBoringSSL
+@_implementationOnly import CCryptoBoringSSL
 
 public enum CryptoBoringWrapperError: Error {
     case underlyingCoreCryptoError(error: Int32)
-    case incorrectParameterSize
 }
 
 extension CryptoBoringWrapperError {

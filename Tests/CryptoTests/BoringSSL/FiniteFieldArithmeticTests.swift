@@ -11,9 +11,10 @@
 // SPDX-License-Identifier: Apache-2.0
 //
 //===----------------------------------------------------------------------===//
-@testable import CryptoBoringWrapper
+#if CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
+#else
+@testable import Crypto
 import XCTest
-
 
 final class FiniteFieldArithmeticTests: XCTestCase {
     func testResidue() throws {
@@ -85,7 +86,7 @@ final class FiniteFieldArithmeticTests: XCTestCase {
         XCTAssertEqual(try ff.inverse(4), 1)
         XCTAssertEqual(try ff.inverse(5), 2)
         XCTAssertEqual(try ff.inverse(6), nil)
-        for i: Int64 in 1...100 {
+        for i: Int64 in 1 ... 100 {
             let integer = ArbitraryPrecisionInteger(integerLiteral: i)
             let inverse = try ff.inverse(integer)
             if i % 3 == 0 {
@@ -104,8 +105,8 @@ final class FiniteFieldArithmeticTests: XCTestCase {
             (2, 0, 1), (2, 1, 2), (2, 2, 4), (2, 3, 1),
             (3, 0, 1), (3, 1, 3), (3, 2, 2), (3, 3, 6),
             (5, 0, 1), (5, 1, 5), (5, 2, 4), (5, 3, 6),
-            (7, 0, 1), (7, 1, 0), (7, 2, 0), (7, 3, 0),  // x = m
-            (8, 0, 1), (8, 1, 1), (8, 2, 1), (8, 3, 1),  // x > m
+            (7, 0, 1), (7, 1, 0), (7, 2, 0), (7, 3, 0), // x = m
+            (8, 0, 1), (8, 1, 1), (8, 2, 1), (8, 3, 1), // x > m
         ] {
             let message = "\(x)^\(p) (mod \(m))"
             XCTAssertEqual(try ff.pow(x, p), expectedResult, message)
@@ -114,8 +115,8 @@ final class FiniteFieldArithmeticTests: XCTestCase {
                 XCTAssertEqual(try ff.pow(secret: x, secret: p), expectedResult, message)
             } else {
                 XCTAssertThrowsError(try ff.pow(secret: x, p), message) { error in
-                    switch (error as? CryptoBoringWrapperError) {
-                    case .incorrectParameterSize: break  // OK
+                    switch error as? CryptoKitError {
+                    case .incorrectParameterSize: break // OK
                     default: XCTFail("Unexpected error: \(error)")
                     }
                 }
@@ -123,3 +124,4 @@ final class FiniteFieldArithmeticTests: XCTestCase {
         }
     }
 }
+#endif // CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
