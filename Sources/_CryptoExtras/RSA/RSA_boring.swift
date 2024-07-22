@@ -29,6 +29,14 @@ internal struct BoringSSLRSAPublicKey: Sendable {
         self.backing = try Backing(derRepresentation: derRepresentation)
     }
 
+    init(n: some ContiguousBytes, e: some ContiguousBytes) throws {
+        self.backing = try Backing(n: n, e: e)
+    }
+
+    init(_ other: BoringSSLRSAPublicKey) throws {
+        self = other
+    }
+
     var pkcs1DERRepresentation: Data {
         self.backing.pkcs1DERRepresentation
     }
@@ -64,6 +72,14 @@ internal struct BoringSSLRSAPrivateKey: Sendable {
 
     init<Bytes: DataProtocol>(derRepresentation: Bytes) throws {
         self.backing = try Backing(derRepresentation: derRepresentation)
+    }
+
+    init(n: some ContiguousBytes, e: some ContiguousBytes, d: some ContiguousBytes, p: some ContiguousBytes, q: some ContiguousBytes) throws {
+        self.backing = try Backing(n: n, e: e, d: d, p: p, q: q)
+    }
+
+    init(_ other: BoringSSLRSAPrivateKey) throws {
+        self = other
     }
 
     init(keySize: _RSA.Signing.KeySize) throws {
@@ -220,6 +236,20 @@ extension BoringSSLRSAPublicKey {
                     throw error
                 }
             }
+        }
+
+        fileprivate init(n: some ContiguousBytes, e: some ContiguousBytes) throws {
+            self.pointer = CCryptoBoringSSL_EVP_PKEY_new()
+            let n = try ArbitraryPrecisionInteger(bytes: n)
+            let e = try ArbitraryPrecisionInteger(bytes: e)
+
+            // Create BoringSSL RSA key.
+            guard let rsaPtr = n.withUnsafeBignumPointer({ n in
+                e.withUnsafeBignumPointer { e in
+                    CCryptoBoringSSL_RSA_new_public_key(n, e)
+                }
+            }) else { throw CryptoKitError.internalBoringSSLError() }
+            CCryptoBoringSSL_EVP_PKEY_assign_RSA(self.pointer, rsaPtr)
         }
 
         fileprivate var pkcs1DERRepresentation: Data {
@@ -484,6 +514,43 @@ extension BoringSSLRSAPrivateKey {
                 throw CryptoKitError.internalBoringSSLError()
             }
             CCryptoBoringSSL_EVP_PKEY_assign_RSA(self.pointer, rsaPrivateKey)
+        }
+
+
+        fileprivate init(n: some ContiguousBytes, e: some ContiguousBytes, d: some ContiguousBytes, p: some ContiguousBytes, q: some ContiguousBytes) throws {
+            self.pointer = CCryptoBoringSSL_EVP_PKEY_new()
+            let n = try ArbitraryPrecisionInteger(bytes: n)
+            let e = try ArbitraryPrecisionInteger(bytes: e)
+            let d = try ArbitraryPrecisionInteger(bytes: d)
+            let p = try ArbitraryPrecisionInteger(bytes: p)
+            let q = try ArbitraryPrecisionInteger(bytes: q)
+
+            // Compute the CRT params.
+            let dp = try FiniteFieldArithmeticContext(fieldSize: p - 1).residue(d)
+            let dq = try FiniteFieldArithmeticContext(fieldSize: q - 1).residue(d)
+            guard let qi = try FiniteFieldArithmeticContext(fieldSize: p).inverse(q) else {
+                throw CryptoKitError.internalBoringSSLError()
+            }
+
+            // Create BoringSSL RSA key.
+            guard let rsaPtr = n.withUnsafeBignumPointer({ n in
+                e.withUnsafeBignumPointer { e in
+                    d.withUnsafeBignumPointer { d in
+                        p.withUnsafeBignumPointer { p in
+                            q.withUnsafeBignumPointer { q in
+                                dp.withUnsafeBignumPointer { dp in
+                                    dq.withUnsafeBignumPointer { dq in
+                                        qi.withUnsafeBignumPointer { qi in
+                                            CCryptoBoringSSL_RSA_new_private_key(n, e, d, p, q, dp, dq, qi)
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }) else { throw CryptoKitError.internalBoringSSLError() }
+            CCryptoBoringSSL_EVP_PKEY_assign_RSA(self.pointer, rsaPtr)
         }
 
         private static func pkcs8DERPrivateKey<Bytes: ContiguousBytes>(_ derRepresentation: Bytes) -> OpaquePointer? {

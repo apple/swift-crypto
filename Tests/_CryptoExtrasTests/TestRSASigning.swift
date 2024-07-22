@@ -677,6 +677,37 @@ final class TestRSASigning: XCTestCase {
         XCTAssertEqual(pemKey, key.pkcs8PEMRepresentation)
     }
 
+    func testConstructKeyFromRSANumbers() throws {
+        /// Check we can successfully construct keys from known valid values from a test vector.
+        for testVector in RFC9474TestVector.allValues {
+            _ = try _RSA.Signing.PrivateKey(
+                n: Data(hexString: testVector.n),
+                e: Data(hexString: testVector.e),
+                d: Data(hexString: testVector.d),
+                p: Data(hexString: testVector.p),
+                q: Data(hexString: testVector.q)
+            )
+            _ = try _RSA.Signing.PublicKey(
+                n: Data(hexString: testVector.n),
+                e: Data(hexString: testVector.e)
+            )
+        }
+        /// Also check that we can provide each argument as a different `ContiguousBytes` type.
+        /// NOTE: these calls use `try?` because they are guaranteed to fail; we're just checking these calls compile.
+        let bytesValues: [any ContiguousBytes] = [Data(), [UInt8]()]
+        _ = try? _RSA.Signing.PrivateKey(
+            n: bytesValues.randomElement()!,
+            e: bytesValues.randomElement()!,
+            d: bytesValues.randomElement()!,
+            p: bytesValues.randomElement()!,
+            q: bytesValues.randomElement()!
+        )
+        _ = try? _RSA.Signing.PublicKey(
+            n: bytesValues.randomElement()!,
+            e: bytesValues.randomElement()!
+        )
+    }
+
     private func testPKCS1Group(_ group: RSAPKCS1TestGroup) throws {
         let derKey: _RSA.Signing.PublicKey
         let pemKey: _RSA.Signing.PublicKey

@@ -98,6 +98,17 @@ extension _RSA.Signing {
             }
         }
 
+        /// Construct an RSA public key with the specified parameters.
+        ///
+        /// Only the BoringSSL backend provides APIs to create a key from its parameters so we first create a BoringSSL
+        /// key, and then pass it to the platform-specific initializer that accepts a BoringSSL key.
+        ///
+        /// On Darwin platforms, this will serialize it to PEM format, and then construct a platform-specific key from
+        /// the PEM representation.
+        public init(n: some ContiguousBytes, e: some ContiguousBytes) throws {
+            self.backing = try BackingPublicKey(BoringSSLRSAPublicKey(n: n, e: e))
+        }
+
         public var pkcs1DERRepresentation: Data {
             self.backing.pkcs1DERRepresentation
         }
@@ -176,6 +187,17 @@ extension _RSA.Signing {
             guard self.keySizeInBits >= 1024 else {
                 throw CryptoKitError.incorrectParameterSize
             }
+        }
+
+        /// Construct an RSA private key with the specified parameters.
+        ///
+        /// Only the BoringSSL backend provides APIs to create a key from its parameters so we first create a BoringSSL
+        /// key, and then pass it to the platform-specific initializer that accepts a BoringSSL key.
+        ///
+        /// On Darwin platforms, this will serialize it to DER format, and then construct a platform-specific key from
+        /// the DER representation.
+        public init(n: some ContiguousBytes, e: some ContiguousBytes, d: some ContiguousBytes, p: some ContiguousBytes, q: some ContiguousBytes) throws {
+            self.backing = try BackingPrivateKey(BoringSSLRSAPrivateKey(n: n, e: e, d: d, p: p, q: q))
         }
 
         /// Randomly generate a new RSA private key of a given size.
@@ -444,6 +466,17 @@ extension _RSA.Encryption {
             guard self.keySizeInBits >= 1024, self.keySizeInBits % 8 == 0 else { throw CryptoKitError.incorrectParameterSize }
         }
 
+        /// Construct an RSA public key with the specified parameters.
+        ///
+        /// Only the BoringSSL backend provides APIs to create a key from its parameters so we first create a BoringSSL
+        /// key, and then pass it to the platform-specific initializer that accepts a BoringSSL key.
+        ///
+        /// On Darwin platforms, this will serialize it to DER format, and then construct a platform-specific key from
+        /// the DER representation.
+        public init(n: some ContiguousBytes, e: some ContiguousBytes) throws {
+            self.backing = try BackingPublicKey(BoringSSLRSAPublicKey(n: n, e: e))
+        }
+
         public var pkcs1DERRepresentation: Data { self.backing.pkcs1DERRepresentation }
         public var pkcs1PEMRepresentation: String { self.backing.pkcs1PEMRepresentation }
         public var derRepresentation: Data { self.backing.derRepresentation }
@@ -492,6 +525,18 @@ extension _RSA.Encryption {
         public init<Bytes: DataProtocol>(unsafeDERRepresentation derRepresentation: Bytes) throws {
             self.backing = try BackingPrivateKey(derRepresentation: derRepresentation)
             guard self.keySizeInBits >= 1024, self.keySizeInBits % 8 == 0 else { throw CryptoKitError.incorrectParameterSize }
+        }
+
+
+        /// Construct an RSA private key with the specified parameters.
+        ///
+        /// Only the BoringSSL backend provides APIs to create a key from its parameters so we first create a BoringSSL
+        /// key, and then pass it to the platform-specific initializer that accepts a BoringSSL key.
+        ///
+        /// On Darwin platforms, this will serialize it to PEM format, and then construct a platform-specific key from
+        /// the PEM representation.
+        public init(n: some ContiguousBytes, e: some ContiguousBytes, d: some ContiguousBytes, p: some ContiguousBytes, q: some ContiguousBytes) throws {
+            self.backing = try BackingPrivateKey(BoringSSLRSAPrivateKey(n: n, e: e, d: d, p: p, q: q))
         }
 
         /// Randomly generate a new RSA private key of a given size.
