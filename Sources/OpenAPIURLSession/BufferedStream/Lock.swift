@@ -111,7 +111,8 @@ final class LockStorage<Value>: ManagedBuffer<Value, LockPrimitive> {
     let buffer = Self.create(minimumCapacity: 1) { _ in
       return value
     }
-    let storage = unsafeDowncast(buffer, to: Self.self)
+    // Avoid 'unsafeDowncast' as there is a miscompilation on 5.10.
+    let storage = buffer as! Self
 
     storage.withUnsafeMutablePointers { _, lockPtr in
       LockOperations.create(lockPtr)
