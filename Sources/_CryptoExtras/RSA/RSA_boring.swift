@@ -60,6 +60,10 @@ internal struct BoringSSLRSAPublicKey: Sendable {
     fileprivate init(_ backing: Backing) {
         self.backing = backing
     }
+
+    func getKeyPrimitives() throws -> (n: [UInt8], e: [UInt8]) {
+        try self.backing.getKeyPrimitives()
+    }
 }
 
 
@@ -104,6 +108,10 @@ internal struct BoringSSLRSAPrivateKey: Sendable {
 
     var publicKey: BoringSSLRSAPublicKey {
         self.backing.publicKey
+    }
+
+    func getKeyPrimitives() throws -> (n: [UInt8], e: [UInt8], d: [UInt8], p: [UInt8], q: [UInt8]) {
+        try self.backing.getKeyPrimitives()
     }
 }
 
@@ -464,6 +472,22 @@ extension BoringSSLRSAPublicKey {
 
         deinit {
             CCryptoBoringSSL_EVP_PKEY_free(self.pointer)
+        }
+
+        fileprivate func getKeyPrimitives() throws -> (n: [UInt8], e: [UInt8]) {
+            let key = CCryptoBoringSSL_EVP_PKEY_get0_RSA(self.pointer)
+
+            func getPrimitive(_ getPointer: (OpaquePointer?) -> UnsafePointer<BIGNUM>?) throws -> [UInt8] {
+                let ptr = getPointer(key)
+                let size = Int(CCryptoBoringSSL_BN_num_bytes(ptr))
+                var buffer = [UInt8](repeating: 0, count: size)
+                buffer.withUnsafeMutableBytes { bufferPtr in
+                    _ = CCryptoBoringSSL_BN_bn2bin(ptr, bufferPtr.baseAddress!.assumingMemoryBound(to: UInt8.self))
+                }
+                return buffer
+            }
+
+            return try (getPrimitive(CCryptoBoringSSL_RSA_get0_n), getPrimitive(CCryptoBoringSSL_RSA_get0_e))
         }
     }
 }
@@ -828,6 +852,28 @@ extension BoringSSLRSAPrivateKey {
                     }
                 }
             }
+        }
+
+        fileprivate func getKeyPrimitives() throws -> (n: [UInt8], e: [UInt8], d: [UInt8], p: [UInt8], q: [UInt8]) {
+            let key = CCryptoBoringSSL_EVP_PKEY_get0_RSA(self.pointer)
+
+            func getPrimitive(_ getPointer: (OpaquePointer?) -> UnsafePointer<BIGNUM>?) throws -> [UInt8] {
+                let ptr = getPointer(key)
+                let size = Int(CCryptoBoringSSL_BN_num_bytes(ptr))
+                var buffer = [UInt8](repeating: 0, count: size)
+                buffer.withUnsafeMutableBytes { bufferPtr in
+                    _ = CCryptoBoringSSL_BN_bn2bin(ptr, bufferPtr.baseAddress!.assumingMemoryBound(to: UInt8.self))
+                }
+                return buffer
+            }
+
+            return try (
+                getPrimitive(CCryptoBoringSSL_RSA_get0_n),
+                getPrimitive(CCryptoBoringSSL_RSA_get0_e),
+                getPrimitive(CCryptoBoringSSL_RSA_get0_d),
+                getPrimitive(CCryptoBoringSSL_RSA_get0_p),
+                getPrimitive(CCryptoBoringSSL_RSA_get0_q)
+            )
         }
 
         deinit {

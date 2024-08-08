@@ -132,6 +132,10 @@ extension _RSA.Signing {
         fileprivate init(_ backing: BackingPublicKey) {
             self.backing = backing
         }
+
+        public func getKeyPrimitives() throws -> (n: [UInt8], e: [UInt8]) {
+            try self.backing.getKeyPrimitives()
+        }
     }
 }
 
@@ -241,6 +245,10 @@ extension _RSA.Signing {
 
         public var publicKey: _RSA.Signing.PublicKey {
             _RSA.Signing.PublicKey(self.backing.publicKey)
+        }
+
+        public func getKeyPrimitives() throws -> (n: [UInt8], e: [UInt8], d: [UInt8], p: [UInt8], q: [UInt8]) {
+            try self.backing.getKeyPrimitives()
         }
     }
 }
