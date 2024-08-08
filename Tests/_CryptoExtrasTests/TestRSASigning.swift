@@ -708,6 +708,28 @@ final class TestRSASigning: XCTestCase {
         )
     }
 
+    func testGetKeyPrimitives() throws {
+        for testVector in RFC9474TestVector.allValues {
+            let n = try [UInt8](hexString: testVector.n)
+            let e = try [UInt8](hexString: testVector.e)
+
+            let primitives = try _RSA.Signing.PublicKey(n: n, e: e).getKeyPrimitives()
+            XCTAssertEqual(primitives.n, n)
+            XCTAssertEqual(primitives.e, e)
+
+            let d = try [UInt8](hexString: testVector.d)
+            let p = try [UInt8](hexString: testVector.p)
+            let q = try [UInt8](hexString: testVector.q)
+            
+            let privatePrimitives = try _RSA.Signing.PrivateKey(n: n, e: e, d: d, p: p, q: q).getKeyPrimitives()
+            XCTAssertEqual(privatePrimitives.n, n)
+            XCTAssertEqual(privatePrimitives.e, e)
+            XCTAssertEqual(privatePrimitives.d, d)
+            XCTAssertEqual(privatePrimitives.p, p)
+            XCTAssertEqual(privatePrimitives.q, q)
+        }
+    }
+
     private func testPKCS1Group(_ group: RSAPKCS1TestGroup) throws {
         let derKey: _RSA.Signing.PublicKey
         let pemKey: _RSA.Signing.PublicKey
