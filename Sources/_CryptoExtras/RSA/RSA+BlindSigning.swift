@@ -83,6 +83,12 @@ extension _RSA.BlindSigning {
             }
         }
 
+        /// Construct a RSA public key with the specified parameters.
+        public init(n: some ContiguousBytes, e: some ContiguousBytes, parameters: Parameters) throws {
+            self.backing = try BackingPublicKey(n: n, e: e)
+            self.parameters = parameters
+        }
+
         public var pkcs1DERRepresentation: Data {
             self.backing.pkcs1DERRepresentation
         }
@@ -169,6 +175,12 @@ extension _RSA.BlindSigning {
             guard self.keySizeInBits >= 1024 else {
                 throw CryptoKitError.incorrectParameterSize
             }
+        }
+
+        /// Construct an RSA private key with the specified parameters.
+        public init(n: some ContiguousBytes, e: some ContiguousBytes, d: some ContiguousBytes, p: some ContiguousBytes, q: some ContiguousBytes, parameters: Parameters) throws {
+            self.backing = try BackingPrivateKey(n: n, e: e, d: d, p: p, q: q)
+            self.parameters = parameters
         }
 
         /// Randomly generate a new RSA private key of a given size.

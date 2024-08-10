@@ -15,7 +15,7 @@ import XCTest
 import Crypto
 @testable import _CryptoExtras
 
-fileprivate struct TestVector: Codable {
+struct RFC9474TestVector: Codable {
     var name, p, q, n, e, d, msg, msg_prefix, prepared_msg, salt, inv, blinded_msg, blind_sig, sig: String
 
     var parameters: _RSA.BlindSigning.Parameters<SHA384> {
@@ -40,19 +40,33 @@ fileprivate struct TestVector: Codable {
         let decoder = JSONDecoder()
         return try decoder.decode([Self].self, from: json)
     }
+
+    static let allValues: [Self] = try! RFC9474TestVector.load(from: URL(
+        fileURLWithPath: "../_CryptoExtrasVectors/rfc9474.json",
+        relativeTo: URL(fileURLWithPath: #file)
+    ))
 }
 
 final class TestRSABlindSigning: XCTestCase {
     func testAgainstRFC9474TestVectors() throws {
-        let testVectors = try TestVector.load(from: URL(
-            fileURLWithPath: "../_CryptoExtrasVectors/rfc9474.json",
-            relativeTo: URL(fileURLWithPath: #file)
-        ))
-
-        for testVector in testVectors {
+        for testVector in RFC9474TestVector.allValues {
+            // Load key pair
+            let privateKey = try _RSA.BlindSigning.PrivateKey(
+                n: Data(hexString: testVector.n),
+                e: Data(hexString: testVector.e),
+                d: Data(hexString: testVector.d),
+                p: Data(hexString: testVector.p),
+                q: Data(hexString: testVector.q),
+                parameters: testVector.parameters
+            )
+            let publicKey = try _RSA.BlindSigning.PublicKey(
+                n: Data(hexString: testVector.n),
+                e: Data(hexString: testVector.e),
+                parameters: testVector.parameters
+            )
+            XCTAssertEqual(publicKey.derRepresentation, privateKey.publicKey.derRepresentation)
             // Prepare
             do {
-                let publicKey = try _RSA.BlindSigning.PublicKey(nHexString: testVector.n, eHexString: testVector.e, parameters: testVector.parameters)
                 let message = try Data(hexString: testVector.msg)
                 let preparedMessage = publicKey.prepare(message)
                 switch testVector.parameters.preparation {
@@ -65,7 +79,6 @@ final class TestRSABlindSigning: XCTestCase {
 
             // Blind
             do {
-                let publicKey = try _RSA.BlindSigning.PublicKey(nHexString: testVector.n, eHexString: testVector.e, parameters: testVector.parameters)
                 let preparedMessage = try _RSA.BlindSigning.PreparedMessage(rawRepresentation: Data(hexString: testVector.prepared_msg))
                 let blindingResult = try publicKey.blind(preparedMessage)
                 // NOTE: Sadly we can't validate the blinded message against the test vectors because BoringSSL doesn't
@@ -76,14 +89,6 @@ final class TestRSABlindSigning: XCTestCase {
 
             // BlindSign
             do {
-                let privateKey = try _RSA.BlindSigning.PrivateKey(
-                    nHexString: testVector.n,
-                    eHexString: testVector.e,
-                    dHexString: testVector.d,
-                    pHexString: testVector.p,
-                    qHexString: testVector.q,
-                    parameters: testVector.parameters
-                )
                 let blindedMessage = try Data(hexString: testVector.blinded_msg)
                 let blindSignature = try privateKey.blindSignature(for: blindedMessage)
                 XCTAssertEqual(
@@ -94,7 +99,6 @@ final class TestRSABlindSigning: XCTestCase {
 
             // Finalize
             do {
-                let publicKey = try _RSA.BlindSigning.PublicKey(nHexString: testVector.n, eHexString: testVector.e, parameters: testVector.parameters)
                 let blindSignature = try _RSA.BlindSigning.BlindSignature(rawRepresentation: Data(hexString: testVector.blind_sig))
                 let preparedMessage = try _RSA.BlindSigning.PreparedMessage(rawRepresentation: Data(hexString: testVector.prepared_msg))
                 let blindingInverse = try _RSA.BlindSigning.BlindingInverse(rawRepresentation: Data(hexString: testVector.inv))
@@ -107,7 +111,6 @@ final class TestRSABlindSigning: XCTestCase {
 
             // Verification
             do {
-                let publicKey = try _RSA.BlindSigning.PublicKey(nHexString: testVector.n, eHexString: testVector.e, parameters: testVector.parameters)
                 let signature = try _RSA.Signing.RSASignature(rawRepresentation: Data(hexString: testVector.sig))
                 let preparedMessage = try _RSA.BlindSigning.PreparedMessage(rawRepresentation: Data(hexString: testVector.prepared_msg))
                 XCTAssert(publicKey.isValidSignature(signature, for: preparedMessage))
@@ -163,5 +166,40 @@ final class TestRSABlindSigning: XCTestCase {
                 return
             }
         }
+    }
+
+    func testConstructKeyFromRSANumbers() throws {
+        /// Check we can successfully construct keys from known valid values from a test vector.
+        for testVector in RFC9474TestVector.allValues {
+            _ = try _RSA.BlindSigning.PrivateKey(
+                n: Data(hexString: testVector.n),
+                e: Data(hexString: testVector.e),
+                d: Data(hexString: testVector.d),
+                p: Data(hexString: testVector.p),
+                q: Data(hexString: testVector.q),
+                parameters: testVector.parameters
+            )
+            _ = try _RSA.BlindSigning.PublicKey(
+                n: Data(hexString: testVector.n),
+                e: Data(hexString: testVector.e),
+                parameters: testVector.parameters
+            )
+        }
+        /// Also check that we can provide each argument as a different `ContiguousBytes` type.
+        /// NOTE: these calls use `try?` because they are guaranteed to fail; we're just checking these calls compile.
+        let bytesValues: [any ContiguousBytes] = [Data(), [UInt8]()]
+        _ = try? _RSA.BlindSigning.PrivateKey(
+            n: bytesValues.randomElement()!,
+            e: bytesValues.randomElement()!,
+            d: bytesValues.randomElement()!,
+            p: bytesValues.randomElement()!,
+            q: bytesValues.randomElement()!,
+            parameters: .RSABSSA_SHA384_PSS_Randomized
+        )
+        _ = try? _RSA.BlindSigning.PublicKey(
+            n: bytesValues.randomElement()!,
+            e: bytesValues.randomElement()!,
+            parameters: .RSABSSA_SHA384_PSS_Randomized
+        )
     }
 }
