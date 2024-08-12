@@ -14,7 +14,7 @@
 import Foundation
 import XCTest
 @testable import Crypto
-import _CryptoExtras
+@testable import _CryptoExtras
 
 final class TestRSASigning: XCTestCase {
     func test_wycheproofPKCS1Vectors() throws {
@@ -71,6 +71,15 @@ final class TestRSASigning: XCTestCase {
         try wycheproofTest(
             jsonName: "rsa_pss_misc_test",
             testFunction: self.testPSSGroup)
+    }
+
+    func test_wycheproofPrimitives() throws {
+        try wycheproofTest(
+            jsonName: "rsa_oaep_2048_sha1_mgf1sha1_test", 
+            testFunction: self.testPrimeFactors)
+        try wycheproofTest(
+            jsonName: "rsa_oaep_2048_sha256_mgf1sha256_test", 
+            testFunction: testPrimeFactors)
     }
 
     func testPKCS1Signing() throws {
@@ -708,6 +717,23 @@ final class TestRSASigning: XCTestCase {
         )
     }
 
+    func testConstructAndUseKeyFromRSANumbersWhileGeneratingPrimes() throws {
+        let data = Array("hello, world!".utf8)
+
+        for testVector in RFC9474TestVector.allValues {
+            let key = try _RSA.Signing.PrivateKey._createFromNumbers(
+                n: Data(hexString: testVector.n),
+                e: Data(hexString: testVector.e),
+                d: Data(hexString: testVector.d)
+            )
+
+            let signature = try key.signature(for: data)
+            let roundTripped = _RSA.Signing.RSASignature(rawRepresentation: signature.rawRepresentation)
+            XCTAssertEqual(signature.rawRepresentation, roundTripped.rawRepresentation)
+            XCTAssertTrue(key.publicKey.isValidSignature(roundTripped, for: data))
+        }
+    }
+
     private func testPKCS1Group(_ group: RSAPKCS1TestGroup) throws {
         let derKey: _RSA.Signing.PublicKey
         let pemKey: _RSA.Signing.PublicKey
@@ -788,6 +814,15 @@ final class TestRSASigning: XCTestCase {
 
             XCTAssertEqual(valid, test.expectedValidity, "test number \(test.tcId) failed, expected \(test.result) but got \(valid)")
         }
+    }
+
+    private func testPrimeFactors(_ group: RSAPrimitivesTestGroup) throws {
+        let n = try ArbitraryPrecisionInteger(hexString: group.n)
+        let e = try ArbitraryPrecisionInteger(hexString: group.e)
+        let d = try ArbitraryPrecisionInteger(hexString: group.d)
+
+        let (p, q) = try _RSA.generatePrimes(n: n, e: e, d: d)
+        XCTAssertEqual(p * q, n, "The product of p and q should equal n; got \(p) * \(q) != \(n)")
     }
 
     private func pemForDERBytes(discriminator: String, derBytes: Data) -> String {
@@ -871,3 +906,27 @@ struct RSATest: Codable {
         }
     }
 }
+
+struct RSAPrimitivesTestGroup: Codable {
+    let n: String
+    let e: String
+    let d: String
+    let privateKeyJwk: PrivateKeyJWK?
+
+    struct PrivateKeyJWK: Codable {
+        let kty: String
+        let n: String
+        let e: String
+        let d: String
+        let p: String
+        let q: String
+        let dp: String
+        let dq: String
+        let qi: String
+    }
+}
+
+struct RSAPrimitivesTestVectors: Codable {
+    let testGroups: [RSAPrimitivesTestGroup]
+}
+

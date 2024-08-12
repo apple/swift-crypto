@@ -14,4 +14,5 @@
 
 public enum _CryptoRSAError: Error {
     case invalidPEMDocument
+    case keyInitializationFailure
 }
