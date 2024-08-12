@@ -491,6 +491,10 @@ extension _RSA.Encryption {
         public var pemRepresentation: String { self.backing.pemRepresentation }
         public var keySizeInBits: Int { self.backing.keySizeInBits }
         fileprivate init(_ backing: BackingPublicKey) { self.backing = backing }
+
+        public func getKeyPrimitives() throws -> (n: [UInt8], e: [UInt8]) {
+            try self.backing.getKeyPrimitives()
+        }
     }
     
     /// Identical to ``_RSA/Signing/PrivateKey``.
@@ -571,6 +575,10 @@ extension _RSA.Encryption {
         public var pkcs8PEMRepresentation: String { self.backing.pkcs8PEMRepresentation }
         public var keySizeInBits: Int { self.backing.keySizeInBits }
         public var publicKey: _RSA.Encryption.PublicKey { .init(self.backing.publicKey) }
+
+        public func getKeyPrimitives() throws -> (n: [UInt8], e: [UInt8], d: [UInt8], p: [UInt8], q: [UInt8]) {
+            try self.backing.getKeyPrimitives()
+        }
     }
 }
 
