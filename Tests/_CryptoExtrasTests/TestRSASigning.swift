@@ -79,7 +79,7 @@ final class TestRSASigning: XCTestCase {
             testFunction: self.testPrimeFactors)
         try wycheproofTest(
             jsonName: "rsa_oaep_2048_sha256_mgf1sha256_test", 
-            testFunction: testPrimeFactors)
+            testFunction: self.testPrimeFactors)
     }
 
     func testPKCS1Signing() throws {
@@ -717,20 +717,23 @@ final class TestRSASigning: XCTestCase {
         )
     }
 
-    func testConstructAndUseKeyFromRSANumbersWhileGeneratingPrimes() throws {
+    func testConstructAndUseKeyFromRSANumbersWhileRecoveringPrimes() throws {
         let data = Array("hello, world!".utf8)
 
-        for testVector in RFC9474TestVector.allValues {
-            let key = try _RSA.Signing.PrivateKey._createFromNumbers(
-                n: Data(hexString: testVector.n),
-                e: Data(hexString: testVector.e),
-                d: Data(hexString: testVector.d)
-            )
+        // Generating primes is probabilistic, so we run this test multiple times.
+        for _ in 0..<100 {
+            for testVector in RFC9474TestVector.allValues {
+                let key = try _RSA.Signing.PrivateKey._createFromNumbers(
+                    n: Data(hexString: testVector.n),
+                    e: Data(hexString: testVector.e),
+                    d: Data(hexString: testVector.d)
+                )
 
-            let signature = try key.signature(for: data)
-            let roundTripped = _RSA.Signing.RSASignature(rawRepresentation: signature.rawRepresentation)
-            XCTAssertEqual(signature.rawRepresentation, roundTripped.rawRepresentation)
-            XCTAssertTrue(key.publicKey.isValidSignature(roundTripped, for: data))
+                let signature = try key.signature(for: data)
+                let roundTripped = _RSA.Signing.RSASignature(rawRepresentation: signature.rawRepresentation)
+                XCTAssertEqual(signature.rawRepresentation, roundTripped.rawRepresentation)
+                XCTAssertTrue(key.publicKey.isValidSignature(roundTripped, for: data))
+            }
         }
     }
 
@@ -821,7 +824,7 @@ final class TestRSASigning: XCTestCase {
         let e = try ArbitraryPrecisionInteger(hexString: group.e)
         let d = try ArbitraryPrecisionInteger(hexString: group.d)
 
-        let (p, q) = try _RSA.generatePrimes(n: n, e: e, d: d)
+        let (p, q) = try _RSA.extractPrimeFactors(n: n, e: e, d: d)
         XCTAssertEqual(p * q, n, "The product of p and q should equal n; got \(p) * \(q) != \(n)")
     }
 

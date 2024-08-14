@@ -244,7 +244,7 @@ extension _RSA.Signing {
         }
 
         public static func _createFromNumbers(n: some ContiguousBytes, e: some ContiguousBytes, d: some ContiguousBytes) throws -> Self {
-            let (p, q) = try _RSA.generatePrimes(
+            let (p, q) = try _RSA.extractPrimeFactors(
                 n: try ArbitraryPrecisionInteger(bytes: n), 
                 e: try ArbitraryPrecisionInteger(bytes: e), 
                 d: try ArbitraryPrecisionInteger(bytes: d)
@@ -657,25 +657,27 @@ extension _RSA {
 }
 
 extension _RSA {
-    static func generatePrimes(
+    static func extractPrimeFactors(
         n: ArbitraryPrecisionInteger, 
         e: ArbitraryPrecisionInteger, 
         d: ArbitraryPrecisionInteger
     ) throws -> (p: ArbitraryPrecisionInteger, q: ArbitraryPrecisionInteger) {
         let k = (d * e) - 1
+        let t = k.trailingZeroBitCount
+        let r = k >> t
 
-        // guard k & 1 == 0 else {
-        //     throw RSAError.keyInitializationFailure
-        // }
-
-        let t = k.trailingZeroBitCount, r = k >> t
+        guard k.isEven() else {
+            throw CryptoKitError.incorrectParameterSize
+        }
 
         var y: ArbitraryPrecisionInteger = 0
         var i = 1
 
+        let context = try FiniteFieldArithmeticContext(fieldSize: n)
+
         while i <= 100 {
             let g = try ArbitraryPrecisionInteger.random(inclusiveMin: 2, exclusiveMax: n)
-            y = try g.power(r, modulus: n)
+            y = try context.pow(g, r)
 
             guard y != 1, y != n - 1 else {
                 continue
@@ -685,7 +687,7 @@ extension _RSA {
             var x: ArbitraryPrecisionInteger
 
             while j <= t &- 1 {
-                x = try y.power(2, modulus: n)
+                x = try context.pow(y, 2)
 
                 guard x != 1, x != n - 1 else {
                     break
@@ -695,7 +697,7 @@ extension _RSA {
                 j &+= 1
             }
 
-            x = try y.power(2, modulus: 2)
+            x = try context.pow(y, 2)
             if x == 1 {
                 let p = try ArbitraryPrecisionInteger.gcd(y - 1, n)
                 let q = n / p
@@ -706,6 +708,6 @@ extension _RSA {
             i &+= 1
         }
 
-        throw _CryptoRSAError.keyInitializationFailure
+        throw CryptoKitError.incorrectParameterSize
     }
 }

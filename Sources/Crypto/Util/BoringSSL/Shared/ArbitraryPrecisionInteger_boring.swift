@@ -215,27 +215,6 @@ extension ArbitraryPrecisionInteger {
     }
 
     @usableFromInline
-    func power(_ exponent: ArbitraryPrecisionInteger, modulus: ArbitraryPrecisionInteger) throws -> ArbitraryPrecisionInteger {
-        var result = ArbitraryPrecisionInteger()
-        let rc = result.withUnsafeMutableBignumPointer { resultPtr in
-            self.withUnsafeBignumPointer { basePtr in
-                exponent.withUnsafeBignumPointer { exponentPtr in
-                    modulus.withUnsafeBignumPointer { modulusPtr in
-                        ArbitraryPrecisionInteger.withUnsafeBN_CTX { bnCtx in
-                            CCryptoBoringSSL_BN_mod_exp(resultPtr, basePtr, exponentPtr, modulusPtr, bnCtx)
-                        }
-                    }
-                }
-            }
-        }
-
-        guard rc == 1 else {
-            throw CryptoKitError.internalBoringSSLError()
-        }
-        return result
-    }
-
-    @usableFromInline
     var byteCount: Int {
         self._backing.withUnsafeBignumPointer {
             Int(CCryptoBoringSSL_BN_num_bytes($0))
@@ -285,21 +264,6 @@ extension ArbitraryPrecisionInteger: Comparable {
     @inlinable
     static func >= (lhs: ArbitraryPrecisionInteger, rhs: ArbitraryPrecisionInteger) -> Bool {
         self._compare(lhs: lhs, rhs: rhs) >= 0
-    }
-
-    @usableFromInline
-    static func >> (lhs: ArbitraryPrecisionInteger, rhs: Int32) -> ArbitraryPrecisionInteger {
-        var result = ArbitraryPrecisionInteger()
-
-        let rc = result.withUnsafeMutableBignumPointer { resultPtr in 
-            lhs.withUnsafeBignumPointer { lhsPtr in
-                CCryptoBoringSSL_BN_rshift(resultPtr, lhsPtr, rhs)
-            }
-        }
-
-        precondition(rc == 1, "Unable to allocate memory for new ArbitraryPrecisionInteger")
-
-        return result
     }
 }
 
@@ -365,24 +329,6 @@ extension ArbitraryPrecisionInteger: AdditiveArithmetic {
             }
         }
         precondition(rc == 1, "Unable to allocate memory for new ArbitraryPrecisionInteger")
-    }
-
-    @usableFromInline
-    static func / (lhs: ArbitraryPrecisionInteger, rhs: ArbitraryPrecisionInteger) -> ArbitraryPrecisionInteger {
-        var result = ArbitraryPrecisionInteger()
-
-        let rc = result.withUnsafeMutableBignumPointer { resultPtr in 
-            lhs.withUnsafeBignumPointer { lhsPtr in
-                rhs.withUnsafeBignumPointer { rhsPtr in
-                    ArbitraryPrecisionInteger.withUnsafeBN_CTX { bnCtx in
-                        CCryptoBoringSSL_BN_div(resultPtr, nil, lhsPtr, rhsPtr, bnCtx)
-                    }
-                }
-            }
-        }
-        precondition(rc == 1, "Unable to allocate memory for new ArbitraryPrecisionInteger")
-
-        return result
     }
 }
 
@@ -460,6 +406,13 @@ extension ArbitraryPrecisionInteger: SignedNumeric {
 
 extension ArbitraryPrecisionInteger {
     @usableFromInline
+    var trailingZeroBitCount: Int32 {
+        self._backing.withUnsafeBignumPointer {
+            CCryptoBoringSSL_BN_count_low_zero_bits($0)
+        }
+    }
+
+    @usableFromInline
     static func gcd(_ a: ArbitraryPrecisionInteger, _ b: ArbitraryPrecisionInteger) throws -> ArbitraryPrecisionInteger {
         var result = ArbitraryPrecisionInteger()
 
@@ -499,9 +452,42 @@ extension ArbitraryPrecisionInteger {
     }
 
     @usableFromInline
-    var trailingZeroBitCount: Int32 {
+    static func >> (lhs: ArbitraryPrecisionInteger, rhs: Int32) -> ArbitraryPrecisionInteger {
+        var result = ArbitraryPrecisionInteger()
+
+        let rc = result.withUnsafeMutableBignumPointer { resultPtr in 
+            lhs.withUnsafeBignumPointer { lhsPtr in
+                CCryptoBoringSSL_BN_rshift(resultPtr, lhsPtr, rhs)
+            }
+        }
+
+        precondition(rc == 1, "Unable to allocate memory for new ArbitraryPrecisionInteger")
+
+        return result
+    }
+
+    @usableFromInline
+    static func / (lhs: ArbitraryPrecisionInteger, rhs: ArbitraryPrecisionInteger) -> ArbitraryPrecisionInteger {
+        var result = ArbitraryPrecisionInteger()
+
+        let rc = result.withUnsafeMutableBignumPointer { resultPtr in 
+            lhs.withUnsafeBignumPointer { lhsPtr in
+                rhs.withUnsafeBignumPointer { rhsPtr in
+                    ArbitraryPrecisionInteger.withUnsafeBN_CTX { bnCtx in
+                        CCryptoBoringSSL_BN_div(resultPtr, nil, lhsPtr, rhsPtr, bnCtx)
+                    }
+                }
+            }
+        }
+        precondition(rc == 1, "Unable to allocate memory for new ArbitraryPrecisionInteger")
+
+        return result
+    }
+
+    @usableFromInline
+    func isEven() -> Bool {
         self._backing.withUnsafeBignumPointer {
-            CCryptoBoringSSL_BN_count_low_zero_bits($0)
+            CCryptoBoringSSL_BN_is_odd($0) == 0
         }
     }
 }
