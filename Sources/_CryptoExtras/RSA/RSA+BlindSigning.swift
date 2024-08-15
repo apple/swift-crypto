@@ -114,8 +114,14 @@ extension _RSA.BlindSigning {
             self.parameters = parameters
         }
 
-        public func getKeyPrimitives() throws -> (n: [UInt8], e: [UInt8]) {
-            try self.backing.getKeyPrimitives()
+        public struct Primitives {
+            public var n: Data
+            public var e: Data
+        }
+
+        public func getKeyPrimitives() throws -> Primitives {
+            let (n, e) = try self.backing.getKeyPrimitives()
+            return Primitives(n: n, e: e)
         }
     }
 }

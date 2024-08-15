@@ -73,7 +73,7 @@ internal struct SecurityRSAPublicKey: @unchecked Sendable {
         self.backing = backing
     }
 
-    func getKeyPrimitives() throws -> (n: [UInt8], e: [UInt8]) {
+    func getKeyPrimitives() throws -> (n: Data, e: Data) {
         try BoringSSLRSAPublicKey(derRepresentation: self.derRepresentation).getKeyPrimitives()
     }
 }
@@ -173,10 +173,6 @@ internal struct SecurityRSAPrivateKey: @unchecked Sendable {
 
     var publicKey: SecurityRSAPublicKey {
         SecurityRSAPublicKey(SecKeyCopyPublicKey(self.backing)!)
-    }
-
-    func getKeyPrimitives() throws -> (n: [UInt8], e: [UInt8], d: [UInt8], p: [UInt8], q: [UInt8]) {
-        try BoringSSLRSAPrivateKey(derRepresentation: self.derRepresentation).getKeyPrimitives()
     }
 }
 

@@ -45,6 +45,11 @@ extension _RSA {
 
 extension _RSA.Signing {
     public struct PublicKey: Sendable {
+        public struct Primitives {
+            public var n: Data
+            public var e: Data
+        }
+
         private var backing: BackingPublicKey
 
         /// Construct an RSA public key from a PEM representation.
@@ -133,8 +138,9 @@ extension _RSA.Signing {
             self.backing = backing
         }
 
-        public func getKeyPrimitives() throws -> (n: [UInt8], e: [UInt8]) {
-            try self.backing.getKeyPrimitives()
+        public func getKeyPrimitives() throws -> Primitives {
+            let (n, e) = try self.backing.getKeyPrimitives()
+            return Primitives(n: n, e: e)
         }
     }
 }
@@ -430,6 +436,11 @@ extension _RSA.Signing {
 extension _RSA.Encryption {
     /// Identical to ``_RSA/Signing/PublicKey``.
     public struct PublicKey {
+        public struct Primitives {
+            public var n: Data
+            public var e: Data
+        }
+
         private var backing: BackingPublicKey
         
         /// Construct an RSA public key from a PEM representation.
@@ -488,8 +499,9 @@ extension _RSA.Encryption {
         public var keySizeInBits: Int { self.backing.keySizeInBits }
         fileprivate init(_ backing: BackingPublicKey) { self.backing = backing }
 
-        public func getKeyPrimitives() throws -> (n: [UInt8], e: [UInt8]) {
-            try self.backing.getKeyPrimitives()
+        public func getKeyPrimitives() throws -> Primitives {
+            let (n, e) = try self.backing.getKeyPrimitives()
+            return Primitives(n: n, e: e)
         }
     }
     

@@ -205,8 +205,8 @@ final class TestRSABlindSigning: XCTestCase {
 
     func testGetKeyPrimitives() throws {
         for testVector in RFC9474TestVector.allValues {
-            let n = try [UInt8](hexString: testVector.n)
-            let e = try [UInt8](hexString: testVector.e)
+            let n = try Data(hexString: testVector.n)
+            let e = try Data(hexString: testVector.e)
 
             let primitives = try _RSA.BlindSigning.PublicKey(
                 n: n, e: e,
