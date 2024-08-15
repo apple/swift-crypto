@@ -231,10 +231,6 @@ extension _RSA.BlindSigning {
         public var publicKey: _RSA.BlindSigning.PublicKey<H> {
             _RSA.BlindSigning.PublicKey(self.backing.publicKey, self.parameters)
         }
-
-        public func getKeyPrimitives() throws -> (n: [UInt8], e: [UInt8], d: [UInt8], p: [UInt8], q: [UInt8]) {
-            try self.backing.getKeyPrimitives()
-        }
     }
 }
 
