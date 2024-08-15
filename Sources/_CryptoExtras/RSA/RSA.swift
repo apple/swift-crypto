@@ -251,9 +251,7 @@ extension _RSA.Signing {
             )
 
             return try Self.init(
-                n: n,
-                e: e, 
-                d: d, 
+                n: n, e: e, d: d, 
                 p: try Data(bytesOf: p, paddedToSize: p.byteCount), 
                 q: try Data(bytesOf: q, paddedToSize: q.byteCount)
             )
@@ -579,6 +577,20 @@ extension _RSA.Encryption {
         public var pkcs8PEMRepresentation: String { self.backing.pkcs8PEMRepresentation }
         public var keySizeInBits: Int { self.backing.keySizeInBits }
         public var publicKey: _RSA.Encryption.PublicKey { .init(self.backing.publicKey) }
+
+        public static func _createFromNumbers(n: some ContiguousBytes, e: some ContiguousBytes, d: some ContiguousBytes) throws -> Self {
+            let (p, q) = try _RSA.extractPrimeFactors(
+                n: try ArbitraryPrecisionInteger(bytes: n), 
+                e: try ArbitraryPrecisionInteger(bytes: e), 
+                d: try ArbitraryPrecisionInteger(bytes: d)
+            )
+
+            return try Self.init(
+                n: n, e: e, d: d, 
+                p: try Data(bytesOf: p, paddedToSize: p.byteCount), 
+                q: try Data(bytesOf: q, paddedToSize: q.byteCount)
+            )
+        }
     }
 }
 

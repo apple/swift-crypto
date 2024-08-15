@@ -108,6 +108,26 @@ final class TestRSAEncryption: XCTestCase {
             e: bytesValues.randomElement()!
         )
     }
+
+    func testConstructAndUseKeyFromRSANumbersWhileRecoveringPrimes() throws {
+        let data = Array("hello, world!".utf8)
+
+        // Generating primes is probabilistic, so we run this test multiple times.
+        for _ in 0..<100 {
+            for testVector in RFC9474TestVector.allValues {
+                let key = try _RSA.Encryption.PrivateKey._createFromNumbers(
+                    n: Data(hexString: testVector.n),
+                    e: Data(hexString: testVector.e),
+                    d: Data(hexString: testVector.d)
+                )
+
+                let encrypted = try key.publicKey.encrypt(data, padding: .PKCS1_OAEP_SHA256)
+                let decrypted = try key.decrypt(encrypted, padding: .PKCS1_OAEP_SHA256)
+                
+                XCTAssertEqual(Data(data), decrypted)
+            }
+        }
+    }
 }
 
 struct RSAEncryptionOAEPTestGroup: Codable {

@@ -227,6 +227,21 @@ extension _RSA.BlindSigning {
         public var publicKey: _RSA.BlindSigning.PublicKey<H> {
             _RSA.BlindSigning.PublicKey(self.backing.publicKey, self.parameters)
         }
+
+        public static func _createFromNumbers(n: some ContiguousBytes, e: some ContiguousBytes, d: some ContiguousBytes, parameters: Parameters) throws -> Self {
+            let (p, q) = try _RSA.extractPrimeFactors(
+                n: try ArbitraryPrecisionInteger(bytes: n), 
+                e: try ArbitraryPrecisionInteger(bytes: e), 
+                d: try ArbitraryPrecisionInteger(bytes: d)
+            )
+
+            return try Self.init(
+                n: n, e: e, d: d, 
+                p: try Data(bytesOf: p, paddedToSize: p.byteCount), 
+                q: try Data(bytesOf: q, paddedToSize: q.byteCount),
+                parameters: parameters
+            )
+        }
     }
 }
 
