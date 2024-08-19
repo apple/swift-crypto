@@ -228,6 +228,19 @@ extension _RSA.BlindSigning {
             _RSA.BlindSigning.PublicKey(self.backing.publicKey, self.parameters)
         }
 
+        /// Construct a private key with the specified parameters.
+        ///
+        /// The use of this API is strongly discouraged for performance reasons,
+        /// as it requires the factorization of the modulus, which is resource-intensive.
+        /// It is recommended to use the other initializers to construct a private key,
+        /// unless you have only the modulus, public exponent, and private exponent 
+        /// to construct the key.
+        ///
+        /// - Parameters:
+        ///   - n: modulus of the key
+        ///   - e: public exponent of the key
+        ///   - d: private exponent of the key
+        ///   - parameters: parameters used in the blind signing protocol
         public static func _createFromNumbers(n: some ContiguousBytes, e: some ContiguousBytes, d: some ContiguousBytes, parameters: Parameters) throws -> Self {
             let (p, q) = try _RSA.extractPrimeFactors(
                 n: try ArbitraryPrecisionInteger(bytes: n), 

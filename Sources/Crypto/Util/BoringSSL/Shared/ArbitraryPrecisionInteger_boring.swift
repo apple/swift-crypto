@@ -485,7 +485,7 @@ extension ArbitraryPrecisionInteger {
     }
 
     @usableFromInline
-    func isEven() -> Bool {
+    var isEven: Bool {
         self._backing.withUnsafeBignumPointer {
             CCryptoBoringSSL_BN_is_odd($0) == 0
         }

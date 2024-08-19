@@ -243,6 +243,18 @@ extension _RSA.Signing {
             _RSA.Signing.PublicKey(self.backing.publicKey)
         }
 
+        /// Construct a private key with the specified parameters.
+        ///
+        /// The use of this API is strongly discouraged for performance reasons,
+        /// as it requires the factorization of the modulus, which is resource-intensive.
+        /// It is recommended to use the other initializers to construct a private key,
+        /// unless you have only the modulus, public exponent, and private exponent 
+        /// to construct the key.
+        ///
+        /// - Parameters:
+        ///   - n: modulus of the key
+        ///   - e: public exponent of the key
+        ///   - d: private exponent of the key
         public static func _createFromNumbers(n: some ContiguousBytes, e: some ContiguousBytes, d: some ContiguousBytes) throws -> Self {
             let (p, q) = try _RSA.extractPrimeFactors(
                 n: try ArbitraryPrecisionInteger(bytes: n), 
@@ -578,6 +590,18 @@ extension _RSA.Encryption {
         public var keySizeInBits: Int { self.backing.keySizeInBits }
         public var publicKey: _RSA.Encryption.PublicKey { .init(self.backing.publicKey) }
 
+        /// Construct a private key with the specified parameters.
+        ///
+        /// The use of this API is strongly discouraged for performance reasons,
+        /// as it requires the factorization of the modulus, which is resource-intensive.
+        /// It is recommended to use the other initializers to construct a private key,
+        /// unless you have only the modulus, public exponent, and private exponent 
+        /// to construct the key.
+        ///
+        /// - Parameters:
+        ///   - n: modulus of the key
+        ///   - e: public exponent of the key
+        ///   - d: private exponent of the key
         public static func _createFromNumbers(n: some ContiguousBytes, e: some ContiguousBytes, d: some ContiguousBytes) throws -> Self {
             let (p, q) = try _RSA.extractPrimeFactors(
                 n: try ArbitraryPrecisionInteger(bytes: n), 
@@ -674,11 +698,12 @@ extension _RSA {
         e: ArbitraryPrecisionInteger, 
         d: ArbitraryPrecisionInteger
     ) throws -> (p: ArbitraryPrecisionInteger, q: ArbitraryPrecisionInteger) {
+        // This is based on the proof of fact 1 in https://www.ams.org/notices/199902/boneh.pdf
         let k = (d * e) - 1
         let t = k.trailingZeroBitCount
         let r = k >> t
 
-        guard k.isEven() else {
+        guard k.isEven else {
             throw CryptoKitError.incorrectParameterSize
         }
 

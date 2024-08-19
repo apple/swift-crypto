@@ -13,7 +13,7 @@
 //===----------------------------------------------------------------------===//
 import Foundation
 import XCTest
-@testable import Crypto
+import Crypto
 @testable import _CryptoExtras
 
 final class TestRSASigning: XCTestCase {
