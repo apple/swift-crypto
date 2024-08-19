@@ -455,7 +455,7 @@ extension ArbitraryPrecisionInteger {
     static func >> (lhs: ArbitraryPrecisionInteger, rhs: Int32) -> ArbitraryPrecisionInteger {
         var result = ArbitraryPrecisionInteger()
 
-        let rc = result.withUnsafeMutableBignumPointer { resultPtr in 
+        let rc = result.withUnsafeMutableBignumPointer { resultPtr in
             lhs.withUnsafeBignumPointer { lhsPtr in
                 CCryptoBoringSSL_BN_rshift(resultPtr, lhsPtr, rhs)
             }
@@ -470,7 +470,7 @@ extension ArbitraryPrecisionInteger {
     static func / (lhs: ArbitraryPrecisionInteger, rhs: ArbitraryPrecisionInteger) -> ArbitraryPrecisionInteger {
         var result = ArbitraryPrecisionInteger()
 
-        let rc = result.withUnsafeMutableBignumPointer { resultPtr in 
+        let rc = result.withUnsafeMutableBignumPointer { resultPtr in
             lhs.withUnsafeBignumPointer { lhsPtr in
                 rhs.withUnsafeBignumPointer { rhsPtr in
                     ArbitraryPrecisionInteger.withUnsafeBN_CTX { bnCtx in
