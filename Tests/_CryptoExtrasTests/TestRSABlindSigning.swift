@@ -212,8 +212,8 @@ final class TestRSABlindSigning: XCTestCase {
                 n: n, e: e,
                 parameters: testVector.parameters
             ).getKeyPrimitives()
-            XCTAssertEqual(primitives.n, n)
-            XCTAssertEqual(primitives.e, e)
+            XCTAssertEqual(primitives.modulus, n)
+            XCTAssertEqual(primitives.publicExponent, e)
         }
     }
 }

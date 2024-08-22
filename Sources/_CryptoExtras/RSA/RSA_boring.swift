@@ -476,11 +476,11 @@ extension BoringSSLRSAPublicKey {
             func getPrimitive(_ getPointer: (OpaquePointer?) -> UnsafePointer<BIGNUM>?) throws -> Data {
                 let ptr = getPointer(key)
                 let size = Int(CCryptoBoringSSL_BN_num_bytes(ptr))
-                var buffer = [UInt8](repeating: 0, count: size)
-                buffer.withUnsafeMutableBytes { bufferPtr in
-                    _ = CCryptoBoringSSL_BN_bn2bin(ptr, bufferPtr.baseAddress!.assumingMemoryBound(to: UInt8.self))
+                var data = Data(count: size)
+                data.withUnsafeMutableBytes { dataPtr in
+                    _ = CCryptoBoringSSL_BN_bn2bin(ptr, dataPtr.baseAddress!.assumingMemoryBound(to: UInt8.self))
                 }
-                return Data(buffer)
+                return data
             }
 
             return try (getPrimitive(CCryptoBoringSSL_RSA_get0_n), getPrimitive(CCryptoBoringSSL_RSA_get0_e))

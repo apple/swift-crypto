@@ -26,6 +26,16 @@ extension _RSA.BlindSigning {
     public struct PublicKey<H: HashFunction>: Sendable {
         public typealias Parameters = _RSA.BlindSigning.Parameters<H>
 
+        public struct Primitives: Sendable, Hashable {
+            public var modulus: Data
+            public var publicExponent: Data
+
+            public init(modulus: Data, publicExponent: Data) {
+                self.modulus = modulus
+                self.publicExponent = publicExponent
+            }
+        }
+
         private var backing: BackingPublicKey
         private let parameters: Parameters
 
@@ -114,14 +124,9 @@ extension _RSA.BlindSigning {
             self.parameters = parameters
         }
 
-        public struct Primitives {
-            public var n: Data
-            public var e: Data
-        }
-
         public func getKeyPrimitives() throws -> Primitives {
             let (n, e) = try self.backing.getKeyPrimitives()
-            return Primitives(n: n, e: e)
+            return Primitives(modulus: n, publicExponent: e)
         }
     }
 }

@@ -45,9 +45,14 @@ extension _RSA {
 
 extension _RSA.Signing {
     public struct PublicKey: Sendable {
-        public struct Primitives {
-            public var n: Data
-            public var e: Data
+        public struct Primitives: Sendable, Hashable {
+            public var modulus: Data
+            public var publicExponent: Data
+
+            public init(modulus: Data, publicExponent: Data) {
+                self.modulus = modulus
+                self.publicExponent = publicExponent
+            }
         }
 
         private var backing: BackingPublicKey
@@ -140,7 +145,7 @@ extension _RSA.Signing {
 
         public func getKeyPrimitives() throws -> Primitives {
             let (n, e) = try self.backing.getKeyPrimitives()
-            return Primitives(n: n, e: e)
+            return Primitives(modulus: n, publicExponent: e)
         }
     }
 }
@@ -436,9 +441,14 @@ extension _RSA.Signing {
 extension _RSA.Encryption {
     /// Identical to ``_RSA/Signing/PublicKey``.
     public struct PublicKey {
-        public struct Primitives {
-            public var n: Data
-            public var e: Data
+        public struct Primitives: Sendable, Hashable {
+            public var modulus: Data
+            public var publicExponent: Data
+
+            public init(modulus: Data, publicExponent: Data) {
+                self.modulus = modulus
+                self.publicExponent = publicExponent
+            }
         }
 
         private var backing: BackingPublicKey
@@ -501,7 +511,7 @@ extension _RSA.Encryption {
 
         public func getKeyPrimitives() throws -> Primitives {
             let (n, e) = try self.backing.getKeyPrimitives()
-            return Primitives(n: n, e: e)
+            return Primitives(modulus: n, publicExponent: e)
         }
     }
     
