@@ -470,10 +470,10 @@ extension BoringSSLRSAPublicKey {
             CCryptoBoringSSL_EVP_PKEY_free(self.pointer)
         }
 
-        fileprivate func getKeyPrimitives() throws -> (n: Data, e: Data) {
+        fileprivate func getKeyPrimitives() -> (n: Data, e: Data) {
             let key = CCryptoBoringSSL_EVP_PKEY_get0_RSA(self.pointer)
 
-            func getPrimitive(_ getPointer: (OpaquePointer?) -> UnsafePointer<BIGNUM>?) throws -> Data {
+            func getPrimitive(_ getPointer: (OpaquePointer?) -> UnsafePointer<BIGNUM>?) -> Data {
                 let ptr = getPointer(key)
                 let size = Int(CCryptoBoringSSL_BN_num_bytes(ptr))
                 var data = Data(count: size)
@@ -483,7 +483,7 @@ extension BoringSSLRSAPublicKey {
                 return data
             }
 
-            return try (getPrimitive(CCryptoBoringSSL_RSA_get0_n), getPrimitive(CCryptoBoringSSL_RSA_get0_e))
+            return (getPrimitive(CCryptoBoringSSL_RSA_get0_n), getPrimitive(CCryptoBoringSSL_RSA_get0_e))
         }
     }
 }
