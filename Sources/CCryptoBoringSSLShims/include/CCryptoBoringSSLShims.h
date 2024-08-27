@@ -101,6 +101,8 @@ BIGNUM *CCryptoBoringSSLShims_BN_bin2bn(const void *in, size_t len, BIGNUM *ret)
 
 size_t CCryptoBoringSSLShims_BN_bn2bin(const BIGNUM *in, void *out);
 
+int CCryptoBoringSSLShims_BN_mod(BIGNUM *rem, const BIGNUM *a, const BIGNUM *m, BN_CTX *ctx);
+
 int CCryptoBoringSSLShims_RSA_verify(int hash_nid, const void *msg, size_t msg_len,
                                      const void *sig, size_t sig_len, RSA *rsa);
 

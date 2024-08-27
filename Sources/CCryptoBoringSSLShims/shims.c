@@ -118,6 +118,10 @@ size_t CCryptoBoringSSLShims_BN_bn2bin(const BIGNUM *in, void *out) {
     return CCryptoBoringSSL_BN_bn2bin(in, out);
 }
 
+int CCryptoBoringSSLShims_BN_mod(BIGNUM *rem, const BIGNUM *a, const BIGNUM *m, BN_CTX *ctx) {
+    return BN_mod(rem, a, m, ctx);
+}
+
 int CCryptoBoringSSLShims_RSA_verify(int hash_nid, const void *msg, size_t msg_len,
                                      const void *sig, size_t sig_len, RSA *rsa) {
     return CCryptoBoringSSL_RSA_verify(hash_nid, msg, msg_len, sig, sig_len, rsa);

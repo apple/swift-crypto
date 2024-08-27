@@ -15,6 +15,7 @@
 add_library(_CryptoExtras
   "ChaCha20CTR/BoringSSL/ChaCha20CTR_boring.swift"
   "ChaCha20CTR/ChaCha20CTR.swift"
+  "RSA/RSA+BlindSigning.swift"
   "RSA/RSA.swift"
   "RSA/RSA_boring.swift"
   "RSA/RSA_security.swift"
@@ -23,7 +24,9 @@ add_library(_CryptoExtras
   "Util/DigestType.swift"
   "Util/Error.swift"
   "Util/PEMDocument.swift"
-  "Util/RandomBytes.swift")
+  "Util/RandomBytes.swift"
+  "Util/Shared/ArbitraryPrecisionInteger_boring.swift"
+  "Util/Shared/FiniteFieldArithmeticContext_boring.swift")
 
 target_include_directories(_CryptoExtras PRIVATE
   $<TARGET_PROPERTY:CCryptoBoringSSL,INCLUDE_DIRECTORIES>

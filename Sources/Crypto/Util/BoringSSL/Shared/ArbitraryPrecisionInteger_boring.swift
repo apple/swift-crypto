@@ -11,12 +11,15 @@
 // SPDX-License-Identifier: Apache-2.0
 //
 //===----------------------------------------------------------------------===//
-#if CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
+#if MODULE_IS_CRYPTO && CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
 @_exported import CryptoKit
 #else
 @_implementationOnly import CCryptoBoringSSL
 @_implementationOnly import CCryptoBoringSSLShims
 import Foundation
+#if !MODULE_IS_CRYPTO
+import enum Crypto.CryptoKitError
+#endif
 
 /// A wrapper around the OpenSSL BIGNUM object that is appropriately lifetime managed,
 /// and that provides better Swift types for this object.
@@ -95,6 +98,14 @@ extension ArbitraryPrecisionInteger {
     init<Bytes: ContiguousBytes>(bytes: Bytes) throws {
         self._backing = try BackingStorage(bytes: bytes)
     }
+
+    /// Create an `ArbitraryPrecisionInteger` from a hex string.
+    ///
+    /// - Parameter hexString: Hex byte string (big-endian, no `0x` prefix, may start with `-` for a negative number).
+    @usableFromInline
+    init(hexString: String) throws {
+        self._backing = try BackingStorage(hexString: hexString)
+    }
 }
 
 extension ArbitraryPrecisionInteger.BackingStorage {
@@ -106,6 +117,23 @@ extension ArbitraryPrecisionInteger.BackingStorage {
         }
         guard rc != nil else {
             throw CryptoKitError.internalBoringSSLError()
+        }
+    }
+
+    @inlinable
+    convenience init(hexString: String) throws {
+        self.init()
+        try hexString.withCString { hexStringPtr in
+            /// `BN_hex2bin` takes a `BIGNUM **` so we need a double WUMP dance.
+            try withUnsafeMutablePointer(to: &self._backing) { backingPtr in
+                var backingPtr: UnsafeMutablePointer<BIGNUM>? = backingPtr
+                try withUnsafeMutablePointer(to: &backingPtr) { backingPtrPtr in
+                    /// `BN_hex2bin` returns the number of bytes of `in` processed or zero on error.
+                    guard CCryptoBoringSSL_BN_hex2bn(backingPtrPtr, hexStringPtr) == hexString.count else {
+                        throw CryptoKitError.incorrectParameterSize
+                    }
+                }
+            }
         }
     }
 }
@@ -374,6 +402,49 @@ extension ArbitraryPrecisionInteger: SignedNumeric {
     }
 }
 
+// MARK: - Other arithmetic operations
+
+extension ArbitraryPrecisionInteger {
+    @usableFromInline
+    static func gcd(_ a: ArbitraryPrecisionInteger, _ b: ArbitraryPrecisionInteger) throws -> ArbitraryPrecisionInteger {
+        var result = ArbitraryPrecisionInteger()
+
+        guard result.withUnsafeMutableBignumPointer({ resultPtr in
+            a.withUnsafeBignumPointer { aPtr in
+                b.withUnsafeBignumPointer { bPtr in
+                    ArbitraryPrecisionInteger.withUnsafeBN_CTX { bnCtx in
+                        CCryptoBoringSSL_BN_gcd(resultPtr, aPtr, bPtr, bnCtx)
+                    }
+                }
+            }
+        }) == 1 else {
+            throw CryptoKitError.internalBoringSSLError()
+        }
+
+        return result
+    }
+
+    @usableFromInline
+    func isCoprime(with other: ArbitraryPrecisionInteger) throws -> Bool {
+        try Self.gcd(self, other) == 1
+    }
+
+    @usableFromInline
+    static func random(inclusiveMin: UInt, exclusiveMax: ArbitraryPrecisionInteger) throws -> ArbitraryPrecisionInteger {
+        var result = ArbitraryPrecisionInteger()
+
+        guard result.withUnsafeMutableBignumPointer({ resultPtr in
+            exclusiveMax.withUnsafeBignumPointer { exclusiveMaxPtr in
+                CCryptoBoringSSL_BN_rand_range_ex(resultPtr, BN_ULONG(inclusiveMin), exclusiveMaxPtr)
+            }
+        }) == 1 else {
+            throw CryptoKitError.internalBoringSSLError()
+        }
+
+        return result
+    }
+}
+
 // MARK: - Serializing
 
 extension Data {
@@ -400,6 +471,12 @@ extension Data {
         }
 
         assert(written == byteCount)
+    }
+
+    @usableFromInline
+    init(bytesOf integer: ArbitraryPrecisionInteger, paddedToSize paddingSize: Int) throws {
+        self.init(capacity: paddingSize)
+        try self.append(bytesOf: integer, paddedToSize: paddingSize)
     }
 }
 

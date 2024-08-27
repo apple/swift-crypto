@@ -127,7 +127,7 @@ let package = Package(
             resources: [
                 .copy("PrivacyInfo.xcprivacy"),
             ],
-            swiftSettings: swiftSettings
+            swiftSettings: swiftSettings + [.define("MODULE_IS_CRYPTO")]
         ),
         .target(
             name: "_CryptoExtras",

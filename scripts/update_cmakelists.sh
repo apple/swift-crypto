@@ -55,7 +55,7 @@ function update_cmakelists_source() {
     fi
 
     # Wrap quotes around each filename since it might contain spaces
-    srcs=$($find "${src_root}" -type f \( "${exts_arg[@]}" \) -printf '  "%P"\n' | LC_ALL=POSIX sort)
+    srcs=$($find -L "${src_root}" -type f \( "${exts_arg[@]}" \) -printf '  "%P"\n' | LC_ALL=POSIX sort)
     echo "$srcs"
 
     # Update list of source files in CMakeLists.txt
