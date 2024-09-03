@@ -478,7 +478,7 @@ extension BoringSSLRSAPublicKey {
                 let size = Int(CCryptoBoringSSL_BN_num_bytes(ptr))
                 var data = Data(count: size)
                 data.withUnsafeMutableBytes { dataPtr in
-                    _ = CCryptoBoringSSL_BN_bn2bin(ptr, dataPtr.baseAddress!.assumingMemoryBound(to: UInt8.self))
+                    _ = CCryptoBoringSSL_BN_bn2bin(ptr, dataPtr.baseAddress)
                 }
                 return data
             }
