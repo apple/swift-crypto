@@ -407,7 +407,7 @@ extension ArbitraryPrecisionInteger: SignedNumeric {
 extension ArbitraryPrecisionInteger {
     @usableFromInline
     var trailingZeroBitCount: Int32 {
-        self._backing.withUnsafeBignumPointer {
+        self.withUnsafeBignumPointer {
             CCryptoBoringSSL_BN_count_low_zero_bits($0)
         }
     }
@@ -486,7 +486,7 @@ extension ArbitraryPrecisionInteger {
 
     @usableFromInline
     var isEven: Bool {
-        self._backing.withUnsafeBignumPointer {
+        self.withUnsafeBignumPointer {
             CCryptoBoringSSL_BN_is_odd($0) == 0
         }
     }
