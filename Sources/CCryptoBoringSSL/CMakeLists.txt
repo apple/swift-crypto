@@ -257,16 +257,76 @@ add_library(CCryptoBoringSSL STATIC
 
 if(CMAKE_SYSTEM_NAME STREQUAL Darwin AND CMAKE_SYSTEM_PROCESSOR MATCHES "amd64|x86_64")
   target_sources(CCryptoBoringSSL PRIVATE
-)
+    gen/bcm/aesni-gcm-x86_64-apple.S
+    gen/bcm/aesni-x86_64-apple.S
+    gen/bcm/ghash-ssse3-x86_64-apple.S
+    gen/bcm/ghash-x86_64-apple.S
+    gen/bcm/p256-x86_64-asm-apple.S
+    gen/bcm/p256_beeu-x86_64-asm-apple.S
+    gen/bcm/rdrand-x86_64-apple.S
+    gen/bcm/rsaz-avx2-apple.S
+    gen/bcm/sha1-x86_64-apple.S
+    gen/bcm/sha256-x86_64-apple.S
+    gen/bcm/sha512-x86_64-apple.S
+    gen/bcm/vpaes-x86_64-apple.S
+    gen/bcm/x86_64-mont-apple.S
+    gen/bcm/x86_64-mont5-apple.S
+    gen/crypto/aes128gcmsiv-x86_64-apple.S
+    gen/crypto/chacha-x86_64-apple.S
+    gen/crypto/chacha20_poly1305_x86_64-apple.S
+    gen/crypto/md5-x86_64-apple.S)
 elseif(CMAKE_SYSTEM_NAME MATCHES "Linux|Android" AND CMAKE_SYSTEM_PROCESSOR MATCHES "amd64|x86_64")
   target_sources(CCryptoBoringSSL PRIVATE
-)
+    gen/bcm/aesni-gcm-x86_64-linux.S
+    gen/bcm/aesni-x86_64-linux.S
+    gen/bcm/ghash-ssse3-x86_64-linux.S
+    gen/bcm/ghash-x86_64-linux.S
+    gen/bcm/p256-x86_64-asm-linux.S
+    gen/bcm/p256_beeu-x86_64-asm-linux.S
+    gen/bcm/rdrand-x86_64-linux.S
+    gen/bcm/rsaz-avx2-linux.S
+    gen/bcm/sha1-x86_64-linux.S
+    gen/bcm/sha256-x86_64-linux.S
+    gen/bcm/sha512-x86_64-linux.S
+    gen/bcm/vpaes-x86_64-linux.S
+    gen/bcm/x86_64-mont-linux.S
+    gen/bcm/x86_64-mont5-linux.S
+    gen/crypto/aes128gcmsiv-x86_64-linux.S
+    gen/crypto/chacha-x86_64-linux.S
+    gen/crypto/chacha20_poly1305_x86_64-linux.S
+    gen/crypto/md5-x86_64-linux.S)
 elseif(CMAKE_SYSTEM_NAME STREQUAL Darwin AND CMAKE_SYSTEM_PROCESSOR MATCHES "arm64|aarch64")
   target_sources(CCryptoBoringSSL PRIVATE
-)
+    gen/bcm/aesv8-armv8-apple.S
+    gen/bcm/aesv8-gcm-armv8-apple.S
+    gen/bcm/armv8-mont-apple.S
+    gen/bcm/bn-armv8-apple.S
+    gen/bcm/ghash-neon-armv8-apple.S
+    gen/bcm/ghashv8-armv8-apple.S
+    gen/bcm/p256-armv8-asm-apple.S
+    gen/bcm/p256_beeu-armv8-asm-apple.S
+    gen/bcm/sha1-armv8-apple.S
+    gen/bcm/sha256-armv8-apple.S
+    gen/bcm/sha512-armv8-apple.S
+    gen/bcm/vpaes-armv8-apple.S
+    gen/crypto/chacha-armv8-apple.S
+    gen/crypto/chacha20_poly1305_armv8-apple.S)
 elseif(CMAKE_SYSTEM_NAME MATCHES "Linux|Android" AND CMAKE_SYSTEM_PROCESSOR MATCHES "arm64|aarch64")
   target_sources(CCryptoBoringSSL PRIVATE
-)
+    gen/bcm/aesv8-armv8-linux.S
+    gen/bcm/aesv8-gcm-armv8-linux.S
+    gen/bcm/armv8-mont-linux.S
+    gen/bcm/bn-armv8-linux.S
+    gen/bcm/ghash-neon-armv8-linux.S
+    gen/bcm/ghashv8-armv8-linux.S
+    gen/bcm/p256-armv8-asm-linux.S
+    gen/bcm/p256_beeu-armv8-asm-linux.S
+    gen/bcm/sha1-armv8-linux.S
+    gen/bcm/sha256-armv8-linux.S
+    gen/bcm/sha512-armv8-linux.S
+    gen/bcm/vpaes-armv8-linux.S
+    gen/crypto/chacha-armv8-linux.S
+    gen/crypto/chacha20_poly1305_armv8-linux.S)
 endif()
 
 target_include_directories(CCryptoBoringSSL PUBLIC
