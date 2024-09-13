@@ -341,8 +341,6 @@ struct x509_store_st {
 
   // Callbacks for various operations
   X509_STORE_CTX_verify_cb verify_cb;       // error callback
-  X509_STORE_CTX_get_crl_fn get_crl;        // retrieve CRL
-  X509_STORE_CTX_check_crl_fn check_crl;    // Check CRL validity
 
   CRYPTO_refcount_t references;
 } /* X509_STORE */;
@@ -374,8 +372,6 @@ struct x509_store_ctx_st {
 
   // Callbacks for various operations
   X509_STORE_CTX_verify_cb verify_cb;       // error callback
-  X509_STORE_CTX_get_crl_fn get_crl;        // retrieve CRL
-  X509_STORE_CTX_check_crl_fn check_crl;    // Check CRL validity
 
   // The following is built up
   int last_untrusted;     // index of last untrusted cert
@@ -422,7 +418,7 @@ int x509_print_rsa_pss_params(BIO *bp, const X509_ALGOR *sigalg, int indent,
 // Signature algorithm functions.
 
 // x509_digest_sign_algorithm encodes the signing parameters of |ctx| as an
-// AlgorithmIdentifer and saves the result in |algor|. It returns one on
+// AlgorithmIdentifier and saves the result in |algor|. It returns one on
 // success, or zero on error.
 int x509_digest_sign_algorithm(EVP_MD_CTX *ctx, X509_ALGOR *algor);
 

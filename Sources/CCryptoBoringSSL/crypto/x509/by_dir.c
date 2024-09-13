@@ -313,14 +313,20 @@ static int get_cert_by_subject(X509_LOOKUP *xl, int type, X509_NAME *name,
                  k);
         if (type == X509_LU_X509) {
           if ((X509_load_cert_file(xl, b->data, ent->dir_type)) == 0) {
+            // Don't expose the lower level error, All of these boil
+            // down to "we could not find a CA".
+            ERR_clear_error();
             break;
           }
         } else if (type == X509_LU_CRL) {
           if ((X509_load_crl_file(xl, b->data, ent->dir_type)) == 0) {
+            // Don't expose the lower level error, All of these boil
+            // down to "we could not find a CRL".
+            ERR_clear_error();
             break;
           }
         }
-        // else case will caught higher up
+        // The lack of a CA or CRL will be caught higher up
         k++;
       }
 
