@@ -57,6 +57,7 @@
 #define OPENSSL_HEADER_PKCS8_INTERNAL_H
 
 #include <CCryptoBoringSSL_base.h>
+#include <CCryptoBoringSSL_stack.h>
 
 #if defined(__cplusplus)
 extern "C" {

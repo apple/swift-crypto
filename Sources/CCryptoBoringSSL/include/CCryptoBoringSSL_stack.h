@@ -139,7 +139,8 @@ STACK_OF(SAMPLE) *sk_SAMPLE_new(sk_SAMPLE_cmp_func comp);
 STACK_OF(SAMPLE) *sk_SAMPLE_new_null(void);
 
 // sk_SAMPLE_num returns the number of elements in |sk|. It is safe to cast this
-// value to |int|. |sk| is guaranteed to have at most |INT_MAX| elements.
+// value to |int|. |sk| is guaranteed to have at most |INT_MAX| elements. If
+// |sk| is NULL, it is treated as the empty list and this function returns zero.
 size_t sk_SAMPLE_num(const STACK_OF(SAMPLE) *sk);
 
 // sk_SAMPLE_zero resets |sk| to the empty state but does nothing to free the
@@ -147,7 +148,8 @@ size_t sk_SAMPLE_num(const STACK_OF(SAMPLE) *sk);
 void sk_SAMPLE_zero(STACK_OF(SAMPLE) *sk);
 
 // sk_SAMPLE_value returns the |i|th pointer in |sk|, or NULL if |i| is out of
-// range.
+// range. If |sk| is NULL, it is treated as an empty list and the function
+// returns NULL.
 SAMPLE *sk_SAMPLE_value(const STACK_OF(SAMPLE) *sk, size_t i);
 
 // sk_SAMPLE_set sets the |i|th pointer in |sk| to |p| and returns |p|. If |i|
@@ -195,7 +197,8 @@ void sk_SAMPLE_delete_if(STACK_OF(SAMPLE) *sk, sk_SAMPLE_delete_if_func func,
 // If the stack is sorted (see |sk_SAMPLE_sort|), this function uses a binary
 // search. Otherwise it performs a linear search. If it finds a matching
 // element, it writes the index to |*out_index| (if |out_index| is not NULL) and
-// returns one. Otherwise, it returns zero.
+// returns one. Otherwise, it returns zero. If |sk| is NULL, it is treated as
+// the empty list and the function returns zero.
 //
 // Note this differs from OpenSSL. The type signature is slightly different, and
 // OpenSSL's version will implicitly sort |sk| if it has a comparison function
@@ -399,6 +402,9 @@ BSSL_NAMESPACE_END
    * positive warning. */                                                      \
   OPENSSL_MSVC_PRAGMA(warning(push))                                           \
   OPENSSL_MSVC_PRAGMA(warning(disable : 4191))                                 \
+  OPENSSL_CLANG_PRAGMA("clang diagnostic push")                                \
+  OPENSSL_CLANG_PRAGMA("clang diagnostic ignored \"-Wunknown-warning-option\"") \
+  OPENSSL_CLANG_PRAGMA("clang diagnostic ignored \"-Wcast-function-type-strict\"") \
                                                                                \
   DECLARE_STACK_OF(name)                                                       \
                                                                                \
@@ -534,6 +540,7 @@ BSSL_NAMESPACE_END
         (OPENSSL_sk_free_func)free_func);                                      \
   }                                                                            \
                                                                                \
+  OPENSSL_CLANG_PRAGMA("clang diagnostic pop")                                 \
   OPENSSL_MSVC_PRAGMA(warning(pop))
 
 
