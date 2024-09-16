@@ -45,6 +45,16 @@ extension _RSA {
 
 extension _RSA.Signing {
     public struct PublicKey: Sendable {
+        public struct Primitives: Sendable, Hashable {
+            public var modulus: Data
+            public var publicExponent: Data
+
+            public init(modulus: Data, publicExponent: Data) {
+                self.modulus = modulus
+                self.publicExponent = publicExponent
+            }
+        }
+
         private var backing: BackingPublicKey
 
         /// Construct an RSA public key from a PEM representation.
@@ -131,6 +141,11 @@ extension _RSA.Signing {
 
         fileprivate init(_ backing: BackingPublicKey) {
             self.backing = backing
+        }
+
+        public func getKeyPrimitives() throws -> Primitives {
+            let (n, e) = try self.backing.getKeyPrimitives()
+            return Primitives(modulus: n, publicExponent: e)
         }
     }
 }
@@ -452,6 +467,16 @@ extension _RSA.Signing {
 extension _RSA.Encryption {
     /// Identical to ``_RSA/Signing/PublicKey``.
     public struct PublicKey {
+        public struct Primitives: Sendable, Hashable {
+            public var modulus: Data
+            public var publicExponent: Data
+
+            public init(modulus: Data, publicExponent: Data) {
+                self.modulus = modulus
+                self.publicExponent = publicExponent
+            }
+        }
+
         private var backing: BackingPublicKey
         
         /// Construct an RSA public key from a PEM representation.
@@ -509,6 +534,11 @@ extension _RSA.Encryption {
         public var pemRepresentation: String { self.backing.pemRepresentation }
         public var keySizeInBits: Int { self.backing.keySizeInBits }
         fileprivate init(_ backing: BackingPublicKey) { self.backing = backing }
+
+        public func getKeyPrimitives() throws -> Primitives {
+            let (n, e) = try self.backing.getKeyPrimitives()
+            return Primitives(modulus: n, publicExponent: e)
+        }
     }
     
     /// Identical to ``_RSA/Signing/PrivateKey``.

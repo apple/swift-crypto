@@ -69,10 +69,10 @@ function update_cmakelists_assembly() {
     src_root="$here/Sources/$1"
     echo "Finding assembly files (.S) under $src_root"
 
-    mac_x86_64_asms=$($find "${src_root}" -type f -name "*.mac.x86_64.S" -printf '    %P\n' | LC_ALL=POSIX sort)
-    linux_x86_64_asms=$($find "${src_root}" -type f -name "*.linux.x86_64.S" -printf '    %P\n' | LC_ALL=POSIX sort)
-    mac_aarch64_asms=$($find "${src_root}" -type f -name "*.ios.aarch64.S" -printf '    %P\n' | LC_ALL=POSIX sort)
-    linux_aarch64_asms=$($find "${src_root}" -type f -name "*.linux.aarch64.S" -printf '    %P\n' | LC_ALL=POSIX sort)
+    mac_x86_64_asms=$($find "${src_root}" -type f \( -name "*x86_64*" -or -name "*avx2*" \) -name "*apple*" -name "*.S" -printf '    %P\n' | LC_ALL=POSIX sort)
+    linux_x86_64_asms=$($find "${src_root}" -type f \( -name "*x86_64*" -or -name "*avx2*" \) -name "*linux*" -name "*.S" -printf '    %P\n' | LC_ALL=POSIX sort)
+    mac_aarch64_asms=$($find "${src_root}" -type f -name "*armv8*" -name "*apple*" -name "*.S" -printf '    %P\n' | LC_ALL=POSIX sort)
+    linux_aarch64_asms=$($find "${src_root}" -type f -name "*armv8*" -name "*linux*" -name "*.S" -printf '    %P\n' | LC_ALL=POSIX sort)
     echo "$mac_x86_64_asms"
     echo "$linux_x86_64_asms"
     echo "$mac_aarch64_asms"

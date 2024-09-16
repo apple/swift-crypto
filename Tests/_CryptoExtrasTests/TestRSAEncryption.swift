@@ -125,6 +125,17 @@ final class TestRSAEncryption: XCTestCase {
             XCTAssertEqual(Data(data), decrypted)
         }
     }
+  
+    func testGetKeyPrimitives() throws {
+        for testVector in RFC9474TestVector.allValues {
+            let n = try Data(hexString: testVector.n)
+            let e = try Data(hexString: testVector.e)
+
+            let primitives = try _RSA.Encryption.PublicKey(n: n, e: e).getKeyPrimitives()
+            XCTAssertEqual(primitives.modulus, n)
+            XCTAssertEqual(primitives.publicExponent, e)
+        }
+    }
 }
 
 struct RSAEncryptionOAEPTestGroup: Codable {

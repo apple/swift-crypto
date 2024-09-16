@@ -14,6 +14,7 @@
 #ifndef C_CRYPTO_BORINGSSL_H
 #define C_CRYPTO_BORINGSSL_H
 
+#include "CCryptoBoringSSL_aead.h"
 #include "CCryptoBoringSSL_aes.h"
 #include "CCryptoBoringSSL_arm_arch.h"
 #include "CCryptoBoringSSL_asn1_mac.h"
@@ -22,6 +23,7 @@
 #include "CCryptoBoringSSL_bio.h"
 #include "CCryptoBoringSSL_blake2.h"
 #include "CCryptoBoringSSL_blowfish.h"
+#include "CCryptoBoringSSL_bn.h"
 #include "CCryptoBoringSSL_boringssl_prefix_symbols.h"
 #include "CCryptoBoringSSL_boringssl_prefix_symbols_asm.h"
 #include "CCryptoBoringSSL_cast.h"

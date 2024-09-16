@@ -72,6 +72,10 @@ internal struct SecurityRSAPublicKey: @unchecked Sendable {
     fileprivate init(_ backing: SecKey) {
         self.backing = backing
     }
+
+    func getKeyPrimitives() throws -> (n: Data, e: Data) {
+        try BoringSSLRSAPublicKey(derRepresentation: self.derRepresentation).getKeyPrimitives()
+    }
 }
 
 // unchecked sendable until `SecKey` gets sendable annotations

@@ -30,6 +30,28 @@ extern "C++" {
 #include <string_view>
 #endif
 
+#if defined(__has_include)
+#if __has_include(<version>)
+#include <version>
+#endif
+#endif
+
+#if defined(__cpp_lib_ranges) && __cpp_lib_ranges >= 201911L
+#include <ranges>
+BSSL_NAMESPACE_BEGIN
+template <typename T>
+class Span;
+BSSL_NAMESPACE_END
+
+// Mark `Span` as satisfying the `view` and `borrowed_range` concepts. This
+// should be done before the definition of `Span`, so that any inlined calls to
+// range functionality use the correct specializations.
+template <typename T>
+inline constexpr bool std::ranges::enable_view<bssl::Span<T>> = true;
+template <typename T>
+inline constexpr bool std::ranges::enable_borrowed_range<bssl::Span<T>> = true;
+#endif
+
 BSSL_NAMESPACE_BEGIN
 
 template <typename T>
@@ -49,6 +71,16 @@ class SpanBase {
 
   friend bool operator!=(Span<T> lhs, Span<T> rhs) { return !(lhs == rhs); }
 };
+
+// Heuristically test whether C is a container type that can be converted into
+// a Span<T> by checking for data() and size() member functions.
+//
+// TODO(davidben): Require C++17 support for std::is_convertible_v, etc.
+template <typename C, typename T>
+using EnableIfContainer = std::enable_if_t<
+    std::is_convertible<decltype(std::declval<C>().data()), T *>::value &&
+    std::is_integral<decltype(std::declval<C>().size())>::value>;
+
 }  // namespace internal
 
 // A Span<T> is a non-owning reference to a contiguous array of objects of type
@@ -84,16 +116,6 @@ class SpanBase {
 // a reference or pointer to a container or array.
 template <typename T>
 class Span : private internal::SpanBase<const T> {
- private:
-  // Heuristically test whether C is a container type that can be converted into
-  // a Span by checking for data() and size() member functions.
-  //
-  // TODO(davidben): Require C++17 support for std::is_convertible_v, etc.
-  template <typename C>
-  using EnableIfContainer = std::enable_if_t<
-      std::is_convertible<decltype(std::declval<C>().data()), T *>::value &&
-      std::is_integral<decltype(std::declval<C>().size())>::value>;
-
  public:
   static const size_t npos = static_cast<size_t>(-1);
 
@@ -114,12 +136,12 @@ class Span : private internal::SpanBase<const T> {
   template <size_t N>
   constexpr Span(T (&array)[N]) : Span(array, N) {}
 
-  template <typename C, typename = EnableIfContainer<C>,
+  template <typename C, typename = internal::EnableIfContainer<C, T>,
             typename = std::enable_if_t<std::is_const<T>::value, C>>
   constexpr Span(const C &container)
       : data_(container.data()), size_(container.size()) {}
 
-  template <typename C, typename = EnableIfContainer<C>,
+  template <typename C, typename = internal::EnableIfContainer<C, T>,
             typename = std::enable_if_t<!std::is_const<T>::value, C>>
   constexpr explicit Span(C &container)
       : data_(container.data()), size_(container.size()) {}
@@ -188,6 +210,20 @@ class Span : private internal::SpanBase<const T> {
 template <typename T>
 const size_t Span<T>::npos;
 
+#if __cplusplus >= 201703L
+template <typename T>
+Span(T *, size_t) -> Span<T>;
+template <typename T, size_t size>
+Span(T (&array)[size]) -> Span<T>;
+template <
+    typename C,
+    typename T = std::remove_pointer_t<decltype(std::declval<C>().data())>,
+    typename = internal::EnableIfContainer<C, T>>
+Span(C &) -> Span<T>;
+#endif
+
+// C++17 callers can instead rely on CTAD and the deduction guides defined
+// above.
 template <typename T>
 constexpr Span<T> MakeSpan(T *ptr, size_t size) {
   return Span<T>(ptr, size);

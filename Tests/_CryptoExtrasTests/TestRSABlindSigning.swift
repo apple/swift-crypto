@@ -221,4 +221,18 @@ final class TestRSABlindSigning: XCTestCase {
             XCTAssert(key.publicKey.isValidSignature(signature, for: preparedMessage))
         }
     }
+
+    func testGetKeyPrimitives() throws {
+        for testVector in RFC9474TestVector.allValues {
+            let n = try Data(hexString: testVector.n)
+            let e = try Data(hexString: testVector.e)
+
+            let primitives = try _RSA.BlindSigning.PublicKey(
+                n: n, e: e,
+                parameters: testVector.parameters
+            ).getKeyPrimitives()
+            XCTAssertEqual(primitives.modulus, n)
+            XCTAssertEqual(primitives.publicExponent, e)
+        }
+    }
 }
