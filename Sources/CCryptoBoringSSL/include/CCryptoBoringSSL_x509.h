@@ -254,9 +254,9 @@ OPENSSL_EXPORT void X509_get0_uids(const X509 *x509,
 // should not be accepted.
 #define EXFLAG_CRITICAL 0x200
 // EXFLAG_SS indicates the certificate is likely self-signed. That is, if it is
-// self-issued, its authority key identifer (if any) matches itself, and its key
-// usage extension (if any) allows certificate signatures. The signature itself
-// is not checked in computing this bit.
+// self-issued, its authority key identifier (if any) matches itself, and its
+// key usage extension (if any) allows certificate signatures. The signature
+// itself is not checked in computing this bit.
 #define EXFLAG_SS 0x2000
 
 // X509_get_extension_flags decodes a set of extensions from |x509| and returns
@@ -2696,8 +2696,18 @@ OPENSSL_EXPORT void X509_ALGOR_get0(const ASN1_OBJECT **out_obj,
 
 // X509_ALGOR_set_md sets |alg| to the hash function |md|. Note this
 // AlgorithmIdentifier represents the hash function itself, not a signature
-// algorithm that uses |md|.
-OPENSSL_EXPORT void X509_ALGOR_set_md(X509_ALGOR *alg, const EVP_MD *md);
+// algorithm that uses |md|. It returns one on success and zero on error.
+//
+// Due to historical specification mistakes (see Section 2.1 of RFC 4055), the
+// parameters field is sometimes omitted and sometimes a NULL value. When used
+// in RSASSA-PSS and RSAES-OAEP, it should be a NULL value. In other contexts,
+// the parameters should be omitted. This function assumes the caller is
+// constructing a RSASSA-PSS or RSAES-OAEP AlgorithmIdentifier and includes a
+// NULL parameter. This differs from OpenSSL's behavior.
+//
+// TODO(davidben): Rename this function, or perhaps just add a bespoke API for
+// constructing PSS and move on.
+OPENSSL_EXPORT int X509_ALGOR_set_md(X509_ALGOR *alg, const EVP_MD *md);
 
 // X509_ALGOR_cmp returns zero if |a| and |b| are equal, and some non-zero value
 // otherwise. Note this function can only be used for equality checks, not an
@@ -3022,6 +3032,9 @@ OPENSSL_EXPORT int X509_STORE_CTX_init(X509_STORE_CTX *ctx, X509_STORE *store,
 // |X509_STORE_CTX_get1_chain| may be used to return the verified certificate
 // chain. On error, |X509_STORE_CTX_get_error| may be used to return additional
 // error information.
+//
+// WARNING: Most failure conditions from this function do not use the error
+// queue. Use |X509_STORE_CTX_get_error| to determine the cause of the error.
 OPENSSL_EXPORT int X509_verify_cert(X509_STORE_CTX *ctx);
 
 // X509_STORE_CTX_get0_chain, after a successful |X509_verify_cert| call,
@@ -5280,29 +5293,6 @@ OPENSSL_EXPORT void X509_STORE_set_verify_cb(
 // |X509_STORE_set_verify_cb|.
 #define X509_STORE_set_verify_cb_func(store, func) \
   X509_STORE_set_verify_cb((store), (func))
-
-typedef int (*X509_STORE_CTX_get_crl_fn)(X509_STORE_CTX *ctx, X509_CRL **crl,
-                                         X509 *x);
-typedef int (*X509_STORE_CTX_check_crl_fn)(X509_STORE_CTX *ctx, X509_CRL *crl);
-
-// X509_STORE_set_get_crl override's |store|'s logic for looking up CRLs.
-//
-// Do not use this function. It is temporarily retained to support one caller
-// and will be removed after that caller is fixed. It is not possible for
-// external callers to correctly implement this callback. The real
-// implementation sets some inaccessible internal state on |X509_STORE_CTX|.
-OPENSSL_EXPORT void X509_STORE_set_get_crl(X509_STORE *store,
-                                           X509_STORE_CTX_get_crl_fn get_crl);
-
-// X509_STORE_set_check_crl override's |store|'s logic for checking CRL
-// validity.
-//
-// Do not use this function. It is temporarily retained to support one caller
-// and will be removed after that caller is fixed. It is not possible for
-// external callers to correctly implement this callback. The real
-// implementation relies some inaccessible internal state on |X509_STORE_CTX|.
-OPENSSL_EXPORT void X509_STORE_set_check_crl(
-    X509_STORE *store, X509_STORE_CTX_check_crl_fn check_crl);
 
 // X509_STORE_CTX_set_chain configures |ctx| to use |sk| for untrusted
 // intermediate certificates to use in verification. This function is redundant
