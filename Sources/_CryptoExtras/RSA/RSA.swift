@@ -257,6 +257,32 @@ extension _RSA.Signing {
         public var publicKey: _RSA.Signing.PublicKey {
             _RSA.Signing.PublicKey(self.backing.publicKey)
         }
+
+        /// Construct a private key with the specified parameters.
+        ///
+        /// The use of this API is strongly discouraged for performance reasons,
+        /// as it requires the factorization of the modulus, which is resource-intensive.
+        /// It is recommended to use the other initializers to construct a private key,
+        /// unless you have only the modulus, public exponent, and private exponent 
+        /// to construct the key.
+        ///
+        /// - Parameters:
+        ///   - n: modulus of the key
+        ///   - e: public exponent of the key
+        ///   - d: private exponent of the key
+        public static func _createFromNumbers(n: some ContiguousBytes, e: some ContiguousBytes, d: some ContiguousBytes) throws -> Self {
+            let (p, q) = try _RSA.extractPrimeFactors(
+                n: try ArbitraryPrecisionInteger(bytes: n), 
+                e: try ArbitraryPrecisionInteger(bytes: e), 
+                d: try ArbitraryPrecisionInteger(bytes: d)
+            )
+
+            return try Self.init(
+                n: n, e: e, d: d, 
+                p: try Data(bytesOf: p, paddedToSize: p.byteCount), 
+                q: try Data(bytesOf: q, paddedToSize: q.byteCount)
+            )
+        }
     }
 }
 
@@ -593,6 +619,32 @@ extension _RSA.Encryption {
         public var pkcs8PEMRepresentation: String { self.backing.pkcs8PEMRepresentation }
         public var keySizeInBits: Int { self.backing.keySizeInBits }
         public var publicKey: _RSA.Encryption.PublicKey { .init(self.backing.publicKey) }
+
+        /// Construct a private key with the specified parameters.
+        ///
+        /// The use of this API is strongly discouraged for performance reasons,
+        /// as it requires the factorization of the modulus, which is resource-intensive.
+        /// It is recommended to use the other initializers to construct a private key,
+        /// unless you have only the modulus, public exponent, and private exponent 
+        /// to construct the key.
+        ///
+        /// - Parameters:
+        ///   - n: modulus of the key
+        ///   - e: public exponent of the key
+        ///   - d: private exponent of the key
+        public static func _createFromNumbers(n: some ContiguousBytes, e: some ContiguousBytes, d: some ContiguousBytes) throws -> Self {
+            let (p, q) = try _RSA.extractPrimeFactors(
+                n: try ArbitraryPrecisionInteger(bytes: n), 
+                e: try ArbitraryPrecisionInteger(bytes: e), 
+                d: try ArbitraryPrecisionInteger(bytes: d)
+            )
+
+            return try Self.init(
+                n: n, e: e, d: d, 
+                p: try Data(bytesOf: p, paddedToSize: p.byteCount), 
+                q: try Data(bytesOf: q, paddedToSize: q.byteCount)
+            )
+        }
     }
 }
 
@@ -668,4 +720,61 @@ extension _RSA {
     static let PKCS1PublicKeyType = "RSA PUBLIC KEY"
 
     static let SPKIPublicKeyType = "PUBLIC KEY"
+}
+
+extension _RSA {
+    static func extractPrimeFactors(
+        n: ArbitraryPrecisionInteger, 
+        e: ArbitraryPrecisionInteger, 
+        d: ArbitraryPrecisionInteger
+    ) throws -> (p: ArbitraryPrecisionInteger, q: ArbitraryPrecisionInteger) {
+        // This is based on the proof of fact 1 in https://www.ams.org/notices/199902/boneh.pdf
+        let k = (d * e) - 1
+        let t = k.trailingZeroBitCount
+        let r = k >> t
+
+        guard k.isEven else {
+            throw CryptoKitError.incorrectParameterSize
+        }
+
+        var y: ArbitraryPrecisionInteger = 0
+        var i = 1
+
+        let context = try FiniteFieldArithmeticContext(fieldSize: n)
+
+        while i <= 100 {
+            let g = try ArbitraryPrecisionInteger.random(inclusiveMin: 2, exclusiveMax: n)
+            y = try context.pow(g, r)
+
+            guard y != 1, y != n - 1 else {
+                continue
+            }
+
+            var j = 1
+            var x: ArbitraryPrecisionInteger
+
+            while j <= t &- 1 {
+                x = try context.pow(y, 2)
+
+                guard x != 1, x != n - 1 else {
+                    break
+                }
+
+                y = x
+                j &+= 1
+            }
+
+            x = try context.pow(y, 2)
+            if x == 1 {
+                let p = try ArbitraryPrecisionInteger.gcd(y - 1, n)
+                let q = n / p
+
+                return (p, q)
+            }
+
+            i &+= 1
+        }
+
+        throw CryptoKitError.incorrectParameterSize
+    }
 }
