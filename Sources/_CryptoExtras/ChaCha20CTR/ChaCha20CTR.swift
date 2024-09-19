@@ -16,11 +16,7 @@
 @_implementationOnly import CCryptoBoringSSLShims
 import Crypto
 @_implementationOnly import CryptoBoringWrapper
-#if canImport(Darwin) || swift(>=5.9.1)
 import Foundation
-#else
-@preconcurrency import Foundation
-#endif
 
 typealias ChaCha20CTRImpl = OpenSSLChaCha20CTRImpl
 
