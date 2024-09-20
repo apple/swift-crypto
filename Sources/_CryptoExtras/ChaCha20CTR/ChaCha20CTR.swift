@@ -15,7 +15,7 @@
 @_implementationOnly import CCryptoBoringSSL
 @_implementationOnly import CCryptoBoringSSLShims
 import Crypto
-@_implementationOnly import CryptoBoringWrapper
+import CryptoBoringWrapper
 import Foundation
 
 typealias ChaCha20CTRImpl = OpenSSLChaCha20CTRImpl

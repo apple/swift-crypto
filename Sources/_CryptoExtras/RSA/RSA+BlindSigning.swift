@@ -13,6 +13,7 @@
 //===----------------------------------------------------------------------===//
 import Foundation
 import Crypto
+import CryptoBoringWrapper
 
 // NOTE: RSABSSA API is implemented using BoringSSL on all platforms.
 fileprivate typealias BackingPublicKey = BoringSSLRSAPublicKey

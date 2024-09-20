@@ -13,6 +13,7 @@
 //===----------------------------------------------------------------------===//
 import Foundation
 import Crypto
+import CryptoBoringWrapper
 import SwiftASN1
 
 #if CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API

@@ -89,8 +89,6 @@ add_library(Crypto
   "Util/BoringSSL/CryptoKitErrors_boring.swift"
   "Util/BoringSSL/RNG_boring.swift"
   "Util/BoringSSL/SafeCompare_boring.swift"
-  "Util/BoringSSL/Shared/ArbitraryPrecisionInteger_boring.swift"
-  "Util/BoringSSL/Shared/FiniteFieldArithmeticContext_boring.swift"
   "Util/BoringSSL/Zeroization_boring.swift"
   "Util/PrettyBytes.swift"
   "Util/SafeCompare.swift"
@@ -115,6 +113,7 @@ target_link_libraries(Crypto PUBLIC
   CCryptoBoringSSL
   CCryptoBoringSSLShims
   CryptoBoringWrapper)
+target_compile_options(Crypto PRIVATE ${SWIFT_CRYPTO_COMPILE_OPTIONS})
 set_target_properties(Crypto PROPERTIES
   INTERFACE_INCLUDE_DIRECTORIES ${CMAKE_Swift_MODULE_DIRECTORY})
 

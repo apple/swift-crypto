@@ -25,8 +25,6 @@ add_library(_CryptoExtras
   "Util/Error.swift"
   "Util/PEMDocument.swift"
   "Util/RandomBytes.swift"
-  "Util/Shared/ArbitraryPrecisionInteger_boring.swift"
-  "Util/Shared/FiniteFieldArithmeticContext_boring.swift"
   "Util/SubjectPublicKeyInfo.swift")
 
 target_include_directories(_CryptoExtras PRIVATE
@@ -39,6 +37,8 @@ target_link_libraries(_CryptoExtras PUBLIC
   CryptoBoringWrapper
   CCryptoBoringSSL
   CCryptoBoringSSLShims)
+
+target_compile_options(_CryptoExtras PRIVATE ${SWIFT_CRYPTO_COMPILE_OPTIONS})
 
 target_link_options(_CryptoExtras PRIVATE
     "$<$<PLATFORM_ID:Darwin>:SHELL:-Xlinker -framework -Xlinker Security>")

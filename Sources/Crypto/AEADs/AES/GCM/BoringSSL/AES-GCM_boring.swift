@@ -15,7 +15,7 @@
 @_exported import CryptoKit
 #else
 @_implementationOnly import CCryptoBoringSSL
-@_implementationOnly import CryptoBoringWrapper
+import CryptoBoringWrapper
 import Foundation
 
 enum OpenSSLAESGCMImpl {

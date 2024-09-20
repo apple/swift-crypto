@@ -135,7 +135,7 @@ let package = Package(
                 "Signatures/ECDSA.swift.gyb",
             ],
             resources: privacyManifestResource,
-            swiftSettings: swiftSettings + [.define("MODULE_IS_CRYPTO")]
+            swiftSettings: swiftSettings
         ),
         .target(
             name: "_CryptoExtras",
@@ -173,6 +173,7 @@ let package = Package(
             swiftSettings: swiftSettings
         ),
         .testTarget(name: "_CryptoExtrasTests", dependencies: ["_CryptoExtras"]),
+        .testTarget(name: "CryptoBoringWrapperTests", dependencies: ["CryptoBoringWrapper"]),
     ],
     cxxLanguageStandard: .cxx11
 )

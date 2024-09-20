@@ -15,7 +15,7 @@
 import Crypto
 @_implementationOnly import CCryptoBoringSSL
 @_implementationOnly import CCryptoBoringSSLShims
-@_implementationOnly import CryptoBoringWrapper
+import CryptoBoringWrapper
 import Foundation
 
 /// Types associated with the AES GCM SIV algorithm

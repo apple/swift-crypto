@@ -31,6 +31,10 @@ endif()
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 set(CMAKE_Swift_MODULE_DIRECTORY ${CMAKE_BINARY_DIR}/swift)
 
+set(SWIFT_CRYPTO_COMPILE_OPTIONS
+    -package-name com.apple.swift-crypto
+)
+
 option(BUILD_SHARED_LIBS "Build shared libraries by default" YES)
 
 if(BUILD_SHARED_LIBS)
