@@ -131,9 +131,10 @@ extension AES {
         init(_ blockBytes: BlockBytes) {
             self.blockBytes = blockBytes
         }
-
-        init(_ iv: AES._CBC.IV) {
-            self.blockBytes = iv.ivBytes
+        
+        init<BlockBytes: Sequence>(blockBytes: BlockBytes) where BlockBytes.Element == UInt8 {
+            let blockBytes: [UInt8] = Array(blockBytes)
+            self.init(blockBytes: blockBytes)
         }
 
         init<BlockBytes: Collection>(blockBytes: BlockBytes) where BlockBytes.Element == UInt8 {

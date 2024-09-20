@@ -20,6 +20,7 @@ extension AES {
     /// suite.
     public enum _CBC {
         private static var blockSize: Int { 16 }
+        static let nonceByteCount = 16
 
         private static func encryptBlockInPlace(
             _ plaintext: inout Block,
@@ -67,7 +68,7 @@ extension AES {
             var ciphertext = Data()
             ciphertext.reserveCapacity(plaintext.count + Self.blockSize)  // Room for padding.
 
-            var previousBlock = Block(iv)
+            var previousBlock = Block(blockBytes: iv)
             var plaintext = plaintext[...]
 
             while plaintext.count > 0 {
@@ -121,7 +122,7 @@ extension AES {
             var plaintext = Data()
             plaintext.reserveCapacity(ciphertext.count)
 
-            var previousBlock = Block(iv)
+            var previousBlock = Block(blockBytes: iv)
             var ciphertext = ciphertext[...]
 
             while ciphertext.count > 0 {
@@ -137,57 +138,6 @@ extension AES {
                 try plaintext.trimPadding()
             }
             return plaintext
-        }
-    }
-}
-
-extension AES._CBC {
-    /// An initialization vector.
-    public struct IV: Sendable {
-        // AES CBC uses a 128-bit IV.
-        var ivBytes: (
-            UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8,
-            UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8
-        )
-
-        public init() {
-            var rng = SystemRandomNumberGenerator()
-            let (first, second) = (rng.next(), rng.next())
-
-            self.ivBytes = (
-                UInt8(truncatingIfNeeded: first),
-                UInt8(truncatingIfNeeded: first >> 8),
-                UInt8(truncatingIfNeeded: first >> 16),
-                UInt8(truncatingIfNeeded: first >> 24),
-                UInt8(truncatingIfNeeded: first >> 32),
-                UInt8(truncatingIfNeeded: first >> 40),
-                UInt8(truncatingIfNeeded: first >> 48),
-                UInt8(truncatingIfNeeded: first >> 56),
-                UInt8(truncatingIfNeeded: second),
-                UInt8(truncatingIfNeeded: second >> 8),
-                UInt8(truncatingIfNeeded: second >> 16),
-                UInt8(truncatingIfNeeded: second >> 24),
-                UInt8(truncatingIfNeeded: second >> 32),
-                UInt8(truncatingIfNeeded: second >> 40),
-                UInt8(truncatingIfNeeded: second >> 48),
-                UInt8(truncatingIfNeeded: second >> 56)
-            )
-        }
-
-        public init<IVBytes: Collection>(ivBytes: IVBytes) throws where IVBytes.Element == UInt8 {
-            // We support a 128-bit IV.
-            guard ivBytes.count == 16 else {
-                throw CryptoKitError.incorrectKeySize
-            }
-
-            self.ivBytes = (
-                0, 0, 0, 0, 0, 0, 0, 0,
-                0, 0, 0, 0, 0, 0, 0, 0
-            )
-
-            withUnsafeMutableBytes(of: &self.ivBytes) { bytesPtr in
-                bytesPtr.copyBytes(from: ivBytes)
-            }
         }
     }
 }
