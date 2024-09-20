@@ -19,8 +19,9 @@ import Foundation
 typealias AESCTRImpl = OpenSSLAESCTRImpl
 
 extension AES {
-
     public enum _CTR {
+        static let nonceByteCount = 12
+      
         @inlinable
         public static func encrypt<Plaintext: DataProtocol>(
             _ plaintext: Plaintext,
@@ -39,44 +40,6 @@ extension AES {
         ) throws -> Data {
             // Surprise, CTR mode is symmetric in encryption/decryption!
             try Self.encrypt(ciphertext, using: key, nonce: nonce)
-        }
-    }
-}
-
-extension AES._CTR {
-    public struct Nonce: Sendable {
-        // AES CTR uses a 128-bit counter. It's most usual to use a 96-bit nonce
-        // and a 32-bit counter at the end, so we support that specific mode of
-        // operation here.
-        private var nonceBytes: (
-            UInt64, UInt32, UInt32
-        )
-
-        public init() {
-            var rng = SystemRandomNumberGenerator()
-            self.nonceBytes = (
-                rng.next(), rng.next(), rng.next()
-            )
-        }
-
-        public init<NonceBytes: Collection>(nonceBytes: NonceBytes) throws where NonceBytes.Element == UInt8 {
-            // We support a 96-bit nonce (with a 32-bit counter, initialized to 0) or a full 128-bit
-            // expression.
-            guard nonceBytes.count == 12 || nonceBytes.count == 16 else {
-                throw CryptoKitError.incorrectParameterSize
-            }
-
-            self.nonceBytes = (
-                0, 0, 0
-            )
-
-            Swift.withUnsafeMutableBytes(of: &self.nonceBytes) { bytesPtr in
-                bytesPtr.copyBytes(from: nonceBytes)
-            }
-        }
-
-        mutating func withUnsafeMutableBytes<ReturnType>(_ body: (UnsafeMutableRawBufferPointer) throws -> ReturnType) rethrows -> ReturnType {
-            return try Swift.withUnsafeMutableBytes(of: &self.nonceBytes, body)
         }
     }
 }
