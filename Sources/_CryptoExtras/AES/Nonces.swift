@@ -26,16 +26,21 @@ extension AES._CBC {
     /// that nonces are unique per call to encryption APIs in order to protect the
     /// integrity of the encryption.
     public struct IV: Sendable, ContiguousBytes, Sequence {
-        private var bytes: Data
+        typealias IVTuple = (
+            UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, 
+            UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8
+        )
+    
+        private var bytes: IVTuple
 
         /// Creates a new random nonce.
         public init() {
-            var data = Data(repeating: 0, count: AES._CBC.nonceByteCount)
-            data.withUnsafeMutableBytes {
-                assert($0.count == AES._CBC.nonceByteCount)
-                $0.initializeWithRandomBytes(count: AES._CBC.nonceByteCount)
+            var bytes = IVTuple(0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0)
+            Swift.withUnsafeMutableBytes(of: &bytes) {
+                let count = MemoryLayout<IVTuple>.size
+                $0.initializeWithRandomBytes(count: count)
             }
-            self.bytes = data
+            self.bytes = bytes
         }
         
         /// Creates a nonce from the given collection.
@@ -47,14 +52,15 @@ extension AES._CBC {
         ///   - ivBytes: A collection of bytes representation of the nonce. 
         /// The initializer throws an error if the data has the incorrect length.
         public init<IVBytes: Collection>(ivBytes: IVBytes) throws where IVBytes.Element == UInt8 {
-            guard ivBytes.count == AES._CBC.nonceByteCount else {
+            guard ivBytes.count == MemoryLayout<IVTuple>.size else {
                 throw CryptoKitError.incorrectKeySize
             }
 
-            self.bytes = Data(repeating: 0, count: AES._CBC.nonceByteCount)
-            Swift.withUnsafeMutableBytes(of: &self.bytes) { bytesPtr in
+            var bytes = IVTuple(0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0)
+            Swift.withUnsafeMutableBytes(of: &bytes) { bytesPtr in
                 bytesPtr.copyBytes(from: ivBytes)
             }
+            self.bytes = bytes
         }
         
         /// Creates a nonce from the given data.
@@ -66,11 +72,15 @@ extension AES._CBC {
         ///   - data: A data representation of the nonce. The initializer throws an
         /// error if the data has the incorrect length.
         public init<D: DataProtocol>(data: D) throws {
-            if data.count != AES._CBC.nonceByteCount {
+            if data.count != MemoryLayout<IVTuple>.size {
                 throw CryptoKitError.incorrectParameterSize
             }
 
-            self.bytes = Data(data)
+            var bytes = IVTuple(0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0)
+            Swift.withUnsafeMutableBytes(of: &bytes) { bytesPtr in
+                data.copyBytes(to: bytesPtr)
+            }
+            self.bytes = bytes
         }
         
         /// Calls the given closure with a pointer to the underlying bytes of the array’s
@@ -85,11 +95,13 @@ extension AES._CBC {
         ///
         /// - Returns: The return value, if any, of the body closure parameter.
         public func withUnsafeBytes<R>(_ body: (UnsafeRawBufferPointer) throws -> R) rethrows -> R {
-            return try self.bytes.withUnsafeBytes(body)
+            var bytes = self.bytes
+            return try Swift.withUnsafeBytes(of: &bytes, body)
         }
         
         mutating func withUnsafeMutableBytes<ReturnType>(_ body: (UnsafeMutableRawBufferPointer) throws -> ReturnType) rethrows -> ReturnType {
-            return try Swift.withUnsafeMutableBytes(of: &self.bytes, body)
+            var bytes = self.bytes
+            return try Swift.withUnsafeMutableBytes(of: &bytes, body)
         }
         
         /// Returns an iterator over the elements of the nonce.
@@ -109,16 +121,18 @@ extension AES._CFB {
     /// that nonces are unique per call to encryption APIs in order to protect the
     /// integrity of the encryption.
     public struct IV: Sendable, ContiguousBytes, Sequence {
-        private var bytes: Data
+        typealias IVTuple = (UInt64, UInt64)
+    
+        private var bytes: IVTuple
 
         /// Creates a new random nonce.
         public init() {
-            var data = Data(repeating: 0, count: AES._CFB.nonceByteCount)
-            data.withUnsafeMutableBytes {
-                assert($0.count == AES._CFB.nonceByteCount)
-                $0.initializeWithRandomBytes(count: AES._CFB.nonceByteCount)
+            var bytes = IVTuple(0,0)
+            Swift.withUnsafeMutableBytes(of: &bytes) {
+                let count = MemoryLayout<IVTuple>.size
+                $0.initializeWithRandomBytes(count: count)
             }
-            self.bytes = data
+            self.bytes = bytes
         }
         
         /// Creates a nonce from the given collection.
@@ -130,14 +144,15 @@ extension AES._CFB {
         ///   - ivBytes: A collection of bytes representation of the nonce. 
         /// The initializer throws an error if the data has the incorrect length.
         public init<IVBytes: Collection>(ivBytes: IVBytes) throws where IVBytes.Element == UInt8 {
-            guard ivBytes.count == AES._CFB.nonceByteCount else {
+            guard ivBytes.count == MemoryLayout<IVTuple>.size else {
                 throw CryptoKitError.incorrectKeySize
             }
 
-            self.bytes = Data(repeating: 0, count: AES._CFB.nonceByteCount)
-            Swift.withUnsafeMutableBytes(of: &self.bytes) { bytesPtr in
+            var bytes = IVTuple(0,0)
+            Swift.withUnsafeMutableBytes(of: &bytes) { bytesPtr in
                 bytesPtr.copyBytes(from: ivBytes)
             }
+            self.bytes = bytes
         }
         
         /// Creates a nonce from the given data.
@@ -149,11 +164,15 @@ extension AES._CFB {
         ///   - data: A data representation of the nonce. The initializer throws an
         /// error if the data has the incorrect length.
         public init<D: DataProtocol>(data: D) throws {
-            if data.count != AES._CFB.nonceByteCount {
+            if data.count != MemoryLayout<IVTuple>.size {
                 throw CryptoKitError.incorrectParameterSize
             }
 
-            self.bytes = Data(data)
+            var bytes = IVTuple(0,0)
+            Swift.withUnsafeMutableBytes(of: &bytes) { bytesPtr in
+                data.copyBytes(to: bytesPtr)
+            }
+            self.bytes = bytes
         }
         
         /// Calls the given closure with a pointer to the underlying bytes of the array’s
@@ -168,11 +187,13 @@ extension AES._CFB {
         ///
         /// - Returns: The return value, if any, of the body closure parameter.
         public func withUnsafeBytes<R>(_ body: (UnsafeRawBufferPointer) throws -> R) rethrows -> R {
-            return try self.bytes.withUnsafeBytes(body)
+            var bytes = self.bytes
+            return try Swift.withUnsafeBytes(of: &bytes, body)
         }
         
         mutating func withUnsafeMutableBytes<ReturnType>(_ body: (UnsafeMutableRawBufferPointer) throws -> ReturnType) rethrows -> ReturnType {
-            return try Swift.withUnsafeMutableBytes(of: &self.bytes, body)
+            var bytes = self.bytes
+            return try Swift.withUnsafeMutableBytes(of: &bytes, body)
         }
         
         /// Returns an iterator over the elements of the nonce.
@@ -192,16 +213,18 @@ extension AES._CTR {
     /// that nonces are unique per call to encryption APIs in order to protect the
     /// integrity of the encryption.
     public struct Nonce: Sendable, ContiguousBytes, Sequence {
-        private var bytes: Data
+        typealias NonceTuple = (UInt64, UInt32, UInt32)
+    
+        private var bytes: NonceTuple
 
         /// Creates a new random nonce.
         public init() {
-            var data = Data(repeating: 0, count: AES._CTR.nonceByteCount)
-            data.withUnsafeMutableBytes {
-                assert($0.count == AES._CTR.nonceByteCount)
-                $0.initializeWithRandomBytes(count: AES._CTR.nonceByteCount)
+            var bytes = NonceTuple(0,0,0)
+            Swift.withUnsafeMutableBytes(of: &bytes) {
+                let count = MemoryLayout<NonceTuple>.size
+                $0.initializeWithRandomBytes(count: count)
             }
-            self.bytes = data
+            self.bytes = bytes
         }
         
         /// Creates a nonce from the given collection.
@@ -213,14 +236,15 @@ extension AES._CTR {
         ///   - nonceBytes: A collection of bytes representation of the nonce. 
         /// The initializer throws an error if the data has the incorrect length.
         public init<NonceBytes: Collection>(nonceBytes: NonceBytes) throws where NonceBytes.Element == UInt8 {
-            guard nonceBytes.count == AES._CTR.nonceByteCount else {
+            guard nonceBytes.count == MemoryLayout<NonceTuple>.size else {
                 throw CryptoKitError.incorrectKeySize
             }
 
-            self.bytes = Data(repeating: 0, count: AES._CTR.nonceByteCount)
-            Swift.withUnsafeMutableBytes(of: &self.bytes) { bytesPtr in
+            var bytes = NonceTuple(0,0,0)
+            Swift.withUnsafeMutableBytes(of: &bytes) { bytesPtr in
                 bytesPtr.copyBytes(from: nonceBytes)
             }
+            self.bytes = bytes
         }
         
         /// Creates a nonce from the given data.
@@ -232,11 +256,15 @@ extension AES._CTR {
         ///   - data: A data representation of the nonce. The initializer throws an
         /// error if the data has the incorrect length.
         public init<D: DataProtocol>(data: D) throws {
-            if data.count != AES._CBC.nonceByteCount {
+            if data.count != MemoryLayout<NonceTuple>.size {
                 throw CryptoKitError.incorrectParameterSize
             }
 
-            self.bytes = Data(data)
+            var bytes = NonceTuple(0,0,0)
+            Swift.withUnsafeMutableBytes(of: &bytes) { bytesPtr in
+                data.copyBytes(to: bytesPtr)
+            }
+            self.bytes = bytes
         }
         
         /// Calls the given closure with a pointer to the underlying bytes of the array’s
@@ -251,11 +279,13 @@ extension AES._CTR {
         ///
         /// - Returns: The return value, if any, of the body closure parameter.
         public func withUnsafeBytes<R>(_ body: (UnsafeRawBufferPointer) throws -> R) rethrows -> R {
-            return try self.bytes.withUnsafeBytes(body)
+            var bytes = self.bytes
+            return try Swift.withUnsafeBytes(of: &bytes, body)
         }
         
         mutating func withUnsafeMutableBytes<ReturnType>(_ body: (UnsafeMutableRawBufferPointer) throws -> ReturnType) rethrows -> ReturnType {
-            return try Swift.withUnsafeMutableBytes(of: &self.bytes, body)
+            var bytes = self.bytes
+            return try Swift.withUnsafeMutableBytes(of: &bytes, body)
         }
         
         /// Returns an iterator over the elements of the nonce.

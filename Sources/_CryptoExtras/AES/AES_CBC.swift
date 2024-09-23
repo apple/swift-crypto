@@ -20,7 +20,6 @@ extension AES {
     /// suite.
     public enum _CBC {
         private static var blockSize: Int { 16 }
-        static let nonceByteCount = 16
 
         private static func encryptBlockInPlace(
             _ plaintext: inout Block,
