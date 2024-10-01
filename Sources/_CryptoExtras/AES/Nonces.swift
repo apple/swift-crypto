@@ -31,11 +31,15 @@ extension AES._CBC {
             UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8
         )
     
-        private var bytes: IVTuple
+        var bytes: IVTuple
+        static var emptyBytes: IVTuple = (
+            0, 0, 0, 0, 0, 0, 0, 0, 
+            0, 0, 0, 0, 0, 0, 0, 0
+        )
 
         /// Creates a new random nonce.
         public init() {
-            var bytes = IVTuple(0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0)
+            var bytes = Self.emptyBytes
             Swift.withUnsafeMutableBytes(of: &bytes) {
                 let count = MemoryLayout<IVTuple>.size
                 $0.initializeWithRandomBytes(count: count)
@@ -52,11 +56,11 @@ extension AES._CBC {
         ///   - ivBytes: A collection of bytes representation of the nonce. 
         /// The initializer throws an error if the data has the incorrect length.
         public init<IVBytes: Collection>(ivBytes: IVBytes) throws where IVBytes.Element == UInt8 {
-            guard ivBytes.count == MemoryLayout<IVTuple>.size else {
+            guard [16].contains(ivBytes.count) else {
                 throw CryptoKitError.incorrectKeySize
             }
 
-            var bytes = IVTuple(0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0)
+            var bytes = Self.emptyBytes
             Swift.withUnsafeMutableBytes(of: &bytes) { bytesPtr in
                 bytesPtr.copyBytes(from: ivBytes)
             }
@@ -72,11 +76,11 @@ extension AES._CBC {
         ///   - data: A data representation of the nonce. The initializer throws an
         /// error if the data has the incorrect length.
         public init<D: DataProtocol>(data: D) throws {
-            if data.count != MemoryLayout<IVTuple>.size {
-                throw CryptoKitError.incorrectParameterSize
+            guard [16].contains(data.count) else {
+                throw CryptoKitError.incorrectKeySize
             }
 
-            var bytes = IVTuple(0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0)
+            var bytes = Self.emptyBytes
             Swift.withUnsafeMutableBytes(of: &bytes) { bytesPtr in
                 data.copyBytes(to: bytesPtr)
             }
@@ -123,11 +127,12 @@ extension AES._CFB {
     public struct IV: Sendable, ContiguousBytes, Sequence {
         typealias IVTuple = (UInt64, UInt64)
     
-        private var bytes: IVTuple
+        var bytes: IVTuple
+        static var emptyBytes: IVTuple = (0, 0)
 
         /// Creates a new random nonce.
         public init() {
-            var bytes = IVTuple(0,0)
+            var bytes = Self.emptyBytes
             Swift.withUnsafeMutableBytes(of: &bytes) {
                 let count = MemoryLayout<IVTuple>.size
                 $0.initializeWithRandomBytes(count: count)
@@ -144,11 +149,11 @@ extension AES._CFB {
         ///   - ivBytes: A collection of bytes representation of the nonce. 
         /// The initializer throws an error if the data has the incorrect length.
         public init<IVBytes: Collection>(ivBytes: IVBytes) throws where IVBytes.Element == UInt8 {
-            guard ivBytes.count == MemoryLayout<IVTuple>.size else {
+            guard [16].contains(ivBytes.count) else {
                 throw CryptoKitError.incorrectKeySize
             }
 
-            var bytes = IVTuple(0,0)
+            var bytes = Self.emptyBytes
             Swift.withUnsafeMutableBytes(of: &bytes) { bytesPtr in
                 bytesPtr.copyBytes(from: ivBytes)
             }
@@ -164,11 +169,11 @@ extension AES._CFB {
         ///   - data: A data representation of the nonce. The initializer throws an
         /// error if the data has the incorrect length.
         public init<D: DataProtocol>(data: D) throws {
-            if data.count != MemoryLayout<IVTuple>.size {
-                throw CryptoKitError.incorrectParameterSize
+            guard [16].contains(data.count) else {
+                throw CryptoKitError.incorrectKeySize
             }
 
-            var bytes = IVTuple(0,0)
+            var bytes = Self.emptyBytes
             Swift.withUnsafeMutableBytes(of: &bytes) { bytesPtr in
                 data.copyBytes(to: bytesPtr)
             }
@@ -215,11 +220,12 @@ extension AES._CTR {
     public struct Nonce: Sendable, ContiguousBytes, Sequence {
         typealias NonceTuple = (UInt64, UInt32, UInt32)
     
-        private var bytes: NonceTuple
+        var bytes: NonceTuple
+        static var emptyBytes: NonceTuple = (0, 0, 0)
 
         /// Creates a new random nonce.
         public init() {
-            var bytes = NonceTuple(0,0,0)
+            var bytes = Self.emptyBytes
             Swift.withUnsafeMutableBytes(of: &bytes) {
                 let count = MemoryLayout<NonceTuple>.size
                 $0.initializeWithRandomBytes(count: count)
@@ -236,11 +242,11 @@ extension AES._CTR {
         ///   - nonceBytes: A collection of bytes representation of the nonce. 
         /// The initializer throws an error if the data has the incorrect length.
         public init<NonceBytes: Collection>(nonceBytes: NonceBytes) throws where NonceBytes.Element == UInt8 {
-            guard nonceBytes.count == MemoryLayout<NonceTuple>.size else {
+            guard [12, 16].contains(nonceBytes.count) else {
                 throw CryptoKitError.incorrectKeySize
             }
 
-            var bytes = NonceTuple(0,0,0)
+            var bytes = Self.emptyBytes
             Swift.withUnsafeMutableBytes(of: &bytes) { bytesPtr in
                 bytesPtr.copyBytes(from: nonceBytes)
             }
@@ -256,11 +262,11 @@ extension AES._CTR {
         ///   - data: A data representation of the nonce. The initializer throws an
         /// error if the data has the incorrect length.
         public init<D: DataProtocol>(data: D) throws {
-            if data.count != MemoryLayout<NonceTuple>.size {
-                throw CryptoKitError.incorrectParameterSize
+            guard [12, 16].contains(data.count) else {
+                throw CryptoKitError.incorrectKeySize
             }
 
-            var bytes = NonceTuple(0,0,0)
+            var bytes = Self.emptyBytes
             Swift.withUnsafeMutableBytes(of: &bytes) { bytesPtr in
                 data.copyBytes(to: bytesPtr)
             }

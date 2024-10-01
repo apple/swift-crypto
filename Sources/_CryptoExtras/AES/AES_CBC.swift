@@ -67,7 +67,7 @@ extension AES {
             var ciphertext = Data()
             ciphertext.reserveCapacity(plaintext.count + Self.blockSize)  // Room for padding.
 
-            var previousBlock = Block(blockBytes: iv)
+            var previousBlock = Block(iv)
             var plaintext = plaintext[...]
 
             while plaintext.count > 0 {
@@ -121,7 +121,7 @@ extension AES {
             var plaintext = Data()
             plaintext.reserveCapacity(ciphertext.count)
 
-            var previousBlock = Block(blockBytes: iv)
+            var previousBlock = Block(iv)
             var ciphertext = ciphertext[...]
 
             while ciphertext.count > 0 {
