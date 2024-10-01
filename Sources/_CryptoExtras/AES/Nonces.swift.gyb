@@ -22,9 +22,12 @@ ciphers = [
     {"name": "AES._CBC", "nonceName": "IV", "tupleDefinition": """(
             UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, 
             UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8
-        )""", "tupleBlank": "(0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0)"},
-    {"name": "AES._CFB", "nonceName": "IV", "tupleDefinition": "(UInt64, UInt64)", "tupleBlank": "(0,0)"},
-    {"name": "AES._CTR", "nonceName": "Nonce", "tupleDefinition": "(UInt64, UInt32, UInt32)", "tupleBlank": "(0,0,0)"}]
+        )""", "tupleBlank": """(
+            0, 0, 0, 0, 0, 0, 0, 0, 
+            0, 0, 0, 0, 0, 0, 0, 0
+        )""", "validSizes": "[16]"},
+    {"name": "AES._CFB", "nonceName": "IV", "tupleDefinition": "(UInt64, UInt64)", "tupleBlank": "(0, 0)", "validSizes": "[16]"},
+    {"name": "AES._CTR", "nonceName": "Nonce", "tupleDefinition": "(UInt64, UInt32, UInt32)", "tupleBlank": "(0, 0, 0)", "validSizes": "[12, 16]"}]
 }%
 % for cipher in ciphers:
 %{
@@ -32,6 +35,7 @@ name = cipher["name"]
 nonceName = cipher["nonceName"]
 tupleDefinition = cipher["tupleDefinition"]
 tupleBlank = cipher["tupleBlank"]
+validSizes = cipher["validSizes"]
 }%
 
 // MARK: - ${name} + ${nonceName}
@@ -44,11 +48,12 @@ extension ${name} {
     public struct ${nonceName}: Sendable, ContiguousBytes, Sequence {
         typealias ${nonceName}Tuple = ${tupleDefinition}
     
-        private var bytes: ${nonceName}Tuple
+        var bytes: ${nonceName}Tuple
+        static var emptyBytes: ${nonceName}Tuple = ${tupleBlank}
 
         /// Creates a new random nonce.
         public init() {
-            var bytes = ${nonceName}Tuple${tupleBlank}
+            var bytes = Self.emptyBytes
             Swift.withUnsafeMutableBytes(of: &bytes) {
                 let count = MemoryLayout<${nonceName}Tuple>.size
                 $0.initializeWithRandomBytes(count: count)
@@ -65,11 +70,11 @@ extension ${name} {
         ///   - ${nonceName.lower()}Bytes: A collection of bytes representation of the nonce. 
         /// The initializer throws an error if the data has the incorrect length.
         public init<${nonceName}Bytes: Collection>(${nonceName.lower()}Bytes: ${nonceName}Bytes) throws where ${nonceName}Bytes.Element == UInt8 {
-            guard ${nonceName.lower()}Bytes.count == MemoryLayout<${nonceName}Tuple>.size else {
+            guard ${validSizes}.contains(${nonceName.lower()}Bytes.count) else {
                 throw CryptoKitError.incorrectKeySize
             }
 
-            var bytes = ${nonceName}Tuple${tupleBlank}
+            var bytes = Self.emptyBytes
             Swift.withUnsafeMutableBytes(of: &bytes) { bytesPtr in
                 bytesPtr.copyBytes(from: ${nonceName.lower()}Bytes)
             }
@@ -85,11 +90,11 @@ extension ${name} {
         ///   - data: A data representation of the nonce. The initializer throws an
         /// error if the data has the incorrect length.
         public init<D: DataProtocol>(data: D) throws {
-            if data.count != MemoryLayout<${nonceName}Tuple>.size {
-                throw CryptoKitError.incorrectParameterSize
+            guard ${validSizes}.contains(data.count) else {
+                throw CryptoKitError.incorrectKeySize
             }
 
-            var bytes = ${nonceName}Tuple${tupleBlank}
+            var bytes = Self.emptyBytes
             Swift.withUnsafeMutableBytes(of: &bytes) { bytesPtr in
                 data.copyBytes(to: bytesPtr)
             }
