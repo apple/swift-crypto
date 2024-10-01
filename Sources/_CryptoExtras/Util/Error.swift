@@ -15,3 +15,11 @@
 public enum _CryptoRSAError: Error {
     case invalidPEMDocument
 }
+
+/// Errors that can be thrown when working with ``MLDSA``.
+public enum CryptoMLDSAError: Error {
+    /// The key generation with BoringSSL failed.
+    case keyGenerationFailure
+    /// The signature generation with BoringSSL failed.
+    case signatureGenerationFailure
+}
