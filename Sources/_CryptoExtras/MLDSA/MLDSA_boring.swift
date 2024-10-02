@@ -82,7 +82,7 @@ extension MLDSA {
         /// - Parameter derRepresentation: The DER representation of the private key.
         /// 
         /// - Throws: `CryptoKitError.incorrectKeySize` if the DER representation is not the correct size or ``CryptoMLDSAError/keyGenerationFailure`` if the key could not be generated.
-        public init<Bytes: DataProtocol>(derRepresentation: Bytes) throws {
+        public init(derRepresentation: some DataProtocol) throws {
             guard derRepresentation.count == MLDSA.PrivateKey.bytesCount else {
                 throw CryptoKitError.incorrectKeySize
             }
@@ -122,7 +122,7 @@ extension MLDSA {
         ///   - context: The context to use for the signature.
         /// 
         /// - Returns: The signature of the message.
-        public func signature<D: DataProtocol>(for data: D, context: [UInt8]? = nil) throws -> Signature {
+        public func signature(for data: some DataProtocol, context: [UInt8]? = nil) throws -> Signature {
             let output = try Array<UInt8>(unsafeUninitializedCapacity: Signature.bytesCount) { bufferPtr, length in
                 let result = data.regions.first!.withUnsafeBytes { dataPtr in
                     let contextPointer = context?.withUnsafeBufferPointer { $0.baseAddress }
@@ -183,7 +183,7 @@ extension MLDSA {
         /// - Parameter derRepresentation: The DER representation of the public key.
         /// 
         /// - Throws: `CryptoKitError.incorrectKeySize` if the DER representation is not the correct size or ``CryptoMLDSAError/keyGenerationFailure`` if the key could not be generated.
-        public init<Bytes: DataProtocol>(derRepresentation: Bytes) throws {
+        public init(derRepresentation: some DataProtocol) throws {
             guard derRepresentation.count == MLDSA.PublicKey.bytesCount else {
                 throw CryptoKitError.incorrectKeySize
             }
@@ -214,7 +214,7 @@ extension MLDSA {
             get throws {
                 let cbbPointer = UnsafeMutablePointer<CBB>.allocate(capacity: 1)
                 defer { cbbPointer.deallocate() }
-                
+
                 guard CCryptoBoringSSL_CBB_init(cbbPointer, MLDSA.PublicKey.bytesCount) == 1 else {
                     CCryptoBoringSSL_CBB_cleanup(cbbPointer)
                     throw CryptoMLDSAError.keyGenerationFailure
@@ -248,7 +248,7 @@ extension MLDSA {
         ///   - context: The context to use for the signature verification.
         /// 
         /// - Returns: `true` if the signature is valid, `false` otherwise.
-        public func isValidSignature<D: DataProtocol>(_ signature: Signature, for data: D, context: [UInt8]? = nil) -> Bool {
+        public func isValidSignature(_ signature: Signature, for data: some DataProtocol, context: [UInt8]? = nil) -> Bool {
             return signature.withUnsafeBytes { signaturePtr in
                 let rc: CInt = data.regions.first!.withUnsafeBytes { dataPtr in
                     let contextPointer = context?.withUnsafeBufferPointer { $0.baseAddress }
@@ -282,7 +282,7 @@ extension MLDSA {
         /// Initialize a ML-DSA-65 signature from a raw representation.
         /// 
         /// - Parameter rawRepresentation: The signature bytes.
-        public init<D: DataProtocol>(rawRepresentation: D) {
+        public init(rawRepresentation: some DataProtocol) {
             self.rawRepresentation = Data(rawRepresentation)
         }
 
