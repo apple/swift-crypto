@@ -110,4 +110,36 @@ final class MLDSATests: XCTestCase {
         // Public key is 1 byte too long.
         XCTAssertThrowsError(try MLDSA.PublicKey(derRepresentation: encodedPublicKey))
     }
+
+    func testMLDSAKeyGenFile() throws {
+        try mldsaTest(jsonName: "mldsa_nist_keygen_tests") { (testVector: MLDSAKeyGenTestVector) in
+            let seed = try Data(hexString: testVector.seed)
+            let publicKey = try MLDSA.PublicKey(derRepresentation: Data(hexString: testVector.pub))
+            
+            let expectedkey = try MLDSA.PrivateKey(from: seed).publicKey
+            try XCTAssertEqual(publicKey.derRepresentation, expectedkey.derRepresentation)
+        }
+    }
+
+    private struct MLDSAKeyGenTestVector: Decodable {
+        let seed: String
+        let pub: String
+        let priv: String
+    }
+
+    private struct MLDSATestFile<Vector: Decodable>: Decodable {
+        let testVectors: [Vector]
+    }
+
+    private func mldsaTest<Vector: Decodable>(
+        jsonName: String, file: StaticString = #file, line: UInt = #line, testFunction: (Vector) throws -> Void
+    ) throws {
+        let testsDirectory: String = URL(fileURLWithPath: "\(#file)").pathComponents.dropLast(2).joined(separator: "/")
+        let fileURL: URL? = URL(fileURLWithPath: "\(testsDirectory)/_CryptoExtrasVectors/\(jsonName).json")
+        let data = try Data(contentsOf: fileURL!)
+        let testFile = try JSONDecoder().decode(MLDSATestFile<Vector>.self, from: data)
+        for vector in testFile.testVectors {
+            try testFunction(vector)
+        }
+    }
 }
