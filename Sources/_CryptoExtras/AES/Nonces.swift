@@ -18,6 +18,30 @@ import Foundation
 // any edits of this file WILL be overwritten and thus discarded
 // see section `gyb` in `README` for details.
 
+fileprivate struct ByteIterator<T>: IteratorProtocol {
+    var currentOffset = 0
+    var pointer: UnsafeRawBufferPointer? = nil
+    let length: Int
+    
+    init(_ bytes: T) {
+        self.length = Mirror(reflecting: bytes).children.count
+        withUnsafeBytes(of: bytes) { pointer in
+            self.pointer = pointer
+        }
+    }
+    
+    @inlinable 
+    public mutating func next() -> UInt8? {
+        guard let pointer,
+              currentOffset < length else { return nil }
+        
+        let next = pointer.load(fromByteOffset: currentOffset, as: UInt8.self)
+        currentOffset += 1
+        return next
+    }
+}
+
+
 // MARK: - AES._CBC + IV
 extension AES._CBC {
     /// A value used once during a cryptographic operation and then discarded.
@@ -109,10 +133,8 @@ extension AES._CBC {
         }
         
         /// Returns an iterator over the elements of the nonce.
-        public func makeIterator() -> Array<UInt8>.Iterator {
-            self.withUnsafeBytes({ (buffPtr) in
-                return Array(buffPtr).makeIterator()
-            })
+        public func makeIterator() -> some IteratorProtocol<UInt8> {
+            ByteIterator(bytes)
         }
     }
 }
@@ -202,10 +224,8 @@ extension AES._CFB {
         }
         
         /// Returns an iterator over the elements of the nonce.
-        public func makeIterator() -> Array<UInt8>.Iterator {
-            self.withUnsafeBytes({ (buffPtr) in
-                return Array(buffPtr).makeIterator()
-            })
+        public func makeIterator() -> some IteratorProtocol<UInt8> {
+            ByteIterator(bytes)
         }
     }
 }
@@ -295,10 +315,8 @@ extension AES._CTR {
         }
         
         /// Returns an iterator over the elements of the nonce.
-        public func makeIterator() -> Array<UInt8>.Iterator {
-            self.withUnsafeBytes({ (buffPtr) in
-                return Array(buffPtr).makeIterator()
-            })
+        public func makeIterator() -> some IteratorProtocol<UInt8> {
+            ByteIterator(bytes)
         }
     }
 }
