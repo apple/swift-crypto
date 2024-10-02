@@ -84,7 +84,9 @@ let package = Package(
             .library(name: "CCryptoBoringSSL", type: .static, targets: ["CCryptoBoringSSL"]),
             MANGLE_END */
     ],
-    dependencies: [],
+    dependencies: [
+        .package(url: "https://github.com/apple/swift-asn1.git", .upToNextMajor(from: "1.2.0"))
+    ],
     targets: [
         .target(
             name: "CCryptoBoringSSL",
@@ -141,7 +143,8 @@ let package = Package(
                 "CCryptoBoringSSL",
                 "CCryptoBoringSSLShims",
                 "CryptoBoringWrapper",
-                "Crypto"
+                "Crypto",
+                .product(name: "SwiftASN1", package: "swift-asn1")
             ],
             exclude: privacyManifestExclude + [
                 "CMakeLists.txt",
