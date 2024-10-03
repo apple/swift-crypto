@@ -110,9 +110,7 @@ extension MLDSA {
 
         /// The public key associated with this private key.
         public var publicKey: PublicKey {
-            get throws {
-                try PublicKey(privateKey: self)
-            }
+            PublicKey(privateKey: self)
         }
 
         /// Generate a signature for the given data.
@@ -148,7 +146,7 @@ extension MLDSA {
         }
 
         /// The size of the private key in bytes.
-        public static let bytesCount = 4032
+        private static let bytesCount = 4032
     }
 }
 
@@ -157,25 +155,9 @@ extension MLDSA {
     public struct PublicKey: Sendable {
         private let pointer: UnsafeMutablePointer<MLDSA65_public_key>
 
-        fileprivate init(privateKey: PrivateKey) throws {
+        fileprivate init(privateKey: PrivateKey) {
             self.pointer = UnsafeMutablePointer<MLDSA65_public_key>.allocate(capacity: 1)
-
-            guard CCryptoBoringSSL_MLDSA65_public_from_private(
-                self.pointer,
-                privateKey.pointer
-            ) == 1 else {
-                throw CryptoMLDSAError.keyGenerationFailure
-            }
-        }
-
-        /// Initialize a ML-DSA-65 public key from a seed.
-        /// 
-        /// The seed must be at least 32 bytes long.
-        /// Any additional bytes in the seed are ignored.
-        /// 
-        /// - Parameter seed: The seed to use to generate the public key.
-        public init(from seed: some DataProtocol) throws {
-            try self.init(privateKey: PrivateKey(from: seed))
+            CCryptoBoringSSL_MLDSA65_public_from_private(self.pointer, privateKey.pointer)
         }
 
         /// Initialize a ML-DSA-65 public key from a DER representation.
@@ -269,7 +251,7 @@ extension MLDSA {
         }
 
         /// The size of the public key in bytes.
-        public static let bytesCount = 1952
+        fileprivate static let bytesCount = 1952
     }
 }
 
