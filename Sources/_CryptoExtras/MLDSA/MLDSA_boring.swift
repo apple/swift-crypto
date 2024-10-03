@@ -28,8 +28,6 @@ extension MLDSA {
         fileprivate var backing: Backing
 
         /// Initialize a ML-DSA-65 private key from a random seed.
-        /// 
-        /// - Throws: ``CryptoMLDSAError/keyGenerationFailure`` if the key could not be generated.
         public init() throws {
             self.backing = try Backing()
         }
@@ -41,7 +39,7 @@ extension MLDSA {
         /// 
         /// - Parameter seed: The seed to use to generate the private key.
         /// 
-        /// - Throws: `CryptoKitError.incorrectKeySize` if the seed is not at least 32 bytes long or ``CryptoMLDSAError/keyGenerationFailure`` if the key could not be generated.
+        /// - Throws: `CryptoKitError.incorrectKeySize` if the seed is not at least 32 bytes long.
         public init(from seed: some DataProtocol) throws {
             self.backing = try Backing(from: seed)
         }
@@ -50,7 +48,7 @@ extension MLDSA {
         /// 
         /// - Parameter derRepresentation: The DER representation of the private key.
         /// 
-        /// - Throws: `CryptoKitError.incorrectKeySize` if the DER representation is not the correct size or ``CryptoMLDSAError/keyGenerationFailure`` if the key could not be generated.
+        /// - Throws: `CryptoKitError.incorrectKeySize` if the DER representation is not the correct size.
         public init(derRepresentation: some DataProtocol) throws {
             self.backing = try Backing(derRepresentation: derRepresentation)
         }
@@ -85,8 +83,6 @@ extension MLDSA {
             fileprivate let pointer: UnsafeMutablePointer<MLDSA65_private_key>
 
             /// Initialize a ML-DSA-65 private key from a random seed.
-            /// 
-            /// - Throws: ``CryptoMLDSAError/keyGenerationFailure`` if the key could not be generated.
             fileprivate init() throws {
                 self.pointer = UnsafeMutablePointer<MLDSA65_private_key>.allocate(capacity: 1)
 
@@ -102,7 +98,7 @@ extension MLDSA {
                     seedPtr,
                     self.pointer
                 ) == 1 else {
-                    throw CryptoMLDSAError.keyGenerationFailure
+                    throw CryptoKitError.internalBoringSSLError()
                 }
             }
 
@@ -113,7 +109,7 @@ extension MLDSA {
             /// 
             /// - Parameter seed: The seed to use to generate the private key.
             /// 
-            /// - Throws: `CryptoKitError.incorrectKeySize` if the seed is not at least 32 bytes long or ``CryptoMLDSAError/keyGenerationFailure`` if the key could not be generated.
+            /// - Throws: `CryptoKitError.incorrectKeySize` if the seed is not at least 32 bytes long.
             fileprivate init(from seed: some DataProtocol) throws {
                 guard seed.count >= MLDSA.seedSizeInBytes else {
                     throw CryptoKitError.incorrectKeySize
@@ -133,7 +129,7 @@ extension MLDSA {
                     seedDest,
                     MLDSA.seedSizeInBytes
                 ) == 1 else {
-                    throw CryptoMLDSAError.keyGenerationFailure
+                    throw CryptoKitError.internalBoringSSLError()
                 }
             }
 
@@ -141,7 +137,7 @@ extension MLDSA {
             /// 
             /// - Parameter derRepresentation: The DER representation of the private key.
             /// 
-            /// - Throws: `CryptoKitError.incorrectKeySize` if the DER representation is not the correct size or ``CryptoMLDSAError/keyGenerationFailure`` if the key could not be generated.
+            /// - Throws: `CryptoKitError.incorrectKeySize` if the DER representation is not the correct size.
             fileprivate init(derRepresentation: some DataProtocol) throws {
                 guard derRepresentation.count == MLDSA.PrivateKey.Backing.bytesCount else {
                     throw CryptoKitError.incorrectKeySize
@@ -155,7 +151,7 @@ extension MLDSA {
                     cbsPointer.pointee = CBS(data: buffer.baseAddress, len: buffer.count)
 
                     guard CCryptoBoringSSL_MLDSA65_parse_private_key(self.pointer, cbsPointer) == 1 else {
-                        throw CryptoMLDSAError.keyGenerationFailure
+                        throw CryptoKitError.internalBoringSSLError()
                     }
                 }
             }
@@ -207,7 +203,7 @@ extension MLDSA {
                     }
 
                     guard result == 1 else {
-                        throw CryptoMLDSAError.signatureGenerationFailure
+                        throw CryptoKitError.internalBoringSSLError()
                     }
 
                     length = Signature.bytesCount
@@ -234,7 +230,7 @@ extension MLDSA {
         /// 
         /// - Parameter derRepresentation: The DER representation of the public key.
         /// 
-        /// - Throws: `CryptoKitError.incorrectKeySize` if the DER representation is not the correct size or ``CryptoMLDSAError/keyGenerationFailure`` if the key could not be generated.
+        /// - Throws: `CryptoKitError.incorrectKeySize` if the DER representation is not the correct size.
         public init(derRepresentation: some DataProtocol) throws {
             self.backing = try Backing(derRepresentation: derRepresentation)
         }
@@ -287,7 +283,7 @@ extension MLDSA {
             /// 
             /// - Parameter derRepresentation: The DER representation of the public key.
             /// 
-            /// - Throws: `CryptoKitError.incorrectKeySize` if the DER representation is not the correct size or ``CryptoMLDSAError/keyGenerationFailure`` if the key could not be generated.
+            /// - Throws: `CryptoKitError.incorrectKeySize` if the DER representation is not the correct size.
             fileprivate init(derRepresentation: some DataProtocol) throws {
                 guard derRepresentation.count == MLDSA.PublicKey.Backing.bytesCount else {
                     throw CryptoKitError.incorrectKeySize
@@ -301,7 +297,7 @@ extension MLDSA {
                     cbsPointer.pointee = CBS(data: buffer.baseAddress, len: buffer.count)
 
                     guard CCryptoBoringSSL_MLDSA65_parse_public_key(self.pointer, cbsPointer) == 1 else {
-                        throw CryptoMLDSAError.keyGenerationFailure
+                        throw CryptoKitError.internalBoringSSLError()
                     }
                 }
             }
@@ -323,12 +319,12 @@ extension MLDSA {
 
                     guard CCryptoBoringSSL_MLDSA65_marshal_public_key(&cbb, self.pointer) == 1 else {
                         CCryptoBoringSSL_CBB_cleanup(&cbb)
-                        throw CryptoMLDSAError.keyGenerationFailure
+                        throw CryptoKitError.internalBoringSSLError()
                     }
 
                     guard let data = CCryptoBoringSSL_CBB_data(&cbb) else {
                         CCryptoBoringSSL_CBB_cleanup(&cbb)
-                        throw CryptoMLDSAError.keyGenerationFailure
+                        throw CryptoKitError.internalBoringSSLError()
                     }
                     return Data(bytes: data, count: CCryptoBoringSSL_CBB_len(&cbb))
                 }
