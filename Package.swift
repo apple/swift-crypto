@@ -85,7 +85,7 @@ let package = Package(
             MANGLE_END */
     ],
     dependencies: [
-        .package(url: "https://github.com/apple/swift-asn1.git", .upToNextMajor(from: "1.2.0"))
+        .package(url: "https://github.com/apple/swift-asn1.git", from: "1.2.0")
     ],
     targets: [
         .target(

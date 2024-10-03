@@ -1,9 +1,16 @@
+//===----------------------------------------------------------------------===//
 //
-//  SubjectPublicKeyInfo.swift
+// This source file is part of the SwiftCrypto open source project
 //
+// Copyright (c) 2024 Apple Inc. and the SwiftCrypto project authors
+// Licensed under Apache License v2.0
 //
-//  Created by Gautier Delorme on 24/09/2024.
+// See LICENSE.txt for license information
+// See CONTRIBUTORS.md for the list of SwiftCrypto project authors
 //
+// SPDX-License-Identifier: Apache-2.0
+//
+//===----------------------------------------------------------------------===//
 
 import SwiftASN1
 
@@ -105,6 +112,7 @@ extension SubjectPublicKeyInfo {
         }
 
         if spki.algorithmIdentifier.algorithm == .AlgorithmIdentifier.rsaPSS {
+            spki.algorithmIdentifier.algorithm = .AlgorithmIdentifier.rsaEncryption
             spki.algorithmIdentifier.parameters = try ASN1Any(erasing: ASN1Null())
         }
 
