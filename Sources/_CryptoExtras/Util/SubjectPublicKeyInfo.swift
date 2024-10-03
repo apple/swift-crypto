@@ -111,10 +111,13 @@ extension SubjectPublicKeyInfo {
             return derEncoded
         }
 
-        if spki.algorithmIdentifier.algorithm == .AlgorithmIdentifier.rsaPSS {
-            spki.algorithmIdentifier.algorithm = .AlgorithmIdentifier.rsaEncryption
-            spki.algorithmIdentifier.parameters = try ASN1Any(erasing: ASN1Null())
+        guard spki.algorithmIdentifier.algorithm == .AlgorithmIdentifier.rsaPSS else {
+            // If it's not a PSS key we don't have to modify it.
+            return derEncoded
         }
+
+        spki.algorithmIdentifier.algorithm = .AlgorithmIdentifier.rsaEncryption
+        spki.algorithmIdentifier.parameters = try ASN1Any(erasing: ASN1Null())
 
         var serializer = DER.Serializer()
         try serializer.serialize(spki)
