@@ -48,5 +48,14 @@ if(NOT CMAKE_SYSTEM_NAME STREQUAL Darwin)
   find_package(Foundation CONFIG)
 endif()
 
+find_package(SwiftASN1 CONFIG)
+if(NOT SwiftASN1_FOUND)
+  message("-- Vending swift-asn1")
+  FetchContent_Declare(ASN1
+    GIT_REPOSITORY https://github.com/apple/swift-asn1
+    GIT_TAG 1.1.0)
+  FetchContent_MakeAvailable(ASN1)
+endif()
+
 add_subdirectory(Sources)
 add_subdirectory(cmake/modules)
