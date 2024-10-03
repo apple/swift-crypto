@@ -106,13 +106,10 @@ struct RFC5480AlgorithmIdentifier: DERImplicitlyTaggable, Hashable {
 
 extension SubjectPublicKeyInfo {
     static func stripRsaPssParameters(derEncoded: [UInt8]) throws -> [UInt8] {
-        guard var spki = try? SubjectPublicKeyInfo(derEncoded: derEncoded) else {
-            // If it's not a SPKI then it can't be a PSS key so we just return it.
-            return derEncoded
-        }
-
-        guard spki.algorithmIdentifier.algorithm == .AlgorithmIdentifier.rsaPSS else {
-            // If it's not a PSS key we don't have to modify it.
+        guard var spki = try? SubjectPublicKeyInfo(derEncoded: derEncoded),
+              spki.algorithmIdentifier.algorithm == .AlgorithmIdentifier.rsaPSS
+        else {
+            // If it's neither a SPKI nor a PSS key, we don't have to modify it.
             return derEncoded
         }
 
