@@ -197,22 +197,20 @@ extension MLDSA {
         /// The DER representation of the public key.
         public var derRepresentation: Data {
             get throws {
-                let cbbPointer = UnsafeMutablePointer<CBB>.allocate(capacity: 1)
-                defer { cbbPointer.deallocate() }
-
+                var cbb = CBB()
                 // `CBB_init` can only return 0 on allocation failure, which we define as impossible.
-                CCryptoBoringSSL_CBB_init(cbbPointer, MLDSA.PublicKey.bytesCount)
+                CCryptoBoringSSL_CBB_init(&cbb, MLDSA.PublicKey.bytesCount)
 
-                guard CCryptoBoringSSL_MLDSA65_marshal_public_key(cbbPointer, self.pointer) == 1 else {
-                    CCryptoBoringSSL_CBB_cleanup(cbbPointer)
+                guard CCryptoBoringSSL_MLDSA65_marshal_public_key(&cbb, self.pointer) == 1 else {
+                    CCryptoBoringSSL_CBB_cleanup(&cbb)
                     throw CryptoMLDSAError.keyGenerationFailure
                 }
 
-                guard let data = CCryptoBoringSSL_CBB_data(cbbPointer) else {
-                    CCryptoBoringSSL_CBB_cleanup(cbbPointer)
+                guard let data = CCryptoBoringSSL_CBB_data(&cbb) else {
+                    CCryptoBoringSSL_CBB_cleanup(&cbb)
                     throw CryptoMLDSAError.keyGenerationFailure
                 }
-                return Data(bytes: data, count: CCryptoBoringSSL_CBB_len(cbbPointer))
+                return Data(bytes: data, count: CCryptoBoringSSL_CBB_len(&cbb))
             }
         }
 
