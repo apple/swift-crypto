@@ -48,7 +48,7 @@ final class MLDSATests: XCTestCase {
         let signature = try key.signature(for: data)
         let roundTripped = MLDSA.Signature(rawRepresentation: signature.rawRepresentation)
         XCTAssertEqual(signature.rawRepresentation, roundTripped.rawRepresentation)
-        try XCTAssertTrue(key.publicKey.isValidSignature(roundTripped, for: data))
+        XCTAssertTrue(key.publicKey.isValidSignature(roundTripped, for: data))
     }
 
     func testBitFlips() throws {
@@ -56,7 +56,7 @@ final class MLDSATests: XCTestCase {
 
         let message = "Hello, world!".data(using: .utf8)!
         let key = try MLDSA.PrivateKey()
-        let publicKey = try key.publicKey
+        let publicKey = key.publicKey
         let signature = try key.signature(for: message)
         XCTAssertTrue(publicKey.isValidSignature(signature, for: message))
         
@@ -79,7 +79,7 @@ final class MLDSATests: XCTestCase {
         
         let seed: [UInt8] = (0..<32).map { _ in UInt8.random(in: 0...255) }
         let key = try MLDSA.PrivateKey(from: seed)
-        let publicKey = try key.publicKey
+        let publicKey = key.publicKey
         
         let signature1 = try key.signature(for: message)
         let signature2 = try key.signature(for: message)
@@ -96,7 +96,7 @@ final class MLDSATests: XCTestCase {
         var encodedPublicKey = [UInt8](repeating: 0, count: MLDSA.PublicKey.bytesCount + 1)
         let seed: [UInt8] = (0..<32).map { _ in UInt8.random(in: 0...255) }
         let key = try MLDSA.PrivateKey(from: seed)
-        let publicKey = try key.publicKey
+        let publicKey = key.publicKey
         try encodedPublicKey.replaceSubrange(0..<MLDSA.PublicKey.bytesCount, with: publicKey.derRepresentation)
         
         // Public key is 1 byte too short.

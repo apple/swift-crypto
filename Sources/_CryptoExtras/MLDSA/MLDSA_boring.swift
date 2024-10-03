@@ -62,15 +62,18 @@ extension MLDSA {
                 throw CryptoKitError.incorrectKeySize
             }
 
-            let seedPtr = UnsafeMutablePointer<UInt8>.allocate(capacity: MLDSA.seedSizeInBytes)
-            seedPtr.initialize(from: seed.regions.flatMap { $0 }, count: MLDSA.seedSizeInBytes)
-            defer { seedPtr.deallocate() }
+            var seedDest: [UInt8] = Array(repeating: 0, count: MLDSA.seedSizeInBytes)
+            try seedDest.withUnsafeMutableBufferPointer { typedMemBuffer in
+                guard seed.copyBytes(to: typedMemBuffer) == MLDSA.seedSizeInBytes else {
+                    throw CryptoKitError.incorrectKeySize
+                }
+            }
 
             self.pointer = UnsafeMutablePointer<MLDSA65_private_key>.allocate(capacity: 1)
 
             guard CCryptoBoringSSL_MLDSA65_private_key_from_seed(
                 self.pointer,
-                seedPtr,
+                seedDest,
                 MLDSA.seedSizeInBytes
             ) == 1 else {
                 throw CryptoMLDSAError.keyGenerationFailure
@@ -89,14 +92,14 @@ extension MLDSA {
 
             self.pointer = UnsafeMutablePointer<MLDSA65_private_key>.allocate(capacity: 1)
 
-            let cbsPointer = UnsafeMutablePointer<CBS>.allocate(capacity: 1)
-            defer { cbsPointer.deallocate() }
-            derRepresentation.regions.flatMap { $0 }.withUnsafeBufferPointer { buffer in
+            try derRepresentation.regions.flatMap { $0 }.withUnsafeBufferPointer { buffer in
+                let cbsPointer = UnsafeMutablePointer<CBS>.allocate(capacity: 1)
+                defer { cbsPointer.deallocate() }
                 cbsPointer.pointee = CBS(data: buffer.baseAddress, len: buffer.count)
-            }
 
-            guard CCryptoBoringSSL_MLDSA65_parse_private_key(self.pointer, cbsPointer) == 1 else {
-                throw CryptoMLDSAError.keyGenerationFailure
+                guard CCryptoBoringSSL_MLDSA65_parse_private_key(self.pointer, cbsPointer) == 1 else {
+                    throw CryptoMLDSAError.keyGenerationFailure
+                }
             }
         }
 
@@ -146,7 +149,7 @@ extension MLDSA {
         }
 
         /// The size of the private key in bytes.
-        private static let bytesCount = 4032
+        static let bytesCount = 4032
     }
 }
 
@@ -197,10 +200,8 @@ extension MLDSA {
                 let cbbPointer = UnsafeMutablePointer<CBB>.allocate(capacity: 1)
                 defer { cbbPointer.deallocate() }
 
-                guard CCryptoBoringSSL_CBB_init(cbbPointer, MLDSA.PublicKey.bytesCount) == 1 else {
-                    CCryptoBoringSSL_CBB_cleanup(cbbPointer)
-                    throw CryptoMLDSAError.keyGenerationFailure
-                }
+                // `CBB_init` can only return 0 on allocation failure, which we define as impossible.
+                CCryptoBoringSSL_CBB_init(cbbPointer, MLDSA.PublicKey.bytesCount)
 
                 guard CCryptoBoringSSL_MLDSA65_marshal_public_key(cbbPointer, self.pointer) == 1 else {
                     CCryptoBoringSSL_CBB_cleanup(cbbPointer)
@@ -251,7 +252,7 @@ extension MLDSA {
         }
 
         /// The size of the public key in bytes.
-        fileprivate static let bytesCount = 1952
+        static let bytesCount = 1952
     }
 }
 
