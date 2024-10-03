@@ -126,17 +126,27 @@ extension MLDSA {
         public func signature(for data: some DataProtocol, context: [UInt8]? = nil) throws -> Signature {
             let output = try Array<UInt8>(unsafeUninitializedCapacity: Signature.bytesCount) { bufferPtr, length in
                 let result = data.regions.first!.withUnsafeBytes { dataPtr in
-                    let contextPointer = context?.withUnsafeBufferPointer { $0.baseAddress }
-                    let contextLength = context?.count ?? 0
-
-                    return CCryptoBoringSSL_MLDSA65_sign(
-                        bufferPtr.baseAddress,
-                        self.pointer,
-                        dataPtr.baseAddress,
-                        dataPtr.count,
-                        contextPointer,
-                        contextLength
-                    )
+                    if let context {
+                        context.withUnsafeBufferPointer { contextPointer in
+                            CCryptoBoringSSL_MLDSA65_sign(
+                                bufferPtr.baseAddress,
+                                self.pointer,
+                                dataPtr.baseAddress,
+                                dataPtr.count,
+                                contextPointer.baseAddress,
+                                context.count
+                            )
+                        }
+                    } else {
+                        CCryptoBoringSSL_MLDSA65_sign(
+                            bufferPtr.baseAddress,
+                            self.pointer,
+                            dataPtr.baseAddress,
+                            dataPtr.count,
+                            nil,
+                            0
+                        )
+                    }
                 }
 
                 guard result == 1 else {
@@ -232,18 +242,29 @@ extension MLDSA {
         public func isValidSignature(_ signature: Signature, for data: some DataProtocol, context: [UInt8]? = nil) -> Bool {
             return signature.withUnsafeBytes { signaturePtr in
                 let rc: CInt = data.regions.first!.withUnsafeBytes { dataPtr in
-                    let contextPointer = context?.withUnsafeBufferPointer { $0.baseAddress }
-                    let contextLength = context?.count ?? 0
-
-                    return CCryptoBoringSSL_MLDSA65_verify(
-                        self.pointer,
-                        signaturePtr.baseAddress,
-                        signaturePtr.count,
-                        dataPtr.baseAddress,
-                        dataPtr.count,
-                        contextPointer,
-                        contextLength
-                    )
+                    if let context {
+                        context.withUnsafeBufferPointer { contextPointer in
+                            CCryptoBoringSSL_MLDSA65_verify(
+                                self.pointer,
+                                signaturePtr.baseAddress,
+                                signaturePtr.count,
+                                dataPtr.baseAddress,
+                                dataPtr.count,
+                                contextPointer.baseAddress,
+                                context.count
+                            )
+                        }
+                    } else {
+                        CCryptoBoringSSL_MLDSA65_verify(
+                            self.pointer,
+                            signaturePtr.baseAddress,
+                            signaturePtr.count,
+                            dataPtr.baseAddress,
+                            dataPtr.count,
+                            nil,
+                            0
+                        )
+                    }
                 }
                 return rc == 1
             }
