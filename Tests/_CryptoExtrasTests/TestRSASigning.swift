@@ -17,6 +17,56 @@ import Crypto
 @testable import _CryptoExtras
 
 final class TestRSASigning: XCTestCase {
+
+    func test_rsaPssParameters() throws {
+        let rsaPssPublicKeyPEM = """
+        -----BEGIN PUBLIC KEY-----
+        MIIBUjA9BgkqhkiG9w0BAQowMKANMAsGCWCGSAFlAwQCAaEaMBgGCSqGSIb3DQEB
+        CDALBglghkgBZQMEAgGiAwIBIAOCAQ8AMIIBCgKCAQEAvcOaxSJoSiiXIQme6HEF
+        d0/QHjtk5+U1RbeejxeUR80Q1f8E5v7+uIBEFVbwZpIJZtmSB3bxbS31rOBGVcrI
+        IAfCnUlq6DK1fEL1fgn61XMiSSyKr75L5ZXv9Rib95h3lrNbhW0DUaXzf61kw3+Z
+        4KV1btD7C+fdiLzPm18UQv8jJSbCE6hv3MWdkG3NcwgZC+iXwz3DFcsclyYg/+Om
+        0hx8UJ/34vNpeE+0MHwyl0j/eO7izrzTZnfsm4ZRaU3mw0ORDQmo8MyIDFa55R/v
+        30otk9y3LFkaeEyl1+7VFjJzoOEtze6VkTEzV8e/BTu4eXlKQ6CEYvHhUkNmHGC+
+        mwIDAQAB
+        -----END PUBLIC KEY-----
+        """
+
+        let rsaPssPublicKeyDER = Data(base64Encoded:
+            "MIIBUjA9BgkqhkiG9w0BAQowMKANMAsGCWCGSAFlAwQCAaEaMBgGCSqGSIb3DQEB" +
+            "CDALBglghkgBZQMEAgGiAwIBIAOCAQ8AMIIBCgKCAQEAxPJvJDGPzb2rBWfE5JCB" +
+            "p2OAmR46zIbaVjIR1lUabKCdb5CxdnHvQBymp3AlvOGTNzSLxTXOaYn7MzeFvAVI" +
+            "mpRRzXzalG0ZfM4AkPBtjPz93pPLWEfgk+/i+JLWlWUStUGgGKNbJn4yJ8cJ8n+E" +
+            "/5+ry+tUYHEJm9A4/HwH4Agg78kPtnEvIvdC/aIw4TEpjZDewVNAEW2rBuQNd01r" +
+            "fAo2CSzbH76gL02mnLuvh1xyrKz+v9gyo9Taw273KU+83HPs91obgX4WpEfWOnd6" +
+            "LMJHRZo92FXnW6IHkCdz12khyS1TVIq4ONwjvmS6q3V9UwQg/uuyoSNnRfWXvZXQ" +
+            "aQIDAQAB"
+        )!
+
+        let rsaPssPublicKey1024PEM = """
+        -----BEGIN PUBLIC KEY-----
+        MIHPMD0GCSqGSIb3DQEBCjAwoA0wCwYJYIZIAWUDBAIBoRowGAYJKoZIhvcNAQEI
+        MAsGCWCGSAFlAwQCAaIDAgEgA4GNADCBiQKBgQDGv67JltnwgkFxQOI8YUldC1LG
+        rCLOpyAN/Vq4WyLQ6TKcPevcYA8XmuXL8tC85rMQQG1GMwMWKcf/kf0NDKblUFjZ
+        BevUPmQF3Jadsn9ST+RMn8D+kq31Hdc0UG/WjZSpMHTkc8SWIjr2E6DIILn/OA/w
+        G3jVOeTsEfUeGExhVwIDAQAB
+        -----END PUBLIC KEY-----
+        """
+
+        let rsaPssPublicKey1024DER = Data(base64Encoded:
+            "MIHPMD0GCSqGSIb3DQEBCjAwoA0wCwYJYIZIAWUDBAIBoRowGAYJKoZIhvcNAQEI" +
+            "MAsGCWCGSAFlAwQCAaIDAgEgA4GNADCBiQKBgQC7LZLbFhzOCoTmXEABRsyOkRiB" +
+            "18XkkJBwTkn2JES1jVZogXtcq5ZV+KmPulOrzLuaC45IliS5OZ1hJuC7m8/devXk" +
+            "HaNId+y2cZxRYnfNCsEzvTryxt+01VMQJA4VHsdmhJO6TEIUzDIfj3BlahZuoU11" +
+            "VZ4wgVIpYymQidJigQIDAQAB"
+        )!
+
+        XCTAssertEqual(try _RSA.Signing.PublicKey(pemRepresentation: rsaPssPublicKeyPEM).keySizeInBits, 2048)
+        XCTAssertEqual(try _RSA.Signing.PublicKey(derRepresentation: rsaPssPublicKeyDER).keySizeInBits, 2048)
+        XCTAssertEqual(try _RSA.Signing.PublicKey(unsafePEMRepresentation: rsaPssPublicKey1024PEM).keySizeInBits, 1024)
+        XCTAssertEqual(try _RSA.Signing.PublicKey(unsafeDERRepresentation: rsaPssPublicKey1024DER).keySizeInBits, 1024)
+    }
+
     func test_wycheproofPKCS1Vectors() throws {
         try wycheproofTest(
             jsonName: "rsa_signature_test",
