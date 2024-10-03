@@ -175,14 +175,14 @@ extension MLDSA {
 
             self.pointer = UnsafeMutablePointer<MLDSA65_public_key>.allocate(capacity: 1)
 
-            let cbsPointer = UnsafeMutablePointer<CBS>.allocate(capacity: 1)
-            defer { cbsPointer.deallocate() }
-            derRepresentation.regions.flatMap { $0 }.withUnsafeBufferPointer { buffer in
+            try derRepresentation.regions.flatMap { $0 }.withUnsafeBufferPointer { buffer in
+                let cbsPointer = UnsafeMutablePointer<CBS>.allocate(capacity: 1)
+                defer { cbsPointer.deallocate() }
                 cbsPointer.pointee = CBS(data: buffer.baseAddress, len: buffer.count)
-            }
 
-            guard CCryptoBoringSSL_MLDSA65_parse_public_key(self.pointer, cbsPointer) == 1 else {
-                throw CryptoMLDSAError.keyGenerationFailure
+                guard CCryptoBoringSSL_MLDSA65_parse_public_key(self.pointer, cbsPointer) == 1 else {
+                    throw CryptoMLDSAError.keyGenerationFailure
+                }
             }
         }
 
