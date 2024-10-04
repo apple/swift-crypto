@@ -215,6 +215,24 @@
 %xdefine _BCM_sha1_init _ %+ BORINGSSL_PREFIX %+ _BCM_sha1_init
 %xdefine _BCM_sha1_transform _ %+ BORINGSSL_PREFIX %+ _BCM_sha1_transform
 %xdefine _BCM_sha1_update _ %+ BORINGSSL_PREFIX %+ _BCM_sha1_update
+%xdefine _BCM_sha224_final _ %+ BORINGSSL_PREFIX %+ _BCM_sha224_final
+%xdefine _BCM_sha224_init _ %+ BORINGSSL_PREFIX %+ _BCM_sha224_init
+%xdefine _BCM_sha224_update _ %+ BORINGSSL_PREFIX %+ _BCM_sha224_update
+%xdefine _BCM_sha256_final _ %+ BORINGSSL_PREFIX %+ _BCM_sha256_final
+%xdefine _BCM_sha256_init _ %+ BORINGSSL_PREFIX %+ _BCM_sha256_init
+%xdefine _BCM_sha256_transform _ %+ BORINGSSL_PREFIX %+ _BCM_sha256_transform
+%xdefine _BCM_sha256_transform_blocks _ %+ BORINGSSL_PREFIX %+ _BCM_sha256_transform_blocks
+%xdefine _BCM_sha256_update _ %+ BORINGSSL_PREFIX %+ _BCM_sha256_update
+%xdefine _BCM_sha384_final _ %+ BORINGSSL_PREFIX %+ _BCM_sha384_final
+%xdefine _BCM_sha384_init _ %+ BORINGSSL_PREFIX %+ _BCM_sha384_init
+%xdefine _BCM_sha384_update _ %+ BORINGSSL_PREFIX %+ _BCM_sha384_update
+%xdefine _BCM_sha512_256_final _ %+ BORINGSSL_PREFIX %+ _BCM_sha512_256_final
+%xdefine _BCM_sha512_256_init _ %+ BORINGSSL_PREFIX %+ _BCM_sha512_256_init
+%xdefine _BCM_sha512_256_update _ %+ BORINGSSL_PREFIX %+ _BCM_sha512_256_update
+%xdefine _BCM_sha512_final _ %+ BORINGSSL_PREFIX %+ _BCM_sha512_final
+%xdefine _BCM_sha512_init _ %+ BORINGSSL_PREFIX %+ _BCM_sha512_init
+%xdefine _BCM_sha512_transform _ %+ BORINGSSL_PREFIX %+ _BCM_sha512_transform
+%xdefine _BCM_sha512_update _ %+ BORINGSSL_PREFIX %+ _BCM_sha512_update
 %xdefine _BIO_append_filename _ %+ BORINGSSL_PREFIX %+ _BIO_append_filename
 %xdefine _BIO_callback_ctrl _ %+ BORINGSSL_PREFIX %+ _BIO_callback_ctrl
 %xdefine _BIO_clear_flags _ %+ BORINGSSL_PREFIX %+ _BIO_clear_flags
@@ -629,6 +647,7 @@
 %xdefine _CRYPTO_get_fork_generation _ %+ BORINGSSL_PREFIX %+ _CRYPTO_get_fork_generation
 %xdefine _CRYPTO_get_lock_name _ %+ BORINGSSL_PREFIX %+ _CRYPTO_get_lock_name
 %xdefine _CRYPTO_get_locking_callback _ %+ BORINGSSL_PREFIX %+ _CRYPTO_get_locking_callback
+%xdefine _CRYPTO_get_stderr _ %+ BORINGSSL_PREFIX %+ _CRYPTO_get_stderr
 %xdefine _CRYPTO_get_thread_local _ %+ BORINGSSL_PREFIX %+ _CRYPTO_get_thread_local
 %xdefine _CRYPTO_ghash_init _ %+ BORINGSSL_PREFIX %+ _CRYPTO_ghash_init
 %xdefine _CRYPTO_has_asm _ %+ BORINGSSL_PREFIX %+ _CRYPTO_has_asm
@@ -1670,6 +1689,7 @@
 %xdefine _RSA_PSS_PARAMS_new _ %+ BORINGSSL_PREFIX %+ _RSA_PSS_PARAMS_new
 %xdefine _RSA_add_pkcs1_prefix _ %+ BORINGSSL_PREFIX %+ _RSA_add_pkcs1_prefix
 %xdefine _RSA_bits _ %+ BORINGSSL_PREFIX %+ _RSA_bits
+%xdefine _RSA_blinding_off _ %+ BORINGSSL_PREFIX %+ _RSA_blinding_off
 %xdefine _RSA_blinding_on _ %+ BORINGSSL_PREFIX %+ _RSA_blinding_on
 %xdefine _RSA_check_fips _ %+ BORINGSSL_PREFIX %+ _RSA_check_fips
 %xdefine _RSA_check_key _ %+ BORINGSSL_PREFIX %+ _RSA_check_key
@@ -1766,6 +1786,13 @@
 %xdefine _SHA512_Transform _ %+ BORINGSSL_PREFIX %+ _SHA512_Transform
 %xdefine _SHA512_Update _ %+ BORINGSSL_PREFIX %+ _SHA512_Update
 %xdefine _SIPHASH_24 _ %+ BORINGSSL_PREFIX %+ _SIPHASH_24
+%xdefine _SLHDSA_SHA2_128S_generate_key _ %+ BORINGSSL_PREFIX %+ _SLHDSA_SHA2_128S_generate_key
+%xdefine _SLHDSA_SHA2_128S_generate_key_from_seed _ %+ BORINGSSL_PREFIX %+ _SLHDSA_SHA2_128S_generate_key_from_seed
+%xdefine _SLHDSA_SHA2_128S_public_from_private _ %+ BORINGSSL_PREFIX %+ _SLHDSA_SHA2_128S_public_from_private
+%xdefine _SLHDSA_SHA2_128S_sign _ %+ BORINGSSL_PREFIX %+ _SLHDSA_SHA2_128S_sign
+%xdefine _SLHDSA_SHA2_128S_sign_internal _ %+ BORINGSSL_PREFIX %+ _SLHDSA_SHA2_128S_sign_internal
+%xdefine _SLHDSA_SHA2_128S_verify _ %+ BORINGSSL_PREFIX %+ _SLHDSA_SHA2_128S_verify
+%xdefine _SLHDSA_SHA2_128S_verify_internal _ %+ BORINGSSL_PREFIX %+ _SLHDSA_SHA2_128S_verify_internal
 %xdefine _SPAKE2_CTX_free _ %+ BORINGSSL_PREFIX %+ _SPAKE2_CTX_free
 %xdefine _SPAKE2_CTX_new _ %+ BORINGSSL_PREFIX %+ _SPAKE2_CTX_new
 %xdefine _SPAKE2_generate_msg _ %+ BORINGSSL_PREFIX %+ _SPAKE2_generate_msg
@@ -2458,6 +2485,7 @@
 %xdefine _d2i_DSA_SIG _ %+ BORINGSSL_PREFIX %+ _d2i_DSA_SIG
 %xdefine _d2i_DSAparams _ %+ BORINGSSL_PREFIX %+ _d2i_DSAparams
 %xdefine _d2i_ECDSA_SIG _ %+ BORINGSSL_PREFIX %+ _d2i_ECDSA_SIG
+%xdefine _d2i_ECPKParameters _ %+ BORINGSSL_PREFIX %+ _d2i_ECPKParameters
 %xdefine _d2i_ECParameters _ %+ BORINGSSL_PREFIX %+ _d2i_ECParameters
 %xdefine _d2i_ECPrivateKey _ %+ BORINGSSL_PREFIX %+ _d2i_ECPrivateKey
 %xdefine _d2i_ECPrivateKey_bio _ %+ BORINGSSL_PREFIX %+ _d2i_ECPrivateKey_bio
@@ -2726,6 +2754,7 @@
 %xdefine _i2d_DSA_SIG _ %+ BORINGSSL_PREFIX %+ _i2d_DSA_SIG
 %xdefine _i2d_DSAparams _ %+ BORINGSSL_PREFIX %+ _i2d_DSAparams
 %xdefine _i2d_ECDSA_SIG _ %+ BORINGSSL_PREFIX %+ _i2d_ECDSA_SIG
+%xdefine _i2d_ECPKParameters _ %+ BORINGSSL_PREFIX %+ _i2d_ECPKParameters
 %xdefine _i2d_ECParameters _ %+ BORINGSSL_PREFIX %+ _i2d_ECParameters
 %xdefine _i2d_ECPrivateKey _ %+ BORINGSSL_PREFIX %+ _i2d_ECPrivateKey
 %xdefine _i2d_ECPrivateKey_bio _ %+ BORINGSSL_PREFIX %+ _i2d_ECPrivateKey_bio
@@ -2891,6 +2920,25 @@
 %xdefine _sk_pop_free_ex _ %+ BORINGSSL_PREFIX %+ _sk_pop_free_ex
 %xdefine _sk_push _ %+ BORINGSSL_PREFIX %+ _sk_push
 %xdefine _sk_value _ %+ BORINGSSL_PREFIX %+ _sk_value
+%xdefine _slhdsa_fors_pk_from_sig _ %+ BORINGSSL_PREFIX %+ _slhdsa_fors_pk_from_sig
+%xdefine _slhdsa_fors_sign _ %+ BORINGSSL_PREFIX %+ _slhdsa_fors_sign
+%xdefine _slhdsa_fors_sk_gen _ %+ BORINGSSL_PREFIX %+ _slhdsa_fors_sk_gen
+%xdefine _slhdsa_fors_treehash _ %+ BORINGSSL_PREFIX %+ _slhdsa_fors_treehash
+%xdefine _slhdsa_ht_sign _ %+ BORINGSSL_PREFIX %+ _slhdsa_ht_sign
+%xdefine _slhdsa_ht_verify _ %+ BORINGSSL_PREFIX %+ _slhdsa_ht_verify
+%xdefine _slhdsa_thash_f _ %+ BORINGSSL_PREFIX %+ _slhdsa_thash_f
+%xdefine _slhdsa_thash_h _ %+ BORINGSSL_PREFIX %+ _slhdsa_thash_h
+%xdefine _slhdsa_thash_hmsg _ %+ BORINGSSL_PREFIX %+ _slhdsa_thash_hmsg
+%xdefine _slhdsa_thash_prf _ %+ BORINGSSL_PREFIX %+ _slhdsa_thash_prf
+%xdefine _slhdsa_thash_prfmsg _ %+ BORINGSSL_PREFIX %+ _slhdsa_thash_prfmsg
+%xdefine _slhdsa_thash_tk _ %+ BORINGSSL_PREFIX %+ _slhdsa_thash_tk
+%xdefine _slhdsa_thash_tl _ %+ BORINGSSL_PREFIX %+ _slhdsa_thash_tl
+%xdefine _slhdsa_treehash _ %+ BORINGSSL_PREFIX %+ _slhdsa_treehash
+%xdefine _slhdsa_wots_pk_from_sig _ %+ BORINGSSL_PREFIX %+ _slhdsa_wots_pk_from_sig
+%xdefine _slhdsa_wots_pk_gen _ %+ BORINGSSL_PREFIX %+ _slhdsa_wots_pk_gen
+%xdefine _slhdsa_wots_sign _ %+ BORINGSSL_PREFIX %+ _slhdsa_wots_sign
+%xdefine _slhdsa_xmss_pk_from_sig _ %+ BORINGSSL_PREFIX %+ _slhdsa_xmss_pk_from_sig
+%xdefine _slhdsa_xmss_sign _ %+ BORINGSSL_PREFIX %+ _slhdsa_xmss_sign
 %xdefine _spx_base_b _ %+ BORINGSSL_PREFIX %+ _spx_base_b
 %xdefine _spx_copy_keypair_addr _ %+ BORINGSSL_PREFIX %+ _spx_copy_keypair_addr
 %xdefine _spx_fors_pk_from_sig _ %+ BORINGSSL_PREFIX %+ _spx_fors_pk_from_sig
@@ -3204,6 +3252,24 @@
 %xdefine BCM_sha1_init BORINGSSL_PREFIX %+ _BCM_sha1_init
 %xdefine BCM_sha1_transform BORINGSSL_PREFIX %+ _BCM_sha1_transform
 %xdefine BCM_sha1_update BORINGSSL_PREFIX %+ _BCM_sha1_update
+%xdefine BCM_sha224_final BORINGSSL_PREFIX %+ _BCM_sha224_final
+%xdefine BCM_sha224_init BORINGSSL_PREFIX %+ _BCM_sha224_init
+%xdefine BCM_sha224_update BORINGSSL_PREFIX %+ _BCM_sha224_update
+%xdefine BCM_sha256_final BORINGSSL_PREFIX %+ _BCM_sha256_final
+%xdefine BCM_sha256_init BORINGSSL_PREFIX %+ _BCM_sha256_init
+%xdefine BCM_sha256_transform BORINGSSL_PREFIX %+ _BCM_sha256_transform
+%xdefine BCM_sha256_transform_blocks BORINGSSL_PREFIX %+ _BCM_sha256_transform_blocks
+%xdefine BCM_sha256_update BORINGSSL_PREFIX %+ _BCM_sha256_update
+%xdefine BCM_sha384_final BORINGSSL_PREFIX %+ _BCM_sha384_final
+%xdefine BCM_sha384_init BORINGSSL_PREFIX %+ _BCM_sha384_init
+%xdefine BCM_sha384_update BORINGSSL_PREFIX %+ _BCM_sha384_update
+%xdefine BCM_sha512_256_final BORINGSSL_PREFIX %+ _BCM_sha512_256_final
+%xdefine BCM_sha512_256_init BORINGSSL_PREFIX %+ _BCM_sha512_256_init
+%xdefine BCM_sha512_256_update BORINGSSL_PREFIX %+ _BCM_sha512_256_update
+%xdefine BCM_sha512_final BORINGSSL_PREFIX %+ _BCM_sha512_final
+%xdefine BCM_sha512_init BORINGSSL_PREFIX %+ _BCM_sha512_init
+%xdefine BCM_sha512_transform BORINGSSL_PREFIX %+ _BCM_sha512_transform
+%xdefine BCM_sha512_update BORINGSSL_PREFIX %+ _BCM_sha512_update
 %xdefine BIO_append_filename BORINGSSL_PREFIX %+ _BIO_append_filename
 %xdefine BIO_callback_ctrl BORINGSSL_PREFIX %+ _BIO_callback_ctrl
 %xdefine BIO_clear_flags BORINGSSL_PREFIX %+ _BIO_clear_flags
@@ -3618,6 +3684,7 @@
 %xdefine CRYPTO_get_fork_generation BORINGSSL_PREFIX %+ _CRYPTO_get_fork_generation
 %xdefine CRYPTO_get_lock_name BORINGSSL_PREFIX %+ _CRYPTO_get_lock_name
 %xdefine CRYPTO_get_locking_callback BORINGSSL_PREFIX %+ _CRYPTO_get_locking_callback
+%xdefine CRYPTO_get_stderr BORINGSSL_PREFIX %+ _CRYPTO_get_stderr
 %xdefine CRYPTO_get_thread_local BORINGSSL_PREFIX %+ _CRYPTO_get_thread_local
 %xdefine CRYPTO_ghash_init BORINGSSL_PREFIX %+ _CRYPTO_ghash_init
 %xdefine CRYPTO_has_asm BORINGSSL_PREFIX %+ _CRYPTO_has_asm
@@ -4659,6 +4726,7 @@
 %xdefine RSA_PSS_PARAMS_new BORINGSSL_PREFIX %+ _RSA_PSS_PARAMS_new
 %xdefine RSA_add_pkcs1_prefix BORINGSSL_PREFIX %+ _RSA_add_pkcs1_prefix
 %xdefine RSA_bits BORINGSSL_PREFIX %+ _RSA_bits
+%xdefine RSA_blinding_off BORINGSSL_PREFIX %+ _RSA_blinding_off
 %xdefine RSA_blinding_on BORINGSSL_PREFIX %+ _RSA_blinding_on
 %xdefine RSA_check_fips BORINGSSL_PREFIX %+ _RSA_check_fips
 %xdefine RSA_check_key BORINGSSL_PREFIX %+ _RSA_check_key
@@ -4755,6 +4823,13 @@
 %xdefine SHA512_Transform BORINGSSL_PREFIX %+ _SHA512_Transform
 %xdefine SHA512_Update BORINGSSL_PREFIX %+ _SHA512_Update
 %xdefine SIPHASH_24 BORINGSSL_PREFIX %+ _SIPHASH_24
+%xdefine SLHDSA_SHA2_128S_generate_key BORINGSSL_PREFIX %+ _SLHDSA_SHA2_128S_generate_key
+%xdefine SLHDSA_SHA2_128S_generate_key_from_seed BORINGSSL_PREFIX %+ _SLHDSA_SHA2_128S_generate_key_from_seed
+%xdefine SLHDSA_SHA2_128S_public_from_private BORINGSSL_PREFIX %+ _SLHDSA_SHA2_128S_public_from_private
+%xdefine SLHDSA_SHA2_128S_sign BORINGSSL_PREFIX %+ _SLHDSA_SHA2_128S_sign
+%xdefine SLHDSA_SHA2_128S_sign_internal BORINGSSL_PREFIX %+ _SLHDSA_SHA2_128S_sign_internal
+%xdefine SLHDSA_SHA2_128S_verify BORINGSSL_PREFIX %+ _SLHDSA_SHA2_128S_verify
+%xdefine SLHDSA_SHA2_128S_verify_internal BORINGSSL_PREFIX %+ _SLHDSA_SHA2_128S_verify_internal
 %xdefine SPAKE2_CTX_free BORINGSSL_PREFIX %+ _SPAKE2_CTX_free
 %xdefine SPAKE2_CTX_new BORINGSSL_PREFIX %+ _SPAKE2_CTX_new
 %xdefine SPAKE2_generate_msg BORINGSSL_PREFIX %+ _SPAKE2_generate_msg
@@ -5447,6 +5522,7 @@
 %xdefine d2i_DSA_SIG BORINGSSL_PREFIX %+ _d2i_DSA_SIG
 %xdefine d2i_DSAparams BORINGSSL_PREFIX %+ _d2i_DSAparams
 %xdefine d2i_ECDSA_SIG BORINGSSL_PREFIX %+ _d2i_ECDSA_SIG
+%xdefine d2i_ECPKParameters BORINGSSL_PREFIX %+ _d2i_ECPKParameters
 %xdefine d2i_ECParameters BORINGSSL_PREFIX %+ _d2i_ECParameters
 %xdefine d2i_ECPrivateKey BORINGSSL_PREFIX %+ _d2i_ECPrivateKey
 %xdefine d2i_ECPrivateKey_bio BORINGSSL_PREFIX %+ _d2i_ECPrivateKey_bio
@@ -5715,6 +5791,7 @@
 %xdefine i2d_DSA_SIG BORINGSSL_PREFIX %+ _i2d_DSA_SIG
 %xdefine i2d_DSAparams BORINGSSL_PREFIX %+ _i2d_DSAparams
 %xdefine i2d_ECDSA_SIG BORINGSSL_PREFIX %+ _i2d_ECDSA_SIG
+%xdefine i2d_ECPKParameters BORINGSSL_PREFIX %+ _i2d_ECPKParameters
 %xdefine i2d_ECParameters BORINGSSL_PREFIX %+ _i2d_ECParameters
 %xdefine i2d_ECPrivateKey BORINGSSL_PREFIX %+ _i2d_ECPrivateKey
 %xdefine i2d_ECPrivateKey_bio BORINGSSL_PREFIX %+ _i2d_ECPrivateKey_bio
@@ -5880,6 +5957,25 @@
 %xdefine sk_pop_free_ex BORINGSSL_PREFIX %+ _sk_pop_free_ex
 %xdefine sk_push BORINGSSL_PREFIX %+ _sk_push
 %xdefine sk_value BORINGSSL_PREFIX %+ _sk_value
+%xdefine slhdsa_fors_pk_from_sig BORINGSSL_PREFIX %+ _slhdsa_fors_pk_from_sig
+%xdefine slhdsa_fors_sign BORINGSSL_PREFIX %+ _slhdsa_fors_sign
+%xdefine slhdsa_fors_sk_gen BORINGSSL_PREFIX %+ _slhdsa_fors_sk_gen
+%xdefine slhdsa_fors_treehash BORINGSSL_PREFIX %+ _slhdsa_fors_treehash
+%xdefine slhdsa_ht_sign BORINGSSL_PREFIX %+ _slhdsa_ht_sign
+%xdefine slhdsa_ht_verify BORINGSSL_PREFIX %+ _slhdsa_ht_verify
+%xdefine slhdsa_thash_f BORINGSSL_PREFIX %+ _slhdsa_thash_f
+%xdefine slhdsa_thash_h BORINGSSL_PREFIX %+ _slhdsa_thash_h
+%xdefine slhdsa_thash_hmsg BORINGSSL_PREFIX %+ _slhdsa_thash_hmsg
+%xdefine slhdsa_thash_prf BORINGSSL_PREFIX %+ _slhdsa_thash_prf
+%xdefine slhdsa_thash_prfmsg BORINGSSL_PREFIX %+ _slhdsa_thash_prfmsg
+%xdefine slhdsa_thash_tk BORINGSSL_PREFIX %+ _slhdsa_thash_tk
+%xdefine slhdsa_thash_tl BORINGSSL_PREFIX %+ _slhdsa_thash_tl
+%xdefine slhdsa_treehash BORINGSSL_PREFIX %+ _slhdsa_treehash
+%xdefine slhdsa_wots_pk_from_sig BORINGSSL_PREFIX %+ _slhdsa_wots_pk_from_sig
+%xdefine slhdsa_wots_pk_gen BORINGSSL_PREFIX %+ _slhdsa_wots_pk_gen
+%xdefine slhdsa_wots_sign BORINGSSL_PREFIX %+ _slhdsa_wots_sign
+%xdefine slhdsa_xmss_pk_from_sig BORINGSSL_PREFIX %+ _slhdsa_xmss_pk_from_sig
+%xdefine slhdsa_xmss_sign BORINGSSL_PREFIX %+ _slhdsa_xmss_sign
 %xdefine spx_base_b BORINGSSL_PREFIX %+ _spx_base_b
 %xdefine spx_copy_keypair_addr BORINGSSL_PREFIX %+ _spx_copy_keypair_addr
 %xdefine spx_fors_pk_from_sig BORINGSSL_PREFIX %+ _spx_fors_pk_from_sig

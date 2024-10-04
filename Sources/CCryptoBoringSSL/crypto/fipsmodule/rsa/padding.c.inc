@@ -63,7 +63,6 @@
 #include <CCryptoBoringSSL_digest.h>
 #include <CCryptoBoringSSL_err.h>
 #include <CCryptoBoringSSL_mem.h>
-#include <CCryptoBoringSSL_sha.h>
 
 #include "internal.h"
 #include "../service_indicator/internal.h"
