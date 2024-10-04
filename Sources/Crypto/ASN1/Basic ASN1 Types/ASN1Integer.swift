@@ -14,10 +14,15 @@
 #if CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
 @_exported import CryptoKit
 #else
-import Foundation
 
-/// A protocol that represents any internal object that can present itself as an INTEGER, or be parsed from
-/// an INTEGER.
+#if CRYPTOKIT_NO_ACCESS_TO_FOUNDATION
+import SwiftSystem
+#else
+import Foundation
+#endif
+
+/// A protocol that represents any internal object that can present itself as a INTEGER, or be parsed from
+/// a INTEGER.
 ///
 /// This is not a very good solution for a fully-fledged ASN.1 library: we'd rather have a better numerics
 /// protocol that could both initialize from and serialize to either bytes or words. However, no such

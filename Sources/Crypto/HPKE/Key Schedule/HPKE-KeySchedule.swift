@@ -14,7 +14,12 @@
 #if CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
 @_exported import CryptoKit
 #else
+
+#if CRYPTOKIT_NO_ACCESS_TO_FOUNDATION
+import SwiftSystem
+#else
 import Foundation
+#endif
 
 extension HPKE {
     internal struct KeySchedule {
@@ -101,8 +106,19 @@ extension HPKE {
             self.ciphersuite = ciphersuite
         }
         
+        var maxSequenceNumber: UInt64 {
+            get {
+                let nonceBitCount = UInt64(self.ciphersuite.aead.nonceByteCount * 8)
+                if (nonceBitCount >= 64) {
+                    return UInt64.max
+                }
+                
+                return ((UInt64(1) << nonceBitCount) - 1)
+            }
+        }
+        
         mutating func incrementSequenceNumber() throws {
-            if self.sequenceNumber >= ((1 << (self.ciphersuite.aead.nonceByteCount)) - 1) {
+            if self.sequenceNumber >= maxSequenceNumber {
                 throw HPKE.Errors.outOfRangeSequenceNumber
             }
             sequenceNumber += 1

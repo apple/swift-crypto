@@ -14,12 +14,20 @@
 #if CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
 @_exported import CryptoKit
 #else
+#if CRYPTOKIT_NO_ACCESS_TO_FOUNDATION
+import SwiftSystem
+#else
 import Foundation
+#endif
 
 protocol MACAlgorithm {
     associatedtype Key
-    #if !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
+    #if (!CRYPTO_IN_SWIFTPM_FORCE_BUILD_API) || CRYPTOKIT_NO_ACCESS_TO_FOUNDATION
+    #if CRYPTOKIT_STATIC_LIBRARY
+    associatedtype MAC: CryptoKit_Static.MessageAuthenticationCode
+    #else
     associatedtype MAC: CryptoKit.MessageAuthenticationCode
+    #endif
     #else
     associatedtype MAC: Crypto.MessageAuthenticationCode
     #endif

@@ -14,7 +14,12 @@
 #if CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
 @_exported import CryptoKit
 #else
+
+#if CRYPTOKIT_NO_ACCESS_TO_FOUNDATION
+import SwiftSystem
+#else
 import Foundation
+#endif
 
 /// A type that ``HPKE`` uses to encode the public key.
 public protocol HPKEPublicKeySerialization {
@@ -40,7 +45,6 @@ public protocol HPKEDiffieHellmanPublicKey: HPKEPublicKeySerialization where Eph
 }
 
 /// A type that represents the private key in a Diffie-Hellman key exchange.
-
 public protocol HPKEDiffieHellmanPrivateKey: DiffieHellmanKeyAgreement where PublicKey: HPKEDiffieHellmanPublicKey {}
 
 /// A type that represents the generation of private keys in a Diffie-Hellman key exchange.
@@ -56,8 +60,12 @@ extension HPKE {
             let kem: HPKE.KEM
             let key: DHPK
 
-            #if !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
+            #if  !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
+            #if CRYPTOKIT_STATIC_LIBRARY
+            typealias EncapsulationResult = CryptoKit_Static.KEM.EncapsulationResult
+            #else
             typealias EncapsulationResult = CryptoKit.KEM.EncapsulationResult
+            #endif
             #else
             typealias EncapsulationResult = Crypto.KEM.EncapsulationResult
             #endif

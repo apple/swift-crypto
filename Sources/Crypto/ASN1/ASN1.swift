@@ -14,7 +14,12 @@
 #if CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
 @_exported import CryptoKit
 #else
+
+#if CRYPTOKIT_NO_ACCESS_TO_FOUNDATION
+import SwiftSystem
+#else
 import Foundation
+#endif
 
 // This module implements "just enough" ASN.1. Specifically, we implement exactly enough ASN.1 DER parsing to handle
 // the following use-cases:

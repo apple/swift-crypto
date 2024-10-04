@@ -11,7 +11,11 @@
 // SPDX-License-Identifier: Apache-2.0
 //
 //===----------------------------------------------------------------------===//
+#if CRYPTOKIT_NO_ACCESS_TO_FOUNDATION
+import SwiftSystem
+#else
 import Foundation
+#endif
 
 enum ByteHexEncodingErrors: Error {
     case incorrectHexValue
@@ -50,16 +54,17 @@ extension DataProtocol {
             }
         }
         
-        return String(bytes: hexChars, encoding: .utf8)!
+        return String(decoding: hexChars, as: UTF8.self)
     }
 }
 
-extension MutableDataProtocol {
+extension RangeReplaceableCollection where Element == UInt8 {
     mutating func appendByte(_ byte: UInt64) {
-        withUnsafePointer(to: byte.littleEndian, { self.append(contentsOf: UnsafeRawBufferPointer(start: $0, count: 8)) })
+        withUnsafeBytes(of: byte.littleEndian, { self.append(contentsOf: $0) })
     }
 }
 
+#if !CRYPTOKIT_NO_ACCESS_TO_FOUNDATION
 extension Data {
     init(hexString: String) throws {
         self.init()
@@ -98,3 +103,4 @@ extension Array where Element == UInt8 {
     }
 
 }
+#endif

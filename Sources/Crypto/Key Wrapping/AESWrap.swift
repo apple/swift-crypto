@@ -2,7 +2,7 @@
 //
 // This source file is part of the SwiftCrypto open source project
 //
-// Copyright (c) 2019-2021 Apple Inc. and the SwiftCrypto project authors
+// Copyright (c) 2019-2020 Apple Inc. and the SwiftCrypto project authors
 // Licensed under Apache License v2.0
 //
 // See LICENSE.txt for license information
@@ -14,9 +14,14 @@
 #if CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
 @_exported import CryptoKit
 #else
-import Foundation
 
-#if !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
+#if CRYPTOKIT_NO_ACCESS_TO_FOUNDATION
+import SwiftSystem
+#else
+import Foundation
+#endif
+
+#if (!CRYPTO_IN_SWIFTPM_FORCE_BUILD_API) || CRYPTOKIT_NO_ACCESS_TO_FOUNDATION
 typealias AESWRAPImpl = CoreCryptoAESWRAPImpl
 #else
 typealias AESWRAPImpl = BoringSSLAESWRAPImpl

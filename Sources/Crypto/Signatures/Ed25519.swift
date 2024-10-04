@@ -14,7 +14,11 @@
 #if CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
 @_exported import CryptoKit
 #else
+#if CRYPTOKIT_NO_ACCESS_TO_FOUNDATION
+import SwiftSystem
+#else
 import Foundation
+#endif
 
 protocol DigestValidator {
     associatedtype Signature
@@ -44,7 +48,7 @@ extension Curve25519.Signing.PublicKey: DataValidator {
     /// - Returns: A Boolean value that’s `true` when the signature is valid for
     /// the given data.
     public func isValidSignature<S: DataProtocol, D: DataProtocol>(_ signature: S, for data: D) -> Bool {
-        #if !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
+        #if (!CRYPTO_IN_SWIFTPM_FORCE_BUILD_API) || CRYPTOKIT_NO_ACCESS_TO_FOUNDATION
         return self.coreCryptoIsValidSignature(signature, for: data)
         #else
         return self.openSSLIsValidSignature(signature, for: data)
@@ -65,7 +69,7 @@ extension Curve25519.Signing.PrivateKey: Signer {
     /// different signature on every call, even for the same data and key, to
     /// guard against side-channel attacks.
     public func signature<D: DataProtocol>(for data: D) throws -> Data {
-        #if !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
+        #if (!CRYPTO_IN_SWIFTPM_FORCE_BUILD_API) || CRYPTOKIT_NO_ACCESS_TO_FOUNDATION
         return try self.coreCryptoSignature(for: data)
         #else
         return try self.openSSLSignature(for: data)

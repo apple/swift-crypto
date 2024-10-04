@@ -14,14 +14,18 @@
 #if CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
 @_exported import CryptoKit
 #else
-#if !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
+#if (!CRYPTO_IN_SWIFTPM_FORCE_BUILD_API) || CRYPTOKIT_NO_ACCESS_TO_FOUNDATION
 typealias ChaChaPolyImpl = CoreCryptoChaChaPolyImpl
-import Security
 #else
 typealias ChaChaPolyImpl = OpenSSLChaChaPolyImpl
 #endif
 
+#if CRYPTOKIT_NO_ACCESS_TO_FOUNDATION
+import SwiftSystem
+#else
 import Foundation
+#endif
+
 
 /// An implementation of the ChaCha20-Poly1305 cipher.
 public enum ChaChaPoly: Cipher {

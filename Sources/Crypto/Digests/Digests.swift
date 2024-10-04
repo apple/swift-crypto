@@ -18,6 +18,8 @@
 // any edits of this file WILL be overwritten and thus discarded
 // see section `gyb` in `README` for details.
 
+
+
 // MARK: - SHA256Digest + DigestPrivate
 /// The output of a Secure Hashing Algorithm 2 (SHA-2) hash with a 256-bit digest.
 public struct SHA256Digest: DigestPrivate {

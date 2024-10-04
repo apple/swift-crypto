@@ -14,7 +14,12 @@
 #if CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
 @_exported import CryptoKit
 #else
+
+#if CRYPTOKIT_NO_ACCESS_TO_FOUNDATION
+import SwiftSystem
+#else
 import Foundation
+#endif
 
 
 extension HPKE {
@@ -31,6 +36,7 @@ extension HPKE {
 		/// In export-only mode, HPKE negotiates key derivation, but you can't use it to encrypt or decrypt data.
         case exportOnly
         
+        /// Return the AEAD algorithm identifier as defined in section 7.3 of [RFC 9180](https://www.ietf.org/rfc/rfc9180.pdf).
         internal var value: UInt16 {
             switch self {
             case .AES_GCM_128: return 0x0001
@@ -44,6 +50,7 @@ extension HPKE {
             return self == .exportOnly
         }
         
+        /// Return the AEAD key size in bytes
         internal var keyByteCount: Int {
             switch self {
             case .AES_GCM_128:
@@ -57,6 +64,7 @@ extension HPKE {
             }
         }
         
+        /// Return the AEAD nonce size in bytes
         internal var nonceByteCount: Int {
             switch self {
             case .AES_GCM_128, .AES_GCM_256, .chaChaPoly:
@@ -66,6 +74,7 @@ extension HPKE {
             }
         }
         
+        /// Return the AEAD tag size in bytes
         internal var tagByteCount: Int {
             switch self {
             case .AES_GCM_128, .AES_GCM_256, .chaChaPoly:

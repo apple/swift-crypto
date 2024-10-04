@@ -14,7 +14,7 @@
 #if CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
 @_exported import CryptoKit
 #else
-#if !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
+#if (!CRYPTO_IN_SWIFTPM_FORCE_BUILD_API) || CRYPTOKIT_NO_ACCESS_TO_FOUNDATION
 typealias NISTCurvePublicKeyImpl = CoreCryptoNISTCurvePublicKeyImpl
 typealias NISTCurvePrivateKeyImpl = CoreCryptoNISTCurvePrivateKeyImpl
 #else
@@ -22,7 +22,11 @@ typealias NISTCurvePublicKeyImpl = OpenSSLNISTCurvePublicKeyImpl
 typealias NISTCurvePrivateKeyImpl = OpenSSLNISTCurvePrivateKeyImpl
 #endif
 
+#if CRYPTOKIT_NO_ACCESS_TO_FOUNDATION
+import SwiftSystem
+#else
 import Foundation
+#endif
 
 // MARK: - Generated file, do NOT edit
 // any edits of this file WILL be overwritten and thus discarded
@@ -278,7 +282,7 @@ extension ${CURVE}.KeyAgreement.PrivateKey: DiffieHellmanKeyAgreement {
     /// key from this user to create the shared secret.
     /// - Returns: The computed shared secret.
     public func sharedSecretFromKeyAgreement(with publicKeyShare: ${CURVE}.KeyAgreement.PublicKey) throws -> SharedSecret {
-        #if !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
+        #if (!CRYPTO_IN_SWIFTPM_FORCE_BUILD_API) || CRYPTOKIT_NO_ACCESS_TO_FOUNDATION
         return try self.coreCryptoSharedSecretFromKeyAgreement(with: publicKeyShare)
         #else
         return try self.openSSLSharedSecretFromKeyAgreement(with: publicKeyShare)

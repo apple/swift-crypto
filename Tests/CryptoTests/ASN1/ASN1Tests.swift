@@ -249,54 +249,45 @@ class ASN1Tests: XCTestCase {
         let decodedReal = Array(Data(base64Encoded: base64Node)!)
         let parsed = try ASN1.parse(decodedReal)
 
-        XCTAssertThrowsError(try ASN1.ASN1ObjectIdentifier(asn1Encoded: parsed)) { error in
-            XCTAssertEqual(error as? CryptoKitASN1Error, .unexpectedFieldType)
-        }
-        XCTAssertThrowsError(try ASN1.sequence(parsed, identifier: .sequence, { _ in })) { error in
-            XCTAssertEqual(error as? CryptoKitASN1Error, .unexpectedFieldType)
-        }
-        XCTAssertThrowsError(try ASN1.ASN1OctetString(asn1Encoded: parsed)) { error in
-            XCTAssertEqual(error as? CryptoKitASN1Error, .unexpectedFieldType)
-        }
-        XCTAssertThrowsError(try ASN1.ASN1BitString(asn1Encoded: parsed)) { error in
-            XCTAssertEqual(error as? CryptoKitASN1Error, .unexpectedFieldType)
-        }
-        XCTAssertThrowsError(try Int(asn1Encoded: parsed)) { error in
-            XCTAssertEqual(error as? CryptoKitASN1Error, .unexpectedFieldType)
-        }
+        XCTAssertThrowsError(try ASN1.ASN1ObjectIdentifier(asn1Encoded: parsed),
+                             error: CryptoKitASN1Error.unexpectedFieldType)
+        XCTAssertThrowsError(try ASN1.sequence(parsed, identifier: .sequence, { _ in }),
+                             error: CryptoKitASN1Error.unexpectedFieldType)
+        XCTAssertThrowsError(try ASN1.ASN1OctetString(asn1Encoded: parsed),
+                             error: CryptoKitASN1Error.unexpectedFieldType)
+        XCTAssertThrowsError(try ASN1.ASN1BitString(asn1Encoded: parsed),
+                             error: CryptoKitASN1Error.unexpectedFieldType)
+        XCTAssertThrowsError(try Int(asn1Encoded: parsed),
+                             error: CryptoKitASN1Error.unexpectedFieldType)
     }
 
     func testMultipleRootNodesAreForbidden() throws {
         // This is an ASN.1 REAL, a type we don't support, repeated
         let base64Node = "CQUDMUUtMQkFAzFFLTE="
         let decodedReal = Array(Data(base64Encoded: base64Node)!)
-        XCTAssertThrowsError(try ASN1.parse(decodedReal)) { error in
-            XCTAssertEqual(error as? CryptoKitASN1Error, .invalidASN1Object)
-        }
+        XCTAssertThrowsError(try ASN1.parse(decodedReal),
+                             error: CryptoKitASN1Error.invalidASN1Object)
     }
 
     func testTrailingBytesAreForbidden() throws {
         // This is an ASN.1 INTEGER with trailing junk bytes
         let base64Node = "AgEBAA=="
         let decodedInteger = Array(Data(base64Encoded: base64Node)!)
-        XCTAssertThrowsError(try ASN1.parse(decodedInteger)) { error in
-            XCTAssertEqual(error as? CryptoKitASN1Error, .invalidASN1Object)
-        }
+        XCTAssertThrowsError(try ASN1.parse(decodedInteger),
+                             error: CryptoKitASN1Error.invalidASN1Object)
     }
 
     func testEmptyStringsDontDecode() throws {
-        XCTAssertThrowsError(try ASN1.parse([])) { error in
-            XCTAssertEqual(error as? CryptoKitASN1Error, .truncatedASN1Field)
-        }
+        XCTAssertThrowsError(try ASN1.parse([]),
+                             error: CryptoKitASN1Error.truncatedASN1Field)
     }
 
     func testRejectMultibyteTag() throws {
         // This is an ASN.1 INTEGER with a multibyte explicit tag, with the raw numerical value being 55.
         let base64Node = "vzcDAgEB"
         let decodedInteger = Array(Data(base64Encoded: base64Node)!)
-        XCTAssertThrowsError(try ASN1.parse(decodedInteger)) { error in
-            XCTAssertEqual(error as? CryptoKitASN1Error, .invalidFieldIdentifier)
-        }
+        XCTAssertThrowsError(try ASN1.parse(decodedInteger),
+                             error: CryptoKitASN1Error.invalidFieldIdentifier)
     }
 
     func testSequenceMustConsumeAllNodes() throws {
@@ -342,9 +333,7 @@ class ASN1Tests: XCTestCase {
     func testRejectsIndefiniteLengthForm() throws {
         // This the first octets of a constructed object of unknown tag type (private, number 7) whose length
         // is indefinite. We reject this immediately, not even noticing that the rest of the data isn't here.
-        XCTAssertThrowsError(try ASN1.parse([0xe7, 0x80])) { error in
-            XCTAssertEqual(error as? CryptoKitASN1Error, .unsupportedFieldLength)
-        }
+        XCTAssertThrowsError(try ASN1.parse([0xe7, 0x80]), error: CryptoKitASN1Error.unsupportedFieldLength)
     }
 
     func testRejectsUnterminatedASN1OIDSubidentifiers() throws {
@@ -354,9 +343,8 @@ class ASN1Tests: XCTestCase {
         let badNode = Array(Data(base64Encoded: badBase64)!)
         let parsed = try ASN1.parse(badNode)
 
-        XCTAssertThrowsError(try ASN1.ASN1ObjectIdentifier(asn1Encoded: parsed)) { error in
-            XCTAssertEqual(error as? CryptoKitASN1Error, .invalidASN1Object)
-        }
+        XCTAssertThrowsError(try ASN1.ASN1ObjectIdentifier(asn1Encoded: parsed),
+                             error: CryptoKitASN1Error.invalidASN1Object)
     }
 
     func testRejectsMassiveIntegers() throws {
@@ -367,9 +355,8 @@ class ASN1Tests: XCTestCase {
         let badNode = Array(Data(base64Encoded: badBase64)!)
         let parsed = try ASN1.parse(badNode)
 
-        XCTAssertThrowsError(try Int(asn1Encoded: parsed)) { error in
-            XCTAssertEqual(error as? CryptoKitASN1Error, .invalidASN1Object)
-        }
+        XCTAssertThrowsError(try Int(asn1Encoded: parsed),
+                             error: CryptoKitASN1Error.invalidASN1Object)
     }
 
     func testStraightforwardPEMParsing() throws {
@@ -406,9 +393,8 @@ O9zxi7HTvuXyQr7QKSBtdCGmHym+WoPsbA==
 -----END EC PRIVATE KEY-----
 """
         for index in simplePEM.indices.dropLast() {
-            XCTAssertThrowsError(try ASN1.PEMDocument(pemString: String(simplePEM[..<index]))) { error in
-                XCTAssertEqual(error as? CryptoKitASN1Error, .invalidPEMDocument)
-            }
+            XCTAssertThrowsError(try ASN1.PEMDocument(pemString: String(simplePEM[..<index])),
+                                 error: CryptoKitASN1Error.invalidPEMDocument)
         }
 
         XCTAssertNoThrow(try ASN1.PEMDocument(pemString: simplePEM))
@@ -423,9 +409,8 @@ AwEHoUQDQgAEOhvJhbc3zM4SJooCaWdyheY2E6wWkISg7TtxJYgb/S0Zz7WruJzG
 O9zxi7HTvuXyQr7QKSBtdCGmHym+WoPsbA==
 -----END EC PUBLIC KEY-----
 """
-        XCTAssertThrowsError(try ASN1.PEMDocument(pemString: simplePEM)) { error in
-            XCTAssertEqual(error as? CryptoKitASN1Error, .invalidPEMDocument)
-        }
+        XCTAssertThrowsError(try ASN1.PEMDocument(pemString: simplePEM),
+                             error: CryptoKitASN1Error.invalidPEMDocument)
     }
 
     func testOverlongLinesAreForbidden() throws {
@@ -437,9 +422,8 @@ AwEHoUQDQgAEOhvJhbc3zM4SJooCaWdyheY2E6wWkISg7TtxJYgb/S0Zz7WruJzGO
 9zxi7HTvuXyQr7QKSBtdCGmHym+WoPsbA==
 -----END EC PRIVATE KEY-----
 """
-        XCTAssertThrowsError(try ASN1.PEMDocument(pemString: simplePEM)) { error in
-            XCTAssertEqual(error as? CryptoKitASN1Error, .invalidPEMDocument)
-        }
+        XCTAssertThrowsError(try ASN1.PEMDocument(pemString: simplePEM),
+                             error: CryptoKitASN1Error.invalidPEMDocument)
     }
 
     func testEarlyShortLinesAreForbidden() throws {
@@ -451,9 +435,8 @@ AwEHoUQDQgAEOhvJhbc3zM4SJooCaWdyheY2E6wWkISg7TtxJYgb/S0Zz7WruJz
 GO9zxi7HTvuXyQr7QKSBtdCGmHym+WoPsbA==
 -----END EC PRIVATE KEY-----
 """
-        XCTAssertThrowsError(try ASN1.PEMDocument(pemString: simplePEM)) { error in
-            XCTAssertEqual(error as? CryptoKitASN1Error, .invalidPEMDocument)
-        }
+        XCTAssertThrowsError(try ASN1.PEMDocument(pemString: simplePEM),
+                             error: CryptoKitASN1Error.invalidPEMDocument)
     }
 
     func testEmptyPEMDocument() throws {
@@ -461,9 +444,8 @@ GO9zxi7HTvuXyQr7QKSBtdCGmHym+WoPsbA==
 -----BEGIN EC PRIVATE KEY-----
 -----END EC PRIVATE KEY-----
 """
-        XCTAssertThrowsError(try ASN1.PEMDocument(pemString: simplePEM)) { error in
-            XCTAssertEqual(error as? CryptoKitASN1Error, .invalidPEMDocument)
-        }
+        XCTAssertThrowsError(try ASN1.PEMDocument(pemString: simplePEM),
+                             error: CryptoKitASN1Error.invalidPEMDocument)
     }
 
     func testInvalidBase64IsForbidden() throws {
@@ -474,27 +456,24 @@ AwEHoUQDQgAEOhvJhbc3zM4SJooCaWdyheY2E6wWkISg7TtxJYgb/S0Zz7WruJzG
 O9zxi7HTvuXyQr7QKSBtdC%mHym+WoPsbA==
 -----END EC PRIVATE KEY-----
 """
-        XCTAssertThrowsError(try ASN1.PEMDocument(pemString: simplePEM)) { error in
-            XCTAssertEqual(error as? CryptoKitASN1Error, .invalidPEMDocument)
-        }
+        XCTAssertThrowsError(try ASN1.PEMDocument(pemString: simplePEM),
+                             error: CryptoKitASN1Error.invalidPEMDocument)
     }
 
     func testRejectSingleComponentOIDs() throws {
         // This is an encoded OID that has only one subcomponent, 0.
         let singleComponentOID: [UInt8] = [0x06, 0x01, 0x00]
         let parsed = try ASN1.parse(singleComponentOID)
-        XCTAssertThrowsError(try ASN1.ASN1ObjectIdentifier(asn1Encoded: parsed)) { error in
-            XCTAssertEqual(error as? CryptoKitASN1Error, .invalidObjectIdentifier)
-        }
+        XCTAssertThrowsError(try ASN1.ASN1ObjectIdentifier(asn1Encoded: parsed),
+                             error: CryptoKitASN1Error.invalidObjectIdentifier)
     }
 
     func testRejectZeroComponentOIDs() throws {
         // This is an encoded OID that has no subcomponents..
         let zeroComponentOID: [UInt8] = [0x06, 0x00]
         let parsed = try ASN1.parse(zeroComponentOID)
-        XCTAssertThrowsError(try ASN1.ASN1ObjectIdentifier(asn1Encoded: parsed)) { error in
-            XCTAssertEqual(error as? CryptoKitASN1Error, .invalidObjectIdentifier)
-        }
+        XCTAssertThrowsError(try ASN1.ASN1ObjectIdentifier(asn1Encoded: parsed),
+                             error: CryptoKitASN1Error.invalidObjectIdentifier)
     }
 
     func testRejectNonOctetNumberOfBitsInBitstring() throws {
@@ -502,9 +481,8 @@ O9zxi7HTvuXyQr7QKSBtdC%mHym+WoPsbA==
         for i in 1..<8 {
             let weirdBitString = [0x03, 0x02, UInt8(i), 0xFF]
             let parsed = try ASN1.parse(weirdBitString)
-            XCTAssertThrowsError(try ASN1.ASN1BitString(asn1Encoded: parsed)) { error in
-                XCTAssertEqual(error as? CryptoKitASN1Error, .invalidASN1Object)
-            }
+            XCTAssertThrowsError(try ASN1.ASN1BitString(asn1Encoded: parsed),
+                                 error: CryptoKitASN1Error.invalidASN1Object)
         }
     }
 
@@ -512,9 +490,8 @@ O9zxi7HTvuXyQr7QKSBtdC%mHym+WoPsbA==
         // We don't allow bitstrings with no content.
         let weirdBitString: [UInt8] = [0x03, 0x00]
         let parsed = try ASN1.parse(weirdBitString)
-        XCTAssertThrowsError(try ASN1.ASN1BitString(asn1Encoded: parsed)) { error in
-            XCTAssertEqual(error as? CryptoKitASN1Error, .invalidASN1Object)
-        }
+        XCTAssertThrowsError(try ASN1.ASN1BitString(asn1Encoded: parsed),
+                             error: CryptoKitASN1Error.invalidASN1Object)
     }
 
     func testEmptyBitstring() throws {
@@ -527,9 +504,8 @@ O9zxi7HTvuXyQr7QKSBtdC%mHym+WoPsbA==
         for i in 1..<8 {
             bitString[2] = UInt8(i)
             let parsed = try ASN1.parse(bitString)
-            XCTAssertThrowsError(try ASN1.ASN1BitString(asn1Encoded: parsed)) { error in
-                XCTAssertEqual(error as? CryptoKitASN1Error, .invalidASN1Object)
-            }
+            XCTAssertThrowsError(try ASN1.ASN1BitString(asn1Encoded: parsed),
+                                 error: CryptoKitASN1Error.invalidASN1Object)
         }
     }
 
@@ -537,18 +513,16 @@ O9zxi7HTvuXyQr7QKSBtdC%mHym+WoPsbA==
         // Integer zero requires a leading zero byte.
         let weirdZero: [UInt8] = [0x02, 0x00]
         let parsed = try ASN1.parse(weirdZero)
-        XCTAssertThrowsError(try Int(asn1Encoded: parsed)) { error in
-            XCTAssertEqual(error as? CryptoKitASN1Error, .invalidASN1IntegerEncoding)
-        }
+        XCTAssertThrowsError(try Int(asn1Encoded: parsed),
+                             error: CryptoKitASN1Error.invalidASN1IntegerEncoding)
     }
 
     func testLeadingZero() throws {
         // We should reject integers that have unnecessary leading zero bytes.
         let overlongOne: [UInt8] = [0x02, 0x02, 0x00, 0x01]
         let parsed = try ASN1.parse(overlongOne)
-        XCTAssertThrowsError(try Int(asn1Encoded: parsed)) { error in
-            XCTAssertEqual(error as? CryptoKitASN1Error, .invalidASN1IntegerEncoding)
-        }
+        XCTAssertThrowsError(try Int(asn1Encoded: parsed),
+                             error: CryptoKitASN1Error.invalidASN1IntegerEncoding)
     }
 
     func testLeadingOnes() throws {
@@ -556,9 +530,8 @@ O9zxi7HTvuXyQr7QKSBtdC%mHym+WoPsbA==
         // were an Int16.
         let overlongOneTwoSeven: [UInt8] = [0x02, 0x02, 0xFF, 0x81]
         let parsed = try ASN1.parse(overlongOneTwoSeven)
-        XCTAssertThrowsError(try Int(asn1Encoded: parsed)) { error in
-            XCTAssertEqual(error as? CryptoKitASN1Error, .invalidASN1IntegerEncoding)
-        }
+        XCTAssertThrowsError(try Int(asn1Encoded: parsed),
+                             error: CryptoKitASN1Error.invalidASN1IntegerEncoding)
     }
 
     func testNotConsumingTaggedObject() throws {
@@ -572,9 +545,8 @@ O9zxi7HTvuXyQr7QKSBtdC%mHym+WoPsbA==
         ]
         let parsed = try ASN1.parse(weirdASN1)
         try ASN1.sequence(parsed, identifier: .sequence) { nodes in
-            XCTAssertThrowsError(try ASN1.optionalExplicitlyTagged(&nodes, tagNumber: 2, tagClass: .contextSpecific, { _ in })) { error in
-                XCTAssertEqual(error as? CryptoKitASN1Error, .invalidASN1Object)
-            }
+            XCTAssertThrowsError(try ASN1.optionalExplicitlyTagged(&nodes, tagNumber: 2, tagClass: .contextSpecific, { _ in }),
+                                 error: CryptoKitASN1Error.invalidASN1Object)
         }
     }
 
@@ -633,9 +605,7 @@ O9zxi7HTvuXyQr7QKSBtdC%mHym+WoPsbA==
         let weirdSEC1: [UInt8] = [0x30, 0x03, 0x02, 0x01, 0x05]
 
         let parsed = try ASN1.parse(weirdSEC1)
-        XCTAssertThrowsError(try ASN1.SEC1PrivateKey(asn1Encoded: parsed)) { error in
-            XCTAssertEqual(error as? CryptoKitASN1Error, .invalidASN1Object)
-        }
+        XCTAssertThrowsError(try ASN1.SEC1PrivateKey(asn1Encoded: parsed), error: CryptoKitASN1Error.invalidASN1Object)
     }
 
     func testSEC1PrivateKeyUnsupportedKeyType() throws {
@@ -644,9 +614,7 @@ O9zxi7HTvuXyQr7QKSBtdC%mHym+WoPsbA==
         let decodedSEC1 = Array(Data(base64Encoded: b64SEC1)!)
 
         let parsed = try ASN1.parse(decodedSEC1)
-        XCTAssertThrowsError(try ASN1.SEC1PrivateKey(asn1Encoded: parsed)) { error in
-            XCTAssertEqual(error as? CryptoKitASN1Error, .invalidASN1Object)
-        }
+        XCTAssertThrowsError(try ASN1.SEC1PrivateKey(asn1Encoded: parsed), error: CryptoKitASN1Error.invalidASN1Object)
     }
 
     func testPKCS8KeyWithNonMatchingKeyOIDS() throws {
@@ -664,9 +632,7 @@ O9zxi7HTvuXyQr7QKSBtdC%mHym+WoPsbA==
         }
 
         let parsed = try ASN1.parse(serializer.serializedBytes)
-        XCTAssertThrowsError(try ASN1.PKCS8PrivateKey(asn1Encoded: parsed)) { error in
-            XCTAssertEqual(error as? CryptoKitASN1Error, .invalidASN1Object)
-        }
+        XCTAssertThrowsError(try ASN1.PKCS8PrivateKey(asn1Encoded: parsed), error: CryptoKitASN1Error.invalidASN1Object)
     }
 
     func testSimplePEMP256SPKI() throws {

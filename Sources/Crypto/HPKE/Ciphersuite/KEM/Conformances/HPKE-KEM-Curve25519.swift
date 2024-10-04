@@ -14,10 +14,15 @@
 #if CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
 @_exported import CryptoKit
 #else
+
+#if CRYPTOKIT_NO_ACCESS_TO_FOUNDATION
+import SwiftSystem
+#else
 import Foundation
+#endif
+
 
 extension Curve25519.KeyAgreement.PrivateKey: HPKEDiffieHellmanPrivateKeyGeneration {}
-
 
 extension Curve25519.KeyAgreement.PublicKey: HPKEDiffieHellmanPublicKey {
 	/// The type of the ephemeral private key associated with this public key.

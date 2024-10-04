@@ -57,7 +57,7 @@ class Ed25519Tests: XCTestCase {
 
         let signatureOnContiguous = try orFail { try privateKey.signature(for: someContiguousData) }
         let signatureOnDiscontiguous = try orFail { try privateKey.signature(for: someDiscontiguousData) }
-        #if !(canImport(Darwin))
+        #if !canImport(Darwin)
         XCTAssertEqual(signatureOnContiguous, signatureOnDiscontiguous)
         #endif
 

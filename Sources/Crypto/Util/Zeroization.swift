@@ -12,9 +12,17 @@
 //
 //===----------------------------------------------------------------------===//
 #if CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
+#if CRYPTOKIT_STATIC_LIBRARY
+@_exported import CryptoKit_Static
+#else
 @_exported import CryptoKit
+#endif
+#else
+#if CRYPTOKIT_NO_ACCESS_TO_FOUNDATION
+import SwiftSystem
 #else
 import Foundation
+#endif
 
 protocol Zeroization {
     mutating func zeroize()
@@ -30,7 +38,7 @@ extension UnsafeMutablePointer: Zeroization {
 
 extension UnsafeMutableRawBufferPointer: Zeroization {
     func zeroize() {
-        memset_s(self.baseAddress, self.count, 0, self.count)
+        memset_s(self.baseAddress!, self.count, 0, self.count)
     }
 }
 

@@ -14,7 +14,12 @@
 #if CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
 @_exported import CryptoKit
 #else
+
+#if CRYPTOKIT_NO_ACCESS_TO_FOUNDATION
+import SwiftSystem
+#else
 import Foundation
+#endif
 
 /// A Diffie-Hellman Key Agreement Key
 public protocol DiffieHellmanKeyAgreement {
@@ -36,7 +41,7 @@ public protocol DiffieHellmanKeyAgreement {
 /// Generate a shared secret by calling your private key’s
 /// `sharedSecretFromKeyAgreement(publicKeyShare:)` method with the public key
 /// from another party. The other party computes the same secret by passing your
-/// public key to the equivalent method on their own private key.
+/// public key to the the equivalent method on their own private key.
 ///
 /// The shared secret isn’t suitable as a symmetric cryptographic key
 /// (``SymmetricKey``) by itself. However, you use it to generate a key by
@@ -49,7 +54,15 @@ public protocol DiffieHellmanKeyAgreement {
 /// ``ChaChaPoly`` or ``AES``.
 public struct SharedSecret: ContiguousBytes {
     var ss: SecureBytes
-
+    
+    internal init<SS:ContiguousBytes>(withExternalSS ss: SS) {
+        self.ss = SecureBytes(bytes: ss)
+    }
+    
+    internal init(ss: SecureBytes){
+        self.ss = ss
+    }
+    
     /// Invokes the given closure with a buffer pointer covering the raw bytes
     /// of the shared secret.
     ///
@@ -72,57 +85,10 @@ public struct SharedSecret: ContiguousBytes {
     ///
     /// - Returns: The derived symmetric key.
     public func x963DerivedSymmetricKey<H: HashFunction, SI: DataProtocol>(using hashFunction: H.Type, sharedInfo: SI, outputByteCount: Int) -> SymmetricKey {
-        // SEC1 defines 3 inputs to the KDF:
-        //
-        // 1. An octet string Z which is the shared secret value. That's `self` here.
-        // 2. An integer `keydatalen` which is the length in octets of the keying data to be generated. Here that's `outputByteCount`.
-        // 3. An optional octet string `SharedInfo` which consists of other shared data. Here, that's `sharedInfo`.
-        //
-        // We then need to perform the following steps:
-        //
-        // 1. Check that keydatalen < hashlen × (2³² − 1). If keydatalen ≥ hashlen × (2³² − 1), fail.
-        // 2. Initiate a 4 octet, big-endian octet string Counter as 0x00000001.
-        // 3. For i = 1 to ⌈keydatalen/hashlen⌉, do the following:
-        //     1. Compute: Ki = Hash(Z || Counter || [SharedInfo]).
-        //     2. Increment Counter.
-        //     3. Increment i.
-        // 4. Set K to be the leftmost keydatalen octets of: K1 || K2 || . . . || K⌈keydatalen/hashlen⌉.
-        // 5. Output K.
-        //
-        // The loop in step 3 is not very Swifty, so instead we generate the counter directly.
-        // Step 1: Check that keydatalen < hashlen × (2³² − 1).
-        // We do this math in UInt64-space, because we'll overflow 32-bit integers.
-        guard UInt64(outputByteCount) < (UInt64(H.Digest.byteCount) * UInt64(UInt32.max)) else {
-            fatalError("Invalid parameter size")
+        
+        return self.ss.withUnsafeBytes { ssBytes in
+            return ANSIKDFx963<H>.deriveKey(inputKeyMaterial: SymmetricKey(data: ssBytes), info: sharedInfo, outputByteCount: outputByteCount)
         }
-        
-        var key = SecureBytes()
-        key.reserveCapacity(outputByteCount)
-        
-        var remainingBytes = outputByteCount
-        var counter = UInt32(1)
-        
-        while remainingBytes > 0 {
-            // 1. Compute: Ki = Hash(Z || Counter || [SharedInfo]).
-            var hasher = H()
-            hasher.update(self)
-            hasher.update(counter.bigEndian)
-            hasher.update(data: sharedInfo)
-            let digest = hasher.finalize()
-            
-            // 2. Increment Counter.
-            counter += 1
-            
-            // Append the bytes of the digest. We don't want to append more than the remaining number of bytes.
-            let bytesToAppend = min(remainingBytes, H.Digest.byteCount)
-            digest.withUnsafeBytes { digestPtr in
-                key.append(digestPtr.prefix(bytesToAppend))
-            }
-            remainingBytes -= bytesToAppend
-        }
-        
-        precondition(key.count == outputByteCount)
-        return SymmetricKey(data: key)
     }
 
     /// Derives a symmetric encryption key from the secret using HKDF key
@@ -173,7 +139,7 @@ extension SharedSecret: CustomStringConvertible, Equatable {
             return safeCompare(lhs, rhs.regions.first!)
         }
     }
-
+    
     public var description: String {
         return "\(Self.self): \(ss.hexString)"
     }

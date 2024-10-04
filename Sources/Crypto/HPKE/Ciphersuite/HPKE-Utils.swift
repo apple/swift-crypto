@@ -14,13 +14,24 @@
 #if CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
 @_exported import CryptoKit
 #else
+
+#if CRYPTOKIT_NO_ACCESS_TO_FOUNDATION
+import SwiftSystem
+#else
 import Foundation
+#endif
+
 
 internal func I2OSP(value: Int, outputByteCount: Int) -> Data {
     precondition(outputByteCount > 0, "Cannot I2OSP with no output length.")
     precondition(value >= 0, "I2OSP requires a non-null value.")
     
+    #if !CRYPTOKIT_NO_ACCESS_TO_FOUNDATION
     let requiredBytes = Int(ceil(log2(Double(max(value, 1) + 1)) / 8))
+    #else
+    let requiredBytes = Int((log2_bridge(Double(max(value, 1) + 1)) / 8).rounded(.up))
+    #endif
+    
     precondition(outputByteCount >= requiredBytes)
     
     var data = Data(repeating: 0, count: outputByteCount)

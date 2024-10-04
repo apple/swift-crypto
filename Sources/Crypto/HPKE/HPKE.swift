@@ -12,9 +12,17 @@
 //
 //===----------------------------------------------------------------------===//
 #if CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
+#if CRYPTOKIT_STATIC_LIBRARY
+@_exported import CryptoKit_Static
+#else
 @_exported import CryptoKit
+#endif
+#else
+#if CRYPTOKIT_NO_ACCESS_TO_FOUNDATION
+import SwiftSystem
 #else
 import Foundation
+#endif
 
 /// A container for hybrid public key encryption (HPKE) operations.
 ///
@@ -48,6 +56,10 @@ import Foundation
 public enum HPKE {}
 
 extension HPKE {
+    /// Static constant used to store the fixed-string label for the HPKE export API
+    /// See: https://datatracker.ietf.org/doc/html/rfc9180#name-secret-export
+    fileprivate static let exportLabel = Data("sec".utf8)
+
     /// A type that represents the sending side of an HPKE message exchange.
     ///
     /// To create encrypted messages, initialize a `Sender` specifying the appropriate cipher suite,
@@ -60,7 +72,7 @@ extension HPKE {
         private var context: Context
         /// The encapsulated symmetric key that the recipient uses to decrypt messages.
         public let encapsulatedKey: Data
-
+        
         /// The exporter secret.
         internal var exporterSecret: SymmetricKey {
             return context.keySchedule.exporterSecret
@@ -74,13 +86,13 @@ extension HPKE {
         public func exportSecret<Context: DataProtocol>(context: Context, outputByteCount: Int) throws -> SymmetricKey {
             precondition(outputByteCount > 0);
             return LabeledExpand(prk: self.exporterSecret,
-                                 label: Data("sec".utf8),
+                                 label: exportLabel,
                                  info: context,
                                  outputByteCount: UInt16(outputByteCount),
                                  suiteID: self.context.keySchedule.ciphersuite.identifier,
                                  kdf: self.context.keySchedule.ciphersuite.kdf)
         }
-
+        
         /// Creates a sender in base mode.
         ///
         /// The `Sender` encrypts messages in base mode with a symmetric encryption key it derives using a key derivation function (KDF).
@@ -196,12 +208,12 @@ extension HPKE {
     public struct Recipient {
         
         private var context: Context
-
+        
         /// The exporter secret.
         internal var exporterSecret: SymmetricKey {
             return context.keySchedule.exporterSecret
         }
-
+        
         /// Exports a secret given domain-separation context and the desired output length.
         /// - Parameters:
         ///   - context: Application-specific information providing context on the use of this key.
@@ -210,13 +222,13 @@ extension HPKE {
         public func exportSecret<Context: DataProtocol>(context: Context, outputByteCount: Int) throws -> SymmetricKey {
             precondition(outputByteCount > 0);
             return LabeledExpand(prk: self.exporterSecret,
-                                 label: Data("sec".utf8),
+                                 label: exportLabel,
                                  info: context,
                                  outputByteCount: UInt16(outputByteCount),
                                  suiteID: self.context.keySchedule.ciphersuite.identifier,
                                  kdf: self.context.keySchedule.ciphersuite.kdf)
         }
-
+        
         /// Creates a recipient in base mode.
         ///
         /// The `Receiver` decrypts messages in base mode using the encapsulated key with the key schedule information (`info` data).

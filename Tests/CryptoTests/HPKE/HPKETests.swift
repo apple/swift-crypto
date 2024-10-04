@@ -83,7 +83,7 @@ class HPKETests: XCTestCase {
     func testSenderRecipient(sender: inout HPKE.Sender, recipient: inout HPKE.Recipient) throws {
         let msg = Data("Some Other Data".utf8)
         let aad = Data("Some Authenticated Data".utf8)
-        XCTAssertEqual(sender.exporterSecret, recipient.exporterSecret)
+        XCTAssertEqual(try sender.exportSecret(context: Data("SampleContext".utf8), outputByteCount: 16), try recipient.exportSecret(context: Data("SampleContext".utf8), outputByteCount: 16))
         
         for _ in 0...100 {
             let ct = try sender.seal(msg, authenticating: msg)
@@ -102,6 +102,41 @@ class HPKETests: XCTestCase {
         ct = try sender.seal(msg, authenticating: aad2)
         XCTAssertThrowsError(try recipient.open(ct, authenticating: aad))
         XCTAssertEqual(try recipient.open(ct, authenticating: aad2), msg)
+    }
+    
+    func testHPKEIdentifiers() throws {
+        /*
+         HPKE.Ciphersuite.P256_SHA256_AES_GCM_256, .P384_SHA384_AES_GCM_256, .P521_SHA512_AES_GCM_256, .Curve25519_SHA256_ChachaPoly
+         */
+        let cp256 = HPKE.Ciphersuite.P256_SHA256_AES_GCM_256
+        XCTAssertEqual(cp256.kem.value, 0x0010)
+        XCTAssertEqual(cp256.kem.nEnc, 65)
+        XCTAssertEqual(cp256.kdf.value, 0x0001)
+        XCTAssertEqual(cp256.aead.value, 0x0002)
+        XCTAssertEqual(cp256.aead.keyByteCount, 32)
+        XCTAssertEqual(cp256.aead.nonceByteCount, 12)
+        XCTAssertEqual(cp256.aead.tagByteCount, 16)
+        
+        let cp384 = HPKE.Ciphersuite.P384_SHA384_AES_GCM_256
+        XCTAssertEqual(cp384.kem.value, 0x0011)
+        XCTAssertEqual(cp384.kem.nEnc, 97)
+        XCTAssertEqual(cp384.kdf.value, 0x0002)
+        XCTAssertEqual(cp384.aead.value, 0x0002)
+        
+        let cp521 = HPKE.Ciphersuite.P521_SHA512_AES_GCM_256
+        XCTAssertEqual(cp521.kem.value, 0x0012)
+        XCTAssertEqual(cp521.kem.nEnc, 133)
+        XCTAssertEqual(cp521.kdf.value, 0x0003)
+        XCTAssertEqual(cp521.aead.value, 0x0002)
+        
+        let cc25519 = HPKE.Ciphersuite.Curve25519_SHA256_ChachaPoly
+        XCTAssertEqual(cc25519.kem.value, 0x0020)
+        XCTAssertEqual(cc25519.kem.nEnc, 32)
+        XCTAssertEqual(cc25519.kdf.value, 0x0001)
+        XCTAssertEqual(cc25519.aead.value, 0x0003)
+        XCTAssertEqual(cc25519.aead.keyByteCount, 32)
+        XCTAssertEqual(cc25519.aead.nonceByteCount, 12)
+        XCTAssertEqual(cc25519.aead.tagByteCount, 16)
     }
 }
 
