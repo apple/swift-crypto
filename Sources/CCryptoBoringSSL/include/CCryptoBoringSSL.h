@@ -58,11 +58,8 @@
 #include "CCryptoBoringSSL_safestack.h"
 #include "CCryptoBoringSSL_sha.h"
 #include "CCryptoBoringSSL_siphash.h"
+#include "CCryptoBoringSSL_slhdsa.h"
 #include "CCryptoBoringSSL_trust_token.h"
 #include "CCryptoBoringSSL_x509v3.h"
-
-// Experimental
-#include "experimental/CCryptoBoringSSL_kyber.h"
-#include "experimental/CCryptoBoringSSL_spx.h"
 
 #endif  // C_CRYPTO_BORINGSSL_H
