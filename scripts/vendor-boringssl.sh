@@ -101,9 +101,9 @@ function mangle_symbols {
         )
 
         # Now cross compile for our targets.
-        docker run -t -i --rm --privileged -v$(pwd):/src -w/src --platform linux/arm64 swift:5.8-jammy \
+        docker run -t -i --rm --privileged -v$(pwd):/src -w/src --platform linux/arm64 swift:5.9-jammy \
             swift build --product CCryptoBoringSSL
-        docker run -t -i --rm --privileged -v$(pwd):/src -w/src --platform linux/amd64 swift:5.8-jammy \
+        docker run -t -i --rm --privileged -v$(pwd):/src -w/src --platform linux/amd64 swift:5.9-jammy \
             swift build --product CCryptoBoringSSL
 
         # Now we need to generate symbol mangles for Linux. We can do this in
@@ -240,14 +240,6 @@ echo "REMOVING libssl"
 )
 
 mangle_symbols
-
-# Removing ASM on 32 bit Apple platforms
-echo "REMOVING assembly on 32-bit Apple platforms"
-gsed -i "/#define OPENSSL_HEADER_BASE_H/a#if defined(__APPLE__) && defined(__i386__)\n#define OPENSSL_NO_ASM\n#endif" "$DSTROOT/include/openssl/base.h"
-
-# Remove assembly on non-x86 Windows
-echo "REMOVING assembly on non-x86 Windows"
-gsed -i "/#define OPENSSL_HEADER_BASE_H/a#if defined(_WIN32) && !(defined(_M_IX86) || defined(__i386__))\n#define OPENSSL_NO_ASM\n#endif" "$DSTROOT/include/openssl/base.h"
 
 echo "RENAMING header files"
 (
