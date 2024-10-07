@@ -202,4 +202,37 @@ final class TestRSABlindSigning: XCTestCase {
             parameters: .RSABSSA_SHA384_PSS_Randomized
         )
     }
+
+    func testConstructAndUseKeyFromRSANumbersWhileRecoveringPrimes() throws {
+        let data = Array("hello, world!".utf8)
+
+        for testVector in RFC9474TestVector.allValues {
+            let key = try _RSA.BlindSigning.PrivateKey._createFromNumbers(
+                n: Data(hexString: testVector.n),
+                e: Data(hexString: testVector.e),
+                d: Data(hexString: testVector.d),
+                parameters: testVector.parameters
+            )
+
+            let preparedMessage = key.publicKey.prepare(data)
+            let blindedMessage = try key.publicKey.blind(preparedMessage)
+            let blindSignature = try key.blindSignature(for: blindedMessage.blindedMessage)
+            let signature = try key.publicKey.finalize(blindSignature, for: preparedMessage, blindingInverse: blindedMessage.inverse)
+            XCTAssert(key.publicKey.isValidSignature(signature, for: preparedMessage))
+        }
+    }
+
+    func testGetKeyPrimitives() throws {
+        for testVector in RFC9474TestVector.allValues {
+            let n = try Data(hexString: testVector.n)
+            let e = try Data(hexString: testVector.e)
+
+            let primitives = try _RSA.BlindSigning.PublicKey(
+                n: n, e: e,
+                parameters: testVector.parameters
+            ).getKeyPrimitives()
+            XCTAssertEqual(primitives.modulus, n)
+            XCTAssertEqual(primitives.publicExponent, e)
+        }
+    }
 }

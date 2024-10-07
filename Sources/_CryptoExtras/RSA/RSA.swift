@@ -13,6 +13,7 @@
 //===----------------------------------------------------------------------===//
 import Foundation
 import Crypto
+import SwiftASN1
 
 #if CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
 fileprivate typealias BackingPublicKey = SecurityRSAPublicKey
@@ -31,12 +32,8 @@ fileprivate typealias BackingPrivateKey = BoringSSLRSAPrivateKey
 ///
 /// When rolling out new cryptosystems, users should avoid RSA and use ECDSA or edDSA instead. RSA
 /// support is provided for interoperability with legacy systems.
-#if swift(>=5.8)
 @_documentation(visibility: public)
 public enum _RSA { }
-#else
-public enum _RSA { }
-#endif
 
 extension _RSA {
     public enum Signing { }
@@ -45,40 +42,50 @@ extension _RSA {
 
 extension _RSA.Signing {
     public struct PublicKey: Sendable {
+        public struct Primitives: Sendable, Hashable {
+            public var modulus: Data
+            public var publicExponent: Data
+
+            public init(modulus: Data, publicExponent: Data) {
+                self.modulus = modulus
+                self.publicExponent = publicExponent
+            }
+        }
+
         private var backing: BackingPublicKey
 
         /// Construct an RSA public key from a PEM representation.
         ///
         /// This constructor supports key sizes of 2048 bits or more. Users should validate that key sizes are appropriate
         /// for their use-case.
+        /// Parameters from RSA PSS keys will be stripped.
         public init(pemRepresentation: String) throws {
-            self.backing = try BackingPublicKey(pemRepresentation: pemRepresentation)
+            let derBytes = try PEMDocument(pemString: pemRepresentation).derBytes
 
-            guard self.keySizeInBits >= 2048 else {
-                throw CryptoKitError.incorrectParameterSize
-            }
+            try self.init(derRepresentation: derBytes)
         }
         
         /// Construct an RSA public key from a PEM representation.
         ///
         /// This constructor supports key sizes of 1024 bits or more. Users should validate that key sizes are appropriate
         /// for their use-case.
+        /// Parameters from RSA PSS keys will be stripped.
         /// - Warning: Key sizes less than 2048 are not recommended and should only be used for compatibility reasons.
         public init(unsafePEMRepresentation pemRepresentation: String) throws {
-            self.backing = try BackingPublicKey(pemRepresentation: pemRepresentation)
-            
-            guard self.keySizeInBits >= 1024 else {
-                throw CryptoKitError.incorrectParameterSize
-            }
+            let derBytes = try PEMDocument(pemString: pemRepresentation).derBytes
 
+            try self.init(unsafeDERRepresentation: derBytes)
         }
 
         /// Construct an RSA public key from a DER representation.
         ///
         /// This constructor supports key sizes of 2048 bits or more. Users should validate that key sizes are appropriate
         /// for their use-case.
+        /// Parameters from RSA PSS keys will be stripped.
         public init<Bytes: DataProtocol>(derRepresentation: Bytes) throws {
-            self.backing = try BackingPublicKey(derRepresentation: derRepresentation)
+            let sanitizedDer = try SubjectPublicKeyInfo.stripRsaPssParameters(derEncoded: [UInt8](derRepresentation))
+
+            self.backing = try BackingPublicKey(derRepresentation: sanitizedDer)
 
             guard self.keySizeInBits >= 2048 else {
                 throw CryptoKitError.incorrectParameterSize
@@ -89,9 +96,12 @@ extension _RSA.Signing {
         ///
         /// This constructor supports key sizes of 1024 bits or more. Users should validate that key sizes are appropriate
         /// for their use-case.
+        /// Parameters from RSA PSS keys will be stripped.
         /// - Warning: Key sizes less than 2048 are not recommended and should only be used for compatibility reasons.
         public init<Bytes: DataProtocol>(unsafeDERRepresentation derRepresentation: Bytes) throws {
-            self.backing = try BackingPublicKey(derRepresentation: derRepresentation)
+            let sanitizedDer = try SubjectPublicKeyInfo.stripRsaPssParameters(derEncoded: [UInt8](derRepresentation))
+
+            self.backing = try BackingPublicKey(derRepresentation: sanitizedDer)
 
             guard self.keySizeInBits >= 1024 else {
                 throw CryptoKitError.incorrectParameterSize
@@ -131,6 +141,11 @@ extension _RSA.Signing {
 
         fileprivate init(_ backing: BackingPublicKey) {
             self.backing = backing
+        }
+
+        public func getKeyPrimitives() throws -> Primitives {
+            let (n, e) = try self.backing.getKeyPrimitives()
+            return Primitives(modulus: n, publicExponent: e)
         }
     }
 }
@@ -241,6 +256,32 @@ extension _RSA.Signing {
 
         public var publicKey: _RSA.Signing.PublicKey {
             _RSA.Signing.PublicKey(self.backing.publicKey)
+        }
+
+        /// Construct a private key with the specified parameters.
+        ///
+        /// The use of this API is strongly discouraged for performance reasons,
+        /// as it requires the factorization of the modulus, which is resource-intensive.
+        /// It is recommended to use the other initializers to construct a private key,
+        /// unless you have only the modulus, public exponent, and private exponent 
+        /// to construct the key.
+        ///
+        /// - Parameters:
+        ///   - n: modulus of the key
+        ///   - e: public exponent of the key
+        ///   - d: private exponent of the key
+        public static func _createFromNumbers(n: some ContiguousBytes, e: some ContiguousBytes, d: some ContiguousBytes) throws -> Self {
+            let (p, q) = try _RSA.extractPrimeFactors(
+                n: try ArbitraryPrecisionInteger(bytes: n), 
+                e: try ArbitraryPrecisionInteger(bytes: e), 
+                d: try ArbitraryPrecisionInteger(bytes: d)
+            )
+
+            return try Self.init(
+                n: n, e: e, d: d, 
+                p: try Data(bytesOf: p, paddedToSize: p.byteCount), 
+                q: try Data(bytesOf: q, paddedToSize: q.byteCount)
+            )
         }
     }
 }
@@ -426,6 +467,16 @@ extension _RSA.Signing {
 extension _RSA.Encryption {
     /// Identical to ``_RSA/Signing/PublicKey``.
     public struct PublicKey {
+        public struct Primitives: Sendable, Hashable {
+            public var modulus: Data
+            public var publicExponent: Data
+
+            public init(modulus: Data, publicExponent: Data) {
+                self.modulus = modulus
+                self.publicExponent = publicExponent
+            }
+        }
+
         private var backing: BackingPublicKey
         
         /// Construct an RSA public key from a PEM representation.
@@ -483,6 +534,11 @@ extension _RSA.Encryption {
         public var pemRepresentation: String { self.backing.pemRepresentation }
         public var keySizeInBits: Int { self.backing.keySizeInBits }
         fileprivate init(_ backing: BackingPublicKey) { self.backing = backing }
+
+        public func getKeyPrimitives() throws -> Primitives {
+            let (n, e) = try self.backing.getKeyPrimitives()
+            return Primitives(modulus: n, publicExponent: e)
+        }
     }
     
     /// Identical to ``_RSA/Signing/PrivateKey``.
@@ -563,6 +619,32 @@ extension _RSA.Encryption {
         public var pkcs8PEMRepresentation: String { self.backing.pkcs8PEMRepresentation }
         public var keySizeInBits: Int { self.backing.keySizeInBits }
         public var publicKey: _RSA.Encryption.PublicKey { .init(self.backing.publicKey) }
+
+        /// Construct a private key with the specified parameters.
+        ///
+        /// The use of this API is strongly discouraged for performance reasons,
+        /// as it requires the factorization of the modulus, which is resource-intensive.
+        /// It is recommended to use the other initializers to construct a private key,
+        /// unless you have only the modulus, public exponent, and private exponent 
+        /// to construct the key.
+        ///
+        /// - Parameters:
+        ///   - n: modulus of the key
+        ///   - e: public exponent of the key
+        ///   - d: private exponent of the key
+        public static func _createFromNumbers(n: some ContiguousBytes, e: some ContiguousBytes, d: some ContiguousBytes) throws -> Self {
+            let (p, q) = try _RSA.extractPrimeFactors(
+                n: try ArbitraryPrecisionInteger(bytes: n), 
+                e: try ArbitraryPrecisionInteger(bytes: e), 
+                d: try ArbitraryPrecisionInteger(bytes: d)
+            )
+
+            return try Self.init(
+                n: n, e: e, d: d, 
+                p: try Data(bytesOf: p, paddedToSize: p.byteCount), 
+                q: try Data(bytesOf: q, paddedToSize: q.byteCount)
+            )
+        }
     }
 }
 
@@ -638,4 +720,61 @@ extension _RSA {
     static let PKCS1PublicKeyType = "RSA PUBLIC KEY"
 
     static let SPKIPublicKeyType = "PUBLIC KEY"
+}
+
+extension _RSA {
+    static func extractPrimeFactors(
+        n: ArbitraryPrecisionInteger, 
+        e: ArbitraryPrecisionInteger, 
+        d: ArbitraryPrecisionInteger
+    ) throws -> (p: ArbitraryPrecisionInteger, q: ArbitraryPrecisionInteger) {
+        // This is based on the proof of fact 1 in https://www.ams.org/notices/199902/boneh.pdf
+        let k = (d * e) - 1
+        let t = k.trailingZeroBitCount
+        let r = k >> t
+
+        guard k.isEven else {
+            throw CryptoKitError.incorrectParameterSize
+        }
+
+        var y: ArbitraryPrecisionInteger = 0
+        var i = 1
+
+        let context = try FiniteFieldArithmeticContext(fieldSize: n)
+
+        while i <= 100 {
+            let g = try ArbitraryPrecisionInteger.random(inclusiveMin: 2, exclusiveMax: n)
+            y = try context.pow(g, r)
+
+            guard y != 1, y != n - 1 else {
+                continue
+            }
+
+            var j = 1
+            var x: ArbitraryPrecisionInteger
+
+            while j <= t &- 1 {
+                x = try context.pow(y, 2)
+
+                guard x != 1, x != n - 1 else {
+                    break
+                }
+
+                y = x
+                j &+= 1
+            }
+
+            x = try context.pow(y, 2)
+            if x == 1 {
+                let p = try ArbitraryPrecisionInteger.gcd(y - 1, n)
+                let q = n / p
+
+                return (p, q)
+            }
+
+            i &+= 1
+        }
+
+        throw CryptoKitError.incorrectParameterSize
+    }
 }
