@@ -75,7 +75,6 @@
 #include <CCryptoBoringSSL_err.h>
 #include <CCryptoBoringSSL_ex_data.h>
 #include <CCryptoBoringSSL_mem.h>
-#include <CCryptoBoringSSL_sha.h>
 #include <CCryptoBoringSSL_thread.h>
 
 #include "internal.h"
@@ -346,7 +345,7 @@ int EC_KEY_check_fips(const EC_KEY *key) {
   }
 
   if (key->priv_key) {
-    uint8_t digest[SHA256_DIGEST_LENGTH] = {0};
+    uint8_t digest[BCM_SHA256_DIGEST_LENGTH] = {0};
     uint8_t sig[ECDSA_MAX_FIXED_LEN];
     size_t sig_len;
     if (!ecdsa_sign_fixed(digest, sizeof(digest), sig, &sig_len, sizeof(sig),
