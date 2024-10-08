@@ -346,7 +346,7 @@ extension MLDSA {
             /// 
             /// - Returns: `true` if the signature is valid, `false` otherwise.
             fileprivate func isValidSignature(_ signature: Signature, for data: some DataProtocol, context: [UInt8]? = nil) -> Bool {
-                return signature.withUnsafeBytes { signaturePtr in
+                signature.withUnsafeBytes { signaturePtr in
                     let rc: CInt = data.regions.first!.withUnsafeBytes { dataPtr in
                         if let context {
                             context.withUnsafeBufferPointer { contextPointer in
@@ -412,7 +412,7 @@ extension MLDSA {
         }
 
         /// The size of the signature in bytes.
-        public static let bytesCount = 3309
+        fileprivate static let bytesCount = 3309
     }
 }
 
