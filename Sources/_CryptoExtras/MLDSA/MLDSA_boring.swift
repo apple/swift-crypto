@@ -25,7 +25,7 @@ public enum MLDSA {}
 extension MLDSA {
     /// A ML-DSA-65 private key.
     public struct PrivateKey: Sendable {
-        fileprivate var backing: Backing
+        private var backing: Backing
 
         /// Initialize a ML-DSA-65 private key from a random seed.
         public init() throws {
@@ -80,10 +80,10 @@ extension MLDSA {
         static let bytesCount = Backing.bytesCount
 
         fileprivate final class Backing {
-            fileprivate let pointer: UnsafeMutablePointer<MLDSA65_private_key>
+            let pointer: UnsafeMutablePointer<MLDSA65_private_key>
 
             /// Initialize a ML-DSA-65 private key from a random seed.
-            fileprivate init() throws {
+            init() throws {
                 self.pointer = UnsafeMutablePointer<MLDSA65_private_key>.allocate(capacity: 1)
 
                 let publicKeyPtr = UnsafeMutablePointer<UInt8>.allocate(capacity: MLDSA.PublicKey.Backing.bytesCount)
@@ -110,7 +110,7 @@ extension MLDSA {
             /// - Parameter seed: The seed to use to generate the private key.
             /// 
             /// - Throws: `CryptoKitError.incorrectKeySize` if the seed is not at least 32 bytes long.
-            fileprivate init(from seed: some DataProtocol) throws {
+            init(from seed: some DataProtocol) throws {
                 guard seed.count >= MLDSA.seedSizeInBytes else {
                     throw CryptoKitError.incorrectKeySize
                 }
@@ -138,7 +138,7 @@ extension MLDSA {
             /// - Parameter derRepresentation: The DER representation of the private key.
             /// 
             /// - Throws: `CryptoKitError.incorrectKeySize` if the DER representation is not the correct size.
-            fileprivate init(derRepresentation: some DataProtocol) throws {
+            init(derRepresentation: some DataProtocol) throws {
                 guard derRepresentation.count == MLDSA.PrivateKey.Backing.bytesCount else {
                     throw CryptoKitError.incorrectKeySize
                 }
@@ -159,13 +159,13 @@ extension MLDSA {
             /// Initialize a ML-DSA-65 private key from a PEM representation.
             /// 
             /// - Parameter pemRepresentation: The PEM representation of the private key.
-            fileprivate convenience init(pemRepresentation: String) throws {
+            convenience init(pemRepresentation: String) throws {
                 let document = try ASN1.PEMDocument(pemString: pemRepresentation)
                 try self.init(derRepresentation: document.derBytes)
             }
 
             /// The public key associated with this private key.
-            fileprivate var publicKey: PublicKey {
+            var publicKey: PublicKey {
                 PublicKey(privateKeyBacking: self)
             }
 
@@ -176,7 +176,7 @@ extension MLDSA {
             ///   - context: The context to use for the signature.
             /// 
             /// - Returns: The signature of the message.
-            fileprivate func signature(for data: some DataProtocol, context: [UInt8]? = nil) throws -> Signature {
+            func signature(for data: some DataProtocol, context: [UInt8]? = nil) throws -> Signature {
                 let output = try Array<UInt8>(unsafeUninitializedCapacity: Signature.bytesCount) { bufferPtr, length in
                     let result = data.regions.first!.withUnsafeBytes { dataPtr in
                         if let context {
@@ -212,7 +212,7 @@ extension MLDSA {
             }
 
             /// The size of the private key in bytes.
-            fileprivate static let bytesCount = 4032
+            static let bytesCount = 4032
         }
     }
 }
@@ -269,12 +269,12 @@ extension MLDSA {
         }
 
         /// The size of the public key in bytes.
-        public static let bytesCount = Backing.bytesCount
+        static let bytesCount = Backing.bytesCount
 
         fileprivate final class Backing {
             private let pointer: UnsafeMutablePointer<MLDSA65_public_key>
 
-            fileprivate init(privateKeyBacking: PrivateKey.Backing) {
+            init(privateKeyBacking: PrivateKey.Backing) {
                 self.pointer = UnsafeMutablePointer<MLDSA65_public_key>.allocate(capacity: 1)
                 CCryptoBoringSSL_MLDSA65_public_from_private(self.pointer, privateKeyBacking.pointer)
             }
@@ -284,7 +284,7 @@ extension MLDSA {
             /// - Parameter derRepresentation: The DER representation of the public key.
             /// 
             /// - Throws: `CryptoKitError.incorrectKeySize` if the DER representation is not the correct size.
-            fileprivate init(derRepresentation: some DataProtocol) throws {
+            init(derRepresentation: some DataProtocol) throws {
                 guard derRepresentation.count == MLDSA.PublicKey.Backing.bytesCount else {
                     throw CryptoKitError.incorrectKeySize
                 }
@@ -305,13 +305,13 @@ extension MLDSA {
             /// Initialize a ML-DSA-65 public key from a PEM representation.
             /// 
             /// - Parameter pemRepresentation: The PEM representation of the public key.
-            fileprivate convenience init(pemRepresentation: String) throws {
+            convenience init(pemRepresentation: String) throws {
                 let document = try ASN1.PEMDocument(pemString: pemRepresentation)
                 try self.init(derRepresentation: document.derBytes)
             }
 
             /// The DER representation of the public key.
-            fileprivate var derRepresentation: Data {
+            var derRepresentation: Data {
                 get throws {
                     var cbb = CBB()
                     // `CBB_init` can only return 0 on allocation failure, which we define as impossible.
@@ -331,7 +331,7 @@ extension MLDSA {
             }
 
             /// The PEM representation of the public key.
-            fileprivate var pemRepresentation: String {
+            var pemRepresentation: String {
                 get throws {
                     ASN1.PEMDocument(type: MLDSA.PublicKeyType, derBytes: try self.derRepresentation).pemString
                 }
@@ -345,7 +345,7 @@ extension MLDSA {
             ///   - context: The context to use for the signature verification.
             /// 
             /// - Returns: `true` if the signature is valid, `false` otherwise.
-            fileprivate func isValidSignature(_ signature: Signature, for data: some DataProtocol, context: [UInt8]? = nil) -> Bool {
+            func isValidSignature(_ signature: Signature, for data: some DataProtocol, context: [UInt8]? = nil) -> Bool {
                 signature.withUnsafeBytes { signaturePtr in
                     let rc: CInt = data.regions.first!.withUnsafeBytes { dataPtr in
                         if let context {
@@ -377,7 +377,7 @@ extension MLDSA {
             }
 
             /// The size of the public key in bytes.
-            fileprivate static let bytesCount = 1952
+            static let bytesCount = 1952
         }
     }
 }
@@ -398,7 +398,7 @@ extension MLDSA {
         /// Initialize a ML-DSA-65 signature from a raw representation.
         /// 
         /// - Parameter signatureBytes: The signature bytes.
-        internal init(signatureBytes: [UInt8]) {
+        init(signatureBytes: [UInt8]) {
             self.rawRepresentation = Data(signatureBytes)
         }
 
