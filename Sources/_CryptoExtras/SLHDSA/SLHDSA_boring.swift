@@ -144,7 +144,7 @@ extension SLHDSA {
             self = try .init(derRepresentation: document.derBytes)
         }
 
-        public var bytes: [UInt8] {
+        private var bytes: [UInt8] {
             return Array(UnsafeBufferPointer(start: self.pointer, count: SLHDSA.PublicKey.bytesCount))
         }
         
@@ -188,7 +188,7 @@ extension SLHDSA {
         }
         
         /// The size of the public key in bytes.
-        fileprivate static let bytesCount = 32
+        static let bytesCount = 32
     }
 }
 

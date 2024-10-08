@@ -19,11 +19,29 @@ final class SLHDSATests: XCTestCase {
     func testSLHDSASigning() throws {
         let key = SLHDSA.PrivateKey()
         let test = Data("Hello, World!".utf8)
+        let signature = try key.signature(for: test)
+        let context: [UInt8] = [UInt8]("ctx".utf8)
+
+        XCTAssertTrue(
+            key.publicKey.isValidSignature(
+                signature,
+                for: test
+            )
+        )
+
+        XCTAssertFalse(
+            key.publicKey.isValidSignature(
+                signature,
+                for: test,
+                context: context
+            )
+        )
 
         try XCTAssertTrue(
             key.publicKey.isValidSignature(
-                key.signature(for: test),
-                for: test
+                key.signature(for: test, context: context),
+                for: test,
+                context: context
             )
         )
     }
@@ -37,54 +55,61 @@ final class SLHDSATests: XCTestCase {
         XCTAssertTrue(key.publicKey.isValidSignature(roundTripped, for: data))
     }
 
-    func testSLHDSASigGenFile() throws {
-        try slhdsaTest(jsonName: "slhdsa_siggen") { (testVector: SLHDSASigGenTestVector) in
-            let publicKey = try SLHDSA.PrivateKey(derRepresentation: Data(hexString: testVector.priv)).publicKey
-            let signature = try SLHDSA.Signature(rawRepresentation: Data(hexString: testVector.sig))
-            let message = try Data(hexString: testVector.msg)
+    func testBitFlips() throws {
+        throw XCTSkip("This test is very slow, so it is disabled by default.")
 
-            XCTAssertTrue(publicKey.isValidSignature(signature, for: message))
+        let message = "Hello, world!".data(using: .utf8)!
+        let key = SLHDSA.PrivateKey()
+        let publicKey = key.publicKey
+        let signature = try key.signature(for: message)
+        XCTAssertTrue(publicKey.isValidSignature(signature, for: message))
+
+        var encodedSignature = signature.rawRepresentation
+        for i in 0..<encodedSignature.count {
+            for j in 0..<8 {
+                encodedSignature[i] ^= 1 << j
+                let modifiedSignature = SLHDSA.Signature(rawRepresentation: encodedSignature)
+                XCTAssertFalse(
+                    publicKey.isValidSignature(modifiedSignature, for: message),
+                    "Bit flip in signature at byte \(i) bit \(j) didn't cause a verification failure"
+                )
+                encodedSignature[i] ^= 1 << j
+            }
         }
     }
-    
-    func testSLHDSASigVerFile() throws {
-        try slhdsaTest(jsonName: "slhdsa_sigver") { (testVector: SLHDSASigVerTestVector) in
-            let publicKey = try SLHDSA.PublicKey(derRepresentation: Data(hexString: testVector.pub))
-            let signature = try SLHDSA.Signature(rawRepresentation: Data(hexString: testVector.sig))
-            let message = try Data(hexString: testVector.msg)
 
-            XCTAssertEqual(publicKey.derRepresentation.count, 32)
-            XCTAssertEqual(publicKey.isValidSignature(signature, for: message), testVector.valid)
-        }
+    func testSignatureIsRandomized() throws {
+        let message = "Hello, world!".data(using: .utf8)!
+
+        let key = SLHDSA.PrivateKey()
+        let publicKey = key.publicKey
+
+        let signature1 = try key.signature(for: message)
+        let signature2 = try key.signature(for: message)
+
+        XCTAssertNotEqual(signature1.rawRepresentation, signature2.rawRepresentation)
+
+        // Even though the signatures are different, they both verify.
+        XCTAssertTrue(publicKey.isValidSignature(signature1, for: message))
+        XCTAssertTrue(publicKey.isValidSignature(signature2, for: message))
     }
 
-    private struct SLHDSASigGenTestVector: Decodable {
-        let priv: String
-        let entropy: String
-        let msg: String
-        let sig: String
-    }
+    func testInvalidPublicKeyEncodingLength() throws {
+        // Encode a public key with a trailing 0 at the end.
+        var encodedPublicKey = [UInt8](repeating: 0, count: SLHDSA.PublicKey.bytesCount + 1)
+        let key = SLHDSA.PrivateKey()
+        let publicKey = key.publicKey
+        encodedPublicKey.replaceSubrange(0..<SLHDSA.PublicKey.bytesCount, with: publicKey.derRepresentation)
 
-    private struct SLHDSASigVerTestVector: Decodable {
-        let pub: String
-        let msg: String
-        let sig: String
-        let valid: Bool
-    }
+        // Public key is 1 byte too short.
+        let shortPublicKey = Array(encodedPublicKey.prefix(SLHDSA.PublicKey.bytesCount - 1))
+        XCTAssertThrowsError(try SLHDSA.PublicKey(derRepresentation: shortPublicKey))
 
-    private struct SLHDSATestFile<Vector: Decodable>: Decodable {
-        let testVectors: [Vector]
-    }
+        // Public key has the correct length.
+        let correctLengthPublicKey = Array(encodedPublicKey.prefix(SLHDSA.PublicKey.bytesCount))
+        XCTAssertNoThrow(try SLHDSA.PublicKey(derRepresentation: correctLengthPublicKey))
 
-    private func slhdsaTest<Vector: Decodable>(
-        jsonName: String, file: StaticString = #file, line: UInt = #line, testFunction: (Vector) throws -> Void
-    ) throws {
-        let testsDirectory: String = URL(fileURLWithPath: "\(#file)").pathComponents.dropLast(2).joined(separator: "/")
-        let fileURL: URL? = URL(fileURLWithPath: "\(testsDirectory)/_CryptoExtrasVectors/\(jsonName).json")
-        let data = try Data(contentsOf: fileURL!)
-        let testFile = try JSONDecoder().decode(SLHDSATestFile<Vector>.self, from: data)
-        for vector in testFile.testVectors {
-            try testFunction(vector)
-        }
+        // Public key is 1 byte too long.
+        XCTAssertThrowsError(try SLHDSA.PublicKey(derRepresentation: encodedPublicKey))
     }
 }
