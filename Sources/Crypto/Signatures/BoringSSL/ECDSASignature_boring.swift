@@ -16,6 +16,7 @@
 #else
 @_implementationOnly import CCryptoBoringSSL
 @_implementationOnly import CCryptoBoringSSLShims
+import CryptoBoringWrapper
 import Foundation
 
 /// A wrapper around BoringSSL's ECDSA_SIG with some lifetime management.

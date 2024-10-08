@@ -14,7 +14,9 @@
 
 add_library(CryptoBoringWrapper STATIC
   "AEAD/BoringSSLAEAD.swift"
-  "CryptoKitErrors_boring.swift")
+  "CryptoKitErrors_boring.swift"
+  "Util/ArbitraryPrecisionInteger_boring.swift"
+  "Util/FiniteFieldArithmeticContext_boring.swift")
 
 target_include_directories(CryptoBoringWrapper PUBLIC
   $<TARGET_PROPERTY:CCryptoBoringSSL,INCLUDE_DIRECTORIES>
@@ -24,6 +26,8 @@ target_link_libraries(CryptoBoringWrapper PUBLIC
   $<$<NOT:$<PLATFORM_ID:Darwin>>:Foundation>
   CCryptoBoringSSL
   CCryptoBoringSSLShims)
+
+target_compile_options(CryptoBoringWrapper PRIVATE ${SWIFT_CRYPTO_COMPILE_OPTIONS})
 
 set_target_properties(CryptoBoringWrapper PROPERTIES
   INTERFACE_INCLUDE_DIRECTORIES ${CMAKE_Swift_MODULE_DIRECTORY})

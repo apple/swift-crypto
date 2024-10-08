@@ -15,7 +15,7 @@
 @_implementationOnly import CCryptoBoringSSL
 @_implementationOnly import CCryptoBoringSSLShims
 import Crypto
-@_implementationOnly import CryptoBoringWrapper
+import CryptoBoringWrapper
 import Foundation
 
 enum OpenSSLChaCha20CTRImpl {
