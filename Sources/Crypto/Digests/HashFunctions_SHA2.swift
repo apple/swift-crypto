@@ -28,17 +28,9 @@
 /// data, and then calling the ``finalize()`` method to get the result.
 public struct SHA256: HashFunctionImplementationDetails {
     /// The number of bytes that represents the hash function’s internal state.
-    public static var blockByteCount: Int {
-        get { 64 }
-        
-        set { fatalError("Cannot set SHA256.blockByteCount") }
-    }
+    public static let blockByteCount: Int = 64
     /// The number of bytes in a SHA256 digest.
-    public static var byteCount: Int {
-        get { 32 }
-        
-        set { fatalError("Cannot set SHA256.byteCount") }
-    }
+    public static let byteCount: Int = 32
     /// The digest type for a SHA256 hash function.
     public typealias Digest = SHA256Digest
     
@@ -110,17 +102,9 @@ public struct SHA256: HashFunctionImplementationDetails {
 /// data, and then calling the ``finalize()`` method to get the result.
 public struct SHA384: HashFunctionImplementationDetails {
     /// The number of bytes that represents the hash function’s internal state.
-    public static var blockByteCount: Int {
-        get { 128 }
-        
-        set { fatalError("Cannot set SHA384.blockByteCount") }
-    }
+    public static let blockByteCount: Int = 128
     /// The number of bytes in a SHA384 digest.
-    public static var byteCount: Int {
-        get { 48 }
-        
-        set { fatalError("Cannot set SHA384.byteCount") }
-    }
+    public static let byteCount: Int = 48
     
     /// The digest type for a SHA384 hash function.
     public typealias Digest = SHA384Digest
@@ -193,17 +177,9 @@ public struct SHA384: HashFunctionImplementationDetails {
 /// data, and then calling the ``finalize()`` method to get the result.
 public struct SHA512: HashFunctionImplementationDetails {
     /// The number of bytes that represents the hash function’s internal state.
-    public static var blockByteCount: Int {
-        get { 128 }
-        
-        set { fatalError("Cannot set SHA512.blockByteCount") }
-    }
+    public static let blockByteCount: Int = 128
     /// The number of bytes in a SHA512 digest.
-    public static var byteCount: Int {
-        get { 64 }
-        
-        set { fatalError("Cannot set SHA512.byteCount") }
-    }
+    public static let byteCount: Int = 64
     /// The digest type for a SHA512 hash function.
     public typealias Digest = SHA512Digest
     

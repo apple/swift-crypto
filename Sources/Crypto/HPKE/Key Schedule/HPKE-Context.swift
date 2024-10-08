@@ -14,7 +14,12 @@
 #if CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
 @_exported import CryptoKit
 #else
+
+#if CRYPTOKIT_NO_ACCESS_TO_FOUNDATION
+import SwiftSystem
+#else
 import Foundation
+#endif
 
 extension HPKE {
     struct Context {
@@ -45,7 +50,7 @@ extension HPKE {
             let skRKEM = try HPKE.DHKEM.PrivateKey(skR, kem: ciphersuite.kem)
             
             let sharedSecret: SymmetricKey
-            if let pkS = pkS {
+            if let pkS {
                 sharedSecret = try skRKEM.decapsulate(enc, authenticating: pkS)
             } else {
                 sharedSecret = try skRKEM.decapsulate(enc)

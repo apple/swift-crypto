@@ -14,13 +14,17 @@
 #if CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
 @_exported import CryptoKit
 #else
-#if !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
+#if (!CRYPTO_IN_SWIFTPM_FORCE_BUILD_API) || CRYPTOKIT_NO_ACCESS_TO_FOUNDATION
 typealias DigestImpl = CoreCryptoDigestImpl
 #else
 typealias DigestImpl = OpenSSLDigestImpl
 #endif
 
+#if CRYPTOKIT_NO_ACCESS_TO_FOUNDATION
+import SwiftSystem
+#else
 import Foundation
+#endif
 
 /// A type that performs cryptographically secure hashing.
 ///
@@ -43,9 +47,13 @@ import Foundation
 public protocol HashFunction {
     /// The number of bytes that represents the hash function’s internal state.
     static var blockByteCount: Int { get }
-    #if !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
+    #if (!CRYPTO_IN_SWIFTPM_FORCE_BUILD_API) || CRYPTOKIT_NO_ACCESS_TO_FOUNDATION
     /// The type of the digest returned by the hash function.
+    #if CRYPTOKIT_STATIC_LIBRARY
+    associatedtype Digest: CryptoKit_Static.Digest
+    #else
     associatedtype Digest: CryptoKit.Digest
+    #endif
     #else
     associatedtype Digest: Crypto.Digest
     #endif
@@ -107,7 +115,7 @@ extension HashFunction {
         return hasher.finalize()
     }
     
-    /// Computes the SHA1 digest of the bytes in the given data instance and
+    /// Computes the digest of the bytes in the given data instance and
     /// returns the computed digest.
     ///
     /// Use this method if all your data fits into a single data instance. If

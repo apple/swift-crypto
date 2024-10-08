@@ -14,7 +14,11 @@
 #if CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
 @_exported import CryptoKit
 #else
+#if CRYPTOKIT_NO_ACCESS_TO_FOUNDATION
+import SwiftSystem
+#else
 import Foundation
+#endif
 
 extension HPKE {
 	/// The key encapsulation mechanisms to use in HPKE.
@@ -32,6 +36,7 @@ extension HPKE {
 		/// and SHA-2 hashing with a 256-bit digest.
         case Curve25519_HKDF_SHA256
         
+        /// Return the KEM algorithm identifier as defined in section 7.1 of [RFC 9180](https://www.ietf.org/rfc/rfc9180.pdf).
         internal var value: UInt16 {
             switch self {
             case .P256_HKDF_SHA256:         return 0x0010
@@ -59,6 +64,16 @@ extension HPKE {
             case .P256_HKDF_SHA256:         return 32
             case .P384_HKDF_SHA384:         return 48
             case .P521_HKDF_SHA512:         return 64
+            case .Curve25519_HKDF_SHA256:   return 32
+            }
+        }
+        
+        /// Return the size of the encapsulation in bytes
+        internal var nEnc: UInt16 {
+            switch self {
+            case .P256_HKDF_SHA256:         return 65
+            case .P384_HKDF_SHA384:         return 97
+            case .P521_HKDF_SHA512:         return 133
             case .Curve25519_HKDF_SHA256:   return 32
             }
         }

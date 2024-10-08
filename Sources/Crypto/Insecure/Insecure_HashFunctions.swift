@@ -34,18 +34,10 @@ extension Insecure {
     public struct SHA1: HashFunctionImplementationDetails {
         /// The number of bytes that represents the hash function’s internal
         /// state.
-        public static var blockByteCount: Int {
-            get { 64 }
-            
-            set { fatalError("Cannot set SHA1.blockByteCount") }
-        }
+        public static let blockByteCount: Int = 64
         
         /// The number of bytes in a SHA1 digest.
-        public static var byteCount: Int {
-            get { 20 }
-            
-            set { fatalError("Cannot set SHA1.byteCount") }
-        }
+        public static let byteCount: Int = 20
         
         /// The digest type for a SHA1 hash function.
         public typealias Digest = Insecure.SHA1Digest
@@ -122,17 +114,9 @@ extension Insecure {
     public struct MD5: HashFunctionImplementationDetails {
         /// The number of bytes that represents the hash function’s internal
         /// state.
-        public static var blockByteCount: Int {
-            get { 64 }
-            
-            set { fatalError("Cannot set MD5.blockByteCount") }
-        }
+        public static let blockByteCount: Int = 64
         /// The number of bytes in an MD5 digest.
-        public static var byteCount: Int {
-            get { 16 }
-            
-            set { fatalError("Cannot set MD5.byteCount") }
-        }
+        public static let byteCount: Int = 16
         
         /// The digest type for a MD5 hash function.
         public typealias Digest = Insecure.MD5Digest

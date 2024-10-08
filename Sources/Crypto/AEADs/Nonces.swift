@@ -14,10 +14,17 @@
 #if CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
 @_exported import CryptoKit
 #else
+#if CRYPTOKIT_NO_ACCESS_TO_FOUNDATION
+import SwiftSystem
+#else
 import Foundation
+#endif
 // MARK: - Generated file, do NOT edit
 // any edits of this file WILL be overwritten and thus discarded
 // see section `gyb` in `README` for details.
+
+
+
 
 // MARK: - AES.GCM + Nonce
 extension AES.GCM {
@@ -47,8 +54,8 @@ extension AES.GCM {
         /// ``init()`` method to instead create a random nonce.
         ///
         /// - Parameters:
-        ///   - data: A 12-byte data representation of the nonce. The initializer throws an
-        /// error if the data has a length other than 12 bytes.
+///   - data: A data representation of the nonce.
+///     The initializer throws an error if the data has a length smaller than 12 bytes.
         public init<D: DataProtocol>(data: D) throws {
             if data.count < AES.GCM.defaultNonceByteCount {
                 throw CryptoKitError.incorrectParameterSize
@@ -109,8 +116,8 @@ extension ChaChaPoly {
         /// ``init()`` method to instead create a random nonce.
         ///
         /// - Parameters:
-        ///   - data: A 12-byte data representation of the nonce. The initializer throws an
-        /// error if the data has a length other than 12 bytes.
+///   - data: A 12-byte data representation of the nonce.
+///     The initializer throws an error if the data isn't 12 bytes long.
         public init<D: DataProtocol>(data: D) throws {
             if data.count != ChaChaPoly.nonceByteCount {
                 throw CryptoKitError.incorrectParameterSize

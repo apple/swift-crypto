@@ -14,7 +14,12 @@
 #if CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
 @_exported import CryptoKit
 #else
+
+#if CRYPTOKIT_NO_ACCESS_TO_FOUNDATION
+import SwiftSystem
+#else
 import Foundation
+#endif
 
 /// A standards-based implementation of an HMAC-based Key Derivation Function
 /// (HKDF).
@@ -112,7 +117,7 @@ public struct HKDF<H: HashFunction> {
     /// hashed authentication code.
     public static func extract<Salt: DataProtocol>(inputKeyMaterial: SymmetricKey, salt: Salt?) -> HashedAuthenticationCode<H> {
         let key: SymmetricKey
-        if let salt = salt {
+        if let salt {
             if salt.regions.count != 1 {
                 let contiguousBytes = Array(salt)
                 key = SymmetricKey(data: contiguousBytes)
@@ -142,21 +147,23 @@ public struct HKDF<H: HashFunction> {
     ///
     /// - Returns: The derived symmetric key.
     public static func expand<PRK: ContiguousBytes, Info: DataProtocol>(pseudoRandomKey prk: PRK, info: Info?, outputByteCount: Int) -> SymmetricKey {
-        let iterations: UInt8 = UInt8(ceil((Float(outputByteCount) / Float(H.Digest.byteCount))))
+       
+        let iterations: UInt8 = UInt8((Double(outputByteCount) / Double(H.Digest.byteCount)).rounded(.up))
+
         var output = SecureBytes()
         let key = SymmetricKey(data: prk)
         var TMinusOne = SecureBytes()
         for i in 1...iterations {
             var hmac = HMAC<H>(key: key)
             hmac.update(data: TMinusOne)
-            if let info = info {
+            if let info {
                 hmac.update(data: info)
             }
             
             withUnsafeBytes(of: i) { counter in
                 hmac.update(bufferPointer: counter)
             }
-            TMinusOne = SecureBytes(hmac.finalize())
+            TMinusOne = SecureBytes(bytes: hmac.finalize())
             output.append(TMinusOne)
         }
         

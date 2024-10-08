@@ -14,14 +14,17 @@
 #if CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
 @_exported import CryptoKit
 #else
-#if !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
+#if (!CRYPTO_IN_SWIFTPM_FORCE_BUILD_API) || CRYPTOKIT_NO_ACCESS_TO_FOUNDATION
 typealias AESGCMImpl = CoreCryptoGCMImpl
-import Security
 #else
 typealias AESGCMImpl = OpenSSLAESGCMImpl
 #endif
 
+#if CRYPTOKIT_NO_ACCESS_TO_FOUNDATION
+import SwiftSystem
+#else
 import Foundation
+#endif
 
 extension AES {
     /// The Advanced Encryption Standard (AES) Galois Counter Mode (GCM) cipher

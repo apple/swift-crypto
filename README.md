@@ -130,10 +130,14 @@ SemVer and Swift Crypto's Public API guarantees should result in a working progr
 
 Swift Crypto 2.0.0 was released in September 2021. The only breaking change between Swift Crypto 2.0.0 and 1.0.0 was the addition of new cases in the `CryptoKitError` enumeration. For most users, then, it's safe to depend on either the 1.0.0 _or_ 2.0.0 series of releases.
 
+Swift Crypto 3.0.0 was released in September 2023. The only breaking change between Swift Crypto 3.0.0 and 2.0.0 was the addition of new cases in the `CryptoKitError` enumeration. For most users, then, it's safe to depend on either the 1.0.0 _or_ 2.0.0 _or_ 3.0.0 series of releases.
+
+Swift Crypto 4.0.0 was released in October 2024. The only breaking change was the removal of the non-functional setters for `blockByteSize` on the hash functions, which triggered a `fatalError` if they were ever called. For most users, then, it is safe to depend on the entire range from 1.0.0 to 4.0.0 inclusive.
+
 To do so, please use the following dependency in your `Package.swift`:
 
 ```swift
-.package(url: "https://github.com/apple/swift-crypto.git", "1.0.0" ..< "3.0.0"),
+.package(url: "https://github.com/apple/swift-crypto.git", "1.0.0" ..< "5.0.0"),
 ```
 
 ### Developing Swift Crypto on macOS

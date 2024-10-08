@@ -12,9 +12,18 @@
 //
 //===----------------------------------------------------------------------===//
 #if CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
+#if CRYPTOKIT_STATIC_LIBRARY
+@_exported import CryptoKit_Static
+#else
 @_exported import CryptoKit
+#endif
+#else
+
+#if CRYPTOKIT_NO_ACCESS_TO_FOUNDATION
+import SwiftSystem
 #else
 import Foundation
+#endif
 
 extension HPKE {
     /// The key derivation functions to use in HPKE.
@@ -26,7 +35,7 @@ extension HPKE {
 		/// An HMAC-based key derivation function that uses SHA-2 hashing with a 512-bit digest.
         case HKDF_SHA512
         
-        /// Assigned value
+        /// Return the KDF algorithm identifier as defined in section 7.2 of [RFC 9180](https://www.ietf.org/rfc/rfc9180.pdf).
         internal var value: UInt16 {
             switch self {
             case .HKDF_SHA256: return 0x0001

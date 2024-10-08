@@ -12,9 +12,17 @@
 //
 //===----------------------------------------------------------------------===//
 #if CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
+#if CRYPTOKIT_STATIC_LIBRARY
+@_exported import CryptoKit_Static
+#else
 @_exported import CryptoKit
+#endif
+#else
+#if CRYPTOKIT_NO_ACCESS_TO_FOUNDATION
+import SwiftSystem
 #else
 import Foundation
+#endif
 
 /// A type that represents a message authentication code.
 public protocol MessageAuthenticationCode: Hashable, ContiguousBytes, CustomStringConvertible, Sequence where Element == UInt8 {
@@ -59,7 +67,7 @@ extension MessageAuthenticationCode {
             return Array(buffPtr.bindMemory(to: UInt8.self)).makeIterator()
         })
     }
-
+    
     public var description: String {
         return "\(Self.self): \(Array(self).hexString)"
     }

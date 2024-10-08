@@ -12,9 +12,17 @@
 //
 //===----------------------------------------------------------------------===//
 #if CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
+#if CRYPTOKIT_STATIC_LIBRARY
+@_exported import CryptoKit_Static
+#else
 @_exported import CryptoKit
+#endif
+#else
+#if CRYPTOKIT_NO_ACCESS_TO_FOUNDATION
+import SwiftSystem
 #else
 import Foundation
+#endif
 
 private let emptyStorage:SecureBytes.Backing = SecureBytes.Backing.createEmpty()
 
@@ -170,11 +178,11 @@ extension SecureBytes: RangeReplaceableCollection {
 
     // The default implementation of this from RangeReplaceableCollection can't take advantage of `ContiguousBytes`, so we override it here
     @inlinable
-    public mutating func append<Elements: Sequence>(contentsOf newElements: Elements) where Elements.Element == UInt8 {
+    public mutating func append(contentsOf newElements: some Sequence<UInt8>) {
         let done:Void? = newElements.withContiguousStorageIfAvailable {
             replaceSubrange(endIndex..<endIndex, with: $0)
         }
-
+        
         if done == nil {
             for element in newElements {
                 append(element)
@@ -198,7 +206,7 @@ extension SecureBytes: ContiguousBytes {
 
         return try self.backing.withUnsafeMutableBytes(body)
     }
-
+    
     @inlinable
     func withContiguousStorageIfAvailable<R>(_ body: (UnsafeBufferPointer<UInt8>) throws -> R) rethrows -> R? {
         return try self.backing.withContiguousStorageIfAvailable(body)
@@ -248,12 +256,12 @@ extension SecureBytes {
 
     @usableFromInline
     internal class Backing: ManagedBuffer<BackingHeader, UInt8> {
-
+        
         @usableFromInline
         class func createEmpty() -> Backing {
             return Backing.create(minimumCapacity: 0, makingHeaderWith: { _ in BackingHeader(count: 0, capacity: 0) }) as! Backing
         }
-
+        
         @usableFromInline
         class func create(capacity: Int) -> Backing {
             let capacity = Int(UInt32(capacity).nextPowerOf2ClampedToMax())
@@ -445,7 +453,7 @@ extension SecureBytes.Backing: ContiguousBytes {
             return try body(UnsafeMutableRawBufferPointer(start: elementsPtr, count: capacity))
         }
     }
-
+    
     func withContiguousStorageIfAvailable<R>(_ body: (UnsafeBufferPointer<UInt8>) throws -> R) rethrows -> R? {
         let count = self.count
 
@@ -493,6 +501,12 @@ extension Data {
     /// This is our best-effort attempt to expose the data in an auto-zeroing fashion. Any mutating function called on
     /// the constructed `Data` object will cause the bytes to be copied out: we can't avoid that.
     init(_ secureBytes: SecureBytes) {
+        #if CRYPTOKIT_NO_ACCESS_TO_FOUNDATION
+        self = secureBytes.withUnsafeBytes {
+            // We make a mutable copy of this pointer here because we know Data won't write through it.
+            return Data($0)
+        }
+        #else
         // We need to escape into unmanaged land here in order to keep the backing storage alive.
         let unmanagedBacking = Unmanaged.passRetained(secureBytes.backing)
 
@@ -502,6 +516,7 @@ extension Data {
             // We make a mutable copy of this pointer here because we know Data won't write through it.
             return Data(bytesNoCopy: UnsafeMutableRawPointer(mutating: $0.baseAddress!), count: $0.count, deallocator: .custom { (_: UnsafeMutableRawPointer, _: Int) in unmanagedBacking.release() })
         }
+        #endif
     }
 
     /// A custom initializer for Data that attempts to share the same storage as the current SecureBytes instance.
@@ -513,7 +528,16 @@ extension Data {
         let base = secureByteSlice.base
         let baseOffset = secureByteSlice.startIndex.offset
         let endOffset = secureByteSlice.endIndex.offset
+        
+        #if CRYPTOKIT_NO_ACCESS_TO_FOUNDATION
+        self = base.withUnsafeBytes {
+            // Slice the base pointer down to just the range we want.
+            let slicedPointer = UnsafeRawBufferPointer(rebasing: $0[baseOffset..<endOffset])
 
+            // We make a mutable copy of this pointer here because we know Data won't write through it.
+            return Data(slicedPointer)
+        }
+        #else
         // We need to escape into unmanaged land here in order to keep the backing storage alive.
         let unmanagedBacking = Unmanaged.passRetained(base.backing)
 
@@ -526,6 +550,7 @@ extension Data {
             // We make a mutable copy of this pointer here because we know Data won't write through it.
             return Data(bytesNoCopy: UnsafeMutableRawPointer(mutating: slicedPointer.baseAddress!), count: slicedPointer.count, deallocator: .custom { (_: UnsafeMutableRawPointer, _: Int) in unmanagedBacking.release() })
         }
+        #endif
     }
 }
 #endif // Linux or !SwiftPM

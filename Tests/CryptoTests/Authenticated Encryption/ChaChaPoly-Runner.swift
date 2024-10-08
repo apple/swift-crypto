@@ -37,6 +37,7 @@ class ChaChaPolyTests: XCTestCase {
         XCTAssertNoThrow(try ChaChaPoly.open(message, using: key))
     }
 
+    @available(iOS 17.4, macOS 14.4, watchOS 10.4, tvOS 17.4, *)
     func testExtractingBytesFromNonce() throws {
         let nonce = ChaChaPoly.Nonce()
         XCTAssertEqual(Array(nonce), nonce.withUnsafeBytes { Array($0) })
@@ -49,12 +50,7 @@ class ChaChaPolyTests: XCTestCase {
         XCTAssertEqual(Array(nonceFromContiguous), testNonceBytes)
         XCTAssertEqual(Array(nonceFromDiscontiguous), testNonceBytes)
 
-        XCTAssertThrowsError(try ChaChaPoly.Nonce(data: DispatchData.empty)) { error in
-            guard case .some(.incorrectParameterSize) = error as? CryptoKitError else {
-                XCTFail("Unexpected error")
-                return
-            }
-        }
+        XCTAssertThrowsError(try ChaChaPoly.Nonce(data: DispatchData.empty), error: CryptoKitError.incorrectParameterSize)
     }
 
     func testEncryptDecrypt() throws {
@@ -69,6 +65,7 @@ class ChaChaPolyTests: XCTestCase {
         XCTAssertEqual(recoveredPlaintext, plaintext)
     }
 
+    @available(iOS 17.4, macOS 14.4, watchOS 10.4, tvOS 17.4, *)
     func testUserConstructedSealedBoxesCombined() throws {
         let ciphertext = Array("This pretty clearly isn't ciphertext, but sure why not".utf8)
         let (contiguousCiphertext, discontiguousCiphertext) = ciphertext.asDataProtocols()
@@ -81,14 +78,11 @@ class ChaChaPolyTests: XCTestCase {
         XCTAssertEqual(contiguousSB.tag, discontiguousSB.tag)
 
         // Empty dispatchdatas don't work, they are too small.
-        XCTAssertThrowsError(try ChaChaPoly.SealedBox(combined: DispatchData.empty)) { error in
-            guard case .some(.incorrectParameterSize) = error as? CryptoKitError else {
-                XCTFail("Unexpected error: \(error)")
-                return
-            }
-        }
+        XCTAssertThrowsError(try ChaChaPoly.SealedBox(combined: DispatchData.empty),
+                             error: CryptoKitError.incorrectParameterSize)
     }
 
+    @available(iOS 17.4, macOS 14.4, watchOS 10.4, tvOS 17.4, *)
     func testUserConstructedSealedBoxesSplit() throws {
         let tag = Array(repeating: UInt8(0), count: 16)
         let ciphertext = Array("This pretty clearly isn't ciphertext, but sure why not".utf8)
@@ -118,12 +112,8 @@ class ChaChaPolyTests: XCTestCase {
         XCTAssertEqual(contiguousDiscontiguous.combined, discontiguousDiscontiguous.combined)
 
         // Empty dispatchdatas for the tag don't work, they are too small.
-        XCTAssertThrowsError(try ChaChaPoly.SealedBox(nonce: nonce, ciphertext: ciphertext, tag: DispatchData.empty)) { error in
-            guard case .some(.incorrectParameterSize) = error as? CryptoKitError else {
-                XCTFail("Unexpected error: \(error)")
-                return
-            }
-        }
+        XCTAssertThrowsError(try ChaChaPoly.SealedBox(nonce: nonce, ciphertext: ciphertext, tag: DispatchData.empty),
+                             error: CryptoKitError.incorrectParameterSize)
 
         // They work fine for the ciphertext though.
         let weirdBox = try orFail { try ChaChaPoly.SealedBox(nonce: nonce, ciphertext: DispatchData.empty, tag: tag) }
