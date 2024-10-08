@@ -18,10 +18,12 @@ import Foundation
 @_implementationOnly import CCryptoBoringSSL
 @_implementationOnly import CCryptoBoringSSLShims
 
+/// Types associated with the SLH-DSA-SHA2-128s algorithm
 @_documentation(visibility: public)
 public enum SLHDSA {}
 
 extension SLHDSA {
+    /// A SLH-DSA-SHA2-128s private key.
     public struct PrivateKey: Sendable {
         fileprivate let pointer: UnsafeMutablePointer<UInt8>
         
@@ -112,6 +114,7 @@ extension SLHDSA {
 }
 
 extension SLHDSA {
+    /// A SLH-DSA-SHA2-128s public key.
     public struct PublicKey: Sendable {
         private let pointer: UnsafeMutablePointer<UInt8>
         
@@ -190,17 +193,30 @@ extension SLHDSA {
 }
 
 extension SLHDSA {
+    /// A SLH-DSA-SHA2-128s signature.
     public struct Signature: Sendable, ContiguousBytes {
+        /// The raw binary representation of the signature.
         public var rawRepresentation: Data
         
+        /// Initialize a SLH-DSA-SHA2-128s signature from a raw representation.
+        /// 
+        /// - Parameter rawRepresentation: The signature bytes.
         public init(rawRepresentation: some DataProtocol) {
             self.rawRepresentation = Data(rawRepresentation)
         }
         
+        /// Initialize a SLH-DSA-SHA2-128s signature from a raw representation.
+        /// 
+        /// - Parameter signatureBytes: The signature bytes.
         internal init(signatureBytes: [UInt8]) {
             self.rawRepresentation = Data(signatureBytes)
         }
         
+        /// Access the signature bytes.
+        /// 
+        /// - Parameter body: The closure to execute with the signature bytes.
+        /// 
+        /// - Returns: The result of the closure.
         public func withUnsafeBytes<R>(_ body: (UnsafeRawBufferPointer) throws -> R) rethrows -> R {
             try self.rawRepresentation.withUnsafeBytes(body)
         }
@@ -211,10 +227,10 @@ extension SLHDSA {
 }
 
 extension SLHDSA {
-    /// The ASN.1 object identifiers for a private ML-DSA-65 key.
+    /// The ASN.1 object identifiers for a private SLH-DSA-SHA2-128s key.
     private static let keyType = "PRIVATE KEY"
     
-    /// The ASN.1 object identifiers for a public ML-DSA-65 key.
+    /// The ASN.1 object identifiers for a public SLH-DSA-SHA2-128s key.
     private static let publicKeyType = "PUBLIC KEY"
     
     /// The size of the seed in bytes.
