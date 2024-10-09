@@ -1,0 +1,155 @@
+//===----------------------------------------------------------------------===//
+//
+// This source file is part of the SwiftCrypto open source project
+//
+// Copyright (c) 2024 Apple Inc. and the SwiftCrypto project authors
+// Licensed under Apache License v2.0
+//
+// See LICENSE.txt for license information
+// See CONTRIBUTORS.md for the list of SwiftCrypto project authors
+//
+// SPDX-License-Identifier: Apache-2.0
+//
+//===----------------------------------------------------------------------===//
+
+import Crypto
+import Foundation
+// MARK: - Generated file, do NOT edit
+// any edits of this file WILL be overwritten and thus discarded
+// see section `gyb` in `README` for details.
+
+fileprivate struct ByteIterator<T>: IteratorProtocol {
+    var currentOffset = 0
+    var pointer: UnsafeRawBufferPointer? = nil
+    let length: Int
+    
+    init(_ bytes: T) {
+        self.length = Mirror(reflecting: bytes).children.count
+        withUnsafeBytes(of: bytes) { pointer in
+            self.pointer = pointer
+        }
+    }
+    
+    @inlinable 
+    public mutating func next() -> UInt8? {
+        guard let pointer,
+              currentOffset < length else { return nil }
+        
+        let next = pointer.load(fromByteOffset: currentOffset, as: UInt8.self)
+        currentOffset += 1
+        return next
+    }
+}
+
+%{
+ciphers = [
+    {"name": "AES._CBC", "nonceName": "IV", "tupleDefinition": """(
+            UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, 
+            UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8
+        )""", "tupleBlank": """(
+            0, 0, 0, 0, 0, 0, 0, 0, 
+            0, 0, 0, 0, 0, 0, 0, 0
+        )""", "validSizes": "[16]"},
+    {"name": "AES._CFB", "nonceName": "IV", "tupleDefinition": "(UInt64, UInt64)", "tupleBlank": "(0, 0)", "validSizes": "[16]"},
+    {"name": "AES._CTR", "nonceName": "Nonce", "tupleDefinition": "(UInt64, UInt32, UInt32)", "tupleBlank": "(0, 0, 0)", "validSizes": "[12, 16]"}]
+}%
+% for cipher in ciphers:
+%{
+name = cipher["name"]
+nonceName = cipher["nonceName"]
+tupleDefinition = cipher["tupleDefinition"]
+tupleBlank = cipher["tupleBlank"]
+validSizes = cipher["validSizes"]
+}%
+
+// MARK: - ${name} + ${nonceName}
+extension ${name} {
+    /// A value used once during a cryptographic operation and then discarded.
+    ///
+    /// Don’t reuse the same nonce for multiple calls to encryption APIs. It’s critical
+    /// that nonces are unique per call to encryption APIs in order to protect the
+    /// integrity of the encryption.
+    public struct ${nonceName}: Sendable, ContiguousBytes, Sequence {
+        typealias ${nonceName}Tuple = ${tupleDefinition}
+    
+        var bytes: ${nonceName}Tuple
+        static var emptyBytes: ${nonceName}Tuple = ${tupleBlank}
+
+        /// Creates a new random nonce.
+        public init() {
+            var bytes = Self.emptyBytes
+            Swift.withUnsafeMutableBytes(of: &bytes) {
+                let count = MemoryLayout<${nonceName}Tuple>.size
+                $0.initializeWithRandomBytes(count: count)
+            }
+            self.bytes = bytes
+        }
+        
+        /// Creates a nonce from the given collection.
+        ///
+        /// Unless your use case calls for a nonce with a specific value, use the
+        /// ``init()`` method to instead create a random nonce.
+        ///
+        /// - Parameters:
+        ///   - ${nonceName.lower()}Bytes: A collection of bytes representation of the nonce. 
+        /// The initializer throws an error if the data has the incorrect length.
+        public init<${nonceName}Bytes: Collection>(${nonceName.lower()}Bytes: ${nonceName}Bytes) throws where ${nonceName}Bytes.Element == UInt8 {
+            guard ${validSizes}.contains(${nonceName.lower()}Bytes.count) else {
+                throw CryptoKitError.incorrectKeySize
+            }
+
+            var bytes = Self.emptyBytes
+            Swift.withUnsafeMutableBytes(of: &bytes) { bytesPtr in
+                bytesPtr.copyBytes(from: ${nonceName.lower()}Bytes)
+            }
+            self.bytes = bytes
+        }
+        
+        /// Creates a nonce from the given data.
+        ///
+        /// Unless your use case calls for a nonce with a specific value, use the
+        /// ``init()`` method to instead create a random nonce.
+        ///
+        /// - Parameters:
+        ///   - data: A data representation of the nonce. The initializer throws an
+        /// error if the data has the incorrect length.
+        public init<D: DataProtocol>(data: D) throws {
+            guard ${validSizes}.contains(data.count) else {
+                throw CryptoKitError.incorrectKeySize
+            }
+
+            var bytes = Self.emptyBytes
+            Swift.withUnsafeMutableBytes(of: &bytes) { bytesPtr in
+                data.copyBytes(to: bytesPtr)
+            }
+            self.bytes = bytes
+        }
+        
+        /// Calls the given closure with a pointer to the underlying bytes of the array’s
+        /// contiguous storage.
+        ///
+        /// - Parameters:
+        ///   - body: A closure with an `UnsafeRawBufferPointer` parameter that points to the
+        /// contiguous storage for the array. The system creates the storage if it doesn’t
+        /// exist. If body has a return value, that value is also used as the return value
+        /// for the ``withUnsafeBytes(_:)`` method. The argument is valid only for
+        /// the duration of the closure’s execution.
+        ///
+        /// - Returns: The return value, if any, of the body closure parameter.
+        public func withUnsafeBytes<R>(_ body: (UnsafeRawBufferPointer) throws -> R) rethrows -> R {
+            var bytes = self.bytes
+            return try Swift.withUnsafeBytes(of: &bytes, body)
+        }
+        
+        mutating func withUnsafeMutableBytes<ReturnType>(_ body: (UnsafeMutableRawBufferPointer) throws -> ReturnType) rethrows -> ReturnType {
+            var bytes = self.bytes
+            return try Swift.withUnsafeMutableBytes(of: &bytes, body)
+        }
+        
+        /// Returns an iterator over the elements of the nonce.
+        public func makeIterator() -> some IteratorProtocol<UInt8> {
+            ByteIterator(bytes)
+        }
+    }
+}
+% end
