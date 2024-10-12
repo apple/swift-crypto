@@ -22,7 +22,7 @@ fileprivate typealias BackingScrypt = BoringSSLScrypt
 
 extension KDF {
     /// An implementation of scrypt key derivation function.
-    public struct Scrypt: Sendable {
+    public enum Scrypt: Sendable {
         /// Derives a symmetric key using the scrypt algorithm.
         ///
         /// - Parameters:
