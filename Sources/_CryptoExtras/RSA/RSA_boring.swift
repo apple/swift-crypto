@@ -15,6 +15,7 @@ import Foundation
 import Crypto
 
 // NOTE: This file is unconditionally compiled because RSABSSA is implemented using BoringSSL on all platforms.
+import CryptoBoringWrapper
 @_implementationOnly import CCryptoBoringSSL
 @_implementationOnly import CCryptoBoringSSLShims
 
@@ -59,6 +60,10 @@ internal struct BoringSSLRSAPublicKey: Sendable {
 
     fileprivate init(_ backing: Backing) {
         self.backing = backing
+    }
+
+    func getKeyPrimitives() throws -> (n: Data, e: Data) {
+        try self.backing.getKeyPrimitives()
     }
 }
 
@@ -464,6 +469,22 @@ extension BoringSSLRSAPublicKey {
 
         deinit {
             CCryptoBoringSSL_EVP_PKEY_free(self.pointer)
+        }
+
+        fileprivate func getKeyPrimitives() -> (n: Data, e: Data) {
+            let key = CCryptoBoringSSL_EVP_PKEY_get0_RSA(self.pointer)
+
+            func getPrimitive(_ getPointer: (OpaquePointer?) -> UnsafePointer<BIGNUM>?) -> Data {
+                let ptr = getPointer(key)
+                let size = Int(CCryptoBoringSSL_BN_num_bytes(ptr))
+                var data = Data(count: size)
+                data.withUnsafeMutableBytes { dataPtr in
+                    _ = CCryptoBoringSSL_BN_bn2bin(ptr, dataPtr.baseAddress)
+                }
+                return data
+            }
+
+            return (getPrimitive(CCryptoBoringSSL_RSA_get0_n), getPrimitive(CCryptoBoringSSL_RSA_get0_e))
         }
     }
 }

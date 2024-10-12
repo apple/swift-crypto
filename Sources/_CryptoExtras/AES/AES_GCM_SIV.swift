@@ -15,12 +15,8 @@
 import Crypto
 @_implementationOnly import CCryptoBoringSSL
 @_implementationOnly import CCryptoBoringSSLShims
-@_implementationOnly import CryptoBoringWrapper
-#if canImport(Darwin) || swift(>=5.9.1)
+import CryptoBoringWrapper
 import Foundation
-#else
-@preconcurrency import Foundation
-#endif
 
 /// Types associated with the AES GCM SIV algorithm
 extension AES.GCM {

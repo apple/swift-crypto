@@ -1,4 +1,4 @@
-// swift-tools-version:5.8
+// swift-tools-version:5.9
 //===----------------------------------------------------------------------===//
 //
 // This source file is part of the SwiftCrypto open source project
@@ -20,7 +20,7 @@
 // Sources/CCryptoBoringSSL directory. The source repository is at
 // https://boringssl.googlesource.com/boringssl.
 //
-// BoringSSL Commit: dbad745811195c00b729efd0ee0a09b7d9fce1d2
+// BoringSSL Commit: 76968bb3d53982560bcf08bcd0ba3e1865fe15cd
 
 import PackageDescription
 
@@ -57,6 +57,18 @@ if development {
     ]
 }
 
+// This doesn't work when cross-compiling: the privacy manifest will be included in the Bundle and
+// Foundation will be linked. This is, however, strictly better than unconditionally adding the
+// resource.
+#if canImport(Darwin)
+let privacyManifestExclude: [String] = []
+let privacyManifestResource: [PackageDescription.Resource] = [.copy("PrivacyInfo.xcprivacy")]
+#else
+// Exclude on other platforms to avoid build warnings.
+let privacyManifestExclude: [String] = ["PrivacyInfo.xcprivacy"]
+let privacyManifestResource: [PackageDescription.Resource] = []
+#endif
+
 let package = Package(
     name: "swift-crypto",
     platforms: [
@@ -72,11 +84,13 @@ let package = Package(
             .library(name: "CCryptoBoringSSL", type: .static, targets: ["CCryptoBoringSSL"]),
             MANGLE_END */
     ],
-    dependencies: [],
+    dependencies: [
+        .package(url: "https://github.com/apple/swift-asn1.git", from: "1.2.0")
+    ],
     targets: [
         .target(
             name: "CCryptoBoringSSL",
-            exclude: [
+            exclude: privacyManifestExclude + [
                 "hash.txt",
                 "include/boringssl_prefix_symbols_nasm.inc",
                 "CMakeLists.txt",
@@ -88,9 +102,7 @@ let package = Package(
                 "crypto/bio/socket_helper.c",
                 "crypto/bio/socket.c"
             ],
-            resources: [
-                .copy("PrivacyInfo.xcprivacy"),
-            ],
+            resources: privacyManifestResource,
             cSettings: [
                 // These defines come from BoringSSL's build system
                 .define("_HAS_EXCEPTIONS", to: "0", .when(platforms: [Platform.windows])),
@@ -107,27 +119,23 @@ let package = Package(
         .target(
             name: "CCryptoBoringSSLShims",
             dependencies: ["CCryptoBoringSSL"],
-            exclude: [
+            exclude: privacyManifestExclude + [
                 "CMakeLists.txt"
             ],
-            resources: [
-                .copy("PrivacyInfo.xcprivacy"),
-            ]
+            resources: privacyManifestResource
         ),
         .target(
             name: "Crypto",
             dependencies: dependencies,
-            exclude: [
+            exclude: privacyManifestExclude + [
                 "CMakeLists.txt",
                 "AEADs/Nonces.swift.gyb",
                 "Digests/Digests.swift.gyb",
                 "Key Agreement/ECDH.swift.gyb",
                 "Signatures/ECDSA.swift.gyb",
             ],
-            resources: [
-                .copy("PrivacyInfo.xcprivacy"),
-            ],
-            swiftSettings: swiftSettings + [.define("MODULE_IS_CRYPTO")]
+            resources: privacyManifestResource,
+            swiftSettings: swiftSettings
         ),
         .target(
             name: "_CryptoExtras",
@@ -135,14 +143,13 @@ let package = Package(
                 "CCryptoBoringSSL",
                 "CCryptoBoringSSLShims",
                 "CryptoBoringWrapper",
-                "Crypto"
+                "Crypto",
+                .product(name: "SwiftASN1", package: "swift-asn1")
             ],
-            exclude: [
+            exclude: privacyManifestExclude + [
                 "CMakeLists.txt",
             ],
-            resources: [
-                .copy("PrivacyInfo.xcprivacy"),
-            ],
+            resources: privacyManifestResource,
             swiftSettings: swiftSettings
         ),
         .target(
@@ -151,12 +158,10 @@ let package = Package(
                 "CCryptoBoringSSL",
                 "CCryptoBoringSSLShims"
             ],
-            exclude: [
+            exclude: privacyManifestExclude + [
                 "CMakeLists.txt",
             ],
-            resources: [
-                .copy("PrivacyInfo.xcprivacy"),
-            ]
+            resources: privacyManifestResource
         ),
         .executableTarget(name: "crypto-shasum", dependencies: ["Crypto"]),
         .testTarget(
@@ -168,6 +173,7 @@ let package = Package(
             swiftSettings: swiftSettings
         ),
         .testTarget(name: "_CryptoExtrasTests", dependencies: ["_CryptoExtras"]),
+        .testTarget(name: "CryptoBoringWrapperTests", dependencies: ["CryptoBoringWrapper"]),
     ],
     cxxLanguageStandard: .cxx11
 )

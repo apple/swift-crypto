@@ -13,6 +13,7 @@
 //===----------------------------------------------------------------------===//
 import Foundation
 import Crypto
+import CryptoBoringWrapper
 
 // NOTE: RSABSSA API is implemented using BoringSSL on all platforms.
 fileprivate typealias BackingPublicKey = BoringSSLRSAPublicKey
@@ -25,6 +26,16 @@ extension _RSA {
 extension _RSA.BlindSigning {
     public struct PublicKey<H: HashFunction>: Sendable {
         public typealias Parameters = _RSA.BlindSigning.Parameters<H>
+
+        public struct Primitives: Sendable, Hashable {
+            public var modulus: Data
+            public var publicExponent: Data
+
+            public init(modulus: Data, publicExponent: Data) {
+                self.modulus = modulus
+                self.publicExponent = publicExponent
+            }
+        }
 
         private var backing: BackingPublicKey
         private let parameters: Parameters
@@ -112,6 +123,11 @@ extension _RSA.BlindSigning {
         fileprivate init(_ backing: BackingPublicKey, _ parameters: Parameters) {
             self.backing = backing
             self.parameters = parameters
+        }
+
+        public func getKeyPrimitives() throws -> Primitives {
+            let (n, e) = try self.backing.getKeyPrimitives()
+            return Primitives(modulus: n, publicExponent: e)
         }
     }
 }
@@ -226,6 +242,34 @@ extension _RSA.BlindSigning {
 
         public var publicKey: _RSA.BlindSigning.PublicKey<H> {
             _RSA.BlindSigning.PublicKey(self.backing.publicKey, self.parameters)
+        }
+
+        /// Construct a private key with the specified parameters.
+        ///
+        /// The use of this API is strongly discouraged for performance reasons,
+        /// as it requires the factorization of the modulus, which is resource-intensive.
+        /// It is recommended to use the other initializers to construct a private key,
+        /// unless you have only the modulus, public exponent, and private exponent 
+        /// to construct the key.
+        ///
+        /// - Parameters:
+        ///   - n: modulus of the key
+        ///   - e: public exponent of the key
+        ///   - d: private exponent of the key
+        ///   - parameters: parameters used in the blind signing protocol
+        public static func _createFromNumbers(n: some ContiguousBytes, e: some ContiguousBytes, d: some ContiguousBytes, parameters: Parameters) throws -> Self {
+            let (p, q) = try _RSA.extractPrimeFactors(
+                n: try ArbitraryPrecisionInteger(bytes: n), 
+                e: try ArbitraryPrecisionInteger(bytes: e), 
+                d: try ArbitraryPrecisionInteger(bytes: d)
+            )
+
+            return try Self.init(
+                n: n, e: e, d: d, 
+                p: try Data(bytesOf: p, paddedToSize: p.byteCount), 
+                q: try Data(bytesOf: q, paddedToSize: q.byteCount),
+                parameters: parameters
+            )
         }
     }
 }

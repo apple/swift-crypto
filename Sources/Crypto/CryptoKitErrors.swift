@@ -33,8 +33,10 @@ public enum CryptoKitError: Error {
     case invalidParameter
 }
 
+extension CryptoKitError: Equatable, Hashable {}
+
 /// Errors from decoding ASN.1 content.
-public enum CryptoKitASN1Error: Error {
+public enum CryptoKitASN1Error: Equatable, Error, Hashable {
     /// The ASN.1 tag for this field is invalid or unsupported.
     case invalidFieldIdentifier
 

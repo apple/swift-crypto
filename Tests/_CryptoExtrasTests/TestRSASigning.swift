@@ -13,10 +13,61 @@
 //===----------------------------------------------------------------------===//
 import Foundation
 import XCTest
-@testable import Crypto
-import _CryptoExtras
+import Crypto
+import CryptoBoringWrapper
+@testable import _CryptoExtras
 
 final class TestRSASigning: XCTestCase {
+
+    func test_rsaPssParameters() throws {
+        let rsaPssPublicKeyPEM = """
+        -----BEGIN PUBLIC KEY-----
+        MIIBUjA9BgkqhkiG9w0BAQowMKANMAsGCWCGSAFlAwQCAaEaMBgGCSqGSIb3DQEB
+        CDALBglghkgBZQMEAgGiAwIBIAOCAQ8AMIIBCgKCAQEAvcOaxSJoSiiXIQme6HEF
+        d0/QHjtk5+U1RbeejxeUR80Q1f8E5v7+uIBEFVbwZpIJZtmSB3bxbS31rOBGVcrI
+        IAfCnUlq6DK1fEL1fgn61XMiSSyKr75L5ZXv9Rib95h3lrNbhW0DUaXzf61kw3+Z
+        4KV1btD7C+fdiLzPm18UQv8jJSbCE6hv3MWdkG3NcwgZC+iXwz3DFcsclyYg/+Om
+        0hx8UJ/34vNpeE+0MHwyl0j/eO7izrzTZnfsm4ZRaU3mw0ORDQmo8MyIDFa55R/v
+        30otk9y3LFkaeEyl1+7VFjJzoOEtze6VkTEzV8e/BTu4eXlKQ6CEYvHhUkNmHGC+
+        mwIDAQAB
+        -----END PUBLIC KEY-----
+        """
+
+        let rsaPssPublicKeyDER = Data(base64Encoded:
+            "MIIBUjA9BgkqhkiG9w0BAQowMKANMAsGCWCGSAFlAwQCAaEaMBgGCSqGSIb3DQEB" +
+            "CDALBglghkgBZQMEAgGiAwIBIAOCAQ8AMIIBCgKCAQEAxPJvJDGPzb2rBWfE5JCB" +
+            "p2OAmR46zIbaVjIR1lUabKCdb5CxdnHvQBymp3AlvOGTNzSLxTXOaYn7MzeFvAVI" +
+            "mpRRzXzalG0ZfM4AkPBtjPz93pPLWEfgk+/i+JLWlWUStUGgGKNbJn4yJ8cJ8n+E" +
+            "/5+ry+tUYHEJm9A4/HwH4Agg78kPtnEvIvdC/aIw4TEpjZDewVNAEW2rBuQNd01r" +
+            "fAo2CSzbH76gL02mnLuvh1xyrKz+v9gyo9Taw273KU+83HPs91obgX4WpEfWOnd6" +
+            "LMJHRZo92FXnW6IHkCdz12khyS1TVIq4ONwjvmS6q3V9UwQg/uuyoSNnRfWXvZXQ" +
+            "aQIDAQAB"
+        )!
+
+        let rsaPssPublicKey1024PEM = """
+        -----BEGIN PUBLIC KEY-----
+        MIHPMD0GCSqGSIb3DQEBCjAwoA0wCwYJYIZIAWUDBAIBoRowGAYJKoZIhvcNAQEI
+        MAsGCWCGSAFlAwQCAaIDAgEgA4GNADCBiQKBgQDGv67JltnwgkFxQOI8YUldC1LG
+        rCLOpyAN/Vq4WyLQ6TKcPevcYA8XmuXL8tC85rMQQG1GMwMWKcf/kf0NDKblUFjZ
+        BevUPmQF3Jadsn9ST+RMn8D+kq31Hdc0UG/WjZSpMHTkc8SWIjr2E6DIILn/OA/w
+        G3jVOeTsEfUeGExhVwIDAQAB
+        -----END PUBLIC KEY-----
+        """
+
+        let rsaPssPublicKey1024DER = Data(base64Encoded:
+            "MIHPMD0GCSqGSIb3DQEBCjAwoA0wCwYJYIZIAWUDBAIBoRowGAYJKoZIhvcNAQEI" +
+            "MAsGCWCGSAFlAwQCAaIDAgEgA4GNADCBiQKBgQC7LZLbFhzOCoTmXEABRsyOkRiB" +
+            "18XkkJBwTkn2JES1jVZogXtcq5ZV+KmPulOrzLuaC45IliS5OZ1hJuC7m8/devXk" +
+            "HaNId+y2cZxRYnfNCsEzvTryxt+01VMQJA4VHsdmhJO6TEIUzDIfj3BlahZuoU11" +
+            "VZ4wgVIpYymQidJigQIDAQAB"
+        )!
+
+        XCTAssertEqual(try _RSA.Signing.PublicKey(pemRepresentation: rsaPssPublicKeyPEM).keySizeInBits, 2048)
+        XCTAssertEqual(try _RSA.Signing.PublicKey(derRepresentation: rsaPssPublicKeyDER).keySizeInBits, 2048)
+        XCTAssertEqual(try _RSA.Signing.PublicKey(unsafePEMRepresentation: rsaPssPublicKey1024PEM).keySizeInBits, 1024)
+        XCTAssertEqual(try _RSA.Signing.PublicKey(unsafeDERRepresentation: rsaPssPublicKey1024DER).keySizeInBits, 1024)
+    }
+
     func test_wycheproofPKCS1Vectors() throws {
         try wycheproofTest(
             jsonName: "rsa_signature_test",
@@ -71,6 +122,15 @@ final class TestRSASigning: XCTestCase {
         try wycheproofTest(
             jsonName: "rsa_pss_misc_test",
             testFunction: self.testPSSGroup)
+    }
+
+    func test_wycheproofPrimitives() throws {
+        try wycheproofTest(
+            jsonName: "rsa_oaep_2048_sha1_mgf1sha1_test", 
+            testFunction: self.testPrimeFactors)
+        try wycheproofTest(
+            jsonName: "rsa_oaep_2048_sha256_mgf1sha256_test", 
+            testFunction: self.testPrimeFactors)
     }
 
     func testPKCS1Signing() throws {
@@ -708,6 +768,34 @@ final class TestRSASigning: XCTestCase {
         )
     }
 
+    func testConstructAndUseKeyFromRSANumbersWhileRecoveringPrimes() throws {
+        let data = Array("hello, world!".utf8)
+
+        for testVector in RFC9474TestVector.allValues {
+            let key = try _RSA.Signing.PrivateKey._createFromNumbers(
+                n: Data(hexString: testVector.n),
+                e: Data(hexString: testVector.e),
+                d: Data(hexString: testVector.d)
+            )
+
+            let signature = try key.signature(for: data)
+            let roundTripped = _RSA.Signing.RSASignature(rawRepresentation: signature.rawRepresentation)
+            XCTAssertEqual(signature.rawRepresentation, roundTripped.rawRepresentation)
+            XCTAssertTrue(key.publicKey.isValidSignature(roundTripped, for: data))
+        }
+    }
+
+    func testGetKeyPrimitives() throws {
+        for testVector in RFC9474TestVector.allValues {
+            let n = try Data(hexString: testVector.n)
+            let e = try Data(hexString: testVector.e)
+
+            let primitives = try _RSA.Signing.PublicKey(n: n, e: e).getKeyPrimitives()
+            XCTAssertEqual(primitives.modulus, n)
+            XCTAssertEqual(primitives.publicExponent, e)
+        }
+    }
+
     private func testPKCS1Group(_ group: RSAPKCS1TestGroup) throws {
         let derKey: _RSA.Signing.PublicKey
         let pemKey: _RSA.Signing.PublicKey
@@ -788,6 +876,15 @@ final class TestRSASigning: XCTestCase {
 
             XCTAssertEqual(valid, test.expectedValidity, "test number \(test.tcId) failed, expected \(test.result) but got \(valid)")
         }
+    }
+
+    private func testPrimeFactors(_ group: RSAPrimitivesTestGroup) throws {
+        let n = try ArbitraryPrecisionInteger(hexString: group.n)
+        let e = try ArbitraryPrecisionInteger(hexString: group.e)
+        let d = try ArbitraryPrecisionInteger(hexString: group.d)
+
+        let (p, q) = try _RSA.extractPrimeFactors(n: n, e: e, d: d)
+        XCTAssertEqual(p * q, n, "The product of p and q should equal n; got \(p) * \(q) != \(n)")
     }
 
     private func pemForDERBytes(discriminator: String, derBytes: Data) -> String {
@@ -871,3 +968,27 @@ struct RSATest: Codable {
         }
     }
 }
+
+struct RSAPrimitivesTestGroup: Codable {
+    let n: String
+    let e: String
+    let d: String
+    let privateKeyJwk: PrivateKeyJWK?
+
+    struct PrivateKeyJWK: Codable {
+        let kty: String
+        let n: String
+        let e: String
+        let d: String
+        let p: String
+        let q: String
+        let dp: String
+        let dq: String
+        let qi: String
+    }
+}
+
+struct RSAPrimitivesTestVectors: Codable {
+    let testGroups: [RSAPrimitivesTestGroup]
+}
+

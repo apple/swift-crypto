@@ -91,6 +91,7 @@ add_library(CCryptoBoringSSL STATIC
   "crypto/dh_extra/dh_asn1.c"
   "crypto/dh_extra/params.c"
   "crypto/digest_extra/digest_extra.c"
+  "crypto/dilithium/dilithium.c"
   "crypto/dsa/dsa.c"
   "crypto/dsa/dsa_asn1.c"
   "crypto/ec_extra/ec_asn1.c"
@@ -100,10 +101,11 @@ add_library(CCryptoBoringSSL STATIC
   "crypto/ecdsa_extra/ecdsa_asn1.c"
   "crypto/engine/engine.c"
   "crypto/err/err.c"
-  "crypto/err/err_data.c"
   "crypto/evp/evp.c"
   "crypto/evp/evp_asn1.c"
   "crypto/evp/evp_ctx.c"
+  "crypto/evp/p_dh.c"
+  "crypto/evp/p_dh_asn1.c"
   "crypto/evp/p_dsa_asn1.c"
   "crypto/evp/p_ec.c"
   "crypto/evp/p_ec_asn1.c"
@@ -119,89 +121,17 @@ add_library(CCryptoBoringSSL STATIC
   "crypto/evp/scrypt.c"
   "crypto/evp/sign.c"
   "crypto/ex_data.c"
-  "crypto/fipsmodule/aes/aes.c"
-  "crypto/fipsmodule/aes/aes_nohw.c"
-  "crypto/fipsmodule/aes/key_wrap.c"
-  "crypto/fipsmodule/aes/mode_wrappers.c"
-  "crypto/fipsmodule/bn/add.c"
-  "crypto/fipsmodule/bn/asm/x86_64-gcc.c"
-  "crypto/fipsmodule/bn/bn.c"
-  "crypto/fipsmodule/bn/bytes.c"
-  "crypto/fipsmodule/bn/cmp.c"
-  "crypto/fipsmodule/bn/ctx.c"
-  "crypto/fipsmodule/bn/div.c"
-  "crypto/fipsmodule/bn/div_extra.c"
-  "crypto/fipsmodule/bn/exponentiation.c"
-  "crypto/fipsmodule/bn/gcd.c"
-  "crypto/fipsmodule/bn/gcd_extra.c"
-  "crypto/fipsmodule/bn/generic.c"
-  "crypto/fipsmodule/bn/jacobi.c"
-  "crypto/fipsmodule/bn/montgomery.c"
-  "crypto/fipsmodule/bn/montgomery_inv.c"
-  "crypto/fipsmodule/bn/mul.c"
-  "crypto/fipsmodule/bn/prime.c"
-  "crypto/fipsmodule/bn/random.c"
-  "crypto/fipsmodule/bn/rsaz_exp.c"
-  "crypto/fipsmodule/bn/shift.c"
-  "crypto/fipsmodule/bn/sqrt.c"
-  "crypto/fipsmodule/cipher/aead.c"
-  "crypto/fipsmodule/cipher/cipher.c"
-  "crypto/fipsmodule/cipher/e_aes.c"
-  "crypto/fipsmodule/cipher/e_aesccm.c"
-  "crypto/fipsmodule/cmac/cmac.c"
-  "crypto/fipsmodule/dh/check.c"
-  "crypto/fipsmodule/dh/dh.c"
-  "crypto/fipsmodule/digest/digest.c"
-  "crypto/fipsmodule/digest/digests.c"
-  "crypto/fipsmodule/digestsign/digestsign.c"
-  "crypto/fipsmodule/ec/ec.c"
-  "crypto/fipsmodule/ec/ec_key.c"
-  "crypto/fipsmodule/ec/ec_montgomery.c"
-  "crypto/fipsmodule/ec/felem.c"
-  "crypto/fipsmodule/ec/oct.c"
-  "crypto/fipsmodule/ec/p224-64.c"
-  "crypto/fipsmodule/ec/p256-nistz.c"
-  "crypto/fipsmodule/ec/p256.c"
-  "crypto/fipsmodule/ec/scalar.c"
-  "crypto/fipsmodule/ec/simple.c"
-  "crypto/fipsmodule/ec/simple_mul.c"
-  "crypto/fipsmodule/ec/util.c"
-  "crypto/fipsmodule/ec/wnaf.c"
-  "crypto/fipsmodule/ecdh/ecdh.c"
-  "crypto/fipsmodule/ecdsa/ecdsa.c"
+  "crypto/fipsmodule/bcm.c"
   "crypto/fipsmodule/fips_shared_support.c"
-  "crypto/fipsmodule/hkdf/hkdf.c"
-  "crypto/fipsmodule/hmac/hmac.c"
-  "crypto/fipsmodule/md4/md4.c"
-  "crypto/fipsmodule/md5/md5.c"
-  "crypto/fipsmodule/modes/cbc.c"
-  "crypto/fipsmodule/modes/cfb.c"
-  "crypto/fipsmodule/modes/ctr.c"
-  "crypto/fipsmodule/modes/gcm.c"
-  "crypto/fipsmodule/modes/gcm_nohw.c"
-  "crypto/fipsmodule/modes/ofb.c"
-  "crypto/fipsmodule/modes/polyval.c"
-  "crypto/fipsmodule/rand/ctrdrbg.c"
-  "crypto/fipsmodule/rand/fork_detect.c"
-  "crypto/fipsmodule/rand/rand.c"
-  "crypto/fipsmodule/rand/urandom.c"
-  "crypto/fipsmodule/rsa/blinding.c"
-  "crypto/fipsmodule/rsa/padding.c"
-  "crypto/fipsmodule/rsa/rsa.c"
-  "crypto/fipsmodule/rsa/rsa_impl.c"
-  "crypto/fipsmodule/self_check/fips.c"
-  "crypto/fipsmodule/self_check/self_check.c"
-  "crypto/fipsmodule/service_indicator/service_indicator.c"
-  "crypto/fipsmodule/sha/sha1.c"
-  "crypto/fipsmodule/sha/sha256.c"
-  "crypto/fipsmodule/sha/sha512.c"
-  "crypto/fipsmodule/tls/kdf.c"
   "crypto/hpke/hpke.c"
   "crypto/hrss/hrss.c"
   "crypto/keccak/keccak.c"
   "crypto/kyber/kyber.c"
   "crypto/lhash/lhash.c"
+  "crypto/md4/md4.c"
+  "crypto/md5/md5.c"
   "crypto/mem.c"
+  "crypto/mldsa/mldsa.c"
   "crypto/obj/obj.c"
   "crypto/obj/obj_xref.c"
   "crypto/pem/pem_all.c"
@@ -222,26 +152,37 @@ add_library(CCryptoBoringSSL STATIC
   "crypto/poly1305/poly1305_vec.c"
   "crypto/pool/pool.c"
   "crypto/rand_extra/deterministic.c"
+  "crypto/rand_extra/fork_detect.c"
   "crypto/rand_extra/forkunsafe.c"
   "crypto/rand_extra/getentropy.c"
   "crypto/rand_extra/ios.c"
   "crypto/rand_extra/passive.c"
   "crypto/rand_extra/rand_extra.c"
   "crypto/rand_extra/trusty.c"
+  "crypto/rand_extra/urandom.c"
   "crypto/rand_extra/windows.c"
   "crypto/rc4/rc4.c"
   "crypto/refcount.c"
   "crypto/rsa_extra/rsa_asn1.c"
   "crypto/rsa_extra/rsa_crypt.c"
+  "crypto/rsa_extra/rsa_extra.c"
   "crypto/rsa_extra/rsa_print.c"
+  "crypto/sha/sha1.c"
+  "crypto/sha/sha256.c"
+  "crypto/sha/sha512.c"
   "crypto/siphash/siphash.c"
-  "crypto/spx/address.c"
-  "crypto/spx/fors.c"
-  "crypto/spx/merkle.c"
+  "crypto/slhdsa/fors.c"
+  "crypto/slhdsa/merkle.c"
+  "crypto/slhdsa/slhdsa.c"
+  "crypto/slhdsa/thash.c"
+  "crypto/slhdsa/wots.c"
   "crypto/spx/spx.c"
+  "crypto/spx/spx_address.c"
+  "crypto/spx/spx_fors.c"
+  "crypto/spx/spx_merkle.c"
+  "crypto/spx/spx_thash.c"
   "crypto/spx/spx_util.c"
-  "crypto/spx/thash.c"
-  "crypto/spx/wots.c"
+  "crypto/spx/spx_wots.c"
   "crypto/stack/stack.c"
   "crypto/thread.c"
   "crypto/thread_none.c"
@@ -319,80 +260,81 @@ add_library(CCryptoBoringSSL STATIC
   "crypto/x509/x_spki.c"
   "crypto/x509/x_val.c"
   "crypto/x509/x_x509.c"
-  "crypto/x509/x_x509a.c")
+  "crypto/x509/x_x509a.c"
+  "gen/crypto/err_data.c")
 
 if(CMAKE_SYSTEM_NAME STREQUAL Darwin AND CMAKE_SYSTEM_PROCESSOR MATCHES "amd64|x86_64")
   target_sources(CCryptoBoringSSL PRIVATE
-    crypto/chacha/chacha-x86_64-mac.mac.x86_64.S
-    crypto/cipher_extra/aes128gcmsiv-x86_64-mac.mac.x86_64.S
-    crypto/cipher_extra/chacha20_poly1305_x86_64-mac.mac.x86_64.S
-    crypto/fipsmodule/aesni-gcm-x86_64-mac.mac.x86_64.S
-    crypto/fipsmodule/aesni-x86_64-mac.mac.x86_64.S
-    crypto/fipsmodule/ghash-ssse3-x86_64-mac.mac.x86_64.S
-    crypto/fipsmodule/ghash-x86_64-mac.mac.x86_64.S
-    crypto/fipsmodule/md5-x86_64-mac.mac.x86_64.S
-    crypto/fipsmodule/p256-x86_64-asm-mac.mac.x86_64.S
-    crypto/fipsmodule/p256_beeu-x86_64-asm-mac.mac.x86_64.S
-    crypto/fipsmodule/rdrand-x86_64-mac.mac.x86_64.S
-    crypto/fipsmodule/rsaz-avx2-mac.mac.x86_64.S
-    crypto/fipsmodule/sha1-x86_64-mac.mac.x86_64.S
-    crypto/fipsmodule/sha256-x86_64-mac.mac.x86_64.S
-    crypto/fipsmodule/sha512-x86_64-mac.mac.x86_64.S
-    crypto/fipsmodule/vpaes-x86_64-mac.mac.x86_64.S
-    crypto/fipsmodule/x86_64-mont-mac.mac.x86_64.S
-    crypto/fipsmodule/x86_64-mont5-mac.mac.x86_64.S)
+    gen/bcm/aesni-gcm-x86_64-apple.S
+    gen/bcm/aesni-x86_64-apple.S
+    gen/bcm/ghash-ssse3-x86_64-apple.S
+    gen/bcm/ghash-x86_64-apple.S
+    gen/bcm/p256-x86_64-asm-apple.S
+    gen/bcm/p256_beeu-x86_64-asm-apple.S
+    gen/bcm/rdrand-x86_64-apple.S
+    gen/bcm/rsaz-avx2-apple.S
+    gen/bcm/sha1-x86_64-apple.S
+    gen/bcm/sha256-x86_64-apple.S
+    gen/bcm/sha512-x86_64-apple.S
+    gen/bcm/vpaes-x86_64-apple.S
+    gen/bcm/x86_64-mont-apple.S
+    gen/bcm/x86_64-mont5-apple.S
+    gen/crypto/aes128gcmsiv-x86_64-apple.S
+    gen/crypto/chacha-x86_64-apple.S
+    gen/crypto/chacha20_poly1305_x86_64-apple.S
+    gen/crypto/md5-x86_64-apple.S)
 elseif(CMAKE_SYSTEM_NAME MATCHES "Linux|Android" AND CMAKE_SYSTEM_PROCESSOR MATCHES "amd64|x86_64")
   target_sources(CCryptoBoringSSL PRIVATE
-    crypto/chacha/chacha-x86_64-linux.linux.x86_64.S
-    crypto/cipher_extra/aes128gcmsiv-x86_64-linux.linux.x86_64.S
-    crypto/cipher_extra/chacha20_poly1305_x86_64-linux.linux.x86_64.S
-    crypto/fipsmodule/aesni-gcm-x86_64-linux.linux.x86_64.S
-    crypto/fipsmodule/aesni-x86_64-linux.linux.x86_64.S
-    crypto/fipsmodule/ghash-ssse3-x86_64-linux.linux.x86_64.S
-    crypto/fipsmodule/ghash-x86_64-linux.linux.x86_64.S
-    crypto/fipsmodule/md5-x86_64-linux.linux.x86_64.S
-    crypto/fipsmodule/p256-x86_64-asm-linux.linux.x86_64.S
-    crypto/fipsmodule/p256_beeu-x86_64-asm-linux.linux.x86_64.S
-    crypto/fipsmodule/rdrand-x86_64-linux.linux.x86_64.S
-    crypto/fipsmodule/rsaz-avx2-linux.linux.x86_64.S
-    crypto/fipsmodule/sha1-x86_64-linux.linux.x86_64.S
-    crypto/fipsmodule/sha256-x86_64-linux.linux.x86_64.S
-    crypto/fipsmodule/sha512-x86_64-linux.linux.x86_64.S
-    crypto/fipsmodule/vpaes-x86_64-linux.linux.x86_64.S
-    crypto/fipsmodule/x86_64-mont-linux.linux.x86_64.S
-    crypto/fipsmodule/x86_64-mont5-linux.linux.x86_64.S)
+    gen/bcm/aesni-gcm-x86_64-linux.S
+    gen/bcm/aesni-x86_64-linux.S
+    gen/bcm/ghash-ssse3-x86_64-linux.S
+    gen/bcm/ghash-x86_64-linux.S
+    gen/bcm/p256-x86_64-asm-linux.S
+    gen/bcm/p256_beeu-x86_64-asm-linux.S
+    gen/bcm/rdrand-x86_64-linux.S
+    gen/bcm/rsaz-avx2-linux.S
+    gen/bcm/sha1-x86_64-linux.S
+    gen/bcm/sha256-x86_64-linux.S
+    gen/bcm/sha512-x86_64-linux.S
+    gen/bcm/vpaes-x86_64-linux.S
+    gen/bcm/x86_64-mont-linux.S
+    gen/bcm/x86_64-mont5-linux.S
+    gen/crypto/aes128gcmsiv-x86_64-linux.S
+    gen/crypto/chacha-x86_64-linux.S
+    gen/crypto/chacha20_poly1305_x86_64-linux.S
+    gen/crypto/md5-x86_64-linux.S)
 elseif(CMAKE_SYSTEM_NAME STREQUAL Darwin AND CMAKE_SYSTEM_PROCESSOR MATCHES "arm64|aarch64")
   target_sources(CCryptoBoringSSL PRIVATE
-    crypto/chacha/chacha-armv8-ios.ios.aarch64.S
-    crypto/cipher_extra/chacha20_poly1305_armv8-ios.ios.aarch64.S
-    crypto/fipsmodule/aesv8-armv8-ios.ios.aarch64.S
-    crypto/fipsmodule/aesv8-gcm-armv8-ios.ios.aarch64.S
-    crypto/fipsmodule/armv8-mont-ios.ios.aarch64.S
-    crypto/fipsmodule/bn-armv8-ios.ios.aarch64.S
-    crypto/fipsmodule/ghash-neon-armv8-ios.ios.aarch64.S
-    crypto/fipsmodule/ghashv8-armv8-ios.ios.aarch64.S
-    crypto/fipsmodule/p256-armv8-asm-ios.ios.aarch64.S
-    crypto/fipsmodule/p256_beeu-armv8-asm-ios.ios.aarch64.S
-    crypto/fipsmodule/sha1-armv8-ios.ios.aarch64.S
-    crypto/fipsmodule/sha256-armv8-ios.ios.aarch64.S
-    crypto/fipsmodule/sha512-armv8-ios.ios.aarch64.S
-    crypto/fipsmodule/vpaes-armv8-ios.ios.aarch64.S)
+    gen/bcm/aesv8-armv8-apple.S
+    gen/bcm/aesv8-gcm-armv8-apple.S
+    gen/bcm/armv8-mont-apple.S
+    gen/bcm/bn-armv8-apple.S
+    gen/bcm/ghash-neon-armv8-apple.S
+    gen/bcm/ghashv8-armv8-apple.S
+    gen/bcm/p256-armv8-asm-apple.S
+    gen/bcm/p256_beeu-armv8-asm-apple.S
+    gen/bcm/sha1-armv8-apple.S
+    gen/bcm/sha256-armv8-apple.S
+    gen/bcm/sha512-armv8-apple.S
+    gen/bcm/vpaes-armv8-apple.S
+    gen/crypto/chacha-armv8-apple.S
+    gen/crypto/chacha20_poly1305_armv8-apple.S)
 elseif(CMAKE_SYSTEM_NAME MATCHES "Linux|Android" AND CMAKE_SYSTEM_PROCESSOR MATCHES "arm64|aarch64")
   target_sources(CCryptoBoringSSL PRIVATE
-    crypto/chacha/chacha-armv8-linux.linux.aarch64.S
-    crypto/cipher_extra/chacha20_poly1305_armv8-linux.linux.aarch64.S
-    crypto/fipsmodule/aesv8-armv8-linux.linux.aarch64.S
-    crypto/fipsmodule/aesv8-gcm-armv8-linux.linux.aarch64.S
-    crypto/fipsmodule/armv8-mont-linux.linux.aarch64.S
-    crypto/fipsmodule/bn-armv8-linux.linux.aarch64.S
-    crypto/fipsmodule/ghash-neon-armv8-linux.linux.aarch64.S
-    crypto/fipsmodule/ghashv8-armv8-linux.linux.aarch64.S
-    crypto/fipsmodule/p256-armv8-asm-linux.linux.aarch64.S
-    crypto/fipsmodule/p256_beeu-armv8-asm-linux.linux.aarch64.S
-    crypto/fipsmodule/sha1-armv8-linux.linux.aarch64.S
-    crypto/fipsmodule/sha256-armv8-linux.linux.aarch64.S
-    crypto/fipsmodule/sha512-armv8-linux.linux.aarch64.S
-    crypto/fipsmodule/vpaes-armv8-linux.linux.aarch64.S)
+    gen/bcm/aesv8-armv8-linux.S
+    gen/bcm/aesv8-gcm-armv8-linux.S
+    gen/bcm/armv8-mont-linux.S
+    gen/bcm/bn-armv8-linux.S
+    gen/bcm/ghash-neon-armv8-linux.S
+    gen/bcm/ghashv8-armv8-linux.S
+    gen/bcm/p256-armv8-asm-linux.S
+    gen/bcm/p256_beeu-armv8-asm-linux.S
+    gen/bcm/sha1-armv8-linux.S
+    gen/bcm/sha256-armv8-linux.S
+    gen/bcm/sha512-armv8-linux.S
+    gen/bcm/vpaes-armv8-linux.S
+    gen/crypto/chacha-armv8-linux.S
+    gen/crypto/chacha20_poly1305_armv8-linux.S)
 endif()
 
 target_include_directories(CCryptoBoringSSL PUBLIC

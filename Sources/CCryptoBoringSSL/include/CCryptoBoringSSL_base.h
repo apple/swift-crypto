@@ -52,12 +52,6 @@
 
 #ifndef OPENSSL_HEADER_BASE_H
 #define OPENSSL_HEADER_BASE_H
-#if defined(_WIN32) && !(defined(_M_IX86) || defined(__i386__))
-#define OPENSSL_NO_ASM
-#endif
-#if defined(__APPLE__) && defined(__i386__)
-#define OPENSSL_NO_ASM
-#endif
 
 #define BORINGSSL_PREFIX CCryptoBoringSSL
 
@@ -187,6 +181,13 @@ extern "C" {
 #endif
 #else
 #define OPENSSL_PRINTF_FORMAT_FUNC(string_index, first_to_check)
+#endif
+
+// OPENSSL_CLANG_PRAGMA emits a pragma on clang and nothing on other compilers.
+#if defined(__clang__)
+#define OPENSSL_CLANG_PRAGMA(arg) _Pragma(arg)
+#else
+#define OPENSSL_CLANG_PRAGMA(arg)
 #endif
 
 // OPENSSL_MSVC_PRAGMA emits a pragma on MSVC and nothing on other compilers.

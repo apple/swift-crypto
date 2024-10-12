@@ -15,6 +15,7 @@
 @_exported import CryptoKit
 #else
 @_implementationOnly import CCryptoBoringSSL
+import CryptoBoringWrapper
 
 /// A wrapper around BoringSSL's EC_GROUP object that handles reference counting and
 /// liveness.

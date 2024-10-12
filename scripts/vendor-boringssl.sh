@@ -101,9 +101,9 @@ function mangle_symbols {
         )
 
         # Now cross compile for our targets.
-        docker run -t -i --rm --privileged -v$(pwd):/src -w/src --platform linux/arm64 swift:5.8-jammy \
+        docker run -t -i --rm --privileged -v$(pwd):/src -w/src --platform linux/arm64 swift:5.9-jammy \
             swift build --product CCryptoBoringSSL
-        docker run -t -i --rm --privileged -v$(pwd):/src -w/src --platform linux/amd64 swift:5.8-jammy \
+        docker run -t -i --rm --privileged -v$(pwd):/src -w/src --platform linux/amd64 swift:5.9-jammy \
             swift build --product CCryptoBoringSSL
 
         # Now we need to generate symbol mangles for Linux. We can do this in
@@ -196,9 +196,12 @@ PATTERNS=(
 'crypto/*/*.c'
 'crypto/*/*.S'
 'crypto/*/*/*.h'
-'crypto/*/*/*.c'
+'crypto/*/*/*.c.inc'
 'crypto/*/*/*.S'
-'crypto/*/*/*/*.c'
+'crypto/*/*/*/*.c.inc'
+'gen/crypto/*.c'
+'gen/crypto/*.S'
+'gen/bcm/*.S'
 'third_party/fiat/*.h'
 'third_party/fiat/asm/*.S'
 #'third_party/fiat/*.c'
@@ -229,16 +232,6 @@ do
   find $DSTROOT -d -name "$exclude" -exec rm -rf {} \;
 done
 
-echo "GENERATING err_data.c"
-(
-    cd "$SRCROOT/crypto/err"
-    go mod tidy -modcacherw
-    go run err_data_generate.go > "${HERE}/${DSTROOT}/crypto/err/err_data.c"
-)
-
-echo "DELETING crypto/fipsmodule/bcm.c"
-rm -f $DSTROOT/crypto/fipsmodule/bcm.c
-
 echo "REMOVING libssl"
 (
     cd "$DSTROOT"
@@ -247,14 +240,6 @@ echo "REMOVING libssl"
 )
 
 mangle_symbols
-
-# Removing ASM on 32 bit Apple platforms
-echo "REMOVING assembly on 32-bit Apple platforms"
-gsed -i "/#define OPENSSL_HEADER_BASE_H/a#if defined(__APPLE__) && defined(__i386__)\n#define OPENSSL_NO_ASM\n#endif" "$DSTROOT/include/openssl/base.h"
-
-# Remove assembly on non-x86 Windows
-echo "REMOVING assembly on non-x86 Windows"
-gsed -i "/#define OPENSSL_HEADER_BASE_H/a#if defined(_WIN32) && !(defined(_M_IX86) || defined(__i386__))\n#define OPENSSL_NO_ASM\n#endif" "$DSTROOT/include/openssl/base.h"
 
 echo "RENAMING header files"
 (
@@ -270,7 +255,7 @@ echo "RENAMING header files"
     rmdir "include/openssl"
 
     # Now change the imports from "<openssl/X> to "<CCryptoBoringSSL_X>", apply the same prefix to the 'boringssl_prefix_symbols' headers.
-    find . -name "*.[ch]" -or -name "*.cc" -or -name "*.S" | xargs $sed -i -e 's+include <openssl/\([[:alpha:]/]*/\)\{0,1\}+include <\1CCryptoBoringSSL_+' -e 's+include <boringssl_prefix_symbols+include <CCryptoBoringSSL_boringssl_prefix_symbols+' -e 's+include "openssl/\([[:alpha:]/]*/\)\{0,1\}+include "\1CCryptoBoringSSL_+'
+    find . -name "*.[ch]" -or -name "*.cc" -or -name "*.S" -or -name "*.c.inc" | xargs $sed -i -e 's+include <openssl/\([[:alpha:]/]*/\)\{0,1\}+include <\1CCryptoBoringSSL_+' -e 's+include <boringssl_prefix_symbols+include <CCryptoBoringSSL_boringssl_prefix_symbols+' -e 's+include "openssl/\([[:alpha:]/]*/\)\{0,1\}+include "\1CCryptoBoringSSL_+'
 
     # Okay now we need to rename the headers adding the prefix "CCryptoBoringSSL_".
     pushd include
@@ -315,6 +300,7 @@ cat << EOF > "$DSTROOT/include/CCryptoBoringSSL.h"
 #ifndef C_CRYPTO_BORINGSSL_H
 #define C_CRYPTO_BORINGSSL_H
 
+#include "CCryptoBoringSSL_aead.h"
 #include "CCryptoBoringSSL_aes.h"
 #include "CCryptoBoringSSL_arm_arch.h"
 #include "CCryptoBoringSSL_asn1_mac.h"
@@ -323,6 +309,7 @@ cat << EOF > "$DSTROOT/include/CCryptoBoringSSL.h"
 #include "CCryptoBoringSSL_bio.h"
 #include "CCryptoBoringSSL_blake2.h"
 #include "CCryptoBoringSSL_blowfish.h"
+#include "CCryptoBoringSSL_bn.h"
 #include "CCryptoBoringSSL_boringssl_prefix_symbols.h"
 #include "CCryptoBoringSSL_boringssl_prefix_symbols_asm.h"
 #include "CCryptoBoringSSL_cast.h"

@@ -31,6 +31,10 @@ endif()
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 set(CMAKE_Swift_MODULE_DIRECTORY ${CMAKE_BINARY_DIR}/swift)
 
+set(SWIFT_CRYPTO_COMPILE_OPTIONS
+    -package-name com.apple.swift-crypto
+)
+
 option(BUILD_SHARED_LIBS "Build shared libraries by default" YES)
 
 if(BUILD_SHARED_LIBS)
@@ -46,6 +50,16 @@ endif()
 if(NOT CMAKE_SYSTEM_NAME STREQUAL Darwin)
   find_package(dispatch CONFIG)
   find_package(Foundation CONFIG)
+endif()
+
+include(FetchContent)
+find_package(SwiftASN1 CONFIG)
+if(NOT SwiftASN1_FOUND)
+  message("-- Vending swift-asn1")
+  FetchContent_Declare(ASN1
+    GIT_REPOSITORY https://github.com/apple/swift-asn1
+    GIT_TAG 1.1.0)
+  FetchContent_MakeAvailable(ASN1)
 endif()
 
 add_subdirectory(Sources)
