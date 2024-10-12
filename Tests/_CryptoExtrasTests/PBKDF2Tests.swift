@@ -72,7 +72,7 @@ class PBKDF2Tests: XCTestCase {
         
         for vector in vectors {
             precondition(vector.hash == "SHA-1")
-            try orFail { try self.testRFCVector(vector, hash: .insecure_sha1) }
+            try orFail { try self.testRFCVector(vector, hash: .insecureSHA1) }
         }
     }
 }
