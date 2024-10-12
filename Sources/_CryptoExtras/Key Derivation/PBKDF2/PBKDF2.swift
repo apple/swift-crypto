@@ -26,7 +26,7 @@ fileprivate typealias BackingPBKDF2 = BoringSSLPBKDF2
 
 extension KDF.Insecure {
     /// An implementation of PBKDF2 key derivation function.
-    public struct PBKDF2 {
+    public struct PBKDF2: Sendable {
         /// Derives a symmetric key using the PBKDF2 algorithm.
         ///
         /// - Parameters:
@@ -40,8 +40,8 @@ extension KDF.Insecure {
             return try BackingPBKDF2.deriveKey(from: password, salt: salt, using: hashFunction, outputByteCount: outputByteCount, rounds: rounds)
         }
         
-        public struct HashFunction: Equatable, Hashable {
-            public let rawValue: String
+        public struct HashFunction: Equatable, Hashable, Sendable {
+            let rawValue: String
             
             public static let insecureMD5 = HashFunction(rawValue: "insecure_md5")
             public static let insecureSHA1 = HashFunction(rawValue: "insecure_sha1")
@@ -50,7 +50,7 @@ extension KDF.Insecure {
             public static let sha384 = HashFunction(rawValue: "sha384")
             public static let sha512 = HashFunction(rawValue: "sha512")
             
-            public init(rawValue: String) {
+            init(rawValue: String) {
                 self.rawValue = rawValue
             }
         }

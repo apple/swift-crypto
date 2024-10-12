@@ -37,7 +37,7 @@ internal struct BoringSSLScrypt {
         var derivedKeyData = Data(count: outputByteCount)
         
         // This computes the maximum amount of memory that will be used by the scrypt algorithm with an additional memory page to spare. This value will be used by the BoringSSL as the memory limit for the algorithm. An additional memory page is added to the computed value (using POSIX specification) to ensure that the memory limit is not too tight.
-        let maxMemory = maxMemory ?? (128 * rounds * blockSize * parallelism + Int(sysconf(_SC_PAGESIZE)))
+        let maxMemory = maxMemory ?? (128 * rounds * blockSize * parallelism + Int(sysconf(Int32(_SC_PAGESIZE))))
         
         let result = derivedKeyData.withUnsafeMutableBytes { derivedKeyBytes -> Int32 in
             let saltBytes: ContiguousBytes = salt.regions.count == 1 ? salt.regions.first! : Array(salt)

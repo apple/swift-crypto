@@ -59,11 +59,11 @@ internal struct BoringSSLPBKDF2 {
 extension KDF.Insecure.PBKDF2.HashFunction {
     var digest: OpaquePointer {
         switch self {
-        case .insecure_md5:
+        case .insecureMD5:
             return CCryptoBoringSSL_EVP_md5()
-        case .insecure_sha1:
+        case .insecureSHA1:
             return CCryptoBoringSSL_EVP_sha1()
-        case .insecure_sha224:
+        case .insecureSHA224:
             return CCryptoBoringSSL_EVP_sha224()
         case .sha256:
             return CCryptoBoringSSL_EVP_sha256()

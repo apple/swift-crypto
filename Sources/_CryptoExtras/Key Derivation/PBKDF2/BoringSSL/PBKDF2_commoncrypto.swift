@@ -64,11 +64,11 @@ internal struct CommonCryptoPBKDF2 {
 extension KDF.Insecure.PBKDF2.HashFunction {
     var ccHash: CCPBKDFAlgorithm {
         switch self {
-        case .insecure_md5:
+        case .insecureMD5:
             return CCPBKDFAlgorithm(kCCHmacAlgMD5)
-        case .insecure_sha1:
+        case .insecureSHA1:
             return CCPBKDFAlgorithm(kCCPRFHmacAlgSHA1)
-        case .insecure_sha224:
+        case .insecureSHA224:
             return CCPBKDFAlgorithm(kCCPRFHmacAlgSHA224)
         case .sha256:
             return CCPBKDFAlgorithm(kCCPRFHmacAlgSHA256)
