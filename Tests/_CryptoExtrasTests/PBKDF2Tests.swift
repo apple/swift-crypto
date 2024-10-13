@@ -34,26 +34,26 @@ class PBKDF2Tests: XCTestCase {
             case derivedKey = "DK"
         }
     }
-        
+    
     func oneshotTesting(_ vector: RFCTestVector, hash: KDF.Insecure.PBKDF2.HashFunction) throws {
         let (contiguousInput, discontiguousInput) = vector.inputSecret.asDataProtocols()
         let (contiguousSalt, discontiguousSalt) = vector.salt.asDataProtocols()
         
         let DK1 = try KDF.Insecure.PBKDF2.deriveKey(from: contiguousInput, salt: contiguousSalt, using: hash,
-                                                       outputByteCount: vector.outputLength,
-                                                       rounds: vector.rounds)
+                                                    outputByteCount: vector.outputLength,
+                                                    unsafeUncheckedRounds: vector.rounds)
         
         let DK2 = try KDF.Insecure.PBKDF2.deriveKey(from: discontiguousInput, salt: contiguousSalt, using: hash,
-                                                       outputByteCount: vector.outputLength,
-                                                       rounds: vector.rounds)
+                                                    outputByteCount: vector.outputLength,
+                                                    unsafeUncheckedRounds: vector.rounds)
         
         let DK3 = try KDF.Insecure.PBKDF2.deriveKey(from: contiguousInput, salt: discontiguousSalt, using: hash,
-                                                       outputByteCount: vector.outputLength,
-                                                       rounds: vector.rounds)
+                                                    outputByteCount: vector.outputLength,
+                                                    unsafeUncheckedRounds: vector.rounds)
         
         let DK4 = try KDF.Insecure.PBKDF2.deriveKey(from: discontiguousInput, salt: discontiguousSalt, using: hash,
-                                                       outputByteCount: vector.outputLength,
-                                                       rounds: vector.rounds)
+                                                    outputByteCount: vector.outputLength,
+                                                    unsafeUncheckedRounds: vector.rounds)
         
         let expectedDK = SymmetricKey(data: vector.derivedKey)
         XCTAssertEqual(DK1, expectedDK)
@@ -61,7 +61,7 @@ class PBKDF2Tests: XCTestCase {
         XCTAssertEqual(DK3, expectedDK)
         XCTAssertEqual(DK4, expectedDK)
     }
-        
+    
     func testRFCVector(_ vector: RFCTestVector, hash: KDF.Insecure.PBKDF2.HashFunction) throws {
         try oneshotTesting(vector, hash: hash)
     }
@@ -74,5 +74,18 @@ class PBKDF2Tests: XCTestCase {
             precondition(vector.hash == "SHA-1")
             try orFail { try self.testRFCVector(vector, hash: .insecureSHA1) }
         }
+    }
+    
+    func testRoundsParameterCheck() {
+        let (contiguousInput, contiguousSalt) = (Data("password".utf8), Data("salt".utf8))
+        
+        XCTAssertThrowsError(try KDF.Insecure.PBKDF2.deriveKey(from: contiguousInput, salt: contiguousSalt, using: .insecureSHA1,
+                                                               outputByteCount: 20, rounds: 999))
+        
+        XCTAssertNoThrow(try KDF.Insecure.PBKDF2.deriveKey(from: contiguousInput, salt: contiguousSalt, using: .insecureSHA1,
+                                                           outputByteCount: 20, unsafeUncheckedRounds: 999))
+        
+        XCTAssertNoThrow(try KDF.Insecure.PBKDF2.deriveKey(from: contiguousInput, salt: contiguousSalt, using: .insecureSHA1,
+                                                           outputByteCount: 20, rounds: 1000))
     }
 }
