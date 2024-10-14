@@ -24,7 +24,6 @@ add_library(_CryptoExtras
   "Util/DigestType.swift"
   "Util/Error.swift"
   "Util/PEMDocument.swift"
-  "Util/RandomBytes.swift"
   "Util/SubjectPublicKeyInfo.swift")
 
 target_include_directories(_CryptoExtras PRIVATE

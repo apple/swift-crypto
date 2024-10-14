@@ -14,7 +14,7 @@
 
 extension UnsafeMutableRawBufferPointer {
     @inlinable
-    func initializeWithRandomBytes(count: Int) {
+    package func initializeWithRandomBytes(count: Int) {
         guard count > 0 else {
             return
         }
@@ -46,7 +46,7 @@ extension UnsafeMutableRawBufferPointer {
 
 extension SystemRandomNumberGenerator {
     @inlinable
-    static func randomBytes(count: Int) -> [UInt8] {
+    package static func randomBytes(count: Int) -> [UInt8] {
         Array(unsafeUninitializedCapacity: count) { buffer, initializedCount in
             UnsafeMutableRawBufferPointer(start: buffer.baseAddress, count: buffer.count).initializeWithRandomBytes(count: count)
             initializedCount = count

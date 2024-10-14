@@ -67,8 +67,6 @@ add_library(Crypto
   "Key Wrapping/AESWrap.swift"
   "Key Wrapping/BoringSSL/AESWrap_boring.swift"
   "Keys/EC/BoringSSL/Ed25519_boring.swift"
-  "Keys/EC/BoringSSL/EllipticCurvePoint_boring.swift"
-  "Keys/EC/BoringSSL/EllipticCurve_boring.swift"
   "Keys/EC/BoringSSL/NISTCurvesKeys_boring.swift"
   "Keys/EC/BoringSSL/X25519Keys_boring.swift"
   "Keys/EC/Curve25519.swift"
