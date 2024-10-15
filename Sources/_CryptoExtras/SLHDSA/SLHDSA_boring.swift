@@ -12,6 +12,7 @@
 //
 //===----------------------------------------------------------------------===//
 
+import SwiftASN1
 import Crypto
 import Foundation
 
@@ -40,11 +41,15 @@ extension SLHDSA {
         }
 
         public var derRepresentation: Data {
-            self.backing.derRepresentation
+            get throws {
+                try self.backing.derRepresentation
+            }
         }
 
         public var pemRepresentation: String {
-            self.backing.pemRepresentation
+            get throws {
+                try self.backing.pemRepresentation
+            }
         }
 
         public var publicKey: PublicKey {
@@ -71,19 +76,17 @@ extension SLHDSA {
             }
 
             init(derRepresentation: some DataProtocol) throws {
-                guard derRepresentation.count == SLHDSA.PrivateKey.Backing.bytesCount else {
+                let result = try DER.parse(Array(derRepresentation))
+                let pkey = try OneAsymmetricKey(derEncoded: result)
+
+                guard pkey.algorithm == .slhDsaSHA2128s else {
                     throw CryptoKitError.incorrectKeySize
                 }
 
-                var keyDest: [UInt8] = Array(repeating: 0, count: SLHDSA.PrivateKey.bytesCount)
-                try keyDest.withUnsafeMutableBufferPointer { typedMemBuffer in
-                    guard derRepresentation.copyBytes(to: typedMemBuffer) == SLHDSA.PrivateKey.bytesCount else {
-                        throw CryptoKitError.incorrectKeySize
-                    }
-                }
-
                 self.pointer = UnsafeMutablePointer<UInt8>.allocate(capacity: SLHDSA.PrivateKey.bytesCount)
-                self.pointer.initialize(from: keyDest, count: SLHDSA.PrivateKey.bytesCount)
+                pkey.privateKey.withUnsafeBytes { keyPtr in
+                    self.pointer.initialize(from: Array(keyPtr), count: SLHDSA.PrivateKey.bytesCount)
+                }
             }
             
             convenience init(pemRepresentation: String) throws {
@@ -92,11 +95,19 @@ extension SLHDSA {
             }
             
             var derRepresentation: Data {
-                Data(UnsafeBufferPointer(start: self.pointer, count: SLHDSA.PrivateKey.bytesCount))
+                get throws {
+                    let keyBytes = Array(Data(UnsafeBufferPointer(start: self.pointer, count: SLHDSA.PrivateKey.bytesCount)))
+                    let pkey = OneAsymmetricKey(algorithm: .slhDsaSHA2128s, privateKey: keyBytes)
+                    var serializer = DER.Serializer()
+                    try serializer.serialize(pkey)
+                    return Data(serializer.serializedBytes)
+                }
             }
             
             var pemRepresentation: String {
-                ASN1.PEMDocument(type: SLHDSA.keyType, derBytes: self.derRepresentation).pemString
+                get throws {
+                    try ASN1.PEMDocument(type: "PRIVATE KEY", derBytes: self.derRepresentation).pemString
+                }
             }
 
             var publicKey: PublicKey {
@@ -147,7 +158,7 @@ extension SLHDSA {
 extension SLHDSA {
     /// A SLH-DSA-SHA2-128s public key.
     public struct PublicKey: Sendable {
-        private var backing: Backing
+        fileprivate var backing: Backing
 
         fileprivate init(privateKeyBacking: PrivateKey.Backing) {
             self.backing = Backing(privateKeyBacking: privateKeyBacking)
@@ -162,11 +173,15 @@ extension SLHDSA {
         }
 
         public var derRepresentation: Data {
-            self.backing.derRepresentation
+            get throws {
+                try self.backing.derRepresentation
+            }
         }
 
         public var pemRepresentation: String {
-            self.backing.pemRepresentation
+            get throws {
+                try self.backing.pemRepresentation
+            }
         }
 
         public func isValidSignature(_ signature: Signature, for data: some DataProtocol, context: [UInt8]? = nil) -> Bool {
@@ -177,7 +192,7 @@ extension SLHDSA {
         static let bytesCount = Backing.bytesCount
 
         fileprivate final class Backing {
-            private let pointer: UnsafeMutablePointer<UInt8>
+            let pointer: UnsafeMutablePointer<UInt8>
             
             init(privateKeyBacking: PrivateKey.Backing) {
                 self.pointer = UnsafeMutablePointer<UInt8>.allocate(capacity: SLHDSA.PublicKey.bytesCount)
@@ -185,19 +200,17 @@ extension SLHDSA {
             }
             
             init(derRepresentation: some DataProtocol) throws {
-                guard derRepresentation.count == Self.bytesCount else {
+                let result = try DER.parse(Array(derRepresentation))
+                let spki = try SubjectPublicKeyInfo(derEncoded: result)
+
+                guard spki.algorithmIdentifier == .slhDsaSHA2128s else {
                     throw CryptoKitError.incorrectKeySize
                 }
 
-                var keyDest: [UInt8] = Array(repeating: 0, count: SLHDSA.PublicKey.bytesCount)
-                try keyDest.withUnsafeMutableBufferPointer { typedMemBuffer in
-                    guard derRepresentation.copyBytes(to: typedMemBuffer) == SLHDSA.PublicKey.bytesCount else {
-                        throw CryptoKitError.incorrectKeySize
-                    }
-                }
-
                 self.pointer = UnsafeMutablePointer<UInt8>.allocate(capacity: SLHDSA.PublicKey.bytesCount)
-                self.pointer.initialize(from: keyDest, count: SLHDSA.PublicKey.bytesCount)
+                spki.key.withUnsafeBytes { keyPtr in
+                    self.pointer.initialize(from: Array(keyPtr), count: SLHDSA.PublicKey.bytesCount)
+                }
             }
             
             convenience init(pemRepresentation: String) throws {
@@ -206,11 +219,19 @@ extension SLHDSA {
             }
             
             var derRepresentation: Data {
-                return Data(UnsafeBufferPointer(start: self.pointer, count: SLHDSA.PublicKey.bytesCount))
+                get throws {
+                    let keyBytes = Array(Data(UnsafeBufferPointer(start: self.pointer, count: SLHDSA.PublicKey.bytesCount)))
+                    let spki = SubjectPublicKeyInfo(algorithmIdentifier: .slhDsaSHA2128s, key: keyBytes)
+                    var serializer = DER.Serializer()
+                    try serializer.serialize(spki)
+                    return Data(serializer.serializedBytes)
+                }
             }
             
             var pemRepresentation: String {
-                return ASN1.PEMDocument(type: SLHDSA.publicKeyType, derBytes: self.derRepresentation).pemString
+                get throws {
+                    try ASN1.PEMDocument(type: "PUBLIC KEY", derBytes: self.derRepresentation).pemString
+                }
             }
             
             func isValidSignature(_ signature: Signature, for data: some DataProtocol, context: [UInt8]? = nil) -> Bool {
@@ -282,15 +303,4 @@ extension SLHDSA {
         /// The size of the signature in bytes.
         fileprivate static let bytesCount = 7856
     }
-}
-
-extension SLHDSA {
-    /// The ASN.1 object identifiers for a private SLH-DSA-SHA2-128s key.
-    private static let keyType = "PRIVATE KEY"
-    
-    /// The ASN.1 object identifiers for a public SLH-DSA-SHA2-128s key.
-    private static let publicKeyType = "PUBLIC KEY"
-    
-    /// The size of the seed in bytes.
-    private static let seedSizeInBytes = 3 * 16
 }

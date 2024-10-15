@@ -94,22 +94,41 @@ final class SLHDSATests: XCTestCase {
         XCTAssertTrue(publicKey.isValidSignature(signature2, for: message))
     }
 
-    func testInvalidPublicKeyEncodingLength() throws {
-        // Encode a public key with a trailing 0 at the end.
-        var encodedPublicKey = [UInt8](repeating: 0, count: SLHDSA.PublicKey.bytesCount + 1)
-        let key = SLHDSA.PrivateKey()
-        let publicKey = key.publicKey
-        encodedPublicKey.replaceSubrange(0..<SLHDSA.PublicKey.bytesCount, with: publicKey.derRepresentation)
+    func testPublicKeyASN1Encoding() throws {
+        let publicKey = SLHDSA.PrivateKey().publicKey
+        let encodedPublicKey = try publicKey.derRepresentation
+        let roundTrippedPublicKey = try SLHDSA.PublicKey(derRepresentation: encodedPublicKey)
+        try XCTAssertEqual(publicKey.pemRepresentation, roundTrippedPublicKey.pemRepresentation)
 
-        // Public key is 1 byte too short.
-        let shortPublicKey = Array(encodedPublicKey.prefix(SLHDSA.PublicKey.bytesCount - 1))
-        XCTAssertThrowsError(try SLHDSA.PublicKey(derRepresentation: shortPublicKey))
+        let examplePEMPublicKey = """
+            -----BEGIN PUBLIC KEY-----
+            MDAwCwYJYIZIAWUDBAMUAyEAK4EJ7Hd8qk4fAkzPz5SX2ZGAUJKA9CVq8rB6+AKJ
+            tJQ=
+            -----END PUBLIC KEY-----
+            """
 
-        // Public key has the correct length.
-        let correctLengthPublicKey = Array(encodedPublicKey.prefix(SLHDSA.PublicKey.bytesCount))
-        XCTAssertNoThrow(try SLHDSA.PublicKey(derRepresentation: correctLengthPublicKey))
+        let pemPublicKey = try SLHDSA.PublicKey(pemRepresentation: examplePEMPublicKey)
+        let pemEncodedPublicKey = try pemPublicKey.derRepresentation
+        let pemRoundTrippedPublicKey = try SLHDSA.PublicKey(derRepresentation: pemEncodedPublicKey)
+        try XCTAssertEqual(pemPublicKey.pemRepresentation, pemRoundTrippedPublicKey.pemRepresentation)
+    }
 
-        // Public key is 1 byte too long.
-        XCTAssertThrowsError(try SLHDSA.PublicKey(derRepresentation: encodedPublicKey))
+    func testPrivateKeyASN1Encoding() throws {
+        let privateKey = SLHDSA.PrivateKey()
+        let encodedPrivateKey = try privateKey.derRepresentation
+        let roundTrippedPrivateKey = try SLHDSA.PrivateKey(derRepresentation: encodedPrivateKey)
+        try XCTAssertEqual(privateKey.pemRepresentation, roundTrippedPrivateKey.pemRepresentation)
+        
+        let examplePEMPrivateKey = """
+            -----BEGIN PRIVATE KEY-----
+            MFICAQAwCwYJYIZIAWUDBAMUBECiJjvKRYYINlIxYASVI9YhZ3+tkNUetgZ6Mn4N
+            HmSlASuBCex3fKpOHwJMz8+Ul9mRgFCSgPQlavKwevgCibSU
+            -----END PRIVATE KEY-----
+            """
+        
+        let pemPrivateKey = try SLHDSA.PrivateKey(pemRepresentation: examplePEMPrivateKey)
+        let pemEncodedPrivateKey = try pemPrivateKey.derRepresentation
+        let pemRoundTrippedPrivateKey = try SLHDSA.PrivateKey(derRepresentation: pemEncodedPrivateKey)
+        try XCTAssertEqual(pemPrivateKey.pemRepresentation, pemRoundTrippedPrivateKey.pemRepresentation)
     }
 }
