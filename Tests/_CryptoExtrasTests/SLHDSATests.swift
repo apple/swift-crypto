@@ -111,6 +111,7 @@ final class SLHDSATests: XCTestCase {
         let pemEncodedPublicKey = try pemPublicKey.derRepresentation
         let pemRoundTrippedPublicKey = try SLHDSA.PublicKey(derRepresentation: pemEncodedPublicKey)
         try XCTAssertEqual(pemPublicKey.pemRepresentation, pemRoundTrippedPublicKey.pemRepresentation)
+        try XCTAssertEqual(pemPublicKey.pemRepresentation, examplePEMPublicKey)
     }
 
     func testPrivateKeyASN1Encoding() throws {
@@ -118,7 +119,7 @@ final class SLHDSATests: XCTestCase {
         let encodedPrivateKey = try privateKey.derRepresentation
         let roundTrippedPrivateKey = try SLHDSA.PrivateKey(derRepresentation: encodedPrivateKey)
         try XCTAssertEqual(privateKey.pemRepresentation, roundTrippedPrivateKey.pemRepresentation)
-        
+
         let examplePEMPrivateKey = """
             -----BEGIN PRIVATE KEY-----
             MFICAQAwCwYJYIZIAWUDBAMUBECiJjvKRYYINlIxYASVI9YhZ3+tkNUetgZ6Mn4N
@@ -130,5 +131,6 @@ final class SLHDSATests: XCTestCase {
         let pemEncodedPrivateKey = try pemPrivateKey.derRepresentation
         let pemRoundTrippedPrivateKey = try SLHDSA.PrivateKey(derRepresentation: pemEncodedPrivateKey)
         try XCTAssertEqual(pemPrivateKey.pemRepresentation, pemRoundTrippedPrivateKey.pemRepresentation)
+        try XCTAssertEqual(pemPrivateKey.pemRepresentation, examplePEMPrivateKey)
     }
 }
