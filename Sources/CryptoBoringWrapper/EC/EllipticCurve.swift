@@ -16,7 +16,7 @@
 /// A wrapper around BoringSSL's EC_GROUP object that handles reference counting and
 /// liveness.
 @usableFromInline
-package class BoringSSLEllipticCurveGroup {
+package final class BoringSSLEllipticCurveGroup {
     /* private but usableFromInline */ @usableFromInline var _group: OpaquePointer
 
     @usableFromInline
@@ -72,6 +72,14 @@ extension BoringSSLEllipticCurveGroup {
         return try! ArbitraryPrecisionInteger(copying: baseOrder)
     }
 
+    @usableFromInline
+    package var generator: EllipticCurvePoint { get throws {
+        guard let generatorPtr = CCryptoBoringSSL_EC_GROUP_get0_generator(self._group) else {
+            throw CryptoBoringWrapperError.internalBoringSSLError()
+        }
+        return try EllipticCurvePoint(copying: generatorPtr, on: self)
+    }}
+
     /// An elliptic curve can be represented in a Weierstrass form: `y² = x³ + ax + b`. This
     /// property provides the values of a and b on the curve.
     @usableFromInline
@@ -101,6 +109,20 @@ extension BoringSSLEllipticCurveGroup {
         case p256
         case p384
         case p521
+    }
+
+    @usableFromInline
+    var curveName: CurveName? {
+        switch CCryptoBoringSSL_EC_GROUP_get_curve_name(self._group) {
+        case NID_X9_62_prime256v1:
+            return .p256
+        case NID_secp384r1:
+            return .p384
+        case NID_secp521r1:
+            return .p521
+        default:
+            return nil
+        }
     }
 }
 
