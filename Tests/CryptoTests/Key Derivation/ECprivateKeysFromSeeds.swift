@@ -23,8 +23,8 @@ import XCTest
 @testable import Crypto
 #endif
 
-extension CryptoKitError: Equatable {
-    public static func == (lhs: CryptoKitError, rhs: CryptoKitError) -> Bool {
+extension CryptoError: Equatable {
+    public static func == (lhs: CryptoError, rhs: CryptoError) -> Bool {
         switch (lhs, rhs) {
         case (.incorrectKeySize, .incorrectKeySize):
             return true
@@ -36,7 +36,7 @@ extension CryptoKitError: Equatable {
             return true
         case (.unwrapFailure, .unwrapFailure):
             return true
-        case (.underlyingCoreCryptoError(let lhsError), .underlyingCoreCryptoError(let rhsError)):
+        case (.underlyingCoreCryptoKitError(let lhsError), .underlyingCoreCryptoKitError(let rhsError)):
             return lhsError == rhsError
         default:
             return false

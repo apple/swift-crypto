@@ -51,7 +51,7 @@ extension AES.GCM {
         /// error if the data has a length other than 12 bytes.
         public init<D: DataProtocol>(data: D) throws {
             if data.count < AES.GCM.defaultNonceByteCount {
-                throw CryptoKitError.incorrectParameterSize
+                throw CryptoError.incorrectParameterSize
             }
 
             self.bytes = Data(data)
@@ -113,7 +113,7 @@ extension ChaChaPoly {
         /// error if the data has a length other than 12 bytes.
         public init<D: DataProtocol>(data: D) throws {
             if data.count != ChaChaPoly.nonceByteCount {
-                throw CryptoKitError.incorrectParameterSize
+                throw CryptoError.incorrectParameterSize
             }
 
             self.bytes = Data(data)

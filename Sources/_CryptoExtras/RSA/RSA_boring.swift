@@ -177,7 +177,7 @@ extension BoringSSLRSAPublicKey {
                 let rsaPublicKey = try pemRepresentation.withUTF8 { utf8Ptr in
                     return try BIOHelper.withReadOnlyMemoryBIO(wrapping: utf8Ptr) { bio in
                         guard let key = CCryptoBoringSSL_PEM_read_bio_RSA_PUBKEY(bio, nil, nil, nil) else {
-                            throw CryptoKitError.internalBoringSSLError()
+                            throw CryptoError.internalBoringSSLError()
                         }
                         return key
                     }
@@ -188,7 +188,7 @@ extension BoringSSLRSAPublicKey {
                     let rsaPublicKey = try pemRepresentation.withUTF8 { utf8Ptr in
                         return try BIOHelper.withReadOnlyMemoryBIO(wrapping: utf8Ptr) { bio in
                             guard let key = CCryptoBoringSSL_PEM_read_bio_RSAPublicKey(bio, nil, nil, nil) else {
-                                throw CryptoKitError.internalBoringSSLError()
+                                throw CryptoError.internalBoringSSLError()
                             }
                             return key
                         }
@@ -219,7 +219,7 @@ extension BoringSSLRSAPublicKey {
                 let rsaPublicKey = try contiguousDerRepresentation.withUnsafeBytes { derPtr in
                     return try BIOHelper.withReadOnlyMemoryBIO(wrapping: derPtr) { bio in
                         guard let key = CCryptoBoringSSL_d2i_RSA_PUBKEY_bio(bio, nil) else {
-                            throw CryptoKitError.internalBoringSSLError()
+                            throw CryptoError.internalBoringSSLError()
                         }
                         return key
                     }
@@ -230,7 +230,7 @@ extension BoringSSLRSAPublicKey {
                     let rsaPublicKey = try contiguousDerRepresentation.withUnsafeBytes { derPtr in
                         return try BIOHelper.withReadOnlyMemoryBIO(wrapping: derPtr) { bio in
                             guard let key = CCryptoBoringSSL_d2i_RSAPublicKey_bio(bio, nil) else {
-                                throw CryptoKitError.internalBoringSSLError()
+                                throw CryptoError.internalBoringSSLError()
                             }
                             return key
                         }
@@ -253,7 +253,7 @@ extension BoringSSLRSAPublicKey {
                 e.withUnsafeBignumPointer { e in
                     CCryptoBoringSSL_RSA_new_public_key(n, e)
                 }
-            }) else { throw CryptoKitError.internalBoringSSLError() }
+            }) else { throw CryptoError.internalBoringSSLError() }
             CCryptoBoringSSL_EVP_PKEY_assign_RSA(self.pointer, rsaPtr)
         }
 
@@ -372,7 +372,7 @@ extension BoringSSLRSAPublicKey {
                     precondition(writtenLength == bufferPtr.count, "PKEY encrypt actual written length should match RSA key size.")
 
                     guard rc == 1 else {
-                        throw CryptoKitError.internalBoringSSLError()
+                        throw CryptoError.internalBoringSSLError()
                     }
                 }
             }
@@ -403,7 +403,7 @@ extension BoringSSLRSAPublicKey {
             let c = try m.isCoprime(with: n)
 
             // 5. If c is false, raise an "invalid input" error and stop
-            if !c { throw CryptoKitError(_RSA.BlindSigning.ProtocolError.invalidInput) }
+            if !c { throw CryptoError(_RSA.BlindSigning.ProtocolError.invalidInput) }
 
             // 6. r = random_integer_uniform(1, n)
             // 7. inv = inverse_mod(r, n)
@@ -443,7 +443,7 @@ extension BoringSSLRSAPublicKey {
 
             // 1. If len(blind_sig) != modulus_len, raise an "unexpected input size" error and stop
             guard blindSignature.rawRepresentation.count == modulusByteCount else {
-                throw CryptoKitError(_RSA.BlindSigning.ProtocolError.unexpectedInputSize)
+                throw CryptoError(_RSA.BlindSigning.ProtocolError.unexpectedInputSize)
             }
 
             // 2. z = bytes_to_int(blind_sig)
@@ -463,7 +463,7 @@ extension BoringSSLRSAPublicKey {
             if result {
                 return sig
             } else {
-                throw CryptoKitError(_RSA.BlindSigning.ProtocolError.invalidSignature)
+                throw CryptoError(_RSA.BlindSigning.ProtocolError.invalidSignature)
             }
         }
 
@@ -506,7 +506,7 @@ extension BoringSSLRSAPrivateKey {
             let rsaPrivateKey = try pemRepresentation.withUTF8 { utf8Ptr in
                 return try BIOHelper.withReadOnlyMemoryBIO(wrapping: utf8Ptr) { bio in
                     guard let key = CCryptoBoringSSL_PEM_read_bio_RSAPrivateKey(bio, nil, nil, nil) else {
-                        throw CryptoKitError.internalBoringSSLError()
+                        throw CryptoError.internalBoringSSLError()
                     }
 
                     return key
@@ -532,7 +532,7 @@ extension BoringSSLRSAPrivateKey {
             } else if let pointer = Backing.pkcs1DERPrivateKey(contiguousDerRepresentation) {
                 rsaPrivateKey = pointer
             } else {
-                throw CryptoKitError.internalBoringSSLError()
+                throw CryptoError.internalBoringSSLError()
             }
             CCryptoBoringSSL_EVP_PKEY_assign_RSA(self.pointer, rsaPrivateKey)
         }
@@ -550,7 +550,7 @@ extension BoringSSLRSAPrivateKey {
             let dp = try FiniteFieldArithmeticContext(fieldSize: p - 1).residue(d)
             let dq = try FiniteFieldArithmeticContext(fieldSize: q - 1).residue(d)
             guard let qi = try FiniteFieldArithmeticContext(fieldSize: p).inverse(q) else {
-                throw CryptoKitError.internalBoringSSLError()
+                throw CryptoError.internalBoringSSLError()
             }
 
             // Create BoringSSL RSA key.
@@ -570,7 +570,7 @@ extension BoringSSLRSAPrivateKey {
                         }
                     }
                 }
-            }) else { throw CryptoKitError.internalBoringSSLError() }
+            }) else { throw CryptoError.internalBoringSSLError() }
             CCryptoBoringSSL_EVP_PKEY_assign_RSA(self.pointer, rsaPtr)
         }
 
@@ -615,7 +615,7 @@ extension BoringSSLRSAPrivateKey {
                 }
 
                 guard rc == 1 else {
-                    throw CryptoKitError.internalBoringSSLError()
+                    throw CryptoError.internalBoringSSLError()
                 }
 
                 self.pointer = CCryptoBoringSSL_EVP_PKEY_new()
@@ -725,7 +725,7 @@ extension BoringSSLRSAPrivateKey {
                     }
                 }
                 if rc != 1 {
-                    throw CryptoKitError.internalBoringSSLError()
+                    throw CryptoError.internalBoringSSLError()
                 }
 
                 length = outputLength
@@ -770,7 +770,7 @@ extension BoringSSLRSAPrivateKey {
                     )
 
                     guard rc == 1 else {
-                        throw CryptoKitError.internalBoringSSLError()
+                        throw CryptoError.internalBoringSSLError()
                     }
 
                     return CInt(writtenLength)
@@ -786,7 +786,7 @@ extension BoringSSLRSAPrivateKey {
             let signatureByteCount = Int(CCryptoBoringSSL_RSA_size(rsaPrivateKey))
 
             guard message.count == signatureByteCount else {
-                throw CryptoKitError.incorrectParameterSize
+                throw CryptoError.incorrectParameterSize
             }
 
             let messageBytes: ContiguousBytes = message.regions.count == 1 ? message.regions.first! : Array(message)
@@ -806,9 +806,9 @@ extension BoringSSLRSAPrivateKey {
                     ) == 1 else {
                         switch ERR_GET_REASON(CCryptoBoringSSL_ERR_peek_last_error()) {
                         case RSA_R_DATA_TOO_LARGE_FOR_MODULUS:
-                            throw CryptoKitError(_RSA.BlindSigning.ProtocolError.messageRepresentativeOutOfRange)
+                            throw CryptoError(_RSA.BlindSigning.ProtocolError.messageRepresentativeOutOfRange)
                         default:
-                            throw CryptoKitError.internalBoringSSLError()
+                            throw CryptoError.internalBoringSSLError()
                         }
                     }
                     precondition(outputCount == signatureBufferPtr.count)
@@ -838,13 +838,13 @@ extension BoringSSLRSAPrivateKey {
                             signatureBufferPtr.count,
                             RSA_NO_PADDING
                         ) == 1 else {
-                            throw CryptoKitError.internalBoringSSLError()
+                            throw CryptoError.internalBoringSSLError()
                         }
                         guard
                             outputCount == blindedMessageBufferPtr.count,
                             memcmp(verificationBufferPtr.baseAddress!, blindedMessageBufferPtr.baseAddress!, blindedMessageBufferPtr.count) == 0
                         else {
-                            throw CryptoKitError(_RSA.BlindSigning.ProtocolError.signingFailure)
+                            throw CryptoError(_RSA.BlindSigning.ProtocolError.signingFailure)
                         }
                     }
                 }
@@ -918,9 +918,9 @@ enum BlindSigningHelpers {
             }) == 1 else {
                 switch ERR_GET_REASON(CCryptoBoringSSL_ERR_peek_last_error()) {
                 case RSA_R_DATA_TOO_LARGE_FOR_KEY_SIZE:
-                    throw CryptoKitError(_RSA.BlindSigning.ProtocolError.messageTooLong)
+                    throw CryptoError(_RSA.BlindSigning.ProtocolError.messageTooLong)
                 default:
-                    throw CryptoKitError.internalBoringSSLError()
+                    throw CryptoError.internalBoringSSLError()
                 }
             }
             return try ArbitraryPrecisionInteger(bytes: encodedMessageBufferPtr)

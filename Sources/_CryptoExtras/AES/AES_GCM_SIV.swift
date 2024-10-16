@@ -96,7 +96,7 @@ extension AES.GCM._SIV {
 
         public init<D: DataProtocol>(data: D) throws {
             if data.count != AES.GCM._SIV.nonceByteCount {
-                throw CryptoKitError.incorrectParameterSize
+                throw CryptoError.incorrectParameterSize
             }
 
             self.bytes = Data(data)
@@ -138,7 +138,7 @@ extension AES.GCM._SIV {
             let aesGCMOverhead = 12 + 16
 
             if combined.count < aesGCMOverhead {
-                throw CryptoKitError.incorrectParameterSize
+                throw CryptoError.incorrectParameterSize
             }
 
             self.combined = Data(combined)
@@ -146,7 +146,7 @@ extension AES.GCM._SIV {
 
         public init<C: DataProtocol, T: DataProtocol>(nonce: AES.GCM._SIV.Nonce, ciphertext: C, tag: T) throws {
             guard tag.count == AES.GCM._SIV.tagByteCount else {
-                throw CryptoKitError.incorrectParameterSize
+                throw CryptoError.incorrectParameterSize
             }
 
             self.combined = Data(nonce) + ciphertext + tag

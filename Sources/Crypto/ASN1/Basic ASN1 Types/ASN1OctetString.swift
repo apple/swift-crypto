@@ -27,7 +27,7 @@ extension ASN1 {
 
         init(asn1Encoded node: ASN1.ASN1Node, withIdentifier identifier: ASN1.ASN1Identifier) throws {
             guard node.identifier == identifier else {
-                throw CryptoKitASN1Error.unexpectedFieldType
+                throw CryptoASN1Error.unexpectedFieldType
             }
 
             guard case .primitive(let content) = node.content else {

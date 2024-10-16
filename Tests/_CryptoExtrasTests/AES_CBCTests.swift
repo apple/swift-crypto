@@ -152,7 +152,7 @@ final class CBCTests: XCTestCase {
         let iv = try AES._CBC.IV(ivBytes: Array(hexString: "00000000000000000000000000000000"))
         let input = try Data(hexString: "6741b46d1390dac577e3236b")
         XCTAssertThrowsError(try AES._CBC.encrypt(input, using: SymmetricKey(data: key), iv: iv, noPadding: true)) { error in
-            guard let error = error as? CryptoKitError, case .incorrectParameterSize = error else {
+            guard let error = error as? CryptoError, case .incorrectParameterSize = error else {
                 XCTFail("Unexpected error: \(error)")
                 return
             }

@@ -21,7 +21,7 @@ import Foundation
 enum OpenSSLChaCha20CTRImpl {
     static func encrypt<M: DataProtocol, N: ContiguousBytes>(key: SymmetricKey, message: M, counter: UInt32, nonce: N) throws -> Data {
         guard key.bitCount == Insecure.ChaCha20CTR.keyBitsCount else {
-            throw CryptoKitError.incorrectKeySize
+            throw CryptoError.incorrectKeySize
         }
 
         // If our message, conforming to DataProtocol, happens to be allocated contiguously in memory, then we can grab the first, and only, contiguous region and operate on it

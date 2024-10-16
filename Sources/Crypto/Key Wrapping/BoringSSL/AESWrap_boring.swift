@@ -37,7 +37,7 @@ enum BoringSSLAESWRAPImpl {
         }
 
         guard rc >= 0 else {
-            throw CryptoKitError.internalBoringSSLError()
+            throw CryptoError.internalBoringSSLError()
         }
 
         // Assert our 8-byte overhead story was true.
@@ -66,7 +66,7 @@ enum BoringSSLAESWRAPImpl {
                 }
 
                 guard rc > 0 else {
-                    throw CryptoKitError.internalBoringSSLError()
+                    throw CryptoError.internalBoringSSLError()
                 }
 
                 // Assert our 8-byte overhead story is true.
@@ -106,7 +106,7 @@ extension SymmetricKey {
             }
 
             guard rc == 0 else {
-                throw CryptoKitError.internalBoringSSLError()
+                throw CryptoError.internalBoringSSLError()
             }
 
             return try withUnsafePointer(to: aesKey) {

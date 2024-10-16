@@ -114,7 +114,7 @@ extension ASN1 {
 
         init(asn1Encoded node: ASN1.ASN1Node, withIdentifier identifier: ASN1.ASN1Identifier) throws {
             guard node.identifier == identifier else {
-                throw CryptoKitASN1Error.unexpectedFieldType
+                throw CryptoASN1Error.unexpectedFieldType
             }
 
             guard case .primitive(let content) = node.content else {
@@ -133,24 +133,24 @@ extension ASN1 {
         private func validate() throws {
             // Validate that the structure is well-formed.
             guard self._year >= 0 && self._year <= 9999 else {
-                throw CryptoKitASN1Error.invalidASN1Object
+                throw CryptoASN1Error.invalidASN1Object
             }
 
             // This also validates the month.
             guard let daysInMonth = ASN1.GeneralizedTime.daysInMonth(self._month, ofYear: self._year) else {
-                throw CryptoKitASN1Error.invalidASN1Object
+                throw CryptoASN1Error.invalidASN1Object
             }
 
             guard self._day >= 1 && self._day <= daysInMonth else {
-                throw CryptoKitASN1Error.invalidASN1Object
+                throw CryptoASN1Error.invalidASN1Object
             }
 
             guard self._hours >= 0 && self._hours < 24 else {
-                throw CryptoKitASN1Error.invalidASN1Object
+                throw CryptoASN1Error.invalidASN1Object
             }
 
             guard self._minutes >= 0 && self._minutes < 60 else {
-                throw CryptoKitASN1Error.invalidASN1Object
+                throw CryptoASN1Error.invalidASN1Object
             }
 
             // We allow leap seconds here, but don't validate it.
@@ -158,12 +158,12 @@ extension ASN1 {
             // comparison here. We should consider whether this needs to be transformable
             // to `Date` or similar.
             guard self._seconds >= 0 && self._seconds <= 61 else {
-                throw CryptoKitASN1Error.invalidASN1Object
+                throw CryptoASN1Error.invalidASN1Object
             }
 
             // Fractional seconds may not be negative and may not be 1 or more.
             guard self._fractionalSeconds >= 0 && self._fractionalSeconds < 1 else {
-                throw CryptoKitASN1Error.invalidASN1Object
+                throw CryptoASN1Error.invalidASN1Object
             }
         }
     }
@@ -178,7 +178,7 @@ extension ASN1.GeneralizedTime {
         guard let rawYear = bytes.readFourDigitDecimalInteger(),
               let rawMonth = bytes.readTwoDigitDecimalInteger(),
               let rawDay = bytes.readTwoDigitDecimalInteger() else {
-            throw CryptoKitASN1Error.invalidASN1Object
+            throw CryptoASN1Error.invalidASN1Object
         }
 
         // Next there must be a _time_. Per DER rules, this time must always go
@@ -187,7 +187,7 @@ extension ASN1.GeneralizedTime {
         guard let rawHour = bytes.readTwoDigitDecimalInteger(),
               let rawMinutes = bytes.readTwoDigitDecimalInteger(),
               let rawSeconds = bytes.readTwoDigitDecimalInteger() else {
-            throw CryptoKitASN1Error.invalidASN1Object
+            throw CryptoASN1Error.invalidASN1Object
         }
 
         // There may be some fractional seconds.
@@ -198,12 +198,12 @@ extension ASN1.GeneralizedTime {
 
         // The next character _must_ be Z, or the encoding is invalid.
         guard bytes.popFirst() == UInt8(ascii: "Z") else {
-            throw CryptoKitASN1Error.invalidASN1Object
+            throw CryptoASN1Error.invalidASN1Object
         }
 
         // Great! There better not be anything left.
         guard bytes.count == 0 else {
-            throw CryptoKitASN1Error.invalidASN1Object
+            throw CryptoASN1Error.invalidASN1Object
         }
 
         return try ASN1.GeneralizedTime(year: rawYear,
@@ -300,7 +300,7 @@ extension ArraySlice where Element == UInt8 {
 
             // If the numerator overflows, we don't support the result.
             if multiplyOverflow || addingOverflow {
-                throw CryptoKitASN1Error.invalidASN1Object
+                throw CryptoASN1Error.invalidASN1Object
             }
 
             numerator = newNumeratorWithAdded
@@ -309,7 +309,7 @@ extension ArraySlice where Element == UInt8 {
         // Ok, we're either at the end or the next character is a Z. One final check: there may not have
         // been any trailing zeros here. This means the number may not be 0 mod 10.
         if numerator % 10 == 0 {
-            throw CryptoKitASN1Error.invalidASN1Object
+            throw CryptoASN1Error.invalidASN1Object
         }
 
         return Double(numerator) / Double(denominator)

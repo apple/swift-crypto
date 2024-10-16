@@ -167,7 +167,7 @@ extension AES.GCM {
             let aesGCMOverhead = 12 + 16
             
             if combined.count < aesGCMOverhead {
-                throw CryptoKitError.incorrectParameterSize
+                throw CryptoError.incorrectParameterSize
             }
             
             self.init(combined: Data(combined))
@@ -181,7 +181,7 @@ extension AES.GCM {
         ///   - tag: The authentication tag.
         public init<C: DataProtocol, T: DataProtocol>(nonce: AES.GCM.Nonce, ciphertext: C, tag: T) throws {
             guard tag.count == AES.GCM.tagByteCount else {
-                throw CryptoKitError.incorrectParameterSize
+                throw CryptoError.incorrectParameterSize
             }
 
             let nonceByteCount = nonce.bytes.count

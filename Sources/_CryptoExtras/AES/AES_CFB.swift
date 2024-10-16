@@ -54,7 +54,7 @@ extension AES._CFB {
 
         public init<IVBytes: Collection>(ivBytes: IVBytes) throws where IVBytes.Element == UInt8 {
             guard ivBytes.count == 16 else {
-                throw CryptoKitError.incorrectParameterSize
+                throw CryptoError.incorrectParameterSize
             }
 
             self.ivBytes = (0, 0)

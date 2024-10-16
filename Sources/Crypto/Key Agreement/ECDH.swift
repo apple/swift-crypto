@@ -85,7 +85,7 @@ extension P256 {
             public init(pemRepresentation: String) throws {
                 let pem = try ASN1.PEMDocument(pemString: pemRepresentation)
                 guard pem.type == "PUBLIC KEY" else {
-                    throw CryptoKitASN1Error.invalidPEMDocument
+                    throw CryptoASN1Error.invalidPEMDocument
                 }
                 self = try .init(derRepresentation: pem.derBytes)
             }
@@ -185,7 +185,7 @@ extension P256 {
                     let parsed = try ASN1.PKCS8PrivateKey(asn1Encoded: Array(pem.derBytes))
                     self = try .init(rawRepresentation: parsed.privateKey.privateKey)
                 default:
-                    throw CryptoKitASN1Error.invalidPEMDocument
+                    throw CryptoASN1Error.invalidPEMDocument
                 }
             }
 
@@ -300,7 +300,7 @@ extension P256 {
             public init(pemRepresentation: String) throws {
                 let pem = try ASN1.PEMDocument(pemString: pemRepresentation)
                 guard pem.type == "PUBLIC KEY" else {
-                    throw CryptoKitASN1Error.invalidPEMDocument
+                    throw CryptoASN1Error.invalidPEMDocument
                 }
                 self = try .init(derRepresentation: pem.derBytes)
             }
@@ -400,7 +400,7 @@ extension P256 {
                     let parsed = try ASN1.PKCS8PrivateKey(asn1Encoded: Array(pem.derBytes))
                     self = try .init(rawRepresentation: parsed.privateKey.privateKey)
                 default:
-                    throw CryptoKitASN1Error.invalidPEMDocument
+                    throw CryptoASN1Error.invalidPEMDocument
                 }
             }
 
@@ -514,7 +514,7 @@ extension P384 {
             public init(pemRepresentation: String) throws {
                 let pem = try ASN1.PEMDocument(pemString: pemRepresentation)
                 guard pem.type == "PUBLIC KEY" else {
-                    throw CryptoKitASN1Error.invalidPEMDocument
+                    throw CryptoASN1Error.invalidPEMDocument
                 }
                 self = try .init(derRepresentation: pem.derBytes)
             }
@@ -614,7 +614,7 @@ extension P384 {
                     let parsed = try ASN1.PKCS8PrivateKey(asn1Encoded: Array(pem.derBytes))
                     self = try .init(rawRepresentation: parsed.privateKey.privateKey)
                 default:
-                    throw CryptoKitASN1Error.invalidPEMDocument
+                    throw CryptoASN1Error.invalidPEMDocument
                 }
             }
 
@@ -729,7 +729,7 @@ extension P384 {
             public init(pemRepresentation: String) throws {
                 let pem = try ASN1.PEMDocument(pemString: pemRepresentation)
                 guard pem.type == "PUBLIC KEY" else {
-                    throw CryptoKitASN1Error.invalidPEMDocument
+                    throw CryptoASN1Error.invalidPEMDocument
                 }
                 self = try .init(derRepresentation: pem.derBytes)
             }
@@ -829,7 +829,7 @@ extension P384 {
                     let parsed = try ASN1.PKCS8PrivateKey(asn1Encoded: Array(pem.derBytes))
                     self = try .init(rawRepresentation: parsed.privateKey.privateKey)
                 default:
-                    throw CryptoKitASN1Error.invalidPEMDocument
+                    throw CryptoASN1Error.invalidPEMDocument
                 }
             }
 
@@ -943,7 +943,7 @@ extension P521 {
             public init(pemRepresentation: String) throws {
                 let pem = try ASN1.PEMDocument(pemString: pemRepresentation)
                 guard pem.type == "PUBLIC KEY" else {
-                    throw CryptoKitASN1Error.invalidPEMDocument
+                    throw CryptoASN1Error.invalidPEMDocument
                 }
                 self = try .init(derRepresentation: pem.derBytes)
             }
@@ -1043,7 +1043,7 @@ extension P521 {
                     let parsed = try ASN1.PKCS8PrivateKey(asn1Encoded: Array(pem.derBytes))
                     self = try .init(rawRepresentation: parsed.privateKey.privateKey)
                 default:
-                    throw CryptoKitASN1Error.invalidPEMDocument
+                    throw CryptoASN1Error.invalidPEMDocument
                 }
             }
 
@@ -1158,7 +1158,7 @@ extension P521 {
             public init(pemRepresentation: String) throws {
                 let pem = try ASN1.PEMDocument(pemString: pemRepresentation)
                 guard pem.type == "PUBLIC KEY" else {
-                    throw CryptoKitASN1Error.invalidPEMDocument
+                    throw CryptoASN1Error.invalidPEMDocument
                 }
                 self = try .init(derRepresentation: pem.derBytes)
             }
@@ -1258,7 +1258,7 @@ extension P521 {
                     let parsed = try ASN1.PKCS8PrivateKey(asn1Encoded: Array(pem.derBytes))
                     self = try .init(rawRepresentation: parsed.privateKey.privateKey)
                 default:
-                    throw CryptoKitASN1Error.invalidPEMDocument
+                    throw CryptoASN1Error.invalidPEMDocument
                 }
             }
 

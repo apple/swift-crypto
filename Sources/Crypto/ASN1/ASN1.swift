@@ -137,7 +137,7 @@ extension ASN1 {
     /// Parse the node as an ASN.1 sequence.
     internal static func sequence<T>(_ node: ASN1Node, identifier: ASN1.ASN1Identifier, _ builder: (inout ASN1.ASN1NodeCollection.Iterator) throws -> T) throws -> T {
         guard node.identifier == identifier, case .constructed(let nodes) = node.content else {
-            throw CryptoKitASN1Error.unexpectedFieldType
+            throw CryptoASN1Error.unexpectedFieldType
         }
 
         var iterator = nodes.makeIterator()
@@ -145,7 +145,7 @@ extension ASN1 {
         let result = try builder(&iterator)
 
         guard iterator.next() == nil else {
-            throw CryptoKitASN1Error.invalidASN1Object
+            throw CryptoASN1Error.invalidASN1Object
         }
 
         return result
@@ -153,7 +153,7 @@ extension ASN1 {
 
     internal static func sequence<T: ASN1Parseable>(of: T.Type = T.self, identifier: ASN1.ASN1Identifier, rootNode: ASN1Node) throws -> [T] {
         guard rootNode.identifier == identifier, case .constructed(let nodes) = rootNode.content else {
-            throw CryptoKitASN1Error.unexpectedFieldType
+            throw CryptoASN1Error.unexpectedFieldType
         }
 
         return try nodes.map { try T(asn1Encoded: $0) }
@@ -162,7 +162,7 @@ extension ASN1 {
     internal static func sequence<T: ASN1Parseable>(of: T.Type = T.self, identifier: ASN1.ASN1Identifier, nodes: inout ASN1.ASN1NodeCollection.Iterator) throws -> [T] {
         guard let node = nodes.next() else {
             // Not present, throw.
-            throw CryptoKitASN1Error.invalidASN1Object
+            throw CryptoASN1Error.invalidASN1Object
         }
 
         return try sequence(of: T.self, identifier: identifier, rootNode: node)
@@ -205,7 +205,7 @@ extension ASN1 {
 
         var nodeIterator = nodes.makeIterator()
         guard let child = nodeIterator.next(), nodeIterator.next() == nil else {
-            throw CryptoKitASN1Error.invalidASN1Object
+            throw CryptoASN1Error.invalidASN1Object
         }
 
         return try builder(child)
@@ -239,7 +239,7 @@ extension ASN1 {
         // DER forbids encoding DEFAULT values at their default state.
         // We can lift this in BER.
         guard parsed != defaultValue else {
-            throw CryptoKitASN1Error.invalidASN1Object
+            throw CryptoASN1Error.invalidASN1Object
         }
 
         return parsed
@@ -250,7 +250,7 @@ extension ASN1 {
             guard result != defaultValue else {
                 // DER forbids encoding DEFAULT values at their default state.
                 // We can lift this in BER.
-                throw CryptoKitASN1Error.invalidASN1Object
+                throw CryptoASN1Error.invalidASN1Object
             }
 
             return result
@@ -279,7 +279,7 @@ extension ASN1 {
 
             try parseNode(from: &data, depth: 1, into: &nodes)
             guard data.count == 0 else {
-                throw CryptoKitASN1Error.invalidASN1Object
+                throw CryptoASN1Error.invalidASN1Object
             }
             return ASN1ParseResult(nodes[...])
         }
@@ -290,28 +290,28 @@ extension ASN1 {
             guard depth <= ASN1.ASN1ParseResult.maximumNodeDepth else {
                 // We defend ourselves against stack overflow by refusing to allocate more than 10 stack frames to
                 // the parsing.
-                throw CryptoKitASN1Error.invalidASN1Object
+                throw CryptoASN1Error.invalidASN1Object
             }
 
             guard let rawIdentifier = data.popFirst() else {
-                throw CryptoKitASN1Error.truncatedASN1Field
+                throw CryptoASN1Error.truncatedASN1Field
             }
 
             let identifier = try ASN1Identifier(rawIdentifier: rawIdentifier)
             guard let wideLength = try data.readASN1Length() else {
-                throw CryptoKitASN1Error.truncatedASN1Field
+                throw CryptoASN1Error.truncatedASN1Field
             }
 
             // UInt is sometimes too large for us!
             guard let length = Int(exactly: wideLength) else {
-                throw CryptoKitASN1Error.invalidASN1Object
+                throw CryptoASN1Error.invalidASN1Object
             }
 
             var subData = data.prefix(length)
             data = data.dropFirst(length)
 
             guard subData.count == length else {
-                throw CryptoKitASN1Error.truncatedASN1Field
+                throw CryptoASN1Error.truncatedASN1Field
             }
 
             if identifier.constructed {
@@ -553,7 +553,7 @@ internal protocol ASN1Parseable {
 extension ASN1Parseable {
     internal init(asn1Encoded sequenceNodeIterator: inout ASN1.ASN1NodeCollection.Iterator) throws {
         guard let node = sequenceNodeIterator.next() else {
-            throw CryptoKitASN1Error.invalidASN1Object
+            throw CryptoASN1Error.invalidASN1Object
         }
 
         self = try .init(asn1Encoded: node)
@@ -587,7 +587,7 @@ extension ASN1ImplicitlyTaggable {
     internal init(asn1Encoded sequenceNodeIterator: inout ASN1.ASN1NodeCollection.Iterator,
                   withIdentifier identifier: ASN1.ASN1Identifier = Self.defaultIdentifier) throws {
         guard let node = sequenceNodeIterator.next() else {
-            throw CryptoKitASN1Error.invalidASN1Object
+            throw CryptoASN1Error.invalidASN1Object
         }
 
         self = try .init(asn1Encoded: node, withIdentifier: identifier)
@@ -619,7 +619,7 @@ extension ArraySlice where Element == UInt8 {
         switch firstByte {
         case 0x80:
             // Indefinite form. Unsupported.
-            throw CryptoKitASN1Error.unsupportedFieldLength
+            throw CryptoASN1Error.unsupportedFieldLength
         case let val where val & 0x80 == 0x80:
             // Top bit is set, this is the long form. The remaining 7 bits of this octet
             // determine how long the length field is.
@@ -638,16 +638,16 @@ extension ArraySlice where Element == UInt8 {
             switch requiredBits {
             case 0...7:
                 // For 0 to 7 bits, the long form is unacceptable and we require the short.
-                throw CryptoKitASN1Error.unsupportedFieldLength
+                throw CryptoASN1Error.unsupportedFieldLength
             case 8...:
                 // For 8 or more bits, fieldLength should be the minimum required.
                 let requiredBytes = (requiredBits + 7) / 8
                 if fieldLength > requiredBytes {
-                    throw CryptoKitASN1Error.unsupportedFieldLength
+                    throw CryptoASN1Error.unsupportedFieldLength
                 }
             default:
                 // This is not reachable, but we'll error anyway.
-                throw CryptoKitASN1Error.unsupportedFieldLength
+                throw CryptoASN1Error.unsupportedFieldLength
             }
 
             return length
@@ -661,7 +661,7 @@ extension ArraySlice where Element == UInt8 {
 extension FixedWidthInteger {
     internal init<Bytes: Collection>(bigEndianBytes bytes: Bytes) throws where Bytes.Element == UInt8 {
         guard bytes.count <= (Self.bitWidth / 8) else {
-            throw CryptoKitASN1Error.invalidASN1Object
+            throw CryptoASN1Error.invalidASN1Object
         }
 
         self = 0

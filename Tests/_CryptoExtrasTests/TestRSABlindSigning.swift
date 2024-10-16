@@ -161,7 +161,7 @@ final class TestRSABlindSigning: XCTestCase {
         let privateKey = try _RSA.BlindSigning.PrivateKey(pemRepresentation: privateKeyPEM)
         let blindedMessage = try Data(hexString: blindedMessageHexString)
         XCTAssertThrowsError(try privateKey.blindSignature(for: blindedMessage)) { error in
-            guard let error = error as? CryptoKitError, case .incorrectParameterSize = error else {
+            guard let error = error as? CryptoError, case .incorrectParameterSize = error else {
                 XCTFail("Unexpected error: \(error)")
                 return
             }

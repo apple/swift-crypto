@@ -25,8 +25,8 @@ extension BoringSSLAEAD {
         do {
             let context = try AEADContext(cipher: self, key: key)
             return try context.seal(message: message, nonce: nonce, authenticatedData: authenticatedData)
-        } catch CryptoBoringWrapperError.underlyingCoreCryptoError(let errorCode) {
-            throw CryptoKitError.underlyingCoreCryptoError(error: errorCode)
+        } catch CryptoBoringWrapperError.underlyingCoreCryptoKitError(let errorCode) {
+            throw CryptoError.underlyingCoreCryptoKitError(error: errorCode)
         }
     }
 
@@ -35,8 +35,8 @@ extension BoringSSLAEAD {
         do {
             let context = try AEADContext(cipher: self, key: key)
             return try context.open(ciphertext: ciphertext, nonce: nonce, tag: tag, authenticatedData: authenticatedData)
-        } catch CryptoBoringWrapperError.underlyingCoreCryptoError(let errorCode) {
-            throw CryptoKitError.underlyingCoreCryptoError(error: errorCode)
+        } catch CryptoBoringWrapperError.underlyingCoreCryptoKitError(let errorCode) {
+            throw CryptoError.underlyingCoreCryptoKitError(error: errorCode)
         }
     }
 }
@@ -44,7 +44,7 @@ extension BoringSSLAEAD {
 enum OpenSSLChaChaPolyImpl {
     static func encrypt<M: DataProtocol, AD: DataProtocol>(key: SymmetricKey, message: M, nonce: ChaChaPoly.Nonce?, authenticatedData: AD?) throws -> ChaChaPoly.SealedBox {
         guard key.bitCount == ChaChaPoly.keyBitsCount else {
-            throw CryptoKitError.incorrectKeySize
+            throw CryptoError.incorrectKeySize
         }
         let nonce = nonce ?? ChaChaPoly.Nonce()
 
@@ -61,7 +61,7 @@ enum OpenSSLChaChaPolyImpl {
 
     static func decrypt<AD: DataProtocol>(key: SymmetricKey, ciphertext: ChaChaPoly.SealedBox, authenticatedData: AD?) throws -> Data {
         guard key.bitCount == ChaChaPoly.keyBitsCount else {
-            throw CryptoKitError.incorrectKeySize
+            throw CryptoError.incorrectKeySize
         }
 
         if let ad = authenticatedData {

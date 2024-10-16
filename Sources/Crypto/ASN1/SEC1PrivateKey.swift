@@ -40,7 +40,7 @@ extension ASN1 {
             self = try ASN1.sequence(rootNode, identifier: identifier) { nodes in
                 let version = try Int(asn1Encoded: &nodes)
                 guard 1 == version else {
-                    throw CryptoKitASN1Error.invalidASN1Object
+                    throw CryptoASN1Error.invalidASN1Object
                 }
 
                 let privateKey = try ASN1OctetString(asn1Encoded: &nodes)
@@ -67,7 +67,7 @@ extension ASN1 {
                 case ASN1ObjectIdentifier.NamedCurves.secp521r1:
                     return .ecdsaP521
                 default:
-                    throw CryptoKitASN1Error.invalidASN1Object
+                    throw CryptoASN1Error.invalidASN1Object
                 }
             }
         }
@@ -93,7 +93,7 @@ extension ASN1 {
                     case .ecdsaP521:
                         oid = ASN1ObjectIdentifier.NamedCurves.secp521r1
                     default:
-                        throw CryptoKitASN1Error.invalidASN1Object
+                        throw CryptoASN1Error.invalidASN1Object
                     }
 
                     try coder.serialize(oid, explicitlyTaggedWithTagNumber: 0, tagClass: .contextSpecific)

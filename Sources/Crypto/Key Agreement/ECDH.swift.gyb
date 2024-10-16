@@ -104,7 +104,7 @@ extension ${CURVE} {
             public init(pemRepresentation: String) throws {
                 let pem = try ASN1.PEMDocument(pemString: pemRepresentation)
                 guard pem.type == "PUBLIC KEY" else {
-                    throw CryptoKitASN1Error.invalidPEMDocument
+                    throw CryptoASN1Error.invalidPEMDocument
                 }
                 self = try .init(derRepresentation: pem.derBytes)
             }
@@ -208,7 +208,7 @@ extension ${CURVE} {
                     let parsed = try ASN1.PKCS8PrivateKey(asn1Encoded: Array(pem.derBytes))
                     self = try .init(rawRepresentation: parsed.privateKey.privateKey)
                 default:
-                    throw CryptoKitASN1Error.invalidPEMDocument
+                    throw CryptoASN1Error.invalidPEMDocument
                 }
             }
 

@@ -63,7 +63,7 @@ extension AES._CTR {
             // We support a 96-bit nonce (with a 32-bit counter, initialized to 0) or a full 128-bit
             // expression.
             guard nonceBytes.count == 12 || nonceBytes.count == 16 else {
-                throw CryptoKitError.incorrectParameterSize
+                throw CryptoError.incorrectParameterSize
             }
 
             self.nonceBytes = (

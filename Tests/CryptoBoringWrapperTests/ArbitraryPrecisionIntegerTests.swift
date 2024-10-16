@@ -43,7 +43,7 @@ final class ArbitraryPrecisionIntegerTests: XCTestCase {
     func testPositiveSquareRoot() {
         XCTAssertNoThrow(XCTAssertEqual(try ArbitraryPrecisionInteger(144).positiveSquareRoot(), 12))
         XCTAssertThrowsError(try ArbitraryPrecisionInteger(101).positiveSquareRoot()) { error in
-            guard case .some(.underlyingCoreCryptoError) = error as? CryptoBoringWrapperError else {
+            guard case .some(.underlyingCoreCryptoKitError) = error as? CryptoBoringWrapperError else {
                 XCTFail("Unexpected error: \(error)")
                 return
             }

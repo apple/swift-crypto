@@ -16,11 +16,11 @@
 #else
 @_implementationOnly import CCryptoBoringSSL
 
-extension CryptoKitError {
+extension CryptoError {
     /// A helper function that packs the value of `ERR_get_error` into the internal error field.
     @usableFromInline
-    static func internalBoringSSLError() -> CryptoKitError {
-        .underlyingCoreCryptoError(error: Int32(bitPattern: CCryptoBoringSSL_ERR_get_error()))
+    static func internalBoringSSLError() -> CryptoError {
+        .underlyingCoreCryptoKitError(error: Int32(bitPattern: CCryptoBoringSSL_ERR_get_error()))
     }
 }
 #endif // CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API

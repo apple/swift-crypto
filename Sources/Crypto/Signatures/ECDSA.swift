@@ -48,7 +48,7 @@ extension P256.Signing {
         /// collection of contiguous bytes.
         public init<D: DataProtocol>(rawRepresentation: D) throws {
             guard rawRepresentation.count == 2 * P256.coordinateByteCount else {
-                throw CryptoKitError.incorrectParameterSize
+                throw CryptoError.incorrectParameterSize
             }
 
             self.rawRepresentation = Data(rawRepresentation)
@@ -56,7 +56,7 @@ extension P256.Signing {
         
         internal init(_ dataRepresentation: Data) throws {
             guard dataRepresentation.count == 2 * P256.coordinateByteCount else {
-                throw CryptoKitError.incorrectParameterSize
+                throw CryptoError.incorrectParameterSize
             }
 
             self.rawRepresentation = dataRepresentation
@@ -85,7 +85,7 @@ extension P256.Signing {
             let coordinateByteCount = P256.coordinateByteCount
 
             guard signature.r.count <= coordinateByteCount && signature.s.count <= coordinateByteCount else {
-                throw CryptoKitError.incorrectParameterSize
+                throw CryptoError.incorrectParameterSize
             }
 
             // r and s must be padded out to the coordinate byte count.
@@ -211,7 +211,7 @@ extension P384.Signing {
         /// collection of contiguous bytes.
         public init<D: DataProtocol>(rawRepresentation: D) throws {
             guard rawRepresentation.count == 2 * P384.coordinateByteCount else {
-                throw CryptoKitError.incorrectParameterSize
+                throw CryptoError.incorrectParameterSize
             }
 
             self.rawRepresentation = Data(rawRepresentation)
@@ -219,7 +219,7 @@ extension P384.Signing {
         
         internal init(_ dataRepresentation: Data) throws {
             guard dataRepresentation.count == 2 * P384.coordinateByteCount else {
-                throw CryptoKitError.incorrectParameterSize
+                throw CryptoError.incorrectParameterSize
             }
 
             self.rawRepresentation = dataRepresentation
@@ -248,7 +248,7 @@ extension P384.Signing {
             let coordinateByteCount = P384.coordinateByteCount
 
             guard signature.r.count <= coordinateByteCount && signature.s.count <= coordinateByteCount else {
-                throw CryptoKitError.incorrectParameterSize
+                throw CryptoError.incorrectParameterSize
             }
 
             // r and s must be padded out to the coordinate byte count.
@@ -374,7 +374,7 @@ extension P521.Signing {
         /// collection of contiguous bytes.
         public init<D: DataProtocol>(rawRepresentation: D) throws {
             guard rawRepresentation.count == 2 * P521.coordinateByteCount else {
-                throw CryptoKitError.incorrectParameterSize
+                throw CryptoError.incorrectParameterSize
             }
 
             self.rawRepresentation = Data(rawRepresentation)
@@ -382,7 +382,7 @@ extension P521.Signing {
         
         internal init(_ dataRepresentation: Data) throws {
             guard dataRepresentation.count == 2 * P521.coordinateByteCount else {
-                throw CryptoKitError.incorrectParameterSize
+                throw CryptoError.incorrectParameterSize
             }
 
             self.rawRepresentation = dataRepresentation
@@ -411,7 +411,7 @@ extension P521.Signing {
             let coordinateByteCount = P521.coordinateByteCount
 
             guard signature.r.count <= coordinateByteCount && signature.s.count <= coordinateByteCount else {
-                throw CryptoKitError.incorrectParameterSize
+                throw CryptoError.incorrectParameterSize
             }
 
             // r and s must be padded out to the coordinate byte count.

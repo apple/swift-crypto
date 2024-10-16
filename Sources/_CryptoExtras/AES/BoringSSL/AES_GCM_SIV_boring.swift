@@ -26,8 +26,8 @@ extension BoringSSLAEAD {
         do {
             let context = try AEADContext(cipher: self, key: key)
             return try context.seal(message: message, nonce: nonce, authenticatedData: authenticatedData)
-        } catch CryptoBoringWrapperError.underlyingCoreCryptoError(let errorCode) {
-            throw CryptoKitError.underlyingCoreCryptoError(error: errorCode)
+        } catch CryptoBoringWrapperError.underlyingCoreCryptoKitError(let errorCode) {
+            throw CryptoError.underlyingCoreCryptoError(error: errorCode)
         }
     }
 
@@ -36,8 +36,8 @@ extension BoringSSLAEAD {
         do {
             let context = try AEADContext(cipher: self, key: key)
             return try context.open(combinedCiphertextAndTag: combinedCiphertextAndTag, nonce: nonce, authenticatedData: authenticatedData)
-        } catch CryptoBoringWrapperError.underlyingCoreCryptoError(let errorCode) {
-            throw CryptoKitError.underlyingCoreCryptoError(error: errorCode)
+        } catch CryptoBoringWrapperError.underlyingCoreCryptoKitError(let errorCode) {
+            throw CryptoError.underlyingCoreCryptoKitError(error: errorCode)
         }
     }
 }
@@ -81,7 +81,7 @@ enum OpenSSLAESGCMSIVImpl {
         case 256:
             return .aes256gcmsiv
         default:
-            throw CryptoKitError.incorrectKeySize
+            throw CryptoError.incorrectKeySize
         }
     }
 }
