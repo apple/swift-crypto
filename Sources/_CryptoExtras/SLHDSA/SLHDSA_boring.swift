@@ -28,34 +28,53 @@ extension SLHDSA {
     public struct PrivateKey: Sendable {
         private var backing: Backing
 
+        /// Initialize a SLH-DSA-SHA2-128s private key from a random seed.
         public init() {
             self.backing = Backing()
         }
 
+        /// Initialize a SLH-DSA-SHA2-128s private key from a DER representation.
+        /// 
+        /// - Parameter derRepresentation: The DER representation of the private key.
+        /// 
+        /// - Throws: `CryptoKitError.wrapFailure` if the algorithm OID is not SLH-DSA-SHA2-128s.
         public init(derRepresentation: some DataProtocol) throws {
             self.backing = try Backing(derRepresentation: derRepresentation)
         }
 
+        /// Initialize a SLH-DSA-SHA2-128s private key from a PEM representation.
+        /// 
+        /// - Parameter pemRepresentation: The PEM representation of the private key.
         public init(pemRepresentation: String) throws {
             self.backing = try Backing(pemRepresentation: pemRepresentation)
         }
 
+        /// The DER representation of the private key.
         public var derRepresentation: Data {
             get throws {
                 try self.backing.derRepresentation
             }
         }
 
+        /// The PEM representation of the private key.
         public var pemRepresentation: String {
             get throws {
                 try self.backing.pemRepresentation
             }
         }
 
+        /// The public key associated with this private key.
         public var publicKey: PublicKey {
             self.backing.publicKey
         }
 
+        /// Generate a signature for the given data.
+        /// 
+        /// - Parameters: 
+        ///   - data: The message to sign.
+        ///   - context: The context to use for the signature.
+        /// 
+        /// - Returns: The signature of the message.
         public func signature(for data: some DataProtocol, context: [UInt8]? = nil) throws -> Signature {
             try self.backing.signature(for: data, context: context)
         }
@@ -64,8 +83,9 @@ extension SLHDSA {
         private static let bytesCount = Backing.bytesCount
 
         fileprivate final class Backing {
-            fileprivate let pointer: UnsafeMutablePointer<UInt8>
+            let pointer: UnsafeMutablePointer<UInt8>
             
+            /// Initialize a SLH-DSA-SHA2-128s private key from a random seed.
             init() {
                 self.pointer = UnsafeMutablePointer<UInt8>.allocate(capacity: SLHDSA.PrivateKey.bytesCount)
 
@@ -75,12 +95,17 @@ extension SLHDSA {
                 CCryptoBoringSSL_SLHDSA_SHA2_128S_generate_key(publicKeyPtr, self.pointer)
             }
 
+            /// Initialize a SLH-DSA-SHA2-128s private key from a DER representation.
+            /// 
+            /// - Parameter derRepresentation: The DER representation of the private key.
+            /// 
+            /// - Throws: `CryptoKitError.wrapFailure` if the algorithm OID is not SLH-DSA-SHA2-128s.
             init(derRepresentation: some DataProtocol) throws {
                 let result = try DER.parse(Array(derRepresentation))
                 let pkey = try OneAsymmetricKey(derEncoded: result)
 
                 guard pkey.algorithm == .slhDsaSHA2128s else {
-                    throw CryptoKitError.incorrectKeySize
+                    throw CryptoKitError.wrapFailure
                 }
 
                 self.pointer = UnsafeMutablePointer<UInt8>.allocate(capacity: SLHDSA.PrivateKey.bytesCount)
@@ -89,11 +114,15 @@ extension SLHDSA {
                 }
             }
             
+            /// Initialize a SLH-DSA-SHA2-128s private key from a PEM representation.
+            /// 
+            /// - Parameter pemRepresentation: The PEM representation of the private key.
             convenience init(pemRepresentation: String) throws {
                 let document = try ASN1.PEMDocument(pemString: pemRepresentation)
                 try self.init(derRepresentation: document.derBytes)
             }
             
+            /// The DER representation of the private key.
             var derRepresentation: Data {
                 get throws {
                     let keyBytes = Array(Data(UnsafeBufferPointer(start: self.pointer, count: SLHDSA.PrivateKey.bytesCount)))
@@ -104,16 +133,25 @@ extension SLHDSA {
                 }
             }
             
+            /// The PEM representation of the private key.
             var pemRepresentation: String {
                 get throws {
                     try ASN1.PEMDocument(type: "PRIVATE KEY", derBytes: self.derRepresentation).pemString
                 }
             }
-
+            
+            /// The public key associated with this private key.
             var publicKey: PublicKey {
                 PublicKey(privateKeyBacking: self)
             }
 
+            /// Generate a signature for the given data.
+            /// 
+            /// - Parameters: 
+            ///   - data: The message to sign.
+            ///   - context: The context to use for the signature.
+            /// 
+            /// - Returns: The signature of the message.
             func signature(for data: some DataProtocol, context: [UInt8]? = nil) throws -> Signature {
                 let output = try Array<UInt8>(unsafeUninitializedCapacity: Signature.bytesCount) { bufferPtr, length in
                     let result = data.regions.first!.withUnsafeBytes { dataPtr in
@@ -158,53 +196,76 @@ extension SLHDSA {
 extension SLHDSA {
     /// A SLH-DSA-SHA2-128s public key.
     public struct PublicKey: Sendable {
-        fileprivate var backing: Backing
+        private var backing: Backing
 
         fileprivate init(privateKeyBacking: PrivateKey.Backing) {
             self.backing = Backing(privateKeyBacking: privateKeyBacking)
         }
 
+        /// Initialize a SLH-DSA-SHA2-128s public key from a DER representation.
+        /// 
+        /// - Parameter derRepresentation: The DER representation of the public key.
+        /// 
+        /// - Throws: `CryptoKitError.wrapFailure` if the algorithm OID is not SLH-DSA-SHA2-128s.
         public init(derRepresentation: some DataProtocol) throws {
             self.backing = try Backing(derRepresentation: derRepresentation)
         }
 
+        /// Initialize a SLH-DSA-SHA2-128s public key from a PEM representation.
+        /// 
+        /// - Parameter pemRepresentation: The PEM representation of the public key.
         public init(pemRepresentation: String) throws {
             self.backing = try Backing(pemRepresentation: pemRepresentation)
         }
 
+        /// The DER representation of the public key.
         public var derRepresentation: Data {
             get throws {
                 try self.backing.derRepresentation
             }
         }
 
+        /// The PEM representation of the public key.
         public var pemRepresentation: String {
             get throws {
                 try self.backing.pemRepresentation
             }
         }
 
+        /// Verify a signature for the given data.
+        /// 
+        /// - Parameters:
+        ///   - signature: The signature to verify.
+        ///   - data: The message to verify the signature against.
+        ///   - context: The context to use for the signature verification.
+        /// 
+        /// - Returns: `true` if the signature is valid, `false` otherwise.
         public func isValidSignature(_ signature: Signature, for data: some DataProtocol, context: [UInt8]? = nil) -> Bool {
             self.backing.isValidSignature(signature, for: data, context: context)
         }
 
         /// The size of the public key in bytes.
-        static let bytesCount = Backing.bytesCount
+        fileprivate static let bytesCount = Backing.bytesCount
 
         fileprivate final class Backing {
-            let pointer: UnsafeMutablePointer<UInt8>
+            private let pointer: UnsafeMutablePointer<UInt8>
             
             init(privateKeyBacking: PrivateKey.Backing) {
                 self.pointer = UnsafeMutablePointer<UInt8>.allocate(capacity: SLHDSA.PublicKey.bytesCount)
                 CCryptoBoringSSL_SLHDSA_SHA2_128S_public_from_private(self.pointer, privateKeyBacking.pointer)
             }
             
+            /// Initialize a SLH-DSA-SHA2-128s public key from a DER representation.
+            /// 
+            /// - Parameter derRepresentation: The DER representation of the public key.
+            /// 
+            /// - Throws: `CryptoKitError.wrapFailure` if the algorithm OID is not SLH-DSA-SHA2-128s.
             init(derRepresentation: some DataProtocol) throws {
                 let result = try DER.parse(Array(derRepresentation))
                 let spki = try SubjectPublicKeyInfo(derEncoded: result)
 
                 guard spki.algorithmIdentifier == .slhDsaSHA2128s else {
-                    throw CryptoKitError.incorrectKeySize
+                    throw CryptoKitError.wrapFailure
                 }
 
                 self.pointer = UnsafeMutablePointer<UInt8>.allocate(capacity: SLHDSA.PublicKey.bytesCount)
@@ -213,11 +274,15 @@ extension SLHDSA {
                 }
             }
             
+            /// Initialize a SLH-DSA-SHA2-128s public key from a PEM representation.
+            /// 
+            /// - Parameter pemRepresentation: The PEM representation of the public key.
             convenience init(pemRepresentation: String) throws {
                 let document = try ASN1.PEMDocument(pemString: pemRepresentation)
                 try self.init(derRepresentation: document.derBytes)
             }
             
+            /// The DER representation of the public key.
             var derRepresentation: Data {
                 get throws {
                     let keyBytes = Array(Data(UnsafeBufferPointer(start: self.pointer, count: SLHDSA.PublicKey.bytesCount)))
@@ -228,12 +293,21 @@ extension SLHDSA {
                 }
             }
             
+            /// The PEM representation of the public key.
             var pemRepresentation: String {
                 get throws {
                     try ASN1.PEMDocument(type: "PUBLIC KEY", derBytes: self.derRepresentation).pemString
                 }
             }
             
+            /// Verify a signature for the given data.
+            /// 
+            /// - Parameters:
+            ///   - signature: The signature to verify.
+            ///   - data: The message to verify the signature against.
+            ///   - context: The context to use for the signature verification.
+            /// 
+            /// - Returns: `true` if the signature is valid, `false` otherwise.
             func isValidSignature(_ signature: Signature, for data: some DataProtocol, context: [UInt8]? = nil) -> Bool {
                 signature.withUnsafeBytes { signaturePtr in
                     let rc: CInt = data.regions.first!.withUnsafeBytes { dataPtr in
