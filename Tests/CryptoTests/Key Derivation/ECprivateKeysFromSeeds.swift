@@ -36,7 +36,7 @@ extension CryptoError: Equatable {
             return true
         case (.unwrapFailure, .unwrapFailure):
             return true
-        case (.underlyingCoreCryptoKitError(let lhsError), .underlyingCoreCryptoKitError(let rhsError)):
+        case (.underlyingCoreCryptoError(let lhsError), .underlyingCoreCryptoError(let rhsError)):
             return lhsError == rhsError
         default:
             return false

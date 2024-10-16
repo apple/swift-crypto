@@ -23,7 +23,7 @@ public enum CryptoBoringWrapperError: Error {
     case authenticationFailure
     /// The underlying corecrypto library is unable to complete the requested
     /// action.
-    case underlyingCoreCryptoKitError(error: Int32)
+    case underlyingCoreCryptoError(error: Int32)
     /// The framework can't wrap the specified key.
     case wrapFailure
     /// The framework can't unwrap the specified key.
@@ -36,6 +36,6 @@ extension CryptoBoringWrapperError {
     /// A helper function that packs the value of `ERR_get_error` into the internal error field.
     @usableFromInline
     package static func internalBoringSSLError() -> CryptoBoringWrapperError {
-        return .underlyingCoreCryptoKitError(error: Int32(bitPattern: CCryptoBoringSSL_ERR_get_error()))
+        return .underlyingCoreCryptoError(error: Int32(bitPattern: CCryptoBoringSSL_ERR_get_error()))
     }
 }

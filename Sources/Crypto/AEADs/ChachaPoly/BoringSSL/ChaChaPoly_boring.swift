@@ -25,8 +25,8 @@ extension BoringSSLAEAD {
         do {
             let context = try AEADContext(cipher: self, key: key)
             return try context.seal(message: message, nonce: nonce, authenticatedData: authenticatedData)
-        } catch CryptoBoringWrapperError.underlyingCoreCryptoKitError(let errorCode) {
-            throw CryptoError.underlyingCoreCryptoKitError(error: errorCode)
+        } catch CryptoBoringWrapperError.underlyingCoreCryptoError(let errorCode) {
+            throw CryptoError.underlyingCoreCryptoError(error: errorCode)
         }
     }
 
@@ -35,8 +35,8 @@ extension BoringSSLAEAD {
         do {
             let context = try AEADContext(cipher: self, key: key)
             return try context.open(ciphertext: ciphertext, nonce: nonce, tag: tag, authenticatedData: authenticatedData)
-        } catch CryptoBoringWrapperError.underlyingCoreCryptoKitError(let errorCode) {
-            throw CryptoError.underlyingCoreCryptoKitError(error: errorCode)
+        } catch CryptoBoringWrapperError.underlyingCoreCryptoError(let errorCode) {
+            throw CryptoError.underlyingCoreCryptoError(error: errorCode)
         }
     }
 }

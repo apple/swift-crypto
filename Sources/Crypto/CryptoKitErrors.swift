@@ -24,7 +24,7 @@ public enum CryptoKitError: Error {
     case authenticationFailure
     /// The underlying corecrypto library is unable to complete the requested
     /// action.
-    case underlyingCoreCryptoKitError(error: Int32)
+    case underlyingCoreCryptoError(error: Int32)
     /// The framework can't wrap the specified key.
     case wrapFailure
     /// The framework can't unwrap the specified key.
