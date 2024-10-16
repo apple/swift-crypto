@@ -27,7 +27,7 @@ extension BoringSSLAEAD {
             let context = try AEADContext(cipher: self, key: key)
             return try context.seal(message: message, nonce: nonce, authenticatedData: authenticatedData)
         } catch CryptoBoringWrapperError.underlyingCoreCryptoKitError(let errorCode) {
-            throw CryptoError.underlyingCoreCryptoError(error: errorCode)
+            throw CryptoError.underlyingCoreCryptoKitError(error: errorCode)
         }
     }
 
