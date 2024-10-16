@@ -7,9 +7,12 @@ Swift Crypto is an open-source implementation of a substantial portion of the AP
 Swift Crypto is available as a Swift Package Manager package. To use it, add the following dependency in your `Package.swift`:
 
 ```swift
-// swift-crypto 1.x, 2.x and 3.x are almost API compatible, so most clients
-// should allow any of them
-.package(url: "https://github.com/apple/swift-crypto.git", "1.0.0" ..< "4.0.0"),
+// swift-crypto 1.x, 2.x, 3.x and 4.x are almost API compatible, for the Crypto library,
+// so most clients should allow any of them:
+.package(url: "https://github.com/apple/swift-crypto.git", "1.0.0" ..< "5.0.0"),
+
+// If using CryptoExtras, this was called _CryptoExtras in 1.x to 3.x so you should only allow 4.x:
+.package(url: "https://github.com/apple/swift-crypto.git", from: "4.0.0"),
 ```
 
 and to your target, add `Crypto` to your dependencies. You can then `import Crypto` to get access to Swift Crypto's functionality.
@@ -34,7 +37,7 @@ When building Swift Crypto for use on Linux, Swift Crypto builds substantially m
 2. The common API of Swift Crypto and CryptoKit.
 3. The backing implementation of this common API, which calls into BoringSSL.
 
-The API code, and some cryptographic primitives which are directly implemented in Swift, are exactly the same for both Apple CryptoKit and Swift Crypto. The backing BoringSSL-based implementation is unique to Swift Crypto.
+The API code, and some cryptographic primitives which are directly implemented in Swift, are exactly the same for both Apple CryptoKit and Swift Crypto. The backing BoringSSL-based implementation is unique to Swift Crypto. In addition, there is another product, `CryptoExtras`, which provides additional functionality that is not offered in CryptoKit, which contains cryptographic APIS predominantly useful in the server ecosystem. **Note**: if you depend on CryptoExtras you'll bundle the BoringSSL implementation of the library in your application, no matter the platform.
 
 ## Evolution
 
