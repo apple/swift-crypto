@@ -7,12 +7,9 @@ Swift Crypto is an open-source implementation of a substantial portion of the AP
 Swift Crypto is available as a Swift Package Manager package. To use it, add the following dependency in your `Package.swift`:
 
 ```swift
-// swift-crypto 1.x, 2.x, 3.x and 4.x are almost API compatible, for the Crypto library,
+// swift-crypto 1.x, 2.x, 3.x and 4.x are almost API compatible,
 // so most clients should allow any of them:
-.package(url: "https://github.com/apple/swift-crypto.git", "1.0.0" ..< "5.0.0"),
-
-// If using CryptoExtras, this was called _CryptoExtras in 1.x to 3.x so you should only allow 4.x:
-.package(url: "https://github.com/apple/swift-crypto.git", from: "4.0.0"),
+.package(url: "https://github.com/apple/swift-crypto.git", "1.0.0" ..< "4.0.0"),
 ```
 
 and to your target, add `Crypto` to your dependencies. You can then `import Crypto` to get access to Swift Crypto's functionality.
