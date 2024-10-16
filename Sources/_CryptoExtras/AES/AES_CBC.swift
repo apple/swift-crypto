@@ -55,13 +55,13 @@ extension AES {
         /// - Note: If `noPadding` is set to `true`, `plainText` has to be a multiple of the blockSize (16 bytes). Otherwise an error will be thrown.
         public static func encrypt<Plaintext: DataProtocol>(_ plaintext: Plaintext, using key: SymmetricKey, iv: AES._CBC.IV, noPadding: Bool) throws -> Data {
             guard [128, 192, 256].contains(key.bitCount) else {
-                throw CryptoKitError.incorrectKeySize
+                throw CryptoError.incorrectKeySize
             }
 
             let requiresFullPaddingBlock = (plaintext.count % AES._CBC.blockSize) == 0
 
             if noPadding && !requiresFullPaddingBlock {
-                throw CryptoKitError.incorrectParameterSize
+                throw CryptoError.incorrectParameterSize
             }
 
             var ciphertext = Data()
@@ -115,7 +115,7 @@ extension AES {
         /// - Returns: The decrypted message.
         public static func decrypt<Ciphertext: DataProtocol>(_ ciphertext: Ciphertext, using key: SymmetricKey, iv: AES._CBC.IV, noPadding: Bool) throws -> Data {
             guard [128, 192, 256].contains(key.bitCount) else {
-                throw CryptoKitError.incorrectKeySize
+                throw CryptoError.incorrectKeySize
             }
 
             var plaintext = Data()
@@ -177,7 +177,7 @@ extension AES._CBC {
         public init<IVBytes: Collection>(ivBytes: IVBytes) throws where IVBytes.Element == UInt8 {
             // We support a 128-bit IV.
             guard ivBytes.count == 16 else {
-                throw CryptoKitError.incorrectKeySize
+                throw CryptoError.incorrectKeySize
             }
 
             self.ivBytes = (
@@ -197,13 +197,13 @@ extension Data {
         guard let paddingBytes = self.last else {
             // Degenerate case, empty string. This is forbidden:
             // we must always pad.
-            throw CryptoKitError.incorrectParameterSize
+            throw CryptoError.incorrectParameterSize
         }
 
         guard paddingBytes > 0 &&
               self.count >= paddingBytes &&
               self.suffix(Int(paddingBytes)).allSatisfy({ $0 == paddingBytes }) else {
-            throw CryptoKitError.incorrectParameterSize
+            throw CryptoError.incorrectParameterSize
         }
 
         self = self.dropLast(Int(paddingBytes))

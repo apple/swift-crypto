@@ -139,7 +139,7 @@ extension ChaChaPoly {
             let chachaPolyOverhead = 12 + 16
             
             if combined.count < chachaPolyOverhead {
-                throw CryptoKitError.incorrectParameterSize
+                throw CryptoError.incorrectParameterSize
             }
             
             self.combined = Data(combined)
@@ -153,7 +153,7 @@ extension ChaChaPoly {
         ///   - tag: An authentication tag.
         public init<C: DataProtocol, T: DataProtocol>(nonce: ChaChaPoly.Nonce, ciphertext: C, tag: T) throws {
             guard tag.count == ChaChaPoly.tagByteCount else {
-                throw CryptoKitError.incorrectParameterSize
+                throw CryptoError.incorrectParameterSize
             }
             
             self.combined = Data(nonce) + ciphertext + tag

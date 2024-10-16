@@ -25,7 +25,7 @@ enum OpenSSLAESCTRImpl {
         nonce: AES._CTR.Nonce
     ) throws -> Data {
         guard [128, 192, 256].contains(key.bitCount) else {
-            throw CryptoKitError.incorrectKeySize
+            throw CryptoError.incorrectKeySize
         }
         return plaintext.withUnsafeBytes { plaintextBufferPtr in
             Self._encrypt(plaintextBufferPtr, using: key, nonce: nonce)

@@ -56,7 +56,7 @@ extension Curve25519.Signing {
             var publicKey = Array(repeating: UInt8(0), count: 32)
             let privateKey: SecureBytes = try data.withUnsafeBytes { seedPtr in
                 guard seedPtr.count == 32 else {
-                    throw CryptoKitError.incorrectKeySize
+                    throw CryptoError.incorrectKeySize
                 }
 
                 let privateKey = SecureBytes(unsafeUninitializedCapacity: 64) { privateKeyPtr, privateKeyBytes in
@@ -89,7 +89,7 @@ extension Curve25519.Signing {
         init<D: ContiguousBytes>(rawRepresentation: D) throws {
             self.keyBytes = try rawRepresentation.withUnsafeBytes { keyBytesPtr in
                 guard keyBytesPtr.count == 32 else {
-                    throw CryptoKitError.incorrectKeySize
+                    throw CryptoError.incorrectKeySize
                 }
                 return Array(keyBytesPtr)
             }

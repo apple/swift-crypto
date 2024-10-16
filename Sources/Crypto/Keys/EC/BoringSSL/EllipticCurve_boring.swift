@@ -26,7 +26,7 @@ class BoringSSLEllipticCurveGroup {
     @usableFromInline
     init(_ curve: CurveName) throws {
         guard let group = CCryptoBoringSSL_EC_GROUP_new_by_curve_name(curve.baseNID) else {
-            throw CryptoKitError.internalBoringSSLError()
+            throw CryptoError.internalBoringSSLError()
         }
 
         self._group = group
@@ -49,7 +49,7 @@ extension BoringSSLEllipticCurveGroup {
     func makeUnsafeOwnedECKey() throws -> OpaquePointer {
         guard let key = CCryptoBoringSSL_EC_KEY_new(),
             CCryptoBoringSSL_EC_KEY_set_group(key, self._group) == 1 else {
-            throw CryptoKitError.internalBoringSSLError()
+            throw CryptoError.internalBoringSSLError()
         }
 
         return key
@@ -58,7 +58,7 @@ extension BoringSSLEllipticCurveGroup {
     @usableFromInline
     func makeUnsafeOwnedECPoint() throws -> OpaquePointer {
         guard let point = CCryptoBoringSSL_EC_POINT_new(self._group) else {
-            throw CryptoKitError.internalBoringSSLError()
+            throw CryptoError.internalBoringSSLError()
         }
 
         return point

@@ -169,11 +169,11 @@ final class SecureBytesTests: XCTestCase {
 
         func testThrowingInitialization() throws {
             _ = try SecureBytes(unsafeUninitializedCapacity: 5) { (_, _) in
-                throw CryptoKitError.incorrectKeySize
+                throw CryptoError.incorrectKeySize
             }
         }
         XCTAssertThrowsError(try testThrowingInitialization()) { error in
-            guard case .some(.incorrectKeySize) = error as? CryptoKitError else {
+            guard case .some(.incorrectKeySize) = error as? CryptoError else {
                 XCTFail("unexpected error: \(error)")
                 return
             }

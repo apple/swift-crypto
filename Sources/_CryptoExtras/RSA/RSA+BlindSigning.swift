@@ -49,7 +49,7 @@ extension _RSA.BlindSigning {
             self.parameters = parameters
 
             guard self.keySizeInBits >= 2048 else {
-                throw CryptoKitError.incorrectParameterSize
+                throw CryptoError.incorrectParameterSize
             }
         }
 
@@ -63,7 +63,7 @@ extension _RSA.BlindSigning {
             self.parameters = parameters
 
             guard self.keySizeInBits >= 1024 else {
-                throw CryptoKitError.incorrectParameterSize
+                throw CryptoError.incorrectParameterSize
             }
         }
 
@@ -76,7 +76,7 @@ extension _RSA.BlindSigning {
             self.parameters = parameters
 
             guard self.keySizeInBits >= 2048 else {
-                throw CryptoKitError.incorrectParameterSize
+                throw CryptoError.incorrectParameterSize
             }
         }
 
@@ -90,7 +90,7 @@ extension _RSA.BlindSigning {
             self.parameters = parameters
 
             guard self.keySizeInBits >= 1024 else {
-                throw CryptoKitError.incorrectParameterSize
+                throw CryptoError.incorrectParameterSize
             }
         }
 
@@ -148,7 +148,7 @@ extension _RSA.BlindSigning {
             self.parameters = parameters
 
             guard self.keySizeInBits >= 2048 else {
-                throw CryptoKitError.incorrectParameterSize
+                throw CryptoError.incorrectParameterSize
             }
         }
 
@@ -162,7 +162,7 @@ extension _RSA.BlindSigning {
             self.parameters = parameters
 
             guard self.keySizeInBits >= 1024 else {
-                throw CryptoKitError.incorrectParameterSize
+                throw CryptoError.incorrectParameterSize
             }
         }
 
@@ -175,7 +175,7 @@ extension _RSA.BlindSigning {
             self.parameters = parameters
 
             guard self.keySizeInBits >= 2048 else {
-                throw CryptoKitError.incorrectParameterSize
+                throw CryptoError.incorrectParameterSize
             }
         }
 
@@ -189,7 +189,7 @@ extension _RSA.BlindSigning {
             self.parameters = parameters
 
             guard self.keySizeInBits >= 1024 else {
-                throw CryptoKitError.incorrectParameterSize
+                throw CryptoError.incorrectParameterSize
             }
         }
 
@@ -205,7 +205,7 @@ extension _RSA.BlindSigning {
         /// key size requirements should validate `keySize` before use.
         public init(keySize: _RSA.Signing.KeySize, parameters: Parameters = .RSABSSA_SHA384_PSS_Randomized) throws {
             guard keySize.bitCount >= 2048 else {
-                throw CryptoKitError.incorrectParameterSize
+                throw CryptoError.incorrectParameterSize
             }
             self.backing = try BackingPrivateKey(keySize: keySize)
             self.parameters = parameters
@@ -218,7 +218,7 @@ extension _RSA.BlindSigning {
         /// - Warning: Key sizes less than 2048 are not recommended and should only be used for compatibility reasons.
         public init(unsafeKeySize keySize: _RSA.Signing.KeySize, parameters: Parameters = .RSABSSA_SHA384_PSS_Randomized) throws {
             guard keySize.bitCount >= 1024 else {
-                throw CryptoKitError.incorrectParameterSize
+                throw CryptoError.incorrectParameterSize
             }
             self.backing = try BackingPrivateKey(keySize: keySize)
             self.parameters = parameters
@@ -475,7 +475,7 @@ extension _RSA.BlindSigning.PublicKey {
 extension _RSA.BlindSigning {
     /// Errors defined in the RSA Blind Signatures protocol.
     ///
-    /// - NOTE: This type does not conform to `Swift.Error`, it is used to construct a `CryptoKitError`.
+    /// - NOTE: This type does not conform to `Swift.Error`, it is used to construct a `CryptoError`.
     ///
     /// - Seealso: [RFC 9474: Errors](https://www.rfc-editor.org/rfc/rfc9474.html#name-errors).
     enum ProtocolError {
@@ -489,8 +489,8 @@ extension _RSA.BlindSigning {
     }
 }
 
-extension CryptoKitError {
-    /// Map an error from the RSA Blind Signatures protocol to a CryptoKitError.
+extension CryptoError {
+    /// Map an error from the RSA Blind Signatures protocol to a CryptoError.
     init(_ error: _RSA.BlindSigning.ProtocolError) {
         switch error {
         case .messageTooLong:

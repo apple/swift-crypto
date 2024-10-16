@@ -57,7 +57,7 @@ extension Data {
         var innerLength = 0
 
         guard 1 == CCryptoBoringSSL_BIO_mem_contents(bio, &innerPointer, &innerLength) else {
-            throw CryptoKitError.internalBoringSSLError()
+            throw CryptoError.internalBoringSSLError()
         }
 
         self = Data(UnsafeBufferPointer(start: innerPointer, count: innerLength))
@@ -70,7 +70,7 @@ extension String {
         var innerLength = 0
 
         guard 1 == CCryptoBoringSSL_BIO_mem_contents(bio, &innerPointer, &innerLength) else {
-            throw CryptoKitError.internalBoringSSLError()
+            throw CryptoError.internalBoringSSLError()
         }
 
         self = String(decoding: UnsafeBufferPointer(start: innerPointer, count: innerLength), as: UTF8.self)

@@ -31,7 +31,7 @@ extension Curve25519.KeyAgreement {
         init<D: ContiguousBytes>(rawRepresentation: D) throws {
             self.keyBytes = try rawRepresentation.withUnsafeBytes { dataPtr in
                 guard dataPtr.count == Curve25519.KeyAgreement.keySizeBytes else {
-                    throw CryptoKitError.incorrectKeySize
+                    throw CryptoError.incorrectKeySize
                 }
 
                 return Array(dataPtr)
@@ -128,7 +128,7 @@ extension Curve25519.KeyAgreement {
         /// - Parameter rawRepresentation: The provided key representation. Expected to be a valid 32-bytes private key.
         static func validateX25519PrivateKeyData(rawRepresentation: UnsafeRawBufferPointer) throws {
             guard rawRepresentation.count == 32 else {
-                throw CryptoKitError.incorrectKeySize
+                throw CryptoError.incorrectKeySize
             }
         }
     }

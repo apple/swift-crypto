@@ -41,7 +41,7 @@ extension ASN1IntegerRepresentable {
 
     internal init(asn1Encoded node: ASN1.ASN1Node, withIdentifier identifier: ASN1.ASN1Identifier) throws {
         guard node.identifier == identifier else {
-            throw CryptoKitASN1Error.unexpectedFieldType
+            throw CryptoASN1Error.unexpectedFieldType
         }
 
         guard case .primitive(var dataBytes) = node.content else {
@@ -50,7 +50,7 @@ extension ASN1IntegerRepresentable {
 
         // Zero bytes of integer is not an acceptable encoding.
         guard dataBytes.count > 0 else {
-            throw CryptoKitASN1Error.invalidASN1IntegerEncoding
+            throw CryptoASN1Error.invalidASN1IntegerEncoding
         }
 
         // 8.3.2 If the contents octets of an integer value encoding consist of more than one octet, then the bits of the first octet and bit 8 of the second octet:
@@ -62,7 +62,7 @@ extension ASN1IntegerRepresentable {
         if let first = dataBytes.first, let second = dataBytes.dropFirst().first {
             if (first == 0xFF) && second.topBitSet ||
                 (first == 0x00) && !second.topBitSet {
-                throw CryptoKitASN1Error.invalidASN1IntegerEncoding
+                throw CryptoASN1Error.invalidASN1IntegerEncoding
             }
         }
 
@@ -72,7 +72,7 @@ extension ASN1IntegerRepresentable {
             if first == 0x00 {
                 dataBytes = dataBytes.dropFirst()
             } else if first & 0x80 == 0x80 {
-                throw CryptoKitASN1Error.invalidASN1IntegerEncoding
+                throw CryptoASN1Error.invalidASN1IntegerEncoding
             }
         }
 

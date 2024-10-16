@@ -59,7 +59,7 @@ enum OpenSSLAESGCMImpl {
         case 256:
             return .aes256gcm
         default:
-            throw CryptoKitError.incorrectKeySize
+            throw CryptoError.incorrectKeySize
         }
     }
 }

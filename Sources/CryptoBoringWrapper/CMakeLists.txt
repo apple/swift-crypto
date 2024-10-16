@@ -14,7 +14,7 @@
 
 add_library(CryptoBoringWrapper STATIC
   "AEAD/BoringSSLAEAD.swift"
-  "CryptoKitErrors_boring.swift"
+  "CryptoErrors_boring.swift"
   "Util/ArbitraryPrecisionInteger_boring.swift"
   "Util/FiniteFieldArithmeticContext_boring.swift")
 

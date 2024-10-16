@@ -26,7 +26,7 @@ class ECDSASignature {
     init<ContiguousBuffer: ContiguousBytes>(contiguousDERBytes derBytes: ContiguousBuffer) throws {
         self._baseSig = try derBytes.withUnsafeBytes { bytesPtr in
             guard let sig = CCryptoBoringSSLShims_ECDSA_SIG_from_bytes(bytesPtr.baseAddress, bytesPtr.count) else {
-                throw CryptoKitError.internalBoringSSLError()
+                throw CryptoError.internalBoringSSLError()
             }
             return sig
         }
@@ -38,7 +38,7 @@ class ECDSASignature {
         let r = try ArbitraryPrecisionInteger(bytes: rawRepresentation.prefix(half))
         let s = try ArbitraryPrecisionInteger(bytes: rawRepresentation.suffix(half))
         guard let sig = CCryptoBoringSSL_ECDSA_SIG_new() else {
-            throw CryptoKitError.internalBoringSSLError()
+            throw CryptoError.internalBoringSSLError()
         }
 
         self._baseSig = sig
@@ -49,11 +49,11 @@ class ECDSASignature {
                 // This means we need to dup the pointers (to get something the ECDSA_SIG can own) and then
                 // on error we have to free them. This makes lifetime management pretty rough here!
                 guard let rCopy = CCryptoBoringSSL_BN_dup(rPtr) else {
-                    throw CryptoKitError.internalBoringSSLError()
+                    throw CryptoError.internalBoringSSLError()
                 }
                 guard let sCopy = CCryptoBoringSSL_BN_dup(sPtr) else {
                     CCryptoBoringSSL_BN_free(rCopy)
-                    throw CryptoKitError.internalBoringSSLError()
+                    throw CryptoError.internalBoringSSLError()
                 }
 
                 let rc = CCryptoBoringSSL_ECDSA_SIG_set0(self._baseSig, rCopy, sCopy)

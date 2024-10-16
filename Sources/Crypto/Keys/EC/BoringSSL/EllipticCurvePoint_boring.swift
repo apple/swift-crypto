@@ -26,7 +26,7 @@ class EllipticCurvePoint {
     init(multiplying scalar: ArbitraryPrecisionInteger, on group: BoringSSLEllipticCurveGroup) throws {
         self._basePoint = try group.withUnsafeGroupPointer { groupPtr in
             guard let basePoint = CCryptoBoringSSL_EC_POINT_new(groupPtr) else {
-                throw CryptoKitError.internalBoringSSLError()
+                throw CryptoError.internalBoringSSLError()
             }
             return basePoint
         }
@@ -34,7 +34,7 @@ class EllipticCurvePoint {
         try group.withUnsafeGroupPointer { groupPtr in
             try scalar.withUnsafeBignumPointer { bigNumPtr in
                 guard CCryptoBoringSSL_EC_POINT_mul(groupPtr, self._basePoint, bigNumPtr, nil, nil, nil) != 0 else {
-                    throw CryptoKitError.internalBoringSSLError()
+                    throw CryptoError.internalBoringSSLError()
                 }
             }
         }
@@ -43,7 +43,7 @@ class EllipticCurvePoint {
     init(copying pointer: OpaquePointer, on group: BoringSSLEllipticCurveGroup) throws {
         self._basePoint = try group.withUnsafeGroupPointer { groupPtr in
             guard let basePoint = CCryptoBoringSSL_EC_POINT_dup(pointer, groupPtr) else {
-                throw CryptoKitError.internalBoringSSLError()
+                throw CryptoError.internalBoringSSLError()
             }
             return basePoint
         }
@@ -71,7 +71,7 @@ extension EllipticCurvePoint {
             try y.withUnsafeMutableBignumPointer { yPtr in
                 try group.withUnsafeGroupPointer { groupPtr in
                     guard CCryptoBoringSSL_EC_POINT_get_affine_coordinates_GFp(groupPtr, self._basePoint, xPtr, yPtr, nil) != 0 else {
-                        throw CryptoKitError.internalBoringSSLError()
+                        throw CryptoError.internalBoringSSLError()
                     }
                 }
             }

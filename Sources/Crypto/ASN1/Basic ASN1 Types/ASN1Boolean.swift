@@ -23,11 +23,11 @@ extension Bool: ASN1ImplicitlyTaggable {
 
     init(asn1Encoded node: ASN1.ASN1Node, withIdentifier identifier: ASN1.ASN1Identifier) throws {
         guard node.identifier == identifier else {
-            throw CryptoKitASN1Error.invalidASN1Object
+            throw CryptoASN1Error.invalidASN1Object
         }
 
         guard case .primitive(let bytes) = node.content, bytes.count == 1 else {
-            throw CryptoKitASN1Error.invalidASN1Object
+            throw CryptoASN1Error.invalidASN1Object
         }
 
         switch bytes[bytes.startIndex] {
@@ -39,7 +39,7 @@ extension Bool: ASN1ImplicitlyTaggable {
             self = true
         default:
             // If we come to support BER then these values are all "true" as well.
-            throw CryptoKitASN1Error.invalidASN1Object
+            throw CryptoASN1Error.invalidASN1Object
         }
     }
 

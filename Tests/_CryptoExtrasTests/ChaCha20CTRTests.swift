@@ -51,32 +51,32 @@ class ChaCha20CTRTests: XCTestCase {
     func testChaCha20CTR_InvalidParameters() throws {
         let keyTooLong: SymmetricKey = SymmetricKey(data: [214, 89, 118, 13, 43, 164, 52, 162, 38, 253, 55, 179, 92, 105, 226, 218, 130, 17, 209, 12, 79, 18, 83, 135, 135, 214, 86, 69, 213, 209, 184, 226, 22])
         XCTAssertThrowsError(try Insecure.ChaCha20CTR.encrypt(Array<UInt8>(repeating: 0, count: 5), using: keyTooLong, nonce: Insecure.ChaCha20CTR.Nonce())) { error in
-            guard case CryptoKitError.incorrectKeySize = error else { return XCTFail("Error thrown was of unexpected type: \(error)") }
+            guard case CryptoError.incorrectKeySize = error else { return XCTFail("Error thrown was of unexpected type: \(error)") }
         }
 
         let keyTooShort: SymmetricKey = SymmetricKey(data: [214, 89, 118, 13, 43, 164, 52, 162, 38, 253, 55, 179, 92, 105, 226, 218, 130, 17, 209, 12, 79, 18, 83, 135, 135, 214, 86, 69, 213, 209, 184])
         XCTAssertThrowsError(try Insecure.ChaCha20CTR.encrypt(Array<UInt8>(repeating: 0, count: 5), using: keyTooShort, nonce: Insecure.ChaCha20CTR.Nonce())) { error in
-            guard case CryptoKitError.incorrectKeySize = error else { return XCTFail("Error thrown was of unexpected type: \(error)") }
+            guard case CryptoError.incorrectKeySize = error else { return XCTFail("Error thrown was of unexpected type: \(error)") }
         }
 
         let nonceTooLong: [UInt8] = [188, 39, 215, 134, 244, 188, 43, 178, 15, 33, 98, 186, 14]
         XCTAssertThrowsError(try Insecure.ChaCha20CTR.Nonce(data: nonceTooLong)) { error in
-            guard case CryptoKitError.incorrectParameterSize = error else { return XCTFail("Error thrown was of unexpected type: \(error)") }
+            guard case CryptoError.incorrectParameterSize = error else { return XCTFail("Error thrown was of unexpected type: \(error)") }
         }
 
         let nonceTooShort: [UInt8] = [188, 39, 215, 134, 244, 188, 43, 178, 15, 33, 98]
         XCTAssertThrowsError(try Insecure.ChaCha20CTR.Nonce(data: nonceTooShort)) { error in
-            guard case CryptoKitError.incorrectParameterSize = error else { return XCTFail("Error thrown was of unexpected type: \(error)") }
+            guard case CryptoError.incorrectParameterSize = error else { return XCTFail("Error thrown was of unexpected type: \(error)") }
         }
 
         let counterTooLong: [UInt8] = [231, 182, 185, 50, 82]
         XCTAssertThrowsError(try Insecure.ChaCha20CTR.Counter(data: counterTooLong)) { error in
-            guard case CryptoKitError.incorrectParameterSize = error else { return XCTFail("Error thrown was of unexpected type: \(error)") }
+            guard case CryptoError.incorrectParameterSize = error else { return XCTFail("Error thrown was of unexpected type: \(error)") }
         }
 
         let counterTooShort: [UInt8] = [231, 182, 185]
         XCTAssertThrowsError(try Insecure.ChaCha20CTR.Counter(data: counterTooShort)) { error in
-            guard case CryptoKitError.incorrectParameterSize = error else { return XCTFail("Error thrown was of unexpected type: \(error)") }
+            guard case CryptoError.incorrectParameterSize = error else { return XCTFail("Error thrown was of unexpected type: \(error)") }
         }
 
         let key: SymmetricKey = SymmetricKey(data: [214, 89, 118, 13, 43, 164, 52, 162, 38, 253, 55, 179, 92, 105, 226, 218, 130, 17, 209, 12, 79, 18, 83, 135, 135, 214, 86, 69, 213, 209, 184, 226])

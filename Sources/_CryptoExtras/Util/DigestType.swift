@@ -50,7 +50,7 @@ struct DigestType {
         case is SHA512.Digest.Type:
             self = .sha512
         default:
-            throw CryptoKitError.incorrectParameterSize
+            throw CryptoError.incorrectParameterSize
         }
     }
 }

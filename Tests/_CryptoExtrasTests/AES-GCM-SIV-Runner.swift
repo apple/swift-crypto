@@ -87,7 +87,7 @@ final class AESGCMSIVTests: XCTestCase {
         XCTAssertEqual(Array(nonceFromDiscontiguous), testNonceBytes)
 
         XCTAssertThrowsError(try AES.GCM._SIV.Nonce(data: DispatchData.empty)) { error in
-            guard case .some(.incorrectParameterSize) = error as? CryptoKitError else {
+            guard case .some(.incorrectParameterSize) = error as? CryptoError else {
                 XCTFail("Unexpected error")
                 return
             }
@@ -107,7 +107,7 @@ final class AESGCMSIVTests: XCTestCase {
 
         // Empty dispatchdatas don't work, they are too small.
         XCTAssertThrowsError(try AES.GCM._SIV.SealedBox(combined: DispatchData.empty)) { error in
-            guard case .some(.incorrectParameterSize) = error as? CryptoKitError else {
+            guard case .some(.incorrectParameterSize) = error as? CryptoError else {
                 XCTFail("Unexpected error: \(error)")
                 return
             }
@@ -136,7 +136,7 @@ final class AESGCMSIVTests: XCTestCase {
 
         // Empty dispatchdatas for the tag don't work, they are too small.
         XCTAssertThrowsError(try AES.GCM._SIV.SealedBox(nonce: nonce, ciphertext: ciphertext, tag: DispatchData.empty)) { error in
-            guard case .some(.incorrectParameterSize) = error as? CryptoKitError else {
+            guard case .some(.incorrectParameterSize) = error as? CryptoError else {
                 XCTFail("Unexpected error: \(error)")
                 return
             }

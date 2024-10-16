@@ -89,7 +89,7 @@ extension _RSA.Signing {
             self.backing = try BackingPublicKey(derRepresentation: sanitizedDer)
 
             guard self.keySizeInBits >= 2048 else {
-                throw CryptoKitError.incorrectParameterSize
+                throw CryptoError.incorrectParameterSize
             }
         }
         
@@ -105,7 +105,7 @@ extension _RSA.Signing {
             self.backing = try BackingPublicKey(derRepresentation: sanitizedDer)
 
             guard self.keySizeInBits >= 1024 else {
-                throw CryptoKitError.incorrectParameterSize
+                throw CryptoError.incorrectParameterSize
             }
         }
 
@@ -163,7 +163,7 @@ extension _RSA.Signing {
             self.backing = try BackingPrivateKey(pemRepresentation: pemRepresentation)
 
             guard self.keySizeInBits >= 2048 else {
-                throw CryptoKitError.incorrectParameterSize
+                throw CryptoError.incorrectParameterSize
             }
         }
         
@@ -176,7 +176,7 @@ extension _RSA.Signing {
             self.backing = try BackingPrivateKey(pemRepresentation: pemRepresentation)
             
             guard self.keySizeInBits >= 1024 else {
-                throw CryptoKitError.incorrectParameterSize
+                throw CryptoError.incorrectParameterSize
             }
         }
 
@@ -188,7 +188,7 @@ extension _RSA.Signing {
             self.backing = try BackingPrivateKey(derRepresentation: derRepresentation)
 
             guard self.keySizeInBits >= 2048 else {
-                throw CryptoKitError.incorrectParameterSize
+                throw CryptoError.incorrectParameterSize
             }
         }
         
@@ -201,7 +201,7 @@ extension _RSA.Signing {
             self.backing = try BackingPrivateKey(derRepresentation: derRepresentation)
 
             guard self.keySizeInBits >= 1024 else {
-                throw CryptoKitError.incorrectParameterSize
+                throw CryptoError.incorrectParameterSize
             }
         }
 
@@ -222,7 +222,7 @@ extension _RSA.Signing {
         /// key size requirements should validate `keySize` before use.
         public init(keySize: _RSA.Signing.KeySize) throws {
             guard keySize.bitCount >= 2048 else {
-                throw CryptoKitError.incorrectParameterSize
+                throw CryptoError.incorrectParameterSize
             }
             self.backing = try BackingPrivateKey(keySize: keySize)
         }
@@ -234,7 +234,7 @@ extension _RSA.Signing {
         /// - Warning: Key sizes less than 2048 are not recommended and should only be used for compatibility reasons.
         public init(unsafeKeySize keySize: _RSA.Signing.KeySize) throws {
             guard keySize.bitCount >= 1024 else {
-                throw CryptoKitError.incorrectParameterSize
+                throw CryptoError.incorrectParameterSize
             }
             self.backing = try BackingPrivateKey(keySize: keySize)
         }
@@ -486,7 +486,7 @@ extension _RSA.Encryption {
         /// for their use-case.
         public init(pemRepresentation: String) throws {
             self.backing = try BackingPublicKey(pemRepresentation: pemRepresentation)
-            guard self.keySizeInBits >= 2048, self.keySizeInBits % 8 == 0 else { throw CryptoKitError.incorrectParameterSize }
+            guard self.keySizeInBits >= 2048, self.keySizeInBits % 8 == 0 else { throw CryptoError.incorrectParameterSize }
         }
         
         /// Construct an RSA public key from a PEM representation.
@@ -496,7 +496,7 @@ extension _RSA.Encryption {
         /// - Warning: Key sizes less than 2048 are not recommended and should only be used for compatibility reasons.
         public init(unsafePEMRepresentation pemRepresentation: String) throws {
             self.backing = try BackingPublicKey(pemRepresentation: pemRepresentation)
-            guard self.keySizeInBits >= 2048, self.keySizeInBits % 8 == 0 else { throw CryptoKitError.incorrectParameterSize }
+            guard self.keySizeInBits >= 2048, self.keySizeInBits % 8 == 0 else { throw CryptoError.incorrectParameterSize }
         }
 
         /// Construct an RSA public key from a DER representation.
@@ -505,7 +505,7 @@ extension _RSA.Encryption {
         /// for their use-case.
         public init<Bytes: DataProtocol>(derRepresentation: Bytes) throws {
             self.backing = try BackingPublicKey(derRepresentation: derRepresentation)
-            guard self.keySizeInBits >= 2048, self.keySizeInBits % 8 == 0 else { throw CryptoKitError.incorrectParameterSize }
+            guard self.keySizeInBits >= 2048, self.keySizeInBits % 8 == 0 else { throw CryptoError.incorrectParameterSize }
         }
         
         /// Construct an RSA public key from a DER representation.
@@ -515,7 +515,7 @@ extension _RSA.Encryption {
         /// - Warning: Key sizes less than 2048 are not recommended and should only be used for compatibility reasons.
         public init<Bytes: DataProtocol>(unsafeDERRepresentation derRepresentation: Bytes) throws {
             self.backing = try BackingPublicKey(derRepresentation: derRepresentation)
-            guard self.keySizeInBits >= 1024, self.keySizeInBits % 8 == 0 else { throw CryptoKitError.incorrectParameterSize }
+            guard self.keySizeInBits >= 1024, self.keySizeInBits % 8 == 0 else { throw CryptoError.incorrectParameterSize }
         }
 
         /// Construct an RSA public key with the specified parameters.
@@ -552,7 +552,7 @@ extension _RSA.Encryption {
         /// for their use-case.
         public init(pemRepresentation: String) throws {
             self.backing = try BackingPrivateKey(pemRepresentation: pemRepresentation)
-            guard self.keySizeInBits >= 2048, self.keySizeInBits % 8 == 0 else { throw CryptoKitError.incorrectParameterSize }
+            guard self.keySizeInBits >= 2048, self.keySizeInBits % 8 == 0 else { throw CryptoError.incorrectParameterSize }
         }
         
         /// Construct an RSA public key from a PEM representation.
@@ -562,7 +562,7 @@ extension _RSA.Encryption {
         /// - Warning: Key sizes less than 2048 are not recommended and should only be used for compatibility reasons.
         public init(unsafePEMRepresentation pemRepresentation: String) throws {
             self.backing = try BackingPrivateKey(pemRepresentation: pemRepresentation)
-            guard self.keySizeInBits >= 1024, self.keySizeInBits % 8 == 0 else { throw CryptoKitError.incorrectParameterSize }
+            guard self.keySizeInBits >= 1024, self.keySizeInBits % 8 == 0 else { throw CryptoError.incorrectParameterSize }
         }
 
         /// Construct an RSA private key from a DER representation.
@@ -571,7 +571,7 @@ extension _RSA.Encryption {
         /// for their use-case.
         public init<Bytes: DataProtocol>(derRepresentation: Bytes) throws {
             self.backing = try BackingPrivateKey(derRepresentation: derRepresentation)
-            guard self.keySizeInBits >= 2048, self.keySizeInBits % 8 == 0 else { throw CryptoKitError.incorrectParameterSize }
+            guard self.keySizeInBits >= 2048, self.keySizeInBits % 8 == 0 else { throw CryptoError.incorrectParameterSize }
         }
         
         /// Construct an RSA public key from a DER representation.
@@ -581,7 +581,7 @@ extension _RSA.Encryption {
         /// - Warning: Key sizes less than 2048 are not recommended and should only be used for compatibility reasons.
         public init<Bytes: DataProtocol>(unsafeDERRepresentation derRepresentation: Bytes) throws {
             self.backing = try BackingPrivateKey(derRepresentation: derRepresentation)
-            guard self.keySizeInBits >= 1024, self.keySizeInBits % 8 == 0 else { throw CryptoKitError.incorrectParameterSize }
+            guard self.keySizeInBits >= 1024, self.keySizeInBits % 8 == 0 else { throw CryptoError.incorrectParameterSize }
         }
 
 
@@ -601,7 +601,7 @@ extension _RSA.Encryption {
         /// This constructor will refuse to generate keys smaller than 2048 bits. Callers that want to enforce minimum
         /// key size requirements should validate `keySize` before use.
         public init(keySize: _RSA.Signing.KeySize) throws {
-            guard keySize.bitCount >= 2048 else { throw CryptoKitError.incorrectParameterSize }
+            guard keySize.bitCount >= 2048 else { throw CryptoError.incorrectParameterSize }
             self.backing = try BackingPrivateKey(keySize: keySize)
         }
         
@@ -611,7 +611,7 @@ extension _RSA.Encryption {
         /// key size requirements should validate `keySize` before use.
         /// - Warning: Key sizes less than 2048 are not recommended and should only be used for compatibility reasons.
         public init(unsafeKeySize keySize: _RSA.Signing.KeySize) throws {
-            guard keySize.bitCount >= 1024 else { throw CryptoKitError.incorrectParameterSize }
+            guard keySize.bitCount >= 1024 else { throw CryptoError.incorrectParameterSize }
             self.backing = try BackingPrivateKey(keySize: keySize)
         }
         
@@ -735,7 +735,7 @@ extension _RSA {
         let r = k >> t
 
         guard k.isEven else {
-            throw CryptoKitError.incorrectParameterSize
+            throw CryptoError.incorrectParameterSize
         }
 
         var y: ArbitraryPrecisionInteger = 0
@@ -776,6 +776,6 @@ extension _RSA {
             i &+= 1
         }
 
-        throw CryptoKitError.incorrectParameterSize
+        throw CryptoError.incorrectParameterSize
     }
 }

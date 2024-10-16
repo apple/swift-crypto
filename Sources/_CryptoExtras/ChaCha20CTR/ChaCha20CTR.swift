@@ -66,7 +66,7 @@ extension Insecure.ChaCha20CTR {
 
         public init<D: DataProtocol>(data: D) throws {
             if data.count != Insecure.ChaCha20CTR.nonceByteCount {
-                throw CryptoKitError.incorrectParameterSize
+                throw CryptoError.incorrectParameterSize
             }
 
             self.bytes = Data(data)
@@ -94,7 +94,7 @@ extension Insecure.ChaCha20CTR {
         /// Explicitly set the Counter's offset using a byte sequence
         public init<D: DataProtocol>(data: D) throws {
             if data.count != Insecure.ChaCha20CTR.counterByteCount {
-                throw CryptoKitError.incorrectParameterSize
+                throw CryptoError.incorrectParameterSize
             }
 
             let startIndex = data.startIndex

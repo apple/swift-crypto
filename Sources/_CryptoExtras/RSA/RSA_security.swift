@@ -262,9 +262,9 @@ extension SecKeyAlgorithm {
             self = .rsaSignatureDigestPKCS1v15SHA512
         case (_, .pssZero):
             // Explicitly unsupported: only used in RSABSSA, which is implemented using BoringSSL on all platforms.
-            throw CryptoKitError.incorrectParameterSize
+            throw CryptoError.incorrectParameterSize
         default:
-            throw CryptoKitError.incorrectParameterSize
+            throw CryptoError.incorrectParameterSize
         }
     }
     

@@ -36,11 +36,11 @@ extension ASN1 {
             // and the base64 decoded bytes.
             var lines = pemString.split { $0.isNewline }[...]
             guard let first = lines.first, let last = lines.last else {
-                throw CryptoKitASN1Error.invalidPEMDocument
+                throw CryptoASN1Error.invalidPEMDocument
             }
 
             guard let discriminator = first.pemStartDiscriminator, discriminator == last.pemEndDiscriminator else {
-                throw CryptoKitASN1Error.invalidPEMDocument
+                throw CryptoASN1Error.invalidPEMDocument
             }
 
             // All but the last line must be 64 bytes. The force unwrap is safe because we require the lines to be
@@ -49,11 +49,11 @@ extension ASN1 {
             guard lines.count > 0,
                 lines.dropLast().allSatisfy({ $0.utf8.count == PEMDocument.lineLength }),
                 lines.last!.utf8.count <= PEMDocument.lineLength else {
-                throw CryptoKitASN1Error.invalidPEMDocument
+                throw CryptoASN1Error.invalidPEMDocument
             }
 
             guard let derBytes = Data(base64Encoded: lines.joined()) else {
-                throw CryptoKitASN1Error.invalidPEMDocument
+                throw CryptoASN1Error.invalidPEMDocument
             }
 
             self.type = discriminator

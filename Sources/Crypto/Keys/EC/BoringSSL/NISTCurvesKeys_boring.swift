@@ -147,7 +147,7 @@ class BoringSSLECPrivateKeyWrapper<Curve: OpenSSLSupportedNISTCurve> {
         for _ in 0 ..< 100 {
             // We generate FIPS compliant keys to match the behaviour of CryptoKit on Apple platforms.
             guard CCryptoBoringSSL_EC_KEY_generate_key(self.key) != 0 else {
-                throw CryptoKitError.internalBoringSSLError()
+                throw CryptoError.internalBoringSSLError()
             }
 
             // We want to generate FIPS compliant keys. If this isn't, loop around again.
@@ -170,7 +170,7 @@ class BoringSSLECPrivateKeyWrapper<Curve: OpenSSLSupportedNISTCurve> {
         let group = Curve.group
         let length = bytes.withUnsafeBytes { $0.count }
         guard length == (group.coordinateByteCount * 3) + 1 else {
-            throw CryptoKitError.incorrectParameterSize
+            throw CryptoError.incorrectParameterSize
         }
 
         self.key = try group.makeUnsafeOwnedECKey()
@@ -192,7 +192,7 @@ class BoringSSLECPrivateKeyWrapper<Curve: OpenSSLSupportedNISTCurve> {
         // This brings our behaviour into line with CryptoKit
         let length = bytes.withUnsafeBytes { $0.count }
         guard length == group.coordinateByteCount else {
-            throw CryptoKitError.incorrectParameterSize
+            throw CryptoError.incorrectParameterSize
         }
 
         self.key = try group.makeUnsafeOwnedECKey()
@@ -211,7 +211,7 @@ class BoringSSLECPrivateKeyWrapper<Curve: OpenSSLSupportedNISTCurve> {
     func setPrivateKey(_ keyScalar: ArbitraryPrecisionInteger) throws {
         try keyScalar.withUnsafeBignumPointer { bigNum in
             guard CCryptoBoringSSL_EC_KEY_set_private_key(self.key, bigNum) != 0 else {
-                throw CryptoKitError.internalBoringSSLError()
+                throw CryptoError.internalBoringSSLError()
             }
         }
     }
@@ -222,7 +222,7 @@ class BoringSSLECPrivateKeyWrapper<Curve: OpenSSLSupportedNISTCurve> {
                 // This function is missing some const declarations here, which is why we need the bignums inout.
                 // If that gets fixed, we can clean this function up.
                 guard CCryptoBoringSSL_EC_KEY_set_public_key_affine_coordinates(self.key, xPointer, yPointer) != 0 else {
-                    throw CryptoKitError.internalBoringSSLError()
+                    throw CryptoError.internalBoringSSLError()
                 }
             }
         }
@@ -231,7 +231,7 @@ class BoringSSLECPrivateKeyWrapper<Curve: OpenSSLSupportedNISTCurve> {
     func setPublicKey(point: EllipticCurvePoint) throws {
         try point.withPointPointer { ecPointer in
             guard CCryptoBoringSSL_EC_KEY_set_public_key(self.key, ecPointer) != 0 else {
-                throw CryptoKitError.internalBoringSSLError()
+                throw CryptoError.internalBoringSSLError()
             }
         }
     }
@@ -293,7 +293,7 @@ class BoringSSLECPrivateKeyWrapper<Curve: OpenSSLSupportedNISTCurve> {
             }
 
             if rc == -1 {
-                throw CryptoKitError.internalBoringSSLError()
+                throw CryptoError.internalBoringSSLError()
             }
             precondition(rc == outputSize, "Unexpectedly short secret.")
             secretSize = Int(rc)
@@ -305,7 +305,7 @@ class BoringSSLECPrivateKeyWrapper<Curve: OpenSSLSupportedNISTCurve> {
             CCryptoBoringSSLShims_ECDSA_do_sign(digestPtr.baseAddress, digestPtr.count, self.key)
         }
         guard let rawSignature = optionalRawSignature else {
-            throw CryptoKitError.internalBoringSSLError()
+            throw CryptoError.internalBoringSSLError()
         }
 
         return ECDSASignature(takingOwnershipOf: rawSignature)
@@ -331,7 +331,7 @@ class BoringSSLECPublicKeyWrapper<Curve: OpenSSLSupportedNISTCurve> {
         // This brings our behaviour into line with CryptoKit
         let length = bytes.withUnsafeBytes { $0.count }
         guard length == group.coordinateByteCount else {
-            throw CryptoKitError.incorrectParameterSize
+            throw CryptoError.incorrectParameterSize
         }
 
         self.key = try group.makeUnsafeOwnedECKey()
@@ -372,7 +372,7 @@ class BoringSSLECPublicKeyWrapper<Curve: OpenSSLSupportedNISTCurve> {
             try self.setPublicKey(x: &x, y: &y)
 
         default:
-            throw CryptoKitError.incorrectParameterSize
+            throw CryptoError.incorrectParameterSize
         }
     }
 
@@ -387,7 +387,7 @@ class BoringSSLECPublicKeyWrapper<Curve: OpenSSLSupportedNISTCurve> {
             try self.setPublicKey(x: &x, yBit: yBit)
 
         default:
-            throw CryptoKitError.incorrectParameterSize
+            throw CryptoError.incorrectParameterSize
         }
     }
 
@@ -399,7 +399,7 @@ class BoringSSLECPublicKeyWrapper<Curve: OpenSSLSupportedNISTCurve> {
         // This brings our behaviour into line with CryptoKit
         let length = bytes.withUnsafeBytes { $0.count }
         guard length == group.coordinateByteCount * 2 else {
-            throw CryptoKitError.incorrectParameterSize
+            throw CryptoError.incorrectParameterSize
         }
 
         self.key = try group.makeUnsafeOwnedECKey()
@@ -417,13 +417,13 @@ class BoringSSLECPublicKeyWrapper<Curve: OpenSSLSupportedNISTCurve> {
     @usableFromInline
     init(unsafeTakingOwnership ownedPointer: OpaquePointer) throws {
         guard let newKeyGroup = CCryptoBoringSSL_EC_KEY_get0_group(ownedPointer) else {
-            throw CryptoKitError.internalBoringSSLError()
+            throw CryptoError.internalBoringSSLError()
         }
         let groupEqual = Curve.group.withUnsafeGroupPointer { ourCurvePointer in
             CCryptoBoringSSL_EC_GROUP_cmp(newKeyGroup, ourCurvePointer, nil)
         }
         guard groupEqual == 0 else {
-            throw CryptoKitError.incorrectParameterSize
+            throw CryptoError.incorrectParameterSize
         }
 
         self.key = ownedPointer
@@ -497,7 +497,7 @@ class BoringSSLECPublicKeyWrapper<Curve: OpenSSLSupportedNISTCurve> {
                 // This function is missing some const declarations here, which is why we need the bignums inout.
                 // If that gets fixed, we can clean this function up.
                 guard CCryptoBoringSSL_EC_KEY_set_public_key_affine_coordinates(self.key, xPointer, yPointer) != 0 else {
-                    throw CryptoKitError.internalBoringSSLError()
+                    throw CryptoError.internalBoringSSLError()
                 }
             }
         }
@@ -517,11 +517,11 @@ class BoringSSLECPublicKeyWrapper<Curve: OpenSSLSupportedNISTCurve> {
             }
 
             guard rc == 1 else {
-                throw CryptoKitError.internalBoringSSLError()
+                throw CryptoError.internalBoringSSLError()
             }
 
             guard CCryptoBoringSSL_EC_KEY_set_public_key(self.key, point) == 1 else {
-                throw CryptoKitError.internalBoringSSLError()
+                throw CryptoError.internalBoringSSLError()
             }
         }
     }
@@ -543,7 +543,7 @@ extension ContiguousBytes {
         // of the public key, and the K value of the secret scalar. Let's load that in.
         return try self.withUnsafeBytes { bytesPtr in
             guard bytesPtr.first == 0x04 else {
-                throw CryptoKitError.incorrectKeySize // This is the same error CryptoKit throws on Apple platforms.
+                throw CryptoError.incorrectKeySize // This is the same error CryptoKit throws on Apple platforms.
             }
 
             let stride = (bytesPtr.count - 1) / 3
@@ -568,7 +568,7 @@ extension ContiguousBytes {
         // of the public key. Let's load that in.
         return try self.withUnsafeBytes { bytesPtr in
             guard bytesPtr.first == 0x04 else {
-                throw CryptoKitError.incorrectKeySize // This is the same error CryptoKit throws on Apple platforms.
+                throw CryptoError.incorrectKeySize // This is the same error CryptoKit throws on Apple platforms.
             }
 
             return try readRawPublicNumbers(copyingBytes: UnsafeRawBufferPointer(rebasing: bytesPtr[1...]))
@@ -588,7 +588,7 @@ extension ContiguousBytes {
             case 0x02:
                 yBit = false
             default:
-                throw CryptoKitError.incorrectKeySize // This is the same error CryptoKit throws on Apple platforms.
+                throw CryptoError.incorrectKeySize // This is the same error CryptoKit throws on Apple platforms.
             }
 
             let xBytes = UnsafeRawBufferPointer(rebasing: bytesPtr.dropFirst())

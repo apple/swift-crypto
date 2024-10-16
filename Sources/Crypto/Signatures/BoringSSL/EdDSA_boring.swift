@@ -102,7 +102,7 @@ extension Curve25519.Signing.PrivateKey {
         }
 
         if rc != 1 {
-            throw CryptoKitError.internalBoringSSLError()
+            throw CryptoError.internalBoringSSLError()
         }
 
         return signature

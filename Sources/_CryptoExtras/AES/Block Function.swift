@@ -49,11 +49,11 @@ extension AES {
 
     private static func permuteBlock<Payload: MutableCollection>(_ payload: inout Payload, key: SymmetricKey, permutation: Permutation) throws where Payload.Element == UInt8 {
         if payload.count != Int(Self.blockSize) {
-            throw CryptoKitError.incorrectParameterSize
+            throw CryptoError.incorrectParameterSize
         }
 
         if !AES.isValidKey(key) {
-            throw CryptoKitError.incorrectKeySize
+            throw CryptoError.incorrectKeySize
         }
 
         let requiresSlowPath: Bool = try payload.withContiguousMutableStorageIfAvailable { storage in
