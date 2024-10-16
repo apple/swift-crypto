@@ -7,7 +7,7 @@
 ## Licensed under Apache License v2.0
 ##
 ## See LICENSE.txt for license information
-## See CONTRIBUTORS.md for the list of SwiftCrypto project authors
+## See CONTRIBUTORS.txt for the list of SwiftCrypto project authors
 ##
 ## SPDX-License-Identifier: Apache-2.0
 ##
@@ -15,6 +15,6 @@
 
 set -eu
 find . -name '*.gyb' |                                               \
-    while read file; do                                              \
+    while read -r file; do                                              \
         ./scripts/gyb --line-directive '' -o "${file%.gyb}" "$file"; \
     done
