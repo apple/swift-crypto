@@ -34,10 +34,12 @@ extension KDF.Insecure {
         ///    - salt: The salt to use for key derivation.
         ///    - hashFunction: The hash function to use for key derivation.
         ///    - outputByteCount: The length in bytes of resulting symmetric key.
-        ///    - rounds: The number of rounds which should be used to perform key derivation. The recommended value is at least 100,000. The minimum allowed number of rounds is 1,000.
+        ///    - rounds: The number of rounds which should be used to perform key derivation. The minimum allowed number of rounds is 210,000.
+        /// - Throws: An error if the number of rounds is less than 210,000
+        /// - Note: The correct choice of rounds depends on a number of factors such as the hash function used, the speed of the target machine, and the intended use of the derived key. A good rule of thumb is to use rounds in the hundered of thousands or millions. For more information see OWASP's [Password Storage Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/Password_Storage_Cheat_Sheet.html).
         /// - Returns: The derived symmetric key.
         public static func deriveKey<Passphrase: DataProtocol, Salt: DataProtocol>(from password: Passphrase, salt: Salt, using hashFunction: HashFunction, outputByteCount: Int, rounds: Int) throws -> SymmetricKey {
-            guard rounds >= 1_000 else {
+            guard rounds >= 210_000 else {
                 throw CryptoKitError.incorrectParameterSize
             }
             return try PBKDF2.deriveKey(from: password, salt: salt, using: hashFunction, outputByteCount: outputByteCount, unsafeUncheckedRounds: rounds)
@@ -51,6 +53,7 @@ extension KDF.Insecure {
         ///    - hashFunction: The hash function to use for key derivation.
         ///    - outputByteCount: The length in bytes of resulting symmetric key.
         ///    - unsafeUncheckedRounds: The number of rounds which should be used to perform key derivation.
+        /// - Warning: This method allows the use of parameters which may result in insecure keys. It is important to ensure that the used parameters do not compromise the security of the application.
         /// - Returns: The derived symmetric key.
         public static func deriveKey<Passphrase: DataProtocol, Salt: DataProtocol>(from password: Passphrase, salt: Salt, using hashFunction: HashFunction, outputByteCount: Int, unsafeUncheckedRounds: Int) throws -> SymmetricKey {
             return try BackingPBKDF2.deriveKey(from: password, salt: salt, using: hashFunction, outputByteCount: outputByteCount, rounds: unsafeUncheckedRounds)

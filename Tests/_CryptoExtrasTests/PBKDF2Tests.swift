@@ -80,12 +80,12 @@ class PBKDF2Tests: XCTestCase {
         let (contiguousInput, contiguousSalt) = (Data("password".utf8), Data("salt".utf8))
         
         XCTAssertThrowsError(try KDF.Insecure.PBKDF2.deriveKey(from: contiguousInput, salt: contiguousSalt, using: .insecureSHA1,
-                                                               outputByteCount: 20, rounds: 999))
+                                                               outputByteCount: 20, rounds: 209_999))
         
         XCTAssertNoThrow(try KDF.Insecure.PBKDF2.deriveKey(from: contiguousInput, salt: contiguousSalt, using: .insecureSHA1,
-                                                           outputByteCount: 20, unsafeUncheckedRounds: 999))
+                                                           outputByteCount: 20, unsafeUncheckedRounds: 209_999))
         
         XCTAssertNoThrow(try KDF.Insecure.PBKDF2.deriveKey(from: contiguousInput, salt: contiguousSalt, using: .insecureSHA1,
-                                                           outputByteCount: 20, rounds: 1000))
+                                                           outputByteCount: 20, rounds: 210_000))
     }
 }
