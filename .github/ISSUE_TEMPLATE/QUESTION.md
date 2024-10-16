@@ -6,8 +6,8 @@ about: Not sure how something works or how to implement some functionality? Ask 
 
 ### Question Checklist
 
-- [ ] I'm using the latest version of Swift Crypto (master branch)
-- [ ] I read the [Contribution Guidelines](https://github.com/apple/swift-crypto/blob/master/CONTRIBUTING.md)
+- [ ] I'm using the latest version of Swift Crypto (main branch)
+- [ ] I read the [Contribution Guidelines](https://github.com/apple/swift-crypto/blob/main/CONTRIBUTING.md)
 - [ ] I searched for [existing GitHub issues](https://github.com/apple/swift-crypto/issues)
 
 ### Question Subject

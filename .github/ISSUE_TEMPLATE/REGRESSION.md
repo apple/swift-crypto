@@ -8,8 +8,8 @@ about: If a recent release broke a feature (Please make sure you know the last k
 
 ### New Regression Checklist
 
-- [ ] I'm using the latest version of Swift Crypto (master branch)
-- [ ] I read the [Contribution Guidelines](https://github.com/apple/swift-crypto/blob/master/CONTRIBUTING.md)
+- [ ] I'm using the latest version of Swift Crypto (main branch)
+- [ ] I read the [Contribution Guidelines](https://github.com/apple/swift-crypto/blob/main/CONTRIBUTING.md)
 - [ ] I searched for [existing GitHub issues](https://github.com/apple/swift-crypto/issues)
 
 ### Regression Information
