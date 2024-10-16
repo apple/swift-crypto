@@ -93,6 +93,6 @@ update_cmakelists_source "CCryptoBoringSSL"
 update_cmakelists_source "CCryptoBoringSSLShims"
 update_cmakelists_source "CryptoBoringWrapper"
 update_cmakelists_source "Crypto"
-update_cmakelists_source "_CryptoExtras" "*/AES/*.swift"
+update_cmakelists_source "CryptoExtras" "*/AES/*.swift"
 
 update_cmakelists_assembly "CCryptoBoringSSL"
