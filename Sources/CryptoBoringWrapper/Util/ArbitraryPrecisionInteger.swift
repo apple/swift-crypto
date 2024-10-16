@@ -386,6 +386,119 @@ extension ArbitraryPrecisionInteger: Numeric {
     }
 }
 
+// MARK: - Modular arithmetic
+
+extension ArbitraryPrecisionInteger {
+    @usableFromInline
+    package func modulo(_ mod: ArbitraryPrecisionInteger, nonNegative: Bool = false) throws -> ArbitraryPrecisionInteger {
+        var result = ArbitraryPrecisionInteger()
+
+        let rc = result.withUnsafeMutableBignumPointer { resultPtr in
+            self.withUnsafeBignumPointer { selfPtr in
+                mod.withUnsafeBignumPointer { modPtr in
+                    ArbitraryPrecisionInteger.withUnsafeBN_CTX { bnCtx in
+                        if nonNegative {
+                            CCryptoBoringSSL_BN_nnmod(resultPtr, selfPtr, modPtr, bnCtx)
+                        } else {
+                            CCryptoBoringSSLShims_BN_mod(resultPtr, selfPtr, modPtr, bnCtx)
+                        }
+                    }
+                }
+            }
+        }
+        guard rc == 1 else { throw CryptoBoringWrapperError.internalBoringSSLError() }
+
+        return result
+    }
+
+    @usableFromInline
+    package func inverse(modulo mod: ArbitraryPrecisionInteger) throws -> ArbitraryPrecisionInteger {
+        var result = ArbitraryPrecisionInteger()
+
+        let rc = result.withUnsafeMutableBignumPointer { resultPtr in
+            self.withUnsafeBignumPointer { selfPtr in
+                mod.withUnsafeBignumPointer { modPtr in
+                    ArbitraryPrecisionInteger.withUnsafeBN_CTX { bnCtx in
+                        CCryptoBoringSSL_BN_mod_inverse(resultPtr, selfPtr, modPtr, bnCtx)
+                    }
+                }
+            }
+        }
+        guard rc != nil else { throw CryptoBoringWrapperError.internalBoringSSLError() }
+
+        return result
+    }
+
+
+    @usableFromInline
+    package static func inverse(lhs: ArbitraryPrecisionInteger, modulo mod: ArbitraryPrecisionInteger) throws -> ArbitraryPrecisionInteger {
+        try ArbitraryPrecisionInteger(lhs).inverse(modulo: mod)
+    }
+
+    @usableFromInline
+    package func add(_ rhs: ArbitraryPrecisionInteger, modulo modulus: ArbitraryPrecisionInteger? = nil) throws -> ArbitraryPrecisionInteger {
+        guard let modulus else { return self + rhs }
+        var result = ArbitraryPrecisionInteger()
+
+        let rc = result.withUnsafeMutableBignumPointer { resultPtr in
+            self.withUnsafeBignumPointer { selfPtr in
+                rhs.withUnsafeBignumPointer { rhsPtr in
+                    modulus.withUnsafeBignumPointer { modulusPtr in
+                        ArbitraryPrecisionInteger.withUnsafeBN_CTX { bnCtx in
+                            return CCryptoBoringSSL_BN_mod_add(resultPtr, selfPtr, rhsPtr, modulusPtr, bnCtx)
+                        }
+                    }
+                }
+            }
+        }
+        guard rc == 1 else { throw CryptoBoringWrapperError.internalBoringSSLError() }
+
+        return result
+    }
+
+    @usableFromInline
+    package func sub(_ rhs: ArbitraryPrecisionInteger, modulo modulus: ArbitraryPrecisionInteger? = nil) throws -> ArbitraryPrecisionInteger {
+        guard let modulus else { return self - rhs }
+        var result = ArbitraryPrecisionInteger()
+
+        let rc = result.withUnsafeMutableBignumPointer { resultPtr in
+            self.withUnsafeBignumPointer { selfPtr in
+                rhs.withUnsafeBignumPointer { rhsPtr in
+                    modulus.withUnsafeBignumPointer { modulusPtr in
+                        ArbitraryPrecisionInteger.withUnsafeBN_CTX { bnCtx in
+                            CCryptoBoringSSL_BN_mod_sub(resultPtr, selfPtr, rhsPtr, modulusPtr, bnCtx)
+                        }
+                    }
+                }
+            }
+        }
+        guard rc == 1 else { throw CryptoBoringWrapperError.internalBoringSSLError() }
+
+        return result
+    }
+
+    @usableFromInline
+    package func mul(_ rhs: ArbitraryPrecisionInteger, modulo modulus: ArbitraryPrecisionInteger? = nil) throws -> ArbitraryPrecisionInteger {
+        guard let modulus else { return self * rhs }
+        var result = ArbitraryPrecisionInteger()
+
+        let rc = result.withUnsafeMutableBignumPointer { resultPtr in
+            self.withUnsafeBignumPointer { selfPtr in
+                rhs.withUnsafeBignumPointer { rhsPtr in
+                    modulus.withUnsafeBignumPointer { modulusPtr in
+                        ArbitraryPrecisionInteger.withUnsafeBN_CTX { bnCtx in
+                            return CCryptoBoringSSL_BN_mod_mul(resultPtr, selfPtr, rhsPtr, modulusPtr, bnCtx)
+                        }
+                    }
+                }
+            }
+        }
+        guard rc == 1 else { throw CryptoBoringWrapperError.internalBoringSSLError() }
+
+        return result
+    }
+}
+
 // MARK: - SignedNumeric
 
 extension ArbitraryPrecisionInteger: SignedNumeric {
