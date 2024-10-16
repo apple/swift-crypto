@@ -12,7 +12,7 @@
 ##
 ##===----------------------------------------------------------------------===##
 
-add_library(_CryptoExtras
+add_library(CryptoExtras
   "ChaCha20CTR/BoringSSL/ChaCha20CTR_boring.swift"
   "ChaCha20CTR/ChaCha20CTR.swift"
   "RSA/RSA+BlindSigning.swift"
@@ -27,23 +27,23 @@ add_library(_CryptoExtras
   "Util/RandomBytes.swift"
   "Util/SubjectPublicKeyInfo.swift")
 
-target_include_directories(_CryptoExtras PRIVATE
+target_include_directories(CryptoExtras PRIVATE
   $<TARGET_PROPERTY:CCryptoBoringSSL,INCLUDE_DIRECTORIES>
   $<TARGET_PROPERTY:CCryptoBoringSSLShims,INCLUDE_DIRECTORIES>)
 
-target_link_libraries(_CryptoExtras PUBLIC
+target_link_libraries(CryptoExtras PUBLIC
   $<$<NOT:$<PLATFORM_ID:Darwin>>:Foundation>
   Crypto
   CryptoBoringWrapper
   CCryptoBoringSSL
   CCryptoBoringSSLShims)
 
-target_compile_options(_CryptoExtras PRIVATE ${SWIFT_CRYPTO_COMPILE_OPTIONS})
+target_compile_options(CryptoExtras PRIVATE ${SWIFT_CRYPTO_COMPILE_OPTIONS})
 
-target_link_options(_CryptoExtras PRIVATE
+target_link_options(CryptoExtras PRIVATE
     "$<$<PLATFORM_ID:Darwin>:SHELL:-Xlinker -framework -Xlinker Security>")
 
-set_target_properties(_CryptoExtras PROPERTIES
+set_target_properties(CryptoExtras PROPERTIES
   INTERFACE_INCLUDE_DIRECTORIES ${CMAKE_Swift_MODULE_DIRECTORY})
 
-set_property(GLOBAL APPEND PROPERTY SWIFT_CRYPTO_EXPORTS _CryptoExtras)
+set_property(GLOBAL APPEND PROPERTY SWIFT_CRYPTO_EXPORTS CryptoExtras)

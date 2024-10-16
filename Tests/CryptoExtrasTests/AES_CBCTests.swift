@@ -14,7 +14,7 @@
 
 import Crypto
 import Foundation
-import _CryptoExtras
+import CryptoExtras
 import XCTest
 
 final class CBCTests: XCTestCase {

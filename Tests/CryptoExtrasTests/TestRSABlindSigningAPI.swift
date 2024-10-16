@@ -13,7 +13,7 @@
 //===----------------------------------------------------------------------===//
 import XCTest
 import Crypto
-import _CryptoExtras  // NOTE: No @testable import, because we want to test the public API.
+import CryptoExtras  // NOTE: No @testable import, because we want to test the public API.
 
 final class TestRSABlindSigningAPI: XCTestCase {
     func testEndToEnd() throws {

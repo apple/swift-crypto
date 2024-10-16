@@ -14,7 +14,7 @@
 import Foundation
 import XCTest
 import Crypto
-import _CryptoExtras
+import CryptoExtras
 
 final class AESBlockFunctionTests: XCTestCase {
     static let nistPlaintextChunks: [[UInt8]] = [

@@ -15,7 +15,7 @@ import Foundation
 import XCTest
 import Crypto
 import CryptoBoringWrapper
-@testable import _CryptoExtras
+@testable import CryptoExtras
 
 final class TestRSASigning: XCTestCase {
 

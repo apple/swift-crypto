@@ -22,7 +22,7 @@ struct WycheproofTest<T: Codable>: Codable {
 extension XCTestCase {
     func wycheproofTest<T: Codable>(jsonName: String, file: StaticString = #file, line: UInt = #line, testFunction: (T) throws -> Void) throws {
         let testsDirectory: String = URL(fileURLWithPath: "\(#file)").pathComponents.dropLast(3).joined(separator: "/")
-        let fileURL: URL? = URL(fileURLWithPath: "\(testsDirectory)/_CryptoExtrasVectors/\(jsonName).json")
+        let fileURL: URL? = URL(fileURLWithPath: "\(testsDirectory)/CryptoExtrasVectors/\(jsonName).json")
 
         let data = try Data(contentsOf: fileURL!)
 
