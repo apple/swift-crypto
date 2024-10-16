@@ -79,7 +79,8 @@ let package = Package(
     ],
     products: [
         .library(name: "Crypto", targets: ["Crypto"]),
-        .library(name: "_CryptoExtras", targets: ["_CryptoExtras"]),
+        .library(name: "_CryptoExtras", targets: ["CryptoExtras"]),
+        .library(name: "CryptoExtras", targets: ["CryptoExtras"]),
         /* This target is used only for symbol mangling. It's added and removed automatically because it emits build warnings. MANGLE_START
             .library(name: "CCryptoBoringSSL", type: .static, targets: ["CCryptoBoringSSL"]),
             MANGLE_END */
@@ -138,7 +139,7 @@ let package = Package(
             swiftSettings: swiftSettings
         ),
         .target(
-            name: "_CryptoExtras",
+            name: "CryptoExtras",
             dependencies: [
                 "CCryptoBoringSSL",
                 "CCryptoBoringSSLShims",
@@ -172,7 +173,7 @@ let package = Package(
             ],
             swiftSettings: swiftSettings
         ),
-        .testTarget(name: "_CryptoExtrasTests", dependencies: ["_CryptoExtras"]),
+        .testTarget(name: "CryptoExtrasTests", dependencies: ["CryptoExtras"]),
         .testTarget(name: "CryptoBoringWrapperTests", dependencies: ["CryptoBoringWrapper"]),
     ],
     cxxLanguageStandard: .cxx11
