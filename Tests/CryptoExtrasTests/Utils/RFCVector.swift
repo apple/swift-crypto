@@ -26,7 +26,7 @@ struct RFCVectorDecoder {
 
     init(bundleType: AnyObject, fileName: String) throws {
         let testsDirectory: String = URL(fileURLWithPath: "\(#file)").pathComponents.dropLast(3).joined(separator: "/")
-        let fileURL: URL? = URL(fileURLWithPath: "\(testsDirectory)/_CryptoExtrasVectors/\(fileName).txt")
+        let fileURL: URL? = URL(fileURLWithPath: "\(testsDirectory)/CryptoExtrasVectors/\(fileName).txt")
 
         let rfcVectorData = try Data(contentsOf: fileURL!)
         self.rfcVectorData = String(decoding: rfcVectorData, as: Unicode.UTF8.self)

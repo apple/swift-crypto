@@ -13,7 +13,7 @@
 //===----------------------------------------------------------------------===//
 import XCTest
 import Crypto
-@testable import _CryptoExtras
+@testable import CryptoExtras
 
 struct RFC9474TestVector: Codable {
     var name, p, q, n, e, d, msg, msg_prefix, prepared_msg, salt, inv, blinded_msg, blind_sig, sig: String
@@ -42,7 +42,7 @@ struct RFC9474TestVector: Codable {
     }
 
     static let allValues: [Self] = try! RFC9474TestVector.load(from: URL(
-        fileURLWithPath: "../_CryptoExtrasVectors/rfc9474.json",
+        fileURLWithPath: "../CryptoExtrasVectors/rfc9474.json",
         relativeTo: URL(fileURLWithPath: #file)
     ))
 }

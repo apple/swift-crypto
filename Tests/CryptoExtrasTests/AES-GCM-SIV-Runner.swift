@@ -14,7 +14,7 @@
 import Foundation
 import XCTest
 import Crypto
-import _CryptoExtras
+import CryptoExtras
 
 struct AEADTestGroup: Codable {
     let ivSize: Int

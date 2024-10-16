@@ -14,7 +14,7 @@
 
 import Crypto
 import Foundation
-@testable import _CryptoExtras
+@testable import CryptoExtras
 import XCTest
 
 final class AESCTRTests: XCTestCase {

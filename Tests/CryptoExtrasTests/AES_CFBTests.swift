@@ -13,7 +13,7 @@
 //===----------------------------------------------------------------------===//
 
 import Crypto
-@testable import _CryptoExtras
+@testable import CryptoExtras
 import XCTest
 
 final class AES_CFBTests: XCTestCase {
