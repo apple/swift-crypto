@@ -1,6 +1,7 @@
 .gitignore
 **/.gitignore
 .licenseignore
+.unacceptablelanguageignore
 .gitattributes
 .git-blame-ignore-revs
 .mailfilter
