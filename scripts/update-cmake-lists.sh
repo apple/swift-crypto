@@ -7,7 +7,7 @@
 ## Licensed under Apache License v2.0
 ##
 ## See LICENSE.txt for license information
-## See CONTRIBUTORS.md for the list of SwiftCrypto project authors
+## See CONTRIBUTORS.txt for the list of SwiftCrypto project authors
 ##
 ## SPDX-License-Identifier: Apache-2.0
 ##
@@ -22,6 +22,7 @@ case "$(uname -s)" in
         find=gfind # brew install findutils
         ;;
     *)
+        # shellcheck disable=SC2209
         find=find
         ;;
 esac
@@ -31,12 +32,12 @@ function update_cmakelists_source() {
 
     src_exts=("*.c" "*.swift")
     num_exts=${#src_exts[@]}
-    echo "Finding source files (${src_exts[@]}) under $src_root"
+    echo "Finding source files (" "${src_exts[@]}" ") under $src_root"
 
     # Build file extensions argument for `find`
     declare -a exts_arg
     exts_arg+=(-name "${src_exts[0]}")
-    for (( i=1; i<$num_exts; i++ ));
+    for (( i=1; i<num_exts; i++ ));
     do
         exts_arg+=(-o -name "${src_exts[$i]}")
     done
@@ -46,9 +47,9 @@ function update_cmakelists_source() {
     exceptions=("$@")
     # Add path exceptions for `find`
     if (( ${#exceptions[@]} )); then
-        echo "Excluding source paths (${exceptions[@]}) under $src_root"
+        echo "Excluding source paths (" "${exceptions[@]}" ") under $src_root"
         num_exceptions=${#exceptions[@]}
-        for (( i=0; i<$num_exceptions; i++ ));
+        for (( i=0; i<num_exceptions; i++ ));
         do
             exts_arg+=(! -path "${exceptions[$i]}")
         done

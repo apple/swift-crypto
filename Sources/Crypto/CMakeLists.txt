@@ -6,7 +6,7 @@
 ## Licensed under Apache License v2.0
 ##
 ## See LICENSE.txt for license information
-## See CONTRIBUTORS.md for the list of SwiftCrypto project authors
+## See CONTRIBUTORS.txt for the list of SwiftCrypto project authors
 ##
 ## SPDX-License-Identifier: Apache-2.0
 ##
@@ -67,8 +67,6 @@ add_library(Crypto
   "Key Wrapping/AESWrap.swift"
   "Key Wrapping/BoringSSL/AESWrap_boring.swift"
   "Keys/EC/BoringSSL/Ed25519_boring.swift"
-  "Keys/EC/BoringSSL/EllipticCurvePoint_boring.swift"
-  "Keys/EC/BoringSSL/EllipticCurve_boring.swift"
   "Keys/EC/BoringSSL/NISTCurvesKeys_boring.swift"
   "Keys/EC/BoringSSL/X25519Keys_boring.swift"
   "Keys/EC/Curve25519.swift"

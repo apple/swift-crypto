@@ -6,7 +6,7 @@
 ## Licensed under Apache License v2.0
 ##
 ## See LICENSE.txt for license information
-## See CONTRIBUTORS.md for the list of SwiftCrypto project authors
+## See CONTRIBUTORS.txt for the list of SwiftCrypto project authors
 ##
 ## SPDX-License-Identifier: Apache-2.0
 ##
@@ -15,8 +15,11 @@
 add_library(CryptoBoringWrapper STATIC
   "AEAD/BoringSSLAEAD.swift"
   "CryptoKitErrors_boring.swift"
-  "Util/ArbitraryPrecisionInteger_boring.swift"
-  "Util/FiniteFieldArithmeticContext_boring.swift")
+  "EC/EllipticCurve.swift"
+  "EC/EllipticCurvePoint.swift"
+  "Util/ArbitraryPrecisionInteger.swift"
+  "Util/FiniteFieldArithmeticContext.swift"
+  "Util/RandomBytes.swift")
 
 target_include_directories(CryptoBoringWrapper PUBLIC
   $<TARGET_PROPERTY:CCryptoBoringSSL,INCLUDE_DIRECTORIES>
