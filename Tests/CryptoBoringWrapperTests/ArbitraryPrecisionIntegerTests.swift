@@ -11,8 +11,6 @@
 // SPDX-License-Identifier: Apache-2.0
 //
 //===----------------------------------------------------------------------===//
-#if CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
-#else
 @testable import CryptoBoringWrapper
 import XCTest
 
@@ -168,4 +166,3 @@ final class ArbitraryPrecisionIntegerTests: XCTestCase {
         }
     }
 }
-#endif // CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API

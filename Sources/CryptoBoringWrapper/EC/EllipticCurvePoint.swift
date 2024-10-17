@@ -11,22 +11,18 @@
 // SPDX-License-Identifier: Apache-2.0
 //
 //===----------------------------------------------------------------------===//
-#if CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
-@_exported import CryptoKit
-#else
 @_implementationOnly import CCryptoBoringSSL
-import CryptoBoringWrapper
 
 /// A wrapper around BoringSSL's EC_POINT with some lifetime management.
 @usableFromInline
-class EllipticCurvePoint {
+package class EllipticCurvePoint {
     /* private but @usableFromInline */ @usableFromInline var _basePoint: OpaquePointer
 
     @usableFromInline
-    init(multiplying scalar: ArbitraryPrecisionInteger, on group: BoringSSLEllipticCurveGroup) throws {
+    package init(multiplying scalar: ArbitraryPrecisionInteger, on group: BoringSSLEllipticCurveGroup) throws {
         self._basePoint = try group.withUnsafeGroupPointer { groupPtr in
             guard let basePoint = CCryptoBoringSSL_EC_POINT_new(groupPtr) else {
-                throw CryptoKitError.internalBoringSSLError()
+                throw CryptoBoringWrapperError.internalBoringSSLError()
             }
             return basePoint
         }
@@ -34,16 +30,16 @@ class EllipticCurvePoint {
         try group.withUnsafeGroupPointer { groupPtr in
             try scalar.withUnsafeBignumPointer { bigNumPtr in
                 guard CCryptoBoringSSL_EC_POINT_mul(groupPtr, self._basePoint, bigNumPtr, nil, nil, nil) != 0 else {
-                    throw CryptoKitError.internalBoringSSLError()
+                    throw CryptoBoringWrapperError.internalBoringSSLError()
                 }
             }
         }
     }
 
-    init(copying pointer: OpaquePointer, on group: BoringSSLEllipticCurveGroup) throws {
+    package init(copying pointer: OpaquePointer, on group: BoringSSLEllipticCurveGroup) throws {
         self._basePoint = try group.withUnsafeGroupPointer { groupPtr in
             guard let basePoint = CCryptoBoringSSL_EC_POINT_dup(pointer, groupPtr) else {
-                throw CryptoKitError.internalBoringSSLError()
+                throw CryptoBoringWrapperError.internalBoringSSLError()
             }
             return basePoint
         }
@@ -58,12 +54,12 @@ class EllipticCurvePoint {
 
 extension EllipticCurvePoint {
     @inlinable
-    func withPointPointer<T>(_ body: (OpaquePointer) throws -> T) rethrows -> T {
+    package func withPointPointer<T>(_ body: (OpaquePointer) throws -> T) rethrows -> T {
         try body(self._basePoint)
     }
 
     @usableFromInline
-    func affineCoordinates(group: BoringSSLEllipticCurveGroup) throws -> (x: ArbitraryPrecisionInteger, y: ArbitraryPrecisionInteger) {
+    package func affineCoordinates(group: BoringSSLEllipticCurveGroup) throws -> (x: ArbitraryPrecisionInteger, y: ArbitraryPrecisionInteger) {
         var x = ArbitraryPrecisionInteger()
         var y = ArbitraryPrecisionInteger()
 
@@ -71,7 +67,7 @@ extension EllipticCurvePoint {
             try y.withUnsafeMutableBignumPointer { yPtr in
                 try group.withUnsafeGroupPointer { groupPtr in
                     guard CCryptoBoringSSL_EC_POINT_get_affine_coordinates_GFp(groupPtr, self._basePoint, xPtr, yPtr, nil) != 0 else {
-                        throw CryptoKitError.internalBoringSSLError()
+                        throw CryptoBoringWrapperError.internalBoringSSLError()
                     }
                 }
             }
@@ -80,4 +76,3 @@ extension EllipticCurvePoint {
         return (x: x, y: y)
     }
 }
-#endif // CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
