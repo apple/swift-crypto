@@ -43,20 +43,13 @@ extension MLDSA {
             self.backing = try Backing(seed: seed)
         }
 
-        /// Initialize a ML-DSA-65 private key from a DER representation.
+        /// Initialize a ML-DSA-65 private key from a raw representation.
         /// 
-        /// - Parameter derRepresentation: The DER representation of the private key.
+        /// - Parameter rawRepresentation: The private key bytes.
         /// 
-        /// - Throws: `CryptoKitError.incorrectKeySize` if the DER representation is not the correct size.
-        public init(derRepresentation: some DataProtocol) throws {
-            self.backing = try Backing(derRepresentation: derRepresentation)
-        }
-
-        /// Initialize a ML-DSA-65 private key from a PEM representation.
-        /// 
-        /// - Parameter pemRepresentation: The PEM representation of the private key.
-        public init(pemRepresentation: String) throws {
-            self.backing = try Backing(pemRepresentation: pemRepresentation)
+        /// - Throws: `CryptoKitError.incorrectKeySize` if the raw representation is not the correct size.
+        public init(rawRepresentation: some DataProtocol) throws {
+            self.backing = try Backing(rawRepresentation: rawRepresentation)
         }
 
         /// The public key associated with this private key.
@@ -79,7 +72,11 @@ extension MLDSA {
         static let bytesCount = Backing.bytesCount
 
         fileprivate final class Backing {
-            let pointer: UnsafeMutablePointer<MLDSA65_private_key>
+            private let pointer: UnsafeMutablePointer<MLDSA65_private_key>
+
+            func withUnsafePointer<T>(_ body: (UnsafePointer<MLDSA65_private_key>) throws -> T) rethrows -> T {
+                try body(self.pointer)
+            }
 
             /// Initialize a ML-DSA-65 private key from a random seed.
             init() throws {
@@ -122,19 +119,19 @@ extension MLDSA {
                 }
             }
 
-            /// Initialize a ML-DSA-65 private key from a DER representation.
+            /// Initialize a ML-DSA-65 private key from a raw representation.
             /// 
-            /// - Parameter derRepresentation: The DER representation of the private key.
+            /// - Parameter rawRepresentation: The private key bytes.
             /// 
-            /// - Throws: `CryptoKitError.incorrectKeySize` if the DER representation is not the correct size.
-            init(derRepresentation: some DataProtocol) throws {
-                guard derRepresentation.count == MLDSA.PrivateKey.Backing.bytesCount else {
+            /// - Throws: `CryptoKitError.incorrectKeySize` if the raw representation is not the correct size.
+            init(rawRepresentation: some DataProtocol) throws {
+                guard rawRepresentation.count == MLDSA.PrivateKey.Backing.bytesCount else {
                     throw CryptoKitError.incorrectKeySize
                 }
 
                 self.pointer = UnsafeMutablePointer<MLDSA65_private_key>.allocate(capacity: 1)
 
-                try derRepresentation.regions.flatMap { $0 }.withUnsafeBufferPointer { buffer in
+                try rawRepresentation.regions.flatMap { $0 }.withUnsafeBufferPointer { buffer in
                     let cbsPointer = UnsafeMutablePointer<CBS>.allocate(capacity: 1)
                     defer { cbsPointer.deallocate() }
                     cbsPointer.pointee = CBS(data: buffer.baseAddress, len: buffer.count)
@@ -143,14 +140,6 @@ extension MLDSA {
                         throw CryptoKitError.internalBoringSSLError()
                     }
                 }
-            }
-
-            /// Initialize a ML-DSA-65 private key from a PEM representation.
-            /// 
-            /// - Parameter pemRepresentation: The PEM representation of the private key.
-            convenience init(pemRepresentation: String) throws {
-                let document = try ASN1.PEMDocument(pemString: pemRepresentation)
-                try self.init(derRepresentation: document.derBytes)
             }
 
             /// The public key associated with this private key.
@@ -214,33 +203,19 @@ extension MLDSA {
             self.backing = Backing(privateKeyBacking: privateKeyBacking)
         }
 
-        /// Initialize a ML-DSA-65 public key from a DER representation.
+        /// Initialize a ML-DSA-65 public key from a raw representation.
         /// 
-        /// - Parameter derRepresentation: The DER representation of the public key.
+        /// - Parameter rawRepresentation: The public key bytes.
         /// 
-        /// - Throws: `CryptoKitError.incorrectKeySize` if the DER representation is not the correct size.
-        public init(derRepresentation: some DataProtocol) throws {
-            self.backing = try Backing(derRepresentation: derRepresentation)
+        /// - Throws: `CryptoKitError.incorrectKeySize` if the raw representation is not the correct size.
+        public init(rawRepresentation: some DataProtocol) throws {
+            self.backing = try Backing(rawRepresentation: rawRepresentation)
         }
 
-        /// Initialize a ML-DSA-65 public key from a PEM representation.
-        /// 
-        /// - Parameter pemRepresentation: The PEM representation of the public key.
-        public init(pemRepresentation: String) throws {
-            self.backing = try Backing(pemRepresentation: pemRepresentation)
-        }
-
-        /// The DER representation of the public key.
-        public var derRepresentation: Data {
+        /// The raw binary representation of the public key.
+        public var rawRepresentation: Data {
             get throws {
-                try self.backing.derRepresentation
-            }
-        }
-
-        /// The PEM representation of the public key.
-        public var pemRepresentation: String {
-            get throws {
-                try self.backing.pemRepresentation
+                try self.backing.rawRepresentation
             }
         }
 
@@ -264,22 +239,24 @@ extension MLDSA {
 
             init(privateKeyBacking: PrivateKey.Backing) {
                 self.pointer = UnsafeMutablePointer<MLDSA65_public_key>.allocate(capacity: 1)
-                CCryptoBoringSSL_MLDSA65_public_from_private(self.pointer, privateKeyBacking.pointer)
+                let _ = privateKeyBacking.withUnsafePointer { privateKeyPtr in
+                    CCryptoBoringSSL_MLDSA65_public_from_private(self.pointer, privateKeyPtr)
+                }
             }
 
-            /// Initialize a ML-DSA-65 public key from a DER representation.
+            /// Initialize a ML-DSA-65 public key from a raw representation.
             /// 
-            /// - Parameter derRepresentation: The DER representation of the public key.
+            /// - Parameter rawRepresentation: The public key bytes.
             /// 
-            /// - Throws: `CryptoKitError.incorrectKeySize` if the DER representation is not the correct size.
-            init(derRepresentation: some DataProtocol) throws {
-                guard derRepresentation.count == MLDSA.PublicKey.Backing.bytesCount else {
+            /// - Throws: `CryptoKitError.incorrectKeySize` if the raw representation is not the correct size.
+            init(rawRepresentation: some DataProtocol) throws {
+                guard rawRepresentation.count == MLDSA.PublicKey.Backing.bytesCount else {
                     throw CryptoKitError.incorrectKeySize
                 }
 
                 self.pointer = UnsafeMutablePointer<MLDSA65_public_key>.allocate(capacity: 1)
 
-                try derRepresentation.regions.flatMap { $0 }.withUnsafeBufferPointer { buffer in
+                try rawRepresentation.regions.flatMap { $0 }.withUnsafeBufferPointer { buffer in
                     let cbsPointer = UnsafeMutablePointer<CBS>.allocate(capacity: 1)
                     defer { cbsPointer.deallocate() }
                     cbsPointer.pointee = CBS(data: buffer.baseAddress, len: buffer.count)
@@ -290,16 +267,8 @@ extension MLDSA {
                 }
             }
 
-            /// Initialize a ML-DSA-65 public key from a PEM representation.
-            /// 
-            /// - Parameter pemRepresentation: The PEM representation of the public key.
-            convenience init(pemRepresentation: String) throws {
-                let document = try ASN1.PEMDocument(pemString: pemRepresentation)
-                try self.init(derRepresentation: document.derBytes)
-            }
-
-            /// The DER representation of the public key.
-            var derRepresentation: Data {
+            /// The raw binary representation of the public key.
+            var rawRepresentation: Data {
                 get throws {
                     var cbb = CBB()
                     // `CBB_init` can only return 0 on allocation failure, which we define as impossible.
@@ -315,13 +284,6 @@ extension MLDSA {
                         throw CryptoKitError.internalBoringSSLError()
                     }
                     return Data(bytes: data, count: CCryptoBoringSSL_CBB_len(&cbb))
-                }
-            }
-
-            /// The PEM representation of the public key.
-            var pemRepresentation: String {
-                get throws {
-                    ASN1.PEMDocument(type: MLDSA.PublicKeyType, derBytes: try self.derRepresentation).pemString
                 }
             }
 

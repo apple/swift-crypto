@@ -97,27 +97,27 @@ final class MLDSATests: XCTestCase {
         let seed: [UInt8] = (0..<32).map { _ in UInt8.random(in: 0...255) }
         let key = try MLDSA.PrivateKey(seed: seed)
         let publicKey = key.publicKey
-        try encodedPublicKey.replaceSubrange(0..<MLDSA.PublicKey.bytesCount, with: publicKey.derRepresentation)
+        try encodedPublicKey.replaceSubrange(0..<MLDSA.PublicKey.bytesCount, with: publicKey.rawRepresentation)
         
         // Public key is 1 byte too short.
         let shortPublicKey = Array(encodedPublicKey.prefix(MLDSA.PublicKey.bytesCount - 1))
-        XCTAssertThrowsError(try MLDSA.PublicKey(derRepresentation: shortPublicKey))
+        XCTAssertThrowsError(try MLDSA.PublicKey(rawRepresentation: shortPublicKey))
         
         // Public key has the correct length.
         let correctLengthPublicKey = Array(encodedPublicKey.prefix(MLDSA.PublicKey.bytesCount))
-        XCTAssertNoThrow(try MLDSA.PublicKey(derRepresentation: correctLengthPublicKey))
+        XCTAssertNoThrow(try MLDSA.PublicKey(rawRepresentation: correctLengthPublicKey))
         
         // Public key is 1 byte too long.
-        XCTAssertThrowsError(try MLDSA.PublicKey(derRepresentation: encodedPublicKey))
+        XCTAssertThrowsError(try MLDSA.PublicKey(rawRepresentation: encodedPublicKey))
     }
 
     func testMLDSAKeyGenFile() throws {
         try mldsaTest(jsonName: "mldsa_nist_keygen_tests") { (testVector: MLDSAKeyGenTestVector) in
             let seed = try Data(hexString: testVector.seed)
-            let publicKey = try MLDSA.PublicKey(derRepresentation: Data(hexString: testVector.pub))
+            let publicKey = try MLDSA.PublicKey(rawRepresentation: Data(hexString: testVector.pub))
             
             let expectedkey = try MLDSA.PrivateKey(seed: seed).publicKey
-            try XCTAssertEqual(publicKey.derRepresentation, expectedkey.derRepresentation)
+            try XCTAssertEqual(publicKey.rawRepresentation, expectedkey.rawRepresentation)
         }
     }
 
