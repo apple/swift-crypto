@@ -7,7 +7,7 @@
 // Licensed under Apache License v2.0
 //
 // See LICENSE.txt for license information
-// See CONTRIBUTORS.md for the list of SwiftCrypto project authors
+// See CONTRIBUTORS.txt for the list of SwiftCrypto project authors
 //
 // SPDX-License-Identifier: Apache-2.0
 //
@@ -20,7 +20,7 @@
 // Sources/CCryptoBoringSSL directory. The source repository is at
 // https://boringssl.googlesource.com/boringssl.
 //
-// BoringSSL Commit: 76968bb3d53982560bcf08bcd0ba3e1865fe15cd
+// BoringSSL Commit: 2587c4974dbe9872451151c8e975f58567a1ce0d
 
 import PackageDescription
 

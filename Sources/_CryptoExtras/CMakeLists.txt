@@ -6,7 +6,7 @@
 ## Licensed under Apache License v2.0
 ##
 ## See LICENSE.txt for license information
-## See CONTRIBUTORS.md for the list of SwiftCrypto project authors
+## See CONTRIBUTORS.txt for the list of SwiftCrypto project authors
 ##
 ## SPDX-License-Identifier: Apache-2.0
 ##
@@ -30,7 +30,6 @@ add_library(_CryptoExtras
   "Util/DigestType.swift"
   "Util/Error.swift"
   "Util/PEMDocument.swift"
-  "Util/RandomBytes.swift"
   "Util/SubjectPublicKeyInfo.swift")
 
 target_include_directories(_CryptoExtras PRIVATE

@@ -6,13 +6,11 @@
 // Licensed under Apache License v2.0
 //
 // See LICENSE.txt for license information
-// See CONTRIBUTORS.md for the list of SwiftCrypto project authors
+// See CONTRIBUTORS.txt for the list of SwiftCrypto project authors
 //
 // SPDX-License-Identifier: Apache-2.0
 //
 //===----------------------------------------------------------------------===//
-#if CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
-#else
 @testable import CryptoBoringWrapper
 import XCTest
 
@@ -167,5 +165,122 @@ final class ArbitraryPrecisionIntegerTests: XCTestCase {
             XCTAssertEqual(try ArbitraryPrecisionInteger(bytes: bytes), integer)
         }
     }
+
+    func testMoudlo() throws {
+        typealias I = ArbitraryPrecisionInteger
+        typealias Vector = (input: I, mod: I, expectedResult: (standard: I, nonNegative: I))
+        for vector: Vector in [
+            (input: 0, mod: 2, expectedResult: (standard: 0, nonNegative: 0)),
+            (input: 1, mod: 2, expectedResult: (standard: 1, nonNegative: 1)),
+            (input: 2, mod: 2, expectedResult: (standard: 0, nonNegative: 0)),
+            (input: 3, mod: 2, expectedResult: (standard: 1, nonNegative: 1)),
+            (input: 4, mod: 2, expectedResult: (standard: 0, nonNegative: 0)),
+            (input: 5, mod: 2, expectedResult: (standard: 1, nonNegative: 1)),
+            (input: 7, mod: 5, expectedResult: (standard: 2, nonNegative: 2)),
+            (input: 7, mod: -5, expectedResult: (standard: 2, nonNegative: 2)),
+            (input: -7, mod: 5, expectedResult: (standard: -2, nonNegative: 3)),
+            (input: -7, mod: -5, expectedResult: (standard: -2, nonNegative: 3)),
+        ] {
+            XCTAssertEqual(
+                try vector.input.modulo(vector.mod, nonNegative: false),
+                vector.expectedResult.standard,
+                "\(vector.input) (mod \(vector.mod))"
+            )
+            XCTAssertEqual(
+                try vector.input.modulo(vector.mod, nonNegative: true),
+                vector.expectedResult.nonNegative,
+                "\(vector.input) (nnmod \(vector.mod))"
+            )
+        }
+    }
+
+    func testModularInverse() throws {
+        typealias I = ArbitraryPrecisionInteger
+        enum O { case ok(I), throwsError }
+        typealias Vector = (a: I, mod: I, expectedResult: O)
+        for vector: Vector in [
+            (a: 3, mod: 7, expectedResult: .ok(5)),
+            (a: 10, mod: 17, expectedResult: .ok(12)),
+            (a: 7, mod: 26, expectedResult: .ok(15)),
+            (a: 7, mod: 7, expectedResult: .throwsError),
+        ] {
+            switch vector.expectedResult {
+            case .ok(let expectedValue):
+                XCTAssertEqual(try vector.a.inverse(modulo: vector.mod), expectedValue, "inverse(\(vector.a), modulo: \(vector.mod))")
+            case .throwsError:
+                XCTAssertThrowsError(try vector.a.inverse(modulo: vector.mod), "inverse(\(vector.a), modulo: \(vector.mod)")
+            }
+        }
+    }
+
+    func testModularAddition() throws {
+        typealias I = ArbitraryPrecisionInteger
+        enum O { case ok(I), throwsError }
+        typealias Vector = (a: I, b: I, mod: I, expectedResult: O)
+        for vector: Vector in [
+            (a: 0, b: 0, mod: 0, expectedResult: .throwsError),
+            (a: 0, b: 0, mod: 2, expectedResult: .ok(0)),
+            (a: 1, b: 0, mod: 2, expectedResult: .ok(1)),
+            (a: 0, b: 1, mod: 2, expectedResult: .ok(1)),
+            (a: 1, b: 1, mod: 2, expectedResult: .ok(0)),
+            (a: 4, b: 3, mod: 5, expectedResult: .ok(2)),
+            (a: 4, b: 3, mod: -5, expectedResult: .ok(2)),
+            (a: -4, b: -3, mod: 5, expectedResult: .ok(3)),
+        ] {
+            switch vector.expectedResult {
+            case .ok(let expectedValue):
+                XCTAssertEqual(try vector.a.add(vector.b, modulo: vector.mod), expectedValue, "\(vector.a) + \(vector.b) (mod \(vector.mod))")
+            case .throwsError:
+                XCTAssertThrowsError(try vector.a.add(vector.b, modulo: vector.mod), "\(vector.a) + \(vector.b) (mod \(vector.mod))")
+            }
+        }
+    }
+
+    func testModularSubtraction() throws {
+        typealias I = ArbitraryPrecisionInteger
+        enum O { case ok(I), throwsError }
+        typealias Vector = (a: I, b: I, mod: I, expectedResult: O)
+        for vector: Vector in [
+            (a: 0, b: 0, mod: 0, expectedResult: .throwsError),
+            (a: 0, b: 0, mod: 2, expectedResult: .ok(0)),
+            (a: 1, b: 0, mod: 2, expectedResult: .ok(1)),
+            (a: 0, b: 1, mod: 2, expectedResult: .ok(1)),
+            (a: 1, b: 1, mod: 2, expectedResult: .ok(0)),
+            (a: 4, b: 3, mod: 5, expectedResult: .ok(1)),
+            (a: 3, b: 4, mod: 5, expectedResult: .ok(4)),
+            (a: 3, b: 4, mod: -5, expectedResult: .ok(4)),
+            (a: -3, b: 4, mod: 5, expectedResult: .ok(3)),
+            (a: 3, b: -4, mod: 5, expectedResult: .ok(2)),
+        ] {
+            switch vector.expectedResult {
+            case .ok(let expectedValue):
+                XCTAssertEqual(try vector.a.sub(vector.b, modulo: vector.mod), expectedValue, "\(vector.a) - \(vector.b) (mod \(vector.mod))")
+            case .throwsError:
+                XCTAssertThrowsError(try vector.a.sub(vector.b, modulo: vector.mod), "\(vector.a) - \(vector.b) (mod \(vector.mod))")
+            }
+        }
+    }
+
+    func testModularMultiplication() throws {
+        typealias I = ArbitraryPrecisionInteger
+        enum O { case ok(I), throwsError }
+        typealias Vector = (a: I, b: I, mod: I, expectedResult: O)
+        for vector: Vector in [
+            (a: 0, b: 0, mod: 0, expectedResult: .throwsError),
+            (a: 0, b: 0, mod: 2, expectedResult: .ok(0)),
+            (a: 1, b: 0, mod: 2, expectedResult: .ok(0)),
+            (a: 0, b: 1, mod: 2, expectedResult: .ok(0)),
+            (a: 1, b: 1, mod: 2, expectedResult: .ok(1)),
+            (a: 4, b: 3, mod: 5, expectedResult: .ok(2)),
+            (a: 4, b: 3, mod: -5, expectedResult: .ok(2)),
+            (a: -4, b: -3, mod: 5, expectedResult: .ok(2)),
+        ] {
+            switch vector.expectedResult {
+            case .ok(let expectedValue):
+                XCTAssertEqual(try vector.a.mul(vector.b, modulo: vector.mod), expectedValue, "\(vector.a) × \(vector.b) (mod \(vector.mod))")
+            case .throwsError:
+                XCTAssertThrowsError(try vector.a.mul(vector.b, modulo: vector.mod), "\(vector.a) × \(vector.b) (mod \(vector.mod))")
+            }
+        }
+    }
 }
-#endif // CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API

@@ -51,7 +51,7 @@ def split_lines(s):
     If the lines are later concatenated, the result is s, possibly
     with a single appended newline.
     """
-    return [l + '\n' for l in s.split('\n')]
+    return [line + '\n' for line in s.split('\n')]
 
 
 # text on a line up to the first '$$', '${', or '%%'
@@ -74,8 +74,7 @@ tokenize_re = re.compile(
     ^
     (?:
       (?P<gybLines>
-        (?P<_indent> [\ \t]* % (?! [{%] ) [\ \t]* ) (?! [\ \t] | ''' +
-    linesClose + r''' ) .*
+        (?P<_indent> [\ \t]* % (?! [{%] ) [\ \t]* ) (?! [\ \t] | ''' + linesClose + r''' ) .*  # noqa: E501
         ( \n (?P=_indent) (?! ''' + linesClose + r''' ) .* ) *
       )
       | (?P<gybLinesClose> [\ \t]* % [ \t]* ''' + linesClose + r''' )
@@ -612,8 +611,8 @@ class ASTNode(object):
             return ' []'
 
         return '\n'.join(
-            ['', indent + '['] +
-            [x.__str__(indent + 4 * ' ') for x in self.children] +
+            ['', indent + '['] +  # noqa: W504
+            [x.__str__(indent + 4 * ' ') for x in self.children] +  # noqa: W504
             [indent + ']'])
 
 
@@ -657,7 +656,7 @@ class Literal(ASTNode):
 
     def __str__(self, indent=''):
         return '\n'.join(
-            [indent + x for x in ['Literal:'] +
+            [indent + x for x in ['Literal:'] +  # noqa: W504
              strip_trailing_nl(self.text).split('\n')])
 
 
@@ -748,7 +747,7 @@ class Code(ASTNode):
             s = indent + 'Code: {' + source_lines[0] + '}'
         else:
             s = indent + 'Code:\n' + indent + '{\n' + '\n'.join(
-                indent + 4 * ' ' + l for l in source_lines
+                indent + 4 * ' ' + line for line in source_lines
             ) + '\n' + indent + '}'
         return s + self.format_children(indent)
 
