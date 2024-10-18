@@ -29,7 +29,9 @@ add_library(_CryptoExtras
   "Util/CryptoKitErrors_boring.swift"
   "Util/DigestType.swift"
   "Util/Error.swift"
+  "Util/I2OSP.swift"
   "Util/PEMDocument.swift"
+  "Util/PrettyBytes.swift"
   "Util/SubjectPublicKeyInfo.swift")
 
 target_include_directories(_CryptoExtras PRIVATE
