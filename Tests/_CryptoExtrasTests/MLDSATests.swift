@@ -20,7 +20,7 @@ final class MLDSATests: XCTestCase {
         try testMLDSASigning(MLDSA.PrivateKey())
         // The seed provided here is 64 bytes long, but the MLDSA implementation only uses the first 32 bytes.
         let seed: [UInt8] = (0..<64).map { _ in UInt8.random(in: 0...255) }
-        try testMLDSASigning(MLDSA.PrivateKey(from: seed))
+        try testMLDSASigning(MLDSA.PrivateKey(seed: seed))
     }
 
     private func testMLDSASigning(_ key: MLDSA.PrivateKey) throws {
@@ -78,7 +78,7 @@ final class MLDSATests: XCTestCase {
         let message = "Hello, world!".data(using: .utf8)!
         
         let seed: [UInt8] = (0..<32).map { _ in UInt8.random(in: 0...255) }
-        let key = try MLDSA.PrivateKey(from: seed)
+        let key = try MLDSA.PrivateKey(seed: seed)
         let publicKey = key.publicKey
         
         let signature1 = try key.signature(for: message)
@@ -95,7 +95,7 @@ final class MLDSATests: XCTestCase {
         // Encode a public key with a trailing 0 at the end.
         var encodedPublicKey = [UInt8](repeating: 0, count: MLDSA.PublicKey.bytesCount + 1)
         let seed: [UInt8] = (0..<32).map { _ in UInt8.random(in: 0...255) }
-        let key = try MLDSA.PrivateKey(from: seed)
+        let key = try MLDSA.PrivateKey(seed: seed)
         let publicKey = key.publicKey
         try encodedPublicKey.replaceSubrange(0..<MLDSA.PublicKey.bytesCount, with: publicKey.derRepresentation)
         
@@ -116,7 +116,7 @@ final class MLDSATests: XCTestCase {
             let seed = try Data(hexString: testVector.seed)
             let publicKey = try MLDSA.PublicKey(derRepresentation: Data(hexString: testVector.pub))
             
-            let expectedkey = try MLDSA.PrivateKey(from: seed).publicKey
+            let expectedkey = try MLDSA.PrivateKey(seed: seed).publicKey
             try XCTAssertEqual(publicKey.derRepresentation, expectedkey.derRepresentation)
         }
     }

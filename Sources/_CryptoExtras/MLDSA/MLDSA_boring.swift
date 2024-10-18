@@ -40,7 +40,7 @@ extension MLDSA {
         /// 
         /// - Throws: `CryptoKitError.incorrectKeySize` if the seed is not at least 32 bytes long.
         public init(seed: some DataProtocol) throws {
-            self.backing = try Backing(from: seed)
+            self.backing = try Backing(seed: seed)
         }
 
         /// Initialize a ML-DSA-65 private key from a DER representation.
@@ -106,7 +106,7 @@ extension MLDSA {
             /// - Parameter seed: The seed to use to generate the private key.
             /// 
             /// - Throws: `CryptoKitError.incorrectKeySize` if the seed is not at least 32 bytes long.
-            init(from seed: some DataProtocol) throws {
+            init(seed: some DataProtocol) throws {
                 guard seed.count >= MLDSA.seedSizeInBytes else {
                     throw CryptoKitError.incorrectKeySize
                 }
