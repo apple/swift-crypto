@@ -39,7 +39,7 @@ extension MLDSA {
         /// - Parameter seed: The seed to use to generate the private key.
         /// 
         /// - Throws: `CryptoKitError.incorrectKeySize` if the seed is not at least 32 bytes long.
-        public init(from seed: some DataProtocol) throws {
+        public init(seed: some DataProtocol) throws {
             self.backing = try Backing(from: seed)
         }
 
