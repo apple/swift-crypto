@@ -158,23 +158,14 @@ extension MLDSA {
                 let output = try Array<UInt8>(unsafeUninitializedCapacity: Signature.bytesCount) { bufferPtr, length in
                     let bytes: ContiguousBytes = data.regions.count == 1 ? data.regions.first! : Array(data)
                     let result = bytes.withUnsafeBytes { dataPtr in
-                        if let context {
+                        context.map { Data($0) }.withUnsafeBytes { contextPtr in
                             CCryptoBoringSSL_MLDSA65_sign(
                                 bufferPtr.baseAddress,
                                 self.pointer,
                                 dataPtr.baseAddress,
                                 dataPtr.count,
-                                Array(context),
-                                context.count
-                            )
-                        } else {
-                            CCryptoBoringSSL_MLDSA65_sign(
-                                bufferPtr.baseAddress,
-                                self.pointer,
-                                dataPtr.baseAddress,
-                                dataPtr.count,
-                                nil,
-                                0
+                                contextPtr.baseAddress,
+                                contextPtr.count
                             )
                         }
                     }
@@ -299,25 +290,15 @@ extension MLDSA {
                 signature.withUnsafeBytes { signaturePtr in
                     let bytes: ContiguousBytes = data.regions.count == 1 ? data.regions.first! : Array(data)
                     let rc: CInt = bytes.withUnsafeBytes { dataPtr in
-                        if let context {
+                        context.map { Data($0) }.withUnsafeBytes { contextPtr in
                             CCryptoBoringSSL_MLDSA65_verify(
                                 self.pointer,
                                 signaturePtr.baseAddress,
                                 signaturePtr.count,
                                 dataPtr.baseAddress,
                                 dataPtr.count,
-                                Array(context),
-                                context.count
-                            )
-                        } else {
-                            CCryptoBoringSSL_MLDSA65_verify(
-                                self.pointer,
-                                signaturePtr.baseAddress,
-                                signaturePtr.count,
-                                dataPtr.baseAddress,
-                                dataPtr.count,
-                                nil,
-                                0
+                                contextPtr.baseAddress,
+                                contextPtr.count
                             )
                         }
                     }
@@ -374,4 +355,14 @@ extension MLDSA {
 
     /// The size of the seed in bytes.
     private static let seedSizeInBytes = 32
+}
+
+extension Optional where Wrapped == ContiguousBytes {
+    func withUnsafeBytes<ReturnValue>(_ body: (UnsafeRawBufferPointer) throws -> ReturnValue) rethrows -> ReturnValue {
+        if let self {
+            return try self.withUnsafeBytes { try body($0) }
+        } else {
+            return try body(UnsafeRawBufferPointer(start: nil, count: 0))
+        }
+    }
 }
