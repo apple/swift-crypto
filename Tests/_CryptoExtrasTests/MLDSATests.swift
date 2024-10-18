@@ -32,7 +32,7 @@ final class MLDSATests: XCTestCase {
             )
         )
         
-        let context: [UInt8] = [UInt8]("ctx".utf8)
+        let context = "ctx".data(using: .utf8)!
         try XCTAssertTrue(
             key.publicKey.isValidSignature(
                 key.signature(for: test, context: context),

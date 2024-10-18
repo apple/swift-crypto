@@ -18,8 +18,7 @@ import Foundation
 @_implementationOnly import CCryptoBoringSSL
 @_implementationOnly import CCryptoBoringSSLShims
 
-/// Types associated with the ML-DSA-65 algorithm
-@_documentation(visibility: public)
+/// A lattice-based digital signature algorithm that provides security against quantum computing attacks.
 public enum MLDSA {}
 
 extension MLDSA {
@@ -72,7 +71,7 @@ extension MLDSA {
         ///   - context: The context to use for the signature.
         /// 
         /// - Returns: The signature of the message.
-        public func signature(for data: some DataProtocol, context: [UInt8]? = nil) throws -> Signature {
+        public func signature<D: DataProtocol>(for data: D, context: D? = nil) throws -> Signature {
             try self.backing.signature(for: data, context: context)
         }
 
@@ -86,19 +85,16 @@ extension MLDSA {
             init() throws {
                 self.pointer = UnsafeMutablePointer<MLDSA65_private_key>.allocate(capacity: 1)
 
-                let publicKeyPtr = UnsafeMutablePointer<UInt8>.allocate(capacity: MLDSA.PublicKey.Backing.bytesCount)
-                let seedPtr = UnsafeMutablePointer<UInt8>.allocate(capacity: MLDSA.seedSizeInBytes)
-                defer {
-                    publicKeyPtr.deallocate()
-                    seedPtr.deallocate()
-                }
-
-                guard CCryptoBoringSSL_MLDSA65_generate_key(
-                    publicKeyPtr,
-                    seedPtr,
-                    self.pointer
-                ) == 1 else {
-                    throw CryptoKitError.internalBoringSSLError()
+                try withUnsafeTemporaryAllocation(of: UInt8.self, capacity: MLDSA.PublicKey.Backing.bytesCount) { publicKeyPtr in
+                    try withUnsafeTemporaryAllocation(of: UInt8.self, capacity: MLDSA.seedSizeInBytes) { seedPtr in
+                        guard CCryptoBoringSSL_MLDSA65_generate_key(
+                            publicKeyPtr.baseAddress,
+                            seedPtr.baseAddress,
+                            self.pointer
+                        ) == 1 else {
+                            throw CryptoKitError.internalBoringSSLError()
+                        }
+                    }
                 }
             }
 
@@ -115,18 +111,11 @@ extension MLDSA {
                     throw CryptoKitError.incorrectKeySize
                 }
 
-                var seedDest: [UInt8] = Array(repeating: 0, count: MLDSA.seedSizeInBytes)
-                try seedDest.withUnsafeMutableBufferPointer { typedMemBuffer in
-                    guard seed.copyBytes(to: typedMemBuffer) == MLDSA.seedSizeInBytes else {
-                        throw CryptoKitError.incorrectKeySize
-                    }
-                }
-
                 self.pointer = UnsafeMutablePointer<MLDSA65_private_key>.allocate(capacity: 1)
 
                 guard CCryptoBoringSSL_MLDSA65_private_key_from_seed(
                     self.pointer,
-                    seedDest,
+                    Array(seed.prefix(MLDSA.seedSizeInBytes)),
                     MLDSA.seedSizeInBytes
                 ) == 1 else {
                     throw CryptoKitError.internalBoringSSLError()
@@ -176,20 +165,19 @@ extension MLDSA {
             ///   - context: The context to use for the signature.
             /// 
             /// - Returns: The signature of the message.
-            func signature(for data: some DataProtocol, context: [UInt8]? = nil) throws -> Signature {
+            func signature<D: DataProtocol>(for data: D, context: D? = nil) throws -> Signature {
                 let output = try Array<UInt8>(unsafeUninitializedCapacity: Signature.bytesCount) { bufferPtr, length in
-                    let result = data.regions.first!.withUnsafeBytes { dataPtr in
+                    let bytes: ContiguousBytes = data.regions.count == 1 ? data.regions.first! : Array(data)
+                    let result = bytes.withUnsafeBytes { dataPtr in
                         if let context {
-                            context.withUnsafeBufferPointer { contextPointer in
-                                CCryptoBoringSSL_MLDSA65_sign(
-                                    bufferPtr.baseAddress,
-                                    self.pointer,
-                                    dataPtr.baseAddress,
-                                    dataPtr.count,
-                                    contextPointer.baseAddress,
-                                    context.count
-                                )
-                            }
+                            CCryptoBoringSSL_MLDSA65_sign(
+                                bufferPtr.baseAddress,
+                                self.pointer,
+                                dataPtr.baseAddress,
+                                dataPtr.count,
+                                Array(context),
+                                context.count
+                            )
                         } else {
                             CCryptoBoringSSL_MLDSA65_sign(
                                 bufferPtr.baseAddress,
@@ -264,7 +252,7 @@ extension MLDSA {
         ///   - context: The context to use for the signature verification.
         /// 
         /// - Returns: `true` if the signature is valid, `false` otherwise.
-        public func isValidSignature(_ signature: Signature, for data: some DataProtocol, context: [UInt8]? = nil) -> Bool {
+        public func isValidSignature<D: DataProtocol>(_ signature: Signature, for data: D, context: D? = nil) -> Bool {
             self.backing.isValidSignature(signature, for: data, context: context)
         }
 
@@ -345,21 +333,20 @@ extension MLDSA {
             ///   - context: The context to use for the signature verification.
             /// 
             /// - Returns: `true` if the signature is valid, `false` otherwise.
-            func isValidSignature(_ signature: Signature, for data: some DataProtocol, context: [UInt8]? = nil) -> Bool {
+            func isValidSignature<D: DataProtocol>(_ signature: Signature, for data: D, context: D? = nil) -> Bool {
                 signature.withUnsafeBytes { signaturePtr in
-                    let rc: CInt = data.regions.first!.withUnsafeBytes { dataPtr in
+                    let bytes: ContiguousBytes = data.regions.count == 1 ? data.regions.first! : Array(data)
+                    let rc: CInt = bytes.withUnsafeBytes { dataPtr in
                         if let context {
-                            context.withUnsafeBufferPointer { contextPointer in
-                                CCryptoBoringSSL_MLDSA65_verify(
-                                    self.pointer,
-                                    signaturePtr.baseAddress,
-                                    signaturePtr.count,
-                                    dataPtr.baseAddress,
-                                    dataPtr.count,
-                                    contextPointer.baseAddress,
-                                    context.count
-                                )
-                            }
+                            CCryptoBoringSSL_MLDSA65_verify(
+                                self.pointer,
+                                signaturePtr.baseAddress,
+                                signaturePtr.count,
+                                dataPtr.baseAddress,
+                                dataPtr.count,
+                                Array(context),
+                                context.count
+                            )
                         } else {
                             CCryptoBoringSSL_MLDSA65_verify(
                                 self.pointer,
