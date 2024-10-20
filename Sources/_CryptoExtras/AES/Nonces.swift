@@ -20,22 +20,22 @@ import Foundation
 
 fileprivate struct ByteIterator<T>: IteratorProtocol {
     var currentOffset = 0
-    var pointer: UnsafeRawBufferPointer? = nil
+    var iterator: Array<UInt8>.Iterator? = nil
     let length: Int
     
     init(_ bytes: T) {
         self.length = Mirror(reflecting: bytes).children.count
         withUnsafeBytes(of: bytes) { pointer in
-            self.pointer = pointer
+            self.iterator = Array(pointer).makeIterator()
         }
     }
     
     @inlinable 
     public mutating func next() -> UInt8? {
-        guard let pointer,
+        guard var iterator,
               currentOffset < length else { return nil }
         
-        let next = pointer.load(fromByteOffset: currentOffset, as: UInt8.self)
+        let next = iterator.next()
         currentOffset += 1
         return next
     }
