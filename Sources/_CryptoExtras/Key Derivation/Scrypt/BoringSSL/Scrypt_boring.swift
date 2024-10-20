@@ -21,6 +21,10 @@ import Foundation
 @_implementationOnly import CCryptoBoringSSL
 @_implementationOnly import CCryptoBoringSSLShims
 
+#if canImport(Android)
+import Android
+#endif
+
 internal struct BoringSSLScrypt {
     /// Derives a secure key using the provided passphrase and salt.
     ///

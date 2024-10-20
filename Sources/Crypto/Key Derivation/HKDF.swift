@@ -15,6 +15,9 @@
 @_exported import CryptoKit
 #else
 import Foundation
+#if canImport(Android)
+import Android
+#endif
 
 /// A standards-based implementation of an HMAC-based Key Derivation Function
 /// (HKDF).
