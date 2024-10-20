@@ -20,7 +20,7 @@ final class SLHDSATests: XCTestCase {
         let key = SLHDSA.PrivateKey()
         let test = Data("Hello, World!".utf8)
         let signature = try key.signature(for: test)
-        let context: [UInt8] = [UInt8]("ctx".utf8)
+        let context = Data("ctx".utf8)
 
         XCTAssertTrue(
             key.publicKey.isValidSignature(
