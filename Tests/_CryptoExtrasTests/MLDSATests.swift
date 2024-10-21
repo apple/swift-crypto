@@ -111,8 +111,8 @@ final class MLDSATests: XCTestCase {
         XCTAssertThrowsError(try MLDSA.PublicKey(rawRepresentation: encodedPublicKey))
     }
 
-    func testMLDSAKeyGenFile() throws {
-        try mldsaTest(jsonName: "mldsa_nist_keygen_tests") { (testVector: NISTKeyGenTestVector) in
+    func testMLDSANISTKeyGenFile() throws {
+        try nistTest(jsonName: "mldsa_nist_keygen_tests") { (testVector: NISTKeyGenTestVector) in
             let seed = try Data(hexString: testVector.seed)
             let publicKey = try MLDSA.PublicKey(rawRepresentation: Data(hexString: testVector.pub))
             
@@ -131,7 +131,7 @@ final class MLDSATests: XCTestCase {
         let testVectors: [Vector]
     }
 
-    private func mldsaTest<Vector: Decodable>(
+    private func nistTest<Vector: Decodable>(
         jsonName: String, file: StaticString = #file, line: UInt = #line, testFunction: (Vector) throws -> Void
     ) throws {
         let testsDirectory: String = URL(fileURLWithPath: "\(#file)").pathComponents.dropLast(2).joined(separator: "/")
@@ -143,51 +143,13 @@ final class MLDSATests: XCTestCase {
         }
     }
 
-    struct WycheproofTest: Codable {
-        let tcID: Int
-        let comment, msg, sig: String
-        let result: Result
-        let flags: [Flag]
-        let ctx: String?
-
-        enum CodingKeys: String, CodingKey {
-            case tcID = "tcId"
-            case comment, msg, sig, result, flags, ctx
-        }
-
-        enum Flag: String, Codable {
-            case boundaryCondition = "BoundaryCondition"
-            case incorrectPublicKeyLength = "IncorrectPublicKeyLength"
-            case incorrectSignatureLength = "IncorrectSignatureLength"
-            case invalidContext = "InvalidContext"
-            case invalidHintsEncoding = "InvalidHintsEncoding"
-            case invalidPrivateKey = "InvalidPrivateKey"
-            case manySteps = "ManySteps"
-            case modifiedSignature = "ModifiedSignature"
-            case validSignature = "ValidSignature"
-            case zeroPublicKey = "ZeroPublicKey"
-        }
-
-        enum Result: String, Codable {
-            case invalid = "invalid"
-            case valid = "valid"
-        }
-    }
-
-    struct WycheproofTestGroup: Codable {
-        let publicKey: String
-        let tests: [WycheproofTest]
-    }
-
     func testMLDSAWycheproofVerifyFile() throws {
         try wycheproofTest(jsonName: "mldsa_65_standard_verify_test") { (testGroup: WycheproofTestGroup) in
             let publicKey: MLDSA.PublicKey
             do {
                 publicKey = try MLDSA.PublicKey(rawRepresentation: Data(hexString: testGroup.publicKey))
             } catch {
-                if testGroup.tests.contains(where: { $0.flags.contains(.incorrectPublicKeyLength) }) {
-                    return
-                }
+                if testGroup.tests.contains(where: { $0.flags.contains(.incorrectPublicKeyLength) }) { return }
                 throw error
             }
             for test in testGroup.tests {
@@ -201,6 +163,36 @@ final class MLDSATests: XCTestCase {
                 case .invalid:
                     XCTAssertFalse(publicKey.isValidSignature(signature, for: message, context: context))
                 }
+            }
+        }
+    }
+
+    struct WycheproofTestGroup: Codable {
+        let publicKey: String
+        let tests: [WycheproofTest]
+
+        struct WycheproofTest: Codable {
+            let msg, sig: String
+            let result: Result
+            let flags: [Flag]
+            let ctx: String?
+
+            enum Flag: String, Codable {
+                case boundaryCondition = "BoundaryCondition"
+                case incorrectPublicKeyLength = "IncorrectPublicKeyLength"
+                case incorrectSignatureLength = "IncorrectSignatureLength"
+                case invalidContext = "InvalidContext"
+                case invalidHintsEncoding = "InvalidHintsEncoding"
+                case invalidPrivateKey = "InvalidPrivateKey"
+                case manySteps = "ManySteps"
+                case modifiedSignature = "ModifiedSignature"
+                case validSignature = "ValidSignature"
+                case zeroPublicKey = "ZeroPublicKey"
+            }
+
+            enum Result: String, Codable {
+                case invalid
+                case valid
             }
         }
     }
