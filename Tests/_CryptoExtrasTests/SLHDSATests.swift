@@ -93,44 +93,4 @@ final class SLHDSATests: XCTestCase {
         XCTAssertTrue(publicKey.isValidSignature(signature1, for: message))
         XCTAssertTrue(publicKey.isValidSignature(signature2, for: message))
     }
-
-    func testPublicKeyASN1Encoding() throws {
-        let publicKey = SLHDSA.PrivateKey().publicKey
-        let encodedPublicKey = try publicKey.derRepresentation
-        let roundTrippedPublicKey = try SLHDSA.PublicKey(derRepresentation: encodedPublicKey)
-        try XCTAssertEqual(publicKey.pemRepresentation, roundTrippedPublicKey.pemRepresentation)
-
-        let examplePEMPublicKey = """
-            -----BEGIN PUBLIC KEY-----
-            MDAwCwYJYIZIAWUDBAMUAyEAK4EJ7Hd8qk4fAkzPz5SX2ZGAUJKA9CVq8rB6+AKJ
-            tJQ=
-            -----END PUBLIC KEY-----
-            """
-
-        let pemPublicKey = try SLHDSA.PublicKey(pemRepresentation: examplePEMPublicKey)
-        let pemEncodedPublicKey = try pemPublicKey.derRepresentation
-        let pemRoundTrippedPublicKey = try SLHDSA.PublicKey(derRepresentation: pemEncodedPublicKey)
-        try XCTAssertEqual(pemPublicKey.pemRepresentation, pemRoundTrippedPublicKey.pemRepresentation)
-        try XCTAssertEqual(pemPublicKey.pemRepresentation, examplePEMPublicKey)
-    }
-
-    func testPrivateKeyASN1Encoding() throws {
-        let privateKey = SLHDSA.PrivateKey()
-        let encodedPrivateKey = try privateKey.derRepresentation
-        let roundTrippedPrivateKey = try SLHDSA.PrivateKey(derRepresentation: encodedPrivateKey)
-        try XCTAssertEqual(privateKey.pemRepresentation, roundTrippedPrivateKey.pemRepresentation)
-
-        let examplePEMPrivateKey = """
-            -----BEGIN PRIVATE KEY-----
-            MFICAQAwCwYJYIZIAWUDBAMUBECiJjvKRYYINlIxYASVI9YhZ3+tkNUetgZ6Mn4N
-            HmSlASuBCex3fKpOHwJMz8+Ul9mRgFCSgPQlavKwevgCibSU
-            -----END PRIVATE KEY-----
-            """
-        
-        let pemPrivateKey = try SLHDSA.PrivateKey(pemRepresentation: examplePEMPrivateKey)
-        let pemEncodedPrivateKey = try pemPrivateKey.derRepresentation
-        let pemRoundTrippedPrivateKey = try SLHDSA.PrivateKey(derRepresentation: pemEncodedPrivateKey)
-        try XCTAssertEqual(pemPrivateKey.pemRepresentation, pemRoundTrippedPrivateKey.pemRepresentation)
-        try XCTAssertEqual(pemPrivateKey.pemRepresentation, examplePEMPrivateKey)
-    }
 }

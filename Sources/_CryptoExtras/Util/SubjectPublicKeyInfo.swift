@@ -122,16 +122,3 @@ extension SubjectPublicKeyInfo {
         return serializer.serializedBytes
     }
 }
-
-// MARK: - SLH-DSA
-
-extension ASN1ObjectIdentifier.AlgorithmIdentifier {
-    static let slhDsaSHA2128s = ASN1ObjectIdentifier("2.16.840.1.101.3.4.3.20")
-}
-
-extension RFC5480AlgorithmIdentifier {
-    static let slhDsaSHA2128s = RFC5480AlgorithmIdentifier(
-        algorithm: .AlgorithmIdentifier.slhDsaSHA2128s,
-        parameters: nil
-    )
-}

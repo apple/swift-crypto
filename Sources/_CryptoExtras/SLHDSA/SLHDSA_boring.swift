@@ -32,34 +32,18 @@ extension SLHDSA {
             self.backing = Backing()
         }
 
-        /// Initialize a SLH-DSA-SHA2-128s private key from a DER representation.
+        /// Initialize a SLH-DSA-SHA2-128s private key from a raw representation.
         /// 
-        /// - Parameter derRepresentation: The DER representation of the private key.
-        /// 
-        /// - Throws: `CryptoKitError.wrapFailure` if the algorithm OID is not SLH-DSA-SHA2-128s.
-        public init(derRepresentation: some DataProtocol) throws {
-            self.backing = try Backing(derRepresentation: derRepresentation)
+        /// - Parameter rawRepresentation: The private key bytes.
+        ///
+        /// - Throws: `CryptoKitError.incorrectKeySize` if the key is not the correct size.
+        public init(rawRepresentation: some DataProtocol) throws {
+            self.backing = try Backing(rawRepresentation: rawRepresentation)
         }
 
-        /// Initialize a SLH-DSA-SHA2-128s private key from a PEM representation.
-        /// 
-        /// - Parameter pemRepresentation: The PEM representation of the private key.
-        public init(pemRepresentation: String) throws {
-            self.backing = try Backing(pemRepresentation: pemRepresentation)
-        }
-
-        /// The DER representation of the private key.
-        public var derRepresentation: Data {
-            get throws {
-                try self.backing.derRepresentation
-            }
-        }
-
-        /// The PEM representation of the private key.
-        public var pemRepresentation: String {
-            get throws {
-                try self.backing.pemRepresentation
-            }
+        /// The raw representation of the private key.
+        public var rawRepresentation: Data {
+            self.backing.rawRepresentation
         }
 
         /// The public key associated with this private key.
@@ -78,9 +62,6 @@ extension SLHDSA {
             try self.backing.signature(for: data, context: context)
         }
 
-        /// The size of the private key in bytes.
-        private static let bytesCount = Backing.bytesCount
-
         fileprivate final class Backing {
             private let pointer: UnsafeMutablePointer<UInt8>
 
@@ -90,59 +71,33 @@ extension SLHDSA {
             
             /// Initialize a SLH-DSA-SHA2-128s private key from a random seed.
             init() {
-                self.pointer = UnsafeMutablePointer<UInt8>.allocate(capacity: SLHDSA.PrivateKey.bytesCount)
-
-                let publicKeyPtr = UnsafeMutablePointer<UInt8>.allocate(capacity: SLHDSA.PublicKey.bytesCount)
-                defer { publicKeyPtr.deallocate() }
+                self.pointer = UnsafeMutablePointer<UInt8>.allocate(capacity: SLHDSA.PrivateKey.Backing.bytesCount)
 
                 withUnsafeTemporaryAllocation(of: UInt8.self, capacity: SLHDSA.PublicKey.Backing.bytesCount) { publicKeyPtr in
                     CCryptoBoringSSL_SLHDSA_SHA2_128S_generate_key(publicKeyPtr.baseAddress, self.pointer)
                 }
             }
 
-            /// Initialize a SLH-DSA-SHA2-128s private key from a DER representation.
+            /// Initialize a SLH-DSA-SHA2-128s private key from a raw representation.
             /// 
-            /// - Parameter derRepresentation: The DER representation of the private key.
-            /// 
-            /// - Throws: `CryptoKitError.wrapFailure` if the algorithm OID is not SLH-DSA-SHA2-128s.
-            init(derRepresentation: some DataProtocol) throws {
-                let result = try DER.parse(Array(derRepresentation))
-                let pkey = try OneAsymmetricKey(derEncoded: result)
-
-                guard pkey.algorithm == .slhDsaSHA2128s else {
-                    throw CryptoKitError.wrapFailure
+            /// - Parameter rawRepresentation: The private key bytes.
+            ///
+            /// - Throws: `CryptoKitError.incorrectKeySize` if the key is not the correct size.
+            init(rawRepresentation: some DataProtocol) throws {
+                guard rawRepresentation.count == SLHDSA.PrivateKey.Backing.bytesCount else {
+                    throw CryptoKitError.incorrectKeySize
                 }
 
-                self.pointer = UnsafeMutablePointer<UInt8>.allocate(capacity: SLHDSA.PrivateKey.bytesCount)
-                pkey.privateKey.withUnsafeBytes { keyPtr in
-                    self.pointer.initialize(from: Array(keyPtr), count: SLHDSA.PrivateKey.bytesCount)
-                }
+                self.pointer = UnsafeMutablePointer<UInt8>.allocate(capacity: SLHDSA.PrivateKey.Backing.bytesCount)
+                self.pointer.initialize(
+                    from: Array(rawRepresentation.prefix(SLHDSA.PrivateKey.Backing.bytesCount)),
+                    count: SLHDSA.PrivateKey.Backing.bytesCount
+                )
             }
             
-            /// Initialize a SLH-DSA-SHA2-128s private key from a PEM representation.
-            /// 
-            /// - Parameter pemRepresentation: The PEM representation of the private key.
-            convenience init(pemRepresentation: String) throws {
-                let document = try ASN1.PEMDocument(pemString: pemRepresentation)
-                try self.init(derRepresentation: document.derBytes)
-            }
-            
-            /// The DER representation of the private key.
-            var derRepresentation: Data {
-                get throws {
-                    let keyBytes = Array(Data(UnsafeBufferPointer(start: self.pointer, count: SLHDSA.PrivateKey.bytesCount)))
-                    let pkey = OneAsymmetricKey(algorithm: .slhDsaSHA2128s, privateKey: keyBytes)
-                    var serializer = DER.Serializer()
-                    try serializer.serialize(pkey)
-                    return Data(serializer.serializedBytes)
-                }
-            }
-            
-            /// The PEM representation of the private key.
-            var pemRepresentation: String {
-                get throws {
-                    try ASN1.PEMDocument(type: "PRIVATE KEY", derBytes: self.derRepresentation).pemString
-                }
+            /// The raw representation of the private key.
+            var rawRepresentation: Data {
+                Data(UnsafeBufferPointer(start: self.pointer, count: SLHDSA.PrivateKey.Backing.bytesCount))
             }
             
             /// The public key associated with this private key.
@@ -206,34 +161,18 @@ extension SLHDSA {
             self.backing = Backing(privateKeyBacking: privateKeyBacking)
         }
 
-        /// Initialize a SLH-DSA-SHA2-128s public key from a DER representation.
+        /// Initialize a SLH-DSA-SHA2-128s public key from a raw representation.
         /// 
-        /// - Parameter derRepresentation: The DER representation of the public key.
+        /// - Parameter rawRepresentation: The public key bytes.
         /// 
-        /// - Throws: `CryptoKitError.wrapFailure` if the algorithm OID is not SLH-DSA-SHA2-128s.
-        public init(derRepresentation: some DataProtocol) throws {
-            self.backing = try Backing(derRepresentation: derRepresentation)
+        /// - Throws: `CryptoKitError.incorrectKeySize` if the key is not the correct size.
+        public init(rawRepresentation: some DataProtocol) throws {
+            self.backing = try Backing(rawRepresentation: rawRepresentation)
         }
 
-        /// Initialize a SLH-DSA-SHA2-128s public key from a PEM representation.
-        /// 
-        /// - Parameter pemRepresentation: The PEM representation of the public key.
-        public init(pemRepresentation: String) throws {
-            self.backing = try Backing(pemRepresentation: pemRepresentation)
-        }
-
-        /// The DER representation of the public key.
-        public var derRepresentation: Data {
-            get throws {
-                try self.backing.derRepresentation
-            }
-        }
-
-        /// The PEM representation of the public key.
-        public var pemRepresentation: String {
-            get throws {
-                try self.backing.pemRepresentation
-            }
+        /// The raw representation of the public key.
+        public var rawRepresentation: Data {
+            self.backing.rawRepresentation
         }
 
         /// Verify a signature for the given data.
@@ -261,49 +200,27 @@ extension SLHDSA {
                 }
             }
             
-            /// Initialize a SLH-DSA-SHA2-128s public key from a DER representation.
+            /// Initialize a SLH-DSA-SHA2-128s public key from a raw representation.
             /// 
-            /// - Parameter derRepresentation: The DER representation of the public key.
+            /// - Parameter rawRepresentation: The public key bytes.
             /// 
-            /// - Throws: `CryptoKitError.wrapFailure` if the algorithm OID is not SLH-DSA-SHA2-128s.
-            init(derRepresentation: some DataProtocol) throws {
-                let result = try DER.parse(Array(derRepresentation))
-                let spki = try SubjectPublicKeyInfo(derEncoded: result)
-
-                guard spki.algorithmIdentifier == .slhDsaSHA2128s else {
-                    throw CryptoKitError.wrapFailure
+            /// - Throws: `CryptoKitError.incorrectKeySize` if the key is not the correct size.
+            init(rawRepresentation: some DataProtocol) throws {
+                guard rawRepresentation.count == SLHDSA.PublicKey.bytesCount else {
+                    throw CryptoKitError.incorrectKeySize
                 }
 
                 self.pointer = UnsafeMutablePointer<UInt8>.allocate(capacity: SLHDSA.PublicKey.bytesCount)
-                spki.key.withUnsafeBytes { keyPtr in
-                    self.pointer.initialize(from: Array(keyPtr), count: SLHDSA.PublicKey.bytesCount)
-                }
+                self.pointer.initialize(
+                    from: Array(rawRepresentation.prefix(SLHDSA.PublicKey.bytesCount)),
+                    count: SLHDSA.PublicKey.bytesCount
+                )
             }
             
-            /// Initialize a SLH-DSA-SHA2-128s public key from a PEM representation.
-            /// 
-            /// - Parameter pemRepresentation: The PEM representation of the public key.
-            convenience init(pemRepresentation: String) throws {
-                let document = try ASN1.PEMDocument(pemString: pemRepresentation)
-                try self.init(derRepresentation: document.derBytes)
-            }
             
-            /// The DER representation of the public key.
-            var derRepresentation: Data {
-                get throws {
-                    let keyBytes = Array(Data(UnsafeBufferPointer(start: self.pointer, count: SLHDSA.PublicKey.bytesCount)))
-                    let spki = SubjectPublicKeyInfo(algorithmIdentifier: .slhDsaSHA2128s, key: keyBytes)
-                    var serializer = DER.Serializer()
-                    try serializer.serialize(spki)
-                    return Data(serializer.serializedBytes)
-                }
-            }
-            
-            /// The PEM representation of the public key.
-            var pemRepresentation: String {
-                get throws {
-                    try ASN1.PEMDocument(type: "PUBLIC KEY", derBytes: self.derRepresentation).pemString
-                }
+            /// The raw representation of the public key.
+            var rawRepresentation: Data {
+                Data(UnsafeBufferPointer(start: self.pointer, count: SLHDSA.PublicKey.bytesCount))
             }
             
             /// Verify a signature for the given data.
