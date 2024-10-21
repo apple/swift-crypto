@@ -347,12 +347,6 @@ extension MLDSA {
 }
 
 extension MLDSA {
-    /// The ASN.1 object identifiers for a private ML-DSA-65 key.
-    private static let KeyType = "PRIVATE KEY"
-    
-    /// The ASN.1 object identifiers for a public ML-DSA-65 key.
-    private static let PublicKeyType = "PUBLIC KEY"
-
     /// The size of the seed in bytes.
     private static let seedSizeInBytes = 32
 }

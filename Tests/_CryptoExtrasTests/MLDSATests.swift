@@ -112,7 +112,7 @@ final class MLDSATests: XCTestCase {
     }
 
     func testMLDSAKeyGenFile() throws {
-        try mldsaTest(jsonName: "mldsa_nist_keygen_tests") { (testVector: MLDSAKeyGenTestVector) in
+        try mldsaTest(jsonName: "mldsa_nist_keygen_tests") { (testVector: NISTKeyGenTestVector) in
             let seed = try Data(hexString: testVector.seed)
             let publicKey = try MLDSA.PublicKey(rawRepresentation: Data(hexString: testVector.pub))
             
@@ -121,13 +121,13 @@ final class MLDSATests: XCTestCase {
         }
     }
 
-    private struct MLDSAKeyGenTestVector: Decodable {
+    private struct NISTKeyGenTestVector: Decodable {
         let seed: String
         let pub: String
         let priv: String
     }
 
-    private struct MLDSATestFile<Vector: Decodable>: Decodable {
+    private struct NISTTestFile<Vector: Decodable>: Decodable {
         let testVectors: [Vector]
     }
 
@@ -137,9 +137,71 @@ final class MLDSATests: XCTestCase {
         let testsDirectory: String = URL(fileURLWithPath: "\(#file)").pathComponents.dropLast(2).joined(separator: "/")
         let fileURL: URL? = URL(fileURLWithPath: "\(testsDirectory)/_CryptoExtrasVectors/\(jsonName).json")
         let data = try Data(contentsOf: fileURL!)
-        let testFile = try JSONDecoder().decode(MLDSATestFile<Vector>.self, from: data)
+        let testFile = try JSONDecoder().decode(NISTTestFile<Vector>.self, from: data)
         for vector in testFile.testVectors {
             try testFunction(vector)
+        }
+    }
+
+    struct WycheproofTest: Codable {
+        let tcID: Int
+        let comment, msg, sig: String
+        let result: Result
+        let flags: [Flag]
+        let ctx: String?
+
+        enum CodingKeys: String, CodingKey {
+            case tcID = "tcId"
+            case comment, msg, sig, result, flags, ctx
+        }
+
+        enum Flag: String, Codable {
+            case boundaryCondition = "BoundaryCondition"
+            case incorrectPublicKeyLength = "IncorrectPublicKeyLength"
+            case incorrectSignatureLength = "IncorrectSignatureLength"
+            case invalidContext = "InvalidContext"
+            case invalidHintsEncoding = "InvalidHintsEncoding"
+            case invalidPrivateKey = "InvalidPrivateKey"
+            case manySteps = "ManySteps"
+            case modifiedSignature = "ModifiedSignature"
+            case validSignature = "ValidSignature"
+            case zeroPublicKey = "ZeroPublicKey"
+        }
+
+        enum Result: String, Codable {
+            case invalid = "invalid"
+            case valid = "valid"
+        }
+    }
+
+    struct WycheproofTestGroup: Codable {
+        let publicKey: String
+        let tests: [WycheproofTest]
+    }
+
+    func testMLDSAWycheproofVerifyFile() throws {
+        try wycheproofTest(jsonName: "mldsa_65_standard_verify_test") { (testGroup: WycheproofTestGroup) in
+            let publicKey: MLDSA.PublicKey
+            do {
+                publicKey = try MLDSA.PublicKey(rawRepresentation: Data(hexString: testGroup.publicKey))
+            } catch {
+                if testGroup.tests.contains(where: { $0.flags.contains(.incorrectPublicKeyLength) }) {
+                    return
+                }
+                throw error
+            }
+            for test in testGroup.tests {
+                let message = try Data(hexString: test.msg)
+                let signature = try MLDSA.Signature(rawRepresentation: Data(hexString: test.sig))
+                let context = try test.ctx.map { try Data(hexString: $0) }
+                
+                switch test.result {
+                case .valid:
+                    XCTAssertTrue(publicKey.isValidSignature(signature, for: message, context: context))
+                case .invalid:
+                    XCTAssertFalse(publicKey.isValidSignature(signature, for: message, context: context))
+                }
+            }
         }
     }
 }
