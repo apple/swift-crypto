@@ -249,12 +249,12 @@ extension HTTPField {
 
 extension URLSessionTransportError: LocalizedError {
     /// A localized message describing what error occurred.
-    public var errorDescription: String? { description }
+    var errorDescription: String? { description }
 }
 
 extension URLSessionTransportError: CustomStringConvertible {
     /// A textual representation of this instance.
-    public var description: String {
+    var description: String {
         switch self {
         case let .invalidRequestURL(path: path, method: method, baseURL: baseURL):
             return
