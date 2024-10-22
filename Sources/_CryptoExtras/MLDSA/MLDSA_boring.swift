@@ -132,11 +132,8 @@ extension MLDSA {
                 self.pointer = UnsafeMutablePointer<MLDSA65_private_key>.allocate(capacity: 1)
 
                 try rawRepresentation.regions.flatMap { $0 }.withUnsafeBufferPointer { buffer in
-                    let cbsPointer = UnsafeMutablePointer<CBS>.allocate(capacity: 1)
-                    defer { cbsPointer.deallocate() }
-                    cbsPointer.pointee = CBS(data: buffer.baseAddress, len: buffer.count)
-
-                    guard CCryptoBoringSSL_MLDSA65_parse_private_key(self.pointer, cbsPointer) == 1 else {
+                    var cbs = CBS(data: buffer.baseAddress, len: buffer.count)
+                    guard CCryptoBoringSSL_MLDSA65_parse_private_key(self.pointer, &cbs) == 1 else {
                         throw CryptoKitError.internalBoringSSLError()
                     }
                 }
@@ -205,9 +202,7 @@ extension MLDSA {
 
         /// The raw binary representation of the public key.
         public var rawRepresentation: Data {
-            get throws {
-                try self.backing.rawRepresentation
-            }
+            self.backing.rawRepresentation
         }
 
         /// Verify a signature for the given data.
@@ -248,11 +243,8 @@ extension MLDSA {
                 self.pointer = UnsafeMutablePointer<MLDSA65_public_key>.allocate(capacity: 1)
 
                 try rawRepresentation.regions.flatMap { $0 }.withUnsafeBufferPointer { buffer in
-                    let cbsPointer = UnsafeMutablePointer<CBS>.allocate(capacity: 1)
-                    defer { cbsPointer.deallocate() }
-                    cbsPointer.pointee = CBS(data: buffer.baseAddress, len: buffer.count)
-
-                    guard CCryptoBoringSSL_MLDSA65_parse_public_key(self.pointer, cbsPointer) == 1 else {
+                    var cbs = CBS(data: buffer.baseAddress, len: buffer.count)
+                    guard CCryptoBoringSSL_MLDSA65_parse_public_key(self.pointer, &cbs) == 1 else {
                         throw CryptoKitError.internalBoringSSLError()
                     }
                 }
@@ -260,22 +252,11 @@ extension MLDSA {
 
             /// The raw binary representation of the public key.
             var rawRepresentation: Data {
-                get throws {
-                    var cbb = CBB()
-                    // `CBB_init` can only return 0 on allocation failure, which we define as impossible.
-                    CCryptoBoringSSL_CBB_init(&cbb, MLDSA.PublicKey.Backing.bytesCount)
-
-                    guard CCryptoBoringSSL_MLDSA65_marshal_public_key(&cbb, self.pointer) == 1 else {
-                        CCryptoBoringSSL_CBB_cleanup(&cbb)
-                        throw CryptoKitError.internalBoringSSLError()
-                    }
-
-                    guard let data = CCryptoBoringSSL_CBB_data(&cbb) else {
-                        CCryptoBoringSSL_CBB_cleanup(&cbb)
-                        throw CryptoKitError.internalBoringSSLError()
-                    }
-                    return Data(bytes: data, count: CCryptoBoringSSL_CBB_len(&cbb))
-                }
+                var cbb = CBB()
+                // The following BoringSSL functions can only fail on allocation failure, which we define as impossible.
+                CCryptoBoringSSL_CBB_init(&cbb, MLDSA.PublicKey.Backing.bytesCount)
+                CCryptoBoringSSL_MLDSA65_marshal_public_key(&cbb, self.pointer)
+                return Data(bytes: CCryptoBoringSSL_CBB_data(&cbb), count: CCryptoBoringSSL_CBB_len(&cbb))
             }
 
             /// Verify a signature for the given data.

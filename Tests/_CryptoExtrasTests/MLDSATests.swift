@@ -97,7 +97,7 @@ final class MLDSATests: XCTestCase {
         let seed: [UInt8] = (0..<32).map { _ in UInt8.random(in: 0...255) }
         let key = try MLDSA.PrivateKey(seed: seed)
         let publicKey = key.publicKey
-        try encodedPublicKey.replaceSubrange(0..<MLDSA.PublicKey.bytesCount, with: publicKey.rawRepresentation)
+        encodedPublicKey.replaceSubrange(0..<MLDSA.PublicKey.bytesCount, with: publicKey.rawRepresentation)
         
         // Public key is 1 byte too short.
         let shortPublicKey = Array(encodedPublicKey.prefix(MLDSA.PublicKey.bytesCount - 1))
@@ -117,7 +117,7 @@ final class MLDSATests: XCTestCase {
             let publicKey = try MLDSA.PublicKey(rawRepresentation: Data(hexString: testVector.pub))
             
             let expectedkey = try MLDSA.PrivateKey(seed: seed).publicKey
-            try XCTAssertEqual(publicKey.rawRepresentation, expectedkey.rawRepresentation)
+            XCTAssertEqual(publicKey.rawRepresentation, expectedkey.rawRepresentation)
         }
     }
 
