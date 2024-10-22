@@ -155,7 +155,7 @@ extension MLDSA {
                 let output = try Array<UInt8>(unsafeUninitializedCapacity: Signature.bytesCount) { bufferPtr, length in
                     let bytes: ContiguousBytes = data.regions.count == 1 ? data.regions.first! : Array(data)
                     let result = bytes.withUnsafeBytes { dataPtr in
-                        context.map { Data($0) }.withUnsafeBytes { contextPtr in
+                        context.withUnsafeBytes { contextPtr in
                             CCryptoBoringSSL_MLDSA65_sign(
                                 bufferPtr.baseAddress,
                                 self.pointer,
@@ -271,7 +271,7 @@ extension MLDSA {
                 signature.withUnsafeBytes { signaturePtr in
                     let bytes: ContiguousBytes = data.regions.count == 1 ? data.regions.first! : Array(data)
                     let rc: CInt = bytes.withUnsafeBytes { dataPtr in
-                        context.map { Data($0) }.withUnsafeBytes { contextPtr in
+                        context.withUnsafeBytes { contextPtr in
                             CCryptoBoringSSL_MLDSA65_verify(
                                 self.pointer,
                                 signaturePtr.baseAddress,

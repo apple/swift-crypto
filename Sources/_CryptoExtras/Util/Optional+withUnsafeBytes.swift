@@ -14,10 +14,11 @@
 
 import Foundation
 
-extension Optional where Wrapped == ContiguousBytes {
+extension Optional where Wrapped: DataProtocol {
     func withUnsafeBytes<ReturnValue>(_ body: (UnsafeRawBufferPointer) throws -> ReturnValue) rethrows -> ReturnValue {
         if let self {
-            return try self.withUnsafeBytes { try body($0) }
+            let bytes: ContiguousBytes = self.regions.count == 1 ? self.regions.first! : Array(self)
+            return try bytes.withUnsafeBytes { try body($0) }
         } else {
             return try body(UnsafeRawBufferPointer(start: nil, count: 0))
         }
