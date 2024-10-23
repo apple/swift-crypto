@@ -51,6 +51,14 @@ final class MLDSATests: XCTestCase {
         XCTAssertTrue(key.publicKey.isValidSignature(roundTripped, for: data))
     }
 
+    func testSeedRoundTripping() throws {
+        let key = try MLDSA.PrivateKey()
+        let seed = key.seed
+        let roundTripped = try MLDSA.PrivateKey(seed: seed)
+        XCTAssertEqual(seed, roundTripped.seed)
+        XCTAssertEqual(key.publicKey.rawRepresentation, roundTripped.publicKey.rawRepresentation)
+    }
+
     func testBitFlips() throws {
         throw XCTSkip("This test is very slow, so it is disabled by default.")
 
