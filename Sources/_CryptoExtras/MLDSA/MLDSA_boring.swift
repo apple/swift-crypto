@@ -100,10 +100,6 @@ extension MLDSA {
             /// 
             /// - Throws: `CryptoKitError.incorrectKeySize` if the seed is not at least 32 bytes long.
             init(seed: some DataProtocol) throws {
-                guard seed.count >= MLDSA.seedSizeInBytes else {
-                    throw CryptoKitError.incorrectKeySize
-                }
-
                 self.pointer = UnsafeMutablePointer<MLDSA65_private_key>.allocate(capacity: 1)
                 self.seedPointer = UnsafeMutablePointer<UInt8>.allocate(capacity: MLDSA.seedSizeInBytes)
 
@@ -243,6 +239,7 @@ extension MLDSA {
                 var cbb = CBB()
                 // The following BoringSSL functions can only fail on allocation failure, which we define as impossible.
                 CCryptoBoringSSL_CBB_init(&cbb, MLDSA.PublicKey.Backing.bytesCount)
+                defer { CCryptoBoringSSL_CBB_cleanup(&cbb) }
                 CCryptoBoringSSL_MLDSA65_marshal_public_key(&cbb, self.pointer)
                 return Data(bytes: CCryptoBoringSSL_CBB_data(&cbb), count: CCryptoBoringSSL_CBB_len(&cbb))
             }
