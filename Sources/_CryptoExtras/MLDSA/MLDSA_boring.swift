@@ -93,13 +93,14 @@ extension MLDSA {
 
             /// Initialize a ML-DSA-65 private key from a seed.
             /// 
-            /// The seed must be at least 32 bytes long.
-            /// Any additional bytes in the seed are ignored.
-            /// 
             /// - Parameter seed: The seed to use to generate the private key.
             /// 
-            /// - Throws: `CryptoKitError.incorrectKeySize` if the seed is not at least 32 bytes long.
+            /// - Throws: `CryptoKitError.incorrectKeySize` if the seed is not 32 bytes long.
             init(seed: some DataProtocol) throws {
+                guard seed.count == MLDSA.seedSizeInBytes else {
+                    throw CryptoKitError.incorrectKeySize
+                }
+
                 self.pointer = UnsafeMutablePointer<MLDSA65_private_key>.allocate(capacity: 1)
                 self.seedPointer = UnsafeMutablePointer<UInt8>.allocate(capacity: MLDSA.seedSizeInBytes)
 

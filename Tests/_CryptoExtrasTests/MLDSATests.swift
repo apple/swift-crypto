@@ -18,8 +18,7 @@ import XCTest
 final class MLDSATests: XCTestCase {
     func testMLDSASigning() throws {
         try testMLDSASigning(MLDSA.PrivateKey())
-        // The seed provided here is 64 bytes long, but the MLDSA implementation only uses the first 32 bytes.
-        let seed: [UInt8] = (0..<64).map { _ in UInt8.random(in: 0...255) }
+        let seed: [UInt8] = (0..<32).map { _ in UInt8.random(in: 0...255) }
         try testMLDSASigning(MLDSA.PrivateKey(seed: seed))
     }
 
