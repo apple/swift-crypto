@@ -25,6 +25,20 @@ import Foundation
 import Android
 #endif
 
+#if os(Windows)
+import WinSDK
+
+private func getPageSize() -> Int {
+    var info = SYSTEM_INFO()
+    GetSystemInfo(&info)
+    return Int(info.dwPageSize)
+}
+#else
+private func getPageSize() -> Int {
+    return Int(sysconf(Int32(_SC_PAGESIZE)))
+}
+#endif
+
 internal struct BoringSSLScrypt {
     /// Derives a secure key using the provided passphrase and salt.
     ///
@@ -39,9 +53,11 @@ internal struct BoringSSLScrypt {
     static func deriveKey<Passphrase: DataProtocol, Salt: DataProtocol>(from password: Passphrase, salt: Salt, outputByteCount: Int, rounds: Int, blockSize: Int, parallelism: Int, maxMemory: Int? = nil) throws -> SymmetricKey {
         // This should be SecureBytes, but we can't use that here.
         var derivedKeyData = Data(count: outputByteCount)
+
         
-        // This computes the maximum amount of memory that will be used by the scrypt algorithm with an additional memory page to spare. This value will be used by the BoringSSL as the memory limit for the algorithm. An additional memory page is added to the computed value (using POSIX specification) to ensure that the memory limit is not too tight.
-        let maxMemory = maxMemory ?? (128 * rounds * blockSize * parallelism + Int(sysconf(Int32(_SC_PAGESIZE))))
+        // This computes the maximum amount of memory that will be used by the scrypt algorithm with an additional memory page to spare. This value will be used by the BoringSSL as the memory limit for the algorithm. 
+        // An additional memory page is added to the computed value (using POSIX specification) to ensure that the memory limit is not too tight.
+        let maxMemory = maxMemory ?? (128 * rounds * blockSize * parallelism + getPageSize())
         
         let result = derivedKeyData.withUnsafeMutableBytes { derivedKeyBytes -> Int32 in
             let saltBytes: ContiguousBytes = salt.regions.count == 1 ? salt.regions.first! : Array(salt)
