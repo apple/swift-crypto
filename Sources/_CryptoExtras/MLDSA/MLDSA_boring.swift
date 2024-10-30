@@ -17,7 +17,7 @@ import Foundation
 
 @_implementationOnly import CCryptoBoringSSL
 
-/// A module lattice-based digital signature algorithm that provides security against quantum computing attacks.
+/// A module-lattice-based digital signature algorithm that provides security against quantum computing attacks.
 public enum MLDSA {}
 
 extension MLDSA {
@@ -37,7 +37,7 @@ extension MLDSA {
         /// 
         /// - Parameter seed: The seed to use to generate the private key.
         /// 
-        /// - Throws: `CryptoKitError.incorrectKeySize` if the seed is not at least 32 bytes long.
+        /// - Throws: `CryptoKitError.incorrectKeySize` if the seed is not 32 bytes long.
         public init(seed: some DataProtocol) throws {
             self.backing = try Backing(seed: seed)
         }
@@ -72,21 +72,20 @@ extension MLDSA {
 
             /// Initialize a ML-DSA-65 private key from a random seed.
             init() throws {
-                (self.key, self.seed) = try withUnsafeTemporaryAllocation(of: MLDSA65_private_key.self, capacity: 1) { privateKeyPtr in
-                    try withUnsafeTemporaryAllocation(of: UInt8.self, capacity: MLDSA.seedSizeInBytes) { seedPtr in
-                        try withUnsafeTemporaryAllocation(of: UInt8.self, capacity: MLDSA.PublicKey.Backing.bytesCount) { publicKeyPtr in
-                            guard CCryptoBoringSSL_MLDSA65_generate_key(
-                                publicKeyPtr.baseAddress,
-                                seedPtr.baseAddress,
-                                privateKeyPtr.baseAddress
-                            ) == 1 else {
-                                throw CryptoKitError.internalBoringSSLError()
-                            }
+                self.key = .init()
+                self.seed = Data() // We have to initialize all members before `self` is captured by the closure
 
-                            let key = privateKeyPtr.baseAddress!.pointee
-                            let seed = Data(bytes: seedPtr.baseAddress!, count: MLDSA.seedSizeInBytes)
-                            return (key, seed)
+                self.seed = try withUnsafeTemporaryAllocation(of: UInt8.self, capacity: MLDSA.seedSizeInBytes) { seedPtr in
+                    try withUnsafeTemporaryAllocation(of: UInt8.self, capacity: MLDSA.PublicKey.Backing.bytesCount) { publicKeyPtr in
+                        guard CCryptoBoringSSL_MLDSA65_generate_key(
+                            publicKeyPtr.baseAddress,
+                            seedPtr.baseAddress,
+                            &self.key
+                        ) == 1 else {
+                            throw CryptoKitError.internalBoringSSLError()
                         }
+
+                        return Data(bytes: seedPtr.baseAddress!, count: MLDSA.seedSizeInBytes)
                     }
                 }
             }
@@ -101,18 +100,16 @@ extension MLDSA {
                     throw CryptoKitError.incorrectKeySize
                 }
 
-                self.key = try withUnsafeTemporaryAllocation(of: MLDSA65_private_key.self, capacity: 1) { privateKeyPtr in
-                    guard CCryptoBoringSSL_MLDSA65_private_key_from_seed(
-                        privateKeyPtr.baseAddress,
-                        Array(seed.prefix(MLDSA.seedSizeInBytes)),
-                        MLDSA.seedSizeInBytes
-                    ) == 1 else {
-                        throw CryptoKitError.internalBoringSSLError()
-                    }
-
-                    return privateKeyPtr.baseAddress!.pointee
-                }
+                self.key = .init()
                 self.seed = Data(seed)
+
+                guard CCryptoBoringSSL_MLDSA65_private_key_from_seed(
+                    &self.key,
+                    Array(seed.prefix(MLDSA.seedSizeInBytes)),
+                    MLDSA.seedSizeInBytes
+                ) == 1 else {
+                    throw CryptoKitError.internalBoringSSLError()
+                }
             }
 
             /// The public key associated with this private key.
@@ -200,10 +197,8 @@ extension MLDSA {
             var key: MLDSA65_public_key
 
             init(privateKeyBacking: PrivateKey.Backing) {
-                self.key = withUnsafeTemporaryAllocation(of: MLDSA65_public_key.self, capacity: 1) { publicKeyPtr in
-                    CCryptoBoringSSL_MLDSA65_public_from_private(publicKeyPtr.baseAddress, &privateKeyBacking.key)
-                    return publicKeyPtr.baseAddress!.pointee
-                }
+                self.key = .init()
+                CCryptoBoringSSL_MLDSA65_public_from_private(&self.key, &privateKeyBacking.key)
             }
 
             /// Initialize a ML-DSA-65 public key from a raw representation.
@@ -216,16 +211,14 @@ extension MLDSA {
                     throw CryptoKitError.incorrectKeySize
                 }
 
+                self.key = .init()
+
                 let bytes: ContiguousBytes = rawRepresentation.regions.count == 1 ? rawRepresentation.regions.first! : Array(rawRepresentation)
-                self.key = try bytes.withUnsafeBytes { rawBuffer in
+                try bytes.withUnsafeBytes { rawBuffer in
                     try rawBuffer.withMemoryRebound(to: UInt8.self) { buffer in
                         var cbs = CBS(data: buffer.baseAddress, len: buffer.count)
-                        return try withUnsafeTemporaryAllocation(of: MLDSA65_public_key.self, capacity: 1) { publicKeyPtr in
-                            guard CCryptoBoringSSL_MLDSA65_parse_public_key(publicKeyPtr.baseAddress, &cbs) == 1 else {
-                                throw CryptoKitError.internalBoringSSLError()
-                            }
-                            
-                            return publicKeyPtr.baseAddress!.pointee
+                        guard CCryptoBoringSSL_MLDSA65_parse_public_key(&self.key, &cbs) == 1 else {
+                            throw CryptoKitError.internalBoringSSLError()
                         }
                     }
                 }
