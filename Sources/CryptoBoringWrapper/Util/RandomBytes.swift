@@ -21,9 +21,6 @@ extension UnsafeMutableRawBufferPointer {
 
         #if canImport(Darwin) || os(Linux) || os(Android) || os(Windows)
         var rng = SystemRandomNumberGenerator()
-        #else
-        fatalError("No secure random number generator on this platform.")
-        #endif
         precondition(count <= self.count)
 
         // We store bytes 64-bits at a time until we can't anymore.
@@ -41,6 +38,9 @@ extension UnsafeMutableRawBufferPointer {
             remainingWord >>= 8
             targetPtr = UnsafeMutableRawBufferPointer(rebasing: targetPtr[1...])
         }
+        #else
+        fatalError("No secure random number generator on this platform.")
+        #endif
     }
 }
 
