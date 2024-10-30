@@ -58,9 +58,8 @@ final class MLDSATests: XCTestCase {
         XCTAssertEqual(key.publicKey.rawRepresentation, roundTripped.publicKey.rawRepresentation)
     }
 
-    func testBitFlips() throws {
-        throw XCTSkip("This test is very slow, so it is disabled by default.")
-
+    // This test is very slow, so it is disabled by default.
+    func _testBitFlips() throws {
         let message = "Hello, world!".data(using: .utf8)!
         let key = try MLDSA.PrivateKey()
         let publicKey = key.publicKey
