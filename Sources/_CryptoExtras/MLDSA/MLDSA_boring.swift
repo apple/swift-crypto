@@ -32,9 +32,6 @@ extension MLDSA {
 
         /// Initialize a ML-DSA-65 private key from a seed.
         /// 
-        /// The seed must be at least 32 bytes long.
-        /// Any additional bytes in the seed are ignored.
-        /// 
         /// - Parameter seed: The seed to use to generate the private key.
         /// 
         /// - Throws: `CryptoKitError.incorrectKeySize` if the seed is not 32 bytes long.
