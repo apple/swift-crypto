@@ -21,6 +21,7 @@ typealias HashToCurveImpl = CoreCryptoHashToCurve
 #else
 typealias SupportedCurveDetailsImpl = OpenSSLSupportedNISTCurve
 typealias GroupImpl = OpenSSLGroup
+@available(macOS 10.15, iOS 13.2, tvOS 13.2, watchOS 6.1, *)
 typealias HashToCurveImpl = OpenSSLHashToCurve
 #endif
 

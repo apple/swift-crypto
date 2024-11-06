@@ -14,6 +14,7 @@
 import Foundation
 import Crypto
 
+@available(macOS 10.15, iOS 13.2, tvOS 13.2, watchOS 6.1, *)
 extension OPRF {
     struct VerifiableServer<H2G: HashToGroup> {
         typealias G = H2G.G

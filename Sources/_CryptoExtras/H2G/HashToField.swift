@@ -26,6 +26,7 @@ enum Hash2FieldErrors: Error {
 }
 
 /// HashToField hashes a byte string msg of arbitrary length into one or more elements of a finite field
+@available(macOS 10.15, iOS 13.2, tvOS 13.2, watchOS 6.1, *)
 struct HashToField<C: SupportedCurveDetailsImpl> {
     static func expandMessageXMD(_ msg: Data, DST: Data, outputByteCount L: Int) throws -> Data {
         typealias H = C.H

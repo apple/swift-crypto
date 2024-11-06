@@ -239,6 +239,7 @@ struct OpenSSLGroup<C: OpenSSLSupportedNISTCurve>: Group {
     }
 }
 
+@available(macOS 10.15, iOS 13.2, tvOS 13.2, watchOS 6.1, *)
 struct OpenSSLHashToCurve<C: OpenSSLSupportedNISTCurve>: HashToGroup {
     typealias H = C.H
     typealias GE = OpenSSLCurvePoint<C>

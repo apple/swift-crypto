@@ -32,6 +32,7 @@ extension OPRFSuite {
     }
 }
 
+@available(macOS 13.0, iOS 16.0, tvOS 16.0, watchOS 9.0, *)
 final class VOPRFAPITests: XCTestCase {
     func testVectors() throws {
         try testVectorsVOPRF(suite: .P384_SHA384_VORPF)

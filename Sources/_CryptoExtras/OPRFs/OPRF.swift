@@ -16,8 +16,10 @@ import Crypto
 
 /// (Verifiable Partly-)Oblivious Pseudorandom Functions
 /// https://cfrg.github.io/draft-irtf-cfrg-voprf/draft-irtf-cfrg-voprf.html
+@available(macOS 10.15, iOS 13.2, tvOS 13.2, watchOS 6.1, *)
 enum OPRF {}
 
+@available(macOS 10.15, iOS 13.2, tvOS 13.2, watchOS 6.1, *)
 extension OPRF {
     enum Errors: Error {
         case invalidProof
@@ -33,6 +35,7 @@ protocol OPRFGroupElement: GroupElement {
     var oprfRepresentation: Data { get }
 }
 
+@available(macOS 10.15, iOS 13.2, tvOS 13.2, watchOS 6.1, *)
 extension OPRF {
     static func oprfVersion(v8CompatibilityMode: Bool) -> String {
         if v8CompatibilityMode {
