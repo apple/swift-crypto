@@ -114,6 +114,7 @@ let package = Package(
                  */
                 .define("OPENSSL_NO_THREADS_CORRUPT_MEMORY_AND_LEAK_SECRETS_IF_THREADED", .when(platforms: [Platform.wasi])),
                 .define("OPENSSL_NO_ASM", .when(platforms: [Platform.wasi])),
+                .unsafeFlags(["-fPIC"], .when(platforms: [Platform.android])),
             ]
         ),
         .target(
@@ -122,7 +123,10 @@ let package = Package(
             exclude: privacyManifestExclude + [
                 "CMakeLists.txt"
             ],
-            resources: privacyManifestResource
+            resources: privacyManifestResource,
+            cSettings: [
+                .unsafeFlags(["-fPIC"], .when(platforms: [Platform.android]))
+            ]
         ),
         .target(
             name: "Crypto",
