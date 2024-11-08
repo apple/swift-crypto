@@ -100,11 +100,13 @@ extension MLDSA {
                 self.key = .init()
                 self.seed = Data(seed)
 
-                guard CCryptoBoringSSL_MLDSA65_private_key_from_seed(
-                    &self.key,
-                    Array(seed.prefix(MLDSA.seedSizeInBytes)),
-                    MLDSA.seedSizeInBytes
-                ) == 1 else {
+                guard self.seed.withUnsafeBytes({ seedPtr in
+                    CCryptoBoringSSL_MLDSA65_private_key_from_seed(
+                        &self.key,
+                        seedPtr.baseAddress,
+                        MLDSA.seedSizeInBytes
+                    )
+                }) == 1 else {
                     throw CryptoKitError.internalBoringSSLError()
                 }
             }
