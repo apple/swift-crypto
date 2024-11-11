@@ -31,19 +31,11 @@ if ProcessInfo.processInfo.environment["SWIFT_OPENAPI_STRICT_CONCURRENCY"].flatM
 
 let package = Package(
     name: "swift-openapi-urlsession",
-    platforms: [
-        .macOS(.v10_15), .macCatalyst(.v13), .iOS(.v13), .tvOS(.v13), .watchOS(.v6), .visionOS(.v1)
-    ],
-    products: [
-        .library(
-            name: "OpenAPIURLSession",
-            targets: ["OpenAPIURLSession"]
-        ),
-    ],
+    platforms: [.macOS(.v10_15), .macCatalyst(.v13), .iOS(.v13), .tvOS(.v13), .watchOS(.v6), .visionOS(.v1)],
+    products: [.library(name: "OpenAPIURLSession", targets: ["OpenAPIURLSession"])],
     dependencies: [
         .package(url: "https://github.com/apple/swift-openapi-runtime", from: "1.0.0"),
         .package(url: "https://github.com/apple/swift-http-types", from: "1.0.0"),
-        .package(url: "https://github.com/apple/swift-docc-plugin", from: "1.0.0"),
         .package(url: "https://github.com/apple/swift-collections", from: "1.0.0"),
     ],
     targets: [
@@ -52,22 +44,17 @@ let package = Package(
             dependencies: [
                 .product(name: "DequeModule", package: "swift-collections"),
                 .product(name: "OpenAPIRuntime", package: "swift-openapi-runtime"),
-                .product(name: "HTTPTypes", package: "swift-http-types")
+                .product(name: "HTTPTypes", package: "swift-http-types"),
             ],
             swiftSettings: swiftSettings
         ),
         .testTarget(
             name: "OpenAPIURLSessionTests",
-            dependencies: [
-                "OpenAPIURLSession",
-                .product(name: "NIOTestUtils", package: "swift-nio"),
-            ],
+            dependencies: ["OpenAPIURLSession", .product(name: "NIOTestUtils", package: "swift-nio")],
             swiftSettings: swiftSettings
         ),
     ]
 )
 
 // Test-only dependencies.
-package.dependencies += [
-    .package(url: "https://github.com/apple/swift-nio", from: "2.62.0")
-]
+package.dependencies += [.package(url: "https://github.com/apple/swift-nio", from: "2.62.0")]

@@ -1,5 +1,5 @@
 version: 1
 builder:
   configs:
-  - documentation_targets:
-    - OpenAPIURLSession
+    - documentation_targets:
+        - OpenAPIURLSession
