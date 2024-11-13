@@ -85,7 +85,6 @@ extension Curve25519.Signing {
         @usableFromInline
         var keyBytes: [UInt8]
 
-        @inlinable
         init<D: ContiguousBytes>(rawRepresentation: D) throws {
             self.keyBytes = try rawRepresentation.withUnsafeBytes { keyBytesPtr in
                 guard keyBytesPtr.count == 32 else {
