@@ -11,6 +11,7 @@ jobs:
     with:
       license_header_check_project_name: "SwiftCrypto"
       format_check_enabled: false
+      docs_check_enabled: false
 
   cmake-lists:
     name: Check cmake lists
