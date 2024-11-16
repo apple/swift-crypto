@@ -12,12 +12,10 @@
 //
 //===----------------------------------------------------------------------===//
 
-import SwiftASN1
 import Crypto
 import Foundation
 
 @_implementationOnly import CCryptoBoringSSL
-@_implementationOnly import CCryptoBoringSSLShims
 
 /// A stateless hash-based digital signature algorithm that provides security against quantum computing attacks.
 public enum SLHDSA {}
@@ -36,7 +34,7 @@ extension SLHDSA {
         /// 
         /// - Parameter rawRepresentation: The private key bytes.
         ///
-        /// - Throws: `CryptoKitError.incorrectKeySize` if the key is not the correct size.
+        /// - Throws: `CryptoKitError.incorrectKeySize` if the raw representation is not the correct size.
         public init(rawRepresentation: some DataProtocol) throws {
             self.backing = try Backing(rawRepresentation: rawRepresentation)
         }
@@ -82,7 +80,7 @@ extension SLHDSA {
             /// 
             /// - Parameter rawRepresentation: The private key bytes.
             ///
-            /// - Throws: `CryptoKitError.incorrectKeySize` if the key is not the correct size.
+            /// - Throws: `CryptoKitError.incorrectKeySize` if the raw representation is not the correct size.
             init(rawRepresentation: some DataProtocol) throws {
                 guard rawRepresentation.count == SLHDSA.PrivateKey.Backing.bytesCount else {
                     throw CryptoKitError.incorrectKeySize
@@ -90,7 +88,7 @@ extension SLHDSA {
 
                 self.pointer = UnsafeMutablePointer<UInt8>.allocate(capacity: SLHDSA.PrivateKey.Backing.bytesCount)
                 self.pointer.initialize(
-                    from: Array(rawRepresentation.prefix(SLHDSA.PrivateKey.Backing.bytesCount)),
+                    from: Array(rawRepresentation),
                     count: SLHDSA.PrivateKey.Backing.bytesCount
                 )
             }
@@ -165,7 +163,7 @@ extension SLHDSA {
         /// 
         /// - Parameter rawRepresentation: The public key bytes.
         /// 
-        /// - Throws: `CryptoKitError.incorrectKeySize` if the key is not the correct size.
+        /// - Throws: `CryptoKitError.incorrectKeySize` if the raw representation is not the correct size.
         public init(rawRepresentation: some DataProtocol) throws {
             self.backing = try Backing(rawRepresentation: rawRepresentation)
         }
@@ -204,7 +202,7 @@ extension SLHDSA {
             /// 
             /// - Parameter rawRepresentation: The public key bytes.
             /// 
-            /// - Throws: `CryptoKitError.incorrectKeySize` if the key is not the correct size.
+            /// - Throws: `CryptoKitError.incorrectKeySize` if the raw representation is not the correct size.
             init(rawRepresentation: some DataProtocol) throws {
                 guard rawRepresentation.count == SLHDSA.PublicKey.bytesCount else {
                     throw CryptoKitError.incorrectKeySize
@@ -212,7 +210,7 @@ extension SLHDSA {
 
                 self.pointer = UnsafeMutablePointer<UInt8>.allocate(capacity: SLHDSA.PublicKey.bytesCount)
                 self.pointer.initialize(
-                    from: Array(rawRepresentation.prefix(SLHDSA.PublicKey.bytesCount)),
+                    from: Array(rawRepresentation),
                     count: SLHDSA.PublicKey.bytesCount
                 )
             }
