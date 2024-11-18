@@ -7,7 +7,7 @@
 ## Licensed under Apache License v2.0
 ##
 ## See LICENSE.txt for license information
-## See CONTRIBUTORS.md for the list of SwiftCrypto project authors
+## See CONTRIBUTORS.txt for the list of SwiftCrypto project authors
 ##
 ## SPDX-License-Identifier: Apache-2.0
 ##
@@ -101,9 +101,9 @@ function mangle_symbols {
         )
 
         # Now cross compile for our targets.
-        docker run -t -i --rm --privileged -v$(pwd):/src -w/src --platform linux/arm64 swift:5.8-jammy \
+        docker run -t -i --rm --privileged -v"$(pwd)":/src -w/src --platform linux/arm64 swift:5.9-jammy \
             swift build --product CCryptoBoringSSL
-        docker run -t -i --rm --privileged -v$(pwd):/src -w/src --platform linux/amd64 swift:5.8-jammy \
+        docker run -t -i --rm --privileged -v"$(pwd)":/src -w/src --platform linux/amd64 swift:5.9-jammy \
             swift build --product CCryptoBoringSSL
 
         # Now we need to generate symbol mangles for Linux. We can do this in
@@ -133,6 +133,7 @@ function mangle_symbols {
     echo "ADDING symbol mangling"
     perl -pi -e '$_ .= qq(\n#define BORINGSSL_PREFIX CCryptoBoringSSL\n) if /#define OPENSSL_HEADER_BASE_H/' "$DSTROOT/include/openssl/base.h"
 
+    # shellcheck disable=SC2044
     for assembly_file in $(find "$DSTROOT" -name "*.S")
     do
         $sed -i '1 i #define BORINGSSL_PREFIX CCryptoBoringSSL' "$assembly_file"
@@ -145,6 +146,7 @@ case "$(uname -s)" in
         sed=gsed
         ;;
     *)
+        # shellcheck disable=SC2209
         sed=sed
         ;;
 esac
@@ -218,7 +220,7 @@ echo "COPYING boringssl"
 for pattern in "${PATTERNS[@]}"
 do
   for i in $SRCROOT/$pattern; do
-    path=${i#$SRCROOT}
+    path=${i#"$SRCROOT"}
     dest="$DSTROOT$path"
     dest_dir=$(dirname "$dest")
     mkdir -p "$dest_dir"
@@ -239,15 +241,16 @@ echo "REMOVING libssl"
     rm -rf "ssl"
 )
 
+echo "DISABLING assembly on x86 Windows"
+(
+    # x86 Windows builds require nasm for acceleration. SwiftPM can't do that right now,
+    # so we disable the assembly.
+    cd "$DSTROOT"
+    gsed -i "/#define OPENSSL_HEADER_BASE_H/a#if defined(_WIN32) && (defined(__x86_64) || defined(_M_AMD64) || defined(_M_X64) || defined(__x86) || defined(__i386) || defined(__i386__) || defined(_M_IX86))\n#define OPENSSL_NO_ASM\n#endif" "include/openssl/base.h"
+
+)
+
 mangle_symbols
-
-# Removing ASM on 32 bit Apple platforms
-echo "REMOVING assembly on 32-bit Apple platforms"
-gsed -i "/#define OPENSSL_HEADER_BASE_H/a#if defined(__APPLE__) && defined(__i386__)\n#define OPENSSL_NO_ASM\n#endif" "$DSTROOT/include/openssl/base.h"
-
-# Remove assembly on non-x86 Windows
-echo "REMOVING assembly on non-x86 Windows"
-gsed -i "/#define OPENSSL_HEADER_BASE_H/a#if defined(_WIN32) && !(defined(_M_IX86) || defined(__i386__))\n#define OPENSSL_NO_ASM\n#endif" "$DSTROOT/include/openssl/base.h"
 
 echo "RENAMING header files"
 (
@@ -263,6 +266,7 @@ echo "RENAMING header files"
     rmdir "include/openssl"
 
     # Now change the imports from "<openssl/X> to "<CCryptoBoringSSL_X>", apply the same prefix to the 'boringssl_prefix_symbols' headers.
+    # shellcheck disable=SC2038
     find . -name "*.[ch]" -or -name "*.cc" -or -name "*.S" -or -name "*.c.inc" | xargs $sed -i -e 's+include <openssl/\([[:alpha:]/]*/\)\{0,1\}+include <\1CCryptoBoringSSL_+' -e 's+include <boringssl_prefix_symbols+include <CCryptoBoringSSL_boringssl_prefix_symbols+' -e 's+include "openssl/\([[:alpha:]/]*/\)\{0,1\}+include "\1CCryptoBoringSSL_+'
 
     # Okay now we need to rename the headers adding the prefix "CCryptoBoringSSL_".
@@ -274,6 +278,7 @@ echo "RENAMING header files"
     done 3< <(find . -name "*.h" -print0 | sort -rz)
 
     # Finally, make sure we refer to them by their prefixed names, and change any includes from angle brackets to quotation marks.
+    # shellcheck disable=SC2038
     find . -name "*.h" | xargs $sed -i -e 's+include "\([[:alpha:]/]*/\)\{0,1\}+include "\1CCryptoBoringSSL_+' -e 's+include <\([[:alpha:]/]*/\)\{0,1\}CCryptoBoringSSL_\(.*\)>+include "\1CCryptoBoringSSL_\2"+'
     popd
 )
@@ -282,6 +287,7 @@ echo "RENAMING header files"
 echo "PROTECTING against executable stacks"
 (
     cd "$DSTROOT"
+    # shellcheck disable=SC2038
     find . -name "*.S" | xargs $sed -i '$ a #if defined(__linux__) && defined(__ELF__)\n.section .note.GNU-stack,"",%progbits\n#endif\n'
 )
 
@@ -300,7 +306,7 @@ cat << EOF > "$DSTROOT/include/CCryptoBoringSSL.h"
 // Licensed under Apache License v2.0
 //
 // See LICENSE.txt for license information
-// See CONTRIBUTORS.md for the list of SwiftCrypto project authors
+// See CONTRIBUTORS.txt for the list of SwiftCrypto project authors
 //
 // SPDX-License-Identifier: Apache-2.0
 //

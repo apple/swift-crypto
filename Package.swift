@@ -7,7 +7,7 @@
 // Licensed under Apache License v2.0
 //
 // See LICENSE.txt for license information
-// See CONTRIBUTORS.md for the list of SwiftCrypto project authors
+// See CONTRIBUTORS.txt for the list of SwiftCrypto project authors
 //
 // SPDX-License-Identifier: Apache-2.0
 //
@@ -20,7 +20,7 @@
 // Sources/CCryptoBoringSSL directory. The source repository is at
 // https://boringssl.googlesource.com/boringssl.
 //
-// BoringSSL Commit: 6a2ccdcc2ed1d37a43a2183658d2ae61fd5ce208
+// BoringSSL Commit: 2587c4974dbe9872451151c8e975f58567a1ce0d
 
 import PackageDescription
 
@@ -135,7 +135,7 @@ let package = Package(
                 "Signatures/ECDSA.swift.gyb",
             ],
             resources: privacyManifestResource,
-            swiftSettings: swiftSettings + [.define("MODULE_IS_CRYPTO")]
+            swiftSettings: swiftSettings
         ),
         .target(
             name: "_CryptoExtras",
@@ -173,6 +173,7 @@ let package = Package(
             swiftSettings: swiftSettings
         ),
         .testTarget(name: "_CryptoExtrasTests", dependencies: ["_CryptoExtras"]),
+        .testTarget(name: "CryptoBoringWrapperTests", dependencies: ["CryptoBoringWrapper"]),
     ],
     cxxLanguageStandard: .cxx11
 )

@@ -52,14 +52,11 @@
 
 #ifndef OPENSSL_HEADER_BASE_H
 #define OPENSSL_HEADER_BASE_H
-#if defined(_WIN32) && !(defined(_M_IX86) || defined(__i386__))
-#define OPENSSL_NO_ASM
-#endif
-#if defined(__APPLE__) && defined(__i386__)
-#define OPENSSL_NO_ASM
-#endif
 
 #define BORINGSSL_PREFIX CCryptoBoringSSL
+#if defined(_WIN32) && (defined(__x86_64) || defined(_M_AMD64) || defined(_M_X64) || defined(__x86) || defined(__i386) || defined(__i386__) || defined(_M_IX86))
+#define OPENSSL_NO_ASM
+#endif
 
 
 // This file should be the first included by all BoringSSL headers.

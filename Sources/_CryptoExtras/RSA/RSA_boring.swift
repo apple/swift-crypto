@@ -6,7 +6,7 @@
 // Licensed under Apache License v2.0
 //
 // See LICENSE.txt for license information
-// See CONTRIBUTORS.md for the list of SwiftCrypto project authors
+// See CONTRIBUTORS.txt for the list of SwiftCrypto project authors
 //
 // SPDX-License-Identifier: Apache-2.0
 //
@@ -15,6 +15,7 @@ import Foundation
 import Crypto
 
 // NOTE: This file is unconditionally compiled because RSABSSA is implemented using BoringSSL on all platforms.
+import CryptoBoringWrapper
 @_implementationOnly import CCryptoBoringSSL
 @_implementationOnly import CCryptoBoringSSLShims
 
