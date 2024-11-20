@@ -21,6 +21,7 @@ add_library(_CryptoExtras
   "Key Derivation/PBKDF2/PBKDF2.swift"
   "Key Derivation/Scrypt/BoringSSL/Scrypt_boring.swift"
   "Key Derivation/Scrypt/Scrypt.swift"
+  "MLDSA/MLDSA_boring.swift"
   "RSA/RSA+BlindSigning.swift"
   "RSA/RSA.swift"
   "RSA/RSA_boring.swift"
@@ -29,6 +30,7 @@ add_library(_CryptoExtras
   "Util/CryptoKitErrors_boring.swift"
   "Util/DigestType.swift"
   "Util/Error.swift"
+  "Util/Optional+withUnsafeBytes.swift"
   "Util/PEMDocument.swift"
   "Util/SubjectPublicKeyInfo.swift")
 
