@@ -6,14 +6,12 @@
 // Licensed under Apache License v2.0
 //
 // See LICENSE.txt for license information
-// See CONTRIBUTORS.md for the list of SwiftCrypto project authors
+// See CONTRIBUTORS.txt for the list of SwiftCrypto project authors
 //
 // SPDX-License-Identifier: Apache-2.0
 //
 //===----------------------------------------------------------------------===//
-#if CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
-#else
-@testable import Crypto
+@testable import CryptoBoringWrapper
 import XCTest
 
 final class FiniteFieldArithmeticTests: XCTestCase {
@@ -115,7 +113,7 @@ final class FiniteFieldArithmeticTests: XCTestCase {
                 XCTAssertEqual(try ff.pow(secret: x, secret: p), expectedResult, message)
             } else {
                 XCTAssertThrowsError(try ff.pow(secret: x, p), message) { error in
-                    switch error as? CryptoKitError {
+                    switch error as? CryptoBoringWrapperError {
                     case .incorrectParameterSize: break // OK
                     default: XCTFail("Unexpected error: \(error)")
                     }
@@ -124,4 +122,3 @@ final class FiniteFieldArithmeticTests: XCTestCase {
         }
     }
 }
-#endif // CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API

@@ -6,7 +6,7 @@
 ## Licensed under Apache License v2.0
 ##
 ## See LICENSE.txt for license information
-## See CONTRIBUTORS.md for the list of SwiftCrypto project authors
+## See CONTRIBUTORS.txt for the list of SwiftCrypto project authors
 ##
 ## SPDX-License-Identifier: Apache-2.0
 ##
@@ -67,8 +67,6 @@ add_library(Crypto
   "Key Wrapping/AESWrap.swift"
   "Key Wrapping/BoringSSL/AESWrap_boring.swift"
   "Keys/EC/BoringSSL/Ed25519_boring.swift"
-  "Keys/EC/BoringSSL/EllipticCurvePoint_boring.swift"
-  "Keys/EC/BoringSSL/EllipticCurve_boring.swift"
   "Keys/EC/BoringSSL/NISTCurvesKeys_boring.swift"
   "Keys/EC/BoringSSL/X25519Keys_boring.swift"
   "Keys/EC/Curve25519.swift"
@@ -89,8 +87,6 @@ add_library(Crypto
   "Util/BoringSSL/CryptoKitErrors_boring.swift"
   "Util/BoringSSL/RNG_boring.swift"
   "Util/BoringSSL/SafeCompare_boring.swift"
-  "Util/BoringSSL/Shared/ArbitraryPrecisionInteger_boring.swift"
-  "Util/BoringSSL/Shared/FiniteFieldArithmeticContext_boring.swift"
   "Util/BoringSSL/Zeroization_boring.swift"
   "Util/PrettyBytes.swift"
   "Util/SafeCompare.swift"
@@ -115,6 +111,7 @@ target_link_libraries(Crypto PUBLIC
   CCryptoBoringSSL
   CCryptoBoringSSLShims
   CryptoBoringWrapper)
+target_compile_options(Crypto PRIVATE ${SWIFT_CRYPTO_COMPILE_OPTIONS})
 set_target_properties(Crypto PROPERTIES
   INTERFACE_INCLUDE_DIRECTORIES ${CMAKE_Swift_MODULE_DIRECTORY})
 

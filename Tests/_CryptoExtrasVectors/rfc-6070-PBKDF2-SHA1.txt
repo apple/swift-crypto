@@ -1,0 +1,77 @@
+# A.1.  Test Case 1
+# Basic test case with SHA-1
+
+COUNT = 1
+
+Hash = SHA-1
+P = 70617373776f7264
+S = 73616c74
+c = 1
+dkLen = 20
+
+DK = 0c60c80f961f0e71f3a9b524af6012062fe037a6 
+
+# A.2.  Test Case 2
+# Test with SHA-1 and larger rounds
+
+COUNT = 2
+
+Hash = SHA-1
+P = 70617373776f7264
+S = 73616c74
+c = 2
+dkLen = 20
+
+DK = ea6c014dc72d6f8ccd1ed92ace1d41f0d8de8957
+
+# A.3.  Test Case 3
+# Test with SHA-1 and even larger rounds
+
+COUNT = 3
+
+Hash = SHA-1
+P = 70617373776f7264
+S = 73616c74
+c = 4096
+dkLen = 20
+
+DK = 4b007901b765489abead49d926f721d065a429c1
+
+# A.5.  Test Case 5
+# Test with SHA-1 and huge rounds
+
+COUNT = 5
+
+Hash = SHA-1
+P = 70617373776f7264
+S = 73616c74
+c = 16777216
+dkLen = 20
+
+DK = eefe3d61cd4da4e4e9945b3d6ba2158c2634e984
+
+# A.6.  Test Case 6
+# Test with SHA-1 and longer inputs/outputs
+
+COUNT = 6
+
+Hash = SHA-1
+P = 70617373776f726450415353574f524470617373776f7264
+S = 73616c7453414c5473616c7453414c5473616c7453414c5473616c7453414c5473616c74
+c = 4096
+dkLen = 25
+
+DK = 3d2eec4fe41c849b80c8d83662c0e44a8b291a964cf2f07038
+
+# A.7.  Test Case 7
+# Test with SHA-1 and NUL characters
+
+COUNT = 7
+
+Hash = SHA-1
+P = 7061737300776f7264
+S = 7361006c74
+c = 4096
+dkLen = 16
+
+DK = 56fa6aa75548099dcc37d7f03425e0c3

@@ -6,7 +6,7 @@
 // Licensed under Apache License v2.0
 //
 // See LICENSE.txt for license information
-// See CONTRIBUTORS.md for the list of SwiftCrypto project authors
+// See CONTRIBUTORS.txt for the list of SwiftCrypto project authors
 //
 // SPDX-License-Identifier: Apache-2.0
 //
@@ -14,16 +14,13 @@
 
 extension UnsafeMutableRawBufferPointer {
     @inlinable
-    func initializeWithRandomBytes(count: Int) {
+    package func initializeWithRandomBytes(count: Int) {
         guard count > 0 else {
             return
         }
 
         #if canImport(Darwin) || os(Linux) || os(Android) || os(Windows)
         var rng = SystemRandomNumberGenerator()
-        #else
-        fatalError("No secure random number generator on this platform.")
-        #endif
         precondition(count <= self.count)
 
         // We store bytes 64-bits at a time until we can't anymore.
@@ -41,12 +38,15 @@ extension UnsafeMutableRawBufferPointer {
             remainingWord >>= 8
             targetPtr = UnsafeMutableRawBufferPointer(rebasing: targetPtr[1...])
         }
+        #else
+        fatalError("No secure random number generator on this platform.")
+        #endif
     }
 }
 
 extension SystemRandomNumberGenerator {
     @inlinable
-    static func randomBytes(count: Int) -> [UInt8] {
+    package static func randomBytes(count: Int) -> [UInt8] {
         Array(unsafeUninitializedCapacity: count) { buffer, initializedCount in
             UnsafeMutableRawBufferPointer(start: buffer.baseAddress, count: buffer.count).initializeWithRandomBytes(count: count)
             initializedCount = count

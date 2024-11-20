@@ -6,7 +6,7 @@
 // Licensed under Apache License v2.0
 //
 // See LICENSE.txt for license information
-// See CONTRIBUTORS.md for the list of SwiftCrypto project authors
+// See CONTRIBUTORS.txt for the list of SwiftCrypto project authors
 //
 // SPDX-License-Identifier: Apache-2.0
 //
@@ -15,13 +15,27 @@
 @_implementationOnly import CCryptoBoringSSL
 
 public enum CryptoBoringWrapperError: Error {
+    /// The key size is incorrect.
+    case incorrectKeySize
+    /// The parameter size is incorrect.
+    case incorrectParameterSize
+    /// The authentication tag or signature is incorrect.
+    case authenticationFailure
+    /// The underlying corecrypto library is unable to complete the requested
+    /// action.
     case underlyingCoreCryptoError(error: Int32)
+    /// The framework can't wrap the specified key.
+    case wrapFailure
+    /// The framework can't unwrap the specified key.
+    case unwrapFailure
+    /// The parameter is invalid.
+    case invalidParameter
 }
 
 extension CryptoBoringWrapperError {
     /// A helper function that packs the value of `ERR_get_error` into the internal error field.
     @usableFromInline
-    static func internalBoringSSLError() -> CryptoBoringWrapperError {
+    package static func internalBoringSSLError() -> CryptoBoringWrapperError {
         return .underlyingCoreCryptoError(error: Int32(bitPattern: CCryptoBoringSSL_ERR_get_error()))
     }
 }
