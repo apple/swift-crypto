@@ -73,12 +73,14 @@ extension BoringSSLEllipticCurveGroup {
     }
 
     @usableFromInline
-    package var generator: EllipticCurvePoint { get throws {
-        guard let generatorPtr = CCryptoBoringSSL_EC_GROUP_get0_generator(self._group) else {
-            throw CryptoBoringWrapperError.internalBoringSSLError()
+    package var generator: EllipticCurvePoint {
+        get throws {
+            guard let generatorPtr = CCryptoBoringSSL_EC_GROUP_get0_generator(self._group) else {
+                throw CryptoBoringWrapperError.internalBoringSSLError()
+            }
+            return try EllipticCurvePoint(copying: generatorPtr, on: self)
         }
-        return try EllipticCurvePoint(copying: generatorPtr, on: self)
-    }}
+    }
 
     /// An elliptic curve can be represented in a Weierstrass form: `y² = x³ + ax + b`. This
     /// property provides the values of a and b on the curve.
