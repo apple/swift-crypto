@@ -37,14 +37,23 @@ package final class EllipticCurvePoint {
     }
 
     @usableFromInline
-    package init(multiplying scalar: ArbitraryPrecisionInteger, on group: BoringSSLEllipticCurveGroup) throws {
-        self._basePoint = try scalar.withUnsafeBignumPointer { scalarPtr in
-            try group.withUnsafeGroupPointer { groupPtr in
-                guard
-                    let pointPtr = CCryptoBoringSSL_EC_POINT_new(groupPtr),
-                    CCryptoBoringSSL_EC_POINT_mul(groupPtr, pointPtr, scalarPtr, nil, nil, nil) == 1
-                else { throw CryptoBoringWrapperError.internalBoringSSLError() }
-                return pointPtr
+    package init(_pointAtInfinityOn group: BoringSSLEllipticCurveGroup) throws {
+        self._basePoint = try group.withUnsafeGroupPointer { groupPtr in
+            guard let pointPtr = CCryptoBoringSSL_EC_POINT_new(groupPtr) else {
+                throw CryptoBoringWrapperError.internalBoringSSLError()
+            }
+            return pointPtr
+        }
+    }
+
+    @usableFromInline
+    package convenience init(multiplying scalar: ArbitraryPrecisionInteger, on group: BoringSSLEllipticCurveGroup) throws {
+        try self.init(_pointAtInfinityOn: group)
+        try group.withUnsafeGroupPointer { groupPtr in
+            try scalar.withUnsafeBignumPointer { scalarPtr in
+                guard CCryptoBoringSSL_EC_POINT_mul(groupPtr, self._basePoint, scalarPtr, nil, nil, nil) == 1 else {
+                    throw CryptoBoringWrapperError.internalBoringSSLError()
+                }
             }
         }
     }
@@ -160,7 +169,7 @@ package final class EllipticCurvePoint {
     }
 
     @usableFromInline
-    package init<MessageBytes: ContiguousBytes, DSTBytes: ContiguousBytes>(hashing msg: MessageBytes, to group: BoringSSLEllipticCurveGroup, domainSeparationTag: DSTBytes) throws {
+    package convenience init<MessageBytes: ContiguousBytes, DSTBytes: ContiguousBytes>(hashing msg: MessageBytes, to group: BoringSSLEllipticCurveGroup, domainSeparationTag: DSTBytes) throws {
         let hashToCurveFunction = switch group.curveName {
         case .p256: CCryptoBoringSSLShims_EC_hash_to_curve_p256_xmd_sha256_sswu
         case .p384: CCryptoBoringSSLShims_EC_hash_to_curve_p384_xmd_sha384_sswu
@@ -168,21 +177,18 @@ package final class EllipticCurvePoint {
         case .none: throw CryptoBoringWrapperError.internalBoringSSLError()
         }
 
-       self._basePoint = try msg.withUnsafeBytes { msgPtr in
+        try self.init(_pointAtInfinityOn: group)
+        try msg.withUnsafeBytes { msgPtr in
             try group.withUnsafeGroupPointer { groupPtr in
                 try domainSeparationTag.withUnsafeBytes { dstPtr in
-                    guard
-                        let pointPtr = CCryptoBoringSSL_EC_POINT_new(groupPtr),
-                        hashToCurveFunction(
-                            groupPtr,
-                            pointPtr,
-                            dstPtr.baseAddress,
-                            dstPtr.count,
-                            msgPtr.baseAddress,
-                            msgPtr.count
-                        ) == 1
-                    else { throw CryptoBoringWrapperError.internalBoringSSLError() }
-                    return pointPtr
+                    guard hashToCurveFunction(
+                        groupPtr,
+                        self._basePoint,
+                        dstPtr.baseAddress,
+                        dstPtr.count,
+                        msgPtr.baseAddress,
+                        msgPtr.count
+                    ) == 1 else { throw CryptoBoringWrapperError.internalBoringSSLError() }
                 }
             }
         }
@@ -204,14 +210,8 @@ package final class EllipticCurvePoint {
     }
 
     @usableFromInline
-    package init<Bytes: ContiguousBytes>(x962Representation bytes: Bytes, on group: BoringSSLEllipticCurveGroup) throws {
-        self._basePoint = try group.withUnsafeGroupPointer { groupPtr in
-            guard let basePoint = CCryptoBoringSSL_EC_POINT_new(groupPtr) else {
-                throw CryptoBoringWrapperError.internalBoringSSLError()
-            }
-            return basePoint
-        }
-
+    package convenience init<Bytes: ContiguousBytes>(x962Representation bytes: Bytes, on group: BoringSSLEllipticCurveGroup) throws {
+        try self.init(_pointAtInfinityOn: group)
         guard group.withUnsafeGroupPointer({ groupPtr in
             bytes.withUnsafeBytes { dataPtr in
                 CCryptoBoringSSL_EC_POINT_oct2point(
