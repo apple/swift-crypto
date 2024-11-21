@@ -202,7 +202,11 @@ package final class EllipticCurvePoint {
                     switch CCryptoBoringSSL_EC_POINT_cmp(groupPtr, selfPtr, rhsPtr, nil) {
                     case 0: return true
                     case 1: return false
-                    default: fatalError("Unexpected error testing EC point equality")
+                    default:
+                        // EC_POINT_cmp returns an error when comparing points on different groups.
+                        // We treat that as not equal, so we'll just clear the error and return false.
+                        CCryptoBoringSSL_ERR_clear_error()
+                        return false
                     }
                 }
             }
