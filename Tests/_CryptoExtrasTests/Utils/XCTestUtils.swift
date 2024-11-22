@@ -32,3 +32,14 @@ func orFail<T>(file: StaticString = #file, line: UInt = #line, _ closure: () thr
         return try wrapper(closure, file: file, line: line)
     }
 }
+
+func XCTAssertThrowsError<T, E: Error & Equatable>(
+    _ expression: @autoclosure () throws -> T,
+    error expectedError: E,
+    _ message: @autoclosure () -> String = "",
+    file: StaticString = #file,
+    line: UInt = #line) {
+    XCTAssertThrowsError(try expression(), message(), file: file, line: line) { error in
+        XCTAssertEqual(error as? E, expectedError, message(), file: file, line: line)
+    }
+}

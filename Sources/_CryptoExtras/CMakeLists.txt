@@ -15,12 +15,21 @@
 add_library(_CryptoExtras
   "ChaCha20CTR/BoringSSL/ChaCha20CTR_boring.swift"
   "ChaCha20CTR/ChaCha20CTR.swift"
+  "ECToolbox/BoringSSL/ECToolbox_boring.swift"
+  "ECToolbox/ECToolbox.swift"
+  "H2G/HashToField.swift"
   "Key Derivation/KDF.swift"
   "Key Derivation/PBKDF2/BoringSSL/PBKDF2_boring.swift"
   "Key Derivation/PBKDF2/BoringSSL/PBKDF2_commoncrypto.swift"
   "Key Derivation/PBKDF2/PBKDF2.swift"
   "Key Derivation/Scrypt/BoringSSL/Scrypt_boring.swift"
   "Key Derivation/Scrypt/Scrypt.swift"
+  "OPRFs/OPRF.swift"
+  "OPRFs/OPRFClient.swift"
+  "OPRFs/OPRFServer.swift"
+  "OPRFs/VOPRF+API.swift"
+  "OPRFs/VOPRFClient.swift"
+  "OPRFs/VOPRFServer.swift"
   "RSA/RSA+BlindSigning.swift"
   "RSA/RSA.swift"
   "RSA/RSA_boring.swift"
@@ -30,8 +39,11 @@ add_library(_CryptoExtras
   "Util/CryptoKitErrors_boring.swift"
   "Util/DigestType.swift"
   "Util/Error.swift"
+  "Util/I2OSP.swift"
   "Util/PEMDocument.swift"
-  "Util/SubjectPublicKeyInfo.swift")
+  "Util/PrettyBytes.swift"
+  "Util/SubjectPublicKeyInfo.swift"
+  "ZKPs/DLEQ.swift")
 
 target_include_directories(_CryptoExtras PRIVATE
   $<TARGET_PROPERTY:CCryptoBoringSSL,INCLUDE_DIRECTORIES>
