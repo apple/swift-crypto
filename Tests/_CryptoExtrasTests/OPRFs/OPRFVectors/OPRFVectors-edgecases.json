@@ -1,0 +1,248 @@
+[
+  {
+    "groupDST": "48617368546f47726f75702d4f50524656312d022d503235362d534841323536",
+    "hash": "SHA256",
+    "identifier": "P256-SHA256",
+    "keyInfo": "74657374206b6579",
+    "mode": 1,
+    "pkSm": "030d7ff077fddeec965db14b794f0cc1ba9019b04a2f4fcc1fa525dedf72e2a3e3",
+    "seed": "a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3",
+    "skSm": "ca5d94c8807817669a51b196c34c1b7f8442fde4334a7121ae4736364312fca6",
+    "vectors": [
+      {
+        "Batch": 1,
+        "Blind": "3338fa65ec36e0290022b48eb562889d89dbfa691d1cde91517fa222ed7ad364",
+        "BlindedElement": "02dd05901038bb31a6fae01828fd8d0e49e35a486b5c5d4b4994013648c01277da",
+        "EvaluationElement": "0209f33cab60cf8fe69239b0afbcfcd261af4c1c5632624f2e9ba29b90ae83e4a2",
+        "Input": "00",
+        "Output": "0412e8f78b02c415ab3a288e228978376f99927767ff37c5718d420010a645a1",
+        "Proof": {
+          "proof": "3338fa65ec36e0290022b48eb562889d89dbfa691d1cde91517fa222ed7ad3643338fa65ec36e0290022b48eb562889d89dbfa691d1cde91517fa222ed7ad364",
+          "r": "f9db001266677f62c095021db018cd8cbb55941d4073698ce45c405d1348b7b1"
+        },
+        "result": "invalidProof",
+        "comment": "proof invalid: c, s random scalars",
+      },
+      {
+        "Batch": 1,
+        "Blind": "3338fa65ec36e0290022b48eb562889d89dbfa691d1cde91517fa222ed7ad364",
+        "BlindedElement": "03cd0f033e791c4d79dfa9c6ed750f2ac009ec46cd4195ca6fd3800d1e9b887dbd",
+        "EvaluationElement": "030d2985865c693bf7af47ba4d3a3813176576383d19aff003ef7b0784a0d83cf1",
+        "Input": "5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a",
+        "Output": "03cd0f033e791c4d79dfa9c6ed750f2ac009ec46cd4195ca6fd3800d1e9b887dbd",
+        "Proof": {
+          "proof": "2787d729c57e3d9512d3aa9e8708ad226bc48e0f1750b0767aaff73482c44b8d2873d74ec88aebd3504961acea16790a05c542d9fbff4fe269a77510db00abab",
+          "r": "f9db001266677f62c095021db018cd8cbb55941d4073698ce45c405d1348b7b1"
+        },
+        "result": "invalidOPRFOutput",
+        "comment": "Output element is invalid (not a valid OPRF evaluation)",
+      },
+    ],
+  },
+  {
+    "groupDST": "48617368546f47726f75702d4f50524656312d022d503235362d534841323536",
+    "hash": "SHA256",
+    "identifier": "P256-SHA256",
+    "keyInfo": "74657374206b6579",
+    "mode": 2,
+    "pkSm": "030d7ff077fddeec965db14b794f0cc1ba9019b04a2f4fcc1fa525dedf72e2a3e3",
+    "seed": "a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3",
+    "skSm": "6ad2173efa689ef2c27772566ad7ff6e2d59b3b196f00219451fb2c89ee4dae2",
+    "vectors": [
+      {
+        "Batch": 1,
+        "Blind": "3338fa65ec36e0290022b48eb562889d89dbfa691d1cde91517fa222ed7ad364",
+        "BlindedElement": "031563e127099a8f61ed51eeede05d747a8da2be329b40ba1f0db0b2bd9dd4e2c0",
+        "EvaluationElement": "02c5e5300c2d9e6ba7f3f4ad60500ad93a0157e6288eb04b67e125db024a2c74d2",
+        "Info": "7465737420696e666f",
+        "Input": "00",
+        "Output": "193a92520bd8fd1f37accb918040a57108daa110dc4f659abe212636d245c592",
+        "Proof": {
+          "proof": "3338fa65ec36e0290022b48eb562889d89dbfa691d1cde91517fa222ed7ad3643338fa65ec36e0290022b48eb562889d89dbfa691d1cde91517fa222ed7ad364",
+          "r": "f9db001266677f62c095021db018cd8cbb55941d4073698ce45c405d1348b7b1"
+        },
+        "result": "invalidProof",
+        "comment": "proof invalid: c, s random scalars",
+      },
+      {
+        "Batch": 1,
+        "Blind": "3338fa65ec36e0290022b48eb562889d89dbfa691d1cde91517fa222ed7ad364",
+        "BlindedElement": "021a440ace8ca667f261c10ac7686adc66a12be31e3520fca317643a1eee9dcd4d",
+        "EvaluationElement": "0208ca109cbae44f4774fc0bdd2783efdcb868cb4523d52196f700210e777c5de3",
+        "Info": "7465737420696e666f",
+        "Input": "5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a",
+        "Output": "021a440ace8ca667f261c10ac7686adc66a12be31e3520fca317643a1eee9dcd4d",
+        "Proof": {
+          "proof": "043a8fb7fc7fd31e35770cabda4753c5bf0ecc1e88c68d7d35a62bf2631e875af4613641be2d1875c31d1319d191c4bbc0d04875f4fd03c31d3d17dd8e069b69",
+          "r": "f9db001266677f62c095021db018cd8cbb55941d4073698ce45c405d1348b7b1"
+        },
+        "result": "invalidOPRFOutput",
+        "comment": "Output element is invalid (not a valid OPRF evaluation)",
+      }
+    ],
+  },
+  {
+    "groupDST": "48617368546f47726f75702d4f50524656312d012d503338342d534841333834",
+    "hash": "SHA384",
+    "identifier": "P384-SHA384",
+    "keyInfo": "74657374206b6579",
+    "mode": 1,
+    "pkSm": "031d689686c611991b55f1a1d8f4305ccd6cb719446f660a30db61b7aa87b46acf59b7c0d4a9077b3da21c25dd482229a0",
+    "seed": "a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3",
+    "skSm": "051646b9e6e7a71ae27c1e1d0b87b4381db6d3595eeeb1adb41579adbf992f4278f9016eafc944edaa2b43183581779d",
+    "vectors": [
+      {
+        "Batch": 1,
+        "Blind": "504650f53df8f16f6861633388936ea23338fa65ec36e0290022b48eb562889d89dbfa691d1cde91517fa222ed7ad364",
+        "BlindedElement": "02d338c05cbecb82de13d6700f09cb61190543a7b7e2c6cd4fca56887e564ea82653b27fdad383995ea6d02cf26d0e24d9",
+        "EvaluationElement": "02a7bba589b3e8672aa19e8fd258de2e6aae20101c8d761246de97a6b5ee9cf105febce4327a326255a3c604f63f600ef6",
+        "Input": "00",
+        "Output": "3333230886b562ffb8329a8be08fea8025755372817ec969d114d1203d026b4a622beab60220bf19078bca35a529b35c",
+        "Proof": {
+          "proof": "504650f53df8f16f6861633388936ea23338fa65ec36e0290022b48eb562889d89dbfa691d1cde91517fa222ed7ad364504650f53df8f16f6861633388936ea23338fa65ec36e0290022b48eb562889d89dbfa691d1cde91517fa222ed7ad364",
+          "r": "803d955f0e073a04aa5d92b3fb739f56f9db001266677f62c095021db018cd8cbb55941d4073698ce45c405d1348b7b1"
+        },
+        "result": "invalidProof",
+        "comment": "proof invalid: c, s random scalars",
+      },
+      {
+        "Batch": 1,
+        "Blind": "504650f53df8f16f6861633388936ea23338fa65ec36e0290022b48eb562889d89dbfa691d1cde91517fa222ed7ad364",
+        "BlindedElement": "02f27469e059886f221be5f2cca03d2bdc61e55221721c3b3e56fc012e36d31ae5f8dc058109591556a6dbd3a8c69c433b",
+        "EvaluationElement": "03f16f903947035400e96b7f531a38d4a07ac89a80f89d86a1bf089c525a92c7f4733729ca30c56ce78b1ab4f7d92db8b4",
+        "Input": "5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a",
+        "Output": "02f27469e059886f221be5f2cca03d2bdc61e55221721c3b3e56fc012e36d31ae5f8dc058109591556a6dbd3a8c69c433b",
+        "Proof": {
+          "proof": "d005d6daaad7571414c1e0c75f7e57f2113ca9f4604e84bc90f9be52da896fff3bee496dcde2a578ae9df315032585f801fb21c6080ac05672b291e575a40295b306d967717b28e08fcc8ad1cab47845d16af73b3e643ddcc191208e71c64630",
+          "r": "803d955f0e073a04aa5d92b3fb739f56f9db001266677f62c095021db018cd8cbb55941d4073698ce45c405d1348b7b1"
+        },
+        "result": "invalidOPRFOutput",
+        "comment": "Output element is invalid (not a valid OPRF evaluation)",
+      },
+    ],
+  },
+  {
+    "groupDST": "48617368546f47726f75702d4f50524656312d022d503338342d534841333834",
+    "hash": "SHA384",
+    "identifier": "P384-SHA384",
+    "keyInfo": "74657374206b6579",
+    "mode": 2,
+    "pkSm": "02f00f0f1de81e5d6cf18140d4926ffdc9b1898c48dc49657ae36eb1e45deb8b951aaf1f10c82d2eaa6d02aafa3f10d2b6",
+    "seed": "a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3",
+    "skSm": "5b2690d6954b8fbb159f19935d64133f12770c00b68422559c65431942d721ff79d47d7a75906c30b7818ec0f38b7fb2",
+    "vectors": [
+      {
+        "Batch": 1,
+        "Blind": "504650f53df8f16f6861633388936ea23338fa65ec36e0290022b48eb562889d89dbfa691d1cde91517fa222ed7ad364",
+        "BlindedElement": "03859b36b95e6564faa85cd3801175eda2949707f6aa0640ad093cbf8ad2f58e762f08b56b2a1b42a64953aaf49cbf1ae3",
+        "EvaluationElement": "0220710e2e00306453f5b4f574cb6a512453f35c45080d09373e190c19ce5b185914fbf36582d7e0754bb7c8b683205b91",
+        "Info": "7465737420696e666f",
+        "Input": "00",
+        "Output": "0188653cfec38119a6c7dd7948b0f0720460b4310e40824e048bf82a16527303ed449a08caf84272c3bbc972ede797df",
+        "Proof": {
+          "proof": "504650f53df8f16f6861633388936ea23338fa65ec36e0290022b48eb562889d89dbfa691d1cde91517fa222ed7ad364504650f53df8f16f6861633388936ea23338fa65ec36e0290022b48eb562889d89dbfa691d1cde91517fa222ed7ad364",
+          "r": "803d955f0e073a04aa5d92b3fb739f56f9db001266677f62c095021db018cd8cbb55941d4073698ce45c405d1348b7b1"
+        },
+        "result": "invalidProof",
+        "comment": "proof invalid: c, s random scalars",
+      },
+      {
+        "Batch": 1,
+        "Blind": "504650f53df8f16f6861633388936ea23338fa65ec36e0290022b48eb562889d89dbfa691d1cde91517fa222ed7ad364",
+        "BlindedElement": "03f7efcb4aaf000263369d8a0621cb96b81b3206e99876de2a00699ed4c45acf3969cd6e2319215395955d3f8d8cc1c712",
+        "EvaluationElement": "034993c818369927e74b77c400376fd1ae29b6ac6c6ddb776cf10e4fbc487826531b3cf0b7c8ca4d92c7af90c9def85ce6",
+        "Info": "7465737420696e666f",
+        "Input": "5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a",
+        "Output": "03f7efcb4aaf000263369d8a0621cb96b81b3206e99876de2a00699ed4c45acf3969cd6e2319215395955d3f8d8cc1c712",
+        "Proof": {
+          "proof": "693471b5dff0cd6a5c00ea34d7bf127b2795164e3bdb5f39a1e5edfbd13e443bc516061cd5b8449a473c2ceeccada9f3e5b57302e3d7bc5e28d38d6e3a3056e1e73b6cc030f5180f8a1ffa45aa923ee66d2ad0a07b500f2acc7fb99b5506465c",
+          "r": "803d955f0e073a04aa5d92b3fb739f56f9db001266677f62c095021db018cd8cbb55941d4073698ce45c405d1348b7b1"
+        },
+        "result": "invalidOPRFOutput",
+        "comment": "Output element is invalid (not a valid OPRF evaluation)",
+      },
+    ],
+  },
+  {
+    "groupDST": "48617368546f47726f75702d4f50524656312d012d503532312d534841353132",
+    "hash": "SHA512",
+    "identifier": "P521-SHA512",
+    "keyInfo": "74657374206b6579",
+    "mode": 1,
+    "pkSm": "0301505d646f6e4c9102451eb39730c4ba1c4087618641edbdba4a60896b07fd0c9414ce553cbf25b81dfcca50a8f6724ab7a2bc4d0cf736967a287bb6084cc0678ac0",
+    "seed": "a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3",
+    "skSm": "015c7fc1b4a0b1390925bae915bd9f3d72009d44d9241b962428aad5d13f22803311e7102632a39addc61ea440810222715c9d2f61f03ea424ec9ab1fe5e31cf9238",
+    "vectors": [
+      {
+        "Batch": 1,
+        "Blind": "00d1dccf7a51bafaf75d4a866d53d8cafe4d504650f53df8f16f6861633388936ea23338fa65ec36e0290022b48eb562889d89dbfa691d1cde91517fa222ed7ad364",
+        "BlindedElement": "0301d6e4fb545e043ddb6aee5d5ceeee1b44102615ab04430c27dd0f56988dedcb1df32ef384f160e0e76e718605f14f3f582f9357553d153b996795b4b3628a4f6380",
+        "EvaluationElement": "03013fdeaf887f3d3d283a79e696a54b66ff0edcb559265e204a958acf840e0930cc147e2a6835148d8199eebc26c03e9394c9762a1c991dde40bca0f8ca003eefb045",
+        "Input": "00",
+        "Output": "5e003d9b2fb540b3d4bab5fedd154912246da1ee5e557afd8f56415faa1a0fadff6517da802ee254437e4f60907b4cda146e7ba19e249eef7be405549f62954b",
+        "Proof": {
+          "proof": "00d1dccf7a51bafaf75d4a866d53d8cafe4d504650f53df8f16f6861633388936ea23338fa65ec36e0290022b48eb562889d89dbfa691d1cde91517fa222ed7ad36400d1dccf7a51bafaf75d4a866d53d8cafe4d504650f53df8f16f6861633388936ea23338fa65ec36e0290022b48eb562889d89dbfa691d1cde91517fa222ed7ad364",
+          "r": "015e80ae32363b32cb76ad4b95a5a34e46bb803d955f0e073a04aa5d92b3fb739f56f9db001266677f62c095021db018cd8cbb55941d4073698ce45c405d1348b7b1"
+        },
+        "result": "invalidProof",
+        "comment": "proof invalid: c, s random scalars",
+      },
+      {
+        "Batch": 1,
+        "Blind": "00d1dccf7a51bafaf75d4a866d53d8cafe4d504650f53df8f16f6861633388936ea23338fa65ec36e0290022b48eb562889d89dbfa691d1cde91517fa222ed7ad364",
+        "BlindedElement": "03005b05e656cb609ce5ff5faf063bb746d662d67bbd07c062638396f52f0392180cf2365cabb0ece8e19048961d35eeae5d5fa872328dce98df076ee154dd191c615e",
+        "EvaluationElement": "0301b19fcf482b1fff04754e282292ed736c5f0aa080d4f42663cd3a416c6596f03129e8e096d8671fe5b0d19838312c511d2ce08d431e43e3ef06199d8cab7426238d",
+        "Input": "5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a",
+        "Output": "03005b05e656cb609ce5ff5faf063bb746d662d67bbd07c062638396f52f0392180cf2365cabb0ece8e19048961d35eeae5d5fa872328dce98df076ee154dd191c615e",
+        "Proof": {
+          "proof": "01ec9fece444caa6a57032e8963df0e945286f88fbdf233fb5101f0924f7ea89c47023f5f72f240e61991fd33a299b5b38c45a5e2dd1a67b072e59dfe86708a359c701e38d383c60cf6969463bcf13251bedad47b7941f52e409a3591398e27924410b18a301c0e19f527cad504fa08388050ac634e1b05c5216d337742f2754e1fc502f",
+          "r": "015e80ae32363b32cb76ad4b95a5a34e46bb803d955f0e073a04aa5d92b3fb739f56f9db001266677f62c095021db018cd8cbb55941d4073698ce45c405d1348b7b1"
+        },
+        "result": "invalidOPRFOutput",
+        "comment": "Output element is invalid (not a valid OPRF evaluation)",
+      },
+    ],
+  },
+  {
+    "groupDST": "48617368546f47726f75702d4f50524656312d022d503532312d534841353132",
+    "hash": "SHA512",
+    "identifier": "P521-SHA512",
+    "keyInfo": "74657374206b6579",
+    "mode": 2,
+    "pkSm": "0301de8ceb9ffe9237b1bba87c320ea0bebcfc3447fe6f278065c6c69886d692d1126b79b6844f829940ace9b52a5e26882cf7cbc9e57503d4cca3cd834584729f812a",
+    "seed": "a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3",
+    "skSm": "014893130030ce69cf714f536498a02ff6b396888f9bb507985c32928c4427d6d39de10ef509aca4240e8569e3a88debc0d392e3361bcd934cb9bdd59e339dff7b27",
+    "vectors": [
+      {
+        "Batch": 1,
+        "Blind": "00d1dccf7a51bafaf75d4a866d53d8cafe4d504650f53df8f16f6861633388936ea23338fa65ec36e0290022b48eb562889d89dbfa691d1cde91517fa222ed7ad364",
+        "BlindedElement": "020095cff9d7ecf65bdfee4ea92d6e748d60b02de34ad98094f82e25d33a8bf50138ccc2cc633556f1a97d7ea9438cbb394df612f041c485a515849d5ebb2238f2f0e2",
+        "EvaluationElement": "0301408e9c5be3ffcc1c16e5ae8f8aa68446223b0804b11962e856af5a6d1c65ebbb5db7278c21db4e8cc06d89a35b6804fb1738a295b691638af77aa1327253f26d01",
+        "Info": "7465737420696e666f",
+        "Input": "00",
+        "Output": "808ae5b87662eaaf0b39151dd85991b94c96ef214cb14a68bf5c143954882d330da8953a80eea20788e552bc8bbbfff3100e89f9d6e341197b122c46a208733b",
+        "Proof": {
+          "proof": "00d1dccf7a51bafaf75d4a866d53d8cafe4d504650f53df8f16f6861633388936ea23338fa65ec36e0290022b48eb562889d89dbfa691d1cde91517fa222ed7ad36400d1dccf7a51bafaf75d4a866d53d8cafe4d504650f53df8f16f6861633388936ea23338fa65ec36e0290022b48eb562889d89dbfa691d1cde91517fa222ed7ad364",
+          "r": "015e80ae32363b32cb76ad4b95a5a34e46bb803d955f0e073a04aa5d92b3fb739f56f9db001266677f62c095021db018cd8cbb55941d4073698ce45c405d1348b7b1"
+        },
+        "result": "invalidProof",
+        "comment": "proof invalid: c, s random scalars",
+      },
+      {
+        "Batch": 1,
+        "Blind": "00d1dccf7a51bafaf75d4a866d53d8cafe4d504650f53df8f16f6861633388936ea23338fa65ec36e0290022b48eb562889d89dbfa691d1cde91517fa222ed7ad364",
+        "BlindedElement": "030112ea89cf9cf589496189eafc5f9eb13c9f9e170d6ecde7c5b940541cb1a9c5cfeec908b67efe16b81ca00d0ce216e34b3d5f46a658d3fd8573d671bdb6515ed508",
+        "EvaluationElement": "0200ebc49df1e6fa61f412e6c391e6f074400ecdd2f56c4a8c03fe0f91d9b551f40d4b5258fd891952e8c9b28003bcfa365122e54a5714c8949d5d202767b31b4bf1f6",
+        "Info": "7465737420696e666f",
+        "Input": "5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a",
+        "Output": "030112ea89cf9cf589496189eafc5f9eb13c9f9e170d6ecde7c5b940541cb1a9c5cfeec908b67efe16b81ca00d0ce216e34b3d5f46a658d3fd8573d671bdb6515ed508",
+        "Proof": {
+          "proof": "0082162c71a7765005cae202d4bd14b84dae63c29067e886b82506992bd994a1c3aac0c1c5309222fe1af8287b6443ed6df5c2e0b0991faddd3564c73c7597aecd9a003b1f1e3c65f28e58ab4e767cfb4adbcaf512441645f4c2aed8bf67d132d966006d35fa71a34145414bf3572c1de1a46c266a344dd9e22e7fb1e90ffba1caf556d9",
+          "r": "015e80ae32363b32cb76ad4b95a5a34e46bb803d955f0e073a04aa5d92b3fb739f56f9db001266677f62c095021db018cd8cbb55941d4073698ce45c405d1348b7b1"
+        },
+        "result": "invalidOPRFOutput",
+        "comment": "Output element is invalid (not a valid OPRF evaluation)",
+      },
+    ],
+  },
+]

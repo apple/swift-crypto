@@ -172,7 +172,18 @@ let package = Package(
             ],
             swiftSettings: swiftSettings
         ),
-        .testTarget(name: "_CryptoExtrasTests", dependencies: ["_CryptoExtras"]),
+        .testTarget(
+            name: "_CryptoExtrasTests",
+            dependencies: ["_CryptoExtras"],
+            resources: [
+                .copy("ECToolbox/H2CVectors/P256_XMD-SHA-256_SSWU_RO_.json"),
+                .copy("ECToolbox/H2CVectors/P384_XMD-SHA-384_SSWU_RO_.json"),
+                .copy("OPRFs/OPRFVectors/OPRFVectors-VOPRFDraft8.json"),
+                .copy("OPRFs/OPRFVectors/OPRFVectors-VOPRFDraft19.json"),
+                .copy("OPRFs/OPRFVectors/OPRFVectors-edgecases.json"),
+            ],
+            swiftSettings: swiftSettings
+        ),
         .testTarget(name: "CryptoBoringWrapperTests", dependencies: ["CryptoBoringWrapper"]),
     ],
     cxxLanguageStandard: .cxx11
