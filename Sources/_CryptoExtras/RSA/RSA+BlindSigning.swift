@@ -475,7 +475,7 @@ extension _RSA.BlindSigning.PublicKey {
 extension _RSA.BlindSigning {
     /// Errors defined in the RSA Blind Signatures protocol.
     ///
-    /// - NOTE: This type does not conform to `Swift.Error`, it is used to construct a `CryptoKitError`.
+    /// - NOTE: This type does not conform to `Swift.Error`, it is used to construct a `CryptoError`.
     ///
     /// - Seealso: [RFC 9474: Errors](https://www.rfc-editor.org/rfc/rfc9474.html#name-errors).
     enum ProtocolError {
@@ -490,7 +490,7 @@ extension _RSA.BlindSigning {
 }
 
 extension CryptoKitError {
-    /// Map an error from the RSA Blind Signatures protocol to a CryptoKitError.
+    /// Map an error from the RSA Blind Signatures protocol to a CryptoError.
     init(_ error: _RSA.BlindSigning.ProtocolError) {
         switch error {
         case .messageTooLong:
