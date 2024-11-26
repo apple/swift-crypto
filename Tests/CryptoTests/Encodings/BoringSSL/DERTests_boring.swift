@@ -28,4 +28,4 @@ extension DERTests {
     }
 }
 
-#endif // CRYPTO_IN_SWIFTPM
+#endif  // CRYPTO_IN_SWIFTPM

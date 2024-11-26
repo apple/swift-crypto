@@ -44,7 +44,8 @@ extension BoringSSLEllipticCurveGroup {
     @usableFromInline
     package func makeUnsafeOwnedECKey() throws -> OpaquePointer {
         guard let key = CCryptoBoringSSL_EC_KEY_new(),
-            CCryptoBoringSSL_EC_KEY_set_group(key, self._group) == 1 else {
+            CCryptoBoringSSL_EC_KEY_set_group(key, self._group) == 1
+        else {
             throw CryptoBoringWrapperError.internalBoringSSLError()
         }
 
@@ -85,7 +86,9 @@ extension BoringSSLEllipticCurveGroup {
     /// An elliptic curve can be represented in a Weierstrass form: `y² = x³ + ax + b`. This
     /// property provides the values of a and b on the curve.
     @usableFromInline
-    package var weierstrassCoefficients: (field: ArbitraryPrecisionInteger, a: ArbitraryPrecisionInteger, b: ArbitraryPrecisionInteger) {
+    package var weierstrassCoefficients:
+        (field: ArbitraryPrecisionInteger, a: ArbitraryPrecisionInteger, b: ArbitraryPrecisionInteger)
+    {
         var field = ArbitraryPrecisionInteger()
         var a = ArbitraryPrecisionInteger()
         var b = ArbitraryPrecisionInteger()

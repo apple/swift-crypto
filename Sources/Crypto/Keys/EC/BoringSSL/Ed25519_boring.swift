@@ -30,10 +30,15 @@ extension Curve25519.Signing {
             // BoringSSL's Ed25519 implementation stores the private key concatenated with the public key, so we do
             // as well. We also store the public key because it makes our lives easier.
             var publicKey = Array(repeating: UInt8(0), count: 32)
-            let privateKey = SecureBytes(unsafeUninitializedCapacity: 64) { privateKeyPtr, privateKeyBytes in
+            let privateKey = SecureBytes(unsafeUninitializedCapacity: 64) {
+                privateKeyPtr,
+                privateKeyBytes in
                 privateKeyBytes = 64
                 publicKey.withUnsafeMutableBytes { publicKeyPtr in
-                    CCryptoBoringSSLShims_ED25519_keypair(publicKeyPtr.baseAddress, privateKeyPtr.baseAddress)
+                    CCryptoBoringSSLShims_ED25519_keypair(
+                        publicKeyPtr.baseAddress,
+                        privateKeyPtr.baseAddress
+                    )
                 }
             }
 
@@ -59,10 +64,16 @@ extension Curve25519.Signing {
                     throw CryptoKitError.incorrectKeySize
                 }
 
-                let privateKey = SecureBytes(unsafeUninitializedCapacity: 64) { privateKeyPtr, privateKeyBytes in
+                let privateKey = SecureBytes(unsafeUninitializedCapacity: 64) {
+                    privateKeyPtr,
+                    privateKeyBytes in
                     privateKeyBytes = 64
                     publicKey.withUnsafeMutableBytes { publicKeyPtr in
-                        CCryptoBoringSSLShims_ED25519_keypair_from_seed(publicKeyPtr.baseAddress, privateKeyPtr.baseAddress, seedPtr.baseAddress)
+                        CCryptoBoringSSLShims_ED25519_keypair_from_seed(
+                            publicKeyPtr.baseAddress,
+                            privateKeyPtr.baseAddress,
+                            seedPtr.baseAddress
+                        )
                     }
                 }
 
@@ -105,4 +116,4 @@ extension Curve25519.Signing {
         }
     }
 }
-#endif // CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
+#endif  // CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
