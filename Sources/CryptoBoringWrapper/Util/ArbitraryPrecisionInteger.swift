@@ -179,7 +179,7 @@ extension ArbitraryPrecisionInteger.BackingStorage {
 // MARK: - Other helpers
 
 extension ArbitraryPrecisionInteger {
-    /* private but @usableFromInline */ @usableFromInline static func _compare(
+    @usableFromInline static func _compare(
         lhs: ArbitraryPrecisionInteger,
         rhs: ArbitraryPrecisionInteger
     ) -> CInt {
@@ -191,7 +191,7 @@ extension ArbitraryPrecisionInteger {
     }
 
     // This lets us check the sign of an ArbitraryPrecisionInteger.
-    /* private but @usableFromInline */ @usableFromInline var _positive: Bool {
+    @usableFromInline var _positive: Bool {
         self.withUnsafeBignumPointer {
             CCryptoBoringSSL_BN_is_negative($0) == 0
         }

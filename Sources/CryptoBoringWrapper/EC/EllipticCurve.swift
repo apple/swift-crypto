@@ -17,7 +17,7 @@
 /// liveness.
 @usableFromInline
 package final class BoringSSLEllipticCurveGroup {
-    /* private but usableFromInline */ @usableFromInline var _group: OpaquePointer
+    @usableFromInline var _group: OpaquePointer
 
     @usableFromInline
     package init(_ curve: CurveName) throws {

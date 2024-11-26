@@ -20,7 +20,7 @@ import struct Foundation.Data
 /// A wrapper around BoringSSL's EC_POINT with some lifetime management.
 @usableFromInline
 package final class EllipticCurvePoint {
-    /* private but @usableFromInline */ @usableFromInline var _basePoint: OpaquePointer
+    @usableFromInline var _basePoint: OpaquePointer
 
     @usableFromInline
     package init(copying pointer: OpaquePointer, on group: BoringSSLEllipticCurveGroup) throws {
