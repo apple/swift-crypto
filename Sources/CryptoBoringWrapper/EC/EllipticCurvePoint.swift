@@ -242,7 +242,7 @@ package final class EllipticCurvePoint {
             switch group.curveName {
             case .p256: CCryptoBoringSSLShims_EC_hash_to_curve_p256_xmd_sha256_sswu
             case .p384: CCryptoBoringSSLShims_EC_hash_to_curve_p384_xmd_sha384_sswu
-            case .p521: throw CryptoBoringWrapperError.invalidParameter  // BoringSSL doesn't have a hash_to_curve API for P521.
+            case .p521: throw CryptoBoringWrapperError.invalidParameter  // BoringSSL has no P521 hash_to_curve API.
             case .none: throw CryptoBoringWrapperError.internalBoringSSLError()
             }
 
