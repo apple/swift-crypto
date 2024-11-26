@@ -48,7 +48,7 @@ internal struct BoringSSLPBKDF2 {
                 let passwordBytes: ContiguousBytes =
                     password.regions.count == 1 ? password.regions.first! : Array(password)
                 return passwordBytes.withUnsafeBytes { passwordBytes -> Int32 in
-                    return CCryptoBoringSSL_PKCS5_PBKDF2_HMAC(
+                    CCryptoBoringSSL_PKCS5_PBKDF2_HMAC(
                         passwordBytes.baseAddress!,
                         passwordBytes.count,
                         saltBytes.baseAddress!,

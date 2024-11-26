@@ -487,7 +487,7 @@ extension ArbitraryPrecisionInteger {
                 rhs.withUnsafeBignumPointer { rhsPtr in
                     modulus.withUnsafeBignumPointer { modulusPtr in
                         ArbitraryPrecisionInteger.withUnsafeBN_CTX { bnCtx in
-                            return CCryptoBoringSSL_BN_mod_add(resultPtr, selfPtr, rhsPtr, modulusPtr, bnCtx)
+                            CCryptoBoringSSL_BN_mod_add(resultPtr, selfPtr, rhsPtr, modulusPtr, bnCtx)
                         }
                     }
                 }
@@ -535,7 +535,7 @@ extension ArbitraryPrecisionInteger {
                 rhs.withUnsafeBignumPointer { rhsPtr in
                     modulus.withUnsafeBignumPointer { modulusPtr in
                         ArbitraryPrecisionInteger.withUnsafeBN_CTX { bnCtx in
-                            return CCryptoBoringSSL_BN_mod_mul(resultPtr, selfPtr, rhsPtr, modulusPtr, bnCtx)
+                            CCryptoBoringSSL_BN_mod_mul(resultPtr, selfPtr, rhsPtr, modulusPtr, bnCtx)
                         }
                     }
                 }

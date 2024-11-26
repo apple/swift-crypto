@@ -73,7 +73,7 @@ internal struct BoringSSLScrypt {
                 let passwordBytes: ContiguousBytes =
                     password.regions.count == 1 ? password.regions.first! : Array(password)
                 return passwordBytes.withUnsafeBytes { passwordBytes -> Int32 in
-                    return CCryptoBoringSSL_EVP_PBE_scrypt(
+                    CCryptoBoringSSL_EVP_PBE_scrypt(
                         passwordBytes.baseAddress!,
                         passwordBytes.count,
                         saltBytes.baseAddress!,

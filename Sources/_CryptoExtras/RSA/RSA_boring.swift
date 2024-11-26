@@ -199,7 +199,7 @@ extension BoringSSLRSAPublicKey {
             // fall back to the PKCS#1 form if that parse fails.
             do {
                 let rsaPublicKey = try pemRepresentation.withUTF8 { utf8Ptr in
-                    return try BIOHelper.withReadOnlyMemoryBIO(wrapping: utf8Ptr) { bio in
+                    try BIOHelper.withReadOnlyMemoryBIO(wrapping: utf8Ptr) { bio in
                         guard let key = CCryptoBoringSSL_PEM_read_bio_RSA_PUBKEY(bio, nil, nil, nil) else {
                             throw CryptoKitError.internalBoringSSLError()
                         }
@@ -210,7 +210,7 @@ extension BoringSSLRSAPublicKey {
             } catch {
                 do {
                     let rsaPublicKey = try pemRepresentation.withUTF8 { utf8Ptr in
-                        return try BIOHelper.withReadOnlyMemoryBIO(wrapping: utf8Ptr) { bio in
+                        try BIOHelper.withReadOnlyMemoryBIO(wrapping: utf8Ptr) { bio in
                             guard let key = CCryptoBoringSSL_PEM_read_bio_RSAPublicKey(bio, nil, nil, nil) else {
                                 throw CryptoKitError.internalBoringSSLError()
                             }
@@ -241,7 +241,7 @@ extension BoringSSLRSAPublicKey {
             // fall back to the PKCS#1 form if that parse fails.
             do {
                 let rsaPublicKey = try contiguousDerRepresentation.withUnsafeBytes { derPtr in
-                    return try BIOHelper.withReadOnlyMemoryBIO(wrapping: derPtr) { bio in
+                    try BIOHelper.withReadOnlyMemoryBIO(wrapping: derPtr) { bio in
                         guard let key = CCryptoBoringSSL_d2i_RSA_PUBKEY_bio(bio, nil) else {
                             throw CryptoKitError.internalBoringSSLError()
                         }
@@ -252,7 +252,7 @@ extension BoringSSLRSAPublicKey {
             } catch {
                 do {
                     let rsaPublicKey = try contiguousDerRepresentation.withUnsafeBytes { derPtr in
-                        return try BIOHelper.withReadOnlyMemoryBIO(wrapping: derPtr) { bio in
+                        try BIOHelper.withReadOnlyMemoryBIO(wrapping: derPtr) { bio in
                             guard let key = CCryptoBoringSSL_d2i_RSAPublicKey_bio(bio, nil) else {
                                 throw CryptoKitError.internalBoringSSLError()
                             }
@@ -560,7 +560,7 @@ extension BoringSSLRSAPrivateKey {
             self.pointer = CCryptoBoringSSL_EVP_PKEY_new()
 
             let rsaPrivateKey = try pemRepresentation.withUTF8 { utf8Ptr in
-                return try BIOHelper.withReadOnlyMemoryBIO(wrapping: utf8Ptr) { bio in
+                try BIOHelper.withReadOnlyMemoryBIO(wrapping: utf8Ptr) { bio in
                     guard let key = CCryptoBoringSSL_PEM_read_bio_RSAPrivateKey(bio, nil, nil, nil) else {
                         throw CryptoKitError.internalBoringSSLError()
                     }

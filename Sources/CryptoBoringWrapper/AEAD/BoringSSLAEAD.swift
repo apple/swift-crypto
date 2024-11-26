@@ -272,7 +272,7 @@ extension BoringSSLAEAD.AEADContext {
         )
 
         let rc = withUnsafePointer(to: &self.context) { contextPointer in
-            return CCryptoBoringSSLShims_EVP_AEAD_CTX_open_gather(
+            CCryptoBoringSSLShims_EVP_AEAD_CTX_open_gather(
                 contextPointer,
                 outputBuffer.baseAddress,
                 nonceBytes.baseAddress,
@@ -366,7 +366,7 @@ extension BoringSSLAEAD.AEADContext {
 
         var writtenBytes = 0
         let rc = withUnsafePointer(to: &self.context) { contextPointer in
-            return CCryptoBoringSSLShims_EVP_AEAD_CTX_open(
+            CCryptoBoringSSLShims_EVP_AEAD_CTX_open(
                 contextPointer,
                 outputBuffer.baseAddress,
                 &writtenBytes,
