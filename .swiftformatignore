@@ -1,0 +1,141 @@
+Package.swift
+Sources/Crypto/AEADs/AES/GCM/AES-GCM.swift
+Sources/Crypto/AEADs/ChachaPoly/ChaChaPoly.swift
+Sources/Crypto/AEADs/Cipher.swift
+Sources/Crypto/AEADs/Nonces.swift
+Sources/Crypto/ASN1/ASN1.swift
+Sources/Crypto/ASN1/Basic ASN1 Types/ASN1Any.swift
+Sources/Crypto/ASN1/Basic ASN1 Types/ASN1BitString.swift
+Sources/Crypto/ASN1/Basic ASN1 Types/ASN1Boolean.swift
+Sources/Crypto/ASN1/Basic ASN1 Types/ASN1Identifier.swift
+Sources/Crypto/ASN1/Basic ASN1 Types/ASN1Integer.swift
+Sources/Crypto/ASN1/Basic ASN1 Types/ASN1Null.swift
+Sources/Crypto/ASN1/Basic ASN1 Types/ASN1OctetString.swift
+Sources/Crypto/ASN1/Basic ASN1 Types/ASN1Strings.swift
+Sources/Crypto/ASN1/Basic ASN1 Types/ArraySliceBigint.swift
+Sources/Crypto/ASN1/Basic ASN1 Types/GeneralizedTime.swift
+Sources/Crypto/ASN1/Basic ASN1 Types/ObjectIdentifier.swift
+Sources/Crypto/ASN1/ECDSASignature.swift
+Sources/Crypto/ASN1/PEMDocument.swift
+Sources/Crypto/ASN1/PKCS8PrivateKey.swift
+Sources/Crypto/ASN1/SEC1PrivateKey.swift
+Sources/Crypto/ASN1/SubjectPublicKeyInfo.swift
+Sources/Crypto/CryptoKitErrors.swift
+Sources/Crypto/Digests/Digest.swift
+Sources/Crypto/Digests/Digests.swift
+Sources/Crypto/Digests/HashFunctions.swift
+Sources/Crypto/Digests/HashFunctions_SHA2.swift
+Sources/Crypto/HPKE/Ciphersuite/HPKE-AEAD.swift
+Sources/Crypto/HPKE/Ciphersuite/HPKE-Ciphersuite.swift
+Sources/Crypto/HPKE/Ciphersuite/HPKE-KDF.swift
+Sources/Crypto/HPKE/Ciphersuite/HPKE-KexKeyDerivation.swift
+Sources/Crypto/HPKE/Ciphersuite/HPKE-LabeledExtract.swift
+Sources/Crypto/HPKE/Ciphersuite/HPKE-Utils.swift
+Sources/Crypto/HPKE/Ciphersuite/KEM/Conformances/DHKEM.swift
+Sources/Crypto/HPKE/Ciphersuite/KEM/Conformances/HPKE-KEM-Curve25519.swift
+Sources/Crypto/HPKE/Ciphersuite/KEM/Conformances/HPKE-NIST-EC-KEMs.swift
+Sources/Crypto/HPKE/Ciphersuite/KEM/HPKE-KEM.swift
+Sources/Crypto/HPKE/HPKE-Errors.swift
+Sources/Crypto/HPKE/HPKE.swift
+Sources/Crypto/HPKE/Key Schedule/HPKE-Context.swift
+Sources/Crypto/HPKE/Key Schedule/HPKE-KeySchedule.swift
+Sources/Crypto/HPKE/Modes/HPKE-Modes.swift
+Sources/Crypto/Insecure/Insecure.swift
+Sources/Crypto/Insecure/Insecure_HashFunctions.swift
+Sources/Crypto/KEM/KEM.swift
+Sources/Crypto/Key Agreement/DH.swift
+Sources/Crypto/Key Agreement/ECDH.swift
+Sources/Crypto/Key Derivation/HKDF.swift
+Sources/Crypto/Key Wrapping/AESWrap.swift
+Sources/Crypto/Keys/EC/Curve25519.swift
+Sources/Crypto/Keys/EC/Ed25519Keys.swift
+Sources/Crypto/Keys/EC/NISTCurvesKeys.swift
+Sources/Crypto/Keys/EC/X25519Keys.swift
+Sources/Crypto/Keys/Symmetric/SymmetricKeys.swift
+Sources/Crypto/Message Authentication Codes/HMAC/HMAC.swift
+Sources/Crypto/Message Authentication Codes/MACFunctions.swift
+Sources/Crypto/Message Authentication Codes/MessageAuthenticationCode.swift
+Sources/Crypto/PRF/AES.swift
+Sources/Crypto/Signatures/ECDSA.swift
+Sources/Crypto/Signatures/Ed25519.swift
+Sources/Crypto/Signatures/Signature.swift
+Sources/Crypto/Util/PrettyBytes.swift
+Sources/Crypto/Util/SafeCompare.swift
+Sources/Crypto/Util/SecureBytes.swift
+Sources/Crypto/Util/Zeroization.swift
+Sources/_CryptoExtras/AES/AES_CBC.swift
+Sources/_CryptoExtras/AES/AES_CFB.swift
+Sources/_CryptoExtras/AES/AES_CTR.swift
+Sources/_CryptoExtras/AES/AES_GCM_SIV.swift
+Sources/_CryptoExtras/AES/Block Function.swift
+Sources/_CryptoExtras/ChaCha20CTR/ChaCha20CTR.swift
+Sources/_CryptoExtras/ECToolbox/ECToolbox.swift
+Sources/_CryptoExtras/H2G/HashToField.swift
+Sources/_CryptoExtras/Key Derivation/KDF.swift
+Sources/_CryptoExtras/Key Derivation/PBKDF2/PBKDF2.swift
+Sources/_CryptoExtras/Key Derivation/Scrypt/Scrypt.swift
+Sources/_CryptoExtras/OPRFs/OPRF.swift
+Sources/_CryptoExtras/OPRFs/OPRFClient.swift
+Sources/_CryptoExtras/OPRFs/OPRFServer.swift
+Sources/_CryptoExtras/OPRFs/VOPRF+API.swift
+Sources/_CryptoExtras/OPRFs/VOPRFClient.swift
+Sources/_CryptoExtras/OPRFs/VOPRFServer.swift
+Sources/_CryptoExtras/RSA/RSA+BlindSigning.swift
+Sources/_CryptoExtras/RSA/RSA.swift
+Sources/_CryptoExtras/RSA/RSA_security.swift
+Sources/_CryptoExtras/Util/BoringSSLHelpers.swift
+Sources/_CryptoExtras/Util/DigestType.swift
+Sources/_CryptoExtras/Util/Error.swift
+Sources/_CryptoExtras/Util/I2OSP.swift
+Sources/_CryptoExtras/Util/PEMDocument.swift
+Sources/_CryptoExtras/Util/PrettyBytes.swift
+Sources/_CryptoExtras/Util/SubjectPublicKeyInfo.swift
+Sources/_CryptoExtras/ZKPs/DLEQ.swift
+Sources/crypto-shasum/main.swift
+Tests/CryptoTests/ASN1/ASN1Tests.swift
+Tests/CryptoTests/ASN1/GeneralizedTimeTests.swift
+Tests/CryptoTests/Authenticated Encryption/AES-GCM-Runner.swift
+Tests/CryptoTests/Authenticated Encryption/ChaChaPoly-Runner.swift
+Tests/CryptoTests/Digests/DigestsTests.swift
+Tests/CryptoTests/ECDH/X25519-Runner.swift
+Tests/CryptoTests/ECDH/secpECDH_Runner.swift
+Tests/CryptoTests/Encodings/DERTests.swift
+Tests/CryptoTests/Encodings/ECKeyEncodingsTests.swift
+Tests/CryptoTests/HPKE/HPKETests-TestVectors.swift
+Tests/CryptoTests/HPKE/HPKETests.swift
+Tests/CryptoTests/Key Derivation/ECprivateKeysFromSeeds.swift
+Tests/CryptoTests/Key Derivation/HKDFTests.swift
+Tests/CryptoTests/Key Derivation/SharedSecretTests.swift
+Tests/CryptoTests/Key Derivation/X963KDFTests.swift
+Tests/CryptoTests/Key Wrapping/KeyWrapping.swift
+Tests/CryptoTests/MAC/HMACTests.swift
+Tests/CryptoTests/SecureBytes/SecureBytesTests.swift
+Tests/CryptoTests/Signatures/ECDSA/ECDSASignatureTests.swift
+Tests/CryptoTests/Signatures/ECDSA/RawECDSASignaturesTests.swift
+Tests/CryptoTests/Signatures/EdDSA/Ed25519-Runner.swift
+Tests/CryptoTests/Utils/PrettyBytes.swift
+Tests/CryptoTests/Utils/RFCVector.swift
+Tests/CryptoTests/Utils/SplitData.swift
+Tests/CryptoTests/Utils/Wycheproof.swift
+Tests/CryptoTests/Utils/XCTestUtils.swift
+Tests/_CryptoExtrasTests/AES Block Function Tests.swift
+Tests/_CryptoExtrasTests/AES-GCM-SIV-Runner.swift
+Tests/_CryptoExtrasTests/AES_CBCTests.swift
+Tests/_CryptoExtrasTests/AES_CFBTests.swift
+Tests/_CryptoExtrasTests/AES_CTRTests.swift
+Tests/_CryptoExtrasTests/ChaCha20CTRTests.swift
+Tests/_CryptoExtrasTests/ECToolbox/HashToCurveTests.swift
+Tests/_CryptoExtrasTests/OPRFs/ECVOPRFTests.swift
+Tests/_CryptoExtrasTests/OPRFs/VOPRFAPITests.swift
+Tests/_CryptoExtrasTests/OPRFs/VOPRFPublicAPITests.swift
+Tests/_CryptoExtrasTests/PBKDF2Tests.swift
+Tests/_CryptoExtrasTests/ScryptTests.swift
+Tests/_CryptoExtrasTests/TestRSABlindSigning.swift
+Tests/_CryptoExtrasTests/TestRSABlindSigningAPI.swift
+Tests/_CryptoExtrasTests/TestRSAEncryption.swift
+Tests/_CryptoExtrasTests/TestRSASigning.swift
+Tests/_CryptoExtrasTests/Utils/BytesUtil.swift
+Tests/_CryptoExtrasTests/Utils/RFCVector.swift
+Tests/_CryptoExtrasTests/Utils/SplitData.swift
+Tests/_CryptoExtrasTests/Utils/Wycheproof.swift
+Tests/_CryptoExtrasTests/Utils/XCTestUtils.swift
