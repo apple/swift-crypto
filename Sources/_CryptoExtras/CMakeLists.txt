@@ -13,6 +13,14 @@
 ##===----------------------------------------------------------------------===##
 
 add_library(_CryptoExtras
+  "AES/AES_CBC.swift"
+  "AES/AES_CFB.swift"
+  "AES/AES_CTR.swift"
+  "AES/AES_GCM_SIV.swift"
+  "AES/Block Function.swift"
+  "AES/BoringSSL/AES_CFB_boring.swift"
+  "AES/BoringSSL/AES_CTR_boring.swift"
+  "AES/BoringSSL/AES_GCM_SIV_boring.swift"
   "ChaCha20CTR/BoringSSL/ChaCha20CTR_boring.swift"
   "ChaCha20CTR/ChaCha20CTR.swift"
   "ECToolbox/BoringSSL/ECToolbox_boring.swift"
