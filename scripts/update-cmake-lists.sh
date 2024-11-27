@@ -3,7 +3,7 @@
 ##
 ## This source file is part of the SwiftCrypto open source project
 ##
-## Copyright (c) 2021-2023 Apple Inc. and the SwiftCrypto project authors
+## Copyright (c) 2021-2024 Apple Inc. and the SwiftCrypto project authors
 ## Licensed under Apache License v2.0
 ##
 ## See LICENSE.txt for license information
@@ -30,7 +30,7 @@ esac
 function update_cmakelists_source() {
     src_root="$here/Sources/$1"
 
-    src_exts=("*.c" "*.swift")
+    src_exts=("*.c" "*.swift" "*.cc")
     num_exts=${#src_exts[@]}
     echo "Finding source files (" "${src_exts[@]}" ") under $src_root"
 

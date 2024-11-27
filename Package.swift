@@ -20,7 +20,7 @@
 // Sources/CCryptoBoringSSL directory. The source repository is at
 // https://boringssl.googlesource.com/boringssl.
 //
-// BoringSSL Commit: 2587c4974dbe9872451151c8e975f58567a1ce0d
+// BoringSSL Commit: fcef13a49852397a0d39c00be8d7bc2ba1ab6fb9
 
 import PackageDescription
 
@@ -172,8 +172,19 @@ let package = Package(
             ],
             swiftSettings: swiftSettings
         ),
-        .testTarget(name: "_CryptoExtrasTests", dependencies: ["_CryptoExtras"]),
+        .testTarget(
+            name: "_CryptoExtrasTests",
+            dependencies: ["_CryptoExtras"],
+            resources: [
+                .copy("ECToolbox/H2CVectors/P256_XMD-SHA-256_SSWU_RO_.json"),
+                .copy("ECToolbox/H2CVectors/P384_XMD-SHA-384_SSWU_RO_.json"),
+                .copy("OPRFs/OPRFVectors/OPRFVectors-VOPRFDraft8.json"),
+                .copy("OPRFs/OPRFVectors/OPRFVectors-VOPRFDraft19.json"),
+                .copy("OPRFs/OPRFVectors/OPRFVectors-edgecases.json"),
+            ],
+            swiftSettings: swiftSettings
+        ),
         .testTarget(name: "CryptoBoringWrapperTests", dependencies: ["CryptoBoringWrapper"]),
     ],
-    cxxLanguageStandard: .cxx11
+    cxxLanguageStandard: .cxx14
 )
