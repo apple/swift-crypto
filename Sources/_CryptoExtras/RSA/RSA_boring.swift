@@ -13,11 +13,11 @@
 //===----------------------------------------------------------------------===//
 
 // NOTE: This file is unconditionally compiled because RSABSSA is implemented using BoringSSL on all platforms.
-import Foundation
 @_implementationOnly import CCryptoBoringSSL
 @_implementationOnly import CCryptoBoringSSLShims
 import Crypto
 import CryptoBoringWrapper
+import Foundation
 
 internal struct BoringSSLRSAPublicKey: Sendable {
     private var backing: Backing

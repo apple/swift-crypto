@@ -13,6 +13,7 @@
 //===----------------------------------------------------------------------===//
 
 import XCTest
+
 @testable import CryptoBoringWrapper
 
 final class ArbitraryPrecisionIntegerTests: XCTestCase {

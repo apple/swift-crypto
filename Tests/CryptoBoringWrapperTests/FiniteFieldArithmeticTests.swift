@@ -12,8 +12,9 @@
 //
 //===----------------------------------------------------------------------===//
 
-@testable import CryptoBoringWrapper
 import XCTest
+
+@testable import CryptoBoringWrapper
 
 final class FiniteFieldArithmeticTests: XCTestCase {
     func testResidue() throws {
