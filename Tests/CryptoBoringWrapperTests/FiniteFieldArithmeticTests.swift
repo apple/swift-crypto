@@ -1,5 +1,3 @@
-import XCTest
-
 //===----------------------------------------------------------------------===//
 //
 // This source file is part of the SwiftCrypto open source project
@@ -13,7 +11,9 @@ import XCTest
 // SPDX-License-Identifier: Apache-2.0
 //
 //===----------------------------------------------------------------------===//
+
 @testable import CryptoBoringWrapper
+import XCTest
 
 final class FiniteFieldArithmeticTests: XCTestCase {
     func testResidue() throws {

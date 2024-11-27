@@ -1,5 +1,3 @@
-import XCTest
-
 //===----------------------------------------------------------------------===//
 //
 // This source file is part of the SwiftCrypto open source project
@@ -13,6 +11,8 @@ import XCTest
 // SPDX-License-Identifier: Apache-2.0
 //
 //===----------------------------------------------------------------------===//
+
+import XCTest
 @testable import CryptoBoringWrapper
 
 final class ArbitraryPrecisionIntegerTests: XCTestCase {

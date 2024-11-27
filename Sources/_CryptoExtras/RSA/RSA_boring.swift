@@ -1,8 +1,3 @@
-@_implementationOnly import CCryptoBoringSSL
-@_implementationOnly import CCryptoBoringSSLShims
-import Crypto
-// NOTE: This file is unconditionally compiled because RSABSSA is implemented using BoringSSL on all platforms.
-import CryptoBoringWrapper
 //===----------------------------------------------------------------------===//
 //
 // This source file is part of the SwiftCrypto open source project
@@ -16,7 +11,13 @@ import CryptoBoringWrapper
 // SPDX-License-Identifier: Apache-2.0
 //
 //===----------------------------------------------------------------------===//
+
+// NOTE: This file is unconditionally compiled because RSABSSA is implemented using BoringSSL on all platforms.
 import Foundation
+@_implementationOnly import CCryptoBoringSSL
+@_implementationOnly import CCryptoBoringSSLShims
+import Crypto
+import CryptoBoringWrapper
 
 internal struct BoringSSLRSAPublicKey: Sendable {
     private var backing: Backing
