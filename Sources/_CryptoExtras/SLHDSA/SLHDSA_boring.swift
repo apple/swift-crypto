@@ -185,14 +185,11 @@ extension SLHDSA {
             self.backing.isValidSignature(signature, for: data, context: context)
         }
 
-        /// The size of the public key in bytes.
-        fileprivate static let bytesCount = Backing.bytesCount
-
         fileprivate final class Backing {
             private let pointer: UnsafeMutablePointer<UInt8>
             
             init(privateKeyBacking: PrivateKey.Backing) {
-                self.pointer = UnsafeMutablePointer<UInt8>.allocate(capacity: SLHDSA.PublicKey.bytesCount)
+                self.pointer = UnsafeMutablePointer<UInt8>.allocate(capacity: SLHDSA.PublicKey.Backing.bytesCount)
                 privateKeyBacking.withUnsafePointer { privateKeyPtr in
                     CCryptoBoringSSL_SLHDSA_SHA2_128S_public_from_private(self.pointer, privateKeyPtr)
                 }
@@ -204,21 +201,21 @@ extension SLHDSA {
             /// 
             /// - Throws: `CryptoKitError.incorrectKeySize` if the raw representation is not the correct size.
             init(rawRepresentation: some DataProtocol) throws {
-                guard rawRepresentation.count == SLHDSA.PublicKey.bytesCount else {
+                guard rawRepresentation.count == SLHDSA.PublicKey.Backing.bytesCount else {
                     throw CryptoKitError.incorrectKeySize
                 }
 
-                self.pointer = UnsafeMutablePointer<UInt8>.allocate(capacity: SLHDSA.PublicKey.bytesCount)
+                self.pointer = UnsafeMutablePointer<UInt8>.allocate(capacity: SLHDSA.PublicKey.Backing.bytesCount)
                 self.pointer.initialize(
                     from: Array(rawRepresentation),
-                    count: SLHDSA.PublicKey.bytesCount
+                    count: SLHDSA.PublicKey.Backing.bytesCount
                 )
             }
             
             
             /// The raw representation of the public key.
             var rawRepresentation: Data {
-                Data(UnsafeBufferPointer(start: self.pointer, count: SLHDSA.PublicKey.bytesCount))
+                Data(UnsafeBufferPointer(start: self.pointer, count: SLHDSA.PublicKey.Backing.bytesCount))
             }
             
             /// Verify a signature for the given data.
