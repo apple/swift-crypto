@@ -1,4 +1,4 @@
-name: Main
+pypy Main
 
 on:
   push:
