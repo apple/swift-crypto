@@ -59,13 +59,18 @@ extension Curve25519.KeyAgreement {
         init() {
             var publicKey = Array(repeating: UInt8(0), count: Curve25519.KeyAgreement.keySizeBytes)
 
-            self.key = SecureBytes(unsafeUninitializedCapacity: Curve25519.KeyAgreement.keySizeBytes) { privateKeyBytes, privateKeySize in
+            self.key = SecureBytes(unsafeUninitializedCapacity: Curve25519.KeyAgreement.keySizeBytes) {
+                privateKeyBytes,
+                privateKeySize in
                 publicKey.withUnsafeMutableBytes { publicKeyBytes in
                     precondition(publicKeyBytes.count >= Curve25519.KeyAgreement.keySizeBytes)
                     precondition(privateKeyBytes.count >= Curve25519.KeyAgreement.keySizeBytes)
-                    CCryptoBoringSSLShims_X25519_keypair(publicKeyBytes.baseAddress, privateKeyBytes.baseAddress)
+                    CCryptoBoringSSLShims_X25519_keypair(
+                        publicKeyBytes.baseAddress,
+                        privateKeyBytes.baseAddress
+                    )
                 }
-                privateKeySize = Curve25519.KeyAgreement.keySizeBytes // We always use the whole thing.
+                privateKeySize = Curve25519.KeyAgreement.keySizeBytes  // We always use the whole thing.
             }
             self.publicKey = .init(publicKey)
 
@@ -80,12 +85,19 @@ extension Curve25519.KeyAgreement {
 
         init<D: ContiguousBytes>(rawRepresentation: D) throws {
             let publicBytes: [UInt8] = try rawRepresentation.withUnsafeBytes { privatePointer in
-                try OpenSSLCurve25519PrivateKeyImpl.validateX25519PrivateKeyData(rawRepresentation: privatePointer)
+                try OpenSSLCurve25519PrivateKeyImpl.validateX25519PrivateKeyData(
+                    rawRepresentation: privatePointer
+                )
 
-                return Array(unsafeUninitializedCapacity: Curve25519.KeyAgreement.keySizeBytes) { publicKeyBytes, publicKeySize in
+                return Array(unsafeUninitializedCapacity: Curve25519.KeyAgreement.keySizeBytes) {
+                    publicKeyBytes,
+                    publicKeySize in
                     precondition(publicKeyBytes.count >= Curve25519.KeyAgreement.keySizeBytes)
-                    CCryptoBoringSSLShims_X25519_public_from_private(publicKeyBytes.baseAddress, privatePointer.baseAddress)
-                    publicKeySize = Curve25519.KeyAgreement.keySizeBytes // We always use the whole thing.
+                    CCryptoBoringSSLShims_X25519_public_from_private(
+                        publicKeyBytes.baseAddress,
+                        privatePointer.baseAddress
+                    )
+                    publicKeySize = Curve25519.KeyAgreement.keySizeBytes  // We always use the whole thing.
                 }
             }
 
@@ -94,8 +106,14 @@ extension Curve25519.KeyAgreement {
         }
 
         @usableFromInline
-        func sharedSecretFromKeyAgreement(with publicKeyShare: OpenSSLCurve25519PublicKeyImpl) throws -> SharedSecret {
-            let sharedSecret = SecureBytes(unsafeUninitializedCapacity: Curve25519.KeyAgreement.keySizeBytes) { secretPointer, secretSize in
+        func sharedSecretFromKeyAgreement(
+            with publicKeyShare: OpenSSLCurve25519PublicKeyImpl
+        ) throws
+            -> SharedSecret
+        {
+            let sharedSecret = SecureBytes(
+                unsafeUninitializedCapacity: Curve25519.KeyAgreement.keySizeBytes
+            ) { secretPointer, secretSize in
                 self.key.withUnsafeBytes { privateKeyPointer in
                     // We precondition on all of these sizes because bounds checking is cool.
                     // These are fatal instead of guards because we allocated the secret (so it must be right),
@@ -110,10 +128,14 @@ extension Curve25519.KeyAgreement {
                     // politely describe as a "lack of consensus" as to whether crypto libraries should reject this secret. CryptoKit on Apple
                     // platforms currently does not, so for the sake of conformance with our peer implementation I will also refuse to check it.
                     // We may elect to revisit this decision if the security best-practice thinking changes.
-                    CCryptoBoringSSLShims_X25519(secretPointer.baseAddress, privateKeyPointer.baseAddress, publicKeyShare.keyBytes)
+                    CCryptoBoringSSLShims_X25519(
+                        secretPointer.baseAddress,
+                        privateKeyPointer.baseAddress,
+                        publicKeyShare.keyBytes
+                    )
                 }
 
-                secretSize = Curve25519.KeyAgreement.keySizeBytes // We always use all of it.
+                secretSize = Curve25519.KeyAgreement.keySizeBytes  // We always use all of it.
             }
 
             return SharedSecret(ss: sharedSecret)
@@ -133,4 +155,4 @@ extension Curve25519.KeyAgreement {
         }
     }
 }
-#endif // CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
+#endif  // CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API

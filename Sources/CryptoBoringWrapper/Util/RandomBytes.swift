@@ -48,7 +48,8 @@ extension SystemRandomNumberGenerator {
     @inlinable
     package static func randomBytes(count: Int) -> [UInt8] {
         Array(unsafeUninitializedCapacity: count) { buffer, initializedCount in
-            UnsafeMutableRawBufferPointer(start: buffer.baseAddress, count: buffer.count).initializeWithRandomBytes(count: count)
+            UnsafeMutableRawBufferPointer(start: buffer.baseAddress, count: buffer.count)
+                .initializeWithRandomBytes(count: count)
             initializedCount = count
         }
     }

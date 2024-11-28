@@ -36,6 +36,6 @@ extension CryptoBoringWrapperError {
     /// A helper function that packs the value of `ERR_get_error` into the internal error field.
     @usableFromInline
     package static func internalBoringSSLError() -> CryptoBoringWrapperError {
-        return .underlyingCoreCryptoError(error: Int32(bitPattern: CCryptoBoringSSL_ERR_get_error()))
+        .underlyingCoreCryptoError(error: Int32(bitPattern: CCryptoBoringSSL_ERR_get_error()))
     }
 }

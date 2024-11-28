@@ -13,13 +13,14 @@
 //===----------------------------------------------------------------------===//
 @_implementationOnly import CCryptoBoringSSL
 @_implementationOnly import CCryptoBoringSSLShims
-import struct Foundation.Data
+
 import protocol Foundation.ContiguousBytes
+import struct Foundation.Data
 
 /// A wrapper around BoringSSL's EC_POINT with some lifetime management.
 @usableFromInline
 package final class EllipticCurvePoint {
-    /* private but @usableFromInline */ @usableFromInline var _basePoint: OpaquePointer
+    @usableFromInline var _basePoint: OpaquePointer
 
     @usableFromInline
     package init(copying pointer: OpaquePointer, on group: BoringSSLEllipticCurveGroup) throws {
@@ -32,7 +33,12 @@ package final class EllipticCurvePoint {
     }
 
     @usableFromInline
-    package convenience init(copying other: EllipticCurvePoint, on group: BoringSSLEllipticCurveGroup) throws {
+    package convenience init(
+        copying other: EllipticCurvePoint,
+        on group: BoringSSLEllipticCurveGroup
+    )
+        throws
+    {
         try self.init(copying: other._basePoint, on: group)
     }
 
@@ -47,11 +53,16 @@ package final class EllipticCurvePoint {
     }
 
     @usableFromInline
-    package convenience init(multiplying scalar: ArbitraryPrecisionInteger, on group: BoringSSLEllipticCurveGroup) throws {
+    package convenience init(
+        multiplying scalar: ArbitraryPrecisionInteger,
+        on group: BoringSSLEllipticCurveGroup
+    ) throws {
         try self.init(_pointAtInfinityOn: group)
         try group.withUnsafeGroupPointer { groupPtr in
             try scalar.withUnsafeBignumPointer { scalarPtr in
-                guard CCryptoBoringSSL_EC_POINT_mul(groupPtr, self._basePoint, scalarPtr, nil, nil, nil) == 1 else {
+                guard
+                    CCryptoBoringSSL_EC_POINT_mul(groupPtr, self._basePoint, scalarPtr, nil, nil, nil) == 1
+                else {
                     throw CryptoBoringWrapperError.internalBoringSSLError()
                 }
             }
@@ -63,11 +74,17 @@ package final class EllipticCurvePoint {
     }
 
     @usableFromInline
-    package func multiply(by rhs: ArbitraryPrecisionInteger, on group: BoringSSLEllipticCurveGroup) throws {
+    package func multiply(
+        by rhs: ArbitraryPrecisionInteger,
+        on group: BoringSSLEllipticCurveGroup
+    )
+        throws
+    {
         try self.withPointPointer { selfPtr in
             try rhs.withUnsafeBignumPointer { rhsPtr in
                 try group.withUnsafeGroupPointer { groupPtr in
-                    guard CCryptoBoringSSL_EC_POINT_mul(groupPtr, selfPtr, nil, selfPtr, rhsPtr, nil) != 0 else {
+                    guard CCryptoBoringSSL_EC_POINT_mul(groupPtr, selfPtr, nil, selfPtr, rhsPtr, nil) != 0
+                    else {
                         throw CryptoBoringWrapperError.internalBoringSSLError()
                     }
                 }
@@ -76,18 +93,31 @@ package final class EllipticCurvePoint {
     }
 
     @usableFromInline
-    package convenience init(multiplying lhs: EllipticCurvePoint, by rhs: ArbitraryPrecisionInteger, on group: BoringSSLEllipticCurveGroup) throws {
+    package convenience init(
+        multiplying lhs: EllipticCurvePoint,
+        by rhs: ArbitraryPrecisionInteger,
+        on group: BoringSSLEllipticCurveGroup
+    ) throws {
         try self.init(copying: lhs, on: group)
         try self.multiply(by: rhs, on: group)
     }
 
     @usableFromInline
-    package func multiplying(by rhs: ArbitraryPrecisionInteger, on group: BoringSSLEllipticCurveGroup) throws -> EllipticCurvePoint {
+    package func multiplying(
+        by rhs: ArbitraryPrecisionInteger,
+        on group: BoringSSLEllipticCurveGroup
+    )
+        throws -> EllipticCurvePoint
+    {
         try EllipticCurvePoint(multiplying: self, by: rhs, on: group)
     }
 
     @usableFromInline
-    package static func multiplying(_ lhs: EllipticCurvePoint, by rhs: ArbitraryPrecisionInteger, on group: BoringSSLEllipticCurveGroup) throws -> EllipticCurvePoint {
+    package static func multiplying(
+        _ lhs: EllipticCurvePoint,
+        by rhs: ArbitraryPrecisionInteger,
+        on group: BoringSSLEllipticCurveGroup
+    ) throws -> EllipticCurvePoint {
         try EllipticCurvePoint(multiplying: lhs, by: rhs, on: group)
     }
 
@@ -105,18 +135,31 @@ package final class EllipticCurvePoint {
     }
 
     @usableFromInline
-    package convenience init(adding lhs: EllipticCurvePoint, _ rhs: EllipticCurvePoint, on group: BoringSSLEllipticCurveGroup ) throws {
+    package convenience init(
+        adding lhs: EllipticCurvePoint,
+        _ rhs: EllipticCurvePoint,
+        on group: BoringSSLEllipticCurveGroup
+    ) throws {
         try self.init(copying: lhs, on: group)
         try self.add(rhs, on: group)
     }
 
     @usableFromInline
-    package func adding(_ rhs: EllipticCurvePoint, on group: BoringSSLEllipticCurveGroup) throws -> EllipticCurvePoint {
+    package func adding(
+        _ rhs: EllipticCurvePoint,
+        on group: BoringSSLEllipticCurveGroup
+    ) throws
+        -> EllipticCurvePoint
+    {
         try EllipticCurvePoint(adding: self, rhs, on: group)
     }
 
     @usableFromInline
-    package static func adding(_ lhs: EllipticCurvePoint, _ rhs: EllipticCurvePoint, on group: BoringSSLEllipticCurveGroup) throws -> EllipticCurvePoint {
+    package static func adding(
+        _ lhs: EllipticCurvePoint,
+        _ rhs: EllipticCurvePoint,
+        on group: BoringSSLEllipticCurveGroup
+    ) throws -> EllipticCurvePoint {
         try EllipticCurvePoint(adding: lhs, rhs, on: group)
     }
 
@@ -132,7 +175,10 @@ package final class EllipticCurvePoint {
     }
 
     @usableFromInline
-    package convenience init(inverting point: EllipticCurvePoint, on group: BoringSSLEllipticCurveGroup) throws {
+    package convenience init(
+        inverting point: EllipticCurvePoint,
+        on group: BoringSSLEllipticCurveGroup
+    ) throws {
         try self.init(copying: point, on: group)
         try self.invert(on: group)
     }
@@ -143,7 +189,12 @@ package final class EllipticCurvePoint {
     }
 
     @usableFromInline
-    package static func inverting(_ point: EllipticCurvePoint, on group: BoringSSLEllipticCurveGroup) throws -> EllipticCurvePoint {
+    package static func inverting(
+        _ point: EllipticCurvePoint,
+        on group: BoringSSLEllipticCurveGroup
+    )
+        throws -> EllipticCurvePoint
+    {
         try EllipticCurvePoint(inverting: point, on: group)
     }
 
@@ -153,42 +204,62 @@ package final class EllipticCurvePoint {
     }
 
     @usableFromInline
-    package convenience init(subtracting rhs: EllipticCurvePoint, from lhs: EllipticCurvePoint, on group: BoringSSLEllipticCurveGroup) throws {
+    package convenience init(
+        subtracting rhs: EllipticCurvePoint,
+        from lhs: EllipticCurvePoint,
+        on group: BoringSSLEllipticCurveGroup
+    ) throws {
         try self.init(copying: lhs, on: group)
         try self.subtract(rhs, on: group)
     }
 
     @usableFromInline
-    package func subtracting(_ rhs: EllipticCurvePoint, on group: BoringSSLEllipticCurveGroup) throws -> EllipticCurvePoint {
+    package func subtracting(
+        _ rhs: EllipticCurvePoint,
+        on group: BoringSSLEllipticCurveGroup
+    ) throws
+        -> EllipticCurvePoint
+    {
         try EllipticCurvePoint(subtracting: rhs, from: self, on: group)
     }
 
     @usableFromInline
-    package static func subtracting(_ rhs: EllipticCurvePoint, from lhs: EllipticCurvePoint, on group: BoringSSLEllipticCurveGroup) throws -> EllipticCurvePoint {
+    package static func subtracting(
+        _ rhs: EllipticCurvePoint,
+        from lhs: EllipticCurvePoint,
+        on group: BoringSSLEllipticCurveGroup
+    ) throws -> EllipticCurvePoint {
         try EllipticCurvePoint(subtracting: rhs, from: lhs, on: group)
     }
 
     @usableFromInline
-    package convenience init<MessageBytes: ContiguousBytes, DSTBytes: ContiguousBytes>(hashing msg: MessageBytes, to group: BoringSSLEllipticCurveGroup, domainSeparationTag: DSTBytes) throws {
-        let hashToCurveFunction = switch group.curveName {
-        case .p256: CCryptoBoringSSLShims_EC_hash_to_curve_p256_xmd_sha256_sswu
-        case .p384: CCryptoBoringSSLShims_EC_hash_to_curve_p384_xmd_sha384_sswu
-        case .p521: throw CryptoBoringWrapperError.invalidParameter // BoringSSL doesn't have a hash_to_curve API for P521.
-        case .none: throw CryptoBoringWrapperError.internalBoringSSLError()
-        }
+    package convenience init<MessageBytes: ContiguousBytes, DSTBytes: ContiguousBytes>(
+        hashing msg: MessageBytes,
+        to group: BoringSSLEllipticCurveGroup,
+        domainSeparationTag: DSTBytes
+    ) throws {
+        let hashToCurveFunction =
+            switch group.curveName {
+            case .p256: CCryptoBoringSSLShims_EC_hash_to_curve_p256_xmd_sha256_sswu
+            case .p384: CCryptoBoringSSLShims_EC_hash_to_curve_p384_xmd_sha384_sswu
+            case .p521: throw CryptoBoringWrapperError.invalidParameter  // BoringSSL has no P521 hash_to_curve API.
+            case .none: throw CryptoBoringWrapperError.internalBoringSSLError()
+            }
 
         try self.init(_pointAtInfinityOn: group)
         try msg.withUnsafeBytes { msgPtr in
             try group.withUnsafeGroupPointer { groupPtr in
                 try domainSeparationTag.withUnsafeBytes { dstPtr in
-                    guard hashToCurveFunction(
-                        groupPtr,
-                        self._basePoint,
-                        dstPtr.baseAddress,
-                        dstPtr.count,
-                        msgPtr.baseAddress,
-                        msgPtr.count
-                    ) == 1 else { throw CryptoBoringWrapperError.internalBoringSSLError() }
+                    guard
+                        hashToCurveFunction(
+                            groupPtr,
+                            self._basePoint,
+                            dstPtr.baseAddress,
+                            dstPtr.count,
+                            msgPtr.baseAddress,
+                            msgPtr.count
+                        ) == 1
+                    else { throw CryptoBoringWrapperError.internalBoringSSLError() }
                 }
             }
         }
@@ -214,25 +285,35 @@ package final class EllipticCurvePoint {
     }
 
     @usableFromInline
-    package convenience init<Bytes: ContiguousBytes>(x962Representation bytes: Bytes, on group: BoringSSLEllipticCurveGroup) throws {
+    package convenience init<Bytes: ContiguousBytes>(
+        x962Representation bytes: Bytes,
+        on group: BoringSSLEllipticCurveGroup
+    ) throws {
         try self.init(_pointAtInfinityOn: group)
-        guard group.withUnsafeGroupPointer({ groupPtr in
-            bytes.withUnsafeBytes { dataPtr in
-                CCryptoBoringSSL_EC_POINT_oct2point(
-                    groupPtr,
-                    self._basePoint,
-                    dataPtr.baseAddress,
-                    dataPtr.count,
-                    nil
-                )
-            }
-        }) == 1 else {
+        guard
+            group.withUnsafeGroupPointer({ groupPtr in
+                bytes.withUnsafeBytes { dataPtr in
+                    CCryptoBoringSSL_EC_POINT_oct2point(
+                        groupPtr,
+                        self._basePoint,
+                        dataPtr.baseAddress,
+                        dataPtr.count,
+                        nil
+                    )
+                }
+            }) == 1
+        else {
             throw CryptoBoringWrapperError.invalidParameter
         }
     }
 
     @usableFromInline
-    package func x962RepresentationByteCount(compressed: Bool, on group: BoringSSLEllipticCurveGroup) throws -> Int {
+    package func x962RepresentationByteCount(
+        compressed: Bool,
+        on group: BoringSSLEllipticCurveGroup
+    )
+        throws -> Int
+    {
         let numBytesNeeded = group.withUnsafeGroupPointer { groupPtr in
             CCryptoBoringSSL_EC_POINT_point2oct(
                 groupPtr,
@@ -250,7 +331,12 @@ package final class EllipticCurvePoint {
     }
 
     @usableFromInline
-    package func x962Representation(compressed: Bool, on group: BoringSSLEllipticCurveGroup) throws -> Data {
+    package func x962Representation(
+        compressed: Bool,
+        on group: BoringSSLEllipticCurveGroup
+    ) throws
+        -> Data
+    {
         let numBytesNeeded = try self.x962RepresentationByteCount(compressed: compressed, on: group)
 
         var buf = Data(repeating: 0, count: numBytesNeeded)
@@ -284,14 +370,26 @@ extension EllipticCurvePoint {
     }
 
     @usableFromInline
-    package func affineCoordinates(group: BoringSSLEllipticCurveGroup) throws -> (x: ArbitraryPrecisionInteger, y: ArbitraryPrecisionInteger) {
+    package func affineCoordinates(
+        group: BoringSSLEllipticCurveGroup
+    ) throws -> (
+        x: ArbitraryPrecisionInteger, y: ArbitraryPrecisionInteger
+    ) {
         var x = ArbitraryPrecisionInteger()
         var y = ArbitraryPrecisionInteger()
 
         try x.withUnsafeMutableBignumPointer { xPtr in
             try y.withUnsafeMutableBignumPointer { yPtr in
                 try group.withUnsafeGroupPointer { groupPtr in
-                    guard CCryptoBoringSSL_EC_POINT_get_affine_coordinates_GFp(groupPtr, self._basePoint, xPtr, yPtr, nil) != 0 else {
+                    guard
+                        CCryptoBoringSSL_EC_POINT_get_affine_coordinates_GFp(
+                            groupPtr,
+                            self._basePoint,
+                            xPtr,
+                            yPtr,
+                            nil
+                        ) != 0
+                    else {
                         throw CryptoBoringWrapperError.internalBoringSSLError()
                     }
                 }
