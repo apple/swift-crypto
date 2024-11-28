@@ -1,7 +1,7 @@
-diff --git a/Sources/CCryptoBoringSSL/crypto/evp/print.c b/Sources/CCryptoBoringSSL/crypto/evp/print.c
+diff --git a/Sources/CCryptoBoringSSL/crypto/evp/print.cc b/Sources/CCryptoBoringSSL/crypto/evp/print.cc
 index 89ceb32..5e6fb2f 100644
---- a/Sources/CCryptoBoringSSL/crypto/evp/print.c
-+++ b/Sources/CCryptoBoringSSL/crypto/evp/print.c
+--- a/Sources/CCryptoBoringSSL/crypto/evp/print.cc
++++ b/Sources/CCryptoBoringSSL/crypto/evp/print.cc
 @@ -50,6 +50,8 @@
   * (eay@cryptsoft.com).  This product includes software written by Tim
   * Hudson (tjh@cryptsoft.com). */
