@@ -12,16 +12,33 @@ jobs:
       license_header_check_project_name: "SwiftCrypto"
       docs_check_enabled: false
 
+  construct-cmake-matrix:
+    name: Construct cmake matrix
+    runs-on: ubuntu-latest
+    outputs:
+      cmake-matrix: '${{ steps.generate-matrix.outputs.cmake-matrix }}'
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - id: generate-matrix
+        run: echo "cmake-matrix=$(./scripts/generate_matrix.sh)" >> "$GITHUB_OUTPUT"
+        env:
+          MATRIX_LINUX_COMMAND: "./scripts/check-cmake-lists.sh"
+
   cmake-lists:
     name: Check cmake lists
-    uses: apple/swift-nio/.github/workflows/swift_matrix.yml@main
+    needs: construct-cmake-matrix
+    # TODO: use global reference
+    uses: ./.github/workflows/swift_test_matrix.yml
     with:
       name: "Check cmake lists"
-      matrix_linux_command: ./scripts/check-cmake-lists.sh
+      matrix_string: '${{ needs.construct-cmake-matrix.outputs.cmake-matrix }}'
 
   unit-tests:
     name: Unit tests
-    uses: apple/swift-nio/.github/workflows/unit_tests.yml@main
+    uses: ./.github/workflows/unit_tests.yml
     with:
       linux_5_9_arguments_override: "--explicit-target-dependency-import-check error"
       linux_5_10_arguments_override: "--explicit-target-dependency-import-check error"
@@ -37,4 +54,4 @@ jobs:
 
   cxx-interop:
     name: Cxx interop
-    uses: apple/swift-nio/.github/workflows/cxx_interop.yml@main
+    uses: ./.github/workflows/cxx_interop.yml
