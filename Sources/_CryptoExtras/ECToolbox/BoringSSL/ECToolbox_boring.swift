@@ -117,7 +117,9 @@ struct OpenSSLGroupScalar<C: OpenSSLSupportedNISTCurve>: GroupScalar, CustomStri
     /// - Returns: The deserialized scalar
     init(bytes: Data, reductionIsModOrder: Bool = false) throws {
         if reductionIsModOrder {
-            self.init(try ArbitraryPrecisionInteger(bytes: bytes).modulo(C.group.weierstrassCoefficients.field))
+            self.init(
+                try ArbitraryPrecisionInteger(bytes: bytes).modulo(C.group.weierstrassCoefficients.field)
+            )
         } else {
             self.init(try ArbitraryPrecisionInteger(bytes: bytes).modulo(C.group.order))
         }
@@ -247,7 +249,7 @@ struct OpenSSLHashToCurve<C: OpenSSLSupportedNISTCurve>: HashToGroup {
 
     static func hashToScalar(_ data: Data, domainSeparationString: Data) throws -> GE.Scalar {
         // Force-unwrap: HashToField is guaranteed to produce one or more elements, so .first is always non-nil.
-        return try HashToField<C>.hashToField(
+        try HashToField<C>.hashToField(
             data,
             outputElementCount: 1,
             dst: Data("HashToScalar-".utf8) + domainSeparationString,
@@ -261,10 +263,18 @@ struct OpenSSLHashToCurve<C: OpenSSLSupportedNISTCurve>: HashToGroup {
         precondition(!domainSeparationString.isEmpty, "DST must be non-empty.")
         switch C.self {
         case is P256.Type:
-            let point = try! EllipticCurvePoint(hashing: data, to: P256.group, domainSeparationTag: domainSeparationString)
+            let point = try! EllipticCurvePoint(
+                hashing: data,
+                to: P256.group,
+                domainSeparationTag: domainSeparationString
+            )
             return OpenSSLCurvePoint(ecPoint: point)
         case is P384.Type:
-            let point = try! EllipticCurvePoint(hashing: data, to: P384.group, domainSeparationTag: domainSeparationString)
+            let point = try! EllipticCurvePoint(
+                hashing: data,
+                to: P384.group,
+                domainSeparationTag: domainSeparationString
+            )
             return OpenSSLCurvePoint(ecPoint: point)
         case is P521.Type:
             // BoringSSL doesn't have implementation of P521_XMD:SHA-512_SSWU_RO_.

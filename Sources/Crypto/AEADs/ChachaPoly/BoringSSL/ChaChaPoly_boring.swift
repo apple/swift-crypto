@@ -21,20 +21,40 @@ import Foundation
 
 extension BoringSSLAEAD {
     /// Seal a given message.
-    func seal<Plaintext: DataProtocol, Nonce: ContiguousBytes, AuthenticatedData: DataProtocol>(message: Plaintext, key: SymmetricKey, nonce: Nonce, authenticatedData: AuthenticatedData) throws -> (ciphertext: Data, tag: Data) {
+    func seal<Plaintext: DataProtocol, Nonce: ContiguousBytes, AuthenticatedData: DataProtocol>(
+        message: Plaintext,
+        key: SymmetricKey,
+        nonce: Nonce,
+        authenticatedData: AuthenticatedData
+    ) throws -> (ciphertext: Data, tag: Data) {
         do {
             let context = try AEADContext(cipher: self, key: key)
-            return try context.seal(message: message, nonce: nonce, authenticatedData: authenticatedData)
+            return try context.seal(
+                message: message,
+                nonce: nonce,
+                authenticatedData: authenticatedData
+            )
         } catch CryptoBoringWrapperError.underlyingCoreCryptoError(let errorCode) {
             throw CryptoKitError.underlyingCoreCryptoError(error: errorCode)
         }
     }
 
     /// Open a given message.
-    func open<Nonce: ContiguousBytes, AuthenticatedData: DataProtocol>(ciphertext: Data, key: SymmetricKey, nonce: Nonce, tag: Data, authenticatedData: AuthenticatedData) throws -> Data {
+    func open<Nonce: ContiguousBytes, AuthenticatedData: DataProtocol>(
+        ciphertext: Data,
+        key: SymmetricKey,
+        nonce: Nonce,
+        tag: Data,
+        authenticatedData: AuthenticatedData
+    ) throws -> Data {
         do {
             let context = try AEADContext(cipher: self, key: key)
-            return try context.open(ciphertext: ciphertext, nonce: nonce, tag: tag, authenticatedData: authenticatedData)
+            return try context.open(
+                ciphertext: ciphertext,
+                nonce: nonce,
+                tag: tag,
+                authenticatedData: authenticatedData
+            )
         } catch CryptoBoringWrapperError.underlyingCoreCryptoError(let errorCode) {
             throw CryptoKitError.underlyingCoreCryptoError(error: errorCode)
         }
@@ -42,7 +62,12 @@ extension BoringSSLAEAD {
 }
 
 enum OpenSSLChaChaPolyImpl {
-    static func encrypt<M: DataProtocol, AD: DataProtocol>(key: SymmetricKey, message: M, nonce: ChaChaPoly.Nonce?, authenticatedData: AD?) throws -> ChaChaPoly.SealedBox {
+    static func encrypt<M: DataProtocol, AD: DataProtocol>(
+        key: SymmetricKey,
+        message: M,
+        nonce: ChaChaPoly.Nonce?,
+        authenticatedData: AD?
+    ) throws -> ChaChaPoly.SealedBox {
         guard key.bitCount == ChaChaPoly.keyBitsCount else {
             throw CryptoKitError.incorrectKeySize
         }
@@ -51,24 +76,50 @@ enum OpenSSLChaChaPolyImpl {
         let ciphertext: Data
         let tag: Data
         if let ad = authenticatedData {
-            (ciphertext, tag) = try BoringSSLAEAD.chacha20.seal(message: message, key: key, nonce: nonce, authenticatedData: ad)
+            (ciphertext, tag) = try BoringSSLAEAD.chacha20.seal(
+                message: message,
+                key: key,
+                nonce: nonce,
+                authenticatedData: ad
+            )
         } else {
-            (ciphertext, tag) = try BoringSSLAEAD.chacha20.seal(message: message, key: key, nonce: nonce, authenticatedData: [])
+            (ciphertext, tag) = try BoringSSLAEAD.chacha20.seal(
+                message: message,
+                key: key,
+                nonce: nonce,
+                authenticatedData: []
+            )
         }
 
         return try ChaChaPoly.SealedBox(nonce: nonce, ciphertext: ciphertext, tag: tag)
     }
 
-    static func decrypt<AD: DataProtocol>(key: SymmetricKey, ciphertext: ChaChaPoly.SealedBox, authenticatedData: AD?) throws -> Data {
+    static func decrypt<AD: DataProtocol>(
+        key: SymmetricKey,
+        ciphertext: ChaChaPoly.SealedBox,
+        authenticatedData: AD?
+    ) throws -> Data {
         guard key.bitCount == ChaChaPoly.keyBitsCount else {
             throw CryptoKitError.incorrectKeySize
         }
 
         if let ad = authenticatedData {
-            return try BoringSSLAEAD.chacha20.open(ciphertext: ciphertext.ciphertext, key: key, nonce: ciphertext.nonce, tag: ciphertext.tag, authenticatedData: ad)
+            return try BoringSSLAEAD.chacha20.open(
+                ciphertext: ciphertext.ciphertext,
+                key: key,
+                nonce: ciphertext.nonce,
+                tag: ciphertext.tag,
+                authenticatedData: ad
+            )
         } else {
-            return try BoringSSLAEAD.chacha20.open(ciphertext: ciphertext.ciphertext, key: key, nonce: ciphertext.nonce, tag: ciphertext.tag, authenticatedData: [])
+            return try BoringSSLAEAD.chacha20.open(
+                ciphertext: ciphertext.ciphertext,
+                key: key,
+                nonce: ciphertext.nonce,
+                tag: ciphertext.tag,
+                authenticatedData: []
+            )
         }
     }
 }
-#endif // CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
+#endif  // CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API

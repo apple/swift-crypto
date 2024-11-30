@@ -16,7 +16,12 @@ import Foundation
 /// This function performs a safe comparison between two buffers of bytes. It exists as a temporary shim until we refactor
 /// some of the usage sites to pass better data structures to us.
 @inlinable
-internal func openSSLSafeCompare<LHS: ContiguousBytes, RHS: ContiguousBytes>(_ lhs: LHS, _ rhs: RHS) -> Bool {
+internal func openSSLSafeCompare<LHS: ContiguousBytes, RHS: ContiguousBytes>(
+    _ lhs: LHS,
+    _ rhs: RHS
+)
+    -> Bool
+{
     lhs.withUnsafeBytes { lhsPtr in
         rhs.withUnsafeBytes { rhsPtr in
             constantTimeCompare(lhsPtr, rhsPtr)
@@ -26,7 +31,8 @@ internal func openSSLSafeCompare<LHS: ContiguousBytes, RHS: ContiguousBytes>(_ l
 
 /// A straightforward constant-time comparison function for any two collections of bytes.
 @inlinable
-internal func constantTimeCompare<LHS: Collection, RHS: Collection>(_ lhs: LHS, _ rhs: RHS) -> Bool where LHS.Element == UInt8, RHS.Element == UInt8 {
+internal func constantTimeCompare<LHS: Collection, RHS: Collection>(_ lhs: LHS, _ rhs: RHS) -> Bool
+where LHS.Element == UInt8, RHS.Element == UInt8 {
     guard lhs.count == rhs.count else {
         return false
     }
