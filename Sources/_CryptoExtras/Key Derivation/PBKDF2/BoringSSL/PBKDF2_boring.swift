@@ -12,6 +12,7 @@
 //
 //===----------------------------------------------------------------------===//
 import Crypto
+
 #if canImport(Darwin) || swift(>=5.9.1)
 import Foundation
 #else
@@ -31,23 +32,36 @@ internal struct BoringSSLPBKDF2 {
     ///    - outputByteCount: The length in bytes of resulting symmetric key.
     ///    - rounds: The number of rounds which should be used to perform key derivation.
     /// - Returns: The derived symmetric key.
-    static func deriveKey<Passphrase: DataProtocol, Salt: DataProtocol>(from password: Passphrase, salt: Salt, using hashFunction: KDF.Insecure.PBKDF2.HashFunction, outputByteCount: Int, rounds: Int) throws -> SymmetricKey {
+    static func deriveKey<Passphrase: DataProtocol, Salt: DataProtocol>(
+        from password: Passphrase,
+        salt: Salt,
+        using hashFunction: KDF.Insecure.PBKDF2.HashFunction,
+        outputByteCount: Int,
+        rounds: Int
+    ) throws -> SymmetricKey {
         // This should be SecureBytes, but we can't use that here.
         var derivedKeyData = Data(count: outputByteCount)
-        
+
         let rc = derivedKeyData.withUnsafeMutableBytes { derivedKeyBytes -> Int32 in
             let saltBytes: ContiguousBytes = salt.regions.count == 1 ? salt.regions.first! : Array(salt)
             return saltBytes.withUnsafeBytes { saltBytes -> Int32 in
-                let passwordBytes: ContiguousBytes = password.regions.count == 1 ? password.regions.first! : Array(password)
+                let passwordBytes: ContiguousBytes =
+                    password.regions.count == 1 ? password.regions.first! : Array(password)
                 return passwordBytes.withUnsafeBytes { passwordBytes -> Int32 in
-                    return CCryptoBoringSSL_PKCS5_PBKDF2_HMAC(passwordBytes.baseAddress!, passwordBytes.count,
-                                                              saltBytes.baseAddress!, saltBytes.count,
-                                                              UInt32(rounds), hashFunction.digest,
-                                                              derivedKeyBytes.count, derivedKeyBytes.baseAddress!)
+                    CCryptoBoringSSL_PKCS5_PBKDF2_HMAC(
+                        passwordBytes.baseAddress!,
+                        passwordBytes.count,
+                        saltBytes.baseAddress!,
+                        saltBytes.count,
+                        UInt32(rounds),
+                        hashFunction.digest,
+                        derivedKeyBytes.count,
+                        derivedKeyBytes.baseAddress!
+                    )
                 }
             }
         }
-        
+
         guard rc == 1 else {
             throw CryptoKitError.internalBoringSSLError()
         }

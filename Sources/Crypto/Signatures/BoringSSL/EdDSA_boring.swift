@@ -24,7 +24,12 @@ extension Curve25519.Signing.PublicKey {
     static let signatureByteCount = Curve25519.Signing.signatureByteCount
 
     @inlinable
-    func openSSLIsValidSignature<S: DataProtocol, D: DataProtocol>(_ signature: S, for data: D) -> Bool {
+    func openSSLIsValidSignature<S: DataProtocol, D: DataProtocol>(
+        _ signature: S,
+        for data: D
+    )
+        -> Bool
+    {
         if signature.count != Curve25519.Signing.PublicKey.signatureByteCount {
             return false
         }
@@ -33,21 +38,36 @@ extension Curve25519.Signing.PublicKey {
         switch (signature.regions.count, data.regions.count) {
         case (1, 1):
             // Both data protocols are secretly contiguous.
-            return self.openSSLIsValidSignature(contiguousSignature: signature.regions.first!, contiguousData: data.regions.first!)
+            return self.openSSLIsValidSignature(
+                contiguousSignature: signature.regions.first!,
+                contiguousData: data.regions.first!
+            )
         case (1, _):
             // The data isn't contiguous: we make it so.
-            return self.openSSLIsValidSignature(contiguousSignature: signature.regions.first!, contiguousData: Array(data))
+            return self.openSSLIsValidSignature(
+                contiguousSignature: signature.regions.first!,
+                contiguousData: Array(data)
+            )
         case (_, 1):
             // The signature isn't contiguous, make it so.
-            return self.openSSLIsValidSignature(contiguousSignature: Array(signature), contiguousData: data.regions.first!)
+            return self.openSSLIsValidSignature(
+                contiguousSignature: Array(signature),
+                contiguousData: data.regions.first!
+            )
         case (_, _):
             // Neither are contiguous.
-            return self.openSSLIsValidSignature(contiguousSignature: Array(signature), contiguousData: Array(data))
+            return self.openSSLIsValidSignature(
+                contiguousSignature: Array(signature),
+                contiguousData: Array(data)
+            )
         }
     }
 
     @inlinable
-    func openSSLIsValidSignature<S: ContiguousBytes, D: ContiguousBytes>(contiguousSignature signature: S, contiguousData data: D) -> Bool {
+    func openSSLIsValidSignature<S: ContiguousBytes, D: ContiguousBytes>(
+        contiguousSignature signature: S,
+        contiguousData data: D
+    ) -> Bool {
         signature.withUnsafeBytes { signaturePointer in
             data.withUnsafeBytes { dataPointer in
                 self.openSSLIsValidSignature(signaturePointer: signaturePointer, dataPointer: dataPointer)
@@ -57,14 +77,19 @@ extension Curve25519.Signing.PublicKey {
 
     // We need this factored out because self.keyBytes is not @usableFromInline, and so we can't see it.
     @usableFromInline
-    func openSSLIsValidSignature(signaturePointer: UnsafeRawBufferPointer, dataPointer: UnsafeRawBufferPointer) -> Bool {
+    func openSSLIsValidSignature(
+        signaturePointer: UnsafeRawBufferPointer,
+        dataPointer: UnsafeRawBufferPointer
+    ) -> Bool {
         precondition(signaturePointer.count == Curve25519.Signing.PublicKey.signatureByteCount)
         precondition(self.keyBytes.count == 32)
         let rc: CInt = self.keyBytes.withUnsafeBytes { keyBytesPtr in
-            CCryptoBoringSSLShims_ED25519_verify(dataPointer.baseAddress,
-                                                 dataPointer.count,
-                                                 signaturePointer.baseAddress,
-                                                 keyBytesPtr.baseAddress)
+            CCryptoBoringSSLShims_ED25519_verify(
+                dataPointer.baseAddress,
+                dataPointer.count,
+                signaturePointer.baseAddress,
+                keyBytesPtr.baseAddress
+            )
         }
 
         return rc == 1
@@ -97,7 +122,12 @@ extension Curve25519.Signing.PrivateKey {
                 precondition(signaturePointer.count == Curve25519.Signing.PublicKey.signatureByteCount)
                 precondition(keyPointer.count == ED25519_PRIVATE_KEY_LEN)
 
-                return CCryptoBoringSSLShims_ED25519_sign(signaturePointer.baseAddress, dataPointer.baseAddress, dataPointer.count, keyPointer.baseAddress)
+                return CCryptoBoringSSLShims_ED25519_sign(
+                    signaturePointer.baseAddress,
+                    dataPointer.baseAddress,
+                    dataPointer.count,
+                    keyPointer.baseAddress
+                )
             }
         }
 
@@ -108,4 +138,4 @@ extension Curve25519.Signing.PrivateKey {
         return signature
     }
 }
-#endif // CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
+#endif  // CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
