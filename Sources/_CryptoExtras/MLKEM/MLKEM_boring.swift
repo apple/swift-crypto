@@ -12,10 +12,9 @@
 //
 //===----------------------------------------------------------------------===//
 
+@_implementationOnly import CCryptoBoringSSL
 import Crypto
 import Foundation
-
-@_implementationOnly import CCryptoBoringSSL
 
 /// A module-lattice-based key encapsulation mechanism that provides security against quantum computing attacks.
 @available(macOS 14.0, *)
@@ -40,9 +39,9 @@ extension MLKEM {
         }
 
         /// Initialize a ML-KEM-768 private key from a seed.
-        /// 
+        ///
         /// - Parameter seed: The seed to use to generate the private key.
-        /// 
+        ///
         /// - Throws: `CryptoKitError.incorrectKeySize` if the seed is not 64 bytes long.
         public init(seed: some DataProtocol) throws {
             self.backing = try Backing(seed: seed)
@@ -79,7 +78,9 @@ extension MLKEM {
                 self.seed = Data()
 
                 self.seed = withUnsafeTemporaryAllocation(of: UInt8.self, capacity: MLKEM.seedSizeInBytes) { seedPtr in
-                    withUnsafeTemporaryAllocation(of: UInt8.self, capacity: MLKEM.PublicKey.bytesCount) { publicKeyPtr in
+                    withUnsafeTemporaryAllocation(
+                        of: UInt8.self, capacity: MLKEM.PublicKey.bytesCount
+                    ) { publicKeyPtr in
                         CCryptoBoringSSL_MLKEM768_generate_key(publicKeyPtr.baseAddress, seedPtr.baseAddress, &self.key)
 
                         return Data(bytes: seedPtr.baseAddress!, count: MLKEM.seedSizeInBytes)
@@ -88,9 +89,9 @@ extension MLKEM {
             }
 
             /// Initialize a ML-KEM-768 private key from a seed.
-            /// 
+            ///
             /// - Parameter seed: The seed to use to generate the private key.
-            /// 
+            ///
             /// - Throws: `CryptoKitError.incorrectKeySize` if the seed is not 64 bytes long.
             init(seed: some DataProtocol) throws {
                 guard seed.count == MLKEM.seedSizeInBytes else {
@@ -100,13 +101,15 @@ extension MLKEM {
                 self.key = .init()
                 self.seed = Data(seed)
 
-                guard self.seed.withUnsafeBytes({ seedPtr in
-                    CCryptoBoringSSL_MLKEM768_private_key_from_seed(
-                        &self.key,
-                        seedPtr.baseAddress,
-                        seedPtr.count
-                    )
-                }) == 1 else {
+                guard
+                    self.seed.withUnsafeBytes({ seedPtr in
+                        CCryptoBoringSSL_MLKEM768_private_key_from_seed(
+                            &self.key,
+                            seedPtr.baseAddress,
+                            seedPtr.count
+                        )
+                    }) == 1
+                else {
                     throw CryptoKitError.internalBoringSSLError()
                 }
             }
@@ -128,8 +131,13 @@ extension MLKEM {
                     throw CryptoKitError.incorrectParameterSize
                 }
 
-                let output = try Array<UInt8>(unsafeUninitializedCapacity: MLKEM.sharedSecretSizeInBytes) { bufferPtr, length in
-                    let bytes: ContiguousBytes = encapsulated.regions.count == 1 ? encapsulated.regions.first! : Array(encapsulated)
+                let output = try [UInt8](
+                    unsafeUninitializedCapacity: MLKEM.sharedSecretSizeInBytes
+                ) { bufferPtr, length in
+                    let bytes: ContiguousBytes =
+                        encapsulated.regions.count == 1
+                        ? encapsulated.regions.first!
+                        : Array(encapsulated)
                     let result = bytes.withUnsafeBytes { encapsulatedPtr in
                         CCryptoBoringSSL_MLKEM768_decap(
                             bufferPtr.baseAddress,
@@ -163,9 +171,9 @@ extension MLKEM {
         }
 
         /// Initialize a ML-KEM-768 public key from a raw representation.
-        /// 
+        ///
         /// - Parameter rawRepresentation: The public key bytes.
-        /// 
+        ///
         /// - Throws: `CryptoKitError.incorrectKeySize` if the raw representation is not the correct size.
         init(rawRepresentation: some DataProtocol) throws {
             self.backing = try Backing(rawRepresentation: rawRepresentation)
@@ -195,9 +203,9 @@ extension MLKEM {
             }
 
             /// Initialize a ML-KEM-768 public key from a raw representation.
-            /// 
+            ///
             /// - Parameter rawRepresentation: The public key bytes.
-            /// 
+            ///
             /// - Throws: `CryptoKitError.incorrectKeySize` if the raw representation is not the correct size.
             init(rawRepresentation: some DataProtocol) throws {
                 guard rawRepresentation.count == MLKEM.PublicKey.bytesCount else {
@@ -206,7 +214,10 @@ extension MLKEM {
 
                 self.key = .init()
 
-                let bytes: ContiguousBytes = rawRepresentation.regions.count == 1 ? rawRepresentation.regions.first! : Array(rawRepresentation)
+                let bytes: ContiguousBytes =
+                    rawRepresentation.regions.count == 1
+                    ? rawRepresentation.regions.first!
+                    : Array(rawRepresentation)
                 try bytes.withUnsafeBytes { rawBuffer in
                     try rawBuffer.withMemoryRebound(to: UInt8.self) { buffer in
                         var cbs = CBS(data: buffer.baseAddress, len: buffer.count)
@@ -226,13 +237,17 @@ extension MLKEM {
                 CCryptoBoringSSL_MLKEM768_marshal_public_key(&cbb, &self.key)
                 return Data(bytes: CCryptoBoringSSL_CBB_data(&cbb), count: CCryptoBoringSSL_CBB_len(&cbb))
             }
-            
+
             /// Encapsulate a shared secret.
             ///
             /// - Returns: The shared secret and its encapsulated version.
             func encapsulate() -> KEM.EncapsulationResult {
-                withUnsafeTemporaryAllocation(of: UInt8.self, capacity: MLKEM.ciphertextSizeInBytes) { encapsulatedPtr in
-                    withUnsafeTemporaryAllocation(of: UInt8.self, capacity: MLKEM.sharedSecretSizeInBytes) { secretPtr in
+                withUnsafeTemporaryAllocation(
+                    of: UInt8.self, capacity: MLKEM.ciphertextSizeInBytes
+                ) { encapsulatedPtr in
+                    withUnsafeTemporaryAllocation(
+                        of: UInt8.self, capacity: MLKEM.sharedSecretSizeInBytes
+                    ) { secretPtr in
                         CCryptoBoringSSL_MLKEM768_encap(
                             encapsulatedPtr.baseAddress,
                             secretPtr.baseAddress,
@@ -240,7 +255,9 @@ extension MLKEM {
                         )
 
                         return KEM.EncapsulationResult(
-                            sharedSecret: SymmetricKey(data: Data(bytes: secretPtr.baseAddress!, count: MLKEM.sharedSecretSizeInBytes)),
+                            sharedSecret: SymmetricKey(
+                                data: Data(bytes: secretPtr.baseAddress!, count: MLKEM.sharedSecretSizeInBytes)
+                            ),
                             encapsulated: Data(bytes: encapsulatedPtr.baseAddress!, count: MLKEM.ciphertextSizeInBytes)
                         )
                     }
