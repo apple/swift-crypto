@@ -2,6 +2,7 @@
 **/.gitignore
 .licenseignore
 .unacceptablelanguageignore
+.swiftformatignore
 .gitattributes
 .git-blame-ignore-revs
 .mailfilter

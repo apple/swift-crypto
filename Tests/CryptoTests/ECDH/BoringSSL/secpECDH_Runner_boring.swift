@@ -25,7 +25,16 @@ import XCTest
 #endif
 
 extension NISTECDHTests {
-    func testGroupOpenSSL<PrivKey: NISTECPrivateKey & DiffieHellmanKeyAgreement, Curve: OpenSSLSupportedNISTCurve>(group: ECDHTestGroup, privateKeys: PrivKey.Type, onCurve curve: Curve.Type, file: StaticString = #file, line: UInt = #line) {
+    func testGroupOpenSSL<
+        PrivKey: NISTECPrivateKey & DiffieHellmanKeyAgreement,
+        Curve: OpenSSLSupportedNISTCurve
+    >(
+        group: ECDHTestGroup,
+        privateKeys: PrivKey.Type,
+        onCurve curve: Curve.Type,
+        file: StaticString = #file,
+        line: UInt = #line
+    ) {
         for testVector in group.tests {
             do {
                 let pkBytes = try Array(hexString: testVector.publicKey)
@@ -43,18 +52,41 @@ extension NISTECDHTests {
 
                 XCTAssertEqual(Array(result.ss), Array(expectedResult), file: file, line: line)
             } catch ECDHTestErrors.PublicKeyFailure {
-                XCTAssert(testVector.flags.contains("CompressedPoint") || testVector.result == "invalid" || testVector.flags.contains("InvalidPublic") || testVector.flags.contains("InvalidAsn"), file: file, line: line)
+                XCTAssert(
+                    testVector.flags.contains("CompressedPoint") || testVector.result == "invalid"
+                        || testVector.flags.contains("InvalidPublic")
+                        || testVector.flags.contains("InvalidAsn"),
+                    file: file,
+                    line: line
+                )
             } catch ECDHTestErrors.ParseSPKIFailure {
-                XCTAssert(testVector.flags.contains("InvalidAsn") || testVector.flags.contains("UnnamedCurve"), file: file, line: line)
+                XCTAssert(
+                    testVector.flags.contains("InvalidAsn") || testVector.flags.contains("UnnamedCurve"),
+                    file: file,
+                    line: line
+                )
             } catch {
                 if testVector.result == "valid" {
-                    XCTAssert(testVector.tcId == 31 || testVector.tcId == 20 || testVector.tcId == 25, file: file, line: line)
+                    XCTAssert(
+                        testVector.tcId == 31 || testVector.tcId == 20 || testVector.tcId == 25,
+                        file: file,
+                        line: line
+                    )
                 }
             }
         }
     }
 
-    func testGroupPointOpenSSL<PrivKey: NISTECPrivateKey & DiffieHellmanKeyAgreement, Curve: OpenSSLSupportedNISTCurve>(group: ECDHTestGroup, privateKeys: PrivKey.Type, onCurve curve: Curve.Type, file: StaticString = #file, line: UInt = #line) {
+    func testGroupPointOpenSSL<
+        PrivKey: NISTECPrivateKey & DiffieHellmanKeyAgreement,
+        Curve: OpenSSLSupportedNISTCurve
+    >(
+        group: ECDHTestGroup,
+        privateKeys: PrivKey.Type,
+        onCurve curve: Curve.Type,
+        file: StaticString = #file,
+        line: UInt = #line
+    ) {
         for testVector in group.tests {
             do {
                 let pkBytes = try Array(hexString: testVector.publicKey)
@@ -86,7 +118,12 @@ extension NISTECDHTests {
         }
     }
 
-    private func padKeyIfNecessary<Curve: OpenSSLSupportedNISTCurve>(curve: Curve.Type, vector: String, file: StaticString = #file, line: UInt = #line) throws -> [UInt8] {
+    private func padKeyIfNecessary<Curve: OpenSSLSupportedNISTCurve>(
+        curve: Curve.Type,
+        vector: String,
+        file: StaticString = #file,
+        line: UInt = #line
+    ) throws -> [UInt8] {
         // There are a few edge cases here.
         //
         // First, our raw bytes function requires the
@@ -107,7 +144,10 @@ extension NISTECDHTests {
             privateBytes = privateKeyVector
         } else {
             // Input is too short
-            privateBytes.replaceSubrange((privateBytes.count - privateKeyVector.count) ..< privateBytes.count, with: privateKeyVector)
+            privateBytes.replaceSubrange(
+                (privateBytes.count - privateKeyVector.count)..<privateBytes.count,
+                with: privateKeyVector
+            )
         }
 
         return privateBytes
@@ -125,7 +165,9 @@ extension NISTECPublicKey {
         // This means we've only one option: we have to implement "just enough" ASN.1.
         var derBytes = derBytes[...]
         let spki = try ASN1SubjectPublicKeyInfo(fromASN1: &derBytes)
-        guard derBytes.count == 0, spki.algorithm.algorithm == ASN1ObjectIdentifier.AlgorithmIdentifier.idEcPublicKey else {
+        guard derBytes.count == 0,
+            spki.algorithm.algorithm == ASN1ObjectIdentifier.AlgorithmIdentifier.idEcPublicKey
+        else {
             throw ECDHTestErrors.ParseSPKIFailure
         }
 
@@ -138,4 +180,4 @@ extension NISTECPublicKey {
     }
 }
 
-#endif // CRYPTO_IN_SWIFTPM
+#endif  // CRYPTO_IN_SWIFTPM

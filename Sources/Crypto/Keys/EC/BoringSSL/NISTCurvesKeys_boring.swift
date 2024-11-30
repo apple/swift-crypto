@@ -144,7 +144,7 @@ class BoringSSLECPrivateKeyWrapper<Curve: OpenSSLSupportedNISTCurve> {
 
         // If we've been asked to generate a compact representable key, we need to try a few times. This loop shouldn't
         // execute more than 100 times: if it does, we'll crash because something bad is happening.
-        for _ in 0 ..< 100 {
+        for _ in 0..<100 {
             // We generate FIPS compliant keys to match the behaviour of CryptoKit on Apple platforms.
             guard CCryptoBoringSSL_EC_KEY_generate_key(self.key) != 0 else {
                 throw CryptoKitError.internalBoringSSLError()
@@ -155,7 +155,9 @@ class BoringSSLECPrivateKeyWrapper<Curve: OpenSSLSupportedNISTCurve> {
                 continue
             }
 
-            if !compactRepresentable || _isCompactRepresentable(group: group, publicKeyPoint: self.publicKeyPoint) {
+            if !compactRepresentable
+                || _isCompactRepresentable(group: group, publicKeyPoint: self.publicKeyPoint)
+            {
                 return
             }
         }
@@ -221,7 +223,10 @@ class BoringSSLECPrivateKeyWrapper<Curve: OpenSSLSupportedNISTCurve> {
             try y.withUnsafeMutableBignumPointer { yPointer in
                 // This function is missing some const declarations here, which is why we need the bignums inout.
                 // If that gets fixed, we can clean this function up.
-                guard CCryptoBoringSSL_EC_KEY_set_public_key_affine_coordinates(self.key, xPointer, yPointer) != 0 else {
+                guard
+                    CCryptoBoringSSL_EC_KEY_set_public_key_affine_coordinates(self.key, xPointer, yPointer)
+                        != 0
+                else {
                     throw CryptoKitError.internalBoringSSLError()
                 }
             }
@@ -244,7 +249,10 @@ class BoringSSLECPrivateKeyWrapper<Curve: OpenSSLSupportedNISTCurve> {
 
     @usableFromInline
     var publicKeyPoint: EllipticCurvePoint {
-        try! EllipticCurvePoint(copying: CCryptoBoringSSL_EC_KEY_get0_public_key(self.key)!, on: Curve.group)
+        try! EllipticCurvePoint(
+            copying: CCryptoBoringSSL_EC_KEY_get0_public_key(self.key)!,
+            on: Curve.group
+        )
     }
 
     @usableFromInline
@@ -258,7 +266,10 @@ class BoringSSLECPrivateKeyWrapper<Curve: OpenSSLSupportedNISTCurve> {
         // consistency errors.
         var bytes = Data()
         bytes.reserveCapacity(Curve.group.coordinateByteCount)
-        try! bytes.append(bytesOf: self.privateKeyScalar, paddedToSize: Curve.group.coordinateByteCount)
+        try! bytes.append(
+            bytesOf: self.privateKeyScalar,
+            paddedToSize: Curve.group.coordinateByteCount
+        )
         return bytes
     }
 
@@ -289,7 +300,13 @@ class BoringSSLECPrivateKeyWrapper<Curve: OpenSSLSupportedNISTCurve> {
 
         return try SecureBytes(unsafeUninitializedCapacity: outputSize) { secretPtr, secretSize in
             let rc = pubKeyPoint.withPointPointer { pointPtr in
-                CCryptoBoringSSL_ECDH_compute_key(secretPtr.baseAddress, secretPtr.count, pointPtr, self.key, nil)
+                CCryptoBoringSSL_ECDH_compute_key(
+                    secretPtr.baseAddress,
+                    secretPtr.count,
+                    pointPtr,
+                    self.key,
+                    nil
+                )
             }
 
             if rc == -1 {
@@ -301,7 +318,8 @@ class BoringSSLECPrivateKeyWrapper<Curve: OpenSSLSupportedNISTCurve> {
     }
 
     func sign<D: Digest>(digest: D) throws -> ECDSASignature {
-        let optionalRawSignature: UnsafeMutablePointer<ECDSA_SIG>? = digest.withUnsafeBytes { digestPtr in
+        let optionalRawSignature: UnsafeMutablePointer<ECDSA_SIG>? = digest.withUnsafeBytes {
+            digestPtr in
             CCryptoBoringSSLShims_ECDSA_do_sign(digestPtr.baseAddress, digestPtr.count, self.key)
         }
         guard let rawSignature = optionalRawSignature else {
@@ -488,7 +506,10 @@ class BoringSSLECPublicKeyWrapper<Curve: OpenSSLSupportedNISTCurve> {
 
     @usableFromInline
     var publicKeyPoint: EllipticCurvePoint {
-        try! EllipticCurvePoint(copying: CCryptoBoringSSL_EC_KEY_get0_public_key(self.key)!, on: Curve.group)
+        try! EllipticCurvePoint(
+            copying: CCryptoBoringSSL_EC_KEY_get0_public_key(self.key)!,
+            on: Curve.group
+        )
     }
 
     func setPublicKey(x: inout ArbitraryPrecisionInteger, y: inout ArbitraryPrecisionInteger) throws {
@@ -496,7 +517,10 @@ class BoringSSLECPublicKeyWrapper<Curve: OpenSSLSupportedNISTCurve> {
             try y.withUnsafeMutableBignumPointer { yPointer in
                 // This function is missing some const declarations here, which is why we need the bignums inout.
                 // If that gets fixed, we can clean this function up.
-                guard CCryptoBoringSSL_EC_KEY_set_public_key_affine_coordinates(self.key, xPointer, yPointer) != 0 else {
+                guard
+                    CCryptoBoringSSL_EC_KEY_set_public_key_affine_coordinates(self.key, xPointer, yPointer)
+                        != 0
+                else {
                     throw CryptoKitError.internalBoringSSLError()
                 }
             }
@@ -513,7 +537,13 @@ class BoringSSLECPublicKeyWrapper<Curve: OpenSSLSupportedNISTCurve> {
                 CCryptoBoringSSL_EC_POINT_free(point)
             }
             let rc = Curve.group.withUnsafeGroupPointer { groupPtr in
-                CCryptoBoringSSL_EC_POINT_set_compressed_coordinates_GFp(groupPtr, point, xPointer, yBit ? 1 : 0, nil)
+                CCryptoBoringSSL_EC_POINT_set_compressed_coordinates_GFp(
+                    groupPtr,
+                    point,
+                    xPointer,
+                    yBit ? 1 : 0,
+                    nil
+                )
             }
 
             guard rc == 1 else {
@@ -529,7 +559,12 @@ class BoringSSLECPublicKeyWrapper<Curve: OpenSSLSupportedNISTCurve> {
     func isValidSignature<D: Digest>(_ signature: ECDSASignature, for digest: D) -> Bool {
         let rc: CInt = signature.withUnsafeSignaturePointer { signaturePointer in
             digest.withUnsafeBytes { digestPointer in
-                CCryptoBoringSSLShims_ECDSA_do_verify(digestPointer.baseAddress, digestPointer.count, signaturePointer, self.key)
+                CCryptoBoringSSLShims_ECDSA_do_verify(
+                    digestPointer.baseAddress,
+                    digestPointer.count,
+                    signaturePointer,
+                    self.key
+                )
             }
         }
 
@@ -538,21 +573,23 @@ class BoringSSLECPublicKeyWrapper<Curve: OpenSSLSupportedNISTCurve> {
 }
 
 extension ContiguousBytes {
-    func readx963PrivateNumbers() throws -> (x: ArbitraryPrecisionInteger, y: ArbitraryPrecisionInteger, k: ArbitraryPrecisionInteger) {
+    func readx963PrivateNumbers() throws -> (
+        x: ArbitraryPrecisionInteger, y: ArbitraryPrecisionInteger, k: ArbitraryPrecisionInteger
+    ) {
         // The x9.63 private key format is a discriminator byte (0x4) concatenated with the X and Y points
         // of the public key, and the K value of the secret scalar. Let's load that in.
-        return try self.withUnsafeBytes { bytesPtr in
+        try self.withUnsafeBytes { bytesPtr in
             guard bytesPtr.first == 0x04 else {
-                throw CryptoKitError.incorrectKeySize // This is the same error CryptoKit throws on Apple platforms.
+                throw CryptoKitError.incorrectKeySize  // This is the same error CryptoKit throws on Apple platforms.
             }
 
             let stride = (bytesPtr.count - 1) / 3
             var offset = 1
-            let xPointer = UnsafeRawBufferPointer(rebasing: bytesPtr[offset ..< (offset + stride)])
+            let xPointer = UnsafeRawBufferPointer(rebasing: bytesPtr[offset..<(offset + stride)])
             offset += stride
-            let yPointer = UnsafeRawBufferPointer(rebasing: bytesPtr[offset ..< (offset + stride)])
+            let yPointer = UnsafeRawBufferPointer(rebasing: bytesPtr[offset..<(offset + stride)])
             offset += stride
-            let kPointer = UnsafeRawBufferPointer(rebasing: bytesPtr[offset ..< (offset + stride)])
+            let kPointer = UnsafeRawBufferPointer(rebasing: bytesPtr[offset..<(offset + stride)])
 
             let x = try ArbitraryPrecisionInteger(bytes: xPointer)
             let y = try ArbitraryPrecisionInteger(bytes: yPointer)
@@ -563,15 +600,19 @@ extension ContiguousBytes {
     }
 
     @inlinable
-    func readx963PublicNumbers() throws -> (x: ArbitraryPrecisionInteger, y: ArbitraryPrecisionInteger) {
+    func readx963PublicNumbers() throws -> (
+        x: ArbitraryPrecisionInteger, y: ArbitraryPrecisionInteger
+    ) {
         // The x9.63 public key format is a discriminator byte (0x4) concatenated with the X and Y points
         // of the public key. Let's load that in.
-        return try self.withUnsafeBytes { bytesPtr in
+        try self.withUnsafeBytes { bytesPtr in
             guard bytesPtr.first == 0x04 else {
-                throw CryptoKitError.incorrectKeySize // This is the same error CryptoKit throws on Apple platforms.
+                throw CryptoKitError.incorrectKeySize  // This is the same error CryptoKit throws on Apple platforms.
             }
 
-            return try readRawPublicNumbers(copyingBytes: UnsafeRawBufferPointer(rebasing: bytesPtr[1...]))
+            return try readRawPublicNumbers(
+                copyingBytes: UnsafeRawBufferPointer(rebasing: bytesPtr[1...])
+            )
         }
     }
 
@@ -579,7 +620,7 @@ extension ContiguousBytes {
     func readx963CompressedPublicNumbers() throws -> (x: ArbitraryPrecisionInteger, yBit: Bool) {
         // The x9.63 compressed public key format is a discriminator byte (0x2 or 0x3) that signals which
         // of the possible two Y values is being used, concatenated with the X point of the key.
-        return try self.withUnsafeBytes { bytesPtr in
+        try self.withUnsafeBytes { bytesPtr in
             let yBit: Bool
 
             switch bytesPtr.first {
@@ -588,7 +629,7 @@ extension ContiguousBytes {
             case 0x02:
                 yBit = false
             default:
-                throw CryptoKitError.incorrectKeySize // This is the same error CryptoKit throws on Apple platforms.
+                throw CryptoKitError.incorrectKeySize  // This is the same error CryptoKit throws on Apple platforms.
             }
 
             let xBytes = UnsafeRawBufferPointer(rebasing: bytesPtr.dropFirst())
@@ -600,12 +641,16 @@ extension ContiguousBytes {
 }
 
 @usableFromInline
-func readRawPublicNumbers(copyingBytes bytesPtr: UnsafeRawBufferPointer) throws -> (x: ArbitraryPrecisionInteger, y: ArbitraryPrecisionInteger) {
+func readRawPublicNumbers(
+    copyingBytes bytesPtr: UnsafeRawBufferPointer
+) throws -> (
+    x: ArbitraryPrecisionInteger, y: ArbitraryPrecisionInteger
+) {
     let stride = bytesPtr.count / 2
     var offset = 0
-    let xPointer = UnsafeRawBufferPointer(rebasing: bytesPtr[offset ..< (offset + stride)])
+    let xPointer = UnsafeRawBufferPointer(rebasing: bytesPtr[offset..<(offset + stride)])
     offset += stride
-    let yPointer = UnsafeRawBufferPointer(rebasing: bytesPtr[offset ..< (offset + stride)])
+    let yPointer = UnsafeRawBufferPointer(rebasing: bytesPtr[offset..<(offset + stride)])
 
     // We cannot handle allocation errors, so we check for fatal error.
     let x = try ArbitraryPrecisionInteger(bytes: xPointer)
@@ -619,7 +664,10 @@ func readRawPublicNumbers(copyingBytes bytesPtr: UnsafeRawBufferPointer) throws 
 /// The check is defined in https://tools.ietf.org/id/draft-jivsov-ecc-compact-05.html#rfc.section.4.2.1. Specifically, a
 /// point is compact representable if its y coordinate is the smaller of min(y, p-y) where p is the order of the prime field.
 @usableFromInline
-func _isCompactRepresentable(group: BoringSSLEllipticCurveGroup, publicKeyPoint: EllipticCurvePoint) -> Bool {
+func _isCompactRepresentable(
+    group: BoringSSLEllipticCurveGroup,
+    publicKeyPoint: EllipticCurvePoint
+) -> Bool {
     // We have three try!s here: any of those failing is the result of an allocation error, and we cannot recover from
     // those.
     let (_, y) = try! publicKeyPoint.affineCoordinates(group: group)
@@ -630,4 +678,4 @@ func _isCompactRepresentable(group: BoringSSLEllipticCurveGroup, publicKeyPoint:
     // The point is compact representable if y is less than or equal to newY.
     return y <= newY
 }
-#endif // CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
+#endif  // CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API

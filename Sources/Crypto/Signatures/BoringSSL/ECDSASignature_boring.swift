@@ -25,7 +25,9 @@ class ECDSASignature {
 
     init<ContiguousBuffer: ContiguousBytes>(contiguousDERBytes derBytes: ContiguousBuffer) throws {
         self._baseSig = try derBytes.withUnsafeBytes { bytesPtr in
-            guard let sig = CCryptoBoringSSLShims_ECDSA_SIG_from_bytes(bytesPtr.baseAddress, bytesPtr.count) else {
+            guard
+                let sig = CCryptoBoringSSLShims_ECDSA_SIG_from_bytes(bytesPtr.baseAddress, bytesPtr.count)
+            else {
                 throw CryptoKitError.internalBoringSSLError()
             }
             return sig
@@ -83,7 +85,10 @@ class ECDSASignature {
 
         // We force-unwrap here because a valid ECDSA_SIG cannot fail to have both R and S components.
         CCryptoBoringSSL_ECDSA_SIG_get0(self._baseSig, &rPtr, &sPtr)
-        return (r: try! ArbitraryPrecisionInteger(copying: rPtr!), s: try! ArbitraryPrecisionInteger(copying: sPtr!))
+        return (
+            r: try! ArbitraryPrecisionInteger(copying: rPtr!),
+            s: try! ArbitraryPrecisionInteger(copying: sPtr!)
+        )
     }
 
     @usableFromInline
@@ -101,8 +106,12 @@ class ECDSASignature {
         return Data(UnsafeBufferPointer(start: dataPtr, count: length))
     }
 
-    func withUnsafeSignaturePointer<T>(_ body: (UnsafeMutablePointer<ECDSA_SIG>) throws -> T) rethrows -> T {
+    func withUnsafeSignaturePointer<T>(
+        _ body: (UnsafeMutablePointer<ECDSA_SIG>) throws -> T
+    )
+        rethrows -> T
+    {
         try body(self._baseSig)
     }
 }
-#endif // CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
+#endif  // CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API

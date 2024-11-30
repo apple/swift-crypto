@@ -30,7 +30,11 @@ enum BoringSSLAESWRAPImpl {
                     // Memory bind is safe: we cannot alias the pointer here.
                     let keyToWrapPtr = keyToWrapPtr.bindMemory(to: UInt8.self)
                     return CCryptoBoringSSL_AES_wrap_key(
-                        aesKey, nil, outputPtr.baseAddress, keyToWrapPtr.baseAddress, keyToWrapPtr.count
+                        aesKey,
+                        nil,
+                        outputPtr.baseAddress,
+                        keyToWrapPtr.baseAddress,
+                        keyToWrapPtr.count
                     )
                 }
             }
@@ -45,7 +49,12 @@ enum BoringSSLAESWRAPImpl {
         return output.prefix(Int(rc))
     }
 
-    static func unwrap<WrappedKey: DataProtocol>(key: SymmetricKey, wrappedKey: WrappedKey) throws -> SymmetricKey {
+    static func unwrap<WrappedKey: DataProtocol>(
+        key: SymmetricKey,
+        wrappedKey: WrappedKey
+    ) throws
+        -> SymmetricKey
+    {
         if wrappedKey.regions.count == 1 {
             return try self.unwrap(key: key, contiguousWrappedKey: wrappedKey.regions.first!)
         } else {
@@ -54,14 +63,21 @@ enum BoringSSLAESWRAPImpl {
         }
     }
 
-    private static func unwrap<WrappedKey: ContiguousBytes>(key: SymmetricKey, contiguousWrappedKey: WrappedKey) throws -> SymmetricKey {
+    private static func unwrap<WrappedKey: ContiguousBytes>(
+        key: SymmetricKey,
+        contiguousWrappedKey: WrappedKey
+    ) throws -> SymmetricKey {
         let unwrapped = try contiguousWrappedKey.withUnsafeBytes { inPtr in
             try [UInt8](unsafeUninitializedCapacity: inPtr.count) { outputPtr, count in
                 // Bind is safe: we cannot violate the aliasing rules here as we never call to arbitrary code.
                 let inPtr = inPtr.bindMemory(to: UInt8.self)
                 let rc = try key.withUnsafeAESKEY(mode: .decrypting) { aesKey in
                     CCryptoBoringSSL_AES_unwrap_key(
-                        aesKey, nil, outputPtr.baseAddress, inPtr.baseAddress, inPtr.count
+                        aesKey,
+                        nil,
+                        outputPtr.baseAddress,
+                        inPtr.baseAddress,
+                        inPtr.count
                     )
                 }
 
@@ -85,7 +101,10 @@ extension SymmetricKey {
         case decrypting
     }
 
-    fileprivate func withUnsafeAESKEY<ResultType>(mode: AESKeyMode, _ body: (UnsafePointer<AES_KEY>) throws -> ResultType) throws -> ResultType {
+    fileprivate func withUnsafeAESKEY<ResultType>(
+        mode: AESKeyMode,
+        _ body: (UnsafePointer<AES_KEY>) throws -> ResultType
+    ) throws -> ResultType {
         try self.withUnsafeBytes { bytesPointer in
             // Bind is safe: cannot alias the pointer here.
             let bytesPointer = bytesPointer.bindMemory(to: UInt8.self)
@@ -97,11 +116,15 @@ extension SymmetricKey {
             switch mode {
             case .encrypting:
                 rc = CCryptoBoringSSL_AES_set_encrypt_key(
-                    bytesPointer.baseAddress!, bitsInKey, &aesKey
+                    bytesPointer.baseAddress!,
+                    bitsInKey,
+                    &aesKey
                 )
             case .decrypting:
                 rc = CCryptoBoringSSL_AES_set_decrypt_key(
-                    bytesPointer.baseAddress!, bitsInKey, &aesKey
+                    bytesPointer.baseAddress!,
+                    bitsInKey,
+                    &aesKey
                 )
             }
 
@@ -110,10 +133,10 @@ extension SymmetricKey {
             }
 
             return try withUnsafePointer(to: aesKey) {
-                return try body($0)
+                try body($0)
             }
         }
     }
 }
 
-#endif // CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
+#endif  // CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
