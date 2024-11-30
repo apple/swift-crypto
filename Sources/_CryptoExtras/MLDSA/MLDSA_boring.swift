@@ -12,10 +12,9 @@
 //
 //===----------------------------------------------------------------------===//
 
+@_implementationOnly import CCryptoBoringSSL
 import Crypto
 import Foundation
-
-@_implementationOnly import CCryptoBoringSSL
 
 /// A module-lattice-based digital signature algorithm that provides security against quantum computing attacks.
 public enum MLDSA {}
@@ -31,9 +30,9 @@ extension MLDSA {
         }
 
         /// Initialize a ML-DSA-65 private key from a seed.
-        /// 
+        ///
         /// - Parameter seed: The seed to use to generate the private key.
-        /// 
+        ///
         /// - Throws: `CryptoKitError.incorrectKeySize` if the seed is not 32 bytes long.
         public init(seed: some DataProtocol) throws {
             self.backing = try Backing(seed: seed)
@@ -50,11 +49,11 @@ extension MLDSA {
         }
 
         /// Generate a signature for the given data.
-        /// 
-        /// - Parameters: 
+        ///
+        /// - Parameters:
         ///   - data: The message to sign.
         ///   - context: The context to use for the signature.
-        /// 
+        ///
         /// - Returns: The signature of the message.
         public func signature<D: DataProtocol>(for data: D, context: D? = nil) throws -> Signature {
             try self.backing.signature(for: data, context: context)
@@ -69,16 +68,25 @@ extension MLDSA {
 
             /// Initialize a ML-DSA-65 private key from a random seed.
             init() throws {
+                // We have to initialize all members before `self` is captured by the closure
                 self.key = .init()
-                self.seed = Data() // We have to initialize all members before `self` is captured by the closure
+                self.seed = Data()
 
-                self.seed = try withUnsafeTemporaryAllocation(of: UInt8.self, capacity: MLDSA.seedSizeInBytes) { seedPtr in
-                    try withUnsafeTemporaryAllocation(of: UInt8.self, capacity: MLDSA.PublicKey.Backing.bytesCount) { publicKeyPtr in
-                        guard CCryptoBoringSSL_MLDSA65_generate_key(
-                            publicKeyPtr.baseAddress,
-                            seedPtr.baseAddress,
-                            &self.key
-                        ) == 1 else {
+                self.seed = try withUnsafeTemporaryAllocation(
+                    of: UInt8.self,
+                    capacity: MLDSA.seedSizeInBytes
+                ) { seedPtr in
+                    try withUnsafeTemporaryAllocation(
+                        of: UInt8.self,
+                        capacity: MLDSA.PublicKey.Backing.bytesCount
+                    ) { publicKeyPtr in
+                        guard
+                            CCryptoBoringSSL_MLDSA65_generate_key(
+                                publicKeyPtr.baseAddress,
+                                seedPtr.baseAddress,
+                                &self.key
+                            ) == 1
+                        else {
                             throw CryptoKitError.internalBoringSSLError()
                         }
 
@@ -88,9 +96,9 @@ extension MLDSA {
             }
 
             /// Initialize a ML-DSA-65 private key from a seed.
-            /// 
+            ///
             /// - Parameter seed: The seed to use to generate the private key.
-            /// 
+            ///
             /// - Throws: `CryptoKitError.incorrectKeySize` if the seed is not 32 bytes long.
             init(seed: some DataProtocol) throws {
                 guard seed.count == MLDSA.seedSizeInBytes else {
@@ -100,13 +108,15 @@ extension MLDSA {
                 self.key = .init()
                 self.seed = Data(seed)
 
-                guard self.seed.withUnsafeBytes({ seedPtr in
-                    CCryptoBoringSSL_MLDSA65_private_key_from_seed(
-                        &self.key,
-                        seedPtr.baseAddress,
-                        MLDSA.seedSizeInBytes
-                    )
-                }) == 1 else {
+                guard
+                    self.seed.withUnsafeBytes({ seedPtr in
+                        CCryptoBoringSSL_MLDSA65_private_key_from_seed(
+                            &self.key,
+                            seedPtr.baseAddress,
+                            MLDSA.seedSizeInBytes
+                        )
+                    }) == 1
+                else {
                     throw CryptoKitError.internalBoringSSLError()
                 }
             }
@@ -117,14 +127,14 @@ extension MLDSA {
             }
 
             /// Generate a signature for the given data.
-            /// 
-            /// - Parameters: 
+            ///
+            /// - Parameters:
             ///   - data: The message to sign.
             ///   - context: The context to use for the signature.
-            /// 
+            ///
             /// - Returns: The signature of the message.
             func signature<D: DataProtocol>(for data: D, context: D? = nil) throws -> Signature {
-                let output = try Array<UInt8>(unsafeUninitializedCapacity: Signature.bytesCount) { bufferPtr, length in
+                let output = try [UInt8](unsafeUninitializedCapacity: Signature.bytesCount) { bufferPtr, length in
                     let bytes: ContiguousBytes = data.regions.count == 1 ? data.regions.first! : Array(data)
                     let result = bytes.withUnsafeBytes { dataPtr in
                         context.withUnsafeBytes { contextPtr in
@@ -164,9 +174,9 @@ extension MLDSA {
         }
 
         /// Initialize a ML-DSA-65 public key from a raw representation.
-        /// 
+        ///
         /// - Parameter rawRepresentation: The public key bytes.
-        /// 
+        ///
         /// - Throws: `CryptoKitError.incorrectKeySize` if the raw representation is not the correct size.
         public init(rawRepresentation: some DataProtocol) throws {
             self.backing = try Backing(rawRepresentation: rawRepresentation)
@@ -178,12 +188,12 @@ extension MLDSA {
         }
 
         /// Verify a signature for the given data.
-        /// 
+        ///
         /// - Parameters:
         ///   - signature: The signature to verify.
         ///   - data: The message to verify the signature against.
         ///   - context: The context to use for the signature verification.
-        /// 
+        ///
         /// - Returns: `true` if the signature is valid, `false` otherwise.
         public func isValidSignature<D: DataProtocol>(_ signature: Signature, for data: D, context: D? = nil) -> Bool {
             self.backing.isValidSignature(signature, for: data, context: context)
@@ -201,9 +211,9 @@ extension MLDSA {
             }
 
             /// Initialize a ML-DSA-65 public key from a raw representation.
-            /// 
+            ///
             /// - Parameter rawRepresentation: The public key bytes.
-            /// 
+            ///
             /// - Throws: `CryptoKitError.incorrectKeySize` if the raw representation is not the correct size.
             init(rawRepresentation: some DataProtocol) throws {
                 guard rawRepresentation.count == MLDSA.PublicKey.Backing.bytesCount else {
@@ -212,7 +222,10 @@ extension MLDSA {
 
                 self.key = .init()
 
-                let bytes: ContiguousBytes = rawRepresentation.regions.count == 1 ? rawRepresentation.regions.first! : Array(rawRepresentation)
+                let bytes: ContiguousBytes =
+                    rawRepresentation.regions.count == 1
+                    ? rawRepresentation.regions.first!
+                    : Array(rawRepresentation)
                 try bytes.withUnsafeBytes { rawBuffer in
                     try rawBuffer.withMemoryRebound(to: UInt8.self) { buffer in
                         var cbs = CBS(data: buffer.baseAddress, len: buffer.count)
@@ -234,12 +247,12 @@ extension MLDSA {
             }
 
             /// Verify a signature for the given data.
-            /// 
+            ///
             /// - Parameters:
             ///   - signature: The signature to verify.
             ///   - data: The message to verify the signature against.
             ///   - context: The context to use for the signature verification.
-            /// 
+            ///
             /// - Returns: `true` if the signature is valid, `false` otherwise.
             func isValidSignature<D: DataProtocol>(_ signature: Signature, for data: D, context: D? = nil) -> Bool {
                 signature.withUnsafeBytes { signaturePtr in
@@ -274,23 +287,23 @@ extension MLDSA {
         public var rawRepresentation: Data
 
         /// Initialize a ML-DSA-65 signature from a raw representation.
-        /// 
+        ///
         /// - Parameter rawRepresentation: The signature bytes.
         public init(rawRepresentation: some DataProtocol) {
             self.rawRepresentation = Data(rawRepresentation)
         }
 
         /// Initialize a ML-DSA-65 signature from a raw representation.
-        /// 
+        ///
         /// - Parameter signatureBytes: The signature bytes.
         init(signatureBytes: [UInt8]) {
             self.rawRepresentation = Data(signatureBytes)
         }
 
         /// Access the signature bytes.
-        /// 
+        ///
         /// - Parameter body: The closure to execute with the signature bytes.
-        /// 
+        ///
         /// - Returns: The result of the closure.
         public func withUnsafeBytes<R>(_ body: (UnsafeRawBufferPointer) throws -> R) rethrows -> R {
             try self.rawRepresentation.withUnsafeBytes(body)

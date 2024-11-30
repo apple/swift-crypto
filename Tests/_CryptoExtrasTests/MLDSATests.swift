@@ -13,6 +13,7 @@
 //===----------------------------------------------------------------------===//
 
 import XCTest
+
 @testable import _CryptoExtras
 
 final class MLDSATests: XCTestCase {
@@ -30,7 +31,7 @@ final class MLDSATests: XCTestCase {
                 for: test
             )
         )
-        
+
         let context = "ctx".data(using: .utf8)!
         try XCTAssertTrue(
             key.publicKey.isValidSignature(
@@ -65,7 +66,7 @@ final class MLDSATests: XCTestCase {
         let publicKey = key.publicKey
         let signature = try key.signature(for: message)
         XCTAssertTrue(publicKey.isValidSignature(signature, for: message))
-        
+
         var encodedSignature = signature.rawRepresentation
         for i in 0..<encodedSignature.count {
             for j in 0..<8 {
@@ -82,16 +83,16 @@ final class MLDSATests: XCTestCase {
 
     func testSignatureIsRandomized() throws {
         let message = "Hello, world!".data(using: .utf8)!
-        
+
         let seed: [UInt8] = (0..<32).map { _ in UInt8.random(in: 0...255) }
         let key = try MLDSA.PrivateKey(seed: seed)
         let publicKey = key.publicKey
-        
+
         let signature1 = try key.signature(for: message)
         let signature2 = try key.signature(for: message)
-        
+
         XCTAssertNotEqual(signature1.rawRepresentation, signature2.rawRepresentation)
-        
+
         // Even though the signatures are different, they both verify.
         XCTAssertTrue(publicKey.isValidSignature(signature1, for: message))
         XCTAssertTrue(publicKey.isValidSignature(signature2, for: message))
@@ -104,15 +105,15 @@ final class MLDSATests: XCTestCase {
         let key = try MLDSA.PrivateKey(seed: seed)
         let publicKey = key.publicKey
         encodedPublicKey.replaceSubrange(0..<MLDSA.PublicKey.bytesCount, with: publicKey.rawRepresentation)
-        
+
         // Public key is 1 byte too short.
         let shortPublicKey = Array(encodedPublicKey.prefix(MLDSA.PublicKey.bytesCount - 1))
         XCTAssertThrowsError(try MLDSA.PublicKey(rawRepresentation: shortPublicKey))
-        
+
         // Public key has the correct length.
         let correctLengthPublicKey = Array(encodedPublicKey.prefix(MLDSA.PublicKey.bytesCount))
         XCTAssertNoThrow(try MLDSA.PublicKey(rawRepresentation: correctLengthPublicKey))
-        
+
         // Public key is 1 byte too long.
         XCTAssertThrowsError(try MLDSA.PublicKey(rawRepresentation: encodedPublicKey))
     }
@@ -121,7 +122,7 @@ final class MLDSATests: XCTestCase {
         try nistTest(jsonName: "mldsa_nist_keygen_tests") { (testVector: NISTKeyGenTestVector) in
             let seed = try Data(hexString: testVector.seed)
             let publicKey = try MLDSA.PublicKey(rawRepresentation: Data(hexString: testVector.pub))
-            
+
             let expectedkey = try MLDSA.PrivateKey(seed: seed).publicKey
             XCTAssertEqual(publicKey.rawRepresentation, expectedkey.rawRepresentation)
         }
@@ -138,7 +139,10 @@ final class MLDSATests: XCTestCase {
     }
 
     private func nistTest<Vector: Decodable>(
-        jsonName: String, file: StaticString = #file, line: UInt = #line, testFunction: (Vector) throws -> Void
+        jsonName: String,
+        file: StaticString = #file,
+        line: UInt = #line,
+        testFunction: (Vector) throws -> Void
     ) throws {
         let testsDirectory: String = URL(fileURLWithPath: "\(#file)").pathComponents.dropLast(2).joined(separator: "/")
         let fileURL: URL? = URL(fileURLWithPath: "\(testsDirectory)/_CryptoExtrasVectors/\(jsonName).json")
@@ -162,7 +166,7 @@ final class MLDSATests: XCTestCase {
                 let message = try Data(hexString: test.msg)
                 let signature = try MLDSA.Signature(rawRepresentation: Data(hexString: test.sig))
                 let context = try test.ctx.map { try Data(hexString: $0) }
-                
+
                 switch test.result {
                 case .valid:
                     XCTAssertTrue(publicKey.isValidSignature(signature, for: message, context: context))
