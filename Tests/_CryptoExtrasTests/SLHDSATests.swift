@@ -13,6 +13,7 @@
 //===----------------------------------------------------------------------===//
 
 import XCTest
+
 @testable import _CryptoExtras
 
 final class SLHDSATests: XCTestCase {

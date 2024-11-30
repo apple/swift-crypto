@@ -12,10 +12,9 @@
 //
 //===----------------------------------------------------------------------===//
 
+@_implementationOnly import CCryptoBoringSSL
 import Crypto
 import Foundation
-
-@_implementationOnly import CCryptoBoringSSL
 
 /// A stateless hash-based digital signature algorithm that provides security against quantum computing attacks.
 public enum SLHDSA {}
@@ -31,7 +30,7 @@ extension SLHDSA {
         }
 
         /// Initialize a SLH-DSA-SHA2-128s private key from a raw representation.
-        /// 
+        ///
         /// - Parameter rawRepresentation: The private key bytes.
         ///
         /// - Throws: `CryptoKitError.incorrectKeySize` if the raw representation is not the correct size.
@@ -50,11 +49,11 @@ extension SLHDSA {
         }
 
         /// Generate a signature for the given data.
-        /// 
-        /// - Parameters: 
+        ///
+        /// - Parameters:
         ///   - data: The message to sign.
         ///   - context: The context to use for the signature.
-        /// 
+        ///
         /// - Returns: The signature of the message.
         public func signature<D: DataProtocol>(for data: D, context: D? = nil) throws -> Signature {
             try self.backing.signature(for: data, context: context)
@@ -66,18 +65,20 @@ extension SLHDSA {
             func withUnsafePointer<T>(_ body: (UnsafePointer<UInt8>) throws -> T) rethrows -> T {
                 try body(self.pointer)
             }
-            
+
             /// Initialize a SLH-DSA-SHA2-128s private key from a random seed.
             init() {
                 self.pointer = UnsafeMutablePointer<UInt8>.allocate(capacity: SLHDSA.PrivateKey.Backing.bytesCount)
 
-                withUnsafeTemporaryAllocation(of: UInt8.self, capacity: SLHDSA.PublicKey.Backing.bytesCount) { publicKeyPtr in
+                withUnsafeTemporaryAllocation(
+                    of: UInt8.self, capacity: SLHDSA.PublicKey.Backing.bytesCount
+                ) { publicKeyPtr in
                     CCryptoBoringSSL_SLHDSA_SHA2_128S_generate_key(publicKeyPtr.baseAddress, self.pointer)
                 }
             }
 
             /// Initialize a SLH-DSA-SHA2-128s private key from a raw representation.
-            /// 
+            ///
             /// - Parameter rawRepresentation: The private key bytes.
             ///
             /// - Throws: `CryptoKitError.incorrectKeySize` if the raw representation is not the correct size.
@@ -92,26 +93,26 @@ extension SLHDSA {
                     count: SLHDSA.PrivateKey.Backing.bytesCount
                 )
             }
-            
+
             /// The raw representation of the private key.
             var rawRepresentation: Data {
                 Data(UnsafeBufferPointer(start: self.pointer, count: SLHDSA.PrivateKey.Backing.bytesCount))
             }
-            
+
             /// The public key associated with this private key.
             var publicKey: PublicKey {
                 PublicKey(privateKeyBacking: self)
             }
 
             /// Generate a signature for the given data.
-            /// 
-            /// - Parameters: 
+            ///
+            /// - Parameters:
             ///   - data: The message to sign.
             ///   - context: The context to use for the signature.
-            /// 
+            ///
             /// - Returns: The signature of the message.
             func signature<D: DataProtocol>(for data: D, context: D? = nil) throws -> Signature {
-                let output = try Array<UInt8>(unsafeUninitializedCapacity: Signature.bytesCount) { bufferPtr, length in
+                let output = try [UInt8](unsafeUninitializedCapacity: Signature.bytesCount) { bufferPtr, length in
                     let bytes: ContiguousBytes = data.regions.count == 1 ? data.regions.first! : Array(data)
                     let result = bytes.withUnsafeBytes { dataPtr in
                         if let context {
@@ -143,7 +144,7 @@ extension SLHDSA {
                 }
                 return Signature(signatureBytes: output)
             }
-            
+
             /// The size of the private key in bytes.
             static let bytesCount = 64
         }
@@ -160,9 +161,9 @@ extension SLHDSA {
         }
 
         /// Initialize a SLH-DSA-SHA2-128s public key from a raw representation.
-        /// 
+        ///
         /// - Parameter rawRepresentation: The public key bytes.
-        /// 
+        ///
         /// - Throws: `CryptoKitError.incorrectKeySize` if the raw representation is not the correct size.
         public init(rawRepresentation: some DataProtocol) throws {
             self.backing = try Backing(rawRepresentation: rawRepresentation)
@@ -174,12 +175,12 @@ extension SLHDSA {
         }
 
         /// Verify a signature for the given data.
-        /// 
+        ///
         /// - Parameters:
         ///   - signature: The signature to verify.
         ///   - data: The message to verify the signature against.
         ///   - context: The context to use for the signature verification.
-        /// 
+        ///
         /// - Returns: `true` if the signature is valid, `false` otherwise.
         public func isValidSignature<D: DataProtocol>(_ signature: Signature, for data: D, context: D? = nil) -> Bool {
             self.backing.isValidSignature(signature, for: data, context: context)
@@ -187,18 +188,18 @@ extension SLHDSA {
 
         fileprivate final class Backing {
             private let pointer: UnsafeMutablePointer<UInt8>
-            
+
             init(privateKeyBacking: PrivateKey.Backing) {
                 self.pointer = UnsafeMutablePointer<UInt8>.allocate(capacity: SLHDSA.PublicKey.Backing.bytesCount)
                 privateKeyBacking.withUnsafePointer { privateKeyPtr in
                     CCryptoBoringSSL_SLHDSA_SHA2_128S_public_from_private(self.pointer, privateKeyPtr)
                 }
             }
-            
+
             /// Initialize a SLH-DSA-SHA2-128s public key from a raw representation.
-            /// 
+            ///
             /// - Parameter rawRepresentation: The public key bytes.
-            /// 
+            ///
             /// - Throws: `CryptoKitError.incorrectKeySize` if the raw representation is not the correct size.
             init(rawRepresentation: some DataProtocol) throws {
                 guard rawRepresentation.count == SLHDSA.PublicKey.Backing.bytesCount else {
@@ -211,20 +212,19 @@ extension SLHDSA {
                     count: SLHDSA.PublicKey.Backing.bytesCount
                 )
             }
-            
-            
+
             /// The raw representation of the public key.
             var rawRepresentation: Data {
                 Data(UnsafeBufferPointer(start: self.pointer, count: SLHDSA.PublicKey.Backing.bytesCount))
             }
-            
+
             /// Verify a signature for the given data.
-            /// 
+            ///
             /// - Parameters:
             ///   - signature: The signature to verify.
             ///   - data: The message to verify the signature against.
             ///   - context: The context to use for the signature verification.
-            /// 
+            ///
             /// - Returns: `true` if the signature is valid, `false` otherwise.
             func isValidSignature<D: DataProtocol>(_ signature: Signature, for data: D, context: D? = nil) -> Bool {
                 signature.withUnsafeBytes { signaturePtr in
@@ -255,7 +255,7 @@ extension SLHDSA {
                     return rc == 1
                 }
             }
-            
+
             /// The size of the public key in bytes.
             static let bytesCount = 32
         }
@@ -267,30 +267,30 @@ extension SLHDSA {
     public struct Signature: Sendable, ContiguousBytes {
         /// The raw binary representation of the signature.
         public var rawRepresentation: Data
-        
+
         /// Initialize a SLH-DSA-SHA2-128s signature from a raw representation.
-        /// 
+        ///
         /// - Parameter rawRepresentation: The signature bytes.
         public init(rawRepresentation: some DataProtocol) {
             self.rawRepresentation = Data(rawRepresentation)
         }
-        
+
         /// Initialize a SLH-DSA-SHA2-128s signature from a raw representation.
-        /// 
+        ///
         /// - Parameter signatureBytes: The signature bytes.
         init(signatureBytes: [UInt8]) {
             self.rawRepresentation = Data(signatureBytes)
         }
-        
+
         /// Access the signature bytes.
-        /// 
+        ///
         /// - Parameter body: The closure to execute with the signature bytes.
-        /// 
+        ///
         /// - Returns: The result of the closure.
         public func withUnsafeBytes<R>(_ body: (UnsafeRawBufferPointer) throws -> R) rethrows -> R {
             try self.rawRepresentation.withUnsafeBytes(body)
         }
-        
+
         /// The size of the signature in bytes.
         fileprivate static let bytesCount = 7856
     }
