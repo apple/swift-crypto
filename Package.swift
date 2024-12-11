@@ -37,7 +37,7 @@ if development {
     dependencies = [
         "CCryptoBoringSSL",
         "CCryptoBoringSSLShims",
-        "CryptoBoringWrapper"
+        "CryptoBoringWrapper",
     ]
 } else {
     let platforms: [Platform] = [
@@ -53,7 +53,7 @@ if development {
     dependencies = [
         .target(name: "CCryptoBoringSSL", condition: .when(platforms: platforms)),
         .target(name: "CCryptoBoringSSLShims", condition: .when(platforms: platforms)),
-        .target(name: "CryptoBoringWrapper", condition: .when(platforms: platforms))
+        .target(name: "CryptoBoringWrapper", condition: .when(platforms: platforms)),
     ]
 }
 
@@ -100,7 +100,7 @@ let package = Package(
                  */
                 "crypto/bio/connect.c",
                 "crypto/bio/socket_helper.c",
-                "crypto/bio/socket.c"
+                "crypto/bio/socket.c",
             ],
             resources: privacyManifestResource,
             cSettings: [
@@ -112,7 +112,10 @@ let package = Package(
                 /*
                  * These defines are required on Wasm/WASI, to disable use of pthread.
                  */
-                .define("OPENSSL_NO_THREADS_CORRUPT_MEMORY_AND_LEAK_SECRETS_IF_THREADED", .when(platforms: [Platform.wasi])),
+                .define(
+                    "OPENSSL_NO_THREADS_CORRUPT_MEMORY_AND_LEAK_SECRETS_IF_THREADED",
+                    .when(platforms: [Platform.wasi])
+                ),
                 .define("OPENSSL_NO_ASM", .when(platforms: [Platform.wasi])),
             ]
         ),
@@ -144,10 +147,10 @@ let package = Package(
                 "CCryptoBoringSSLShims",
                 "CryptoBoringWrapper",
                 "Crypto",
-                .product(name: "SwiftASN1", package: "swift-asn1")
+                .product(name: "SwiftASN1", package: "swift-asn1"),
             ],
             exclude: privacyManifestExclude + [
-                "CMakeLists.txt",
+                "CMakeLists.txt"
             ],
             resources: privacyManifestResource,
             swiftSettings: swiftSettings
@@ -156,10 +159,10 @@ let package = Package(
             name: "CryptoBoringWrapper",
             dependencies: [
                 "CCryptoBoringSSL",
-                "CCryptoBoringSSLShims"
+                "CCryptoBoringSSLShims",
             ],
             exclude: privacyManifestExclude + [
-                "CMakeLists.txt",
+                "CMakeLists.txt"
             ],
             resources: privacyManifestResource
         ),
@@ -168,7 +171,7 @@ let package = Package(
             name: "CryptoTests",
             dependencies: ["Crypto"],
             resources: [
-                .copy("HPKE/hpke-test-vectors.json"),
+                .copy("HPKE/hpke-test-vectors.json")
             ],
             swiftSettings: swiftSettings
         ),
@@ -188,3 +191,14 @@ let package = Package(
     ],
     cxxLanguageStandard: .cxx14
 )
+
+// ---    STANDARD CROSS-REPO SETTINGS DO NOT EDIT   --- //
+for target in package.targets {
+    if target.type != .plugin {
+        var settings = target.swiftSettings ?? []
+        // https://github.com/swiftlang/swift-evolution/blob/main/proposals/0444-member-import-visibility.md
+        settings.append(.enableUpcomingFeature("MemberImportVisibility"))
+        target.swiftSettings = settings
+    }
+}
+// --- END: STANDARD CROSS-REPO SETTINGS DO NOT EDIT --- //
