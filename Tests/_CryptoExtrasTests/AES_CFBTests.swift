@@ -13,6 +13,7 @@
 //===----------------------------------------------------------------------===//
 
 import Crypto
+import CryptoBoringWrapper
 @testable import _CryptoExtras
 import XCTest
 

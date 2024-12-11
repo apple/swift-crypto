@@ -15,6 +15,7 @@
 @_exported import CryptoKit
 #else
 @_implementationOnly import CCryptoBoringSSL
+import CryptoBoringWrapper
 import Foundation
 
 extension Data {
