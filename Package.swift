@@ -58,3 +58,14 @@ let package = Package(
 
 // Test-only dependencies.
 package.dependencies += [.package(url: "https://github.com/apple/swift-nio", from: "2.62.0")]
+
+// ---    STANDARD CROSS-REPO SETTINGS DO NOT EDIT   --- //
+for target in package.targets {
+    if target.type != .plugin {
+        var settings = target.swiftSettings ?? []
+        // https://github.com/swiftlang/swift-evolution/blob/main/proposals/0444-member-import-visibility.md
+        settings.append(.enableUpcomingFeature("MemberImportVisibility"))
+        target.swiftSettings = settings
+    }
+}
+// --- END: STANDARD CROSS-REPO SETTINGS DO NOT EDIT --- //
