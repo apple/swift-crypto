@@ -73,10 +73,13 @@ extension SLHDSA.SHA2_128s {
 
             /// Initialize a SLH-DSA-SHA2-128s private key from a random seed.
             init() {
-                self.pointer = UnsafeMutablePointer<UInt8>.allocate(capacity: SLHDSA.SHA2_128s.PrivateKey.Backing.bytesCount)
+                self.pointer = UnsafeMutablePointer<UInt8>.allocate(
+                    capacity: SLHDSA.SHA2_128s.PrivateKey.Backing.bytesCount
+                )
 
                 withUnsafeTemporaryAllocation(
-                    of: UInt8.self, capacity: SLHDSA.SHA2_128s.PublicKey.Backing.bytesCount
+                    of: UInt8.self,
+                    capacity: SLHDSA.SHA2_128s.PublicKey.Backing.bytesCount
                 ) { publicKeyPtr in
                     CCryptoBoringSSL_SLHDSA_SHA2_128S_generate_key(publicKeyPtr.baseAddress, self.pointer)
                 }
@@ -92,7 +95,9 @@ extension SLHDSA.SHA2_128s {
                     throw CryptoKitError.incorrectKeySize
                 }
 
-                self.pointer = UnsafeMutablePointer<UInt8>.allocate(capacity: SLHDSA.SHA2_128s.PrivateKey.Backing.bytesCount)
+                self.pointer = UnsafeMutablePointer<UInt8>.allocate(
+                    capacity: SLHDSA.SHA2_128s.PrivateKey.Backing.bytesCount
+                )
                 self.pointer.initialize(
                     from: Array(rawRepresentation),
                     count: SLHDSA.SHA2_128s.PrivateKey.Backing.bytesCount
@@ -195,7 +200,9 @@ extension SLHDSA.SHA2_128s {
             private let pointer: UnsafeMutablePointer<UInt8>
 
             init(privateKeyBacking: PrivateKey.Backing) {
-                self.pointer = UnsafeMutablePointer<UInt8>.allocate(capacity: SLHDSA.SHA2_128s.PublicKey.Backing.bytesCount)
+                self.pointer = UnsafeMutablePointer<UInt8>.allocate(
+                    capacity: SLHDSA.SHA2_128s.PublicKey.Backing.bytesCount
+                )
                 privateKeyBacking.withUnsafePointer { privateKeyPtr in
                     CCryptoBoringSSL_SLHDSA_SHA2_128S_public_from_private(self.pointer, privateKeyPtr)
                 }
@@ -211,7 +218,9 @@ extension SLHDSA.SHA2_128s {
                     throw CryptoKitError.incorrectKeySize
                 }
 
-                self.pointer = UnsafeMutablePointer<UInt8>.allocate(capacity: SLHDSA.SHA2_128s.PublicKey.Backing.bytesCount)
+                self.pointer = UnsafeMutablePointer<UInt8>.allocate(
+                    capacity: SLHDSA.SHA2_128s.PublicKey.Backing.bytesCount
+                )
                 self.pointer.initialize(
                     from: Array(rawRepresentation),
                     count: SLHDSA.SHA2_128s.PublicKey.Backing.bytesCount
