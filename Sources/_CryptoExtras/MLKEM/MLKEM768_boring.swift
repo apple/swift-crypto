@@ -179,7 +179,7 @@ extension MLKEM768 {
         /// - Parameter rawRepresentation: The public key bytes.
         ///
         /// - Throws: `CryptoKitError.incorrectKeySize` if the raw representation is not the correct size.
-        init(rawRepresentation: some DataProtocol) throws {
+        public init(rawRepresentation: some DataProtocol) throws {
             self.backing = try Backing(rawRepresentation: rawRepresentation)
         }
 

@@ -17,6 +17,8 @@ import Crypto
 import Foundation
 
 /// A module-lattice-based key encapsulation mechanism that provides security against quantum computing attacks.
+///
+/// > Note: You should prefer ``MLKEM768`` where possible.
 @available(macOS 14.0, *)
 public enum MLKEM1024 {}
 
@@ -179,7 +181,7 @@ extension MLKEM1024 {
         /// - Parameter rawRepresentation: The public key bytes.
         ///
         /// - Throws: `CryptoKitError.incorrectKeySize` if the raw representation is not the correct size.
-        init(rawRepresentation: some DataProtocol) throws {
+        public init(rawRepresentation: some DataProtocol) throws {
             self.backing = try Backing(rawRepresentation: rawRepresentation)
         }
 
