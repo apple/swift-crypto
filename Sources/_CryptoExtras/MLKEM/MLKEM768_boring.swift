@@ -77,9 +77,13 @@ extension MLKEM768 {
                 self.key = .init()
                 self.seed = Data()
 
-                self.seed = withUnsafeTemporaryAllocation(of: UInt8.self, capacity: MLKEM768.seedSizeInBytes) { seedPtr in
+                self.seed = withUnsafeTemporaryAllocation(
+                    of: UInt8.self,
+                    capacity: MLKEM768.seedSizeInBytes
+                ) { seedPtr in
                     withUnsafeTemporaryAllocation(
-                        of: UInt8.self, capacity: MLKEM768.PublicKey.bytesCount
+                        of: UInt8.self,
+                        capacity: MLKEM768.PublicKey.bytesCount
                     ) { publicKeyPtr in
                         CCryptoBoringSSL_MLKEM768_generate_key(publicKeyPtr.baseAddress, seedPtr.baseAddress, &self.key)
 
@@ -243,10 +247,12 @@ extension MLKEM768 {
             /// - Returns: The shared secret and its encapsulated version.
             func encapsulate() -> KEM.EncapsulationResult {
                 withUnsafeTemporaryAllocation(
-                    of: UInt8.self, capacity: MLKEM768.ciphertextSizeInBytes
+                    of: UInt8.self,
+                    capacity: MLKEM768.ciphertextSizeInBytes
                 ) { encapsulatedPtr in
                     withUnsafeTemporaryAllocation(
-                        of: UInt8.self, capacity: MLKEM768.sharedSecretSizeInBytes
+                        of: UInt8.self,
+                        capacity: MLKEM768.sharedSecretSizeInBytes
                     ) { secretPtr in
                         CCryptoBoringSSL_MLKEM768_encap(
                             encapsulatedPtr.baseAddress,
@@ -258,7 +264,10 @@ extension MLKEM768 {
                             sharedSecret: SymmetricKey(
                                 data: Data(bytes: secretPtr.baseAddress!, count: MLKEM768.sharedSecretSizeInBytes)
                             ),
-                            encapsulated: Data(bytes: encapsulatedPtr.baseAddress!, count: MLKEM768.ciphertextSizeInBytes)
+                            encapsulated: Data(
+                                bytes: encapsulatedPtr.baseAddress!,
+                                count: MLKEM768.ciphertextSizeInBytes
+                            )
                         )
                     }
                 }
