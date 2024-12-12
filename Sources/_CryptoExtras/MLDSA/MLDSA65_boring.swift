@@ -17,9 +17,9 @@ import Crypto
 import Foundation
 
 /// A module-lattice-based digital signature algorithm that provides security against quantum computing attacks.
-public enum MLDSA {}
+public enum MLDSA65 {}
 
-extension MLDSA {
+extension MLDSA65 {
     /// A ML-DSA-65 private key.
     public struct PrivateKey: Sendable {
         private var backing: Backing
@@ -74,11 +74,11 @@ extension MLDSA {
 
                 self.seed = try withUnsafeTemporaryAllocation(
                     of: UInt8.self,
-                    capacity: MLDSA.seedSizeInBytes
+                    capacity: MLDSA65.seedSizeInBytes
                 ) { seedPtr in
                     try withUnsafeTemporaryAllocation(
                         of: UInt8.self,
-                        capacity: MLDSA.PublicKey.Backing.bytesCount
+                        capacity: MLDSA65.PublicKey.Backing.bytesCount
                     ) { publicKeyPtr in
                         guard
                             CCryptoBoringSSL_MLDSA65_generate_key(
@@ -90,7 +90,7 @@ extension MLDSA {
                             throw CryptoKitError.internalBoringSSLError()
                         }
 
-                        return Data(bytes: seedPtr.baseAddress!, count: MLDSA.seedSizeInBytes)
+                        return Data(bytes: seedPtr.baseAddress!, count: MLDSA65.seedSizeInBytes)
                     }
                 }
             }
@@ -101,7 +101,7 @@ extension MLDSA {
             ///
             /// - Throws: `CryptoKitError.incorrectKeySize` if the seed is not 32 bytes long.
             init(seed: some DataProtocol) throws {
-                guard seed.count == MLDSA.seedSizeInBytes else {
+                guard seed.count == MLDSA65.seedSizeInBytes else {
                     throw CryptoKitError.incorrectKeySize
                 }
 
@@ -113,7 +113,7 @@ extension MLDSA {
                         CCryptoBoringSSL_MLDSA65_private_key_from_seed(
                             &self.key,
                             seedPtr.baseAddress,
-                            MLDSA.seedSizeInBytes
+                            MLDSA65.seedSizeInBytes
                         )
                     }) == 1
                 else {
@@ -164,7 +164,7 @@ extension MLDSA {
     }
 }
 
-extension MLDSA {
+extension MLDSA65 {
     /// A ML-DSA-65 public key.
     public struct PublicKey: Sendable {
         private var backing: Backing
@@ -216,7 +216,7 @@ extension MLDSA {
             ///
             /// - Throws: `CryptoKitError.incorrectKeySize` if the raw representation is not the correct size.
             init(rawRepresentation: some DataProtocol) throws {
-                guard rawRepresentation.count == MLDSA.PublicKey.Backing.bytesCount else {
+                guard rawRepresentation.count == MLDSA65.PublicKey.Backing.bytesCount else {
                     throw CryptoKitError.incorrectKeySize
                 }
 
@@ -240,7 +240,7 @@ extension MLDSA {
             var rawRepresentation: Data {
                 var cbb = CBB()
                 // The following BoringSSL functions can only fail on allocation failure, which we define as impossible.
-                CCryptoBoringSSL_CBB_init(&cbb, MLDSA.PublicKey.Backing.bytesCount)
+                CCryptoBoringSSL_CBB_init(&cbb, MLDSA65.PublicKey.Backing.bytesCount)
                 defer { CCryptoBoringSSL_CBB_cleanup(&cbb) }
                 CCryptoBoringSSL_MLDSA65_marshal_public_key(&cbb, &self.key)
                 return Data(bytes: CCryptoBoringSSL_CBB_data(&cbb), count: CCryptoBoringSSL_CBB_len(&cbb))
@@ -280,7 +280,7 @@ extension MLDSA {
     }
 }
 
-extension MLDSA {
+extension MLDSA65 {
     /// A ML-DSA-65 signature.
     public struct Signature: Sendable, ContiguousBytes {
         /// The raw binary representation of the signature.
@@ -314,7 +314,7 @@ extension MLDSA {
     }
 }
 
-extension MLDSA {
+extension MLDSA65 {
     /// The size of the seed in bytes.
     private static let seedSizeInBytes = 32
 }

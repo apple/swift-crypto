@@ -16,14 +16,14 @@ import XCTest
 
 @testable import _CryptoExtras
 
-final class MLDSATests: XCTestCase {
-    func testMLDSASigning() throws {
-        try testMLDSASigning(MLDSA.PrivateKey())
+final class MLDSA65Tests: XCTestCase {
+    func testMLDSA65Signing() throws {
+        try testMLDSA65Signing(MLDSA65.PrivateKey())
         let seed: [UInt8] = (0..<32).map { _ in UInt8.random(in: 0...255) }
-        try testMLDSASigning(MLDSA.PrivateKey(seed: seed))
+        try testMLDSA65Signing(MLDSA65.PrivateKey(seed: seed))
     }
 
-    private func testMLDSASigning(_ key: MLDSA.PrivateKey) throws {
+    private func testMLDSA65Signing(_ key: MLDSA65.PrivateKey) throws {
         let test = "Hello, world!".data(using: .utf8)!
         try XCTAssertTrue(
             key.publicKey.isValidSignature(
@@ -44,17 +44,17 @@ final class MLDSATests: XCTestCase {
 
     func testSignatureSerialization() throws {
         let data = Array("Hello, World!".utf8)
-        let key: MLDSA.PrivateKey = try MLDSA.PrivateKey()
+        let key: MLDSA65.PrivateKey = try MLDSA65.PrivateKey()
         let signature = try key.signature(for: data)
-        let roundTripped = MLDSA.Signature(rawRepresentation: signature.rawRepresentation)
+        let roundTripped = MLDSA65.Signature(rawRepresentation: signature.rawRepresentation)
         XCTAssertEqual(signature.rawRepresentation, roundTripped.rawRepresentation)
         XCTAssertTrue(key.publicKey.isValidSignature(roundTripped, for: data))
     }
 
     func testSeedRoundTripping() throws {
-        let key = try MLDSA.PrivateKey()
+        let key = try MLDSA65.PrivateKey()
         let seed = key.seed
-        let roundTripped = try MLDSA.PrivateKey(seed: seed)
+        let roundTripped = try MLDSA65.PrivateKey(seed: seed)
         XCTAssertEqual(seed, roundTripped.seed)
         XCTAssertEqual(key.publicKey.rawRepresentation, roundTripped.publicKey.rawRepresentation)
     }
@@ -62,7 +62,7 @@ final class MLDSATests: XCTestCase {
     // This test is very slow, so it is disabled by default.
     func _testBitFlips() throws {
         let message = "Hello, world!".data(using: .utf8)!
-        let key = try MLDSA.PrivateKey()
+        let key = try MLDSA65.PrivateKey()
         let publicKey = key.publicKey
         let signature = try key.signature(for: message)
         XCTAssertTrue(publicKey.isValidSignature(signature, for: message))
@@ -71,7 +71,7 @@ final class MLDSATests: XCTestCase {
         for i in 0..<encodedSignature.count {
             for j in 0..<8 {
                 encodedSignature[i] ^= 1 << j
-                let modifiedSignature = MLDSA.Signature(rawRepresentation: encodedSignature)
+                let modifiedSignature = MLDSA65.Signature(rawRepresentation: encodedSignature)
                 XCTAssertFalse(
                     publicKey.isValidSignature(modifiedSignature, for: message),
                     "Bit flip in signature at byte \(i) bit \(j) didn't cause a verification failure"
@@ -85,7 +85,7 @@ final class MLDSATests: XCTestCase {
         let message = "Hello, world!".data(using: .utf8)!
 
         let seed: [UInt8] = (0..<32).map { _ in UInt8.random(in: 0...255) }
-        let key = try MLDSA.PrivateKey(seed: seed)
+        let key = try MLDSA65.PrivateKey(seed: seed)
         let publicKey = key.publicKey
 
         let signature1 = try key.signature(for: message)
@@ -100,30 +100,30 @@ final class MLDSATests: XCTestCase {
 
     func testInvalidPublicKeyEncodingLength() throws {
         // Encode a public key with a trailing 0 at the end.
-        var encodedPublicKey = [UInt8](repeating: 0, count: MLDSA.PublicKey.bytesCount + 1)
+        var encodedPublicKey = [UInt8](repeating: 0, count: MLDSA65.PublicKey.bytesCount + 1)
         let seed: [UInt8] = (0..<32).map { _ in UInt8.random(in: 0...255) }
-        let key = try MLDSA.PrivateKey(seed: seed)
+        let key = try MLDSA65.PrivateKey(seed: seed)
         let publicKey = key.publicKey
-        encodedPublicKey.replaceSubrange(0..<MLDSA.PublicKey.bytesCount, with: publicKey.rawRepresentation)
+        encodedPublicKey.replaceSubrange(0..<MLDSA65.PublicKey.bytesCount, with: publicKey.rawRepresentation)
 
         // Public key is 1 byte too short.
-        let shortPublicKey = Array(encodedPublicKey.prefix(MLDSA.PublicKey.bytesCount - 1))
-        XCTAssertThrowsError(try MLDSA.PublicKey(rawRepresentation: shortPublicKey))
+        let shortPublicKey = Array(encodedPublicKey.prefix(MLDSA65.PublicKey.bytesCount - 1))
+        XCTAssertThrowsError(try MLDSA65.PublicKey(rawRepresentation: shortPublicKey))
 
         // Public key has the correct length.
-        let correctLengthPublicKey = Array(encodedPublicKey.prefix(MLDSA.PublicKey.bytesCount))
-        XCTAssertNoThrow(try MLDSA.PublicKey(rawRepresentation: correctLengthPublicKey))
+        let correctLengthPublicKey = Array(encodedPublicKey.prefix(MLDSA65.PublicKey.bytesCount))
+        XCTAssertNoThrow(try MLDSA65.PublicKey(rawRepresentation: correctLengthPublicKey))
 
         // Public key is 1 byte too long.
-        XCTAssertThrowsError(try MLDSA.PublicKey(rawRepresentation: encodedPublicKey))
+        XCTAssertThrowsError(try MLDSA65.PublicKey(rawRepresentation: encodedPublicKey))
     }
 
-    func testMLDSANISTKeyGenFile() throws {
+    func testMLDSA65NISTKeyGenFile() throws {
         try nistTest(jsonName: "mldsa_nist_keygen_tests") { (testVector: NISTKeyGenTestVector) in
             let seed = try Data(hexString: testVector.seed)
-            let publicKey = try MLDSA.PublicKey(rawRepresentation: Data(hexString: testVector.pub))
+            let publicKey = try MLDSA65.PublicKey(rawRepresentation: Data(hexString: testVector.pub))
 
-            let expectedkey = try MLDSA.PrivateKey(seed: seed).publicKey
+            let expectedkey = try MLDSA65.PrivateKey(seed: seed).publicKey
             XCTAssertEqual(publicKey.rawRepresentation, expectedkey.rawRepresentation)
         }
     }
@@ -155,16 +155,16 @@ final class MLDSATests: XCTestCase {
 
     func testMLDSAWycheproofVerifyFile() throws {
         try wycheproofTest(jsonName: "mldsa_65_standard_verify_test") { (testGroup: WycheproofTestGroup) in
-            let publicKey: MLDSA.PublicKey
+            let publicKey: MLDSA65.PublicKey
             do {
-                publicKey = try MLDSA.PublicKey(rawRepresentation: Data(hexString: testGroup.publicKey))
+                publicKey = try MLDSA65.PublicKey(rawRepresentation: Data(hexString: testGroup.publicKey))
             } catch {
                 if testGroup.tests.contains(where: { $0.flags.contains(.incorrectPublicKeyLength) }) { return }
                 throw error
             }
             for test in testGroup.tests {
                 let message = try Data(hexString: test.msg)
-                let signature = try MLDSA.Signature(rawRepresentation: Data(hexString: test.sig))
+                let signature = try MLDSA65.Signature(rawRepresentation: Data(hexString: test.sig))
                 let context = try test.ctx.map { try Data(hexString: $0) }
 
                 switch test.result {
