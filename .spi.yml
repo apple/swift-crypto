@@ -1,4 +1,4 @@
 version: 1
 builder:
   configs:
-    - documentation_targets: [Crypto]
+    - documentation_targets: [Crypto, _CryptoExtras]
