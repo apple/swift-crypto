@@ -119,7 +119,7 @@ final class MLDSA65Tests: XCTestCase {
     }
 
     func testMLDSA65NISTKeyGenFile() throws {
-        try nistTest(jsonName: "mldsa_nist_keygen_tests") { (testVector: NISTKeyGenTestVector) in
+        try nistTest(jsonName: "mldsa_65_nist_keygen_tests") { (testVector: NISTKeyGenTestVector) in
             let seed = try Data(hexString: testVector.seed)
             let publicKey = try MLDSA65.PublicKey(rawRepresentation: Data(hexString: testVector.pub))
 
@@ -153,7 +153,7 @@ final class MLDSA65Tests: XCTestCase {
         }
     }
 
-    func testMLDSAWycheproofVerifyFile() throws {
+    func testMLDSA65WycheproofVerifyFile() throws {
         try wycheproofTest(jsonName: "mldsa_65_standard_verify_test") { (testGroup: WycheproofTestGroup) in
             let publicKey: MLDSA65.PublicKey
             do {
