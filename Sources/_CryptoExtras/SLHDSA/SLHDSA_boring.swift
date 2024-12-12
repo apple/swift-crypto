@@ -20,6 +20,11 @@ import Foundation
 public enum SLHDSA {}
 
 extension SLHDSA {
+    /// The SLH-DSA-SHA2-128s parameter set.
+    public enum SHA2_128s {}
+}
+
+extension SLHDSA.SHA2_128s {
     /// A SLH-DSA-SHA2-128s private key.
     public struct PrivateKey: Sendable {
         private var backing: Backing
@@ -68,10 +73,10 @@ extension SLHDSA {
 
             /// Initialize a SLH-DSA-SHA2-128s private key from a random seed.
             init() {
-                self.pointer = UnsafeMutablePointer<UInt8>.allocate(capacity: SLHDSA.PrivateKey.Backing.bytesCount)
+                self.pointer = UnsafeMutablePointer<UInt8>.allocate(capacity: SLHDSA.SHA2_128s.PrivateKey.Backing.bytesCount)
 
                 withUnsafeTemporaryAllocation(
-                    of: UInt8.self, capacity: SLHDSA.PublicKey.Backing.bytesCount
+                    of: UInt8.self, capacity: SLHDSA.SHA2_128s.PublicKey.Backing.bytesCount
                 ) { publicKeyPtr in
                     CCryptoBoringSSL_SLHDSA_SHA2_128S_generate_key(publicKeyPtr.baseAddress, self.pointer)
                 }
@@ -83,20 +88,20 @@ extension SLHDSA {
             ///
             /// - Throws: `CryptoKitError.incorrectKeySize` if the raw representation is not the correct size.
             init(rawRepresentation: some DataProtocol) throws {
-                guard rawRepresentation.count == SLHDSA.PrivateKey.Backing.bytesCount else {
+                guard rawRepresentation.count == SLHDSA.SHA2_128s.PrivateKey.Backing.bytesCount else {
                     throw CryptoKitError.incorrectKeySize
                 }
 
-                self.pointer = UnsafeMutablePointer<UInt8>.allocate(capacity: SLHDSA.PrivateKey.Backing.bytesCount)
+                self.pointer = UnsafeMutablePointer<UInt8>.allocate(capacity: SLHDSA.SHA2_128s.PrivateKey.Backing.bytesCount)
                 self.pointer.initialize(
                     from: Array(rawRepresentation),
-                    count: SLHDSA.PrivateKey.Backing.bytesCount
+                    count: SLHDSA.SHA2_128s.PrivateKey.Backing.bytesCount
                 )
             }
 
             /// The raw representation of the private key.
             var rawRepresentation: Data {
-                Data(UnsafeBufferPointer(start: self.pointer, count: SLHDSA.PrivateKey.Backing.bytesCount))
+                Data(UnsafeBufferPointer(start: self.pointer, count: SLHDSA.SHA2_128s.PrivateKey.Backing.bytesCount))
             }
 
             /// The public key associated with this private key.
@@ -151,7 +156,7 @@ extension SLHDSA {
     }
 }
 
-extension SLHDSA {
+extension SLHDSA.SHA2_128s {
     /// A SLH-DSA-SHA2-128s public key.
     public struct PublicKey: Sendable {
         private var backing: Backing
@@ -190,7 +195,7 @@ extension SLHDSA {
             private let pointer: UnsafeMutablePointer<UInt8>
 
             init(privateKeyBacking: PrivateKey.Backing) {
-                self.pointer = UnsafeMutablePointer<UInt8>.allocate(capacity: SLHDSA.PublicKey.Backing.bytesCount)
+                self.pointer = UnsafeMutablePointer<UInt8>.allocate(capacity: SLHDSA.SHA2_128s.PublicKey.Backing.bytesCount)
                 privateKeyBacking.withUnsafePointer { privateKeyPtr in
                     CCryptoBoringSSL_SLHDSA_SHA2_128S_public_from_private(self.pointer, privateKeyPtr)
                 }
@@ -202,20 +207,20 @@ extension SLHDSA {
             ///
             /// - Throws: `CryptoKitError.incorrectKeySize` if the raw representation is not the correct size.
             init(rawRepresentation: some DataProtocol) throws {
-                guard rawRepresentation.count == SLHDSA.PublicKey.Backing.bytesCount else {
+                guard rawRepresentation.count == SLHDSA.SHA2_128s.PublicKey.Backing.bytesCount else {
                     throw CryptoKitError.incorrectKeySize
                 }
 
-                self.pointer = UnsafeMutablePointer<UInt8>.allocate(capacity: SLHDSA.PublicKey.Backing.bytesCount)
+                self.pointer = UnsafeMutablePointer<UInt8>.allocate(capacity: SLHDSA.SHA2_128s.PublicKey.Backing.bytesCount)
                 self.pointer.initialize(
                     from: Array(rawRepresentation),
-                    count: SLHDSA.PublicKey.Backing.bytesCount
+                    count: SLHDSA.SHA2_128s.PublicKey.Backing.bytesCount
                 )
             }
 
             /// The raw representation of the public key.
             var rawRepresentation: Data {
-                Data(UnsafeBufferPointer(start: self.pointer, count: SLHDSA.PublicKey.Backing.bytesCount))
+                Data(UnsafeBufferPointer(start: self.pointer, count: SLHDSA.SHA2_128s.PublicKey.Backing.bytesCount))
             }
 
             /// Verify a signature for the given data.
@@ -262,7 +267,7 @@ extension SLHDSA {
     }
 }
 
-extension SLHDSA {
+extension SLHDSA.SHA2_128s {
     /// A SLH-DSA-SHA2-128s signature.
     public struct Signature: Sendable, ContiguousBytes {
         /// The raw binary representation of the signature.

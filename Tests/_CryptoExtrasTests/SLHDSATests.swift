@@ -17,8 +17,8 @@ import XCTest
 @testable import _CryptoExtras
 
 final class SLHDSATests: XCTestCase {
-    func testSLHDSASigning() throws {
-        let key = SLHDSA.PrivateKey()
+    func testSLHDSA_SHA2_128sSigning() throws {
+        let key = SLHDSA.SHA2_128s.PrivateKey()
         let test = Data("Hello, World!".utf8)
         let signature = try key.signature(for: test)
         let context = Data("ctx".utf8)
@@ -49,18 +49,16 @@ final class SLHDSATests: XCTestCase {
 
     func testSignatureSerialization() throws {
         let data = Array("Hello, World!".utf8)
-        let key = SLHDSA.PrivateKey()
+        let key = SLHDSA.SHA2_128s.PrivateKey()
         let signature = try key.signature(for: data)
-        let roundTripped = SLHDSA.Signature(rawRepresentation: signature.rawRepresentation)
+        let roundTripped = SLHDSA.SHA2_128s.Signature(rawRepresentation: signature.rawRepresentation)
         XCTAssertEqual(signature.rawRepresentation, roundTripped.rawRepresentation)
         XCTAssertTrue(key.publicKey.isValidSignature(roundTripped, for: data))
     }
 
-    func testBitFlips() throws {
-        throw XCTSkip("This test is very slow, so it is disabled by default.")
-
+    func _testBitFlips() throws {
         let message = "Hello, world!".data(using: .utf8)!
-        let key = SLHDSA.PrivateKey()
+        let key = SLHDSA.SHA2_128s.PrivateKey()
         let publicKey = key.publicKey
         let signature = try key.signature(for: message)
         XCTAssertTrue(publicKey.isValidSignature(signature, for: message))
@@ -69,7 +67,7 @@ final class SLHDSATests: XCTestCase {
         for i in 0..<encodedSignature.count {
             for j in 0..<8 {
                 encodedSignature[i] ^= 1 << j
-                let modifiedSignature = SLHDSA.Signature(rawRepresentation: encodedSignature)
+                let modifiedSignature = SLHDSA.SHA2_128s.Signature(rawRepresentation: encodedSignature)
                 XCTAssertFalse(
                     publicKey.isValidSignature(modifiedSignature, for: message),
                     "Bit flip in signature at byte \(i) bit \(j) didn't cause a verification failure"
@@ -82,7 +80,7 @@ final class SLHDSATests: XCTestCase {
     func testSignatureIsRandomized() throws {
         let message = "Hello, world!".data(using: .utf8)!
 
-        let key = SLHDSA.PrivateKey()
+        let key = SLHDSA.SHA2_128s.PrivateKey()
         let publicKey = key.publicKey
 
         let signature1 = try key.signature(for: message)
