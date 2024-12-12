@@ -18,10 +18,10 @@ import Foundation
 
 /// A module-lattice-based key encapsulation mechanism that provides security against quantum computing attacks.
 @available(macOS 14.0, *)
-public enum MLKEM {}
+public enum MLKEM768 {}
 
 @available(macOS 14.0, *)
-extension MLKEM {
+extension MLKEM768 {
     /// A ML-KEM-768 private key.
     public struct PrivateKey: Sendable, KEMPrivateKey {
         private var backing: Backing
@@ -34,7 +34,7 @@ extension MLKEM {
         /// Generate a ML-KEM-768 private key from a random seed.
         ///
         /// - Returns: The generated private key.
-        public static func generate() -> MLKEM.PrivateKey {
+        public static func generate() -> MLKEM768.PrivateKey {
             .init()
         }
 
@@ -77,13 +77,13 @@ extension MLKEM {
                 self.key = .init()
                 self.seed = Data()
 
-                self.seed = withUnsafeTemporaryAllocation(of: UInt8.self, capacity: MLKEM.seedSizeInBytes) { seedPtr in
+                self.seed = withUnsafeTemporaryAllocation(of: UInt8.self, capacity: MLKEM768.seedSizeInBytes) { seedPtr in
                     withUnsafeTemporaryAllocation(
-                        of: UInt8.self, capacity: MLKEM.PublicKey.bytesCount
+                        of: UInt8.self, capacity: MLKEM768.PublicKey.bytesCount
                     ) { publicKeyPtr in
                         CCryptoBoringSSL_MLKEM768_generate_key(publicKeyPtr.baseAddress, seedPtr.baseAddress, &self.key)
 
-                        return Data(bytes: seedPtr.baseAddress!, count: MLKEM.seedSizeInBytes)
+                        return Data(bytes: seedPtr.baseAddress!, count: MLKEM768.seedSizeInBytes)
                     }
                 }
             }
@@ -94,7 +94,7 @@ extension MLKEM {
             ///
             /// - Throws: `CryptoKitError.incorrectKeySize` if the seed is not 64 bytes long.
             init(seed: some DataProtocol) throws {
-                guard seed.count == MLKEM.seedSizeInBytes else {
+                guard seed.count == MLKEM768.seedSizeInBytes else {
                     throw CryptoKitError.incorrectKeySize
                 }
 
@@ -127,12 +127,12 @@ extension MLKEM {
             ///
             /// - Returns: The symmetric key.
             func decapsulate(_ encapsulated: Data) throws -> SymmetricKey {
-                guard encapsulated.count == MLKEM.ciphertextSizeInBytes else {
+                guard encapsulated.count == MLKEM768.ciphertextSizeInBytes else {
                     throw CryptoKitError.incorrectParameterSize
                 }
 
                 let output = try [UInt8](
-                    unsafeUninitializedCapacity: MLKEM.sharedSecretSizeInBytes
+                    unsafeUninitializedCapacity: MLKEM768.sharedSecretSizeInBytes
                 ) { bufferPtr, length in
                     let bytes: ContiguousBytes =
                         encapsulated.regions.count == 1
@@ -151,7 +151,7 @@ extension MLKEM {
                         throw CryptoKitError.internalBoringSSLError()
                     }
 
-                    length = MLKEM.sharedSecretSizeInBytes
+                    length = MLKEM768.sharedSecretSizeInBytes
                 }
 
                 return SymmetricKey(data: Data(output))
@@ -161,7 +161,7 @@ extension MLKEM {
 }
 
 @available(macOS 14.0, *)
-extension MLKEM {
+extension MLKEM768 {
     /// A ML-KEM-768 public key.
     public struct PublicKey: Sendable, KEMPublicKey {
         private var backing: Backing
@@ -208,7 +208,7 @@ extension MLKEM {
             ///
             /// - Throws: `CryptoKitError.incorrectKeySize` if the raw representation is not the correct size.
             init(rawRepresentation: some DataProtocol) throws {
-                guard rawRepresentation.count == MLKEM.PublicKey.bytesCount else {
+                guard rawRepresentation.count == MLKEM768.PublicKey.bytesCount else {
                     throw CryptoKitError.incorrectKeySize
                 }
 
@@ -232,7 +232,7 @@ extension MLKEM {
             var rawRepresentation: Data {
                 var cbb = CBB()
                 // The following BoringSSL functions can only fail on allocation failure, which we define as impossible.
-                CCryptoBoringSSL_CBB_init(&cbb, MLKEM.PublicKey.Backing.bytesCount)
+                CCryptoBoringSSL_CBB_init(&cbb, MLKEM768.PublicKey.Backing.bytesCount)
                 defer { CCryptoBoringSSL_CBB_cleanup(&cbb) }
                 CCryptoBoringSSL_MLKEM768_marshal_public_key(&cbb, &self.key)
                 return Data(bytes: CCryptoBoringSSL_CBB_data(&cbb), count: CCryptoBoringSSL_CBB_len(&cbb))
@@ -243,10 +243,10 @@ extension MLKEM {
             /// - Returns: The shared secret and its encapsulated version.
             func encapsulate() -> KEM.EncapsulationResult {
                 withUnsafeTemporaryAllocation(
-                    of: UInt8.self, capacity: MLKEM.ciphertextSizeInBytes
+                    of: UInt8.self, capacity: MLKEM768.ciphertextSizeInBytes
                 ) { encapsulatedPtr in
                     withUnsafeTemporaryAllocation(
-                        of: UInt8.self, capacity: MLKEM.sharedSecretSizeInBytes
+                        of: UInt8.self, capacity: MLKEM768.sharedSecretSizeInBytes
                     ) { secretPtr in
                         CCryptoBoringSSL_MLKEM768_encap(
                             encapsulatedPtr.baseAddress,
@@ -256,9 +256,9 @@ extension MLKEM {
 
                         return KEM.EncapsulationResult(
                             sharedSecret: SymmetricKey(
-                                data: Data(bytes: secretPtr.baseAddress!, count: MLKEM.sharedSecretSizeInBytes)
+                                data: Data(bytes: secretPtr.baseAddress!, count: MLKEM768.sharedSecretSizeInBytes)
                             ),
-                            encapsulated: Data(bytes: encapsulatedPtr.baseAddress!, count: MLKEM.ciphertextSizeInBytes)
+                            encapsulated: Data(bytes: encapsulatedPtr.baseAddress!, count: MLKEM768.ciphertextSizeInBytes)
                         )
                     }
                 }
@@ -271,13 +271,13 @@ extension MLKEM {
 }
 
 @available(macOS 14.0, *)
-extension MLKEM {
+extension MLKEM768 {
     /// The size of the encapsulated shared secret in bytes.
     private static let ciphertextSizeInBytes = 1088
 }
 
 @available(macOS 14.0, *)
-extension MLKEM {
+extension MLKEM768 {
     /// The size of the seed in bytes.
     private static let seedSizeInBytes = 64
 

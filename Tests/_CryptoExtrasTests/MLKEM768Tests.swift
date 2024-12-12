@@ -17,15 +17,15 @@ import XCTest
 @testable import _CryptoExtras
 
 @available(macOS 14.0, *)
-final class MLKEMTests: XCTestCase {
-    func testMLKEM_768() throws {
+final class MLKEM768Tests: XCTestCase {
+    func testMLKEM768() throws {
         // Generate a key pair
-        let privateKey = MLKEM.PrivateKey()
+        let privateKey = MLKEM768.PrivateKey()
         let publicKey = privateKey.publicKey
 
         // Serialize and deserialize the private key
         let seed = privateKey.seed
-        let privateKey2 = try MLKEM.PrivateKey(seed: seed)
+        let privateKey2 = try MLKEM768.PrivateKey(seed: seed)
         XCTAssertEqual(privateKey.seed, privateKey2.seed)
 
         // Serialize and deserialize the public key
@@ -34,9 +34,9 @@ final class MLKEMTests: XCTestCase {
         modifiedPublicKeyBytes[0] = 0xff
         modifiedPublicKeyBytes[1] = 0xff
         // Parsing should fail because the first coefficient is >= kPrime;
-        XCTAssertThrowsError(try MLKEM.PublicKey(rawRepresentation: modifiedPublicKeyBytes))
+        XCTAssertThrowsError(try MLKEM768.PublicKey(rawRepresentation: modifiedPublicKeyBytes))
 
-        let publicKey2 = try MLKEM.PublicKey(rawRepresentation: publicKeyBytes)
+        let publicKey2 = try MLKEM768.PublicKey(rawRepresentation: publicKeyBytes)
         XCTAssertEqual(publicKeyBytes, publicKey2.rawRepresentation)
 
         // Ensure public key derived from private key matches the original public key
@@ -47,7 +47,7 @@ final class MLKEMTests: XCTestCase {
         var modifiedSeed = privateKey.seed
         modifiedSeed[0] = 0xff
         XCTAssertNotEqual(
-            try MLKEM.PrivateKey(seed: modifiedSeed).publicKey.rawRepresentation,
+            try MLKEM768.PrivateKey(seed: modifiedSeed).publicKey.rawRepresentation,
             publicKeyBytes
         )
 
