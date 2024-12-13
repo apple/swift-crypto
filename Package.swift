@@ -20,7 +20,7 @@
 // Sources/CCryptoBoringSSL directory. The source repository is at
 // https://boringssl.googlesource.com/boringssl.
 //
-// BoringSSL Commit: fcef13a49852397a0d39c00be8d7bc2ba1ab6fb9
+// BoringSSL Commit: aefa5d24da34ef77ac797bdbe684734e5bd870f4
 
 import PackageDescription
 
@@ -98,9 +98,9 @@ let package = Package(
                  * These files are excluded to support WASI libc which doesn't provide <netdb.h>.
                  * This is safe for all platforms as we do not rely on networking features.
                  */
-                "crypto/bio/connect.c",
-                "crypto/bio/socket_helper.c",
-                "crypto/bio/socket.c"
+                "crypto/bio/connect.cc",
+                "crypto/bio/socket_helper.cc",
+                "crypto/bio/socket.cc"
             ],
             resources: privacyManifestResource,
             cSettings: [

@@ -1,4 +1,4 @@
-/* Copyright (c) 2014, Google Inc.
+/* Copyright 2014 The BoringSSL Authors
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -54,7 +54,7 @@ static_assert(sizeof(ossl_ssize_t) == sizeof(size_t),
 // archive, linking on OS X will fail to resolve common symbols. By
 // initialising it to zero, it becomes a "data symbol", which isn't so
 // affected.
-HIDDEN uint8_t BORINGSSL_function_hit[7] = {0};
+HIDDEN uint8_t BORINGSSL_function_hit[8] = {0};
 #endif
 
 #if defined(OPENSSL_X86) || defined(OPENSSL_X86_64)
