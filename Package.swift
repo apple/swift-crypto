@@ -98,9 +98,9 @@ let package = Package(
                  * These files are excluded to support WASI libc which doesn't provide <netdb.h>.
                  * This is safe for all platforms as we do not rely on networking features.
                  */
-                "crypto/bio/connect.c",
-                "crypto/bio/socket_helper.c",
-                "crypto/bio/socket.c"
+                "crypto/bio/connect.cc",
+                "crypto/bio/socket_helper.cc",
+                "crypto/bio/socket.cc"
             ],
             resources: privacyManifestResource,
             cSettings: [
