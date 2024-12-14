@@ -1,6 +1,6 @@
 #define BORINGSSL_PREFIX CCryptoBoringSSL
 #if defined(__arm__) && defined(__linux__)
-/* Copyright (c) 2015, Google Inc.
+/* Copyright 2015 The BoringSSL Authors
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above

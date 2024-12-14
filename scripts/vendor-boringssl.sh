@@ -113,8 +113,9 @@ function mangle_symbols {
             go run "util/read_symbols.go" -obj-file-format elf -out "${TMPDIR}/symbols-linux-all.txt" "${HERE}"/.build/*-unknown-linux-gnu/debug/libCCryptoBoringSSL.a
         )
 
-        # Now we concatenate all the symbols together and uniquify it.
-        cat "${TMPDIR}"/symbols-*.txt | sort | uniq > "${TMPDIR}/symbols.txt"
+        # Now we concatenate all the symbols together and uniquify it. At this stage remove anything that
+        # already has CCryptoBoringSSL in it, as those are namespaced by nature.
+        cat "${TMPDIR}"/symbols-*.txt | sort | uniq | grep -v "CCryptoBoringSSL" > "${TMPDIR}/symbols.txt"
 
         # Use this as the input to the mangle.
         (
