@@ -1,4 +1,4 @@
-/* Copyright (c) 2016, Google Inc.
+/* Copyright 2016 The BoringSSL Authors
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -56,8 +56,7 @@ void CRYPTO_POLYVAL_init(struct polyval_ctx *ctx, const uint8_t key[16]) {
   OPENSSL_memcpy(H, key, 16);
   reverse_and_mulX_ghash(H);
 
-  int is_avx;
-  CRYPTO_ghash_init(&ctx->gmult, &ctx->ghash, ctx->Htable, &is_avx, H);
+  CRYPTO_ghash_init(&ctx->gmult, &ctx->ghash, ctx->Htable, H);
   OPENSSL_memset(&ctx->S, 0, sizeof(ctx->S));
 }
 

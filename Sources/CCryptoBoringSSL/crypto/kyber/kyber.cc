@@ -1,4 +1,4 @@
-/* Copyright (c) 2023, Google Inc.
+/* Copyright 2023 The BoringSSL Authors
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -21,8 +21,8 @@
 #include <CCryptoBoringSSL_bytestring.h>
 #include <CCryptoBoringSSL_rand.h>
 
+#include "../fipsmodule/keccak/internal.h"
 #include "../internal.h"
-#include "../keccak/internal.h"
 #include "./internal.h"
 
 
