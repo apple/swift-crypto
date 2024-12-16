@@ -410,7 +410,7 @@ extension _RSA.BlindSigning.PublicKey {
     /// Prepare a message to be signed using the blind signing protocol.
     ///
     /// - Parameter message: The message to be signed.
-    /// - Parameter parameters: Parameters used in the blind signing protocol.
+    ///
     /// - Returns: A prepared message, modified according to the parameters provided.
     ///
     /// - Seealso: [RFC 9474: Prepare](https://www.rfc-editor.org/rfc/rfc9474.html#name-prepare).
@@ -440,7 +440,7 @@ extension _RSA.BlindSigning.PublicKey {
     ///
     /// - Parameter signature: The signature of the blinded message.
     /// - Parameter message: The message to be signed.
-    /// - Parameter blindInverse: The inverse from the message blinding.
+    /// - Parameter blindingInverse: The inverse from the message blinding.
     /// - Returns: The signature of the message.
     ///
     /// - Seealso: [RFC 9474: Finalize](https://www.rfc-editor.org/rfc/rfc9474.html#name-finalize).
