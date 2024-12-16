@@ -27,9 +27,18 @@ import PackageDescription
 // To develop this on Apple platforms, set this to true
 let development = false
 
+// Ideally, we should use `.when(platforms:)` to set `swiftSettings` and
+// `dependencies` like on other platforms. However, `Platform.freebsd` is not
+// yet available, and therefore we guard the settings behind this boolean.
+#if os(FreeBSD)
+let isFreeBSD = true
+#else
+let isFreeBSD = false
+#endif
+
 let swiftSettings: [SwiftSetting]
 let dependencies: [Target.Dependency]
-if development {
+if development || isFreeBSD {
     swiftSettings = [
         .define("CRYPTO_IN_SWIFTPM"),
         .define("CRYPTO_IN_SWIFTPM_FORCE_BUILD_API"),
@@ -44,8 +53,7 @@ if development {
         Platform.linux,
         Platform.android,
         Platform.windows,
-        Platform.wasi,
-        Platform.freebsd
+        Platform.wasi
     ]
     swiftSettings = [
         .define("CRYPTO_IN_SWIFTPM"),
