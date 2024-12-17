@@ -91,7 +91,6 @@ add_library(CCryptoBoringSSL STATIC
   "crypto/dh_extra/dh_asn1.cc"
   "crypto/dh_extra/params.cc"
   "crypto/digest_extra/digest_extra.cc"
-  "crypto/dilithium/dilithium.cc"
   "crypto/dsa/dsa.cc"
   "crypto/dsa/dsa_asn1.cc"
   "crypto/ec_extra/ec_asn1.cc"
@@ -125,7 +124,6 @@ add_library(CCryptoBoringSSL STATIC
   "crypto/fipsmodule/fips_shared_support.cc"
   "crypto/hpke/hpke.cc"
   "crypto/hrss/hrss.cc"
-  "crypto/keccak/keccak.cc"
   "crypto/kyber/kyber.cc"
   "crypto/lhash/lhash.cc"
   "crypto/md4/md4.cc"
@@ -177,13 +175,6 @@ add_library(CCryptoBoringSSL STATIC
   "crypto/slhdsa/slhdsa.cc"
   "crypto/slhdsa/thash.cc"
   "crypto/slhdsa/wots.cc"
-  "crypto/spx/spx.cc"
-  "crypto/spx/spx_address.cc"
-  "crypto/spx/spx_fors.cc"
-  "crypto/spx/spx_merkle.cc"
-  "crypto/spx/spx_thash.cc"
-  "crypto/spx/spx_util.cc"
-  "crypto/spx/spx_wots.cc"
   "crypto/stack/stack.cc"
   "crypto/thread.cc"
   "crypto/thread_none.cc"
@@ -266,6 +257,7 @@ add_library(CCryptoBoringSSL STATIC
 
 if(CMAKE_SYSTEM_NAME STREQUAL Darwin AND CMAKE_SYSTEM_PROCESSOR MATCHES "amd64|x86_64")
   target_sources(CCryptoBoringSSL PRIVATE
+    gen/bcm/aes-gcm-avx10-x86_64-apple.S
     gen/bcm/aesni-gcm-x86_64-apple.S
     gen/bcm/aesni-x86_64-apple.S
     gen/bcm/ghash-ssse3-x86_64-apple.S
@@ -284,8 +276,9 @@ if(CMAKE_SYSTEM_NAME STREQUAL Darwin AND CMAKE_SYSTEM_PROCESSOR MATCHES "amd64|x
     gen/crypto/chacha-x86_64-apple.S
     gen/crypto/chacha20_poly1305_x86_64-apple.S
     gen/crypto/md5-x86_64-apple.S)
-elseif(CMAKE_SYSTEM_NAME MATCHES "Linux|Android" AND CMAKE_SYSTEM_PROCESSOR MATCHES "amd64|x86_64")
+elseif(CMAKE_SYSTEM_NAME MATCHES "Linux|Android|FreeBSD" AND CMAKE_SYSTEM_PROCESSOR MATCHES "amd64|x86_64")
   target_sources(CCryptoBoringSSL PRIVATE
+    gen/bcm/aes-gcm-avx10-x86_64-linux.S
     gen/bcm/aesni-gcm-x86_64-linux.S
     gen/bcm/aesni-x86_64-linux.S
     gen/bcm/ghash-ssse3-x86_64-linux.S
@@ -320,7 +313,7 @@ elseif(CMAKE_SYSTEM_NAME STREQUAL Darwin AND CMAKE_SYSTEM_PROCESSOR MATCHES "arm
     gen/bcm/vpaes-armv8-apple.S
     gen/crypto/chacha-armv8-apple.S
     gen/crypto/chacha20_poly1305_armv8-apple.S)
-elseif(CMAKE_SYSTEM_NAME MATCHES "Linux|Android" AND CMAKE_SYSTEM_PROCESSOR MATCHES "arm64|aarch64")
+elseif(CMAKE_SYSTEM_NAME MATCHES "Linux|Android|FreeBSD" AND CMAKE_SYSTEM_PROCESSOR MATCHES "arm64|aarch64")
   target_sources(CCryptoBoringSSL PRIVATE
     gen/bcm/aesv8-armv8-linux.S
     gen/bcm/aesv8-gcm-armv8-linux.S
