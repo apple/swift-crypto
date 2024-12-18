@@ -1,0 +1,69 @@
+name: Cxx interop
+
+on:
+  workflow_call:
+    inputs:
+      linux_5_9_enabled:
+        type: boolean
+        description: "Boolean to enable the Linux 5.9 Swift version matrix job. Defaults to true."
+        default: true
+      linux_5_10_enabled:
+        type: boolean
+        description: "Boolean to enable the Linux 5.10 Swift version matrix job. Defaults to true."
+        default: true
+      linux_6_0_enabled:
+        type: boolean
+        description: "Boolean to enable the Linux 6.0 Swift version matrix job. Defaults to true."
+        default: true
+      linux_nightly_6_0_enabled:
+        type: boolean
+        description: "Boolean to enable the Linux nightly 6.0 Swift version matrix job. Defaults to true."
+        default: true
+      linux_nightly_main_enabled:
+        type: boolean
+        description: "Boolean to enable the Linux nightly main Swift version matrix job. Defaults to true."
+        default: true
+
+      windows_6_0_enabled:
+        type: boolean
+        description: "Boolean to enable the Windows 6.0 Swift version matrix job. Defaults to false. Currently has no effect!"  # TODO: implement Windows Cxx compat checking
+        default: false
+      windows_nightly_6_0_enabled:
+        type: boolean
+        description: "Boolean to enable the Windows nightly 6.0 Swift version matrix job. Defaults to false. Currently has no effect!"  # TODO: implement Windows Cxx compat checking
+        default: false
+      windows_nightly_main_enabled:
+        type: boolean
+        description: "Boolean to enable the Windows nightly main Swift version matrix job. Defaults to false. Currently has no effect!"  # TODO: implement Windows Cxx compat checking
+        default: false
+
+jobs:
+  construct-matrix:
+    name: Construct Cxx interop matrix
+    runs-on: ubuntu-latest
+    outputs:
+      cxx-interop-matrix: '${{ steps.generate-matrix.outputs.cxx-interop-matrix }}'
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - id: generate-matrix
+        run: echo "cxx-interop-matrix=$(./scripts/generate_matrix.sh)" >> "$GITHUB_OUTPUT"
+        env:
+          MATRIX_LINUX_COMMAND: "curl -s https://raw.githubusercontent.com/apple/swift-nio/main/scripts/check-cxx-interop-compatibility.sh | bash"
+          MATRIX_LINUX_SETUP_COMMAND: "apt-get update -y -q && apt-get install -y -q curl jq"
+          MATRIX_LINUX_5_9_ENABLED: ${{ inputs.linux_5_9_enabled }}
+          MATRIX_LINUX_5_10_ENABLED: ${{ inputs.linux_5_10_enabled }}
+          MATRIX_LINUX_6_0_ENABLED: ${{ inputs.linux_6_0_enabled }}
+          MATRIX_LINUX_NIGHTLY_6_0_ENABLED: ${{ inputs.linux_nightly_6_0_enabled }}
+          MATRIX_LINUX_NIGHTLY_MAIN_ENABLED: ${{ inputs.linux_nightly_main_enabled }}
+
+  cxx-interop:
+    name: Cxx interop
+    needs: construct-matrix
+    # TODO: use global reference
+    uses: ./.github/workflows/swift_test_matrix.yml
+    with:
+      name: "Cxx interop"
+      matrix_string: '${{ needs.construct-matrix.outputs.cxx-interop-matrix }}'
