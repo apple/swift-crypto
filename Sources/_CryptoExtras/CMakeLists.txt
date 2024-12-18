@@ -32,6 +32,7 @@ add_library(_CryptoExtras
   "Key Derivation/PBKDF2/PBKDF2.swift"
   "Key Derivation/Scrypt/BoringSSL/Scrypt_boring.swift"
   "Key Derivation/Scrypt/Scrypt.swift"
+  "MLKEM/MLKEM_boring.swift"
   "OPRFs/OPRF.swift"
   "OPRFs/OPRFClient.swift"
   "OPRFs/OPRFServer.swift"
