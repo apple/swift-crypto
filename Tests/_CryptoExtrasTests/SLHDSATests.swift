@@ -19,31 +19,65 @@ import XCTest
 final class SLHDSATests: XCTestCase {
     func testSLHDSA_SHA2_128sSigning() throws {
         let key = SLHDSA.SHA2_128s.PrivateKey()
-        let test = Data("Hello, World!".utf8)
-        let signature = try key.signature(for: test)
-        let context = Data("ctx".utf8)
+        let message = Data("Hello, World!".utf8)
+        let signature = try key.signature(for: message)
 
         XCTAssertTrue(
             key.publicKey.isValidSignature(
                 signature,
-                for: test
+                for: message
             )
         )
+
+        let context = Data("ctx".utf8)
 
         XCTAssertFalse(
             key.publicKey.isValidSignature(
                 signature,
-                for: test,
+                for: message,
                 context: context
             )
         )
 
         try XCTAssertTrue(
             key.publicKey.isValidSignature(
-                key.signature(for: test, context: context),
-                for: test,
+                key.signature(for: message, context: context),
+                for: message,
                 context: context
             )
+        )
+    }
+
+    func testEmptyMessageAndContext() throws {
+        let key = SLHDSA.SHA2_128s.PrivateKey()
+        let emptyMessage = Data("".utf8)
+        let emptyContext = Data("".utf8)
+
+        try XCTAssertTrue(
+            key.publicKey.isValidSignature(
+                key.signature(for: emptyMessage, context: emptyContext),
+                for: emptyMessage,
+                context: emptyContext
+            )
+        )
+    }
+
+    func testMaxContextLenght() throws {
+        let key = SLHDSA.SHA2_128s.PrivateKey()
+        let message = Array("Hello, World!".utf8)
+
+        let context = [UInt8](repeating: 0, count: 255) // Maximum allowed context length
+        try XCTAssertTrue(
+            key.publicKey.isValidSignature(
+                key.signature(for: message, context: context),
+                for: message,
+                context: context
+            )
+        )
+
+        let tooLongContext = [UInt8](repeating: 0, count: 256)
+        XCTAssertThrowsError(
+            try key.signature(for: message, context: tooLongContext)
         )
     }
 
