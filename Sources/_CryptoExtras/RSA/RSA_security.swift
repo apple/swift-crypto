@@ -13,6 +13,7 @@
 //===----------------------------------------------------------------------===//
 import Foundation
 import Crypto
+import SwiftASN1
 
 #if CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
 @_implementationOnly import Security
@@ -97,7 +98,24 @@ internal struct SecurityRSAPrivateKey: @unchecked Sendable {
         default:
             throw _CryptoRSAError.invalidPEMDocument
         }
-
+    }
+    
+    init(encryptedPEMRepresentation: String, encryptionPassword: String) throws {
+        let document = try EncryptedPEMDocument(pemEncoded: encryptedPEMRepresentation)
+        let pem = try document.decrypt(withPassword: encryptionPassword)
+        
+        switch pem.discriminator {
+        case _RSA.PKCS1KeyType:
+            // This is what is expected by Security.framework
+            self = try .init(derRepresentation: pem.derBytes)
+        case _RSA.PKCS8KeyType:
+            guard let pkcs8Bytes = pem.derBytes.pkcs8RSAKeyBytes else {
+                throw _CryptoRSAError.invalidPEMDocument
+            }
+            self = try .init(derRepresentation: pkcs8Bytes)
+        default:
+            throw _CryptoRSAError.invalidPEMDocument
+        }
     }
 
     init<Bytes: DataProtocol>(derRepresentation: Bytes) throws {
@@ -154,7 +172,7 @@ internal struct SecurityRSAPrivateKey: @unchecked Sendable {
     }
 
     var pemRepresentation: String {
-        return ASN1.PEMDocument(type: _RSA.PKCS1KeyType, derBytes: self.derRepresentation).pemString
+        return SwiftASN1.PEMDocument(type: _RSA.PKCS1KeyType, derBytes: [UInt8](self.derRepresentation)).pemString
     }
 
     var pkcs8PEMRepresentation: String {
@@ -454,6 +472,16 @@ extension Int {
             // We save a branch here because we can never overflow this addition.
             return UInt(self).neededBytes &+ 1
         }
+    }
+}
+
+extension [UInt8] {
+    var pkcs8RSAKeyBytes: [UInt8]? {
+        let bytes = Data(self).pkcs8RSAKeyBytes
+        guard let bytes else {
+            return nil
+        }
+        return [UInt8](bytes)
     }
 }
 
