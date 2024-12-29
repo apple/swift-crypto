@@ -13,7 +13,6 @@
 //===----------------------------------------------------------------------===//
 import Foundation
 import Crypto
-import SwiftASN1
 
 #if CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
 @_implementationOnly import Security
@@ -172,7 +171,7 @@ internal struct SecurityRSAPrivateKey: @unchecked Sendable {
     }
 
     var pemRepresentation: String {
-        return SwiftASN1.PEMDocument(type: _RSA.PKCS1KeyType, derBytes: [UInt8](self.derRepresentation)).pemString
+        return ASN1.PEMDocument(type: _RSA.PKCS1KeyType, derBytes: self.derRepresentation).pemString
     }
 
     var pkcs8PEMRepresentation: String {
