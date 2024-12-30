@@ -15,8 +15,8 @@
 import SwiftASN1
 
 extension EncryptedPEMDocument {
-    struct PBES2Parameters: DERImplicitlyTaggable {
-        static var defaultIdentifier: SwiftASN1.ASN1Identifier { .sequence }
+    struct PBES2Parameters: DERParseable {
+        static var defaultIdentifier: ASN1Identifier { .sequence }
         
         let keyDerivationFunction: KeyDerivationFunction
         let encryptionScheme: EncryptionScheme
@@ -26,19 +26,12 @@ extension EncryptedPEMDocument {
             self.encryptionScheme = encryptionScheme
         }
         
-        init(derEncoded: SwiftASN1.ASN1Node, withIdentifier identifier: SwiftASN1.ASN1Identifier) throws {
-            self = try DER.sequence(derEncoded, identifier: identifier) { nodes in
+        init(derEncoded node: ASN1Node) throws {
+            self = try DER.sequence(node, identifier: .sequence) { nodes in
                 let keyDerivationFunction = try KeyDerivationFunction(derEncoded: &nodes)
                 let encryptionScheme = try EncryptionScheme(derEncoded: &nodes)
                 
                 return .init(keyDerivationFunction: keyDerivationFunction, encryptionScheme: encryptionScheme)
-            }
-        }
-        
-        func serialize(into coder: inout SwiftASN1.DER.Serializer, withIdentifier identifier: SwiftASN1.ASN1Identifier) throws {
-            try coder.appendConstructedNode(identifier: identifier) { coder in
-                try self.keyDerivationFunction.serialize(into: &coder)
-                try self.encryptionScheme.serialize(into: &coder)
             }
         }
     }

@@ -25,7 +25,7 @@ import Foundation
 // EncryptionAlgorithmIdentifier ::= AlgorithmIdentifier
 //
 // EncryptedData ::= OCTET STRING
-struct EncryptedPEMDocument: PEMRepresentable {
+struct EncryptedPEMDocument: PEMParseable {
     let algorithmIdentifier: RFC5480AlgorithmIdentifier
     let encryptedData: ASN1OctetString
     
@@ -44,13 +44,6 @@ struct EncryptedPEMDocument: PEMRepresentable {
             let encryptedData = try ASN1OctetString(derEncoded: &nodes)
             
             return .init(algorithmIdentifier: algorithmIdentifier, encryptedData: encryptedData)
-        }
-    }
-    
-    func serialize(into coder: inout SwiftASN1.DER.Serializer) throws {
-        try coder.appendConstructedNode(identifier: .sequence) { coder in
-            try self.algorithmIdentifier.serialize(into: &coder)
-            try self.encryptedData.serialize(into: &coder)
         }
     }
     
