@@ -84,56 +84,11 @@ struct EncryptedPEMDocument: PEMRepresentable {
                     iv: .init(ivBytes: pbes2Params.encryptionScheme.encryptionAlgorithmParameters.bytes)
                 )
             case .des_EDE3_CBC:
-                try encryptedData.bytes.withUnsafeBufferPointer { encryptedPtr in
-                    func toDESBlock(_ bytes: UnsafeBufferPointer<UInt8>, paddedBy padding: Int = 0) throws -> DES_cblock {
-                        guard let baseAddress = bytes.baseAddress else {
-                            throw _CryptoRSAError.invalidPEMDocument
-                        }
-                        
-                        let bytes = baseAddress.advanced(by: padding)
-                        return DES_cblock(bytes: (
-                            bytes[0], bytes[1], bytes[2], bytes[3],
-                            bytes[4], bytes[5], bytes[6], bytes[7]
-                        ))
-                    }
-                    
-                    var output = [UInt8](repeating: 0, count: encryptedData.bytes.count)
-                    
-                    var ks1 = DES_key_schedule(), ks2 = DES_key_schedule(), ks3 = DES_key_schedule()
-                    try derivedKey.withUnsafeBytes { keyPtr in
-                        guard keyPtr.count >= 24 else { throw _CryptoRSAError.invalidPEMDocument }
-                        
-                        let keyBytes = keyPtr.bindMemory(to: UInt8.self)
-                        
-                        var key1 = try toDESBlock(keyBytes)
-                        var key2 = try toDESBlock(keyBytes, paddedBy: 8)
-                        var key3 = try toDESBlock(keyBytes, paddedBy: 16)
-                        
-                        CCryptoBoringSSL_DES_set_key_unchecked(&key1, &ks1)
-                        CCryptoBoringSSL_DES_set_key_unchecked(&key2, &ks2)
-                        CCryptoBoringSSL_DES_set_key_unchecked(&key3, &ks3)
-                    }
-                    
-                    var iv = try pbes2Params.encryptionScheme.encryptionAlgorithmParameters.bytes.withUnsafeBytes { ivPtr -> DES_cblock in
-                        let ivBytes = ivPtr.bindMemory(to: UInt8.self)
-                        return try toDESBlock(ivBytes)
-                    }
-                    
-                    CCryptoBoringSSL_DES_ede3_cbc_encrypt(
-                        encryptedPtr.baseAddress!,
-                        &output,
-                        encryptedPtr.count,
-                        &ks1,
-                        &ks2,
-                        &ks3,
-                        &iv,
-                        0
-                    )
-                    
-                    var result = Data(output)
-                    try result.trimCBCPadding()
-                    return result
-                }
+                try TripleDES.CBC.decrypt(
+                    encryptedData.bytes,
+                    using: derivedKey,
+                    iv: pbes2Params.encryptionScheme.encryptionAlgorithmParameters.bytes
+                )
             default: nil
             }
             
@@ -341,6 +296,63 @@ struct PBKDF2Parameters: DERImplicitlyTaggable {
             try self.salt.serialize(into: &coder)
             try self.iterationCount.serialize(into: &coder)
             try self.hashFunction.serialize(into: &coder)
+        }
+    }
+}
+
+fileprivate enum TripleDES {
+    fileprivate enum CBC {
+        static func decrypt(_ encryptedData: ArraySlice<UInt8>, using key: SymmetricKey, iv: ArraySlice<UInt8>) throws -> Data {
+            try encryptedData.withUnsafeBytes { encryptedPtr in
+                func toDESBlock(_ bytes: UnsafeBufferPointer<UInt8>, paddedBy padding: Int = 0) throws -> DES_cblock {
+                    guard let baseAddress = bytes.baseAddress else {
+                        throw _CryptoRSAError.invalidPEMDocument
+                    }
+                    
+                    let bytes = baseAddress.advanced(by: padding)
+                    return DES_cblock(bytes: (
+                        bytes[0], bytes[1], bytes[2], bytes[3],
+                        bytes[4], bytes[5], bytes[6], bytes[7]
+                    ))
+                }
+                
+                var output = [UInt8](repeating: 0, count: encryptedData.count)
+                
+                var ks1 = DES_key_schedule(), ks2 = DES_key_schedule(), ks3 = DES_key_schedule()
+                try key.withUnsafeBytes { keyPtr in
+                    guard keyPtr.count >= 24 else { throw _CryptoRSAError.invalidPEMDocument }
+                    
+                    let keyBytes = keyPtr.bindMemory(to: UInt8.self)
+                    
+                    var key1 = try toDESBlock(keyBytes)
+                    var key2 = try toDESBlock(keyBytes, paddedBy: 8)
+                    var key3 = try toDESBlock(keyBytes, paddedBy: 16)
+                    
+                    CCryptoBoringSSL_DES_set_key_unchecked(&key1, &ks1)
+                    CCryptoBoringSSL_DES_set_key_unchecked(&key2, &ks2)
+                    CCryptoBoringSSL_DES_set_key_unchecked(&key3, &ks3)
+                }
+                
+                var iv = try iv.withUnsafeBytes { ivPtr -> DES_cblock in
+                    let ivBytes = ivPtr.bindMemory(to: UInt8.self)
+                    return try toDESBlock(ivBytes)
+                }
+                
+                CCryptoBoringSSL_DES_ede3_cbc_encrypt(
+                    encryptedPtr.baseAddress!,
+                    &output,
+                    encryptedPtr.count,
+                    &ks1,
+                    &ks2,
+                    &ks3,
+                    &iv,
+                    0
+                )
+                
+                var result = Data(output)
+                try result.trimCBCPadding()
+                return result
+            }
         }
     }
 }
