@@ -15,6 +15,7 @@
 import Crypto
 import SwiftASN1
 import Foundation
+@_implementationOnly import CCryptoBoringSSL
 
 // EncryptedPrivateKeyInfo ::= SEQUENCE {
 //   encryptionAlgorithm  EncryptionAlgorithmIdentifier,
@@ -71,7 +72,7 @@ struct EncryptedPEMDocument: PEMRepresentable {
                 from: [UInt8](password.utf8),
                 salt: pbkdf2Params.salt.bytes,
                 using: .from(objectIdentifier: hashFunction.objectIdentifer)!,
-                outputByteCount: pbes2Params.encryptionScheme.encryptionAlgorithmParameters.bytes.count,
+                outputByteCount: pbes2Params.encryptionScheme.encryptionAlgorithm.encryptionAlgorithmKeyLength,
                 unsafeUncheckedRounds: pbkdf2Params.iterationCount as! Int
             )
             
@@ -82,8 +83,57 @@ struct EncryptedPEMDocument: PEMRepresentable {
                     using: derivedKey,
                     iv: .init(ivBytes: pbes2Params.encryptionScheme.encryptionAlgorithmParameters.bytes)
                 )
-            case .des_EDE3_CBC: // We don't support 3DES, will have to call through to BoringSSL
-                nil
+            case .des_EDE3_CBC:
+                try encryptedData.bytes.withUnsafeBufferPointer { encryptedPtr in
+                    func toDESBlock(_ bytes: UnsafeBufferPointer<UInt8>, paddedBy padding: Int = 0) throws -> DES_cblock {
+                        guard let baseAddress = bytes.baseAddress else {
+                            throw _CryptoRSAError.invalidPEMDocument
+                        }
+                        
+                        let bytes = baseAddress.advanced(by: padding)
+                        return DES_cblock(bytes: (
+                            bytes[0], bytes[1], bytes[2], bytes[3],
+                            bytes[4], bytes[5], bytes[6], bytes[7]
+                        ))
+                    }
+                    
+                    var output = [UInt8](repeating: 0, count: encryptedData.bytes.count)
+                    
+                    var ks1 = DES_key_schedule(), ks2 = DES_key_schedule(), ks3 = DES_key_schedule()
+                    try derivedKey.withUnsafeBytes { keyPtr in
+                        guard keyPtr.count >= 24 else { throw _CryptoRSAError.invalidPEMDocument }
+                        
+                        let keyBytes = keyPtr.bindMemory(to: UInt8.self)
+                        
+                        var key1 = try toDESBlock(keyBytes)
+                        var key2 = try toDESBlock(keyBytes, paddedBy: 8)
+                        var key3 = try toDESBlock(keyBytes, paddedBy: 16)
+                        
+                        CCryptoBoringSSL_DES_set_key_unchecked(&key1, &ks1)
+                        CCryptoBoringSSL_DES_set_key_unchecked(&key2, &ks2)
+                        CCryptoBoringSSL_DES_set_key_unchecked(&key3, &ks3)
+                    }
+                    
+                    var iv = try pbes2Params.encryptionScheme.encryptionAlgorithmParameters.bytes.withUnsafeBytes { ivPtr -> DES_cblock in
+                        let ivBytes = ivPtr.bindMemory(to: UInt8.self)
+                        return try toDESBlock(ivBytes)
+                    }
+                    
+                    CCryptoBoringSSL_DES_ede3_cbc_encrypt(
+                        encryptedPtr.baseAddress!,
+                        &output,
+                        encryptedPtr.count,
+                        &ks1,
+                        &ks2,
+                        &ks3,
+                        &iv,
+                        0
+                    )
+                    
+                    var result = Data(output)
+                    try result.trimCBCPadding()
+                    return result
+                }
             default: nil
             }
             
@@ -113,6 +163,18 @@ extension ASN1ObjectIdentifier {
     static let aes192_CBC = ASN1ObjectIdentifier("2.16.840.1.101.3.4.1.22")
     static let aes256_CBC = ASN1ObjectIdentifier("2.16.840.1.101.3.4.1.42")
     static let des_EDE3_CBC = ASN1ObjectIdentifier("1.2.840.113549.3.7")
+}
+
+extension ASN1ObjectIdentifier {
+    var encryptionAlgorithmKeyLength: Int {
+        switch self {
+        case .aes128_CBC: 16
+        case .aes192_CBC: 24
+        case .aes256_CBC: 32
+        case .des_EDE3_CBC: 24
+        default: fatalError("Not an encryption algorithm")
+        }
+    }
 }
 
 extension KDF.Insecure.PBKDF2.HashFunction {

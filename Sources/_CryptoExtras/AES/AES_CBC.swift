@@ -134,7 +134,7 @@ extension AES {
             }
 
             if !noPadding {
-                try plaintext.trimPadding()
+                try plaintext.trimCBCPadding()
             }
             return plaintext
         }
@@ -193,7 +193,7 @@ extension AES._CBC {
 }
 
 extension Data {
-    fileprivate mutating func trimPadding() throws {
+    mutating func trimCBCPadding() throws {
         guard let paddingBytes = self.last else {
             // Degenerate case, empty string. This is forbidden:
             // we must always pad.
