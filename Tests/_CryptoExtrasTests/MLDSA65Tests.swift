@@ -69,18 +69,18 @@ final class MLDSA65Tests: XCTestCase {
 
     func testInvalidPublicKeyEncodingLength() throws {
         // Encode a public key with a trailing 0 at the end.
-        var encodedPublicKey = [UInt8](repeating: 0, count: MLDSA65.PublicKey.bytesCount + 1)
+        var encodedPublicKey = [UInt8](repeating: 0, count: MLDSA65.PublicKey.byteCount + 1)
         let seed: [UInt8] = (0..<32).map { _ in UInt8.random(in: 0...255) }
         let key = try MLDSA65.PrivateKey(seed: seed)
         let publicKey = key.publicKey
-        encodedPublicKey.replaceSubrange(0..<MLDSA65.PublicKey.bytesCount, with: publicKey.rawRepresentation)
+        encodedPublicKey.replaceSubrange(0..<MLDSA65.PublicKey.byteCount, with: publicKey.rawRepresentation)
 
         // Public key is 1 byte too short.
-        let shortPublicKey = Array(encodedPublicKey.prefix(MLDSA65.PublicKey.bytesCount - 1))
+        let shortPublicKey = Array(encodedPublicKey.prefix(MLDSA65.PublicKey.byteCount - 1))
         XCTAssertThrowsError(try MLDSA65.PublicKey(rawRepresentation: shortPublicKey))
 
         // Public key has the correct length.
-        let correctLengthPublicKey = Array(encodedPublicKey.prefix(MLDSA65.PublicKey.bytesCount))
+        let correctLengthPublicKey = Array(encodedPublicKey.prefix(MLDSA65.PublicKey.byteCount))
         XCTAssertNoThrow(try MLDSA65.PublicKey(rawRepresentation: correctLengthPublicKey))
 
         // Public key is 1 byte too long.

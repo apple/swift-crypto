@@ -60,7 +60,7 @@ extension MLDSA65 {
         }
 
         /// The size of the private key in bytes.
-        static let bytesCount = Backing.bytesCount
+        static let byteCount = Backing.byteCount
 
         fileprivate final class Backing {
             var key: MLDSA65_private_key
@@ -74,11 +74,11 @@ extension MLDSA65 {
 
                 self.seed = try withUnsafeTemporaryAllocation(
                     of: UInt8.self,
-                    capacity: MLDSA65.seedSizeInBytes
+                    capacity: MLDSA65.seedByteCount
                 ) { seedPtr in
                     try withUnsafeTemporaryAllocation(
                         of: UInt8.self,
-                        capacity: MLDSA65.PublicKey.Backing.bytesCount
+                        capacity: MLDSA65.PublicKey.Backing.byteCount
                     ) { publicKeyPtr in
                         guard
                             CCryptoBoringSSL_MLDSA65_generate_key(
@@ -90,7 +90,7 @@ extension MLDSA65 {
                             throw CryptoKitError.internalBoringSSLError()
                         }
 
-                        return Data(bytes: seedPtr.baseAddress!, count: MLDSA65.seedSizeInBytes)
+                        return Data(bytes: seedPtr.baseAddress!, count: MLDSA65.seedByteCount)
                     }
                 }
             }
@@ -101,7 +101,7 @@ extension MLDSA65 {
             ///
             /// - Throws: `CryptoKitError.incorrectKeySize` if the seed is not 32 bytes long.
             init(seed: some DataProtocol) throws {
-                guard seed.count == MLDSA65.seedSizeInBytes else {
+                guard seed.count == MLDSA65.seedByteCount else {
                     throw CryptoKitError.incorrectKeySize
                 }
 
@@ -113,7 +113,7 @@ extension MLDSA65 {
                         CCryptoBoringSSL_MLDSA65_private_key_from_seed(
                             &self.key,
                             seedPtr.baseAddress,
-                            MLDSA65.seedSizeInBytes
+                            MLDSA65.seedByteCount
                         )
                     }) == 1
                 else {
@@ -134,7 +134,7 @@ extension MLDSA65 {
             ///
             /// - Returns: The signature of the message.
             func signature<D: DataProtocol>(for data: D, context: D? = nil) throws -> Data {
-                var signature = Data(repeating: 0, count: MLDSA65.signatureSizeInBytes)
+                var signature = Data(repeating: 0, count: MLDSA65.signatureByteCount)
 
                 let rc: CInt = signature.withUnsafeMutableBytes { signaturePtr in
                     let bytes: ContiguousBytes = data.regions.count == 1 ? data.regions.first! : Array(data)
@@ -160,7 +160,7 @@ extension MLDSA65 {
             }
 
             /// The size of the private key in bytes.
-            static let bytesCount = 4032
+            static let byteCount = 4032
         }
     }
 }
@@ -205,7 +205,7 @@ extension MLDSA65 {
         }
 
         /// The size of the public key in bytes.
-        static let bytesCount = Backing.bytesCount
+        static let byteCount = Backing.byteCount
 
         fileprivate final class Backing {
             var key: MLDSA65_public_key
@@ -221,7 +221,7 @@ extension MLDSA65 {
             ///
             /// - Throws: `CryptoKitError.incorrectKeySize` if the raw representation is not the correct size.
             init(rawRepresentation: some DataProtocol) throws {
-                guard rawRepresentation.count == MLDSA65.PublicKey.Backing.bytesCount else {
+                guard rawRepresentation.count == MLDSA65.PublicKey.Backing.byteCount else {
                     throw CryptoKitError.incorrectKeySize
                 }
 
@@ -245,7 +245,7 @@ extension MLDSA65 {
             var rawRepresentation: Data {
                 var cbb = CBB()
                 // The following BoringSSL functions can only fail on allocation failure, which we define as impossible.
-                CCryptoBoringSSL_CBB_init(&cbb, MLDSA65.PublicKey.Backing.bytesCount)
+                CCryptoBoringSSL_CBB_init(&cbb, MLDSA65.PublicKey.Backing.byteCount)
                 defer { CCryptoBoringSSL_CBB_cleanup(&cbb) }
                 CCryptoBoringSSL_MLDSA65_marshal_public_key(&cbb, &self.key)
                 return Data(bytes: CCryptoBoringSSL_CBB_data(&cbb), count: CCryptoBoringSSL_CBB_len(&cbb))
@@ -286,15 +286,15 @@ extension MLDSA65 {
             }
 
             /// The size of the public key in bytes.
-            static let bytesCount = 1952
+            static let byteCount = 1952
         }
     }
 }
 
 extension MLDSA65 {
     /// The size of the seed in bytes.
-    private static let seedSizeInBytes = 32
+    private static let seedByteCount = 32
 
     /// The size of the signature in bytes.
-    private static let signatureSizeInBytes = 3309
+    private static let signatureByteCount = 3309
 }
