@@ -42,43 +42,12 @@ final class MLDSA65Tests: XCTestCase {
         )
     }
 
-    func testSignatureSerialization() throws {
-        let data = Array("Hello, World!".utf8)
-        let key: MLDSA65.PrivateKey = try MLDSA65.PrivateKey()
-        let signature = try key.signature(for: data)
-        let roundTripped = MLDSA65.Signature(rawRepresentation: signature.rawRepresentation)
-        XCTAssertEqual(signature.rawRepresentation, roundTripped.rawRepresentation)
-        XCTAssertTrue(key.publicKey.isValidSignature(roundTripped, for: data))
-    }
-
     func testSeedRoundTripping() throws {
         let key = try MLDSA65.PrivateKey()
         let seed = key.seed
         let roundTripped = try MLDSA65.PrivateKey(seed: seed)
         XCTAssertEqual(seed, roundTripped.seed)
         XCTAssertEqual(key.publicKey.rawRepresentation, roundTripped.publicKey.rawRepresentation)
-    }
-
-    // This test is very slow, so it is disabled by default.
-    func _testBitFlips() throws {
-        let message = "Hello, world!".data(using: .utf8)!
-        let key = try MLDSA65.PrivateKey()
-        let publicKey = key.publicKey
-        let signature = try key.signature(for: message)
-        XCTAssertTrue(publicKey.isValidSignature(signature, for: message))
-
-        var encodedSignature = signature.rawRepresentation
-        for i in 0..<encodedSignature.count {
-            for j in 0..<8 {
-                encodedSignature[i] ^= 1 << j
-                let modifiedSignature = MLDSA65.Signature(rawRepresentation: encodedSignature)
-                XCTAssertFalse(
-                    publicKey.isValidSignature(modifiedSignature, for: message),
-                    "Bit flip in signature at byte \(i) bit \(j) didn't cause a verification failure"
-                )
-                encodedSignature[i] ^= 1 << j
-            }
-        }
     }
 
     func testSignatureIsRandomized() throws {
@@ -91,7 +60,7 @@ final class MLDSA65Tests: XCTestCase {
         let signature1 = try key.signature(for: message)
         let signature2 = try key.signature(for: message)
 
-        XCTAssertNotEqual(signature1.rawRepresentation, signature2.rawRepresentation)
+        XCTAssertNotEqual(signature1, signature2)
 
         // Even though the signatures are different, they both verify.
         XCTAssertTrue(publicKey.isValidSignature(signature1, for: message))
@@ -164,7 +133,7 @@ final class MLDSA65Tests: XCTestCase {
             }
             for test in testGroup.tests {
                 let message = try Data(hexString: test.msg)
-                let signature = try MLDSA65.Signature(rawRepresentation: Data(hexString: test.sig))
+                let signature = try Data(hexString: test.sig)
                 let context = try test.ctx.map { try Data(hexString: $0) }
 
                 switch test.result {

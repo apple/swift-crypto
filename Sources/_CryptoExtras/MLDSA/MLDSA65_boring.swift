@@ -55,7 +55,7 @@ extension MLDSA65 {
         ///   - context: The context to use for the signature.
         ///
         /// - Returns: The signature of the message.
-        public func signature<D: DataProtocol>(for data: D, context: D? = nil) throws -> Signature {
+        public func signature<D: DataProtocol>(for data: D, context: D? = nil) throws -> Data {
             try self.backing.signature(for: data, context: context)
         }
 
@@ -133,13 +133,15 @@ extension MLDSA65 {
             ///   - context: The context to use for the signature.
             ///
             /// - Returns: The signature of the message.
-            func signature<D: DataProtocol>(for data: D, context: D? = nil) throws -> Signature {
-                let output = try [UInt8](unsafeUninitializedCapacity: Signature.bytesCount) { bufferPtr, length in
+            func signature<D: DataProtocol>(for data: D, context: D? = nil) throws -> Data {
+                var signature = Data(repeating: 0, count: MLDSA65.signatureSizeInBytes)
+
+                let rc: CInt = signature.withUnsafeMutableBytes { signaturePtr in
                     let bytes: ContiguousBytes = data.regions.count == 1 ? data.regions.first! : Array(data)
-                    let result = bytes.withUnsafeBytes { dataPtr in
+                    return bytes.withUnsafeBytes { dataPtr in
                         context.withUnsafeBytes { contextPtr in
                             CCryptoBoringSSL_MLDSA65_sign(
-                                bufferPtr.baseAddress,
+                                signaturePtr.baseAddress,
                                 &self.key,
                                 dataPtr.baseAddress,
                                 dataPtr.count,
@@ -148,14 +150,13 @@ extension MLDSA65 {
                             )
                         }
                     }
-
-                    guard result == 1 else {
-                        throw CryptoKitError.internalBoringSSLError()
-                    }
-
-                    length = Signature.bytesCount
                 }
-                return Signature(signatureBytes: output)
+
+                guard rc == 1 else {
+                    throw CryptoKitError.internalBoringSSLError()
+                }
+
+                return signature
             }
 
             /// The size of the private key in bytes.
@@ -195,7 +196,11 @@ extension MLDSA65 {
         ///   - context: The context to use for the signature verification.
         ///
         /// - Returns: `true` if the signature is valid, `false` otherwise.
-        public func isValidSignature<D: DataProtocol>(_ signature: Signature, for data: D, context: D? = nil) -> Bool {
+        public func isValidSignature<S: DataProtocol, D: DataProtocol>(
+            _ signature: S,
+            for data: D,
+            context: D? = nil
+        ) -> Bool {
             self.backing.isValidSignature(signature, for: data, context: context)
         }
 
@@ -254,10 +259,16 @@ extension MLDSA65 {
             ///   - context: The context to use for the signature verification.
             ///
             /// - Returns: `true` if the signature is valid, `false` otherwise.
-            func isValidSignature<D: DataProtocol>(_ signature: Signature, for data: D, context: D? = nil) -> Bool {
-                signature.withUnsafeBytes { signaturePtr in
-                    let bytes: ContiguousBytes = data.regions.count == 1 ? data.regions.first! : Array(data)
-                    let rc: CInt = bytes.withUnsafeBytes { dataPtr in
+            func isValidSignature<S: DataProtocol, D: DataProtocol>(
+                _ signature: S,
+                for data: D,
+                context: D? = nil
+            ) -> Bool {
+                let signatureBytes: ContiguousBytes =
+                    signature.regions.count == 1 ? signature.regions.first! : Array(signature)
+                return signatureBytes.withUnsafeBytes { signaturePtr in
+                    let dataBytes: ContiguousBytes = data.regions.count == 1 ? data.regions.first! : Array(data)
+                    let rc: CInt = dataBytes.withUnsafeBytes { dataPtr in
                         context.withUnsafeBytes { contextPtr in
                             CCryptoBoringSSL_MLDSA65_verify(
                                 &self.key,
@@ -281,40 +292,9 @@ extension MLDSA65 {
 }
 
 extension MLDSA65 {
-    /// A ML-DSA-65 signature.
-    public struct Signature: Sendable, ContiguousBytes {
-        /// The raw binary representation of the signature.
-        public var rawRepresentation: Data
-
-        /// Initialize a ML-DSA-65 signature from a raw representation.
-        ///
-        /// - Parameter rawRepresentation: The signature bytes.
-        public init(rawRepresentation: some DataProtocol) {
-            self.rawRepresentation = Data(rawRepresentation)
-        }
-
-        /// Initialize a ML-DSA-65 signature from a raw representation.
-        ///
-        /// - Parameter signatureBytes: The signature bytes.
-        init(signatureBytes: [UInt8]) {
-            self.rawRepresentation = Data(signatureBytes)
-        }
-
-        /// Access the signature bytes.
-        ///
-        /// - Parameter body: The closure to execute with the signature bytes.
-        ///
-        /// - Returns: The result of the closure.
-        public func withUnsafeBytes<R>(_ body: (UnsafeRawBufferPointer) throws -> R) rethrows -> R {
-            try self.rawRepresentation.withUnsafeBytes(body)
-        }
-
-        /// The size of the signature in bytes.
-        fileprivate static let bytesCount = 3309
-    }
-}
-
-extension MLDSA65 {
     /// The size of the seed in bytes.
     private static let seedSizeInBytes = 32
+
+    /// The size of the signature in bytes.
+    private static let signatureSizeInBytes = 3309
 }
