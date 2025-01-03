@@ -87,11 +87,11 @@ extension MLKEM${parameter_set} {
 
                 self.seed = withUnsafeTemporaryAllocation(
                     of: UInt8.self,
-                    capacity: MLKEM.seedSizeInBytes
+                    capacity: MLKEM.seedByteCount
                 ) { seedPtr in
                     withUnsafeTemporaryAllocation(
                         of: UInt8.self,
-                        capacity: MLKEM${parameter_set}.PublicKey.bytesCount
+                        capacity: MLKEM${parameter_set}.PublicKey.byteCount
                     ) { publicKeyPtr in
                         CCryptoBoringSSL_MLKEM${parameter_set}_generate_key(
                             publicKeyPtr.baseAddress,
@@ -99,7 +99,7 @@ extension MLKEM${parameter_set} {
                             &self.key
                         )
 
-                        return Data(bytes: seedPtr.baseAddress!, count: MLKEM.seedSizeInBytes)
+                        return Data(bytes: seedPtr.baseAddress!, count: MLKEM.seedByteCount)
                     }
                 }
             }
@@ -110,7 +110,7 @@ extension MLKEM${parameter_set} {
             ///
             /// - Throws: `CryptoKitError.incorrectKeySize` if the seed is not 64 bytes long.
             init(seed: some DataProtocol) throws {
-                guard seed.count == MLKEM.seedSizeInBytes else {
+                guard seed.count == MLKEM.seedByteCount else {
                     throw CryptoKitError.incorrectKeySize
                 }
 
@@ -143,34 +143,32 @@ extension MLKEM${parameter_set} {
             ///
             /// - Returns: The symmetric key.
             func decapsulate(_ encapsulated: Data) throws -> SymmetricKey {
-                guard encapsulated.count == MLKEM${parameter_set}.ciphertextSizeInBytes else {
+                guard encapsulated.count == MLKEM${parameter_set}.ciphertextByteCount else {
                     throw CryptoKitError.incorrectParameterSize
                 }
 
-                let output = try [UInt8](
-                    unsafeUninitializedCapacity: MLKEM.sharedSecretSizeInBytes
-                ) { bufferPtr, length in
+                var symmetricKeyData = Data(repeating: 0, count: MLKEM.sharedSecretByteCount)
+
+                let rc: CInt = symmetricKeyData.withUnsafeMutableBytes { symmetricKeyDataPtr in
                     let bytes: ContiguousBytes =
                         encapsulated.regions.count == 1
                         ? encapsulated.regions.first!
                         : Array(encapsulated)
-                    let result = bytes.withUnsafeBytes { encapsulatedPtr in
+                    return bytes.withUnsafeBytes { encapsulatedPtr in
                         CCryptoBoringSSL_MLKEM${parameter_set}_decap(
-                            bufferPtr.baseAddress,
+                            symmetricKeyDataPtr.baseAddress,
                             encapsulatedPtr.baseAddress,
                             encapsulatedPtr.count,
                             &self.key
                         )
                     }
-
-                    guard result == 1 else {
-                        throw CryptoKitError.internalBoringSSLError()
-                    }
-
-                    length = MLKEM.sharedSecretSizeInBytes
                 }
 
-                return SymmetricKey(data: Data(output))
+                guard rc == 1 else {
+                    throw CryptoKitError.internalBoringSSLError()
+                }
+
+                return SymmetricKey(data: symmetricKeyData)
             }
         }
     }
@@ -208,7 +206,7 @@ extension MLKEM${parameter_set} {
         }
 
         /// The size of the public key in bytes.
-        static let bytesCount = Backing.bytesCount
+        static let byteCount = Backing.byteCount
 
         fileprivate final class Backing {
             var key: MLKEM${parameter_set}_public_key
@@ -224,7 +222,7 @@ extension MLKEM${parameter_set} {
             ///
             /// - Throws: `CryptoKitError.incorrectKeySize` if the raw representation is not the correct size.
             init(rawRepresentation: some DataProtocol) throws {
-                guard rawRepresentation.count == MLKEM${parameter_set}.PublicKey.bytesCount else {
+                guard rawRepresentation.count == MLKEM${parameter_set}.PublicKey.byteCount else {
                     throw CryptoKitError.incorrectKeySize
                 }
 
@@ -248,7 +246,7 @@ extension MLKEM${parameter_set} {
             var rawRepresentation: Data {
                 var cbb = CBB()
                 // The following BoringSSL functions can only fail on allocation failure, which we define as impossible.
-                CCryptoBoringSSL_CBB_init(&cbb, MLKEM${parameter_set}.PublicKey.Backing.bytesCount)
+                CCryptoBoringSSL_CBB_init(&cbb, MLKEM${parameter_set}.PublicKey.Backing.byteCount)
                 defer { CCryptoBoringSSL_CBB_cleanup(&cbb) }
                 CCryptoBoringSSL_MLKEM${parameter_set}_marshal_public_key(&cbb, &self.key)
                 return Data(bytes: CCryptoBoringSSL_CBB_data(&cbb), count: CCryptoBoringSSL_CBB_len(&cbb))
@@ -260,11 +258,11 @@ extension MLKEM${parameter_set} {
             func encapsulate() -> KEM.EncapsulationResult {
                 withUnsafeTemporaryAllocation(
                     of: UInt8.self,
-                    capacity: MLKEM${parameter_set}.ciphertextSizeInBytes
+                    capacity: MLKEM${parameter_set}.ciphertextByteCount
                 ) { encapsulatedPtr in
                     withUnsafeTemporaryAllocation(
                         of: UInt8.self,
-                        capacity: MLKEM.sharedSecretSizeInBytes
+                        capacity: MLKEM.sharedSecretByteCount
                     ) { secretPtr in
                         CCryptoBoringSSL_MLKEM${parameter_set}_encap(
                             encapsulatedPtr.baseAddress,
@@ -274,11 +272,11 @@ extension MLKEM${parameter_set} {
 
                         return KEM.EncapsulationResult(
                             sharedSecret: SymmetricKey(
-                                data: Data(bytes: secretPtr.baseAddress!, count: MLKEM.sharedSecretSizeInBytes)
+                                data: Data(bytes: secretPtr.baseAddress!, count: MLKEM.sharedSecretByteCount)
                             ),
                             encapsulated: Data(
                                 bytes: encapsulatedPtr.baseAddress!,
-                                count: MLKEM${parameter_set}.ciphertextSizeInBytes
+                                count: MLKEM${parameter_set}.ciphertextByteCount
                             )
                         )
                     }
@@ -286,7 +284,7 @@ extension MLKEM${parameter_set} {
             }
 
             /// The size of the public key in bytes.
-            static let bytesCount = Int(MLKEM${parameter_set}_PUBLIC_KEY_BYTES)
+            static let byteCount = Int(MLKEM${parameter_set}_PUBLIC_KEY_BYTES)
         }
     }
 }
@@ -294,14 +292,14 @@ extension MLKEM${parameter_set} {
 @available(macOS 14.0, *)
 extension MLKEM${parameter_set} {
     /// The size of the encapsulated shared secret in bytes.
-    private static let ciphertextSizeInBytes = Int(MLKEM${parameter_set}_CIPHERTEXT_BYTES)
+    private static let ciphertextByteCount = Int(MLKEM${parameter_set}_CIPHERTEXT_BYTES)
 }
 % end
 
 private enum MLKEM {
     /// The size of the seed in bytes.
-    fileprivate static let seedSizeInBytes = 64
+    fileprivate static let seedByteCount = 64
 
     // The size of the shared secret in bytes.
-    fileprivate static let sharedSecretSizeInBytes = 32
+    fileprivate static let sharedSecretByteCount = 32
 }
