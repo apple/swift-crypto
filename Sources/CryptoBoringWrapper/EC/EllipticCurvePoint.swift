@@ -54,6 +54,17 @@ package final class EllipticCurvePoint {
     }
 
     @usableFromInline
+    package init(_generatorOf groupPtr: OpaquePointer) throws {
+        guard
+            let generatorPtr = CCryptoBoringSSL_EC_GROUP_get0_generator(groupPtr),
+            let pointPtr = CCryptoBoringSSL_EC_POINT_dup(generatorPtr, groupPtr)
+        else {
+            throw CryptoBoringWrapperError.internalBoringSSLError()
+        }
+        self._basePoint = pointPtr
+    }
+
+    @usableFromInline
     package convenience init(
         multiplying scalar: ArbitraryPrecisionInteger,
         on group: BoringSSLEllipticCurveGroup

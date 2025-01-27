@@ -47,8 +47,8 @@ extension P256: OpenSSLSupportedNISTCurve {
     @usableFromInline
     typealias H = SHA256
 
-    @inlinable
-    static var group: BoringSSLEllipticCurveGroup { try! BoringSSLEllipticCurveGroup(.p256) }
+    @usableFromInline
+    static let group: BoringSSLEllipticCurveGroup = try! BoringSSLEllipticCurveGroup(.p256)
 
     @inlinable
     static var cofactor: Int { 1 }
@@ -69,8 +69,8 @@ extension P384: OpenSSLSupportedNISTCurve {
     @usableFromInline
     typealias H = SHA384
 
-    @inlinable
-    static var group: BoringSSLEllipticCurveGroup { try! BoringSSLEllipticCurveGroup(.p384) }
+    @usableFromInline
+    static let group: BoringSSLEllipticCurveGroup = try! BoringSSLEllipticCurveGroup(.p384)
 
     @inlinable
     static var cofactor: Int { 1 }
@@ -91,8 +91,8 @@ extension P521: OpenSSLSupportedNISTCurve {
     @usableFromInline
     typealias H = SHA512
 
-    @inlinable
-    static var group: BoringSSLEllipticCurveGroup { try! BoringSSLEllipticCurveGroup(.p521) }
+    @usableFromInline
+    static let group: BoringSSLEllipticCurveGroup = try! BoringSSLEllipticCurveGroup(.p521)
 
     @inlinable
     static var cofactor: Int { 1 }
@@ -185,9 +185,7 @@ struct OpenSSLCurvePoint<C: OpenSSLSupportedNISTCurve>: GroupElement {
     }
 
     static var generator: Self {
-        // Force-try: Protocol requires non-throwing and this can only throw if group has no generator.
-        // TODO: `BoringSSLEllipticCurveGroup.generator` should probably be non-throwing, like `.order`.
-        try! Self(ecPoint: C.group.generator)
+        Self(ecPoint: C.group.generator)
     }
 
     static var random: Self {
