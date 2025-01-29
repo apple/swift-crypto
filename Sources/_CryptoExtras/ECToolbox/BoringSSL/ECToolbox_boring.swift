@@ -215,12 +215,12 @@ struct OpenSSLCurvePoint<C: OpenSSLSupportedNISTCurve>: GroupElement {
         return Self(ecPoint: point)
     }
 
-    static func + (left: Self, right: Self) -> Self {
+    static func + (left: consuming Self, right: consuming Self) -> Self {
         // Force-try: Protocol requires non-throwing.
         try! Self(ecPoint: left.ecPoint.adding(right.ecPoint, on: C.group, context: C.__ffac))
     }
 
-    static func - (left: Self, right: Self) -> Self {
+    static func - (left: consuming Self, right: consuming Self) -> Self {
         // Force-try: Protocol requires non-throwing.
         try! Self(ecPoint: left.ecPoint.subtracting(right.ecPoint, on: C.group, context: C.__ffac))
     }
@@ -230,7 +230,7 @@ struct OpenSSLCurvePoint<C: OpenSSLSupportedNISTCurve>: GroupElement {
         try! Self(ecPoint: left.ecPoint.inverting(on: C.group, context: C.__ffac))
     }
 
-    static func * (left: Scalar, right: Self) -> Self {
+    static func * (left: consuming Scalar, right: consuming Self) -> Self {
         // Force-try: Protocol requires non-throwing.
         try! Self(ecPoint: right.ecPoint.multiplying(by: left.openSSLScalar, on: C.group, context: C.__ffac))
     }

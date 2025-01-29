@@ -115,12 +115,16 @@ package final class EllipticCurvePoint {
     }
 
     @usableFromInline
-    package func multiplying(
+    package consuming func multiplying(
         by rhs: ArbitraryPrecisionInteger,
         on group: BoringSSLEllipticCurveGroup,
         context: FiniteFieldArithmeticContext? = nil
     ) throws -> EllipticCurvePoint {
-        try EllipticCurvePoint(multiplying: self, by: rhs, on: group, context: context)
+        guard isKnownUniquelyReferenced(&self) else {
+            return try EllipticCurvePoint(multiplying: self, by: rhs, on: group, context: context)
+        }
+        try self.multiply(by: rhs, on: group, context: context)
+        return self
     }
 
     @usableFromInline
@@ -162,12 +166,16 @@ package final class EllipticCurvePoint {
     }
 
     @usableFromInline
-    package func adding(
-        _ rhs: EllipticCurvePoint,
+    package consuming func adding(
+        _ rhs: consuming EllipticCurvePoint,
         on group: BoringSSLEllipticCurveGroup,
         context: FiniteFieldArithmeticContext? = nil
     ) throws -> EllipticCurvePoint {
-        try EllipticCurvePoint(adding: self, rhs, on: group, context: context)
+        guard isKnownUniquelyReferenced(&self) else {
+            return try EllipticCurvePoint(adding: self, rhs, on: group, context: context)
+        }
+        try self.add(rhs, on: group, context: context)
+        return self
     }
 
     @usableFromInline
@@ -239,12 +247,16 @@ package final class EllipticCurvePoint {
     }
 
     @usableFromInline
-    package func subtracting(
-        _ rhs: EllipticCurvePoint,
+    package consuming func subtracting(
+        _ rhs: consuming EllipticCurvePoint,
         on group: BoringSSLEllipticCurveGroup,
         context: FiniteFieldArithmeticContext? = nil
     ) throws -> EllipticCurvePoint {
-        try EllipticCurvePoint(subtracting: rhs, from: self, on: group, context: context)
+        guard isKnownUniquelyReferenced(&self) else {
+            return try EllipticCurvePoint(subtracting: rhs, from: self, on: group, context: context)
+        }
+        try self.subtract(rhs, on: group, context: context)
+        return self
     }
 
     @usableFromInline
