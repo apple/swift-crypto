@@ -132,6 +132,10 @@ extension P256 {
                 let pemDocument = ASN1.PEMDocument(type: "PUBLIC KEY", derBytes: self.derRepresentation)
                 return pemDocument.pemString
             }
+			
+			public static func ==(lhs: Self, rhs: Self) -> Bool {
+				lhs.rawRepresentation == rhs.rawRepresentation
+			}
         }
 
         /// A P-256 private key used to create cryptographic signatures.
@@ -347,6 +351,10 @@ extension P256 {
                 let pemDocument = ASN1.PEMDocument(type: "PUBLIC KEY", derBytes: self.derRepresentation)
                 return pemDocument.pemString
             }
+			
+			public static func ==(lhs: Self, rhs: Self) -> Bool {
+				lhs.rawRepresentation == rhs.rawRepresentation
+			}
         }
 
         /// A P-256 private key used for key agreement.
@@ -561,6 +569,10 @@ extension P384 {
                 let pemDocument = ASN1.PEMDocument(type: "PUBLIC KEY", derBytes: self.derRepresentation)
                 return pemDocument.pemString
             }
+			
+			public static func ==(lhs: Self, rhs: Self) -> Bool {
+				lhs.rawRepresentation == rhs.rawRepresentation
+			}
         }
 
         /// A P-384 private key used to create cryptographic signatures.
@@ -776,6 +788,10 @@ extension P384 {
                 let pemDocument = ASN1.PEMDocument(type: "PUBLIC KEY", derBytes: self.derRepresentation)
                 return pemDocument.pemString
             }
+			
+			public static func ==(lhs: Self, rhs: Self) -> Bool {
+				lhs.rawRepresentation == rhs.rawRepresentation
+			}
         }
 
         /// A P-384 private key used for key agreement.
@@ -990,6 +1006,10 @@ extension P521 {
                 let pemDocument = ASN1.PEMDocument(type: "PUBLIC KEY", derBytes: self.derRepresentation)
                 return pemDocument.pemString
             }
+			
+			public static func ==(lhs: Self, rhs: Self) -> Bool {
+				lhs.rawRepresentation == rhs.rawRepresentation
+			}
         }
 
         /// A P-521 private key used to create cryptographic signatures.
@@ -1205,6 +1225,10 @@ extension P521 {
                 let pemDocument = ASN1.PEMDocument(type: "PUBLIC KEY", derBytes: self.derRepresentation)
                 return pemDocument.pemString
             }
+			
+			public static func ==(lhs: Self, rhs: Self) -> Bool {
+				lhs.rawRepresentation == rhs.rawRepresentation
+			}
         }
 
         /// A P-521 private key used for key agreement.

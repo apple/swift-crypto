@@ -398,6 +398,89 @@ class SignatureTests: XCTestCase {
         let compressedX963Positive = Data(base64Encoded: "A+QHCXtGd5WWSQgp37FBPXMy+nnSwFK79QQD0ZeNMv7L")!
         XCTAssertThrowsError(try P256.Signing.PublicKey(x963Representation: compressedX963Positive))
     }
-    
+	
+	func testP256SigningPublicKeyEquatable() throws {
+		// Equality
+		let publicKey = P256.Signing.PrivateKey().publicKey
+		XCTAssertEqual(publicKey, publicKey)
+
+		// Inequality
+		for _ in 0..<32 {
+			XCTAssertNotEqual(
+				publicKey,
+				P256.Signing.PrivateKey().publicKey
+			)
+		}
+	}
+
+	func testP256KeyAgreementPublicKeyEquatable() throws {
+		// Equality
+		let publicKey = P256.KeyAgreement.PrivateKey().publicKey
+		XCTAssertEqual(publicKey, publicKey)
+
+		// Inequality
+		for _ in 0..<32 {
+			XCTAssertNotEqual(
+				publicKey,
+				P256.KeyAgreement.PrivateKey().publicKey
+			)
+		}
+	}
+	
+	func testP384SigningPublicKeyEquatable() throws {
+		// Equality
+		let publicKey = P384.Signing.PrivateKey().publicKey
+		XCTAssertEqual(publicKey, publicKey)
+
+		// Inequality
+		for _ in 0..<32 {
+			XCTAssertNotEqual(
+				publicKey,
+				P384.Signing.PrivateKey().publicKey
+			)
+		}
+	}
+
+	func testP384KeyAgreementPublicKeyEquatable() throws {
+		// Equality
+		let publicKey = P384.KeyAgreement.PrivateKey().publicKey
+		XCTAssertEqual(publicKey, publicKey)
+
+		// Inequality
+		for _ in 0..<32 {
+			XCTAssertNotEqual(
+				publicKey,
+				P384.KeyAgreement.PrivateKey().publicKey
+			)
+		}
+	}
+	
+	func testP521SigningPublicKeyEquatable() throws {
+		// Equality
+		let publicKey = P521.Signing.PrivateKey().publicKey
+		XCTAssertEqual(publicKey, publicKey)
+
+		// Inequality
+		for _ in 0..<32 {
+			XCTAssertNotEqual(
+				publicKey,
+				P521.Signing.PrivateKey().publicKey
+			)
+		}
+	}
+
+	func testP521KeyAgreementPublicKeyEquatable() throws {
+		// Equality
+		let publicKey = P521.KeyAgreement.PrivateKey().publicKey
+		XCTAssertEqual(publicKey, publicKey)
+
+		// Inequality
+		for _ in 0..<32 {
+			XCTAssertNotEqual(
+				publicKey,
+				P521.KeyAgreement.PrivateKey().publicKey
+			)
+		}
+	}
 }
 #endif // CRYPTO_IN_SWIFTPM
