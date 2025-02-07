@@ -56,7 +56,7 @@ function update_cmakelists_source() {
     fi
 
     # Wrap quotes around each filename since it might contain spaces
-    srcs=$($find -L "${src_root}" -type f \( \( "${exts_arg[@]}" \) -o \( -name *.S -a ! -name *x86_64* -a ! -name *arm* -a ! -name *apple* -a ! -name *linux* \) \) -printf '  "%P"\n' | LC_ALL=POSIX sort)
+    srcs=$($find -L "${src_root}" -type f \( \( "${exts_arg[@]}" \) -o \( -name "*.S" -a ! -name "*x86_64*" -a ! -name "*arm*" -a ! -name "*apple*" -a ! -name "*linux*" \) \) -printf '  "%P"\n' | LC_ALL=POSIX sort)
     echo "$srcs"
 
     # Update list of source files in CMakeLists.txt
