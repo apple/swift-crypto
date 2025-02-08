@@ -341,6 +341,10 @@ target_include_directories(CCryptoBoringSSL PUBLIC
 
 target_compile_definitions(CCryptoBoringSSL PRIVATE
   $<$<PLATFORM_ID:Windows>:WIN32_LEAN_AND_MEAN>)
+target_link_libraries(CCryptoBoringSSL PUBLIC
+  $<$<NOT:$<PLATFORM_ID:Darwin>>:dispatch>
+  $<$<NOT:$<PLATFORM_ID:Darwin>>:Foundation>
+  SwiftASN1)
 set_target_properties(CCryptoBoringSSL PROPERTIES
   INTERFACE_INCLUDE_DIRECTORIES "${CMAKE_CURRENT_SOURCE_DIR}/include;${CMAKE_Swift_MODULE_DIRECTORY}")
 
