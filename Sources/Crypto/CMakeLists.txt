@@ -96,9 +96,13 @@ add_library(Crypto
 target_compile_definitions(Crypto PRIVATE
   "$<$<COMPILE_LANGUAGE:Swift>:CRYPTO_IN_SWIFTPM>")
 
+target_compile_options(Crypto PRIVATE -DCRYPTO_IN_SWIFTPM="true")
+
 if(CMAKE_SYSTEM_NAME STREQUAL "Linux" OR CMAKE_SYSTEM_NAME STREQUAL "Windows" OR CMAKE_SYSTEM_NAME STREQUAL "Android" OR CMAKE_SYSTEM_NAME STREQUAL "WASI" OR CMAKE_SYSTEM_NAME STREQUAL FreeBSD)
   target_compile_definitions(Crypto PRIVATE
     "$<$<COMPILE_LANGUAGE:Swift>:CRYPTO_IN_SWIFTPM_FORCE_BUILD_API>")
+
+  target_compile_options(Crypto PRIVATE -DCRYPTO_IN_SWIFTPM_FORCE_BUILD_API="true")
 endif()
 
 target_include_directories(Crypto PRIVATE
