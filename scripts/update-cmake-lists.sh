@@ -32,7 +32,7 @@ function update_cmakelists_source() {
 
     src_exts=("*.c" "*.swift" "*.cc")
     num_exts=${#src_exts[@]}
-    echo "Finding source files (" "${src_exts[@]}" ") under $src_root"
+    echo "Finding source files (" "${src_exts[@]}" ") platform independent assembly files under $src_root"
 
     # Build file extensions argument for `find`
     declare -a exts_arg
@@ -56,7 +56,7 @@ function update_cmakelists_source() {
     fi
 
     # Wrap quotes around each filename since it might contain spaces
-    srcs=$($find -L "${src_root}" -type f \( "${exts_arg[@]}" \) -printf '  "%P"\n' | LC_ALL=POSIX sort)
+    srcs=$($find -L "${src_root}" -type f \( \( "${exts_arg[@]}" \) -o \( -name "*.S" -a ! -name "*x86_64*" -a ! -name "*arm*" -a ! -name "*apple*" -a ! -name "*linux*" \) \) -printf '  "%P"\n' | LC_ALL=POSIX sort)
     echo "$srcs"
 
     # Update list of source files in CMakeLists.txt
