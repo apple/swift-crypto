@@ -12,6 +12,8 @@
 ##
 ##===----------------------------------------------------------------------===##
 
+enable_language(ASM)
+
 add_library(CCryptoBoringSSL STATIC
   "crypto/asn1/a_bitstr.cc"
   "crypto/asn1/a_bool.cc"
