@@ -349,7 +349,7 @@ set_target_properties(CCryptoBoringSSL PROPERTIES
   INTERFACE_INCLUDE_DIRECTORIES "${CMAKE_CURRENT_SOURCE_DIR}/include;${CMAKE_Swift_MODULE_DIRECTORY}")
 
 ## FIXME: Make this setting conditional on Windows
-set_target_property(TARGET CCryptoBoringSSL PROPERTY
+set_property(TARGET CCryptoBoringSSL PROPERTY
   MSVC_RUNTIME_LIBRARY "MultiThreaded")
 
 set_property(GLOBAL APPEND PROPERTY SWIFT_CRYPTO_EXPORTS CCryptoBoringSSL)
