@@ -350,6 +350,6 @@ set_target_properties(CCryptoBoringSSL PROPERTIES
 
 ## FIXME: Make this setting conditional on Windows
 set_property(TARGET CCryptoBoringSSL PROPERTY
-  MSVC_RUNTIME_LIBRARY "MultiThreaded")
+  MSVC_RUNTIME_LIBRARY "")
 
 set_property(GLOBAL APPEND PROPERTY SWIFT_CRYPTO_EXPORTS CCryptoBoringSSL)
