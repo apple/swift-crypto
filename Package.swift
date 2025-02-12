@@ -94,7 +94,7 @@ let package = Package(
             MANGLE_END */
     ],
     dependencies: [
-        .package(url: "https://github.com/apple/swift-asn1.git", from: "1.2.0")
+        // Dependencies are added below so that they can be switched between local and absolute URLs
     ],
     targets: [
         .target(
@@ -200,6 +200,13 @@ let package = Package(
     ],
     cxxLanguageStandard: .cxx14
 )
+
+// Switch between local and remote dependencies depending on an environment variable
+if ProcessInfo.processInfo.environment["SWIFTCI_USE_LOCAL_DEPS"] == nil {
+    .package(url: "https://github.com/apple/swift-asn1.git", from: "1.2.0")
+} else {
+    .package(path: "../swift-asn1")
+}
 
 // ---    STANDARD CROSS-REPO SETTINGS DO NOT EDIT   --- //
 for target in package.targets {
