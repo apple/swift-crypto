@@ -50,7 +50,8 @@ add_library(_CryptoExtras
   "Util/PEMDocument.swift"
   "Util/PrettyBytes.swift"
   "Util/SubjectPublicKeyInfo.swift"
-  "ZKPs/DLEQ.swift")
+  "ZKPs/DLEQ.swift"
+)
 
 target_compile_options(_CryptoExtras PRIVATE -DCRYPTO_IN_SWIFTPM)
 

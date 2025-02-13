@@ -12,10 +12,6 @@
 ##
 ##===----------------------------------------------------------------------===##
 
-enable_language(ASM)
-
-set(CMAKE_ASM_SOURCE_FILE_EXTENSIONS s;S;asm)
-
 add_library(CCryptoBoringSSL STATIC
   "crypto/asn1/a_bitstr.cc"
   "crypto/asn1/a_bool.cc"
@@ -127,7 +123,6 @@ add_library(CCryptoBoringSSL STATIC
   "crypto/fipsmodule/bcm.cc"
   "crypto/fipsmodule/fips_shared_support.cc"
   "crypto/hpke/hpke.cc"
-  "crypto/hrss/asm/poly_rq_mul.S"
   "crypto/hrss/hrss.cc"
   "crypto/kyber/kyber.cc"
   "crypto/lhash/lhash.cc"
@@ -259,10 +254,11 @@ add_library(CCryptoBoringSSL STATIC
   "crypto/x509/x_x509.cc"
   "crypto/x509/x_x509a.cc"
   "gen/crypto/err_data.cc"
-  "third_party/fiat/asm/fiat_curve25519_adx_mul.S"
-  "third_party/fiat/asm/fiat_curve25519_adx_square.S"
-  "third_party/fiat/asm/fiat_p256_adx_mul.S"
-  "third_party/fiat/asm/fiat_p256_adx_sqr.S")
+  "$<$<NOT:$<PLATFORM_ID:Windows>>:crypto/hrss/asm/poly_rq_mul.S>"
+  "$<$<NOT:$<PLATFORM_ID:Windows>>:third_party/fiat/asm/fiat_curve25519_adx_mul.S>"
+  "$<$<NOT:$<PLATFORM_ID:Windows>>:third_party/fiat/asm/fiat_curve25519_adx_square.S>"
+  "$<$<NOT:$<PLATFORM_ID:Windows>>:third_party/fiat/asm/fiat_p256_adx_mul.S>"
+  "$<$<NOT:$<PLATFORM_ID:Windows>>:third_party/fiat/asm/fiat_p256_adx_sqr.S>")
 
 if(CMAKE_SYSTEM_NAME STREQUAL Darwin AND CMAKE_SYSTEM_PROCESSOR MATCHES "amd64|x86_64")
   target_sources(CCryptoBoringSSL PRIVATE
@@ -351,9 +347,5 @@ target_link_libraries(CCryptoBoringSSL PUBLIC
   SwiftASN1)
 set_target_properties(CCryptoBoringSSL PROPERTIES
   INTERFACE_INCLUDE_DIRECTORIES "${CMAKE_CURRENT_SOURCE_DIR}/include;${CMAKE_Swift_MODULE_DIRECTORY}")
-
-## FIXME: Make this setting conditional on Windows
-set_property(TARGET CCryptoBoringSSL PROPERTY
-  MSVC_RUNTIME_LIBRARY "")
 
 set_property(GLOBAL APPEND PROPERTY SWIFT_CRYPTO_EXPORTS CCryptoBoringSSL)
