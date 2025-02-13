@@ -14,6 +14,8 @@
 
 enable_language(ASM)
 
+set(CMAKE_ASM_SOURCE_FILE_EXTENSIONS s;S;asm)
+
 add_library(CCryptoBoringSSL STATIC
   "crypto/asn1/a_bitstr.cc"
   "crypto/asn1/a_bool.cc"
