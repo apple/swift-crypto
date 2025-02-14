@@ -68,6 +68,18 @@ Sources/_CryptoExtras/AES/AES_CFB.swift
 Sources/_CryptoExtras/AES/AES_CTR.swift
 Sources/_CryptoExtras/AES/AES_GCM_SIV.swift
 Sources/_CryptoExtras/AES/Block Function.swift
+Sources/_CryptoExtras/ARC/ARC+API.swift
+Sources/_CryptoExtras/ARC/ARC.swift
+Sources/_CryptoExtras/ARC/ARCCredential.swift
+Sources/_CryptoExtras/ARC/ARCEncoding.swift
+Sources/_CryptoExtras/ARC/ARCPrecredential.swift
+Sources/_CryptoExtras/ARC/ARCPresentation.swift
+Sources/_CryptoExtras/ARC/ARCRequest.swift
+Sources/_CryptoExtras/ARC/ARCResponse.swift
+Sources/_CryptoExtras/ARC/ARCServer.swift
+Sources/_CryptoExtras/ZKPs/Prover.swift
+Sources/_CryptoExtras/ZKPs/Verifier.swift
+Sources/_CryptoExtras/ZKPs/ZKPToolbox.swift
 Sources/_CryptoExtras/ChaCha20CTR/ChaCha20CTR.swift
 Sources/_CryptoExtras/ECToolbox/ECToolbox.swift
 Sources/_CryptoExtras/H2G/HashToField.swift
@@ -123,6 +135,11 @@ Tests/_CryptoExtrasTests/AES-GCM-SIV-Runner.swift
 Tests/_CryptoExtrasTests/AES_CBCTests.swift
 Tests/_CryptoExtrasTests/AES_CFBTests.swift
 Tests/_CryptoExtrasTests/AES_CTRTests.swift
+Tests/_CryptoExtrasTests/ARC/ARCAPITests.swift
+Tests/_CryptoExtrasTests/ARC/ARCEncodingTests.swift
+Tests/_CryptoExtrasTests/ARC/ARCPublicAPITests.swift
+Tests/_CryptoExtrasTests/ARC/ARCTestVectors.swift
+Tests/_CryptoExtrasTests/ARC/ARCTests.swift
 Tests/_CryptoExtrasTests/ChaCha20CTRTests.swift
 Tests/_CryptoExtrasTests/ECToolbox/HashToCurveTests.swift
 Tests/_CryptoExtrasTests/OPRFs/ECVOPRFTests.swift
@@ -139,3 +156,4 @@ Tests/_CryptoExtrasTests/Utils/RFCVector.swift
 Tests/_CryptoExtrasTests/Utils/SplitData.swift
 Tests/_CryptoExtrasTests/Utils/Wycheproof.swift
 Tests/_CryptoExtrasTests/Utils/XCTestUtils.swift
+Tests/_CryptoExtrasTests/ZKPs/ZKPToolbox.swift
