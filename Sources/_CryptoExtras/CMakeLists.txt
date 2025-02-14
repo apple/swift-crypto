@@ -21,6 +21,15 @@ add_library(_CryptoExtras
   "AES/BoringSSL/AES_CFB_boring.swift"
   "AES/BoringSSL/AES_CTR_boring.swift"
   "AES/BoringSSL/AES_GCM_SIV_boring.swift"
+  "ARC/ARC+API.swift"
+  "ARC/ARC.swift"
+  "ARC/ARCCredential.swift"
+  "ARC/ARCEncoding.swift"
+  "ARC/ARCPrecredential.swift"
+  "ARC/ARCPresentation.swift"
+  "ARC/ARCRequest.swift"
+  "ARC/ARCResponse.swift"
+  "ARC/ARCServer.swift"
   "ChaCha20CTR/BoringSSL/ChaCha20CTR_boring.swift"
   "ChaCha20CTR/ChaCha20CTR.swift"
   "ECToolbox/BoringSSL/ECToolbox_boring.swift"
@@ -51,6 +60,9 @@ add_library(_CryptoExtras
   "Util/PrettyBytes.swift"
   "Util/SubjectPublicKeyInfo.swift"
   "ZKPs/DLEQ.swift"
+  "ZKPs/Prover.swift"
+  "ZKPs/Verifier.swift"
+  "ZKPs/ZKPToolbox.swift"
 )
 
 target_compile_options(_CryptoExtras PRIVATE -DCRYPTO_IN_SWIFTPM)

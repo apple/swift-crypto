@@ -17,7 +17,12 @@ import Crypto
 extension Data {
     static func ^ (left: Data, right: Data) -> Data {
         precondition(left.count == right.count)
-        return Data(zip(left, right).compactMap { return $0 ^ $1 })
+        var result = Data()
+        result.reserveCapacity(left.count)
+        for value in zip(left, right) {
+            result.append(value.0 ^ value.1)
+        }
+        return result
     }
 }
 
