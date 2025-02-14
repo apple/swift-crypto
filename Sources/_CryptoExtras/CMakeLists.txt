@@ -64,6 +64,12 @@ add_library(_CryptoExtras
   "ZKPs/Verifier.swift"
   "ZKPs/ZKPToolbox.swift")
 
+target_compile_options(_CryptoExtras PRIVATE -DCRYPTO_IN_SWIFTPM)
+
+if(CMAKE_SYSTEM_NAME STREQUAL "Linux" OR CMAKE_SYSTEM_NAME STREQUAL "Windows" OR CMAKE_SYSTEM_NAME STREQUAL "Android" OR CMAKE_SYSTEM_NAME STREQUAL "WASI" OR CMAKE_SYSTEM_NAME STREQUAL FreeBSD)
+  target_compile_options(_CryptoExtras PRIVATE -DCRYPTO_IN_SWIFTPM_FORCE_BUILD_API)
+endif()
+
 target_include_directories(_CryptoExtras PRIVATE
   $<TARGET_PROPERTY:CCryptoBoringSSL,INCLUDE_DIRECTORIES>
   $<TARGET_PROPERTY:CCryptoBoringSSLShims,INCLUDE_DIRECTORIES>)

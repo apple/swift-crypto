@@ -346,6 +346,8 @@ target_link_libraries(CCryptoBoringSSL PUBLIC
   $<$<NOT:$<PLATFORM_ID:Darwin>>:Foundation>
   SwiftASN1)
 set_target_properties(CCryptoBoringSSL PROPERTIES
-  INTERFACE_INCLUDE_DIRECTORIES "${CMAKE_CURRENT_SOURCE_DIR}/include;${CMAKE_Swift_MODULE_DIRECTORY}")
+  INTERFACE_INCLUDE_DIRECTORIES "${CMAKE_CURRENT_SOURCE_DIR}/include;${CMAKE_Swift_MODULE_DIRECTORY}"
+  // Workaround for missing MultiThreadedDLL for this ASM compiler on Windows
+  $<$<PLATFORM_ID:Windows>:MSVC_RUNTIME_LIBRARY "MultiThreaded">)
 
 set_property(GLOBAL APPEND PROPERTY SWIFT_CRYPTO_EXPORTS CCryptoBoringSSL)
