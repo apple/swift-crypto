@@ -22,6 +22,7 @@
 //
 // BoringSSL Commit: aefa5d24da34ef77ac797bdbe684734e5bd870f4
 
+import class Foundation.ProcessInfo
 import PackageDescription
 
 // To develop this on Apple platforms, set this to true
@@ -94,7 +95,7 @@ let package = Package(
             MANGLE_END */
     ],
     dependencies: [
-        .package(url: "https://github.com/apple/swift-asn1.git", from: "1.2.0")
+        // Dependencies are added below so that they can be switched between local and absolute URLs
     ],
     targets: [
         .target(
@@ -200,6 +201,17 @@ let package = Package(
     ],
     cxxLanguageStandard: .cxx14
 )
+
+// Switch between local and remote dependencies depending on an environment variable
+if ProcessInfo.processInfo.environment["SWIFTCI_USE_LOCAL_DEPS"] == nil {
+    package.dependencies += [
+        .package(url: "https://github.com/apple/swift-asn1.git", from: "1.2.0"),
+    ]
+} else {
+    package.dependencies += [
+        .package(path: "../swift-asn1"),
+    ]
+}
 
 // ---    STANDARD CROSS-REPO SETTINGS DO NOT EDIT   --- //
 for target in package.targets {

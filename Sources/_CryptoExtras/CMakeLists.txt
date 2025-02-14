@@ -62,7 +62,8 @@ add_library(_CryptoExtras
   "ZKPs/DLEQ.swift"
   "ZKPs/Prover.swift"
   "ZKPs/Verifier.swift"
-  "ZKPs/ZKPToolbox.swift")
+  "ZKPs/ZKPToolbox.swift"
+)
 
 target_compile_options(_CryptoExtras PRIVATE -DCRYPTO_IN_SWIFTPM)
 
