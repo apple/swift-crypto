@@ -15,6 +15,7 @@
 import XCTest
 import Crypto
 
+@available(macOS 10.15, iOS 13.2, tvOS 13.2, watchOS 6.1, *)
 class ARCEncodingTests: XCTestCase {
     func testserverPublicKeyEncoding() throws {
         let ciphersuite = ARC.Ciphersuite(HashToCurveImpl<ARCCurve>.self)

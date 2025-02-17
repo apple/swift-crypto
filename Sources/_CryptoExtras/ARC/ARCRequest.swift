@@ -14,6 +14,7 @@
 import Crypto
 import Foundation
 
+@available(macOS 10.15, iOS 13.2, tvOS 13.2, watchOS 6.1, *)
 extension ARC {
     /// CredentialRequest consists of encryptions of the two client attributes, in the form of Pedersen commitments,
     /// along with a zero-knowledge proof of the following statements:

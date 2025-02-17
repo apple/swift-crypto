@@ -15,6 +15,7 @@ import Crypto
 @testable import _CryptoExtras
 import XCTest
 
+@available(macOS 10.15, iOS 13.2, tvOS 13.2, watchOS 6.1, *)
 class ZKPToolboxTests: XCTestCase {
     typealias H2G = HashToCurveImpl<P384>
     typealias Group = H2G.G
