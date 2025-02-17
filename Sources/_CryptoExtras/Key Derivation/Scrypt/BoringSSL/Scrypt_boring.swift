@@ -16,10 +16,25 @@
 @_implementationOnly import CCryptoBoringSSLShims
 import Crypto
 
+#if canImport(FoundationEssentials)
+import FoundationEssentials
+#if canImport(Glibc)
+import Glibc
+#elseif canImport(Musl)
+import Musl
+#elseif os(Windows)
+import CRT
+#elseif canImport(Android)
+import Android
+#else
+import Darwin.C
+#endif
+#else
 #if canImport(Darwin) || swift(>=5.9.1)
 import Foundation
 #else
 @preconcurrency import Foundation
+#endif
 #endif
 
 #if canImport(Android)

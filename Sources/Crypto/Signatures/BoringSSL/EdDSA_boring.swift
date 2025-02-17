@@ -16,7 +16,11 @@
 #else
 @_implementationOnly import CCryptoBoringSSL
 @_implementationOnly import CCryptoBoringSSLShims
+#if canImport(FoundationEssentials)
+import FoundationEssentials
+#else
 import Foundation
+#endif
 
 extension Curve25519.Signing.PublicKey {
     // We do this to enable inlinability on these methods.

@@ -17,7 +17,11 @@
 @_implementationOnly import CCryptoBoringSSL
 @_implementationOnly import CCryptoBoringSSLShims
 import CryptoBoringWrapper
+#if canImport(FoundationEssentials)
+import FoundationEssentials
+#else
 import Foundation
+#endif
 
 @usableFromInline
 protocol OpenSSLSupportedNISTCurve {

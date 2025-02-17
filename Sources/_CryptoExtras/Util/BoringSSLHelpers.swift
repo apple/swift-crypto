@@ -15,7 +15,11 @@
 // NOTE: This file is unconditionally compiled because RSABSSA is implemented using BoringSSL on all platforms.
 @_implementationOnly import CCryptoBoringSSL
 @_implementationOnly import CCryptoBoringSSLShims
+#if canImport(FoundationEssentials)
+import FoundationEssentials
+#else
 import Foundation
+#endif
 import Crypto
 
 internal enum BIOHelper {

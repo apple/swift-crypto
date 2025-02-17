@@ -21,7 +21,11 @@ import Security
 typealias ChaChaPolyImpl = OpenSSLChaChaPolyImpl
 #endif
 
+#if canImport(FoundationEssentials)
+import FoundationEssentials
+#else
 import Foundation
+#endif
 
 /// An implementation of the ChaCha20-Poly1305 cipher.
 public enum ChaChaPoly: Cipher {

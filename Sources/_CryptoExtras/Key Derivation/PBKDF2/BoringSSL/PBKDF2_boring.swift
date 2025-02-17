@@ -14,7 +14,11 @@
 import Crypto
 
 #if canImport(Darwin) || swift(>=5.9.1)
+#if canImport(FoundationEssentials)
+import FoundationEssentials
+#else
 import Foundation
+#endif
 #else
 @preconcurrency import Foundation
 #endif

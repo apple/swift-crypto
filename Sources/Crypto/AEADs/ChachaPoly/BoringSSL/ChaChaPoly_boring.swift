@@ -17,7 +17,11 @@
 @_implementationOnly import CCryptoBoringSSL
 @_implementationOnly import CCryptoBoringSSLShims
 import CryptoBoringWrapper
+#if canImport(FoundationEssentials)
+import FoundationEssentials
+#else
 import Foundation
+#endif
 
 extension BoringSSLAEAD {
     /// Seal a given message.

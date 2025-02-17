@@ -15,7 +15,11 @@
 @_exported import CryptoKit
 #else
 @_implementationOnly import CCryptoBoringSSL
+#if canImport(FoundationEssentials)
+import FoundationEssentials
+#else
 import Foundation
+#endif
 
 enum BoringSSLAESWRAPImpl {
     static func wrap(key: SymmetricKey, keyToWrap: SymmetricKey) throws -> Data {

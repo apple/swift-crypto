@@ -14,7 +14,12 @@
 
 @_implementationOnly import CCryptoBoringSSL
 @_implementationOnly import CCryptoBoringSSLShims
+
+#if canImport(FoundationEssentials)
+import FoundationEssentials
+#else
 import Foundation
+#endif
 
 /// An abstraction over a BoringSSL AEAD
 public enum BoringSSLAEAD {

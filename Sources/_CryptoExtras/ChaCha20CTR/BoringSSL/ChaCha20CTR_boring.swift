@@ -16,7 +16,12 @@
 @_implementationOnly import CCryptoBoringSSLShims
 import Crypto
 import CryptoBoringWrapper
+
+#if canImport(FoundationEssentials)
+import FoundationEssentials
+#else
 import Foundation
+#endif
 
 enum OpenSSLChaCha20CTRImpl {
     static func encrypt<M: DataProtocol, N: ContiguousBytes>(

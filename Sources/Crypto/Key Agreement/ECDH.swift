@@ -22,7 +22,11 @@ typealias NISTCurvePublicKeyImpl = OpenSSLNISTCurvePublicKeyImpl
 typealias NISTCurvePrivateKeyImpl = OpenSSLNISTCurvePrivateKeyImpl
 #endif
 
+#if canImport(FoundationEssentials)
+import FoundationEssentials
+#else
 import Foundation
+#endif
 
 // MARK: - Generated file, do NOT edit
 // any edits of this file WILL be overwritten and thus discarded

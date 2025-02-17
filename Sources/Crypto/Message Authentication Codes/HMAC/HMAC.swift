@@ -14,7 +14,22 @@
 #if CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
 @_exported import CryptoKit
 #else
+#if canImport(FoundationEssentials)
+import FoundationEssentials
+#if canImport(Glibc)
+import Glibc
+#elseif canImport(Musl)
+import Musl
+#elseif os(Windows)
+import CRT
+#elseif canImport(Android)
+import Android
+#else
+import Darwin.C
+#endif
+#else
 import Foundation
+#endif
 
 /// A hash-based message authentication algorithm.
 ///

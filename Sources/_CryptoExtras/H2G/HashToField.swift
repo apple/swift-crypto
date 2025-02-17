@@ -11,7 +11,22 @@
 // SPDX-License-Identifier: Apache-2.0
 //
 //===----------------------------------------------------------------------===//
+#if canImport(FoundationEssentials)
+import FoundationEssentials
+#if canImport(Glibc)
+import Glibc
+#elseif canImport(Musl)
+import Musl
+#elseif os(Windows)
+import CRT
+#elseif canImport(Android)
+import Android
+#else
+import Darwin.C
+#endif
+#else
 import Foundation
+#endif
 import Crypto
 
 extension Data {

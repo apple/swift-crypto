@@ -21,7 +21,11 @@ import Security
 typealias AESGCMImpl = OpenSSLAESGCMImpl
 #endif
 
+#if canImport(FoundationEssentials)
+import FoundationEssentials
+#else
 import Foundation
+#endif
 
 extension AES {
     /// The Advanced Encryption Standard (AES) Galois Counter Mode (GCM) cipher

@@ -13,7 +13,11 @@
 //===----------------------------------------------------------------------===//
 
 import Crypto
+#if canImport(FoundationEssentials)
+import FoundationEssentials
+#else
 import Foundation
+#endif
 
 extension AES {
     /// The Advanced Encryption Standard (AES) Cipher Block Chaining (CBC) cipher

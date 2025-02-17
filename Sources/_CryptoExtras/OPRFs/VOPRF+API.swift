@@ -12,7 +12,11 @@
 //
 //===----------------------------------------------------------------------===//
 import Crypto
+#if canImport(FoundationEssentials)
+import FoundationEssentials
+#else
 import Foundation
+#endif
 
 // MARK: - P384 + VPORF (P384-SHA384)
 extension P384 {

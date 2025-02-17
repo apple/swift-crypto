@@ -16,7 +16,11 @@ import Crypto
 @_implementationOnly import CCryptoBoringSSL
 @_implementationOnly import CCryptoBoringSSLShims
 import CryptoBoringWrapper
+#if canImport(FoundationEssentials)
+import FoundationEssentials
+#else
 import Foundation
+#endif
 
 extension AES {
     private static let blockSize = 128 / 8

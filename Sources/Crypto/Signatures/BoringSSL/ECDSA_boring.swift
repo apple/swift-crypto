@@ -16,7 +16,11 @@
 #else
 @_implementationOnly import CCryptoBoringSSL
 import CryptoBoringWrapper
+#if canImport(FoundationEssentials)
+import FoundationEssentials
+#else
 import Foundation
+#endif
 
 extension Data {
     init<D: DataProtocol, Curve: OpenSSLSupportedNISTCurve>(

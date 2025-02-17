@@ -12,7 +12,11 @@
 //
 //===----------------------------------------------------------------------===//
 import Crypto
+#if canImport(FoundationEssentials)
+import FoundationEssentials
+#else
 import Foundation
+#endif
 
 #if canImport(Darwin) && !CRYPTO_IN_SWIFTPM
 typealias SupportedCurveDetailsImpl = CorecryptoSupportedNISTCurve

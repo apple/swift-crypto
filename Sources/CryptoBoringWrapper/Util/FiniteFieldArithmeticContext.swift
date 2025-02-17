@@ -15,7 +15,11 @@
 @_exported import CryptoKit
 #else
 @_implementationOnly import CCryptoBoringSSL
+#if canImport(FoundationEssentials)
+import FoundationEssentials
+#else
 import Foundation
+#endif
 
 /// A context for performing mathematical operations on ArbitraryPrecisionIntegers over a finite field.
 ///

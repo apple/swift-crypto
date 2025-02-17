@@ -16,7 +16,11 @@
 #else
 @_implementationOnly import CCryptoBoringSSL
 @_implementationOnly import CCryptoBoringSSLShims
+#if canImport(FoundationEssentials)
+import FoundationEssentials
+#else
 import Foundation
+#endif
 
 // For signing and verifying, we use BoringSSL's Ed25519, not the X25519 stuff.
 extension Curve25519.Signing {

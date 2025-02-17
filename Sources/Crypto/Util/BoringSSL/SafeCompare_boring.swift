@@ -11,7 +11,11 @@
 // SPDX-License-Identifier: Apache-2.0
 //
 //===----------------------------------------------------------------------===//
+#if canImport(FoundationEssentials)
+import FoundationEssentials
+#else
 import Foundation
+#endif
 
 /// This function performs a safe comparison between two buffers of bytes. It exists as a temporary shim until we refactor
 /// some of the usage sites to pass better data structures to us.

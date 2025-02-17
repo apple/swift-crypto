@@ -20,7 +20,11 @@ typealias DigestImpl = CoreCryptoDigestImpl
 typealias DigestImpl = OpenSSLDigestImpl
 #endif
 
+#if canImport(FoundationEssentials)
+import FoundationEssentials
+#else
 import Foundation
+#endif
 
 /// A type that performs cryptographically secure hashing.
 ///
