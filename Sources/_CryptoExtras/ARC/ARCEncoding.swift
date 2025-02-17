@@ -15,6 +15,7 @@ import Foundation
 import Crypto
 
 typealias ARCCurve = P384
+@available(macOS 10.15, iOS 13.2, tvOS 13.2, watchOS 6.1, *)
 typealias ARCH2G = HashToCurveImpl<ARCCurve>
 
 internal func DecodeInt(value: Data) -> Int {
@@ -32,6 +33,7 @@ internal func EncodeInt(value: Int) -> Data {
     return I2OSP(value: value, outputByteCount: 4)
 }
 
+@available(macOS 10.15, iOS 13.2, tvOS 13.2, watchOS 6.1, *)
 extension ARC.CredentialRequest where H2G == ARCH2G {
     static let scalarCount = 5
     static let pointCount = 2
@@ -61,6 +63,7 @@ extension ARC.CredentialRequest where H2G == ARCH2G {
     }
 }
 
+@available(macOS 10.15, iOS 13.2, tvOS 13.2, watchOS 6.1, *)
 extension ARC.CredentialResponse where H2G == ARCH2G {
     static let scalarCount = 8
     static let pointCount = 6
@@ -104,6 +107,7 @@ extension ARC.CredentialResponse where H2G == ARCH2G {
     }
 }
 
+@available(macOS 10.15, iOS 13.2, tvOS 13.2, watchOS 6.1, *)
 extension ARC.Presentation where H2G == ARCH2G {
     static let scalarCount = 5
     static let pointCount = 4
@@ -142,6 +146,7 @@ extension ARC.Presentation where H2G == ARCH2G {
     }
 }
 
+@available(macOS 10.15, iOS 13.2, tvOS 13.2, watchOS 6.1, *)
 extension ARC.ServerPublicKey where H2G == ARCH2G {
     static let pointCount = 3
 
@@ -173,6 +178,7 @@ extension ARC.ServerPublicKey where H2G == ARCH2G {
     }
 }
 
+@available(macOS 10.15, iOS 13.2, tvOS 13.2, watchOS 6.1, *)
 extension Proof where H2G == ARCH2G {
     func serialize() -> Data {
         let scalarCount = self.responses.count + 1
@@ -212,6 +218,7 @@ extension Proof where H2G == ARCH2G {
 
 // Serialize a ARC credential, to save and restore client state.
 // This will only be called client-side, and never be sent over the wire.
+@available(macOS 10.15, iOS 13.2, tvOS 13.2, watchOS 6.1, *)
 extension ARC.Credential where H2G == ARCH2G {
     static let scalarCount = 1
     static let pointCount = 5

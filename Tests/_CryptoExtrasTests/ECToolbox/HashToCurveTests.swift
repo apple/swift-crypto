@@ -34,6 +34,7 @@ struct HashToCurveTestVector: Codable {
     let msg: String
 }
 
+@available(macOS 10.15, iOS 13.2, tvOS 13.2, watchOS 6.1, *)
 class HashToCurveTests: XCTestCase {
 
     func testVector<C: SupportedCurveDetailsImpl>(vectorFileName file: String, with h2c: HashToCurveImpl<C>.Type) throws {

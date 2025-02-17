@@ -14,6 +14,7 @@
 import Crypto
 import Foundation
 
+@available(macOS 10.15, iOS 13.2, tvOS 13.2, watchOS 6.1, *)
 extension ARC {
     /// Presentation consists of a commitment to a MACGGC evaluation over two attributes,
     /// a commitment to one of the attributes, a tag and its public inputs (presentationContext, nonce),
