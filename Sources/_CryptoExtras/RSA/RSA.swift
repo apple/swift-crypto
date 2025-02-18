@@ -179,6 +179,10 @@ extension _RSA.Signing {
                 throw CryptoKitError.incorrectParameterSize
             }
         }
+        
+        public init(encryptedPEMRepresentation: String, encryptionPassword: String) throws {
+            self.backing = try BackingPrivateKey(encryptedPEMRepresentation: encryptedPEMRepresentation, encryptionPassword: encryptionPassword)
+        }
 
         /// Construct an RSA private key from a DER representation.
         ///
