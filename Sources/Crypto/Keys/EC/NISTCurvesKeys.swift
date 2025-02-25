@@ -32,7 +32,7 @@ protocol ECPrivateKey {
     var publicKey: PK { get }
 }
 
-protocol NISTECPublicKey: ECPublicKey {
+protocol NISTECPublicKey: ECPublicKey, Hashable {
     init<Bytes: ContiguousBytes>(compactRepresentation: Bytes) throws
     init<Bytes: ContiguousBytes>(compressedRepresentation: Bytes) throws
     init<Bytes: ContiguousBytes>(x963Representation: Bytes) throws
