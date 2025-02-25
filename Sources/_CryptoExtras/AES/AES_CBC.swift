@@ -141,57 +141,6 @@ extension AES {
     }
 }
 
-extension AES._CBC {
-    /// An initialization vector.
-    public struct IV: Sendable {
-        // AES CBC uses a 128-bit IV.
-        var ivBytes: (
-            UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8,
-            UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8
-        )
-
-        public init() {
-            var rng = SystemRandomNumberGenerator()
-            let (first, second) = (rng.next(), rng.next())
-
-            self.ivBytes = (
-                UInt8(truncatingIfNeeded: first),
-                UInt8(truncatingIfNeeded: first >> 8),
-                UInt8(truncatingIfNeeded: first >> 16),
-                UInt8(truncatingIfNeeded: first >> 24),
-                UInt8(truncatingIfNeeded: first >> 32),
-                UInt8(truncatingIfNeeded: first >> 40),
-                UInt8(truncatingIfNeeded: first >> 48),
-                UInt8(truncatingIfNeeded: first >> 56),
-                UInt8(truncatingIfNeeded: second),
-                UInt8(truncatingIfNeeded: second >> 8),
-                UInt8(truncatingIfNeeded: second >> 16),
-                UInt8(truncatingIfNeeded: second >> 24),
-                UInt8(truncatingIfNeeded: second >> 32),
-                UInt8(truncatingIfNeeded: second >> 40),
-                UInt8(truncatingIfNeeded: second >> 48),
-                UInt8(truncatingIfNeeded: second >> 56)
-            )
-        }
-
-        public init<IVBytes: Collection>(ivBytes: IVBytes) throws where IVBytes.Element == UInt8 {
-            // We support a 128-bit IV.
-            guard ivBytes.count == 16 else {
-                throw CryptoKitError.incorrectKeySize
-            }
-
-            self.ivBytes = (
-                0, 0, 0, 0, 0, 0, 0, 0,
-                0, 0, 0, 0, 0, 0, 0, 0
-            )
-
-            withUnsafeMutableBytes(of: &self.ivBytes) { bytesPtr in
-                bytesPtr.copyBytes(from: ivBytes)
-            }
-        }
-    }
-}
-
 extension Data {
     fileprivate mutating func trimPadding() throws {
         guard let paddingBytes = self.last else {

@@ -20,6 +20,8 @@ typealias AESCFBImpl = OpenSSLAESCFBImpl
 
 extension AES {
     public enum _CFB {
+        static let nonceByteCount = 16
+      
         @inlinable
         public static func encrypt<Plaintext: DataProtocol>(
             _ plaintext: Plaintext,
@@ -38,34 +40,6 @@ extension AES {
         ) throws -> Data {
             let bytes: ContiguousBytes = ciphertext.regions.count == 1 ? ciphertext.regions.first! : Array(ciphertext)
             return try AESCFBImpl.encryptOrDecrypt(.decrypt, bytes, using: key, iv: iv)
-        }
-    }
-}
-
-extension AES._CFB {
-    public struct IV: Sendable {
-        // AES CFB uses a 128-bit IV.
-        private var ivBytes: (UInt64, UInt64)
-
-        public init() {
-            var rng = SystemRandomNumberGenerator()
-            self.ivBytes = (rng.next(), rng.next())
-        }
-
-        public init<IVBytes: Collection>(ivBytes: IVBytes) throws where IVBytes.Element == UInt8 {
-            guard ivBytes.count == 16 else {
-                throw CryptoKitError.incorrectParameterSize
-            }
-
-            self.ivBytes = (0, 0)
-
-            Swift.withUnsafeMutableBytes(of: &self.ivBytes) { bytesPtr in
-                bytesPtr.copyBytes(from: ivBytes)
-            }
-        }
-
-        mutating func withUnsafeMutableBytes<ReturnType>(_ body: (UnsafeMutableRawBufferPointer) throws -> ReturnType) rethrows -> ReturnType {
-            return try Swift.withUnsafeMutableBytes(of: &self.ivBytes, body)
         }
     }
 }
