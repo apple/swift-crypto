@@ -15,6 +15,7 @@
 @_exported import CryptoKit
 #else
 /// General cryptography errors used by CryptoKit.
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
 public enum CryptoKitError: Error {
     /// The key size is incorrect.
     case incorrectKeySize
@@ -36,6 +37,7 @@ public enum CryptoKitError: Error {
 extension CryptoKitError: Equatable, Hashable {}
 
 /// Errors from decoding ASN.1 content.
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
 public enum CryptoKitASN1Error: Equatable, Error, Hashable {
     /// The ASN.1 tag for this field is invalid or unsupported.
     case invalidFieldIdentifier

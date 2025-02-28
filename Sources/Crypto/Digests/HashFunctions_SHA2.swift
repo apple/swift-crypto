@@ -26,6 +26,7 @@
 /// in memory, you can compute the digest iteratively by creating a new hash
 /// instance, calling the ``update(data:)`` method repeatedly with blocks of
 /// data, and then calling the ``finalize()`` method to get the result.
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
 public struct SHA256: HashFunctionImplementationDetails {
     /// The number of bytes that represents the hash function’s internal state.
     public static var blockByteCount: Int {
@@ -108,6 +109,7 @@ public struct SHA256: HashFunctionImplementationDetails {
 /// in memory, you can compute the digest iteratively by creating a new hash
 /// instance, calling the ``update(data:)`` method repeatedly with blocks of
 /// data, and then calling the ``finalize()`` method to get the result.
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
 public struct SHA384: HashFunctionImplementationDetails {
     /// The number of bytes that represents the hash function’s internal state.
     public static var blockByteCount: Int {
@@ -191,6 +193,7 @@ public struct SHA384: HashFunctionImplementationDetails {
 /// in memory, you can compute the digest iteratively by creating a new hash
 /// instance, calling the ``update(data:)`` method repeatedly with blocks of
 /// data, and then calling the ``finalize()`` method to get the result.
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
 public struct SHA512: HashFunctionImplementationDetails {
     /// The number of bytes that represents the hash function’s internal state.
     public static var blockByteCount: Int {

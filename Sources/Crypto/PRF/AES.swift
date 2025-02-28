@@ -15,10 +15,12 @@
 @_exported import CryptoKit
 #else
 /// A container for Advanced Encryption Standard (AES) ciphers.
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
 public enum AES {
     static let blockSizeByteCount = 16
 }
 
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
 extension AES {
     static func isValidKey(_ key: SymmetricKey) -> Bool {
         switch key.bitCount {

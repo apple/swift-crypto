@@ -14,11 +14,14 @@
 import Foundation
 import Crypto
 
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
 typealias ARCCurve = P384
 @available(macOS 10.15, iOS 13.2, tvOS 13.2, watchOS 6.1, *)
 typealias ARCH2G = HashToCurveImpl<ARCCurve>
 
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
 internal func DecodeInt(value: Data) -> Int {
+    @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
     var result = Int(0)
 
     for i in 0..<value.count {
@@ -29,6 +32,7 @@ internal func DecodeInt(value: Data) -> Int {
     return result
 }
 
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
 internal func EncodeInt(value: Int) -> Data {
     return I2OSP(value: value, outputByteCount: 4)
 }
@@ -270,6 +274,7 @@ extension ARC.Credential where H2G == ARCH2G {
 }
 
 // A helper for serializing a ARC credential. This will only be called client-side, and never be sent over the wire.
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
 struct ARCNonces {
     static func serialize(noncesDict: [Data: Set<Int>]) throws -> Data {
         // Convert Set<Int> to Array<Int> for encoding

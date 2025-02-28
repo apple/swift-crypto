@@ -16,8 +16,10 @@
 #else
 import Foundation
 
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
 extension HPKE {
     /// Hybrid public key encryption (HPKE) errors that CryptoKit uses.
+    @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
     public enum Errors: Error {
 		/// The parameters for initializing an HPKE sender or receiver are inconsistent.
         case inconsistentParameters

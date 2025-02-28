@@ -16,7 +16,9 @@
 #else
 import Foundation
 
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
 extension ASN1 {
+    @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
     struct SubjectPublicKeyInfo: ASN1ImplicitlyTaggable {
         static var defaultIdentifier: ASN1.ASN1Identifier {
             .sequence
@@ -59,6 +61,7 @@ extension ASN1 {
         }
     }
 
+    @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
     struct RFC5480AlgorithmIdentifier: ASN1ImplicitlyTaggable, Hashable {
         static var defaultIdentifier: ASN1.ASN1Identifier {
             .sequence
@@ -109,6 +112,7 @@ extension ASN1 {
 }
 
 // MARK: Algorithm Identifier Statics
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
 extension ASN1.RFC5480AlgorithmIdentifier {
     static let ecdsaP256 = ASN1.RFC5480AlgorithmIdentifier(algorithm: .AlgorithmIdentifier.idEcPublicKey,
                                                            parameters: try! .init(erasing: ASN1.ASN1ObjectIdentifier.NamedCurves.secp256r1))

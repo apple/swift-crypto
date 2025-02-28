@@ -22,6 +22,7 @@ extension ArraySlice: ASN1Parseable where Element == UInt8 { }
 
 extension ArraySlice: ASN1ImplicitlyTaggable where Element == UInt8 { }
 
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
 extension ArraySlice: ASN1IntegerRepresentable where Element == UInt8 {
     // We only use unsigned "bigint"s
     static var isSigned: Bool {

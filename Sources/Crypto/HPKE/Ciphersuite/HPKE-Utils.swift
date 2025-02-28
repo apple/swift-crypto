@@ -16,13 +16,16 @@
 #else
 import Foundation
 
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
 internal func I2OSP(value: Int, outputByteCount: Int) -> Data {
     precondition(outputByteCount > 0, "Cannot I2OSP with no output length.")
     precondition(value >= 0, "I2OSP requires a non-null value.")
     
+    @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
     let requiredBytes = Int(ceil(log2(Double(max(value, 1) + 1)) / 8))
     precondition(outputByteCount >= requiredBytes)
     
+    @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
     var data = Data(repeating: 0, count: outputByteCount)
     
     for i in (outputByteCount - requiredBytes)...(outputByteCount - 1) {

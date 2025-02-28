@@ -16,9 +16,12 @@ import Crypto
 import Foundation
 
 @usableFromInline
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
 typealias AESCFBImpl = OpenSSLAESCFBImpl
 
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
 extension AES {
+    @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
     public enum _CFB {
         @inlinable
         public static func encrypt<Plaintext: DataProtocol>(
@@ -42,7 +45,9 @@ extension AES {
     }
 }
 
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
 extension AES._CFB {
+    @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
     public struct IV: Sendable {
         // AES CFB uses a 128-bit IV.
         private var ivBytes: (UInt64, UInt64)

@@ -15,15 +15,18 @@
 @_exported import CryptoKit
 #else
 #if !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
 typealias ChaChaPolyImpl = CoreCryptoChaChaPolyImpl
 import Security
 #else
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
 typealias ChaChaPolyImpl = OpenSSLChaChaPolyImpl
 #endif
 
 import Foundation
 
 /// An implementation of the ChaCha20-Poly1305 cipher.
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
 public enum ChaChaPoly: Cipher {
     static let tagByteCount = 16
     static let keyBitsCount = 256
@@ -90,6 +93,7 @@ public enum ChaChaPoly: Cipher {
     }
 }
 
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
 extension ChaChaPoly {
     /// A secure container for your data that you access using a cipher.
     ///
@@ -106,6 +110,7 @@ extension ChaChaPoly {
     /// The receiver uses another instance of the same cipher, like the
     /// ``open(_:using:)`` method, to open the box.
     @frozen
+    @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
     public struct SealedBox: AEADSealedBox {
         /// A combined element composed of the tag, the nonce, and the
         /// ciphertext.

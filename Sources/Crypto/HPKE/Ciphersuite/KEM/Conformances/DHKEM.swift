@@ -17,6 +17,7 @@
 import Foundation
 
 /// A type that ``HPKE`` uses to encode the public key.
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
 public protocol HPKEPublicKeySerialization {
 	/// Creates a public key from an encoded representation.
 	///
@@ -34,6 +35,7 @@ public protocol HPKEPublicKeySerialization {
 }
 
 /// A type that represents the public key in a Diffie-Hellman key exchange.
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
 public protocol HPKEDiffieHellmanPublicKey: HPKEPublicKeySerialization where EphemeralPrivateKey.PublicKey == Self {
 	/// The type of the ephemeral private key.
     associatedtype EphemeralPrivateKey: HPKEDiffieHellmanPrivateKeyGeneration
@@ -41,17 +43,22 @@ public protocol HPKEDiffieHellmanPublicKey: HPKEPublicKeySerialization where Eph
 
 /// A type that represents the private key in a Diffie-Hellman key exchange.
 
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
 public protocol HPKEDiffieHellmanPrivateKey: DiffieHellmanKeyAgreement where PublicKey: HPKEDiffieHellmanPublicKey {}
 
 /// A type that represents the generation of private keys in a Diffie-Hellman key exchange.
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
 public protocol HPKEDiffieHellmanPrivateKeyGeneration: HPKEDiffieHellmanPrivateKey {
 	/// Creates a private key generator.
     init()
 }
 
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
 extension HPKE {
 	/// A container for Diffie-Hellman key encapsulation mechanisms (KEMs).
+    @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
     public enum DHKEM {
+        @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
         struct PublicKey<DHPK: HPKEDiffieHellmanPublicKey>: KEMPublicKey where DHPK == DHPK.EphemeralPrivateKey.PublicKey {
             let kem: HPKE.KEM
             let key: DHPK
@@ -84,6 +91,7 @@ extension HPKE {
             }
         }
         
+        @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
         struct PrivateKey<DHSK: HPKEDiffieHellmanPrivateKey>: KEMPrivateKey {
             let kem: HPKE.KEM
             let key: DHSK
