@@ -71,7 +71,6 @@ enum SupportedHashFunction {
 }
 
 
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
 extension String {
     init(hexEncoding data: Data) {
         self = data.map { byte in
@@ -90,11 +89,9 @@ extension String {
     }
 }
 
-
 @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
 func processInputs(_ handles: [String: FileHandle], algorithm: SupportedHashFunction) {
     for (name, fh) in handles {
-        @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
         let result = algorithm.hashLoop(from: fh)
         print("\(String(hexEncoding: result))  \(name)")
     }
@@ -102,11 +99,8 @@ func processInputs(_ handles: [String: FileHandle], algorithm: SupportedHashFunc
 
 @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
 func main() {
-    @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
     var arguments = CommandLine.arguments.dropFirst()
-    @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
     var algorithm = SupportedHashFunction.sha256  // Default to sha256
-    @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
     var files = [String: FileHandle]()
 
     // First get the flags.
