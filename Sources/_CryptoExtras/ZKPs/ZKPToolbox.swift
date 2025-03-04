@@ -14,14 +14,17 @@
 import Foundation
 import Crypto
 
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
 struct ScalarVar {
     var index: Int
 }
 
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
 struct PointVar {
     var index: Int
 }
 
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
 enum ZKPErrors: Error {
     case invalidVariableAllocation
     case invalidInputLength
@@ -30,6 +33,7 @@ enum ZKPErrors: Error {
 
 // A Schnorr proof, which stores the challenge instead of 
 // commitments to the prover's randomness (blindedPoints).
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
 struct Proof<H2G: HashToGroup> {
     typealias Group = H2G.G
     public let challenge: Group.Scalar
@@ -55,6 +59,7 @@ struct Proof<H2G: HashToGroup> {
     }
 }
 
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
 protocol ProofParticipant {
     associatedtype Point: GroupElement
     var label: String { get }
@@ -64,6 +69,7 @@ protocol ProofParticipant {
     var constraints: [(PointVar, [(ScalarVar, PointVar)])] { get set }
 }
 
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
 extension ProofParticipant {
     mutating func constrain(result: PointVar, linearCombination: [(ScalarVar, PointVar)]) {
         self.constraints.append((result, linearCombination))

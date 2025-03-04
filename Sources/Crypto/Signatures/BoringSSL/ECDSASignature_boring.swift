@@ -20,6 +20,7 @@ import CryptoBoringWrapper
 import Foundation
 
 /// A wrapper around BoringSSL's ECDSA_SIG with some lifetime management.
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
 class ECDSASignature {
     private var _baseSig: UnsafeMutablePointer<ECDSA_SIG>
 

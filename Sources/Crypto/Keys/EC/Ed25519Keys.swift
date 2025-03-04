@@ -16,15 +16,18 @@
 #else
 import Foundation
 
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
 extension Curve25519.Signing {
     static var keyByteCount: Int {
         return 32
     }
 }
 
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
 extension Curve25519 {
     /// A mechanism used to create or verify a cryptographic signature using
     /// Ed25519.
+    @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
     public enum Signing {
         #if !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
         typealias Curve25519PrivateKeyImpl = Curve25519.Signing.CoreCryptoCurve25519PrivateKeyImpl
@@ -35,6 +38,7 @@ extension Curve25519 {
         #endif
 
         /// A Curve25519 private key used to create cryptographic signatures.
+        @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
         public struct PrivateKey: ECPrivateKey {
             private var baseKey: Curve25519.Signing.Curve25519PrivateKeyImpl
             
@@ -70,6 +74,7 @@ extension Curve25519 {
         }
 
         /// A Curve25519 public key used to verify cryptographic signatures.
+        @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
         public struct PublicKey {
             private var baseKey: Curve25519.Signing.Curve25519PublicKeyImpl
 

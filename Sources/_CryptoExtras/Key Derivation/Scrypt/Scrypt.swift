@@ -18,10 +18,13 @@ import Foundation
 @preconcurrency import Foundation
 #endif
 
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
 fileprivate typealias BackingScrypt = BoringSSLScrypt
 
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
 extension KDF {
     /// An implementation of scrypt key derivation function.
+    @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
     public enum Scrypt: Sendable {
         /// Derives a symmetric key using the scrypt algorithm.
         ///

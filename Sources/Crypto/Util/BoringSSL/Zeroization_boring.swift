@@ -14,6 +14,7 @@
 #if !canImport(Darwin)
 @_implementationOnly import CCryptoBoringSSL
 
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
 typealias errno_t = CInt
 
 // This is a Swift wrapper for the libc function that does not exist on Linux. We shim it via a call to OPENSSL_cleanse.

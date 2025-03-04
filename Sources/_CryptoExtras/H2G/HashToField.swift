@@ -14,6 +14,7 @@
 import Foundation
 import Crypto
 
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
 extension Data {
     static func ^ (left: Data, right: Data) -> Data {
         precondition(left.count == right.count)
@@ -26,6 +27,7 @@ extension Data {
     }
 }
 
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
 enum Hash2FieldErrors: Error {
     case outputSizeIsTooLarge
 }

@@ -15,8 +15,10 @@
 @_exported import CryptoKit
 #else
 
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
 extension HPKE {
 
+    @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
     internal enum Mode: CaseIterable {
         case base
         case psk

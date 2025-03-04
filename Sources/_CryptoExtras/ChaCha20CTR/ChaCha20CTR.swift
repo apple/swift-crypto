@@ -18,10 +18,13 @@ import Crypto
 import CryptoBoringWrapper
 import Foundation
 
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
 typealias ChaCha20CTRImpl = OpenSSLChaCha20CTRImpl
 
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
 extension Insecure {
     /// ChaCha20-CTR with 96-bit nonces and a 32 bit counter.
+    @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
     public enum ChaCha20CTR {
         static let keyBitsCount = 256
         static let nonceByteCount = 12
@@ -50,7 +53,9 @@ extension Insecure {
     }
 }
 
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
 extension Insecure.ChaCha20CTR {
+    @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
     public struct Nonce: Sendable, ContiguousBytes, Sequence {
         let bytes: Data
 
@@ -83,6 +88,7 @@ extension Insecure.ChaCha20CTR {
         }
     }
 
+    @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
     public struct Counter: Sendable, ContiguousBytes {
         let counter: UInt32
 

@@ -23,6 +23,7 @@ import Foundation
 /// standard key sizes, like ``bits128``, ``bits192``, or ``bits256``. When you
 /// need a key with a non-standard length, use the ``init(bitCount:)``
 /// initializer to create a `SymmetricKeySize` instance with a custom bit count.
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
 public struct SymmetricKeySize {
     /// The number of bits in the key.
     public let bitCount: Int
@@ -63,6 +64,7 @@ public struct SymmetricKeySize {
 /// symmetric key to compute a message authentication code like ``HMAC``, or to
 /// open and close a sealed box (``ChaChaPoly/SealedBox`` or
 /// ``AES/GCM/SealedBox``) using a cipher like ``ChaChaPoly`` or ``AES``.
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
 public struct SymmetricKey: ContiguousBytes {
     let sb: SecureBytes
 
@@ -122,6 +124,7 @@ public struct SymmetricKey: ContiguousBytes {
     }
 }
 
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
 extension SymmetricKey: Equatable {
     public static func == (lhs: Self, rhs: Self) -> Bool {
         return safeCompare(lhs, rhs)

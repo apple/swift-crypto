@@ -16,8 +16,10 @@
 #else
 @_implementationOnly import CCryptoBoringSSL
 
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
 protocol HashFunctionImplementationDetails: HashFunction where Digest: DigestPrivate {}
 
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
 protocol BoringSSLBackedHashFunction: HashFunctionImplementationDetails {
     associatedtype Context
     static var digestSize: Int { get }
@@ -26,6 +28,7 @@ protocol BoringSSLBackedHashFunction: HashFunctionImplementationDetails {
     static func finalize(_ context: inout Context, digest: UnsafeMutableRawBufferPointer) -> Bool
 }
 
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
 extension Insecure.MD5: BoringSSLBackedHashFunction {
     static var digestSize: Int {
         Int(MD5_DIGEST_LENGTH)
@@ -48,6 +51,7 @@ extension Insecure.MD5: BoringSSLBackedHashFunction {
     }
 }
 
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
 extension Insecure.SHA1: BoringSSLBackedHashFunction {
     static var digestSize: Int {
         Int(SHA_DIGEST_LENGTH)
@@ -70,6 +74,7 @@ extension Insecure.SHA1: BoringSSLBackedHashFunction {
     }
 }
 
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
 extension SHA256: BoringSSLBackedHashFunction {
     static var digestSize: Int {
         Int(SHA256_DIGEST_LENGTH)
@@ -92,6 +97,7 @@ extension SHA256: BoringSSLBackedHashFunction {
     }
 }
 
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
 extension SHA384: BoringSSLBackedHashFunction {
     static var digestSize: Int {
         Int(SHA384_DIGEST_LENGTH)
@@ -114,6 +120,7 @@ extension SHA384: BoringSSLBackedHashFunction {
     }
 }
 
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
 extension SHA512: BoringSSLBackedHashFunction {
     static var digestSize: Int {
         Int(SHA512_DIGEST_LENGTH)
@@ -136,6 +143,7 @@ extension SHA512: BoringSSLBackedHashFunction {
     }
 }
 
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
 struct OpenSSLDigestImpl<H: BoringSSLBackedHashFunction> {
     private var context: DigestContext<H>
 
@@ -155,6 +163,7 @@ struct OpenSSLDigestImpl<H: BoringSSLBackedHashFunction> {
     }
 }
 
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
 private final class DigestContext<H: BoringSSLBackedHashFunction> {
     private var context: H.Context
 

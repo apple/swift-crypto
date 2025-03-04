@@ -15,6 +15,7 @@ import Foundation
 import Crypto
 
 /// A DLEQ Proof as described in https://cfrg.github.io/draft-irtf-cfrg-voprf/draft-irtf-cfrg-voprf.html#name-generateproof
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
 struct DLEQProof<GS: GroupScalar> {
     var c: GS
     var s: GS
@@ -27,6 +28,7 @@ struct DLEQProof<GS: GroupScalar> {
 
 // Discrete Log Equivalence Proof
 // Proves that for a value kept secret k, the relation between B=k*A and D=k*C is such that log_A(B)==log_C(D)
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
 struct DLEQ<H2G: HashToGroup> {
     typealias GE = H2G.G.Element
     

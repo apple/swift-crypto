@@ -22,6 +22,7 @@ import Foundation
 #if canImport(CommonCrypto)
 @_implementationOnly import CommonCrypto
 
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
 internal struct CommonCryptoPBKDF2 {
     /// Derives a secure key using the provided hash function, passphrase and salt.
     ///
@@ -70,6 +71,7 @@ internal struct CommonCryptoPBKDF2 {
     }
 }
 
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
 extension KDF.Insecure.PBKDF2.HashFunction {
     var ccHash: CCPBKDFAlgorithm {
         switch self {
