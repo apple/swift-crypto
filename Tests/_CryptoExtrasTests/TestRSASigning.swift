@@ -730,7 +730,6 @@ final class TestRSASigning: XCTestCase {
         K8TpFCFPBP/Yv1Kngovn4O1MskoxTQraRBDjfC6O7OfcSCSMuVgB0Oofcp9iQjLA
         HV3KOnbYqvzmFv7OWnAszkTh
         -----END PRIVATE KEY-----
-        
         """
 
         let key = try _RSA.Signing.PrivateKey(pemRepresentation: pemKey)
