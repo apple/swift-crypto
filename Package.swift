@@ -22,8 +22,9 @@
 //
 // BoringSSL Commit: aefa5d24da34ef77ac797bdbe684734e5bd870f4
 
-import class Foundation.ProcessInfo
 import PackageDescription
+
+import class Foundation.ProcessInfo
 
 // To develop this on Apple platforms, set this to true
 let development = false
@@ -54,7 +55,7 @@ if development || isFreeBSD {
         Platform.linux,
         Platform.android,
         Platform.windows,
-        Platform.wasi
+        Platform.wasi,
     ]
     swiftSettings = [
         .define("CRYPTO_IN_SWIFTPM"),
@@ -104,7 +105,7 @@ let package = Package(
                  */
                 "crypto/bio/connect.cc",
                 "crypto/bio/socket_helper.cc",
-                "crypto/bio/socket.cc"
+                "crypto/bio/socket.cc",
             ],
             resources: privacyManifestResource,
             cSettings: [
@@ -199,21 +200,26 @@ let package = Package(
 // Switch between local and remote dependencies depending on an environment variable
 if ProcessInfo.processInfo.environment["SWIFTCI_USE_LOCAL_DEPS"] == nil {
     package.dependencies += [
-        .package(url: "https://github.com/apple/swift-asn1.git", from: "1.2.0"),
+        .package(url: "https://github.com/apple/swift-asn1.git", from: "1.2.0")
     ]
 } else {
     package.dependencies += [
-        .package(path: "../swift-asn1"),
+        .package(path: "../swift-asn1")
     ]
 }
 
 // ---    STANDARD CROSS-REPO SETTINGS DO NOT EDIT   --- //
 for target in package.targets {
-    if target.type != .plugin {
+    switch target.type {
+    case .regular, .test, .executable:
         var settings = target.swiftSettings ?? []
         // https://github.com/swiftlang/swift-evolution/blob/main/proposals/0444-member-import-visibility.md
         settings.append(.enableUpcomingFeature("MemberImportVisibility"))
         target.swiftSettings = settings
+    case .macro, .plugin, .system, .binary:
+        ()  // not applicable
+    @unknown default:
+        ()  // we don't know what to do here, do nothing
     }
 }
 // --- END: STANDARD CROSS-REPO SETTINGS DO NOT EDIT --- //
