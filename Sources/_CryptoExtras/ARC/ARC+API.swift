@@ -24,7 +24,6 @@ extension P384 {
     /// - Seealso: [IETF Internet Draft: draft-yun-cfrg-arc-00](https://datatracker.ietf.org/doc/draft-yun-cfrg-arc).
     public enum _ARCV1 {
         internal typealias H2G = HashToCurveImpl<P384>
-        // TODO: are these typealiases doing anything useful?
         fileprivate typealias Ciphersuite = ARC.Ciphersuite<H2G>
         fileprivate typealias Server = ARC.Server<H2G>
 
@@ -55,7 +54,6 @@ extension P384._ARCV1 {
         //       uint8 x0Blinding[Ne];
         //     } ServerPrivateKey;
         //
-        // TODO: Confirm requiremnts for private key serialization format(s) and/or document binary scalar format.
         public init<D: DataProtocol>(rawRepresentation: D) throws {
             guard rawRepresentation.count == 4 * P384.orderByteCount else {
                 throw ARC.Errors.incorrectPrivateKeyDataSize
@@ -87,7 +85,6 @@ extension P384._ARCV1 {
         //       uint8 x0Blinding[Ns];
         //     } ServerPrivateKey;
         //
-        // TODO: Confirm requiremnts for private key serialization format(s) and/or document binary scalar format.
         public var rawRepresentation: Data {
             let serializedByteCount = 4 * P384.orderByteCount
             var result = Data(capacity: serializedByteCount)
@@ -124,7 +121,6 @@ extension P384._ARCV1 {
         //       uint8 X2[Ne];
         //     } ServerPublicKey;
         //
-        // TODO: Do we need other initializers over P384 elements, e.g. PEM?
         public init<D: DataProtocol>(rawRepresentation: D) throws {
             guard rawRepresentation.count == Self.serializedByteCount else { throw ARC.Errors.incorrectPublicKeyDataSize }
 
@@ -148,7 +144,6 @@ extension P384._ARCV1 {
         //       uint8 X2[Ne];
         //     } ServerPublicKey;
         //
-        // TODO: Do we need other initializers over P384 elements, e.g. PEM?
         public var rawRepresentation: Data {
             var result = Data(capacity: Self.serializedByteCount)
 
@@ -188,7 +183,7 @@ extension P384._ARCV1 {
     public struct Precredential {
         /// This backing type binds many things together, including the server commitments, client secrets, credential
         /// request, and presentation limit.
-        fileprivate var backing: ARC.Precredential<H2G>
+        internal var backing: ARC.Precredential<H2G>
 
         /// The credential request to be sent to the server.
         public var credentialRequest: CredentialRequest {
@@ -227,9 +222,6 @@ extension P384._ARCV1 {
         fileprivate init(backing: ARC.Credential<H2G>) {
             self.backing = backing
         }
-
-        /// The presentation limit enforced for this credential.
-        public var presentationLimit: Int { self.backing.presentationLimit }
     }
 
     /// A presentation, created by the client from a credential, to be sent to the server to verify.
@@ -250,10 +242,6 @@ extension P384._ARCV1 {
             self.backing.serialize()
         }
 
-        // TODO: Confirm if we need/want to expose this to adopters.
-        // There's been some churn around nonce-management being in- or out-of-band, and we need to confirm what the
-        // server needs access to in order to enforce rate-limiting. Now that nonces are sent out-of-band, does the
-        // server also need access to the tag? If not, we should remove it from the API.
         public var tag: Data {
             self.backing.tag.compressedRepresentation
         }
@@ -264,7 +252,6 @@ extension P384._ARCV1 {
 extension P384._ARCV1.PublicKey {
     internal func prepareCredentialRequest<D: DataProtocol>(
         requestContext: D,
-        presentationLimit: Int,
         m1: P384._ARCV1.H2G.G.Scalar,
         r1: P384._ARCV1.H2G.G.Scalar,
         r2: P384._ARCV1.H2G.G.Scalar
@@ -275,8 +262,7 @@ extension P384._ARCV1.PublicKey {
             requestContext: Data(requestContext),
             r1: r1,
             r2: r2,
-            serverPublicKey: self.backing,
-            presentationLimit: presentationLimit
+            serverPublicKey: self.backing
         )
         return P384._ARCV1.Precredential(backing: precedential)
     }
@@ -285,16 +271,13 @@ extension P384._ARCV1.PublicKey {
     ///
     /// - Parameters:
     ///   - requestContext: Request context, agreed with the server.
-    ///   - presentationLimit: The presentation limit, agreed with the server.
     ///
     /// - Returns: A precredential containing the client secrets, and request to be sent to the server.
     public func prepareCredentialRequest<D: DataProtocol>(
-        requestContext: D,
-        presentationLimit: Int
+        requestContext: D
     ) throws -> P384._ARCV1.Precredential {
         try self.prepareCredentialRequest(
             requestContext: requestContext,
-            presentationLimit: presentationLimit,
             m1: .random,
             r1: .random,
             r2: .random
@@ -334,6 +317,7 @@ extension P384._ARCV1.PublicKey {
 extension P384._ARCV1.Credential {
     internal mutating func makePresentation<D: DataProtocol>(
         context: D,
+        presentationLimit: Int,
         fixedNonce: Int?,
         a: P384._ARCV1.H2G.G.Scalar,
         r: P384._ARCV1.H2G.G.Scalar,
@@ -341,23 +325,36 @@ extension P384._ARCV1.Credential {
     ) throws -> (presentation: P384._ARCV1.Presentation, nonce: Int) {
         let (presentation, nonce) = try self.backing.makePresentation(
             presentationContext: Data(context),
-            a: a, r: r, z: z, optionalNonce: fixedNonce
+            presentationLimit: presentationLimit,
+            a: a,
+            r: r,
+            z: z,
+            optionalNonce: fixedNonce
         )
         return (P384._ARCV1.Presentation(backing: presentation), nonce)
     }
 
     /// Create a presentation to provide to a verifier.
     ///
-    /// - Parameter context: The presentation context agreed with the verifier.
+    /// - Parameters:
+    ///   - context: The presentation context agreed with the verifier.
+    ///   - presentationLimit: The presentation limit to enforce.
     ///
     /// - Returns: A presentation of this credential.
     ///
     /// - Throws: An error if the presentation limit for this credential has been exceeded.
-    // TODO: Should makePresentation return a nominal type instead of a tuple?
     public mutating func makePresentation<D: DataProtocol>(
-        context: D
+        context: D,
+        presentationLimit: Int
     ) throws -> (presentation: P384._ARCV1.Presentation, nonce: Int) {
-        try self.makePresentation(context: context, fixedNonce: nil, a: .random, r: .random, z: .random)
+        try self.makePresentation(
+            context: context,
+            presentationLimit: presentationLimit,
+            fixedNonce: nil,
+            a: .random,
+            r: .random,
+            z: .random
+        )
     }
 }
 
