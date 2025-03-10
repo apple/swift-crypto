@@ -38,10 +38,7 @@ final class ARCPublicAPITests: XCTestCase {
         let publicKey = try P384._ARCV1.PublicKey(rawRepresentation: publicKeyBytes)
 
         // [Client] Prepare a credential request.
-        let precredential = try publicKey.prepareCredentialRequest(
-            requestContext: requestContext,
-            presentationLimit: presentationLimit
-        )
+        let precredential = try publicKey.prepareCredentialRequest(requestContext: requestContext)
 
         // [Client -> Issuer] Send the credential request.
         let credentialRequestBytes = precredential.credentialRequest.rawRepresentation
@@ -59,14 +56,15 @@ final class ARCPublicAPITests: XCTestCase {
         let _ = try P384._ARCV1.CredentialResponse(rawRepresentation: credentialResponseBytes)
 
         // [Client] Generate a credential.
-        // NOTE: This is a var because it enforces the presentation limit for each presentation prefix.
+        // NOTE: This is a var because it enforces the presentation limits for each presentation prefix.
         var credential = try publicKey.finalize(credentialResponse, for: precredential)
 
         // [Client] Make a presentation from the credential for a presentation prefix.
-        let (presentation, nonce) = try credential.makePresentation(context: presentationContext)
-
-        // TODO: The shared code doesn't expose fixing randomness in makePresentation so we cannot assert things about it
-        // Instea
+        // NOTE: On first presentation, the presentation limit provided is now set, and enforced going forward.
+        let (presentation, nonce) = try credential.makePresentation(
+            context: presentationContext,
+            presentationLimit: presentationLimit
+        )
 
         // [Client -> Verifier] Send the presentation.
         let presentationBytes = presentation.rawRepresentation
@@ -95,18 +93,17 @@ final class ARCPublicAPITests: XCTestCase {
         let presentationContext = Data("shared presentation context".utf8)
         let presentationLimit = 2
 
-        let precredential = try publicKey.prepareCredentialRequest(
-            requestContext: requestContext,
-            presentationLimit: presentationLimit
-        )
+        let precredential = try publicKey.prepareCredentialRequest(requestContext: requestContext)
         let credentialResponse = try privateKey.issue(precredential.credentialRequest)
         var credential = try publicKey.finalize(credentialResponse, for: precredential)
 
         for _ in 0..<presentationLimit {
-            _ = try credential.makePresentation(context: presentationContext)
+            _ = try credential.makePresentation(context: presentationContext, presentationLimit: presentationLimit)
         }
 
-        XCTAssertThrowsError(try credential.makePresentation(context: presentationContext)) { error in
+        XCTAssertThrowsError(
+            try credential.makePresentation(context: presentationContext, presentationLimit: presentationLimit)
+        ) { error in
             XCTAssertEqual(String(describing: error), "presentationLimitExceeded")
         }
     }

@@ -226,7 +226,6 @@ extension Proof where H2G == ARCH2G {
 extension ARC.Credential where H2G == ARCH2G {
     static let scalarCount = 1
     static let pointCount = 5
-    static let integerByteCount = 4
 
     func serialize() throws -> Data {
         let m1 = self.m1.rawRepresentation
@@ -235,15 +234,14 @@ extension ARC.Credential where H2G == ARCH2G {
         let X1 = self.X1.compressedRepresentation
         let genG = self.generatorG.compressedRepresentation
         let genH = self.generatorH.compressedRepresentation
-        let presentationLimit = EncodeInt(value: self.presentationLimit)
-        let noncesData = try ARCNonces.serialize(noncesDict: self.presentationNonces)
+        let presentationState = try self.presentationState.serialize()
 
-        return m1 + U + UPrime + X1 + genG + genH + presentationLimit + noncesData
+        return m1 + U + UPrime + X1 + genG + genH + presentationState
     }
 
     static func deserialize<D: DataProtocol>(credentialData: D) throws -> ARC.Credential<ARCH2G> {
-        let noncesByteCount = credentialData.count - self.scalarCount *  ARCCurve.orderByteCount - self.pointCount * ARCCurve.compressedx962PointByteCount - integerByteCount
-        guard noncesByteCount >= 0 else {
+        let stateByteCount = credentialData.count - self.scalarCount * ARCCurve.orderByteCount - self.pointCount * ARCCurve.compressedx962PointByteCount
+        guard stateByteCount >= 0 else {
             throw ARC.Errors.incorrectCredentialDataSize
         }
         let credentialData = Data(credentialData)
@@ -261,33 +259,36 @@ extension ARC.Credential where H2G == ARCH2G {
         startPointer += ARCCurve.compressedx962PointByteCount
         let genH = try ARCH2G.G.Element(oprfRepresentation: credentialData.subdata(in: startPointer..<startPointer+ARCCurve.compressedx962PointByteCount))
         startPointer += ARCCurve.compressedx962PointByteCount
-        let presentationLimit = DecodeInt(value: credentialData.subdata(in: startPointer..<startPointer+self.integerByteCount))
-        startPointer += self.integerByteCount
 
-        // Deserialize presentationNonces dictionary
-        let noncesData = credentialData.subdata(in: startPointer..<startPointer+noncesByteCount)
-        let presentationNonces = try ARCNonces.deserialize(noncesData: noncesData)
+        // Deserialize presentationState
+        let presentationStateData = credentialData.subdata(in: startPointer..<startPointer+stateByteCount)
+        let presentationState = try ARC.PresentationState.deserialize(presentationStateData: presentationStateData)
 
         let ciphersuite = ARC.Ciphersuite(ARCH2G.self)
-        return ARC.Credential(m1: m1, U: U, UPrime: UPrime, X1: X1, presentationLimit: presentationLimit, presentationNonces: presentationNonces, ciphersuite: ciphersuite, generatorG: genG, generatorH: genH)
+        return ARC.Credential(m1: m1, U: U, UPrime: UPrime, X1: X1, ciphersuite: ciphersuite, generatorG: genG, generatorH: genH, presentationState: presentationState)
     }
 }
 
-// A helper for serializing a ARC credential. This will only be called client-side, and never be sent over the wire.
+// Serialize a ARC PresentationState, to help save and restore a credential.
+// This will only be called client-side, and never be sent over the wire.
 @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
-struct ARCNonces {
-    static func serialize(noncesDict: [Data: Set<Int>]) throws -> Data {
-        // Convert Set<Int> to Array<Int> for encoding
-        let dictForEncoding = noncesDict.mapValues {Array($0) }
+extension ARC.PresentationState {
+    func serialize() throws -> Data {
         let encoder = PropertyListEncoder()
         encoder.outputFormat = .binary
+
+        // Convert (Int, Set<Int>) to Array<Int> for encoding
+        let dictForEncoding = self.state.mapValues { [$0.0] + Array($0.1) }
         return try encoder.encode(dictForEncoding)
     }
 
-    static func deserialize<D: DataProtocol>(noncesData: D) throws -> [Data: Set<Int>] {
+    static func deserialize<D: DataProtocol>(presentationStateData: D) throws -> ARC.PresentationState {
         let decoder = PropertyListDecoder()
-        // Decode as [Data: [Int]] and convert Array<Int> back to Set<Int>
-        let decodedDictionary = try decoder.decode([Data: [Int]].self, from: Data(noncesData))
-        return decodedDictionary.mapValues { Set($0) }
+
+        let stateIntList = try decoder.decode([Data: [Int]].self, from: Data(presentationStateData))
+        // Convert [Int] to (Int, Set<Int>) for decoding
+        let state = stateIntList.mapValues { value in (value[0], Set(value[1...])) }
+
+        return ARC.PresentationState(state: state)
     }
 }

@@ -57,7 +57,6 @@ final class ARCAPITests: XCTestCase {
         // [Client] Prepare a credential request using fixed values from test vector.
         let precredential = try publicKey.prepareCredentialRequest(
             requestContext: requestContext,
-            presentationLimit: presentationLimit,
             m1: P384._ARCV1.H2G.G.Scalar(bytes: Data(hexString: vector.CredentialRequest.m1)),
             r1: P384._ARCV1.H2G.G.Scalar(bytes: Data(hexString: vector.CredentialRequest.r1)),
             r2: P384._ARCV1.H2G.G.Scalar(bytes: Data(hexString: vector.CredentialRequest.r2))
@@ -110,6 +109,7 @@ final class ARCAPITests: XCTestCase {
         // [Client] Make a presentation from the credential for a presentation prefix.
         let (presentation, _) = try credential.makePresentation(
             context: presentationContext,
+            presentationLimit: presentationLimit,
             fixedNonce: Int(vector.Presentation1.nonce.dropFirst(2), radix: 16)!,
             a: P384._ARCV1.H2G.G.Scalar(bytes: Data(hexString: vector.Presentation1.a)),
             r: P384._ARCV1.H2G.G.Scalar(bytes: Data(hexString: vector.Presentation1.r)),
