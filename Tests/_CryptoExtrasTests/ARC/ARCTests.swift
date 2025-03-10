@@ -39,7 +39,7 @@ class ARCTests: XCTestCase {
         let m1 = GroupImpl<Curve>.Scalar.random
         let r1 = GroupImpl<Curve>.Scalar.random
         let r2 = GroupImpl<Curve>.Scalar.random
-        let precredential = try ARC.Precredential(ciphersuite: ciphersuite, m1: m1, requestContext: requestContext, r1: r1, r2: r2, serverPublicKey: serverPublicKey, presentationLimit: presentationLimit)
+        let precredential = try ARC.Precredential(ciphersuite: ciphersuite, m1: m1, requestContext: requestContext, r1: r1, r2: r2, serverPublicKey: serverPublicKey)
 
         // Client makes an CredentialRequest using its private attributes.
         let request = precredential.credentialRequest
@@ -61,16 +61,16 @@ class ARCTests: XCTestCase {
         // Client makes two Presentations from the Credential.
         // Note that in practice, the definition of presentationContext would depend on the use case of the tag (e.g. rate limiting).
         let presentationContext = Data("0123456789".utf8)
-        let (presentation1, nonce1) = try credential.makePresentation(presentationContext: presentationContext)
-        let (presentation2, nonce2) = try credential.makePresentation(presentationContext: presentationContext)
+        let (presentation1, nonce1) = try credential.makePresentation(presentationContext: presentationContext, presentationLimit: presentationLimit)
+        let (presentation2, nonce2) = try credential.makePresentation(presentationContext: presentationContext, presentationLimit: presentationLimit)
         XCTAssertNotNil(presentation1)
         XCTAssertNotNil(presentation2)
 
         // We hit the limit for the presentationContext, and should not receive any new presentations
-        XCTAssertThrowsError(try credential.makePresentation(presentationContext: presentationContext), error: ARC.Errors.presentationLimitExceeded)
+        XCTAssertThrowsError(try credential.makePresentation(presentationContext: presentationContext, presentationLimit: presentationLimit), error: ARC.Errors.presentationLimitExceeded)
         // But we can make more presentations under a different presentationContext
         let newPresentationContext = Data("ABCDEF".utf8)
-        let (presentation3, nonce3) = try credential.makePresentation(presentationContext: newPresentationContext)
+        let (presentation3, nonce3) = try credential.makePresentation(presentationContext: newPresentationContext, presentationLimit: presentationLimit)
         XCTAssertNotNil(presentation3)
 
         // Server verifies Presentation1 with its server keys.
@@ -154,5 +154,39 @@ class ARCTests: XCTestCase {
         try endToEndWorkflow(CurveType: P256.self)
         try endToEndWorkflow(CurveType: P384.self)
 //        try endToEndWorkflow(CurveType: P521.self)
+    }
+
+    func testPresentationState() throws {
+        let context1 = Data("context1".utf8)
+        let context2 = Data("context2".utf8)
+        var smallPresentationState = ARC.PresentationState(state: [context1: (4, [0, 1, 2]), context2: (10, [3, 4, 5, 6])])
+
+        // Test that a new nonce is selected correctly
+        XCTAssertEqual(3, try smallPresentationState.update(presentationContext: context1, presentationLimit: 4))
+        XCTAssertEqual(0, try smallPresentationState.update(presentationContext: Data("context 3".utf8), presentationLimit: 1))
+        XCTAssert(try smallPresentationState.update(presentationContext: context2, presentationLimit: 10) < 10)
+        // Test that exceeding the rate limit for a presentationContext throws an error
+        XCTAssertThrowsError(try smallPresentationState.update(presentationContext: context1, presentationLimit: 4), error: ARC.Errors.presentationLimitExceeded)
+        // Test that reusing a nonce for a presentationContext throws an error
+        XCTAssertThrowsError(try smallPresentationState.update(presentationContext: context2, presentationLimit: 10, optionalNonce: 3), error: ARC.Errors.presentationLimitExceeded)
+        // Test that using an incorrect presentationLimit throws an error
+        XCTAssertThrowsError(try smallPresentationState.update(presentationContext: context2, presentationLimit: 9), error: ARC.Errors.invalidPresentationLimit)
+        XCTAssertThrowsError(try smallPresentationState.update(presentationContext: Data("context 4".utf8), presentationLimit: 0), error: ARC.Errors.invalidPresentationLimit)
+
+        var largePresentationState = ARC.PresentationState()
+        for presentationLimit in 1..<100 {
+            let presentationContext = Data("presentationContext\(presentationLimit)".utf8)
+            for _ in 0..<presentationLimit {
+                let nonce = try largePresentationState.update(presentationContext:presentationContext, presentationLimit: presentationLimit)
+                XCTAssert(nonce < presentationLimit)
+                // Test that reusing a nonce for a presentationContext throws an error
+                XCTAssertThrowsError(try largePresentationState.update(presentationContext: presentationContext, presentationLimit: presentationLimit, optionalNonce: nonce), error: ARC.Errors.presentationLimitExceeded)
+            }
+            // Test that exceeding the rate limit for a presentationContext throws an error
+            XCTAssertThrowsError(try largePresentationState.update(presentationContext: presentationContext, presentationLimit: presentationLimit), error: ARC.Errors.presentationLimitExceeded)
+            XCTAssertEqual(largePresentationState.state[presentationContext]!.1.count, presentationLimit)
+            // Test that using an incorrect presentationLimit throws an error
+            XCTAssertThrowsError(try largePresentationState.update(presentationContext: presentationContext, presentationLimit: presentationLimit-1), error: ARC.Errors.invalidPresentationLimit)
+        }
     }
 }

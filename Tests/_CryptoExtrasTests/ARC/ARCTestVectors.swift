@@ -172,7 +172,7 @@ class ARCTestVectors: XCTestCase {
         let m2 = try scalarFromString(CurveType: Curve.self, value: tv.CredentialRequest.m2)
         let r1 = try scalarFromString(CurveType: Curve.self, value: tv.CredentialRequest.r1)
         let r2 = try scalarFromString(CurveType: Curve.self, value: tv.CredentialRequest.r2)
-        let precredential = try ARC.Precredential(ciphersuite: ciphersuite, m1: m1, requestContext: requestContext, r1: r1, r2: r2, serverPublicKey: server.serverPublicKey, presentationLimit: 2)
+        let precredential = try ARC.Precredential(ciphersuite: ciphersuite, m1: m1, requestContext: requestContext, r1: r1, r2: r2, serverPublicKey: server.serverPublicKey)
         XCTAssertEqual(precredential.credentialRequest.m1Enc.oprfRepresentation.hexString, tv.CredentialRequest.m1_enc)
         XCTAssertEqual(precredential.credentialRequest.m2Enc.oprfRepresentation.hexString, tv.CredentialRequest.m2_enc)
         XCTAssertEqual(precredential.clientSecrets.m2.rawRepresentation.hexString, tv.CredentialRequest.m2)
@@ -212,7 +212,7 @@ class ARCTestVectors: XCTestCase {
         let r_1 = try scalarFromString(CurveType: Curve.self, value: tv.Presentation1.r)
         let z_1 = try scalarFromString(CurveType: Curve.self, value: tv.Presentation1.z)
         let nonce_1 = Int(tv.Presentation1.nonce.replacingOccurrences(of: "0x", with: ""), radix: 16)!
-        let (presentation1, nonce_1_returned) = try credential.makePresentation(presentationContext: presentationContext1, a: a_1, r: r_1, z: z_1, optionalNonce: nonce_1)
+        let (presentation1, nonce_1_returned) = try credential.makePresentation(presentationContext: presentationContext1, presentationLimit: 2, a: a_1, r: r_1, z: z_1, optionalNonce: nonce_1)
         XCTAssertEqual(nonce_1, nonce_1_returned)
         XCTAssertEqual(presentation1.U.oprfRepresentation.hexString, tv.Presentation1.U)
         XCTAssertEqual(presentation1.UPrimeCommit.oprfRepresentation.hexString, tv.Presentation1.U_prime_commit)
@@ -231,7 +231,7 @@ class ARCTestVectors: XCTestCase {
         let r_2 = try scalarFromString(CurveType: Curve.self, value: tv.Presentation2.r)
         let z_2 = try scalarFromString(CurveType: Curve.self, value: tv.Presentation2.z)
         let nonce_2 = Int(tv.Presentation2.nonce.replacingOccurrences(of: "0x", with: ""), radix: 16)!
-        let (presentation2, nonce_2_returned) = try credential.makePresentation(presentationContext: presentationContext1, a: a_2, r: r_2, z: z_2, optionalNonce: nonce_2)
+        let (presentation2, nonce_2_returned) = try credential.makePresentation(presentationContext: presentationContext1, presentationLimit: 2, a: a_2, r: r_2, z: z_2, optionalNonce: nonce_2)
         XCTAssertEqual(nonce_2, nonce_2_returned)
         XCTAssertEqual(presentation2.U.oprfRepresentation.hexString, tv.Presentation2.U)
         XCTAssertEqual(presentation2.UPrimeCommit.oprfRepresentation.hexString, tv.Presentation2.U_prime_commit)

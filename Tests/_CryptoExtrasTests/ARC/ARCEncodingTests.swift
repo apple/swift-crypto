@@ -36,7 +36,7 @@ class ARCEncodingTests: XCTestCase {
         let ciphersuite = ARC.Ciphersuite(HashToCurveImpl<ARCCurve>.self)
         let server = ARC.Server(ciphersuite: ciphersuite)
         let requestContext = Data("test request context".utf8)
-        let precredential = try ARC.Precredential(ciphersuite: ciphersuite, requestContext: requestContext, serverPublicKey: server.serverPublicKey, presentationLimit: 1)
+        let precredential = try ARC.Precredential(ciphersuite: ciphersuite, requestContext: requestContext, serverPublicKey: server.serverPublicKey)
         let request = precredential.credentialRequest
 
         let requestData = request.serialize()
@@ -56,7 +56,7 @@ class ARCEncodingTests: XCTestCase {
         let ciphersuite = ARC.Ciphersuite(HashToCurveImpl<ARCCurve>.self)
         let server = ARC.Server(ciphersuite: ciphersuite)
         let requestContext = Data("test request context".utf8)
-        let precredential = try ARC.Precredential(ciphersuite: ciphersuite, requestContext: requestContext, serverPublicKey: server.serverPublicKey, presentationLimit: 1)
+        let precredential = try ARC.Precredential(ciphersuite: ciphersuite, requestContext: requestContext, serverPublicKey: server.serverPublicKey)
         let request = precredential.credentialRequest
         let response = try server.respond(credentialRequest: request)
 
@@ -81,7 +81,7 @@ class ARCEncodingTests: XCTestCase {
         let ciphersuite = ARC.Ciphersuite(HashToCurveImpl<ARCCurve>.self)
         let server = ARC.Server(ciphersuite: ciphersuite)
         let requestContext = Data("test request context".utf8)
-        let precredential = try ARC.Precredential(ciphersuite: ciphersuite, requestContext: requestContext, serverPublicKey: server.serverPublicKey, presentationLimit: 1)
+        let precredential = try ARC.Precredential(ciphersuite: ciphersuite, requestContext: requestContext, serverPublicKey: server.serverPublicKey)
         let request = precredential.credentialRequest
         let response = try server.respond(credentialRequest: request)
         let credential = try precredential.makeCredential(credentialResponse: response)
@@ -94,8 +94,10 @@ class ARCEncodingTests: XCTestCase {
         XCTAssert(credential.X1 == credential2.X1)
         XCTAssert(credential.generatorG == credential2.generatorG)
         XCTAssert(credential.generatorH == credential2.generatorH)
-        XCTAssert(credential.presentationLimit == credential2.presentationLimit)
-        XCTAssert(credential.presentationNonces == credential2.presentationNonces)
+        for (key, value) in credential.presentationState.state {
+            XCTAssertEqual(value.0, credential2.presentationState.state[key]?.0)
+            XCTAssertEqual(value.1, credential2.presentationState.state[key]?.1)
+        }
 
         let credentialData2 = try credential2.serialize()
         XCTAssertEqual(credentialData, credentialData2)
@@ -105,11 +107,11 @@ class ARCEncodingTests: XCTestCase {
         let ciphersuite = ARC.Ciphersuite(HashToCurveImpl<ARCCurve>.self)
         let server = ARC.Server(ciphersuite: ciphersuite)
         let requestContext = Data("test request context".utf8)
-        let precredential = try ARC.Precredential(ciphersuite: ciphersuite, requestContext: requestContext, serverPublicKey: server.serverPublicKey, presentationLimit: 1)
+        let precredential = try ARC.Precredential(ciphersuite: ciphersuite, requestContext: requestContext, serverPublicKey: server.serverPublicKey)
         let request = precredential.credentialRequest
         let response = try server.respond(credentialRequest: request)
         var credential = try precredential.makeCredential(credentialResponse: response)
-        let (presentation, _) = try credential.makePresentation(presentationContext: Data("test presentation context".utf8))
+        let (presentation, _) = try credential.makePresentation(presentationContext: Data("test presentation context".utf8), presentationLimit: 1)
 
         let presentationData = presentation.serialize()
         let presentation2 = try ARC.Presentation.deserialize(presentationData: presentationData)
@@ -126,21 +128,27 @@ class ARCEncodingTests: XCTestCase {
         XCTAssertEqual(presentationData, presentationData2)
     }
 
-    func testDictionaryEncoding() throws {
-        let emptyDictionary: [Data: Set<Int>] = [:]
-        let smallDictionary: [Data: Set<Int>] = [Data("context1".utf8): [1, 2, 3], Data("context2".utf8): [4, 5, 6]]
-        var largeDictionary: [Data: Set<Int>] = [:]
-        for i in 0..<1000 {
-            let key = Data("key\(i)".utf8)
-            let value = Set(0...1000)
-            largeDictionary[key] = value
+    func testPresentationStateEncoding() throws {
+        let emptyPresentationState = ARC.PresentationState()
+        let smallPresentationState = ARC.PresentationState(state: [Data("context1".utf8): (4, [1, 2, 3]), Data("context2".utf8): (10, [4, 5, 6])])
+        var largePresentationState = ARC.PresentationState()
+        for presentationLimit in 1..<100 {
+            let presentationContext = Data("presentationContext\(presentationLimit)".utf8)
+            for nonce in 0..<presentationLimit {
+                let selectedNonce = try largePresentationState.update(presentationContext:presentationContext, presentationLimit: presentationLimit, optionalNonce: nonce)
+                XCTAssertEqual(selectedNonce, nonce)
+            }
         }
 
-        for dictionary in [emptyDictionary, smallDictionary, largeDictionary] {
-            let serializedDictionary = try ARCNonces.serialize(noncesDict: dictionary)
-            XCTAssertNotNil(serializedDictionary, "Serialized data should not be nil")
-            let deserializedDictionary = try ARCNonces.deserialize(noncesData: serializedDictionary)
-            XCTAssertEqual(dictionary, deserializedDictionary, "Deserialized dictionary should match the original")
+        for state in [emptyPresentationState, smallPresentationState, largePresentationState] {
+            let serializedState = try state.serialize()
+            XCTAssertNotNil(serializedState, "Serialized state should not be nil")
+
+            let deserializedState = try ARC.PresentationState.deserialize(presentationStateData: serializedState)
+            for (key, value) in state.state {
+                XCTAssertEqual(value.0, deserializedState.state[key]?.0)
+                XCTAssertEqual(value.1, deserializedState.state[key]?.1)
+            }
         }
     }
 }
