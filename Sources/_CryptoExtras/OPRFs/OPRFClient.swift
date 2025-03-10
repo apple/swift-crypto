@@ -12,7 +12,11 @@
 //
 //===----------------------------------------------------------------------===//
 import Crypto
+#if canImport(FoundationEssentials)
+import FoundationEssentials
+#else
 import Foundation
+#endif
 
 @available(macOS 10.15, iOS 13.2, tvOS 13.2, watchOS 6.1, *)
 extension OPRF {
