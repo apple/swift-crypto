@@ -34,7 +34,7 @@ extension P384 {
 @available(iOS 16.0, macOS 13.0, watchOS 9.0, tvOS 16.0, *)
 extension P384._ARCV1 {
     /// The server secrets used to issue and verify credentials.
-    public struct PrivateKey {
+    public struct PrivateKey: Sendable {
         fileprivate var backing: ARC.Server<H2G>
 
         /// Creates a random private key for ARC(P-384).
@@ -104,7 +104,7 @@ extension P384._ARCV1 {
     }
 
     /// The server public key, used by clients to create anonymous credentials in conjunction with the server.
-    public struct PublicKey {
+    public struct PublicKey: Sendable {
         fileprivate var backing: ARC.ServerPublicKey<H2G>
 
         fileprivate init(backing: ARC.ServerPublicKey<H2G>) {
@@ -161,7 +161,7 @@ extension P384._ARCV1 {
     /// Clients should not create values of this type manually; they should use the prepare method on the public key.
     ///
     /// Servers should reconstruct values of this type from the serialized bytes sent by the client.
-    public struct CredentialRequest {
+    public struct CredentialRequest: Sendable {
         var backing: ARC.CredentialRequest<H2G>
 
         fileprivate init(backing: ARC.CredentialRequest<H2G>) {
@@ -180,7 +180,7 @@ extension P384._ARCV1 {
     /// A credential request to be sent to the server, and associated client secrets.
     ///
     /// Users cannot create values of this type manually; they are created using the prepare method on the public key.
-    public struct Precredential {
+    public struct Precredential: Sendable {
         /// This backing type binds many things together, including the server commitments, client secrets, credential
         /// request, and presentation limit.
         internal var backing: ARC.Precredential<H2G>
@@ -196,7 +196,7 @@ extension P384._ARCV1 {
     /// Servers should not create values of this type manually; they should use the issue method on the private key.
     ///
     /// Clients should reconstruct values of this type from the serialized bytes sent by the server.
-    public struct CredentialResponse {
+    public struct CredentialResponse: Sendable {
         var backing: ARC.CredentialResponse<H2G>
 
         fileprivate init(backing: ARC.CredentialResponse<H2G>) {
@@ -216,7 +216,7 @@ extension P384._ARCV1 {
     /// A credential, created by the client using the response from the server.
     ///
     /// Users cannot create values of this type manually; they are created using the issue method on the public key.
-    public struct Credential {
+    public struct Credential: Sendable {
         var backing: ARC.Credential<H2G>
 
         fileprivate init(backing: ARC.Credential<H2G>) {
@@ -227,7 +227,7 @@ extension P384._ARCV1 {
     /// A presentation, created by the client from a credential, to be sent to the server to verify.
     ///
     /// Users cannot create values of this type manually; they are created using the present method on the credential.
-    public struct Presentation {
+    public struct Presentation: Sendable {
         internal var backing: ARC.Presentation<H2G>
 
         fileprivate init(backing: ARC.Presentation<H2G>) {
