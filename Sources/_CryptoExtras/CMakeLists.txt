@@ -56,6 +56,7 @@ add_library(_CryptoExtras
   "Util/DigestType.swift"
   "Util/Error.swift"
   "Util/I2OSP.swift"
+  "Util/IntegerEncoding.swift"
   "Util/PEMDocument.swift"
   "Util/PrettyBytes.swift"
   "Util/SubjectPublicKeyInfo.swift"
