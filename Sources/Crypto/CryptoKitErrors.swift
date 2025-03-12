@@ -34,6 +34,7 @@ public enum CryptoKitError: Error {
     case invalidParameter
 }
 
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
 extension CryptoKitError: Equatable, Hashable {}
 
 /// Errors from decoding ASN.1 content.
