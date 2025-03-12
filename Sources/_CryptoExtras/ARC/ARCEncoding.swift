@@ -19,50 +19,30 @@ typealias ARCCurve = P384
 @available(macOS 10.15, iOS 13.2, tvOS 13.2, watchOS 6.1, *)
 typealias ARCH2G = HashToCurveImpl<ARCCurve>
 
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
-internal func DecodeInt(value: Data) -> Int {
-    @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
-    var result = Int(0)
-
-    for i in 0..<value.count {
-        result = result << 8
-        result += Int(value[i])
-    }
-
-    return result
-}
-
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
-internal func EncodeInt(value: Int) -> Data {
-    return I2OSP(value: value, outputByteCount: 4)
-}
-
 @available(macOS 10.15, iOS 13.2, tvOS 13.2, watchOS 6.1, *)
 extension ARC.CredentialRequest where H2G == ARCH2G {
     static let scalarCount = 5
-    static let pointCount = 2
-    static let serializedByteCount = pointCount * ARCCurve.compressedx962PointByteCount + scalarCount * ARCCurve.orderByteCount
+    static let serializedByteCount = 2 * ARCCurve.compressedx962PointByteCount + Self.scalarCount * ARCCurve.orderByteCount
 
     func serialize() -> Data {
-        let m1Enc = self.m1Enc.compressedRepresentation
-        let m2Enc = self.m2Enc.compressedRepresentation
-        let proofData = self.proof.serialize()
-        return m1Enc + m2Enc + proofData
+        var result = Data(capacity: Self.serializedByteCount)
+        result.append(self.m1Enc.compressedRepresentation)
+        result.append(self.m2Enc.compressedRepresentation)
+        result.append(self.proof.serialize())
+        return result
     }
 
     static func deserialize<D: DataProtocol>(requestData: D) throws -> ARC.CredentialRequest<ARCH2G> {
-        guard requestData.count == self.serializedByteCount else {
+        guard requestData.count == Self.serializedByteCount else {
             throw ARC.Errors.incorrectRequestDataSize
         }
-        let requestData = Data(requestData)
 
-        var startPointer = 0
-        let m1Enc = try ARCH2G.G.Element(oprfRepresentation: requestData.subdata(in: startPointer..<startPointer+ARCCurve.compressedx962PointByteCount))
-        startPointer += ARCCurve.compressedx962PointByteCount
-        let m2Enc = try ARCH2G.G.Element(oprfRepresentation: requestData.subdata(in: startPointer..<startPointer+ARCCurve.compressedx962PointByteCount))
-        startPointer += ARCCurve.compressedx962PointByteCount
+        var bytes = Data(requestData)
 
-        let proof = try Proof.deserialize(proofData: requestData.subdata(in: startPointer..<startPointer + self.scalarCount * ARCCurve.orderByteCount), scalarCount: self.scalarCount)
+        let m1Enc = try H2G.G.Element(oprfRepresentation: bytes.popFirst(ARCCurve.compressedx962PointByteCount))
+        let m2Enc = try H2G.G.Element(oprfRepresentation: bytes.popFirst(ARCCurve.compressedx962PointByteCount))
+        let proof = try Proof.deserialize(proofData: bytes, scalarCount: Self.scalarCount)
+
         return ARC.CredentialRequest(m1Enc: m1Enc, m2Enc: m2Enc, proof: proof)
     }
 }
@@ -70,43 +50,38 @@ extension ARC.CredentialRequest where H2G == ARCH2G {
 @available(macOS 10.15, iOS 13.2, tvOS 13.2, watchOS 6.1, *)
 extension ARC.CredentialResponse where H2G == ARCH2G {
     static let scalarCount = 8
-    static let pointCount = 6
-    static let serializedByteCount = pointCount * ARCCurve.compressedx962PointByteCount + scalarCount * ARCCurve.orderByteCount
+    static let serializedByteCount = 6 * ARCCurve.compressedx962PointByteCount + Self.scalarCount * ARCCurve.orderByteCount
 
     func serialize() -> Data {
-        let U = self.U.compressedRepresentation
-        let encUPrime = self.encUPrime.compressedRepresentation
-        let X0Aux = self.X0Aux.compressedRepresentation
-        let X1Aux = self.X1Aux.compressedRepresentation
-        let X2Aux = self.X2Aux.compressedRepresentation
-        let HAux = self.HAux.compressedRepresentation
-        let responsePoints = U + encUPrime + X0Aux + X1Aux + X2Aux + HAux
+        var result = Data(capacity: Self.serializedByteCount)
 
-        let proofData = self.proof.serialize()
-        return responsePoints + proofData
+        result.append(self.U.compressedRepresentation)
+        result.append(self.encUPrime.compressedRepresentation)
+        result.append(self.X0Aux.compressedRepresentation)
+        result.append(self.X1Aux.compressedRepresentation)
+        result.append(self.X2Aux.compressedRepresentation)
+        result.append(self.HAux.compressedRepresentation)
+        result.append(self.proof.serialize())
+
+        return result
     }
 
     static func deserialize<D: DataProtocol>(responseData: D) throws -> ARC.CredentialResponse<ARCH2G> {
         guard responseData.count == self.serializedByteCount else {
             throw ARC.Errors.incorrectResponseDataSize
         }
-        let responseData = Data(responseData)
 
-        var startPointer = 0
-        let U = try ARCH2G.G.Element(oprfRepresentation: responseData.subdata(in: startPointer..<startPointer+ARCCurve.compressedx962PointByteCount))
-        startPointer += ARCCurve.compressedx962PointByteCount
-        let encUPrime = try ARCH2G.G.Element(oprfRepresentation: responseData.subdata(in: startPointer..<startPointer+ARCCurve.compressedx962PointByteCount))
-        startPointer += ARCCurve.compressedx962PointByteCount
-        let X0Aux = try ARCH2G.G.Element(oprfRepresentation: responseData.subdata(in: startPointer..<startPointer+ARCCurve.compressedx962PointByteCount))
-        startPointer += ARCCurve.compressedx962PointByteCount
-        let X1Aux = try ARCH2G.G.Element(oprfRepresentation: responseData.subdata(in: startPointer..<startPointer+ARCCurve.compressedx962PointByteCount))
-        startPointer += ARCCurve.compressedx962PointByteCount
-        let X2Aux = try ARCH2G.G.Element(oprfRepresentation: responseData.subdata(in: startPointer..<startPointer+ARCCurve.compressedx962PointByteCount))
-        startPointer += ARCCurve.compressedx962PointByteCount
-        let HAux = try ARCH2G.G.Element(oprfRepresentation: responseData.subdata(in: startPointer..<startPointer+ARCCurve.compressedx962PointByteCount))
-        startPointer += ARCCurve.compressedx962PointByteCount
+        var bytes = Data(responseData)
 
-        let proof = try Proof.deserialize(proofData: responseData.subdata(in: startPointer..<startPointer + self.scalarCount * ARCCurve.orderByteCount), scalarCount: self.scalarCount)
+        let U = try H2G.G.Element(oprfRepresentation: bytes.popFirst(ARCCurve.compressedx962PointByteCount))
+        let encUPrime = try H2G.G.Element(oprfRepresentation: bytes.popFirst(ARCCurve.compressedx962PointByteCount))
+        let X0Aux = try H2G.G.Element(oprfRepresentation: bytes.popFirst(ARCCurve.compressedx962PointByteCount))
+        let X1Aux = try H2G.G.Element(oprfRepresentation: bytes.popFirst(ARCCurve.compressedx962PointByteCount))
+        let X2Aux = try H2G.G.Element(oprfRepresentation: bytes.popFirst(ARCCurve.compressedx962PointByteCount))
+        let HAux = try H2G.G.Element(oprfRepresentation: bytes.popFirst(ARCCurve.compressedx962PointByteCount))
+
+        let proof = try Proof.deserialize(proofData: bytes, scalarCount: self.scalarCount)
+
         return ARC.CredentialResponse(U: U, encUPrime: encUPrime, X0Aux: X0Aux, X1Aux: X1Aux, X2Aux: X2Aux, HAux: HAux, proof: proof)
     }
 }
@@ -118,65 +93,59 @@ extension ARC.Presentation where H2G == ARCH2G {
     static let serializedByteCount = pointCount * ARCCurve.compressedx962PointByteCount + scalarCount * ARCCurve.orderByteCount
 
     func serialize() -> Data {
-        // Serialize presentation elements
-        let U = self.U.compressedRepresentation
-        let UPrimeCommit = self.UPrimeCommit.compressedRepresentation
-        let m1Commit = self.m1Commit.compressedRepresentation
-        let tag = self.tag.compressedRepresentation
+        var result = Data(capacity: Self.serializedByteCount)
 
-        let presentationProofData = self.proof.serialize()
-        return U + UPrimeCommit + m1Commit + tag + presentationProofData
+        result.append(self.U.compressedRepresentation)
+        result.append(self.UPrimeCommit.compressedRepresentation)
+        result.append(self.m1Commit.compressedRepresentation)
+        result.append(self.tag.compressedRepresentation)
+        result.append(self.proof.serialize())
+
+        return result
     }
 
     static func deserialize<D: DataProtocol>(presentationData: D) throws -> ARC.Presentation<ARCH2G> {
         guard presentationData.count == self.serializedByteCount else {
             throw ARC.Errors.incorrectPresentationDataSize
         }
-        let presentationData = Data(presentationData)
 
-        var startPointer = 0
-        // Deserialize presentation elements
-        let U = try ARCH2G.G.Element(oprfRepresentation: presentationData.subdata(in: startPointer..<startPointer+ARCCurve.compressedx962PointByteCount))
-        startPointer += ARCCurve.compressedx962PointByteCount
-        let UPrimeCommit = try ARCH2G.G.Element(oprfRepresentation: presentationData.subdata(in: startPointer..<startPointer+ARCCurve.compressedx962PointByteCount))
-        startPointer += ARCCurve.compressedx962PointByteCount
-        let m1Commit = try ARCH2G.G.Element(oprfRepresentation: presentationData.subdata(in: startPointer..<startPointer+ARCCurve.compressedx962PointByteCount))
-        startPointer += ARCCurve.compressedx962PointByteCount
-        let tag = try ARCH2G.G.Element(oprfRepresentation: presentationData.subdata(in: startPointer..<startPointer+ARCCurve.compressedx962PointByteCount))
-        startPointer += ARCCurve.compressedx962PointByteCount
+        var bytes = Data(presentationData)
 
-        let presentationProof = try Proof.deserialize(proofData: presentationData.subdata(in: startPointer..<startPointer + self.scalarCount * ARCCurve.orderByteCount), scalarCount: self.scalarCount)
+        let U = try H2G.G.Element(oprfRepresentation: bytes.popFirst(ARCCurve.compressedx962PointByteCount))
+        let UPrimeCommit = try H2G.G.Element(oprfRepresentation: bytes.popFirst(ARCCurve.compressedx962PointByteCount))
+        let m1Commit = try H2G.G.Element(oprfRepresentation: bytes.popFirst(ARCCurve.compressedx962PointByteCount))
+        let tag = try H2G.G.Element(oprfRepresentation: bytes.popFirst(ARCCurve.compressedx962PointByteCount))
+        let presentationProof = try Proof.deserialize(proofData: bytes, scalarCount: Self.scalarCount)
+
         return ARC.Presentation(U: U, UPrimeCommit: UPrimeCommit, m1Commit: m1Commit, tag: tag, proof: presentationProof)
     }
 }
 
 @available(macOS 10.15, iOS 13.2, tvOS 13.2, watchOS 6.1, *)
 extension ARC.ServerPublicKey where H2G == ARCH2G {
-    static let pointCount = 3
+    static let serializedByteCount = 3 * ARCCurve.compressedx962PointByteCount
+    static let pointCount = 3  // TODO: delete
 
     func serialize() -> Data {
-        // Serialize server commitment elements
-        let X0 = self.X0.compressedRepresentation
-        let X1 = self.X1.compressedRepresentation
-        let X2 = self.X2.compressedRepresentation
+        var result = Data(capacity: Self.serializedByteCount)
 
-        return X0 + X1 + X2
+        result.append(self.X0.compressedRepresentation)
+        result.append(self.X1.compressedRepresentation)
+        result.append(self.X2.compressedRepresentation)
+
+        return result
     }
 
     static func deserialize<D: DataProtocol>(serverPublicKeyData: D) throws -> ARC.ServerPublicKey<ARCH2G> {
         guard serverPublicKeyData.count == self.pointCount * ARCCurve.compressedx962PointByteCount else {
             throw ARC.Errors.incorrectServerCommitmentsSize
         }
-        let serverPublicKeyData = Data(serverPublicKeyData)
-        var startPointer = 0
 
-        // Deserialize server commitment elements
-        let X0 = try ARCH2G.G.Element(oprfRepresentation: serverPublicKeyData.subdata(in: startPointer..<startPointer+ARCCurve.compressedx962PointByteCount))
-        startPointer += ARCCurve.compressedx962PointByteCount
-        let X1 = try ARCH2G.G.Element(oprfRepresentation: serverPublicKeyData.subdata(in: startPointer..<startPointer+ARCCurve.compressedx962PointByteCount))
-        startPointer += ARCCurve.compressedx962PointByteCount
-        let X2 = try ARCH2G.G.Element(oprfRepresentation: serverPublicKeyData.subdata(in: startPointer..<startPointer+ARCCurve.compressedx962PointByteCount))
-        startPointer += ARCCurve.compressedx962PointByteCount
+        var bytes = Data(serverPublicKeyData)
+
+        let X0 = try H2G.G.Element(oprfRepresentation: bytes.popFirst(ARCCurve.compressedx962PointByteCount))
+        let X1 = try H2G.G.Element(oprfRepresentation: bytes.popFirst(ARCCurve.compressedx962PointByteCount))
+        let X2 = try H2G.G.Element(oprfRepresentation: bytes.popFirst(ARCCurve.compressedx962PointByteCount))
 
         return ARC.ServerPublicKey(X0: X0, X1: X1, X2: X2)
     }
@@ -201,19 +170,18 @@ extension Proof where H2G == ARCH2G {
         guard proofData.count == scalarCount * ARCCurve.orderByteCount else {
             throw ARC.Errors.incorrectProofDataSize
         }
-        let proofData = Data(proofData)
-        var startPointer = 0
+
+        var bytes = Data(proofData)
 
         // Deserialize challenge
-        let challenge = try GroupImpl<ARCCurve>.Scalar(bytes: proofData.subdata(in: startPointer..<startPointer+ARCCurve.orderByteCount))
-        startPointer += ARCCurve.orderByteCount
+        let challenge = try ARCH2G.G.Scalar(bytes: bytes.popFirst(ARCCurve.orderByteCount))
 
         // Deserialize responses
         var responses: [GroupImpl<ARCCurve>.Scalar] = []
+        responses.reserveCapacity(scalarCount - 1)
         for _ in (0..<scalarCount-1) {
-            let response = try GroupImpl<ARCCurve>.Scalar(bytes: proofData.subdata(in: startPointer..<startPointer+ARCCurve.orderByteCount))
+            let response = try ARCH2G.G.Scalar(bytes: bytes.popFirst(ARCCurve.orderByteCount))
             responses.append(response)
-            startPointer += ARCCurve.orderByteCount
         }
 
         return Proof(challenge: challenge, responses: responses)
@@ -227,42 +195,41 @@ extension ARC.Credential where H2G == ARCH2G {
     static let scalarCount = 1
     static let pointCount = 5
 
-    func serialize() throws -> Data {
-        let m1 = self.m1.rawRepresentation
-        let U = self.U.compressedRepresentation
-        let UPrime = self.UPrime.compressedRepresentation
-        let X1 = self.X1.compressedRepresentation
-        let genG = self.generatorG.compressedRepresentation
-        let genH = self.generatorH.compressedRepresentation
-        let presentationState = try self.presentationState.serialize()
+    static let serializedByteCountExcludingPresentationState = 1 * ARCCurve.orderByteCount + 5 * ARCCurve.compressedx962PointByteCount
 
-        return m1 + U + UPrime + X1 + genG + genH + presentationState
+    func serialize() throws -> Data {
+        let presentationStateBytes = try self.presentationState.serialize()
+
+        var result = Data(capacity: Self.serializedByteCountExcludingPresentationState + presentationStateBytes.count)
+
+        result.append(self.m1.rawRepresentation)
+        result.append(self.U.compressedRepresentation)
+        result.append(self.UPrime.compressedRepresentation)
+        result.append(self.X1.compressedRepresentation)
+        result.append(self.generatorG.compressedRepresentation)
+        result.append(self.generatorH.compressedRepresentation)
+        result.append(presentationStateBytes)
+
+        return result
     }
 
     static func deserialize<D: DataProtocol>(credentialData: D) throws -> ARC.Credential<ARCH2G> {
-        let stateByteCount = credentialData.count - self.scalarCount * ARCCurve.orderByteCount - self.pointCount * ARCCurve.compressedx962PointByteCount
-        guard stateByteCount >= 0 else {
+        guard credentialData.count - Self.serializedByteCountExcludingPresentationState >= 0 else {
             throw ARC.Errors.incorrectCredentialDataSize
         }
         let credentialData = Data(credentialData)
 
-        var startPointer = 0
-        let m1 = try GroupImpl<ARCCurve>.Scalar(bytes: credentialData.subdata(in: startPointer..<startPointer+ARCCurve.orderByteCount))
-        startPointer += ARCCurve.orderByteCount
-        let U = try ARCH2G.G.Element(oprfRepresentation: credentialData.subdata(in: startPointer..<startPointer+ARCCurve.compressedx962PointByteCount))
-        startPointer += ARCCurve.compressedx962PointByteCount
-        let UPrime = try ARCH2G.G.Element(oprfRepresentation: credentialData.subdata(in: startPointer..<startPointer+ARCCurve.compressedx962PointByteCount))
-        startPointer += ARCCurve.compressedx962PointByteCount
-        let X1 = try ARCH2G.G.Element(oprfRepresentation: credentialData.subdata(in: startPointer..<startPointer+ARCCurve.compressedx962PointByteCount))
-        startPointer += ARCCurve.compressedx962PointByteCount
-        let genG = try ARCH2G.G.Element(oprfRepresentation: credentialData.subdata(in: startPointer..<startPointer+ARCCurve.compressedx962PointByteCount))
-        startPointer += ARCCurve.compressedx962PointByteCount
-        let genH = try ARCH2G.G.Element(oprfRepresentation: credentialData.subdata(in: startPointer..<startPointer+ARCCurve.compressedx962PointByteCount))
-        startPointer += ARCCurve.compressedx962PointByteCount
+        var bytes = Data(credentialData)
 
-        // Deserialize presentationState
-        let presentationStateData = credentialData.subdata(in: startPointer..<startPointer+stateByteCount)
-        let presentationState = try ARC.PresentationState.deserialize(presentationStateData: presentationStateData)
+        let m1 = try ARCH2G.G.Scalar(bytes: bytes.popFirst(ARCCurve.orderByteCount))
+        let U = try ARCH2G.G.Element(oprfRepresentation: bytes.popFirst(ARCCurve.compressedx962PointByteCount))
+        let UPrime = try ARCH2G.G.Element(oprfRepresentation: bytes.popFirst(ARCCurve.compressedx962PointByteCount))
+        let X1 = try ARCH2G.G.Element(oprfRepresentation: bytes.popFirst(ARCCurve.compressedx962PointByteCount))
+        let genG = try ARCH2G.G.Element(oprfRepresentation: bytes.popFirst(ARCCurve.compressedx962PointByteCount))
+        let genH = try ARCH2G.G.Element(oprfRepresentation: bytes.popFirst(ARCCurve.compressedx962PointByteCount))
+
+        // Deserialize presentationState from remaining bytes.
+        let presentationState = try ARC.PresentationState.deserialize(presentationStateData: bytes)
 
         let ciphersuite = ARC.Ciphersuite(ARCH2G.self)
         return ARC.Credential(m1: m1, U: U, UPrime: UPrime, X1: X1, ciphersuite: ciphersuite, generatorG: genG, generatorH: genH, presentationState: presentationState)
