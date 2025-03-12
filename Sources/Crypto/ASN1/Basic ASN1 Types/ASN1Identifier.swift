@@ -138,6 +138,7 @@ extension ASN1.ASN1Identifier {
     internal static let generalizedTime = try! ASN1.ASN1Identifier(rawIdentifier: 0x18)
 }
 
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
 extension ASN1.ASN1Identifier: Hashable { }
 
 @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)

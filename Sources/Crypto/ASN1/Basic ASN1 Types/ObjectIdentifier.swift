@@ -133,6 +133,7 @@ extension ASN1 {
     }
 }
 
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
 extension ASN1.ASN1ObjectIdentifier: Hashable {}
 
 @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)

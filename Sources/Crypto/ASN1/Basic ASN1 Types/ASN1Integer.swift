@@ -170,6 +170,7 @@ extension IntegerBytesCollection: RandomAccessCollection {
     }
 }
 
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
 extension IntegerBytesCollection.Index: Equatable { }
 
 @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)

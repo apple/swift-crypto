@@ -131,6 +131,7 @@ extension P256.Signing {
     }
 }
 
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
 extension P256.Signing: NISTSigning {}
 
 // MARK: - P256 + PrivateKey
@@ -300,6 +301,7 @@ extension P384.Signing {
     }
 }
 
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
 extension P384.Signing: NISTSigning {}
 
 // MARK: - P384 + PrivateKey
@@ -469,6 +471,7 @@ extension P521.Signing {
     }
 }
 
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
 extension P521.Signing: NISTSigning {}
 
 // MARK: - P521 + PrivateKey

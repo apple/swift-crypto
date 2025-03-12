@@ -144,9 +144,11 @@ extension SecureBytes: BidirectionalCollection {
 }
 
 // MARK: - RandomAccessCollection conformance
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
 extension SecureBytes: RandomAccessCollection { }
 
 // MARK: - MutableCollection conformance
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
 extension SecureBytes: MutableCollection { }
 
 // MARK: - RangeReplaceableCollection conformance
@@ -224,9 +226,11 @@ extension SecureBytes: DataProtocol {
 }
 
 // MARK: - MutableDataProtocol conformance
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
 extension SecureBytes: MutableDataProtocol { }
 
 // MARK: - Index conformances
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
 extension SecureBytes.Index: Hashable { }
 
 @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
