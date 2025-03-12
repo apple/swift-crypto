@@ -238,7 +238,7 @@ extension ARC.Credential where H2G == ARCH2G {
 
 // Serialize a ARC PresentationState, to help save and restore a credential.
 // This will only be called client-side, and never be sent over the wire.
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
+@available(macOS 10.15, iOS 13.2, tvOS 13.2, watchOS 6.1, *)
 extension ARC.PresentationState {
     func serialize() throws -> Data {
         let encoder = PropertyListEncoder()
