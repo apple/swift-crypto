@@ -149,7 +149,7 @@ func main() {
 }
 
 
-if #available(macOS 10.15, *) {
+if #available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *) {
     main()
 } else {
     fatalError("crypto-shasum can only be run on macOS 10.15 and later")
