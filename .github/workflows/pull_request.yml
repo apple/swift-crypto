@@ -12,13 +12,6 @@ jobs:
       license_header_check_project_name: "SwiftCrypto"
       docs_check_enabled: false
 
-  cmake-lists:
-    name: Check cmake lists
-    uses: apple/swift-nio/.github/workflows/swift_matrix.yml@main
-    with:
-      name: "Check cmake lists"
-      matrix_linux_command: ./scripts/check-cmake-lists.sh
-
   unit-tests:
     name: Unit tests
     uses: apple/swift-nio/.github/workflows/unit_tests.yml@main
@@ -38,3 +31,19 @@ jobs:
   cxx-interop:
     name: Cxx interop
     uses: apple/swift-nio/.github/workflows/cxx_interop.yml@main
+
+  cmake-lists:
+    name: Check cmake lists
+    uses: apple/swift-nio/.github/workflows/cmake_tests.yml@main
+    with:
+      update_cmake_lists_config: >-
+        {
+          "targets": [
+            { "name": "CCryptoBoringSSL", "type": "source", "exceptions": [] },
+            { "name": "CCryptoBoringSSLShims", "type": "source", "exceptions": [] },
+            { "name": "CryptoBoringWrapper", "type": "source", "exceptions": [] },
+            { "name": "Crypto", "type": "source", "exceptions": [] },
+            { "name": "_CryptoExtras", "type": "source", "exceptions": [] },
+            { "name": "CCryptoBoringSSL", "type": "assembly", "exceptions": [ "*/AES/*.swift" ] }
+          ]
+        }
