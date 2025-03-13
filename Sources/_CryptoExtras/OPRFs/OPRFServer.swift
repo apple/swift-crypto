@@ -11,7 +11,11 @@
 // SPDX-License-Identifier: Apache-2.0
 //
 //===----------------------------------------------------------------------===//
+#if canImport(FoundationEssentials)
+import FoundationEssentials
+#else
 import Foundation
+#endif
 import Crypto
 
 @available(macOS 10.15, iOS 13.2, tvOS 13.2, watchOS 6.1, *)
