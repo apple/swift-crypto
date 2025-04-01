@@ -47,3 +47,10 @@ jobs:
             { "name": "CCryptoBoringSSL", "type": "assembly", "exceptions": [ "*/AES/*.swift" ] }
           ]
         }
+
+  macos-tests:
+    name: macOS tests
+    uses: apple/swift-nio/.github/workflows/macos_tests.yml@main
+    with:
+      runner_pool: general
+      build_scheme: swift-crypto-Package
