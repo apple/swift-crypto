@@ -20,6 +20,10 @@
 package final class BoringSSLEllipticCurveGroup {
     @usableFromInline var _group: OpaquePointer
 
+    @usableFromInline package let order: ArbitraryPrecisionInteger
+
+    @usableFromInline package let generator: EllipticCurvePoint
+
     @usableFromInline
     package init(_ curve: CurveName) throws {
         guard let group = CCryptoBoringSSL_EC_GROUP_new_by_curve_name(curve.baseNID) else {
@@ -27,6 +31,11 @@ package final class BoringSSLEllipticCurveGroup {
         }
 
         self._group = group
+
+        let baseOrder = CCryptoBoringSSL_EC_GROUP_get0_order(self._group)!
+        self.order = try! ArbitraryPrecisionInteger(copying: baseOrder)
+
+        self.generator = try EllipticCurvePoint(_generatorOf: self._group)
     }
 
     deinit {
@@ -66,23 +75,6 @@ extension BoringSSLEllipticCurveGroup {
     @inlinable
     package func withUnsafeGroupPointer<T>(_ body: (OpaquePointer) throws -> T) rethrows -> T {
         try body(self._group)
-    }
-
-    @usableFromInline
-    package var order: ArbitraryPrecisionInteger {
-        // Groups must have an order.
-        let baseOrder = CCryptoBoringSSL_EC_GROUP_get0_order(self._group)!
-        return try! ArbitraryPrecisionInteger(copying: baseOrder)
-    }
-
-    @usableFromInline
-    package var generator: EllipticCurvePoint {
-        get throws {
-            guard let generatorPtr = CCryptoBoringSSL_EC_GROUP_get0_generator(self._group) else {
-                throw CryptoBoringWrapperError.internalBoringSSLError()
-            }
-            return try EllipticCurvePoint(copying: generatorPtr, on: self)
-        }
     }
 
     /// An elliptic curve can be represented in a Weierstrass form: `y² = x³ + ax + b`. This
