@@ -45,8 +45,10 @@ import Foundation
 ///
 /// ### Handling errors
 ///  - ``Errors``
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
 public enum HPKE {}
 
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
 extension HPKE {
     /// A type that represents the sending side of an HPKE message exchange.
     ///
@@ -56,6 +58,7 @@ extension HPKE {
     /// in turn to retrieve its ciphertext. The recipient of the messages needs to process them in the
     /// same order as the `Sender`, using the same encryption mode, cipher suite, and key schedule information
     ///  (`info`), as well as the `Sender`'s ``encapsulatedKey``.
+    @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
     public struct Sender {
         private var context: Context
         /// The encapsulated symmetric key that the recipient uses to decrypt messages.
@@ -193,6 +196,7 @@ extension HPKE {
     /// same order as the `Sender`, using the same cipher suite, encryption mode, and key schedule information
     /// (`info` data).
     /// Use a separate `Recipient` instance for each stream of messages.
+    @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
     public struct Recipient {
         
         private var context: Context

@@ -91,7 +91,8 @@ add_library(Crypto
   "Util/PrettyBytes.swift"
   "Util/SafeCompare.swift"
   "Util/SecureBytes.swift"
-  "Util/Zeroization.swift")
+  "Util/Zeroization.swift"
+)
 
 target_compile_definitions(Crypto PRIVATE
   "$<$<COMPILE_LANGUAGE:Swift>:CRYPTO_IN_SWIFTPM>")

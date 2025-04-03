@@ -14,6 +14,7 @@
 
 @_implementationOnly import CCryptoBoringSSL
 
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
 public enum CryptoBoringWrapperError: Error {
     /// The key size is incorrect.
     case incorrectKeySize
@@ -32,6 +33,7 @@ public enum CryptoBoringWrapperError: Error {
     case invalidParameter
 }
 
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
 extension CryptoBoringWrapperError {
     /// A helper function that packs the value of `ERR_get_error` into the internal error field.
     @usableFromInline

@@ -16,9 +16,11 @@
 #else
 import Foundation
 
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
 extension Curve25519.KeyAgreement.PrivateKey: HPKEDiffieHellmanPrivateKeyGeneration {}
 
 
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
 extension Curve25519.KeyAgreement.PublicKey: HPKEDiffieHellmanPublicKey {
 	/// The type of the ephemeral private key associated with this public key.
     public typealias EphemeralPrivateKey = Curve25519.KeyAgreement.PrivateKey

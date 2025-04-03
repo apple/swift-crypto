@@ -17,11 +17,13 @@
 import Foundation
 
 /// A type that represents a message authentication code.
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
 public protocol MessageAuthenticationCode: Hashable, ContiguousBytes, CustomStringConvertible, Sequence where Element == UInt8 {
     /// The number of bytes in the message authentication code.
     var byteCount: Int { get }
 }
 
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
 extension MessageAuthenticationCode {
     /// Returns a Boolean value indicating whether two message authentication
     /// codes are equal.

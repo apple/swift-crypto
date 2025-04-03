@@ -20,6 +20,7 @@ import Crypto
 import CryptoBoringWrapper
 import Foundation
 
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
 extension BoringSSLAEAD {
     /// Seal a given message.
     func seal<Plaintext: DataProtocol, Nonce: ContiguousBytes, AuthenticatedData: DataProtocol>(
@@ -56,6 +57,7 @@ extension BoringSSLAEAD {
     }
 }
 
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
 enum OpenSSLAESGCMSIVImpl {
     @inlinable
     static func seal<Plaintext: DataProtocol, AuthenticatedData: DataProtocol>(
