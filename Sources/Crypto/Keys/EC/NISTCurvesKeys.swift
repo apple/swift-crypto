@@ -17,21 +17,26 @@ import Foundation
 @_exported import CryptoKit
 #else
 #if !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
 typealias SupportedCurveDetailsImpl = CorecryptoSupportedNISTCurve
 #else
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
 typealias SupportedCurveDetailsImpl = OpenSSLSupportedNISTCurve
 #endif
 
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
 protocol ECPublicKey {
     init <Bytes: ContiguousBytes>(rawRepresentation: Bytes) throws
     var rawRepresentation: Data { get }
 }
 
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
 protocol ECPrivateKey {
     associatedtype PK
     var publicKey: PK { get }
 }
 
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
 protocol NISTECPublicKey: ECPublicKey {
     init<Bytes: ContiguousBytes>(compactRepresentation: Bytes) throws
     init<Bytes: ContiguousBytes>(compressedRepresentation: Bytes) throws
@@ -41,17 +46,21 @@ protocol NISTECPublicKey: ECPublicKey {
     var x963Representation: Data { get }
 }
 
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
 protocol NISTECPrivateKey: ECPrivateKey where PK: NISTECPublicKey {
     init <Bytes: ContiguousBytes>(rawRepresentation: Bytes) throws
     var rawRepresentation: Data { get }
 }
 
 /// An elliptic curve that enables NIST P-256 signatures and key agreement.
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
 public enum P256 { }
 
 /// An elliptic curve that enables NIST P-384 signatures and key agreement.
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
 public enum P384 { }
 
 /// An elliptic curve that enables NIST P-521 signatures and key agreement.
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
 public enum P521 { }
 #endif // Linux or !SwiftPM

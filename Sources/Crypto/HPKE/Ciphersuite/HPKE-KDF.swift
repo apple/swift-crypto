@@ -16,8 +16,10 @@
 #else
 import Foundation
 
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
 extension HPKE {
     /// The key derivation functions to use in HPKE.
+    @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
     public enum KDF: CaseIterable, Hashable {
 		/// An HMAC-based key derivation function that uses SHA-2 hashing with a 256-bit digest.
         case HKDF_SHA256

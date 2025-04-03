@@ -16,6 +16,7 @@
 #else
 @_implementationOnly import CCryptoBoringSSL
 
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
 extension P256.KeyAgreement.PrivateKey {
     internal func openSSLSharedSecretFromKeyAgreement(
         with publicKeyShare: P256.KeyAgreement.PublicKey
@@ -25,6 +26,7 @@ extension P256.KeyAgreement.PrivateKey {
     }
 }
 
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
 extension P384.KeyAgreement.PrivateKey {
     internal func openSSLSharedSecretFromKeyAgreement(
         with publicKeyShare: P384.KeyAgreement.PublicKey
@@ -34,6 +36,7 @@ extension P384.KeyAgreement.PrivateKey {
     }
 }
 
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
 extension P521.KeyAgreement.PrivateKey {
     internal func openSSLSharedSecretFromKeyAgreement(
         with publicKeyShare: P521.KeyAgreement.PublicKey

@@ -30,6 +30,7 @@ extension OPRF {
 }
 
 /// Defines the IETF Serializations for OPRFs
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
 protocol OPRFGroupElement: GroupElement {
     init(oprfRepresentation: Data) throws
     var oprfRepresentation: Data { get }

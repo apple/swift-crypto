@@ -15,6 +15,7 @@ import Crypto
 import Foundation
 
 // MARK: - P384 + VPORF (P384-SHA384)
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
 extension P384 {
     /// A mechanism to compute the output of a pseudorandom without the client learning the secret or the server
     /// learning the input using the P384-SHA384 Verifiable Oblivious Pseudorandom Function (VOPRF).

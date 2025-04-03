@@ -16,8 +16,10 @@
 #else
 import Foundation
 
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
 extension ASN1 {
     /// An octet string is a representation of a string of octets.
+    @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
     struct ASN1OctetString: ASN1ImplicitlyTaggable {
         static var defaultIdentifier: ASN1.ASN1Identifier {
             .primitiveOctetString
@@ -49,8 +51,10 @@ extension ASN1 {
     }
 }
 
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
 extension ASN1.ASN1OctetString: Hashable { }
 
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
 extension ASN1.ASN1OctetString: ContiguousBytes {
     func withUnsafeBytes<R>(_ body: (UnsafeRawBufferPointer) throws -> R) rethrows -> R {
         return try self.bytes.withUnsafeBytes(body)

@@ -14,13 +14,20 @@
 import Foundation
 import Crypto
 
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
 extension Data {
     static func ^ (left: Data, right: Data) -> Data {
         precondition(left.count == right.count)
-        return Data(zip(left, right).compactMap { return $0 ^ $1 })
+        var result = Data()
+        result.reserveCapacity(left.count)
+        for value in zip(left, right) {
+            result.append(value.0 ^ value.1)
+        }
+        return result
     }
 }
 
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
 enum Hash2FieldErrors: Error {
     case outputSizeIsTooLarge
 }

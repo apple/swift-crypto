@@ -16,10 +16,12 @@
 #else
 import Foundation
 
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
 protocol Zeroization {
     mutating func zeroize()
 }
 
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
 extension UnsafeMutablePointer: Zeroization {
     /// Zeroizes the pointee
     func zeroize() {
@@ -28,12 +30,14 @@ extension UnsafeMutablePointer: Zeroization {
     }
 }
 
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
 extension UnsafeMutableRawBufferPointer: Zeroization {
     func zeroize() {
         memset_s(self.baseAddress, self.count, 0, self.count)
     }
 }
 
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
 extension Array: Zeroization where Element == UInt8 {
     /// Zeroizes the array
     mutating func zeroize() {
@@ -41,6 +45,7 @@ extension Array: Zeroization where Element == UInt8 {
     }
 }
 
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
 extension Data: Zeroization {
     internal mutating func zeroize() {
         _ = self.withUnsafeMutableBytes {

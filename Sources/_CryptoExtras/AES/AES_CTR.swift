@@ -16,10 +16,13 @@ import Crypto
 import Foundation
 
 @usableFromInline
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
 typealias AESCTRImpl = OpenSSLAESCTRImpl
 
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
 extension AES {
 
+    @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
     public enum _CTR {
         @inlinable
         public static func encrypt<Plaintext: DataProtocol>(
@@ -43,7 +46,9 @@ extension AES {
     }
 }
 
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
 extension AES._CTR {
+    @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
     public struct Nonce: Sendable {
         // AES CTR uses a 128-bit counter. It's most usual to use a 96-bit nonce
         // and a 32-bit counter at the end, so we support that specific mode of

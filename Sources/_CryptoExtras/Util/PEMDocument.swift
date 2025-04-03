@@ -14,8 +14,10 @@
 import Foundation
 import Crypto
 
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
 enum ASN1 {
     /// A PEM document is some data, and a discriminator type that is used to advertise the content.
+    @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
     struct PEMDocument {
         private static let lineLength = 64
 
@@ -84,6 +86,7 @@ enum ASN1 {
     }
 }
 
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
 extension Substring {
     fileprivate var pemStartDiscriminator: String? {
         return self.pemDiscriminator(expectedPrefix: "-----BEGIN ", expectedSuffix: "-----")

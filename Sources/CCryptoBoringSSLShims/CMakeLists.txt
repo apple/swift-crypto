@@ -13,7 +13,8 @@
 ##===----------------------------------------------------------------------===##
 
 add_library(CCryptoBoringSSLShims STATIC
-  "shims.c")
+  "shims.c"
+)
 
 target_include_directories(CCryptoBoringSSLShims PUBLIC
   include

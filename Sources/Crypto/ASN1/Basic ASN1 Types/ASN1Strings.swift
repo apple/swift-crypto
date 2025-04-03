@@ -16,9 +16,11 @@
 #else
 import Foundation
 
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
 extension ASN1 {
     /// A UTF8String is roughly what it sounds like. We note that all the string types are encoded as implicitly tagged
     /// octet strings, and so for now we just piggyback on the decoder and encoder for that type.
+    @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
     struct ASN1UTF8String: ASN1ImplicitlyTaggable, Hashable, ContiguousBytes, ExpressibleByStringLiteral {
         static var defaultIdentifier: ASN1.ASN1Identifier {
             .primitiveUTF8String
@@ -54,6 +56,7 @@ extension ASN1 {
 
     /// We note that all the string types are encoded as implicitly tagged
     /// octet strings, and so for now we just piggyback on the decoder and encoder for that type.
+    @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
     struct ASN1TeletexString: ASN1ImplicitlyTaggable, Hashable, ContiguousBytes, ExpressibleByStringLiteral {
         static var defaultIdentifier: ASN1.ASN1Identifier {
             .primitiveTeletexString
@@ -89,6 +92,7 @@ extension ASN1 {
 
     /// We note that all the string types are encoded as implicitly tagged
     /// octet strings, and so for now we just piggyback on the decoder and encoder for that type.
+    @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
     struct ASN1PrintableString: ASN1ImplicitlyTaggable, Hashable, ContiguousBytes, ExpressibleByStringLiteral {
         static var defaultIdentifier: ASN1.ASN1Identifier {
             .primitivePrintableString
@@ -124,6 +128,7 @@ extension ASN1 {
 
     /// We note that all the string types are encoded as implicitly tagged
     /// octet strings, and so for now we just piggyback on the decoder and encoder for that type.
+    @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
     struct ASN1UniversalString: ASN1ImplicitlyTaggable, Hashable, ContiguousBytes, ExpressibleByStringLiteral {
         static var defaultIdentifier: ASN1.ASN1Identifier {
             .primitiveUniversalString
@@ -159,6 +164,7 @@ extension ASN1 {
 
     /// We note that all the string types are encoded as implicitly tagged
     /// octet strings, and so for now we just piggyback on the decoder and encoder for that type.
+    @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
     struct ASN1BMPString: ASN1ImplicitlyTaggable, Hashable, ContiguousBytes, ExpressibleByStringLiteral {
         static var defaultIdentifier: ASN1.ASN1Identifier {
             .primitiveBMPString

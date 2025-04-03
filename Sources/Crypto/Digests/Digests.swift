@@ -20,6 +20,7 @@
 
 // MARK: - SHA256Digest + DigestPrivate
 /// The output of a Secure Hashing Algorithm 2 (SHA-2) hash with a 256-bit digest.
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
 public struct SHA256Digest: DigestPrivate {
     let bytes: (UInt64, UInt64, UInt64, UInt64)
     
@@ -90,6 +91,7 @@ public struct SHA256Digest: DigestPrivate {
 
 // MARK: - SHA384Digest + DigestPrivate
 /// The output of a Secure Hashing Algorithm 2 (SHA-2) hash with a 384-bit digest.
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
 public struct SHA384Digest: DigestPrivate {
     let bytes: (UInt64, UInt64, UInt64, UInt64, UInt64, UInt64)
     
@@ -162,6 +164,7 @@ public struct SHA384Digest: DigestPrivate {
 
 // MARK: - SHA512Digest + DigestPrivate
 /// The output of a Secure Hashing Algorithm 2 (SHA-2) hash with a 512-bit digest.
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
 public struct SHA512Digest: DigestPrivate {
     let bytes: (UInt64, UInt64, UInt64, UInt64, UInt64, UInt64, UInt64, UInt64)
     
@@ -233,9 +236,11 @@ public struct SHA512Digest: DigestPrivate {
     }
 }
 
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
 extension Insecure {
 // MARK: - SHA1Digest + DigestPrivate
 /// The output of a SHA1 hash.
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
 public struct SHA1Digest: DigestPrivate {
     let bytes: (UInt64, UInt64, UInt64)
     
@@ -302,9 +307,11 @@ public struct SHA1Digest: DigestPrivate {
     }
 }
 }
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
 extension Insecure {
 // MARK: - MD5Digest + DigestPrivate
 /// The output of a MD5 hash.
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
 public struct MD5Digest: DigestPrivate {
     let bytes: (UInt64, UInt64)
     
