@@ -16,7 +16,7 @@
 #else
 import Foundation
 
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 protocol AEADSealedBox {
     associatedtype Nonce: Sequence
     /// The authentication tag
@@ -36,7 +36,7 @@ protocol AEADSealedBox {
 }
 
 /// A type representing authenticated encryption with associated data.
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 protocol Cipher {
     associatedtype Key
     associatedtype SealedBox: AEADSealedBox

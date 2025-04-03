@@ -18,7 +18,7 @@
 import CryptoBoringWrapper
 import Foundation
 
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 enum OpenSSLAESGCMImpl {
     @inlinable
     static func seal<Plaintext: DataProtocol, AuthenticatedData: DataProtocol>(
