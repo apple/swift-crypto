@@ -21,6 +21,15 @@ add_library(_CryptoExtras
   "AES/BoringSSL/AES_CFB_boring.swift"
   "AES/BoringSSL/AES_CTR_boring.swift"
   "AES/BoringSSL/AES_GCM_SIV_boring.swift"
+  "ARC/ARC+API.swift"
+  "ARC/ARC.swift"
+  "ARC/ARCCredential.swift"
+  "ARC/ARCEncoding.swift"
+  "ARC/ARCPrecredential.swift"
+  "ARC/ARCPresentation.swift"
+  "ARC/ARCRequest.swift"
+  "ARC/ARCResponse.swift"
+  "ARC/ARCServer.swift"
   "ChaCha20CTR/BoringSSL/ChaCha20CTR_boring.swift"
   "ChaCha20CTR/ChaCha20CTR.swift"
   "ECToolbox/BoringSSL/ECToolbox_boring.swift"
@@ -48,11 +57,22 @@ add_library(_CryptoExtras
   "Util/DigestType.swift"
   "Util/Error.swift"
   "Util/I2OSP.swift"
+  "Util/IntegerEncoding.swift"
   "Util/Optional+withUnsafeBytes.swift"
   "Util/PEMDocument.swift"
   "Util/PrettyBytes.swift"
   "Util/SubjectPublicKeyInfo.swift"
-  "ZKPs/DLEQ.swift")
+  "ZKPs/DLEQ.swift"
+  "ZKPs/Prover.swift"
+  "ZKPs/Verifier.swift"
+  "ZKPs/ZKPToolbox.swift"
+)
+
+target_compile_options(_CryptoExtras PRIVATE -DCRYPTO_IN_SWIFTPM)
+
+if(CMAKE_SYSTEM_NAME STREQUAL "Linux" OR CMAKE_SYSTEM_NAME STREQUAL "Windows" OR CMAKE_SYSTEM_NAME STREQUAL "Android" OR CMAKE_SYSTEM_NAME STREQUAL "WASI" OR CMAKE_SYSTEM_NAME STREQUAL FreeBSD)
+  target_compile_options(_CryptoExtras PRIVATE -DCRYPTO_IN_SWIFTPM_FORCE_BUILD_API)
+endif()
 
 target_include_directories(_CryptoExtras PRIVATE
   $<TARGET_PROPERTY:CCryptoBoringSSL,INCLUDE_DIRECTORIES>

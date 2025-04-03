@@ -50,6 +50,7 @@ enum Result: String {
     case invalidOPRFOutput = "invalidOPRFOutput"
 }
 
+@available(macOS 10.15, iOS 13.2, tvOS 13.2, watchOS 6.1, *)
 class ECVOPRFTests: XCTestCase {
     func testSuite<G: SupportedCurveDetailsImpl>(suite: OPRFSuite, C: G.Type, modeValue: Int, v8DraftCompatible: Bool) throws {
         switch modeValue {

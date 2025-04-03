@@ -19,6 +19,7 @@ import Foundation
 // any edits of this file WILL be overwritten and thus discarded
 // see section `gyb` in `README` for details.
 
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
 protocol NISTECDSASignature {
     init<D: DataProtocol>(rawRepresentation: D) throws
     init<D: DataProtocol>(derRepresentation: D) throws
@@ -26,6 +27,7 @@ protocol NISTECDSASignature {
     var rawRepresentation: Data { get }
 }
 
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
 protocol NISTSigning {
     associatedtype PublicKey: NISTECPublicKey & DataValidator & DigestValidator
     associatedtype PrivateKey: NISTECPrivateKey & Signer
@@ -33,9 +35,11 @@ protocol NISTSigning {
 }
 
 // MARK: - P256 + Signing
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
 extension P256.Signing {
 
     /// A P-256 elliptic curve digital signature algorithm (ECDSA) signature.
+    @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
     public struct ECDSASignature: ContiguousBytes, NISTECDSASignature {
         
         /// A raw data representation of a P-256 digital signature.
@@ -127,9 +131,11 @@ extension P256.Signing {
     }
 }
 
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
 extension P256.Signing: NISTSigning {}
 
 // MARK: - P256 + PrivateKey
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
 extension P256.Signing.PrivateKey: DigestSigner {
     /// Generates an Elliptic Curve Digital Signature Algorithm (ECDSA)
     /// signature of the digest you provide over the P-256 elliptic curve.
@@ -148,6 +154,7 @@ extension P256.Signing.PrivateKey: DigestSigner {
     }
  }
 
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
 extension P256.Signing.PrivateKey: Signer {
     /// Generates an Elliptic Curve Digital Signature Algorithm (ECDSA)
     /// signature of the data you provide over the P-256 elliptic curve,
@@ -163,6 +170,7 @@ extension P256.Signing.PrivateKey: Signer {
     }
 }
 
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
 extension P256.Signing.PublicKey: DigestValidator {
     /// Verifies an elliptic curve digital signature algorithm (ECDSA)
     /// signature on a digest over the P-256 elliptic curve.
@@ -181,6 +189,7 @@ extension P256.Signing.PublicKey: DigestValidator {
     }
 }
 
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
 extension P256.Signing.PublicKey: DataValidator {
     /// Verifies an elliptic curve digital signature algorithm (ECDSA)
     /// signature on a block of data over the P-256 elliptic curve.
@@ -196,9 +205,11 @@ extension P256.Signing.PublicKey: DataValidator {
  }
 
 // MARK: - P384 + Signing
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
 extension P384.Signing {
 
     /// A P-384 elliptic curve digital signature algorithm (ECDSA) signature.
+    @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
     public struct ECDSASignature: ContiguousBytes, NISTECDSASignature {
         
         /// A raw data representation of a P-384 digital signature.
@@ -290,9 +301,11 @@ extension P384.Signing {
     }
 }
 
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
 extension P384.Signing: NISTSigning {}
 
 // MARK: - P384 + PrivateKey
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
 extension P384.Signing.PrivateKey: DigestSigner {
     /// Generates an Elliptic Curve Digital Signature Algorithm (ECDSA)
     /// signature of the digest you provide over the P-384 elliptic curve.
@@ -311,6 +324,7 @@ extension P384.Signing.PrivateKey: DigestSigner {
     }
  }
 
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
 extension P384.Signing.PrivateKey: Signer {
     /// Generates an Elliptic Curve Digital Signature Algorithm (ECDSA)
     /// signature of the data you provide over the P-384 elliptic curve,
@@ -326,6 +340,7 @@ extension P384.Signing.PrivateKey: Signer {
     }
 }
 
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
 extension P384.Signing.PublicKey: DigestValidator {
     /// Verifies an elliptic curve digital signature algorithm (ECDSA)
     /// signature on a digest over the P-384 elliptic curve.
@@ -344,6 +359,7 @@ extension P384.Signing.PublicKey: DigestValidator {
     }
 }
 
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
 extension P384.Signing.PublicKey: DataValidator {
     /// Verifies an elliptic curve digital signature algorithm (ECDSA)
     /// signature on a block of data over the P-384 elliptic curve.
@@ -359,9 +375,11 @@ extension P384.Signing.PublicKey: DataValidator {
  }
 
 // MARK: - P521 + Signing
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
 extension P521.Signing {
 
     /// A P-521 elliptic curve digital signature algorithm (ECDSA) signature.
+    @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
     public struct ECDSASignature: ContiguousBytes, NISTECDSASignature {
         
         /// A raw data representation of a P-521 digital signature.
@@ -453,9 +471,11 @@ extension P521.Signing {
     }
 }
 
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
 extension P521.Signing: NISTSigning {}
 
 // MARK: - P521 + PrivateKey
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
 extension P521.Signing.PrivateKey: DigestSigner {
     /// Generates an Elliptic Curve Digital Signature Algorithm (ECDSA)
     /// signature of the digest you provide over the P-521 elliptic curve.
@@ -474,6 +494,7 @@ extension P521.Signing.PrivateKey: DigestSigner {
     }
  }
 
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
 extension P521.Signing.PrivateKey: Signer {
     /// Generates an Elliptic Curve Digital Signature Algorithm (ECDSA)
     /// signature of the data you provide over the P-521 elliptic curve,
@@ -489,6 +510,7 @@ extension P521.Signing.PrivateKey: Signer {
     }
 }
 
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
 extension P521.Signing.PublicKey: DigestValidator {
     /// Verifies an elliptic curve digital signature algorithm (ECDSA)
     /// signature on a digest over the P-521 elliptic curve.
@@ -507,6 +529,7 @@ extension P521.Signing.PublicKey: DigestValidator {
     }
 }
 
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
 extension P521.Signing.PublicKey: DataValidator {
     /// Verifies an elliptic curve digital signature algorithm (ECDSA)
     /// signature on a block of data over the P-521 elliptic curve.

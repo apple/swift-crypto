@@ -16,14 +16,20 @@ import Crypto
 import CryptoBoringWrapper
 
 // NOTE: RSABSSA API is implemented using BoringSSL on all platforms.
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
 fileprivate typealias BackingPublicKey = BoringSSLRSAPublicKey
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
 fileprivate typealias BackingPrivateKey = BoringSSLRSAPrivateKey
 
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
 extension _RSA {
+    @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
     public enum BlindSigning {}
 }
 
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
 extension _RSA.BlindSigning {
+    @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
     public struct PublicKey<H: HashFunction>: Sendable {
         public typealias Parameters = _RSA.BlindSigning.Parameters<H>
 
@@ -132,7 +138,9 @@ extension _RSA.BlindSigning {
     }
 }
 
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
 extension _RSA.BlindSigning {
+    @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
     public struct PrivateKey<H: HashFunction>: Sendable {
         public typealias Parameters = _RSA.BlindSigning.Parameters<H>
 
@@ -274,7 +282,9 @@ extension _RSA.BlindSigning {
     }
 }
 
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
 extension _RSA.BlindSigning {
+    @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
     public struct BlindSignature: Sendable, ContiguousBytes {
         public var rawRepresentation: Data
 
@@ -292,6 +302,7 @@ extension _RSA.BlindSigning {
     }
 }
 
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
 extension _RSA.BlindSigning {
     /// Parameters used in the blind signing protocol.
     ///
@@ -301,6 +312,7 @@ extension _RSA.BlindSigning {
     /// The RECOMMENDED variants are RSABSSA-SHA384-PSS-Randomized or RSABSSA-SHA384-PSSZERO-Randomized.
     ///
     /// - Seealso: [RFC 9474: RSABSSA Variants](https://www.rfc-editor.org/rfc/rfc9474.html#name-rsabssa-variants).
+    @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
     public struct Parameters<H: HashFunction>: Sendable {
         enum Padding { case PSS, PSSZERO }
         var padding: Padding
@@ -317,6 +329,7 @@ extension _RSA.BlindSigning {
     }
 }
 
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
 extension _RSA.BlindSigning.Parameters where H == SHA384 {
     /// RSABSSA-SHA384-PSS-Randomized
     ///
@@ -366,10 +379,12 @@ extension _RSA.BlindSigning.Parameters where H == SHA384 {
     public static let RSABSSA_SHA384_PSSZERO_Deterministic = Self<SHA384>(padding: .PSSZERO, preparation: .identity)
 }
 
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
 extension _RSA.BlindSigning {
     /// An input ready to be blinded, possibly prepended with random bytes.
     ///
     /// Users cannot create values of this type manually; it is created and returned by the prepare operation.
+    @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
     public struct PreparedMessage {
         var rawRepresentation: Data
     }
@@ -377,6 +392,7 @@ extension _RSA.BlindSigning {
     /// The blinding inverse for a blinded message, used to unblind a blind signature.
     ///
     /// Users cannot create values of this type manually; it is created and returned by the blind operation.
+    @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
     public struct BlindingInverse {
         var rawRepresentation: Data
     }
@@ -384,6 +400,7 @@ extension _RSA.BlindSigning {
     /// The blinded message and its blinding inverse for unblinding its blind signature.
     ///
     /// Users cannot create values of this type manually; it is created and returned by the blind operation.
+    @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
     public struct BlindingResult {
         /// Blinded message to be sent to the issuer.
         public var blindedMessage: Data
@@ -393,6 +410,7 @@ extension _RSA.BlindSigning {
     }
 }
 
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
 extension _RSA.BlindSigning.PrivateKey {
     /// Generate a blind signature with the given key for a blinded message.
     ///
@@ -406,6 +424,7 @@ extension _RSA.BlindSigning.PrivateKey {
     }
 }
 
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
 extension _RSA.BlindSigning.PublicKey {
     /// Prepare a message to be signed using the blind signing protocol.
     ///
@@ -472,12 +491,14 @@ extension _RSA.BlindSigning.PublicKey {
     }
 }
 
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
 extension _RSA.BlindSigning {
     /// Errors defined in the RSA Blind Signatures protocol.
     ///
     /// - NOTE: This type does not conform to `Swift.Error`, it is used to construct a `CryptoKitError`.
     ///
     /// - Seealso: [RFC 9474: Errors](https://www.rfc-editor.org/rfc/rfc9474.html#name-errors).
+    @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
     enum ProtocolError {
         case messageTooLong
         case encodingError
@@ -489,6 +510,7 @@ extension _RSA.BlindSigning {
     }
 }
 
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
 extension CryptoKitError {
     /// Map an error from the RSA Blind Signatures protocol to a CryptoKitError.
     init(_ error: _RSA.BlindSigning.ProtocolError) {

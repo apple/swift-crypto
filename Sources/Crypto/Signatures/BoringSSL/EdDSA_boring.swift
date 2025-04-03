@@ -18,6 +18,7 @@
 @_implementationOnly import CCryptoBoringSSLShims
 import Foundation
 
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
 extension Curve25519.Signing.PublicKey {
     // We do this to enable inlinability on these methods.
     @usableFromInline
@@ -96,6 +97,7 @@ extension Curve25519.Signing.PublicKey {
     }
 }
 
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
 extension Curve25519.Signing.PrivateKey {
     @inlinable
     func openSSLSignature<D: DataProtocol>(for data: D) throws -> Data {

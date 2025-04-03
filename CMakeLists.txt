@@ -15,7 +15,7 @@
 cmake_minimum_required(VERSION 3.15.1)
 
 project(SwiftCrypto
-  LANGUAGES ASM C Swift)
+  LANGUAGES ASM C CXX Swift)
 
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake/modules)
 
@@ -58,7 +58,7 @@ if(NOT SwiftASN1_FOUND)
   message("-- Vending swift-asn1")
   FetchContent_Declare(ASN1
     GIT_REPOSITORY https://github.com/apple/swift-asn1
-    GIT_TAG 1.1.0)
+    GIT_TAG 1.3.1)
   FetchContent_MakeAvailable(ASN1)
 endif()
 

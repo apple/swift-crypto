@@ -16,6 +16,7 @@
 @_implementationOnly import CCryptoBoringSSL
 import Crypto
 
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
 struct DigestType {
     var dispatchTable: OpaquePointer
 

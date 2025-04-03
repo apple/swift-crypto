@@ -12,6 +12,7 @@
 //
 //===----------------------------------------------------------------------===//
 
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
 extension UnsafeMutableRawBufferPointer {
     @inlinable
     package func initializeWithRandomBytes(count: Int) {
@@ -44,6 +45,7 @@ extension UnsafeMutableRawBufferPointer {
     }
 }
 
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
 extension SystemRandomNumberGenerator {
     @inlinable
     package static func randomBytes(count: Int) -> [UInt8] {

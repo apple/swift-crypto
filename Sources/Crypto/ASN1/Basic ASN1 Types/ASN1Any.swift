@@ -16,6 +16,7 @@
 #else
 import Foundation
 
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
 extension ASN1 {
     /// An ASN1 ANY represents...well, anything.
     ///
@@ -24,6 +25,7 @@ extension ASN1 {
     ///
     /// The only things we allow users to do with ASN.1 ANYs is to try to decode them as something else,
     /// to create them from something else, or to serialize them.
+    @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
     struct ASN1Any: ASN1Parseable, ASN1Serializable, Hashable {
         fileprivate var serializedBytes: ArraySlice<UInt8>
 
@@ -55,12 +57,14 @@ extension ASN1 {
     }
 }
 
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
 extension ASN1Parseable {
     init(asn1Any: ASN1.ASN1Any) throws {
         try self.init(asn1Encoded: asn1Any.serializedBytes)
     }
 }
 
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
 extension ASN1ImplicitlyTaggable {
     init(asn1Any: ASN1.ASN1Any, withIdentifier identifier: ASN1.ASN1Identifier) throws {
         try self.init(asn1Encoded: asn1Any.serializedBytes, withIdentifier: identifier)

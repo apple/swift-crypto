@@ -16,15 +16,18 @@
 #else
 import Foundation
 
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
 extension Curve25519.KeyAgreement {
     static var keyByteCount: Int {
         return 32
     }
 }
 
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
 extension Curve25519 {
     /// A mechanism used to create a shared secret between two users by
     /// performing X25519 key agreement.
+    @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
     public enum KeyAgreement {
         #if !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
         typealias Curve25519PrivateKeyImpl = Curve25519.KeyAgreement.CoreCryptoCurve25519PrivateKeyImpl
@@ -35,6 +38,7 @@ extension Curve25519 {
         #endif
 
         /// A Curve25519 public key used for key agreement.
+        @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
         public struct PublicKey: ECPublicKey {
             fileprivate var baseKey: Curve25519PublicKeyImpl
 
@@ -68,6 +72,7 @@ extension Curve25519 {
         }
 
         /// A Curve25519 private key used for key agreement.
+        @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
         public struct PrivateKey: DiffieHellmanKeyAgreement {
             fileprivate var baseKey: Curve25519PrivateKeyImpl
 

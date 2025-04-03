@@ -34,6 +34,7 @@ import Android
 /// material in the form of a hashed authentication code, then call
 /// ``expand(pseudoRandomKey:info:outputByteCount:)`` using that key material to
 /// generate a symmetric key of the length you specify.
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
 public struct HKDF<H: HashFunction> {
     /// Derives a symmetric encryption key from a main key or passcode using
     /// HKDF key derivation with information and salt you specify.
