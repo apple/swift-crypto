@@ -16,10 +16,10 @@ import Foundation
 
 /// Anonymous Rate-Limited Credentials (ARC) using the CMZ14 MACGGM construction, as defined in
 /// https://chris-wood.github.io/draft-arc/draft-yun-cfrg-arc.html
-@available(macOS 10.15, iOS 13.2, tvOS 13.2, watchOS 6.1, *)
+@available(macOS 10.15, iOS 13.2, tvOS 13.2, watchOS 6.1, macCatalyst 13.2, visionOS 1.2, *)
 enum ARC {}
 
-@available(macOS 10.15, iOS 13.2, tvOS 13.2, watchOS 6.1, *)
+@available(macOS 10.15, iOS 13.2, tvOS 13.2, watchOS 6.1, macCatalyst 13.2, visionOS 1.2, *)
 extension ARC {
     static let domain = "ARCV1-P384"
 

@@ -15,7 +15,7 @@ import Crypto
 import Foundation
 
 // MARK: - P384 + ARC(P-384)
-@available(iOS 16.0, macOS 13.0, watchOS 9.0, tvOS 16.0, *)
+@available(iOS 16.0, macOS 13.0, watchOS 9.0, tvOS 16.0, macCatalyst 16.0, visionOS 2.0, *)
 extension P384 {
     /// Anonymous Rate-Limited Credentials (ARC).
     ///
@@ -31,7 +31,7 @@ extension P384 {
     }
 }
 
-@available(iOS 16.0, macOS 13.0, watchOS 9.0, tvOS 16.0, *)
+@available(iOS 16.0, macOS 13.0, watchOS 9.0, tvOS 16.0, macCatalyst 16.0, visionOS 2.0, *)
 extension P384._ARCV1 {
     /// The server secrets used to issue and verify credentials.
     public struct PrivateKey: Sendable {
@@ -248,7 +248,7 @@ extension P384._ARCV1 {
     }
 }
 
-@available(iOS 16.0, macOS 13.0, watchOS 9.0, tvOS 16.0, *)
+@available(iOS 16.0, macOS 13.0, watchOS 9.0, tvOS 16.0, macCatalyst 16.0, visionOS 2.0, *)
 extension P384._ARCV1.PublicKey {
     internal func prepareCredentialRequest<D: DataProtocol>(
         requestContext: D,
@@ -285,7 +285,7 @@ extension P384._ARCV1.PublicKey {
     }
 }
 
-@available(iOS 16.0, macOS 13.0, watchOS 9.0, tvOS 16.0, *)
+@available(iOS 16.0, macOS 13.0, watchOS 9.0, tvOS 16.0, macCatalyst 16.0, visionOS 2.0, *)
 extension P384._ARCV1.PrivateKey {
     internal func issue(
         _ credentialRequest: P384._ARCV1.CredentialRequest,
@@ -301,7 +301,7 @@ extension P384._ARCV1.PrivateKey {
     }
 }
 
-@available(iOS 16.0, macOS 13.0, watchOS 9.0, tvOS 16.0, *)
+@available(iOS 16.0, macOS 13.0, watchOS 9.0, tvOS 16.0, macCatalyst 16.0, visionOS 2.0, *)
 extension P384._ARCV1.PublicKey {
     /// Create a credential from the issuer response.
     public func finalize(
@@ -313,7 +313,7 @@ extension P384._ARCV1.PublicKey {
     }
 }
 
-@available(iOS 16.0, macOS 13.0, watchOS 9.0, tvOS 16.0, *)
+@available(iOS 16.0, macOS 13.0, watchOS 9.0, tvOS 16.0, macCatalyst 16.0, visionOS 2.0, *)
 extension P384._ARCV1.Credential {
     internal mutating func makePresentation<D: DataProtocol>(
         context: D,
@@ -358,7 +358,7 @@ extension P384._ARCV1.Credential {
     }
 }
 
-@available(iOS 16.0, macOS 13.0, watchOS 9.0, tvOS 16.0, *)
+@available(iOS 16.0, macOS 13.0, watchOS 9.0, tvOS 16.0, macCatalyst 16.0, visionOS 2.0, *)
 extension P384._ARCV1.PrivateKey {
     /// Verify a presentation is valid for a given attribute.
     ///

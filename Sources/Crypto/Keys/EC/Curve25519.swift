@@ -15,6 +15,6 @@
 @_exported import CryptoKit
 #else
 /// An elliptic curve that enables X25519 key agreement and Ed25519 signatures.
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 public enum Curve25519 {}
 #endif // Linux or !SwiftPM

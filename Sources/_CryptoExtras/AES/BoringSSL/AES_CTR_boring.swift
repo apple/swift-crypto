@@ -17,7 +17,7 @@ import Crypto
 import Foundation
 
 @usableFromInline
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 enum OpenSSLAESCTRImpl {
     @inlinable
     static func encrypt<Plaintext: ContiguousBytes>(

@@ -20,14 +20,14 @@ import Foundation
 // see section `gyb` in `README` for details.
 
 // MARK: - AES.GCM + Nonce
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension AES.GCM {
     /// A value used once during a cryptographic operation and then discarded.
     ///
     /// Don’t reuse the same nonce for multiple calls to encryption APIs. It’s critical
     /// that nonces are unique per call to encryption APIs in order to protect the
     /// integrity of the encryption.
-    @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
+    @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
     public struct Nonce: ContiguousBytes, Sequence {
         let bytes: Data
 
@@ -84,14 +84,14 @@ extension AES.GCM {
 }
 
 // MARK: - ChaChaPoly + Nonce
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension ChaChaPoly {
     /// A value used once during a cryptographic operation and then discarded.
     ///
     /// Don’t reuse the same nonce for multiple calls to encryption APIs. It’s critical
     /// that nonces are unique per call to encryption APIs in order to protect the
     /// integrity of the encryption.
-    @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
+    @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
     public struct Nonce: ContiguousBytes, Sequence {
         let bytes: Data
 

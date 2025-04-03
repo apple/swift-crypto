@@ -17,10 +17,10 @@
 import Foundation
 
 
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension HPKE {
     /// The authenticated encryption with associated data (AEAD) algorithms to use in HPKE.
-    @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
+    @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
     public enum AEAD: CaseIterable, Hashable {
 		/// An Advanced Encryption Standard cipher in Galois/Counter Mode with a key length of 128 bits.
         case AES_GCM_128

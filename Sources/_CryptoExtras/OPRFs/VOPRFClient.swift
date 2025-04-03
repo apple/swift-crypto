@@ -14,7 +14,7 @@
 import Crypto
 import Foundation
 
-@available(macOS 10.15, iOS 13.2, tvOS 13.2, watchOS 6.1, *)
+@available(macOS 10.15, iOS 13.2, tvOS 13.2, watchOS 6.1, macCatalyst 13.2, visionOS 1.2, *)
 extension OPRF {
     struct VerifiableClient<H2G: HashToGroup> {
         fileprivate let client: OPRF.Client<H2G>

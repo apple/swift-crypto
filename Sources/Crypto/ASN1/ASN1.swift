@@ -103,18 +103,18 @@ import Foundation
 // generally: that is, we don't hard-code special knowledge of these formats as part of the parsing process. Instead we have written a
 // parser that can divide the world of ASN.1 into parseable chunks, and then we try to decode specific formats from those chunks. This
 // allows us to extend things in the future without too much pain.
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 internal enum ASN1 { }
 
 // MARK: - Parser Node
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension ASN1 {
     /// An `ASN1ParserNode` is a representation of a parsed ASN.1 TLV section. An `ASN1ParserNode` may be primitive, or may be composed of other `ASN1ParserNode`s.
     /// In our representation, we keep track of this by storing a node "depth", which allows rapid forward and backward scans to hop over sections
     /// we're uninterested in.
     ///
     /// This type is not exposed to users of the API: it is only used internally for implementation of the user-level API.
-    @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
+    @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
     fileprivate struct ASN1ParserNode {
         /// The identifier.
         var identifier: ASN1Identifier
@@ -127,10 +127,10 @@ extension ASN1 {
     }
 }
 
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension ASN1.ASN1ParserNode: Hashable { }
 
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension ASN1.ASN1ParserNode: CustomStringConvertible {
     var description: String {
         return "ASN1.ASN1ParserNode(identifier: \(self.identifier), depth: \(self.depth), dataBytes: \(self.dataBytes?.count ?? 0))"
@@ -138,7 +138,7 @@ extension ASN1.ASN1ParserNode: CustomStringConvertible {
 }
 
 // MARK: - Sequence, SequenceOf, and Set
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension ASN1 {
     /// Parse the node as an ASN.1 sequence.
     internal static func sequence<T>(_ node: ASN1Node, identifier: ASN1.ASN1Identifier, _ builder: (inout ASN1.ASN1NodeCollection.Iterator) throws -> T) throws -> T {
@@ -182,7 +182,7 @@ extension ASN1 {
 }
 
 // MARK: - Optional explicitly tagged
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension ASN1 {
     /// Parses an optional explicitly tagged element. Throws on a tag mismatch, returns nil if the element simply isn't there.
     ///
@@ -220,7 +220,7 @@ extension ASN1 {
 }
 
 // MARK: - DEFAULT
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension ASN1 {
     /// Parses a value that is encoded with a DEFAULT. Such a value is optional, and if absent will
     /// be replaced with its default.
@@ -269,10 +269,10 @@ extension ASN1 {
 }
 
 // MARK: - Parsing
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension ASN1 {
     /// A parsed representation of ASN.1.
-    @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
+    @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
     fileprivate struct ASN1ParseResult {
         private static let maximumNodeDepth = 10
 
@@ -336,10 +336,10 @@ extension ASN1 {
     }
 }
 
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension ASN1.ASN1ParseResult: Hashable { }
 
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension ASN1 {
     static func parse(_ data: [UInt8]) throws -> ASN1Node {
         return try parse(data[...])
@@ -368,13 +368,13 @@ extension ASN1 {
 }
 
 // MARK: - ASN1NodeCollection
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension ASN1 {
     /// Represents a collection of ASN.1 nodes contained in a constructed ASN.1 node.
     ///
     /// Constructed ASN.1 nodes are made up of multiple child nodes. This object represents the collection of those child nodes.
     /// It allows us to lazily construct the child nodes, potentially skipping over them when we don't care about them.
-    @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
+    @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
     internal struct ASN1NodeCollection {
         private var nodes: ArraySlice<ASN1ParserNode>
 
@@ -392,9 +392,9 @@ extension ASN1 {
     }
 }
 
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension ASN1.ASN1NodeCollection: Sequence {
-    @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
+    @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
     struct Iterator: IteratorProtocol {
         private var nodes: ArraySlice<ASN1.ASN1ParserNode>
         private var depth: Int
@@ -428,7 +428,7 @@ extension ASN1.ASN1NodeCollection: Sequence {
 }
 
 // MARK: - ASN1Node
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension ASN1 {
     /// An `ASN1Node` is a single entry in the ASN.1 representation of a data structure.
     ///
@@ -438,7 +438,7 @@ extension ASN1 {
     ///
     /// In this way, ASN.1 objects tend to form a "tree", where each object is represented by a single top-level constructed
     /// node that contains other objects and primitives, eventually reaching the bottom which is made up of primitive objects.
-    @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
+    @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
     internal struct ASN1Node {
         internal var identifier: ASN1Identifier
 
@@ -447,10 +447,10 @@ extension ASN1 {
 }
 
 // MARK: - ASN1Node.Content
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension ASN1.ASN1Node {
     /// The content of a single ASN1Node.
-    @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
+    @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
     enum Content {
         case constructed(ASN1.ASN1NodeCollection)
         case primitive(ArraySlice<UInt8>)
@@ -458,9 +458,9 @@ extension ASN1.ASN1Node {
 }
 
 // MARK: - Serializing
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension ASN1 {
-    @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
+    @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
     struct Serializer {
         var serializedBytes: [UInt8]
 
@@ -568,12 +568,12 @@ extension ASN1 {
 }
 
 // MARK: - Helpers
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 internal protocol ASN1Parseable {
     init(asn1Encoded: ASN1.ASN1Node) throws
 }
 
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension ASN1Parseable {
     internal init(asn1Encoded sequenceNodeIterator: inout ASN1.ASN1NodeCollection.Iterator) throws {
         guard let node = sequenceNodeIterator.next() else {
@@ -592,13 +592,13 @@ extension ASN1Parseable {
     }
 }
 
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 internal protocol ASN1Serializable {
     func serialize(into coder: inout ASN1.Serializer) throws
 }
 
 /// Covers ASN.1 types that may be implicitly tagged. Not all nodes can be!
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 internal protocol ASN1ImplicitlyTaggable: ASN1Parseable, ASN1Serializable {
     /// The tag that the first node will use "by default" if the grammar omits
     /// any more specific tag definition.
@@ -609,7 +609,7 @@ internal protocol ASN1ImplicitlyTaggable: ASN1Parseable, ASN1Serializable {
     func serialize(into coder: inout ASN1.Serializer, withIdentifier identifier: ASN1.ASN1Identifier) throws
 }
 
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension ASN1ImplicitlyTaggable {
     internal init(asn1Encoded sequenceNodeIterator: inout ASN1.ASN1NodeCollection.Iterator,
                   withIdentifier identifier: ASN1.ASN1Identifier = Self.defaultIdentifier) throws {
@@ -637,7 +637,7 @@ extension ASN1ImplicitlyTaggable {
     }
 }
 
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension ArraySlice where Element == UInt8 {
     fileprivate mutating func readASN1Length() throws -> UInt? {
         guard let firstByte = self.popFirst() else {
@@ -686,7 +686,7 @@ extension ArraySlice where Element == UInt8 {
     }
 }
 
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension FixedWidthInteger {
     internal init<Bytes: Collection>(bigEndianBytes bytes: Bytes) throws where Bytes.Element == UInt8 {
         guard bytes.count <= (Self.bitWidth / 8) else {
@@ -704,7 +704,7 @@ extension FixedWidthInteger {
     }
 }
 
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension Array where Element == UInt8 {
     fileprivate mutating func writeIdentifier(_ identifier: ASN1.ASN1Identifier) {
         self.append(identifier.baseTag)
@@ -730,7 +730,7 @@ extension Array where Element == UInt8 {
     }
 }
 
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension Int {
     fileprivate var bytesNeededToEncode: Int {
         // ASN.1 lengths are in two forms. If we can store the length in 7 bits, we should:
@@ -748,7 +748,7 @@ extension Int {
     }
 }
 
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension FixedWidthInteger {
     // Bytes needed to store a given integer.
     internal var neededBytes: Int {

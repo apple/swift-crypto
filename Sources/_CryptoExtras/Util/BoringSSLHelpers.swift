@@ -18,7 +18,7 @@
 import Foundation
 import Crypto
 
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 internal enum BIOHelper {
     static func withReadOnlyMemoryBIO<ReturnValue>(
         wrapping pointer: UnsafeRawBufferPointer, _ block: (UnsafeMutablePointer<BIO>) throws -> ReturnValue
@@ -52,7 +52,7 @@ internal enum BIOHelper {
     }
 }
 
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension Data {
     init(copyingMemoryBIO bio: UnsafeMutablePointer<BIO>) throws {
         var innerPointer: UnsafePointer<UInt8>? = nil
@@ -66,7 +66,7 @@ extension Data {
     }
 }
 
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension String {
     init(copyingUTF8MemoryBIO bio: UnsafeMutablePointer<BIO>) throws {
         var innerPointer: UnsafePointer<UInt8>? = nil
@@ -80,7 +80,7 @@ extension String {
     }
 }
 
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension FixedWidthInteger {
     func withBignumPointer<ReturnType>(_ block: (UnsafeMutablePointer<BIGNUM>) throws -> ReturnType) rethrows -> ReturnType {
         precondition(self.bitWidth <= UInt.bitWidth)

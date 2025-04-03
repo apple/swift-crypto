@@ -16,18 +16,18 @@
 #else
 import Foundation
 
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 protocol SignatureVerification {
     func verifySignature(signature: Data, data: Data) throws -> Bool
 }
 
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 protocol DigestSigner {
     associatedtype Signature
     func signature<D: Digest>(for digest: D) throws -> Signature
 }
 
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 protocol Signer {
     associatedtype Signature
     func signature<D: DataProtocol>(for data: D) throws -> Signature

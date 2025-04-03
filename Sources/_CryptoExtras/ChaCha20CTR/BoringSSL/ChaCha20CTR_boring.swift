@@ -18,7 +18,7 @@ import Crypto
 import CryptoBoringWrapper
 import Foundation
 
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 enum OpenSSLChaCha20CTRImpl {
     static func encrypt<M: DataProtocol, N: ContiguousBytes>(
         key: SymmetricKey,

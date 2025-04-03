@@ -16,9 +16,9 @@
 #else
 import Foundation
 
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension HPKE {
-    @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
+    @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
     internal struct KeySchedule {
         fileprivate static let pksIDHashLabel = Data("psk_id_hash".utf8)
         fileprivate static let infoHashLabel = Data("info_hash".utf8)

@@ -14,12 +14,12 @@
 import Foundation
 import Crypto
 
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 typealias ARCCurve = P384
-@available(macOS 10.15, iOS 13.2, tvOS 13.2, watchOS 6.1, *)
+@available(macOS 10.15, iOS 13.2, tvOS 13.2, watchOS 6.1, macCatalyst 13.2, visionOS 1.2, *)
 typealias ARCH2G = HashToCurveImpl<ARCCurve>
 
-@available(macOS 10.15, iOS 13.2, tvOS 13.2, watchOS 6.1, *)
+@available(macOS 10.15, iOS 13.2, tvOS 13.2, watchOS 6.1, macCatalyst 13.2, visionOS 1.2, *)
 extension ARC.CredentialRequest where H2G == ARCH2G {
     static let scalarCount = 5
     static let serializedByteCount = 2 * ARCCurve.compressedx962PointByteCount + Self.scalarCount * ARCCurve.orderByteCount
@@ -47,7 +47,7 @@ extension ARC.CredentialRequest where H2G == ARCH2G {
     }
 }
 
-@available(macOS 10.15, iOS 13.2, tvOS 13.2, watchOS 6.1, *)
+@available(macOS 10.15, iOS 13.2, tvOS 13.2, watchOS 6.1, macCatalyst 13.2, visionOS 1.2, *)
 extension ARC.CredentialResponse where H2G == ARCH2G {
     static let scalarCount = 8
     static let serializedByteCount = 6 * ARCCurve.compressedx962PointByteCount + Self.scalarCount * ARCCurve.orderByteCount
@@ -86,7 +86,7 @@ extension ARC.CredentialResponse where H2G == ARCH2G {
     }
 }
 
-@available(macOS 10.15, iOS 13.2, tvOS 13.2, watchOS 6.1, *)
+@available(macOS 10.15, iOS 13.2, tvOS 13.2, watchOS 6.1, macCatalyst 13.2, visionOS 1.2, *)
 extension ARC.Presentation where H2G == ARCH2G {
     static let scalarCount = 5
     static let pointCount = 4
@@ -121,7 +121,7 @@ extension ARC.Presentation where H2G == ARCH2G {
     }
 }
 
-@available(macOS 10.15, iOS 13.2, tvOS 13.2, watchOS 6.1, *)
+@available(macOS 10.15, iOS 13.2, tvOS 13.2, watchOS 6.1, macCatalyst 13.2, visionOS 1.2, *)
 extension ARC.ServerPublicKey where H2G == ARCH2G {
     static let serializedByteCount = 3 * ARCCurve.compressedx962PointByteCount
     static let pointCount = 3  // TODO: delete
@@ -151,7 +151,7 @@ extension ARC.ServerPublicKey where H2G == ARCH2G {
     }
 }
 
-@available(macOS 10.15, iOS 13.2, tvOS 13.2, watchOS 6.1, *)
+@available(macOS 10.15, iOS 13.2, tvOS 13.2, watchOS 6.1, macCatalyst 13.2, visionOS 1.2, *)
 extension Proof where H2G == ARCH2G {
     func serialize() -> Data {
         let scalarCount = self.responses.count + 1
@@ -190,7 +190,7 @@ extension Proof where H2G == ARCH2G {
 
 // Serialize a ARC credential, to save and restore client state.
 // This will only be called client-side, and never be sent over the wire.
-@available(macOS 10.15, iOS 13.2, tvOS 13.2, watchOS 6.1, *)
+@available(macOS 10.15, iOS 13.2, tvOS 13.2, watchOS 6.1, macCatalyst 13.2, visionOS 1.2, *)
 extension ARC.Credential where H2G == ARCH2G {
     static let scalarCount = 1
     static let pointCount = 5
@@ -238,7 +238,7 @@ extension ARC.Credential where H2G == ARCH2G {
 
 // Serialize a ARC PresentationState, to help save and restore a credential.
 // This will only be called client-side, and never be sent over the wire.
-@available(macOS 10.15, iOS 13.2, tvOS 13.2, watchOS 6.1, *)
+@available(macOS 10.15, iOS 13.2, tvOS 13.2, watchOS 6.1, macCatalyst 13.2, visionOS 1.2, *)
 extension ARC.PresentationState {
     func serialize() throws -> Data {
         let encoder = PropertyListEncoder()

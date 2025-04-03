@@ -14,7 +14,7 @@
 import Foundation
 import Crypto
 
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension Data {
     static func ^ (left: Data, right: Data) -> Data {
         precondition(left.count == right.count)
@@ -27,13 +27,13 @@ extension Data {
     }
 }
 
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 enum Hash2FieldErrors: Error {
     case outputSizeIsTooLarge
 }
 
 /// HashToField hashes a byte string msg of arbitrary length into one or more elements of a finite field
-@available(macOS 10.15, iOS 13.2, tvOS 13.2, watchOS 6.1, *)
+@available(macOS 10.15, iOS 13.2, tvOS 13.2, watchOS 6.1, macCatalyst 13.2, visionOS 1.2, *)
 struct HashToField<C: SupportedCurveDetailsImpl> {
     static func expandMessageXMD(_ msg: Data, DST: Data, outputByteCount L: Int) throws -> Data {
         typealias H = C.H

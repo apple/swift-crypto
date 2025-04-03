@@ -16,7 +16,7 @@
 #else
 import Foundation
 
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension ASN1 {
     // For private keys, SEC 1 uses:
     //
@@ -26,7 +26,7 @@ extension ASN1 {
     //   parameters [0] EXPLICIT ECDomainParameters OPTIONAL,
     //   publicKey [1] EXPLICIT BIT STRING OPTIONAL
     // }
-    @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
+    @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
     struct SEC1PrivateKey: ASN1ImplicitlyTaggable {
         static var defaultIdentifier: ASN1.ASN1Identifier {
             return .sequence

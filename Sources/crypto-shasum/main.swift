@@ -22,7 +22,7 @@ With no FILE, or when FILE is -, read standard input.
   -a, --algorithm   256 (default), 384, 512
 """
 
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 enum SupportedHashFunction {
     case sha256
     case sha384
@@ -89,7 +89,7 @@ extension String {
     }
 }
 
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 func processInputs(_ handles: [String: FileHandle], algorithm: SupportedHashFunction) {
     for (name, fh) in handles {
         let result = algorithm.hashLoop(from: fh)
@@ -97,7 +97,7 @@ func processInputs(_ handles: [String: FileHandle], algorithm: SupportedHashFunc
     }
 }
 
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 func main() {
     var arguments = CommandLine.arguments.dropFirst()
     var algorithm = SupportedHashFunction.sha256  // Default to sha256

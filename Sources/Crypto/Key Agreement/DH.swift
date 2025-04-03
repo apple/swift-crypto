@@ -17,7 +17,7 @@
 import Foundation
 
 /// A Diffie-Hellman Key Agreement Key
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 public protocol DiffieHellmanKeyAgreement {
     /// The public key share type to perform the DH Key Agreement
     associatedtype PublicKey
@@ -48,7 +48,7 @@ public protocol DiffieHellmanKeyAgreement {
 /// symmetric key suitable for creating a message authentication code like
 /// ``HMAC``, or for opening and closing a sealed box with a cipher like
 /// ``ChaChaPoly`` or ``AES``.
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 public struct SharedSecret: ContiguousBytes {
     var ss: SecureBytes
 
@@ -146,7 +146,7 @@ public struct SharedSecret: ContiguousBytes {
     }
 }
 
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension SharedSecret: Hashable {
     public func hash(into hasher: inout Hasher) {
         ss.withUnsafeBytes { hasher.combine(bytes: $0) }
@@ -154,7 +154,7 @@ extension SharedSecret: Hashable {
 }
 
 // We want to implement constant-time comparison for digests.
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension SharedSecret: CustomStringConvertible, Equatable {
     public static func == (lhs: Self, rhs: Self) -> Bool {
         return safeCompare(lhs, rhs)
@@ -183,7 +183,7 @@ extension SharedSecret: CustomStringConvertible, Equatable {
     }
 }
 
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension HashFunction {
     // A wrapper function to keep the unsafe code in one place.
     mutating func update(_ secret: SharedSecret) {

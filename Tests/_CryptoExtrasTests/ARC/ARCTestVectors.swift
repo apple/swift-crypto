@@ -144,7 +144,7 @@ struct ARCTestVector: Codable {
     let Presentation2: ARCPresentationTestVector
 }
 
-@available(macOS 10.15, iOS 13.2, tvOS 13.2, watchOS 6.1, *)
+@available(macOS 10.15, iOS 13.2, tvOS 13.2, watchOS 6.1, macCatalyst 13.2, visionOS 1.2, *)
 class ARCTestVectors: XCTestCase {
     func testVectors() throws {
         let data = ARCEncodedTestVector.data(using: .utf8)!
@@ -265,7 +265,7 @@ private func elementFromString<Curve: SupportedCurveDetailsImpl>(CurveType _: Cu
     return try GroupImpl<Curve>.Element(oprfRepresentation: Data(hexString: value))
 }
 
-@available(macOS 10.15, iOS 13.2, tvOS 13.2, watchOS 6.1, *)
+@available(macOS 10.15, iOS 13.2, tvOS 13.2, watchOS 6.1, macCatalyst 13.2, visionOS 1.2, *)
 private func proofFromString<Curve: SupportedCurveDetailsImpl>(CurveType _: Curve.Type, value: String, scalarCount: Int) throws -> Proof<HashToCurveImpl<Curve>> {
     let scalarHexCharacterCount = Curve.orderByteCount * 2
     var startIndex = value.index(value.startIndex, offsetBy: 0)

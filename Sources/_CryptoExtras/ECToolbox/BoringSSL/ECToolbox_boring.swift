@@ -19,7 +19,7 @@ import Foundation
 /// support ECToolbox. It is (re-)defined here because its counterpart in the Crypto module is only conditionally
 /// compiled on _non-Darwin_ platforms, but we implement ECToolbox on both Darwin and non-Darwin platforms.
 @usableFromInline
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 protocol OpenSSLSupportedNISTCurve {
     associatedtype H: HashFunction
 
@@ -42,7 +42,7 @@ protocol OpenSSLSupportedNISTCurve {
 }
 
 /// NOTE: This conformance applies to this type from the Crypto module even if it comes from the SDK.
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension P256: OpenSSLSupportedNISTCurve {
     @usableFromInline
     typealias H = SHA256
@@ -64,7 +64,7 @@ extension P256: OpenSSLSupportedNISTCurve {
 }
 
 /// NOTE: This conformance applies to this type from the Crypto module even if it comes from the SDK.
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension P384: OpenSSLSupportedNISTCurve {
     @usableFromInline
     typealias H = SHA384
@@ -86,7 +86,7 @@ extension P384: OpenSSLSupportedNISTCurve {
 }
 
 /// NOTE: This conformance applies to this type from the Crypto module even if it comes from the SDK.
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension P521: OpenSSLSupportedNISTCurve {
     @usableFromInline
     typealias H = SHA512
@@ -107,7 +107,7 @@ extension P521: OpenSSLSupportedNISTCurve {
     static var hashToFieldByteCount: Int { 98 }
 }
 
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 struct OpenSSLGroupScalar<C: OpenSSLSupportedNISTCurve>: GroupScalar, CustomStringConvertible {
     var openSSLScalar: ArbitraryPrecisionInteger
 
@@ -175,7 +175,7 @@ struct OpenSSLGroupScalar<C: OpenSSLSupportedNISTCurve>: GroupScalar, CustomStri
     }
 }
 
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 struct OpenSSLCurvePoint<C: OpenSSLSupportedNISTCurve>: GroupElement {
     var ecPoint: EllipticCurvePoint
     typealias Scalar = OpenSSLGroupScalar<C>
@@ -223,14 +223,14 @@ struct OpenSSLCurvePoint<C: OpenSSLSupportedNISTCurve>: GroupElement {
     }
 }
 
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension OpenSSLCurvePoint {
     var compressedRepresentation: Data {
         try! self.ecPoint.x962Representation(compressed: true, on: C.group)
     }
 }
 
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension OpenSSLCurvePoint: OPRFGroupElement {
     init(oprfRepresentation data: Data) throws {
         let point = try EllipticCurvePoint(x962Representation: data, on: C.group)
@@ -240,7 +240,7 @@ extension OpenSSLCurvePoint: OPRFGroupElement {
     var oprfRepresentation: Data { self.compressedRepresentation }
 }
 
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 struct OpenSSLGroup<C: OpenSSLSupportedNISTCurve>: Group {
     typealias Element = OpenSSLCurvePoint<C>
 
@@ -250,7 +250,7 @@ struct OpenSSLGroup<C: OpenSSLSupportedNISTCurve>: Group {
     }
 }
 
-@available(macOS 10.15, iOS 13.2, tvOS 13.2, watchOS 6.1, *)
+@available(macOS 10.15, iOS 13.2, tvOS 13.2, watchOS 6.1, macCatalyst 13.2, visionOS 1.2, *)
 struct OpenSSLHashToCurve<C: OpenSSLSupportedNISTCurve>: HashToGroup {
     typealias H = C.H
     typealias GE = OpenSSLCurvePoint<C>

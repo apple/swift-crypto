@@ -17,7 +17,7 @@
 @_implementationOnly import CCryptoBoringSSL
 import Foundation
 
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 enum BoringSSLAESWRAPImpl {
     static func wrap(key: SymmetricKey, keyToWrap: SymmetricKey) throws -> Data {
         // There's a flat 8-byte overhead to AES KeyWrap.
@@ -96,9 +96,9 @@ enum BoringSSLAESWRAPImpl {
     }
 }
 
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension SymmetricKey {
-    @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
+    @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
     fileprivate enum AESKeyMode {
         case encrypting
         case decrypting

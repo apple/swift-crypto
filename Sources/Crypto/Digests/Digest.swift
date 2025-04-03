@@ -17,18 +17,18 @@
 import Foundation
 
 /// A type that represents the output of a hash.
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 public protocol Digest: Hashable, ContiguousBytes, CustomStringConvertible, Sequence where Element == UInt8 {
     /// The number of bytes in the digest.
     static var byteCount: Int { get }
 }
 
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 protocol DigestPrivate: Digest {
     init?(bufferPointer: UnsafeRawBufferPointer)
 }
 
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension DigestPrivate {
     @inlinable
     init?(bytes: [UInt8]) {
@@ -44,7 +44,7 @@ extension DigestPrivate {
     }
 }
 
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension Digest {
     public func makeIterator() -> Array<UInt8>.Iterator {
         self.withUnsafeBytes({ (buffPtr) in
@@ -54,7 +54,7 @@ extension Digest {
 }
 
 // We want to implement constant-time comparison for digests.
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension Digest {
     /// Determines whether two digests are equal.
     ///

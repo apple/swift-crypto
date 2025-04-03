@@ -16,7 +16,7 @@
 #else
 import Foundation
 
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 protocol MACAlgorithm {
     associatedtype Key
     #if !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
@@ -41,7 +41,7 @@ protocol MACAlgorithm {
     func finalize() -> MAC
 }
 
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension MACAlgorithm {
     /// Computes a Message Authentication Code.
     ///

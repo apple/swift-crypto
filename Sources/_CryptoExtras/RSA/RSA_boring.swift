@@ -19,7 +19,7 @@ import Crypto
 import CryptoBoringWrapper
 import Foundation
 
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 internal struct BoringSSLRSAPublicKey: Sendable {
     private var backing: Backing
 
@@ -68,7 +68,7 @@ internal struct BoringSSLRSAPublicKey: Sendable {
     }
 }
 
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 internal struct BoringSSLRSAPrivateKey: Sendable {
     private var backing: Backing
 
@@ -119,7 +119,7 @@ internal struct BoringSSLRSAPrivateKey: Sendable {
     }
 }
 
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension BoringSSLRSAPrivateKey {
     internal func signature<D: Digest>(
         for digest: D,
@@ -143,7 +143,7 @@ extension BoringSSLRSAPrivateKey {
     }
 }
 
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension BoringSSLRSAPublicKey {
     func isValidSignature<D: Digest>(
         _ signature: _RSA.Signing.RSASignature,
@@ -179,9 +179,9 @@ extension BoringSSLRSAPublicKey {
     }
 }
 
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension BoringSSLRSAPublicKey {
-    @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
+    @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
     fileprivate final class Backing {
         private let pointer: OpaquePointer
 
@@ -550,9 +550,9 @@ extension BoringSSLRSAPublicKey {
     }
 }
 
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension BoringSSLRSAPrivateKey {
-    @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
+    @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
     fileprivate final class Backing {
         private let pointer: OpaquePointer
 
@@ -983,7 +983,7 @@ extension BoringSSLRSAPrivateKey {
 }
 
 /// This namespace enum just provides helper functions for some of the steps outlined in the RFC.
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 enum BlindSigningHelpers {
     fileprivate static func RSASSAPSSVerify<H: HashFunction>(
         rsaPublicKey: OpaquePointer!,

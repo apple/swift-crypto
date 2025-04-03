@@ -16,10 +16,10 @@
 #else
 import Foundation
 
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension ASN1 {
     /// A PEM document is some data, and a discriminator type that is used to advertise the content.
-    @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
+    @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
     struct PEMDocument {
         private static let lineLength = 64
 
@@ -88,7 +88,7 @@ extension ASN1 {
     }
 }
 
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension Substring {
     fileprivate var pemStartDiscriminator: String? {
         return self.pemDiscriminator(expectedPrefix: "-----BEGIN ", expectedSuffix: "-----")

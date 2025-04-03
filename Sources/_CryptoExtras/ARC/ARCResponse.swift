@@ -14,7 +14,7 @@
 import Crypto
 import Foundation
 
-@available(macOS 10.15, iOS 13.2, tvOS 13.2, watchOS 6.1, *)
+@available(macOS 10.15, iOS 13.2, tvOS 13.2, watchOS 6.1, macCatalyst 13.2, visionOS 1.2, *)
 extension ARC {
     /// CredentialResponse consists of a MACGGM evaluation over a Pedersen commitment to a private attribute,
     /// along with the corresponding proof that it was calculated correctly over the expected key commitments:

@@ -19,7 +19,7 @@
 import CryptoBoringWrapper
 import Foundation
 
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension BoringSSLAEAD {
     /// Seal a given message.
     func seal<Plaintext: DataProtocol, Nonce: ContiguousBytes, AuthenticatedData: DataProtocol>(
@@ -62,7 +62,7 @@ extension BoringSSLAEAD {
     }
 }
 
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 enum OpenSSLChaChaPolyImpl {
     static func encrypt<M: DataProtocol, AD: DataProtocol>(
         key: SymmetricKey,
