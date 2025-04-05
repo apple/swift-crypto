@@ -281,7 +281,7 @@ if(CMAKE_SYSTEM_NAME STREQUAL Darwin AND CMAKE_SYSTEM_PROCESSOR MATCHES "amd64|x
     gen/crypto/chacha-x86_64-apple.S
     gen/crypto/chacha20_poly1305_x86_64-apple.S
     gen/crypto/md5-x86_64-apple.S)
-elseif(CMAKE_SYSTEM_NAME MATCHES "Linux|Android|FreeBSD" AND CMAKE_SYSTEM_PROCESSOR MATCHES "amd64|x86_64")
+elseif(CMAKE_SYSTEM_NAME MATCHES "Linux|Android|FreeBSD|OpenBSD" AND CMAKE_SYSTEM_PROCESSOR MATCHES "amd64|x86_64")
   target_sources(CCryptoBoringSSL PRIVATE
     gen/bcm/aes-gcm-avx10-x86_64-linux.S
     gen/bcm/aesni-gcm-x86_64-linux.S
@@ -318,7 +318,7 @@ elseif(CMAKE_SYSTEM_NAME STREQUAL Darwin AND CMAKE_SYSTEM_PROCESSOR MATCHES "arm
     gen/bcm/vpaes-armv8-apple.S
     gen/crypto/chacha-armv8-apple.S
     gen/crypto/chacha20_poly1305_armv8-apple.S)
-elseif(CMAKE_SYSTEM_NAME MATCHES "Linux|Android|FreeBSD" AND CMAKE_SYSTEM_PROCESSOR MATCHES "arm64|aarch64")
+elseif(CMAKE_SYSTEM_NAME MATCHES "Linux|Android|FreeBSD|OpenBSD" AND CMAKE_SYSTEM_PROCESSOR MATCHES "arm64|aarch64")
   target_sources(CCryptoBoringSSL PRIVATE
     gen/bcm/aesv8-armv8-linux.S
     gen/bcm/aesv8-gcm-armv8-linux.S
@@ -334,6 +334,8 @@ elseif(CMAKE_SYSTEM_NAME MATCHES "Linux|Android|FreeBSD" AND CMAKE_SYSTEM_PROCES
     gen/bcm/vpaes-armv8-linux.S
     gen/crypto/chacha-armv8-linux.S
     gen/crypto/chacha20_poly1305_armv8-linux.S)
+else()
+   message(FATAL_ERROR "platform sources are not defined here")
 endif()
 
 target_include_directories(CCryptoBoringSSL PUBLIC
