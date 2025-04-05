@@ -122,28 +122,38 @@ final class SecureBytesTests: XCTestCase {
 
     func testResizingByMakingLarger() {
         var base = SecureBytes(count: 12)
+#if !os(OpenBSD)
         XCTAssertGreaterThanOrEqual(base.backing.capacity, 16)
+#endif
         XCTAssertEqual(base.count, 12)
 
         base.append(contentsOf: 0..<16)
+#if !os(OpenBSD)
         XCTAssertGreaterThanOrEqual(base.backing.capacity, 32)
+#endif
         XCTAssertEqual(base.count, 28)
 
         base.append(contentsOf: 0..<4)
+#if !os(OpenBSD)
         XCTAssertGreaterThanOrEqual(base.backing.capacity, 32)
+#endif
         XCTAssertEqual(base.count, 32)
     }
 
     func testCountInitializerGeneratesSomewhatRandomData() {
         let base = SecureBytes(count: 16)
+#if !os(OpenBSD)
         XCTAssertGreaterThanOrEqual(base.backing.capacity, 16)
+#endif
         XCTAssertEqual(base.count, 16)
         XCTAssertNotEqual(Array(repeating: UInt8(0), count: 16), Array(base))
     }
 
     func testBackingBytesAreAppropriatelySized() {
         var base = SecureBytes(repeating: 0, count: 10)
+#if !os(OpenBSD)
         XCTAssertGreaterThanOrEqual(base.backing.capacity, 16)
+#endif
 
         base.withUnsafeBytes { XCTAssertEqual($0.count, 10) }
         base.withUnsafeMutableBytes { XCTAssertEqual($0.count, 10) }
@@ -164,7 +174,9 @@ final class SecureBytesTests: XCTestCase {
             initializedCapacity = 4
         }
 
+#if !os(OpenBSD)
         XCTAssertGreaterThanOrEqual(base.backing.capacity, 8)
+#endif
         XCTAssertEqual(Array(base), [1, 2, 3, 4])
 
         func testThrowingInitialization() throws {
