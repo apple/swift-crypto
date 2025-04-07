@@ -19,17 +19,17 @@ import Foundation
 #endif
 
 #if canImport(CommonCrypto)
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 fileprivate typealias BackingPBKDF2 = CommonCryptoPBKDF2
 #else
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 fileprivate typealias BackingPBKDF2 = BoringSSLPBKDF2
 #endif
 
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension KDF.Insecure {
     /// An implementation of PBKDF2 key derivation function.
-    @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
+    @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
     public struct PBKDF2: Sendable {
         /// Derives a symmetric key using the PBKDF2 algorithm.
         ///

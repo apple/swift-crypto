@@ -29,7 +29,7 @@ import Foundation
 /// need to encrypt the data as well as authenticate it, use a cipher like
 /// ``AES`` or ``ChaChaPoly`` to put the data into a sealed box (an instance of
 /// ``AES/GCM/SealedBox`` or ``ChaChaPoly/SealedBox``).
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 public struct HMAC<H: HashFunction>: MACAlgorithm {
     /// An alias for the symmetric key type used to compute or verify a message
     /// authentication code.
@@ -194,7 +194,7 @@ public struct HMAC<H: HashFunction>: MACAlgorithm {
 }
 
 /// A hash-based message authentication code.
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 public struct HashedAuthenticationCode<H: HashFunction>: MessageAuthenticationCode {
     let digest: H.Digest
     

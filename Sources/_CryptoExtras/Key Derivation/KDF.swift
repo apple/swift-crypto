@@ -19,7 +19,7 @@ import Foundation
 #endif
 
 /// A container for Key Detivation Function algorithms.
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 public enum KDF: Sendable {
     /// A container for older, cryptographically insecure algorithms.
     ///

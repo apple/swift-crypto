@@ -17,7 +17,7 @@
 import Foundation
 
 /// An abstraction over a BoringSSL AEAD
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 public enum BoringSSLAEAD {
     /// The supported AEAD ciphers for BoringSSL.
     case aes128gcm
@@ -28,11 +28,11 @@ public enum BoringSSLAEAD {
     case chacha20
 }
 
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension BoringSSLAEAD {
     // Arguably this class is excessive, but it's probably better for this API to be as safe as possible
     // rather than rely on defer statements for our cleanup.
-    @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
+    @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
     public class AEADContext {
         private var context: EVP_AEAD_CTX
 
@@ -68,7 +68,7 @@ extension BoringSSLAEAD {
 
 // MARK: - Sealing
 
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension BoringSSLAEAD.AEADContext {
     /// The main entry point for sealing data. Covers the full gamut of types, including discontiguous data types. This must be inlinable.
     public func seal<
@@ -202,7 +202,7 @@ extension BoringSSLAEAD.AEADContext {
 
 // MARK: - Opening
 
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension BoringSSLAEAD.AEADContext {
     /// The main entry point for opening data. Covers the full gamut of types, including discontiguous data types. This must be inlinable.
     @inlinable
@@ -403,7 +403,7 @@ extension BoringSSLAEAD.AEADContext {
 
 // MARK: - Supported ciphers
 
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension BoringSSLAEAD {
     var boringSSLCipher: OpaquePointer {
         switch self {
