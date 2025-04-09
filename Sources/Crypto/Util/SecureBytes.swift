@@ -62,11 +62,7 @@ extension SecureBytes {
     @inlinable
     mutating func append<C: Collection>(_ data: C) where C.Element == UInt8 {
         let requiredCapacity = self.count + data.count
-#if os(OpenBSD)
-        let backingCapacity = self.backing.header.capacity
-#else
-        let backingCapacity = self.backing.capacity
-#endif
+        let backingCapacity = self.backing.allocatedCapacity
         if !isKnownUniquelyReferenced(&self.backing) || requiredCapacity > backingCapacity {
             let newBacking = Backing.create(capacity: requiredCapacity)
             newBacking._appendBytes(self.backing, inRange: 0..<self.count)
@@ -77,11 +73,7 @@ extension SecureBytes {
 
     @usableFromInline
     mutating func reserveCapacity(_ n: Int) {
-#if os(OpenBSD)
-        let backingCapacity = self.backing.header.capacity
-#else
-        let backingCapacity = self.backing.capacity
-#endif
+        let backingCapacity = self.backing.allocatedCapacity
         if backingCapacity >= n {
             return
         }
@@ -167,11 +159,7 @@ extension SecureBytes: RangeReplaceableCollection {
     @inlinable
     mutating func replaceSubrange<C: Collection>(_ subrange: Range<Index>, with newElements: C) where C.Element == UInt8 {
         let requiredCapacity = self.backing.count - subrange.count + newElements.count
-#if os(OpenBSD)
-        let backingCapacity = self.backing.header.capacity
-#else
-        let backingCapacity = self.backing.capacity
-#endif
+        let backingCapacity = self.backing.allocatedCapacity
 
         if !isKnownUniquelyReferenced(&self.backing) || requiredCapacity > backingCapacity {
             // We have to allocate anyway, so let's use a nice straightforward copy.
@@ -307,11 +295,7 @@ extension SecureBytes {
                     targetPtr.copyMemory(from: bytesPtr)
                 }
                 backing.count = bytesPtr.count
-#if os(OpenBSD)
-                precondition(backing.count <= backing.header.capacity)
-#else
-                precondition(backing.count <= backing.capacity)
-#endif
+                precondition(backing.count <= backing.allocatedCapacity)
                 return backing
             }
         }
@@ -362,6 +346,15 @@ extension SecureBytes {
 
 @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
 extension SecureBytes.Backing {
+    @usableFromInline
+    var allocatedCapacity: Int {
+#if os(OpenBSD)
+        return self.header.capacity
+#else
+        return self.capacity
+#endif
+    }
+
     func replaceSubrangeFittingWithinCapacity<C: Collection>(_ subrange: Range<Int>, with newElements: C) where C.Element == UInt8 {
         // This function is called when have a unique reference to the backing storage, and we have enough room to store these bytes without
         // any problem. We have one pre-existing buffer made up of 4 regions: a prefix set of bytes that are
@@ -381,11 +374,7 @@ extension SecureBytes.Backing {
         // for R1 and then move the suffix, as if R2 is larger than R1 we'll have thrown some suffix bytes away. So we have
         // to move suffix first. What we do is take the bytes in suffix, and move them (via memmove). We can then copy
         // R2 in, and feel confident that the space in memory is right.
-#if os(OpenBSD)
-        precondition(self.count - subrange.count + newElements.count <= self.header.capacity, "Insufficient capacity")
-#else
-        precondition(self.count - subrange.count + newElements.count <= self.capacity, "Insufficient capacity")
-#endif
+        precondition(self.count - subrange.count + newElements.count <= self.allocatedCapacity, "Insufficient capacity")
 
         let moveDistance = newElements.count - subrange.count
         let suffixRange = subrange.upperBound..<self.count
@@ -398,11 +387,7 @@ extension SecureBytes.Backing {
     /* private but inlinable */ func _appendBytes<C: Collection>(_ bytes: C) where C.Element == UInt8 {
         let byteCount = bytes.count
 
-#if os(OpenBSD)
-        precondition(self.header.capacity - self.count - byteCount >= 0, "Insufficient space for byte copying, must have reallocated!")
-#else
-        precondition(self.capacity - self.count - byteCount >= 0, "Insufficient space for byte copying, must have reallocated!")
-#endif
+        precondition(self.allocatedCapacity - self.count - byteCount >= 0, "Insufficient space for byte copying, must have reallocated!")
 
         let lowerOffset = self.count
         self._withVeryUnsafeMutableBytes { bytesPtr in
@@ -416,13 +401,8 @@ extension SecureBytes.Backing {
     /// is not enough room.
     /* private but inlinable */ func _appendBytes(_ backing: SecureBytes.Backing, inRange range: Range<Int>) {
         precondition(range.lowerBound >= 0)
-#if os(OpenBSD)
-        precondition(range.upperBound <= backing.header.capacity)
-        precondition(self.header.capacity - self.count - range.count >= 0, "Insufficient space for byte copying, must have reallocated!")
-#else
-        precondition(range.upperBound <= backing.capacity)
-        precondition(self.capacity - self.count - range.count >= 0, "Insufficient space for byte copying, must have reallocated!")
-#endif
+        precondition(range.upperBound <= backing.allocatedCapacity)
+        precondition(self.allocatedCapacity - self.count - range.count >= 0, "Insufficient space for byte copying, must have reallocated!")
 
         backing.withUnsafeBytes { backingPtr in
             let ptrSlice = UnsafeRawBufferPointer(rebasing: backingPtr[range])
@@ -443,19 +423,11 @@ extension SecureBytes.Backing {
     /* private but usableFromInline */ func _moveBytes(range: Range<Int>, by delta: Int) {
         // We have to check that the range is within the delta, as is the new location.
         precondition(range.lowerBound >= 0)
-#if os(OpenBSD)
-        precondition(range.upperBound <= self.header.capacity)
-#else
-        precondition(range.upperBound <= self.capacity)
-#endif
+        precondition(range.upperBound <= self.allocatedCapacity)
 
         let shiftedRange = (range.lowerBound + delta)..<(range.upperBound + delta)
         precondition(shiftedRange.lowerBound > 0)
-#if os(OpenBSD)
-        precondition(shiftedRange.upperBound <= self.header.capacity)
-#else
-        precondition(shiftedRange.upperBound <= self.capacity)
-#endif
+        precondition(shiftedRange.upperBound <= self.allocatedCapacity)
 
         self._withVeryUnsafeMutableBytes { backingPtr in
             let source = UnsafeRawBufferPointer(rebasing: backingPtr[range])
@@ -465,18 +437,10 @@ extension SecureBytes.Backing {
     }
 
     // Copies some bytes into the buffer at the appropriate place. Does not update count: external code must do so.
-#if os(OpenBSD)
-    @usableFromInline
-#else
     @inlinable
-#endif
     /* private but inlinable */ func _copyBytes<C: Collection>(_ bytes: C, at offset: Int) where C.Element == UInt8 {
         precondition(offset >= 0)
-#if os(OpenBSD)
-        precondition(offset + bytes.count <= self.header.capacity)
-#else
-        precondition(offset + bytes.count <= self.capacity)
-#endif
+        precondition(offset + bytes.count <= self.allocatedCapacity)
 
         let byteRange = offset..<(offset + bytes.count)
 
@@ -506,17 +470,9 @@ extension SecureBytes.Backing: ContiguousBytes {
     }
 
     /// Very unsafe in the sense that this points to uninitialized memory. Used only for implementations within this file.
-#if os(OpenBSD)
-    @usableFromInline
-#else
     @inlinable
-#endif
     /* private but inlinable */ func _withVeryUnsafeMutableBytes<T>(_ body: (UnsafeMutableRawBufferPointer) throws -> T) rethrows -> T {
-#if os(OpenBSD)
-        let capacity = self.header.capacity
-#else
-        let capacity = self.capacity
-#endif
+        let capacity = self.allocatedCapacity
 
         return try self.withUnsafeMutablePointerToElements { elementsPtr in
             return try body(UnsafeMutableRawBufferPointer(start: elementsPtr, count: capacity))
