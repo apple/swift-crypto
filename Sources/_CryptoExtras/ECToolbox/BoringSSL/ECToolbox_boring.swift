@@ -39,6 +39,9 @@ protocol OpenSSLSupportedNISTCurve {
     // TODO: could this be moved to the group or to the HashFunction?
     @inlinable
     static var hashToFieldByteCount: Int { get }
+
+    @inlinable
+    static var __ffac: FiniteFieldArithmeticContext { get }
 }
 
 /// NOTE: This conformance applies to this type from the Crypto module even if it comes from the SDK.
@@ -47,8 +50,8 @@ extension P256: OpenSSLSupportedNISTCurve {
     @usableFromInline
     typealias H = SHA256
 
-    @inlinable
-    static var group: BoringSSLEllipticCurveGroup { try! BoringSSLEllipticCurveGroup(.p256) }
+    @usableFromInline
+    static let group: BoringSSLEllipticCurveGroup = try! BoringSSLEllipticCurveGroup(.p256)
 
     @inlinable
     static var cofactor: Int { 1 }
@@ -61,6 +64,11 @@ extension P256: OpenSSLSupportedNISTCurve {
 
     @inlinable
     static var hashToFieldByteCount: Int { 48 }
+
+    @TaskLocal
+    @usableFromInline
+    // NOTE: This could be a let when Swift 6.0 is the minimum supported version.
+    static var __ffac = try! FiniteFieldArithmeticContext(fieldSize: P256.group.order)
 }
 
 /// NOTE: This conformance applies to this type from the Crypto module even if it comes from the SDK.
@@ -69,8 +77,8 @@ extension P384: OpenSSLSupportedNISTCurve {
     @usableFromInline
     typealias H = SHA384
 
-    @inlinable
-    static var group: BoringSSLEllipticCurveGroup { try! BoringSSLEllipticCurveGroup(.p384) }
+    @usableFromInline
+    static let group: BoringSSLEllipticCurveGroup = try! BoringSSLEllipticCurveGroup(.p384)
 
     @inlinable
     static var cofactor: Int { 1 }
@@ -83,6 +91,11 @@ extension P384: OpenSSLSupportedNISTCurve {
 
     @inlinable
     static var hashToFieldByteCount: Int { 72 }
+
+    @TaskLocal
+    @usableFromInline
+    // NOTE: This could be a let when Swift 6.0 is the minimum supported version.
+    static var __ffac = try! FiniteFieldArithmeticContext(fieldSize: P384.group.order)
 }
 
 /// NOTE: This conformance applies to this type from the Crypto module even if it comes from the SDK.
@@ -91,8 +104,8 @@ extension P521: OpenSSLSupportedNISTCurve {
     @usableFromInline
     typealias H = SHA512
 
-    @inlinable
-    static var group: BoringSSLEllipticCurveGroup { try! BoringSSLEllipticCurveGroup(.p521) }
+    @usableFromInline
+    static let group: BoringSSLEllipticCurveGroup = try! BoringSSLEllipticCurveGroup(.p521)
 
     @inlinable
     static var cofactor: Int { 1 }
@@ -105,6 +118,11 @@ extension P521: OpenSSLSupportedNISTCurve {
 
     @inlinable
     static var hashToFieldByteCount: Int { 98 }
+
+    @TaskLocal
+    @usableFromInline
+    // NOTE: This could be a let when Swift 6.0 is the minimum supported version.
+    static var __ffac = try! FiniteFieldArithmeticContext(fieldSize: P521.group.order)
 }
 
 @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
@@ -126,7 +144,7 @@ struct OpenSSLGroupScalar<C: OpenSSLSupportedNISTCurve>: GroupScalar, CustomStri
                 try ArbitraryPrecisionInteger(bytes: bytes).modulo(C.group.weierstrassCoefficients.field)
             )
         } else {
-            self.init(try ArbitraryPrecisionInteger(bytes: bytes).modulo(C.group.order))
+            self.init(try C.__ffac.residue(ArbitraryPrecisionInteger(bytes: bytes)))
         }
     }
 
@@ -137,28 +155,29 @@ struct OpenSSLGroupScalar<C: OpenSSLSupportedNISTCurve>: GroupScalar, CustomStri
 
     static func + (left: Self, right: Self) -> Self {
         // Force-try: Protocol requires non-throwing and this can only throw if modulus is invalid.
-        try! Self(left.openSSLScalar.add(right.openSSLScalar, modulo: C.group.order))
+        try! Self(C.__ffac.add(left.openSSLScalar, right.openSSLScalar))
+
     }
 
     static func - (left: Self, right: Self) -> Self {
         // Force-try: Protocol requires non-throwing and this can only throw if modulus is invalid.
-        try! Self(left.openSSLScalar.sub(right.openSSLScalar, modulo: C.group.order))
+        try! Self(C.__ffac.subtract(right.openSSLScalar, from: left.openSSLScalar))
     }
 
     static func ^ (left: Self, right: Int) -> Self {
         precondition(right == -1, "Unimplemented arbitrary exponentiation")
         // Force-try: Protocol requires non-throwing and this can only throw if modulus is invalid.
-        return try! Self(left.openSSLScalar.inverse(modulo: C.group.order))
+        return try! Self(C.__ffac.inverse(left.openSSLScalar)!)
     }
 
     static func * (left: Self, right: Self) -> Self {
         // Force-try: Protocol requires non-throwing and this can only throw if modulus is invalid.
-        try! Self(left.openSSLScalar.mul(right.openSSLScalar, modulo: C.group.order))
+        try! Self(C.__ffac.multiply(left.openSSLScalar, right.openSSLScalar))
     }
 
     static prefix func - (left: Self) -> Self {
         // Force-try: Protocol requires non-throwing and this can only throw if modulus is invalid.
-        try! Self(.zero.sub(left.openSSLScalar, modulo: C.group.order))
+        try! Self(C.__ffac.subtract(left.openSSLScalar, from: ArbitraryPrecisionInteger.zero))
     }
 
     static func == (left: Self, right: Self) -> Bool {
@@ -185,9 +204,7 @@ struct OpenSSLCurvePoint<C: OpenSSLSupportedNISTCurve>: GroupElement {
     }
 
     static var generator: Self {
-        // Force-try: Protocol requires non-throwing and this can only throw if group has no generator.
-        // TODO: `BoringSSLEllipticCurveGroup.generator` should probably be non-throwing, like `.order`.
-        try! Self(ecPoint: C.group.generator)
+        Self(ecPoint: C.group.generator)
     }
 
     static var random: Self {
@@ -198,42 +215,42 @@ struct OpenSSLCurvePoint<C: OpenSSLSupportedNISTCurve>: GroupElement {
         return Self(ecPoint: point)
     }
 
-    static func + (left: Self, right: Self) -> Self {
+    static func + (left: consuming Self, right: consuming Self) -> Self {
         // Force-try: Protocol requires non-throwing.
-        try! Self(ecPoint: left.ecPoint.adding(right.ecPoint, on: C.group))
+        try! Self(ecPoint: left.ecPoint.adding(right.ecPoint, on: C.group, context: C.__ffac))
     }
 
-    static func - (left: Self, right: Self) -> Self {
+    static func - (left: consuming Self, right: consuming Self) -> Self {
         // Force-try: Protocol requires non-throwing.
-        try! Self(ecPoint: left.ecPoint.subtracting(right.ecPoint, on: C.group))
+        try! Self(ecPoint: left.ecPoint.subtracting(right.ecPoint, on: C.group, context: C.__ffac))
     }
 
     static prefix func - (left: Self) -> Self {
         // Force-try: Protocol requires non-throwing.
-        try! Self(ecPoint: left.ecPoint.inverting(on: C.group))
+        try! Self(ecPoint: left.ecPoint.inverting(on: C.group, context: C.__ffac))
     }
 
-    static func * (left: Scalar, right: Self) -> Self {
+    static func * (left: consuming Scalar, right: consuming Self) -> Self {
         // Force-try: Protocol requires non-throwing.
-        try! Self(ecPoint: .multiplying(right.ecPoint, by: left.openSSLScalar, on: C.group))
+        try! Self(ecPoint: right.ecPoint.multiplying(by: left.openSSLScalar, on: C.group, context: C.__ffac))
     }
 
     static func == (left: Self, right: Self) -> Bool {
-        left.ecPoint.isEqual(to: right.ecPoint, on: C.group)
+        left.ecPoint.isEqual(to: right.ecPoint, on: C.group, context: C.__ffac)
     }
 }
 
 @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension OpenSSLCurvePoint {
     var compressedRepresentation: Data {
-        try! self.ecPoint.x962Representation(compressed: true, on: C.group)
+        try! self.ecPoint.x962Representation(compressed: true, on: C.group, context: C.__ffac)
     }
 }
 
 @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension OpenSSLCurvePoint: OPRFGroupElement {
     init(oprfRepresentation data: Data) throws {
-        let point = try EllipticCurvePoint(x962Representation: data, on: C.group)
+        let point = try EllipticCurvePoint(x962Representation: data, on: C.group, context: C.__ffac)
         self.init(ecPoint: point)
     }
 
