@@ -12,7 +12,11 @@
 //
 //===----------------------------------------------------------------------===//
 import Crypto
+#if canImport(FoundationEssentials)
+import FoundationEssentials
+#else
 import Foundation
+#endif
 
 // MARK: - P384 + VPORF (P384-SHA384)
 @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)

@@ -17,7 +17,11 @@
 @_implementationOnly import CCryptoBoringSSL
 @_implementationOnly import CCryptoBoringSSLShims
 import CryptoBoringWrapper
+#if canImport(FoundationEssentials)
+import FoundationEssentials
+#else
 import Foundation
+#endif
 
 /// A wrapper around BoringSSL's ECDSA_SIG with some lifetime management.
 @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)

@@ -11,7 +11,22 @@
 // SPDX-License-Identifier: Apache-2.0
 //
 //===----------------------------------------------------------------------===//
+#if canImport(FoundationEssentials)
+import FoundationEssentials
+#if canImport(Glibc)
+import Glibc
+#elseif canImport(Musl)
+import Musl
+#elseif os(Windows)
+import CRT
+#elseif canImport(Android)
+import Android
+#else
+import Darwin.C
+#endif
+#else
 import Foundation
+#endif
 
 @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 func I2OSP(value: Int, outputByteCount: Int) -> Data {

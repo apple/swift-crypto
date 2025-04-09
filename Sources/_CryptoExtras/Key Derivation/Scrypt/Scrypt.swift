@@ -12,10 +12,14 @@
 //
 //===----------------------------------------------------------------------===//
 import Crypto
+#if canImport(FoundationEssentials)
+import FoundationEssentials
+#else
 #if canImport(Darwin) || swift(>=5.9.1)
 import Foundation
 #else
 @preconcurrency import Foundation
+#endif
 #endif
 
 @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)

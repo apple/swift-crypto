@@ -12,7 +12,11 @@
 //
 //===----------------------------------------------------------------------===//
 import Crypto
+#if canImport(FoundationEssentials)
+import FoundationEssentials
+#else
 import Foundation
+#endif
 
 #if canImport(Darwin) && !CRYPTO_IN_SWIFTPM
 @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)

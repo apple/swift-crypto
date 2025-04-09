@@ -12,10 +12,14 @@
 //
 //===----------------------------------------------------------------------===//
 import Crypto
+#if canImport(FoundationEssentials)
+import FoundationEssentials
+#else
 #if canImport(Darwin) || swift(>=5.9.1)
 import Foundation
 #else
 @preconcurrency import Foundation
+#endif
 #endif
 
 /// A container for Key Detivation Function algorithms.
