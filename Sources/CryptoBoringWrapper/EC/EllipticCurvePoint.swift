@@ -19,7 +19,7 @@ import struct Foundation.Data
 
 /// A wrapper around BoringSSL's EC_POINT with some lifetime management.
 @usableFromInline
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 package final class EllipticCurvePoint {
     @usableFromInline var _basePoint: OpaquePointer
 
@@ -403,7 +403,7 @@ package final class EllipticCurvePoint {
 
 // MARK: - Helpers
 
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension EllipticCurvePoint {
     @inlinable
     package func withPointPointer<T>(_ body: (OpaquePointer) throws -> T) rethrows -> T {
