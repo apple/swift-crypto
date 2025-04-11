@@ -29,8 +29,8 @@ extension XCTestCase {
             fileURL.append(path: "_CryptoExtrasVectors", directoryHint: .isDirectory)
             fileURL.append(path: "\(jsonName).json", directoryHint: .notDirectory)
         } else {
-            fileURL.appendingPathComponent("_CryptoExtrasVectors", isDirectory: true)
-            fileURL.appendingPathComponent("\(jsonName).json", isDirectory: true)
+            fileURL = fileURL.appendingPathComponent("_CryptoExtrasVectors", isDirectory: true)
+            fileURL = fileURL.appendingPathComponent("\(jsonName).json", isDirectory: true)
         }
 
         let data = try Data(contentsOf: fileURL)

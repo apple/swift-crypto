@@ -33,8 +33,8 @@ extension XCTestCase {
             fileURL.append(path: "Test Vectors", directoryHint: .isDirectory)
             fileURL.append(path: "\(jsonName).json", directoryHint: .notDirectory)
         } else {
-            fileURL.appendingPathComponent("Test Vectors", isDirectory: true)
-            fileURL.appendingPathComponent("\(jsonName).json", isDirectory: true)
+            fileURL = fileURL.appendingPathComponent("Test Vectors", isDirectory: true)
+            fileURL = fileURL.appendingPathComponent("\(jsonName).json", isDirectory: true)
         }
         #endif
 

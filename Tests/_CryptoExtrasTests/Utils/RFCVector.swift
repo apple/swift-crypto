@@ -33,8 +33,8 @@ struct RFCVectorDecoder {
             fileURL!.append(path: "_CryptoExtrasVectors", directoryHint: .isDirectory)
             fileURL!.append(path: "\(fileName).txt", directoryHint: .notDirectory)
         } else {
-            fileURL!.appendingPathComponent("_CryptoExtrasVectors", isDirectory: true)
-            fileURL!.appendingPathComponent("\(fileName).txt", isDirectory: true)
+            fileURL! = fileURL!.appendingPathComponent("_CryptoExtrasVectors", isDirectory: true)
+            fileURL! = fileURL!.appendingPathComponent("\(fileName).txt", isDirectory: true)
         }
 
         let rfcVectorData = try Data(contentsOf: fileURL!)

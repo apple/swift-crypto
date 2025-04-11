@@ -37,8 +37,8 @@ struct RFCVectorDecoder {
             fileURL!.append(path: "Test Vectors", directoryHint: .isDirectory)
             fileURL!.append(path: "\(fileName).txt", directoryHint: .notDirectory)
         } else {
-            fileURL!.appendingPathComponent("Test Vectors", isDirectory: true)
-            fileURL!.appendingPathComponent("\(fileName).txt", isDirectory: true)
+            fileURL! = fileURL!.appendingPathComponent("Test Vectors", isDirectory: true)
+            fileURL! = fileURL!.appendingPathComponent("\(fileName).txt", isDirectory: true)
         }
         #endif
 
