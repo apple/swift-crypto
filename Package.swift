@@ -56,6 +56,7 @@ if development || isFreeBSD {
         Platform.android,
         Platform.windows,
         Platform.wasi,
+        Platform.openbsd,
     ]
     swiftSettings = [
         .define("CRYPTO_IN_SWIFTPM"),
