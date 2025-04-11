@@ -25,8 +25,17 @@ extension XCTestCase {
         let bundle = Bundle(for: type(of: bundleType))
         let fileURL = bundle.url(forResource: jsonName, withExtension: "json")
         #else
-        let testsDirectory: String = URL(fileURLWithPath: "\(#file)").pathComponents.dropLast(3).joined(separator: "/")
-        let fileURL: URL? = URL(fileURLWithPath: "\(testsDirectory)/Test Vectors/\(jsonName).json")
+        var fileURL = URL(fileURLWithPath: "\(#file)")
+        for _ in 0..<3 {
+            fileURL.deleteLastPathComponent()
+        }
+        if #available(macOS 13, iOS 16, watchOS 9, tvOS 16, visionOS 1, macCatalyst 16, *) {
+            fileURL.append(path: "Test Vectors", directoryHint: .isDirectory)
+            fileURL.append(path: "\(jsonName).json", directoryHint: .notDirectory)
+        } else {
+            fileURL.appendingPathComponent("Test Vectors", isDirectory: true)
+            fileURL.appendingPathComponent("\(jsonName).json", isDirectory: true)
+        }
         #endif
 
         let data = try orFail(file: file, line: line) { try Data(contentsOf: unwrap(fileURL, file: file, line: line)) }
