@@ -20,7 +20,7 @@ extension UnsafeMutableRawBufferPointer {
             return
         }
 
-        #if canImport(Darwin) || os(Linux) || os(Android) || os(Windows) || os(FreeBSD)
+        #if canImport(Darwin) || os(Linux) || os(Android) || os(Windows) || os(FreeBSD) || os(OpenBSD)
         var rng = SystemRandomNumberGenerator()
         precondition(count <= self.count)
 
