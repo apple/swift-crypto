@@ -15,14 +15,14 @@ import Crypto
 import Foundation
 
 // MARK: - P384 + VPORF (P384-SHA384)
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension P384 {
     /// A mechanism to compute the output of a pseudorandom without the client learning the secret or the server
     /// learning the input using the P384-SHA384 Verifiable Oblivious Pseudorandom Function (VOPRF).
     ///
     /// - Seealso: [RFC 9497: VOPRF Protocol](https://www.rfc-editor.org/rfc/rfc9497.html#name-voprf-protocol).
     /// - Seealso: [RFC 9497: OPRF(P-384, SHA-384)](https://www.rfc-editor.org/rfc/rfc9497.html#name-oprfp-384-sha-384).
-    @available(iOS 16.0, macOS 13.0, watchOS 9.0, tvOS 16.0, *)
+    @available(iOS 16.0, macOS 13.0, watchOS 9.0, tvOS 16.0, macCatalyst 16.0, visionOS 2.0, *)
     public enum _VOPRF {
         typealias H2G = HashToCurveImpl<P384>
         typealias Ciphersuite = OPRF.Ciphersuite<H2G>
@@ -197,7 +197,7 @@ extension P384 {
     }
 }
 
-@available(iOS 16.0, macOS 13.0, watchOS 9.0, tvOS 16.0, *)
+@available(iOS 16.0, macOS 13.0, watchOS 9.0, tvOS 16.0, macCatalyst 16.0, visionOS 2.0, *)
 extension P384._VOPRF {
     /// A blinding value, used to blind an input.
     ///
@@ -360,7 +360,7 @@ extension P384._VOPRF {
     }
 }
 
-@available(iOS 16.0, macOS 13.0, watchOS 9.0, tvOS 16.0, *)
+@available(iOS 16.0, macOS 13.0, watchOS 9.0, tvOS 16.0, macCatalyst 16.0, visionOS 2.0, *)
 extension P384._VOPRF.PublicKey {
     internal func blind<D: DataProtocol>(_ input: D, with fixedBlind: P384._VOPRF.H2G.G.Scalar) throws -> P384._VOPRF.BlindedInput {
         let input = Data(input)
@@ -401,7 +401,7 @@ extension P384._VOPRF.PublicKey {
     }
 }
 
-@available(iOS 16.0, macOS 13.0, watchOS 9.0, tvOS 16.0, *)
+@available(iOS 16.0, macOS 13.0, watchOS 9.0, tvOS 16.0, macCatalyst 16.0, visionOS 2.0, *)
 extension P384._VOPRF.PrivateKey {
     static var hashToGroupDST: Data {
         Data("HashToGroup-".utf8) + OPRF.setupContext(mode: .verifiable, suite: P384._VOPRF.ciphersuite, v8CompatibilityMode: false)

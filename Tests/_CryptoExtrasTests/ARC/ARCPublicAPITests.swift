@@ -15,7 +15,7 @@ import Crypto
 import _CryptoExtras  // NOTE: No @testable import, because we want to test the public API.
 import XCTest
 
-@available(iOS 16.0, macOS 13.0, watchOS 9.0, tvOS 16.0, *)
+@available(iOS 16.0, macOS 13.0, watchOS 9.0, tvOS 16.0, macCatalyst 16.0, visionOS 2.0, *)
 final class ARCPublicAPITests: XCTestCase {
 
     func testARCEndToEnd() throws {
