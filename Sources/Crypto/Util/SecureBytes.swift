@@ -46,7 +46,7 @@ struct SecureBytes {
     @usableFromInline
     init(unsafeUninitializedCapacity: Int, initializingWith callback: (inout UnsafeMutableRawBufferPointer, inout Int) throws -> Void) rethrows {
         self.backing = Backing.create(capacity: unsafeUninitializedCapacity)
-        try self.backing._withVeryUnsafeMutableBytes { veryUnsafePointer in
+        try self.backing._withVeryUnsafeMutableBytes(self.backing.allocatedCapacity) { veryUnsafePointer in
             // As Array does, we want to truncate the initializing pointer to only have the requested size.
             var veryUnsafePointer = UnsafeMutableRawBufferPointer(rebasing: veryUnsafePointer.prefix(unsafeUninitializedCapacity))
             var initializedCount = 0
@@ -291,7 +291,7 @@ extension SecureBytes {
         class func create<D: ContiguousBytes>(bytes: D) -> Backing {
             return bytes.withUnsafeBytes { bytesPtr in
                 let backing = Backing.create(capacity: bytesPtr.count)
-                backing._withVeryUnsafeMutableBytes { targetPtr in
+                backing._withVeryUnsafeMutableBytes(backing.allocatedCapacity) { targetPtr in
                     targetPtr.copyMemory(from: bytesPtr)
                 }
                 backing.count = bytesPtr.count
@@ -303,7 +303,7 @@ extension SecureBytes {
         @usableFromInline
         class func create(randomBytes: Int) -> Backing {
             let backing = Backing.create(capacity: randomBytes)
-            backing._withVeryUnsafeMutableBytes { targetPtr in
+            backing._withVeryUnsafeMutableBytes(backing.allocatedCapacity) { targetPtr in
                 assert(targetPtr.count >= randomBytes)
                 targetPtr.initializeWithRandomBytes(count: randomBytes)
             }
@@ -331,6 +331,15 @@ extension SecureBytes {
         }
 
         @usableFromInline
+        var allocatedCapacity: Int {
+#if os(OpenBSD)
+            return self.header.capacity
+#else
+            return self.capacity
+#endif
+        }
+
+        @usableFromInline
         subscript(offset offset: Int) -> UInt8 {
             get {
                 // precondition(offset >= 0 && offset < self.count)
@@ -346,14 +355,6 @@ extension SecureBytes {
 
 @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension SecureBytes.Backing {
-    @usableFromInline
-    var allocatedCapacity: Int {
-#if os(OpenBSD)
-        return self.header.capacity
-#else
-        return self.capacity
-#endif
-    }
 
     func replaceSubrangeFittingWithinCapacity<C: Collection>(_ subrange: Range<Int>, with newElements: C) where C.Element == UInt8 {
         // This function is called when have a unique reference to the backing storage, and we have enough room to store these bytes without
@@ -379,7 +380,7 @@ extension SecureBytes.Backing {
         let moveDistance = newElements.count - subrange.count
         let suffixRange = subrange.upperBound..<self.count
         self._moveBytes(range: suffixRange, by: moveDistance)
-        self._copyBytes(newElements, at: subrange.lowerBound)
+        self._copyBytes(newElements, at: subrange.lowerBound, self.allocatedCapacity)
         self.count += newElements.count - subrange.count
     }
 
@@ -390,7 +391,7 @@ extension SecureBytes.Backing {
         precondition(self.allocatedCapacity - self.count - byteCount >= 0, "Insufficient space for byte copying, must have reallocated!")
 
         let lowerOffset = self.count
-        self._withVeryUnsafeMutableBytes { bytesPtr in
+        self._withVeryUnsafeMutableBytes(self.allocatedCapacity) { bytesPtr in
             let innerPtrSlice = UnsafeMutableRawBufferPointer(rebasing: bytesPtr[lowerOffset...])
             innerPtrSlice.copyBytes(from: bytes)
         }
@@ -408,7 +409,7 @@ extension SecureBytes.Backing {
             let ptrSlice = UnsafeRawBufferPointer(rebasing: backingPtr[range])
 
             let lowerOffset = self.count
-            self._withVeryUnsafeMutableBytes { bytesPtr in
+            self._withVeryUnsafeMutableBytes(self.allocatedCapacity) { bytesPtr in
                 let innerPtrSlice = UnsafeMutableRawBufferPointer(rebasing: bytesPtr[lowerOffset...])
                 innerPtrSlice.copyMemory(from: ptrSlice)
             }
@@ -429,7 +430,7 @@ extension SecureBytes.Backing {
         precondition(shiftedRange.lowerBound > 0)
         precondition(shiftedRange.upperBound <= self.allocatedCapacity)
 
-        self._withVeryUnsafeMutableBytes { backingPtr in
+        self._withVeryUnsafeMutableBytes(self.allocatedCapacity) { backingPtr in
             let source = UnsafeRawBufferPointer(rebasing: backingPtr[range])
             let dest = UnsafeMutableRawBufferPointer(rebasing: backingPtr[shiftedRange])
             dest.copyMemory(from: source)  // copy memory uses memmove under the hood.
@@ -438,13 +439,13 @@ extension SecureBytes.Backing {
 
     // Copies some bytes into the buffer at the appropriate place. Does not update count: external code must do so.
     @inlinable
-    /* private but inlinable */ func _copyBytes<C: Collection>(_ bytes: C, at offset: Int) where C.Element == UInt8 {
+    /* private but inlinable */ func _copyBytes<C: Collection>(_ bytes: C, at offset: Int, _ capacity: Int) where C.Element == UInt8 {
         precondition(offset >= 0)
-        precondition(offset + bytes.count <= self.allocatedCapacity)
+        precondition(offset + bytes.count <= capacity)
 
         let byteRange = offset..<(offset + bytes.count)
 
-        self._withVeryUnsafeMutableBytes { backingPtr in
+        self._withVeryUnsafeMutableBytes(capacity) { backingPtr in
             let dest = UnsafeMutableRawBufferPointer(rebasing: backingPtr[byteRange])
             dest.copyBytes(from: bytes)
         }
@@ -471,9 +472,7 @@ extension SecureBytes.Backing: ContiguousBytes {
 
     /// Very unsafe in the sense that this points to uninitialized memory. Used only for implementations within this file.
     @inlinable
-    /* private but inlinable */ func _withVeryUnsafeMutableBytes<T>(_ body: (UnsafeMutableRawBufferPointer) throws -> T) rethrows -> T {
-        let capacity = self.allocatedCapacity
-
+    /* private but inlinable */ func _withVeryUnsafeMutableBytes<T>(_ capacity: Int, _ body: (UnsafeMutableRawBufferPointer) throws -> T) rethrows -> T {
         return try self.withUnsafeMutablePointerToElements { elementsPtr in
             return try body(UnsafeMutableRawBufferPointer(start: elementsPtr, count: capacity))
         }
