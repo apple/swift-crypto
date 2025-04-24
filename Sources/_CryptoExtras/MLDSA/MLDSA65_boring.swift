@@ -17,8 +17,10 @@ import Crypto
 import Foundation
 
 /// A module-lattice-based digital signature algorithm that provides security against quantum computing attacks.
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 public enum MLDSA65 {}
 
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension MLDSA65 {
     /// A ML-DSA-65 private key.
     public struct PrivateKey: Sendable {
@@ -165,6 +167,7 @@ extension MLDSA65 {
     }
 }
 
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension MLDSA65 {
     /// A ML-DSA-65 public key.
     public struct PublicKey: Sendable {
@@ -291,6 +294,7 @@ extension MLDSA65 {
     }
 }
 
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension MLDSA65 {
     /// The size of the seed in bytes.
     private static let seedByteCount = 32
