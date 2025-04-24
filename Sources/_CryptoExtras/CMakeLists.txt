@@ -54,6 +54,7 @@ add_library(_CryptoExtras
   "RSA/RSA_security.swift"
   "Util/BoringSSLHelpers.swift"
   "Util/CryptoKitErrors_boring.swift"
+  "Util/Data+Extensions.swift"
   "Util/DigestType.swift"
   "Util/Error.swift"
   "Util/I2OSP.swift"
@@ -70,7 +71,7 @@ add_library(_CryptoExtras
 
 target_compile_options(_CryptoExtras PRIVATE -DCRYPTO_IN_SWIFTPM)
 
-if(CMAKE_SYSTEM_NAME STREQUAL "Linux" OR CMAKE_SYSTEM_NAME STREQUAL "Windows" OR CMAKE_SYSTEM_NAME STREQUAL "Android" OR CMAKE_SYSTEM_NAME STREQUAL "WASI" OR CMAKE_SYSTEM_NAME STREQUAL FreeBSD)
+if(NOT CMAKE_SYSTEM_NAME STREQUAL "Darwin")
   target_compile_options(_CryptoExtras PRIVATE -DCRYPTO_IN_SWIFTPM_FORCE_BUILD_API)
 endif()
 

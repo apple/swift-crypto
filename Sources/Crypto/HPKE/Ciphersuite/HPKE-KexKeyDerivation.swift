@@ -16,12 +16,12 @@
 #else
 import Foundation
 
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 private let suiteIDLabel = Data("KEM".utf8)
 
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension HPKE {
-    @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
+    @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
     struct KexUtils {
         static func ExtractAndExpand(dh: ContiguousBytes, enc: Data,
                                      pkRm: Data, pkSm: Data? = nil, kem: HPKE.KEM, kdf: HPKE.KDF) -> SymmetricKey {

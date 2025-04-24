@@ -14,7 +14,7 @@
 import Foundation
 import Crypto
 
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 struct Prover<H2G: HashToGroup>: ProofParticipant {
     typealias Group = H2G.G
     var label: String

@@ -25,8 +25,22 @@ struct RFCVectorDecoder {
     private var index: Int?
 
     init(bundleType: AnyObject, fileName: String) throws {
-        let testsDirectory: String = URL(fileURLWithPath: "\(#file)").pathComponents.dropLast(3).joined(separator: "/")
-        let fileURL: URL? = URL(fileURLWithPath: "\(testsDirectory)/_CryptoExtrasVectors/\(fileName).txt")
+        var fileURL: URL? = URL(fileURLWithPath: "\(#file)")
+        for _ in 0..<3 {
+            fileURL!.deleteLastPathComponent()
+        }
+        #if compiler(>=6.0)
+        if #available(macOS 13, iOS 16, watchOS 9, tvOS 16, visionOS 1, macCatalyst 16, *) {
+            fileURL!.append(path: "_CryptoExtrasVectors", directoryHint: .isDirectory)
+            fileURL!.append(path: "\(fileName).txt", directoryHint: .notDirectory)
+        } else {
+            fileURL! = fileURL!.appendingPathComponent("_CryptoExtrasVectors", isDirectory: true)
+            fileURL! = fileURL!.appendingPathComponent("\(fileName).txt", isDirectory: false)
+        }
+        #else
+        fileURL! = fileURL!.appendingPathComponent("_CryptoExtrasVectors", isDirectory: true)
+        fileURL! = fileURL!.appendingPathComponent("\(fileName).txt", isDirectory: false)
+        #endif
 
         let rfcVectorData = try Data(contentsOf: fileURL!)
         self.rfcVectorData = String(decoding: rfcVectorData, as: Unicode.UTF8.self)
