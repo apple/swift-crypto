@@ -20,7 +20,7 @@ final class MLDSA65Tests: XCTestCase {
     func testMLDSA65Signing() throws {
         try testMLDSA65Signing(MLDSA65.PrivateKey())
         let seed: [UInt8] = (0..<32).map { _ in UInt8.random(in: 0...255) }
-        try testMLDSA65Signing(MLDSA65.PrivateKey(seed: seed))
+        try testMLDSA65Signing(MLDSA65.PrivateKey(seedRepresentation: seed))
     }
 
     private func testMLDSA65Signing(_ key: MLDSA65.PrivateKey) throws {
@@ -44,9 +44,9 @@ final class MLDSA65Tests: XCTestCase {
 
     func testSeedRoundTripping() throws {
         let key = try MLDSA65.PrivateKey()
-        let seed = key.seed
-        let roundTripped = try MLDSA65.PrivateKey(seed: seed)
-        XCTAssertEqual(seed, roundTripped.seed)
+        let seed = key.seedRepresentation
+        let roundTripped = try MLDSA65.PrivateKey(seedRepresentation: seed)
+        XCTAssertEqual(seed, roundTripped.seedRepresentation)
         XCTAssertEqual(key.publicKey.rawRepresentation, roundTripped.publicKey.rawRepresentation)
     }
 
@@ -54,7 +54,7 @@ final class MLDSA65Tests: XCTestCase {
         let message = "Hello, world!".data(using: .utf8)!
 
         let seed: [UInt8] = (0..<32).map { _ in UInt8.random(in: 0...255) }
-        let key = try MLDSA65.PrivateKey(seed: seed)
+        let key = try MLDSA65.PrivateKey(seedRepresentation: seed)
         let publicKey = key.publicKey
 
         let signature1 = try key.signature(for: message)
@@ -71,7 +71,7 @@ final class MLDSA65Tests: XCTestCase {
         // Encode a public key with a trailing 0 at the end.
         var encodedPublicKey = [UInt8](repeating: 0, count: MLDSA65.PublicKey.byteCount + 1)
         let seed: [UInt8] = (0..<32).map { _ in UInt8.random(in: 0...255) }
-        let key = try MLDSA65.PrivateKey(seed: seed)
+        let key = try MLDSA65.PrivateKey(seedRepresentation: seed)
         let publicKey = key.publicKey
         encodedPublicKey.replaceSubrange(0..<MLDSA65.PublicKey.byteCount, with: publicKey.rawRepresentation)
 
@@ -92,7 +92,7 @@ final class MLDSA65Tests: XCTestCase {
             let seed = try Data(hexString: testVector.seed)
             let publicKey = try MLDSA65.PublicKey(rawRepresentation: Data(hexString: testVector.pub))
 
-            let expectedkey = try MLDSA65.PrivateKey(seed: seed).publicKey
+            let expectedkey = try MLDSA65.PrivateKey(seedRepresentation: seed).publicKey
             XCTAssertEqual(publicKey.rawRepresentation, expectedkey.rawRepresentation)
         }
     }

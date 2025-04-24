@@ -36,12 +36,12 @@ extension MLDSA65 {
         /// - Parameter seed: The seed to use to generate the private key.
         ///
         /// - Throws: `CryptoKitError.incorrectKeySize` if the seed is not 32 bytes long.
-        public init(seed: some DataProtocol) throws {
-            self.backing = try Backing(seed: seed)
+        public init(seedRepresentation: some DataProtocol) throws {
+            self.backing = try Backing(seedRepresentation: seedRepresentation)
         }
 
         /// The seed from which this private key was generated.
-        public var seed: Data {
+        public var seedRepresentation: Data {
             self.backing.seed
         }
 
@@ -102,13 +102,13 @@ extension MLDSA65 {
             /// - Parameter seed: The seed to use to generate the private key.
             ///
             /// - Throws: `CryptoKitError.incorrectKeySize` if the seed is not 32 bytes long.
-            init(seed: some DataProtocol) throws {
-                guard seed.count == MLDSA65.seedByteCount else {
+            init(seedRepresentation: some DataProtocol) throws {
+                guard seedRepresentation.count == MLDSA65.seedByteCount else {
                     throw CryptoKitError.incorrectKeySize
                 }
 
                 self.key = .init()
-                self.seed = Data(seed)
+                self.seed = Data(seedRepresentation)
 
                 guard
                     self.seed.withUnsafeBytes({ seedPtr in
