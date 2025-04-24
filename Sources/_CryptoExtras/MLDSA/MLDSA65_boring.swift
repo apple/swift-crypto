@@ -259,13 +259,25 @@ extension MLDSA65 {
             /// - Parameters:
             ///   - signature: The signature to verify.
             ///   - data: The message to verify the signature against.
+            ///
+            /// - Returns: `true` if the signature is valid, `false` otherwise.
+            func isValidSignature<S: DataProtocol, D: DataProtocol>(_ signature: S, for data: D) -> Bool {
+                let context: Data? = nil
+                return self.isValidSignature(signature, for: data, context: context)
+            }
+
+            /// Verify a signature for the given data.
+            ///
+            /// - Parameters:
+            ///   - signature: The signature to verify.
+            ///   - data: The message to verify the signature against.
             ///   - context: The context to use for the signature verification.
             ///
             /// - Returns: `true` if the signature is valid, `false` otherwise.
-            func isValidSignature<S: DataProtocol, D: DataProtocol>(
+            func isValidSignature<S: DataProtocol, D: DataProtocol, C: DataProtocol>(
                 _ signature: S,
                 for data: D,
-                context: D? = nil
+                context: C?
             ) -> Bool {
                 let signatureBytes: ContiguousBytes =
                     signature.regions.count == 1 ? signature.regions.first! : Array(signature)
