@@ -113,7 +113,7 @@ class DigestsTests: XCTestCase {
         try orFail { try testHashFunctionImplementsCoW(hf: SHA512.self) }
     }
     
-    @available(macOS 10.15, iOS 13.2, tvOS 13.2, watchOS 6.1, *)
+    @available(macOS 10.15, iOS 13.2, tvOS 13.2, watchOS 6.1, macCatalyst 13.2, visionOS 1.2, *)
     func testBlockSizes() {
         XCTAssertEqual(Insecure.MD5.blockByteCount, 64)
         XCTAssertEqual(Insecure.SHA1.blockByteCount, 64)

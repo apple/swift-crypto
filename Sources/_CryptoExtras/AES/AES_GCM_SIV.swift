@@ -19,10 +19,10 @@ import CryptoBoringWrapper
 import Foundation
 
 /// Types associated with the AES GCM SIV algorithm
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension AES.GCM {
     /// AES in GCM SIV mode with 128-bit tags.
-    @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
+    @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
     public enum _SIV {
         static let tagByteCount = 16
         static let nonceByteCount = 12
@@ -82,9 +82,9 @@ extension AES.GCM {
     }
 }
 
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension AES.GCM._SIV {
-    @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
+    @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
     public struct Nonce: Sendable, ContiguousBytes, Sequence {
         let bytes: Data
 
@@ -118,9 +118,9 @@ extension AES.GCM._SIV {
     }
 }
 
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension AES.GCM._SIV {
-    @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
+    @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
     public struct SealedBox: Sendable {
         /// The combined representation ( nonce || ciphertext || tag)
         public let combined: Data
