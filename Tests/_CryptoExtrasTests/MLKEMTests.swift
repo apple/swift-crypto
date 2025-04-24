@@ -25,9 +25,9 @@ final class MLKEMTests: XCTestCase {
         let publicKey = privateKey.publicKey
 
         // Serialize and deserialize the private key
-        let seed = privateKey.seed
-        let privateKey2 = try MLKEM768.PrivateKey(seed: seed)
-        XCTAssertEqual(privateKey.seed, privateKey2.seed)
+        let seed = privateKey.seedRepresentation
+        let privateKey2 = try MLKEM768.PrivateKey(seedRepresentation: seed)
+        XCTAssertEqual(privateKey.seedRepresentation, privateKey2.seedRepresentation)
 
         // Serialize and deserialize the public key
         let publicKeyBytes = publicKey.rawRepresentation
@@ -45,10 +45,10 @@ final class MLKEMTests: XCTestCase {
         XCTAssertEqual(publicKeyBytes, derivedPublicKey.rawRepresentation)
 
         // Serialize and deserialize the private key with modifications
-        var modifiedSeed = privateKey.seed
+        var modifiedSeed = privateKey.seedRepresentation
         modifiedSeed[0] = 0xff
         XCTAssertNotEqual(
-            try MLKEM768.PrivateKey(seed: modifiedSeed).publicKey.rawRepresentation,
+            try MLKEM768.PrivateKey(seedRepresentation: modifiedSeed).publicKey.rawRepresentation,
             publicKeyBytes
         )
 
@@ -67,9 +67,9 @@ final class MLKEMTests: XCTestCase {
         let publicKey = privateKey.publicKey
 
         // Serialize and deserialize the private key
-        let seed = privateKey.seed
-        let privateKey2 = try MLKEM1024.PrivateKey(seed: seed)
-        XCTAssertEqual(privateKey.seed, privateKey2.seed)
+        let seed = privateKey.seedRepresentation
+        let privateKey2 = try MLKEM1024.PrivateKey(seedRepresentation: seed)
+        XCTAssertEqual(privateKey.seedRepresentation, privateKey2.seedRepresentation)
 
         // Serialize and deserialize the public key
         let publicKeyBytes = publicKey.rawRepresentation
@@ -87,10 +87,10 @@ final class MLKEMTests: XCTestCase {
         XCTAssertEqual(publicKeyBytes, derivedPublicKey.rawRepresentation)
 
         // Serialize and deserialize the private key with modifications
-        var modifiedSeed = privateKey.seed
+        var modifiedSeed = privateKey.seedRepresentation
         modifiedSeed[0] = 0xff
         XCTAssertNotEqual(
-            try MLKEM1024.PrivateKey(seed: modifiedSeed).publicKey.rawRepresentation,
+            try MLKEM1024.PrivateKey(seedRepresentation: modifiedSeed).publicKey.rawRepresentation,
             publicKeyBytes
         )
 

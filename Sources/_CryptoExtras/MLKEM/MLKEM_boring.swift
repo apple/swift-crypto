@@ -44,15 +44,15 @@ extension MLKEM768 {
 
         /// Initialize a ML-KEM-768 private key from a seed.
         ///
-        /// - Parameter seed: The seed to use to generate the private key.
+        /// - Parameter seedRepresentation: The seed to use to generate the private key.
         ///
         /// - Throws: `CryptoKitError.incorrectKeySize` if the seed is not 64 bytes long.
-        public init(seed: some DataProtocol) throws {
-            self.backing = try Backing(seed: seed)
+        public init(seedRepresentation: some DataProtocol) throws {
+            self.backing = try Backing(seedRepresentation: seedRepresentation)
         }
 
         /// The seed from which this private key was generated.
-        public var seed: Data {
+        public var seedRepresentation: Data {
             self.backing.seed
         }
 
@@ -102,16 +102,16 @@ extension MLKEM768 {
 
             /// Initialize a ML-KEM-768 private key from a seed.
             ///
-            /// - Parameter seed: The seed to use to generate the private key.
+            /// - Parameter seedRepresentation: The seed to use to generate the private key.
             ///
             /// - Throws: `CryptoKitError.incorrectKeySize` if the seed is not 64 bytes long.
-            init(seed: some DataProtocol) throws {
-                guard seed.count == MLKEM.seedByteCount else {
+            init(seedRepresentation: some DataProtocol) throws {
+                guard seedRepresentation.count == MLKEM.seedByteCount else {
                     throw CryptoKitError.incorrectKeySize
                 }
 
                 self.key = .init()
-                self.seed = Data(seed)
+                self.seed = Data(seedRepresentation)
 
                 guard
                     self.seed.withUnsafeBytes({ seedPtr in
@@ -315,15 +315,15 @@ extension MLKEM1024 {
 
         /// Initialize a ML-KEM-1024 private key from a seed.
         ///
-        /// - Parameter seed: The seed to use to generate the private key.
+        /// - Parameter seedRepresentation: The seed to use to generate the private key.
         ///
         /// - Throws: `CryptoKitError.incorrectKeySize` if the seed is not 64 bytes long.
-        public init(seed: some DataProtocol) throws {
-            self.backing = try Backing(seed: seed)
+        public init(seedRepresentation: some DataProtocol) throws {
+            self.backing = try Backing(seedRepresentation: seedRepresentation)
         }
 
         /// The seed from which this private key was generated.
-        public var seed: Data {
+        public var seedRepresentation: Data {
             self.backing.seed
         }
 
@@ -373,16 +373,16 @@ extension MLKEM1024 {
 
             /// Initialize a ML-KEM-1024 private key from a seed.
             ///
-            /// - Parameter seed: The seed to use to generate the private key.
+            /// - Parameter seedRepresentation: The seed to use to generate the private key.
             ///
             /// - Throws: `CryptoKitError.incorrectKeySize` if the seed is not 64 bytes long.
-            init(seed: some DataProtocol) throws {
-                guard seed.count == MLKEM.seedByteCount else {
+            init(seedRepresentation: some DataProtocol) throws {
+                guard seedRepresentation.count == MLKEM.seedByteCount else {
                     throw CryptoKitError.incorrectKeySize
                 }
 
                 self.key = .init()
-                self.seed = Data(seed)
+                self.seed = Data(seedRepresentation)
 
                 guard
                     self.seed.withUnsafeBytes({ seedPtr in
