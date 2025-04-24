@@ -15,23 +15,23 @@ import Crypto
 import Foundation
 
 #if canImport(Darwin) && !CRYPTO_IN_SWIFTPM
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 typealias SupportedCurveDetailsImpl = CorecryptoSupportedNISTCurve
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 typealias GroupImpl = CoreCryptoGroup
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 typealias HashToCurveImpl = CoreCryptoHashToCurve
 #else
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 typealias SupportedCurveDetailsImpl = OpenSSLSupportedNISTCurve
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 typealias GroupImpl = OpenSSLGroup
-@available(macOS 10.15, iOS 13.2, tvOS 13.2, watchOS 6.1, *)
+@available(macOS 10.15, iOS 13.2, tvOS 13.2, watchOS 6.1, macCatalyst 13.2, visionOS 1.2, *)
 typealias HashToCurveImpl = OpenSSLHashToCurve
 #endif
 
 /// A prime-order group
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 protocol Group {
     /// Group element
     associatedtype Element: GroupElement
@@ -43,7 +43,7 @@ protocol Group {
     static var cofactor: Int { get }
 }
 
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 protocol HashToGroup {
     associatedtype H: HashFunction
     associatedtype G: Group where G.Element: OPRFGroupElement
@@ -52,7 +52,7 @@ protocol HashToGroup {
     static func hashToGroup(_ data: Data, domainSeparationString: Data) -> G.Element
 }
 
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 protocol GroupScalar {
     init(bytes: Data, reductionIsModOrder: Bool) throws
 
@@ -75,7 +75,7 @@ protocol GroupScalar {
     static func == (left: Self, right: Self) -> Bool
 }
 
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 protocol GroupElement {
     associatedtype Scalar: GroupScalar
 

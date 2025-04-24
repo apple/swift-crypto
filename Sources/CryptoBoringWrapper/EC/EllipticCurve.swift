@@ -16,9 +16,13 @@
 /// A wrapper around BoringSSL's EC_GROUP object that handles reference counting and
 /// liveness.
 @usableFromInline
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 package final class BoringSSLEllipticCurveGroup {
     @usableFromInline var _group: OpaquePointer
+
+    @usableFromInline package let order: ArbitraryPrecisionInteger
+
+    @usableFromInline package let generator: EllipticCurvePoint
 
     @usableFromInline
     package init(_ curve: CurveName) throws {
@@ -27,6 +31,11 @@ package final class BoringSSLEllipticCurveGroup {
         }
 
         self._group = group
+
+        let baseOrder = CCryptoBoringSSL_EC_GROUP_get0_order(self._group)!
+        self.order = try! ArbitraryPrecisionInteger(copying: baseOrder)
+
+        self.generator = try EllipticCurvePoint(_generatorOf: self._group)
     }
 
     deinit {
@@ -36,7 +45,7 @@ package final class BoringSSLEllipticCurveGroup {
 
 // MARK: - Helpers
 
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension BoringSSLEllipticCurveGroup {
     @usableFromInline
     package var coordinateByteCount: Int {
@@ -68,23 +77,6 @@ extension BoringSSLEllipticCurveGroup {
         try body(self._group)
     }
 
-    @usableFromInline
-    package var order: ArbitraryPrecisionInteger {
-        // Groups must have an order.
-        let baseOrder = CCryptoBoringSSL_EC_GROUP_get0_order(self._group)!
-        return try! ArbitraryPrecisionInteger(copying: baseOrder)
-    }
-
-    @usableFromInline
-    package var generator: EllipticCurvePoint {
-        get throws {
-            guard let generatorPtr = CCryptoBoringSSL_EC_GROUP_get0_generator(self._group) else {
-                throw CryptoBoringWrapperError.internalBoringSSLError()
-            }
-            return try EllipticCurvePoint(copying: generatorPtr, on: self)
-        }
-    }
-
     /// An elliptic curve can be represented in a Weierstrass form: `y² = x³ + ax + b`. This
     /// property provides the values of a and b on the curve.
     @usableFromInline
@@ -110,10 +102,10 @@ extension BoringSSLEllipticCurveGroup {
 
 // MARK: - CurveName
 
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension BoringSSLEllipticCurveGroup {
     @usableFromInline
-    @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
+    @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
     package enum CurveName {
         case p256
         case p384
@@ -135,7 +127,7 @@ extension BoringSSLEllipticCurveGroup {
     }
 }
 
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension BoringSSLEllipticCurveGroup.CurveName {
     @usableFromInline
     var baseNID: CInt {

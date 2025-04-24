@@ -17,7 +17,7 @@
 import Foundation
 
 
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension HPKE {
 	/// Cipher suites to use in hybrid public key encryption.
     ///
@@ -25,7 +25,7 @@ extension HPKE {
     /// and decrypting messages, the key derivation function (KDF) for deriving the shared key, and the key encapsulation
     /// mechanism (KEM) for sharing the symmetric key. The sender and recipient of encrypted messages need to use the
     /// same cipher suite.
-    @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
+    @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
     public struct Ciphersuite {
 		/// A cipher suite for HPKE that uses NIST P-256 elliptic curve key agreement, SHA-2 key derivation
         /// with a 256-bit digest, and the Advanced Encryption Standard cipher in Galois/Counter Mode with a key length of 256 bits.
