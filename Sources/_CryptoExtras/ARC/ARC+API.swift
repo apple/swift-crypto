@@ -24,10 +24,11 @@ extension P384 {
     /// - Seealso: [IETF Internet Draft: draft-yun-cfrg-arc-00](https://datatracker.ietf.org/doc/draft-yun-cfrg-arc).
     public enum _ARCV1 {
         internal typealias H2G = HashToCurveImpl<P384>
-        fileprivate typealias Ciphersuite = ARC.Ciphersuite<H2G>
+        internal typealias Ciphersuite = ARC.Ciphersuite<H2G>
         fileprivate typealias Server = ARC.Server<H2G>
 
-        fileprivate static var ciphersuite: Ciphersuite { Ciphersuite(H2G.self) }
+        // TODO: ARC internals changed recently to use this a lot more——might benefit from being a stored property.
+        internal static var ciphersuite: Ciphersuite { Ciphersuite(H2G.self) }
     }
 }
 
@@ -169,11 +170,11 @@ extension P384._ARCV1 {
         }
 
         public init<D: DataProtocol>(rawRepresentation: D) throws {
-            self.backing = try ARC.CredentialRequest.deserialize(requestData: rawRepresentation)
+            self.backing = try ARC.CredentialRequest.deserialize(requestData: rawRepresentation, ciphersuite: P384._ARCV1.ciphersuite)
         }
 
         public var rawRepresentation: Data {
-            self.backing.serialize()
+            self.backing.serialize(ciphersuite: P384._ARCV1.ciphersuite)
         }
     }
 
@@ -204,11 +205,11 @@ extension P384._ARCV1 {
         }
 
         public init<D: DataProtocol>(rawRepresentation: D) throws {
-            self.backing = try ARC.CredentialResponse.deserialize(responseData: rawRepresentation)
+            self.backing = try ARC.CredentialResponse.deserialize(responseData: rawRepresentation, ciphersuite: P384._ARCV1.ciphersuite)
         }
 
         public var rawRepresentation: Data {
-            self.backing.serialize()
+            self.backing.serialize(ciphersuite: P384._ARCV1.ciphersuite)
         }
     }
 
@@ -235,11 +236,11 @@ extension P384._ARCV1 {
         }
 
         public init<D: DataProtocol>(rawRepresentation: D) throws {
-            self.backing = try ARC.Presentation.deserialize(presentationData: rawRepresentation)
+            self.backing = try ARC.Presentation.deserialize(presentationData: rawRepresentation, ciphersuite: P384._ARCV1.ciphersuite)
         }
 
         public var rawRepresentation: Data {
-            self.backing.serialize()
+            self.backing.serialize(ciphersuite: P384._ARCV1.ciphersuite)
         }
 
         public var tag: Data {
