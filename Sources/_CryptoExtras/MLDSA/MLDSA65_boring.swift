@@ -65,7 +65,7 @@ extension MLDSA65 {
         static let byteCount = Backing.byteCount
 
         fileprivate final class Backing {
-            var key: MLDSA65_private_key
+            fileprivate var key: MLDSA65_private_key
             var seed: Data
 
             /// Initialize a ML-DSA-65 private key from a random seed.
@@ -211,7 +211,7 @@ extension MLDSA65 {
         static let byteCount = Backing.byteCount
 
         fileprivate final class Backing {
-            var key: MLDSA65_public_key
+            private var key: MLDSA65_public_key
 
             init(privateKeyBacking: PrivateKey.Backing) {
                 self.key = .init()
