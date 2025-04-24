@@ -33,7 +33,7 @@ extension MLDSA65 {
 
         /// Initialize a ML-DSA-65 private key from a seed.
         ///
-        /// - Parameter seed: The seed to use to generate the private key.
+        /// - Parameter seedRepresentation: The seed to use to generate the private key.
         ///
         /// - Throws: `CryptoKitError.incorrectKeySize` if the seed is not 32 bytes long.
         public init(seedRepresentation: some DataProtocol) throws {
@@ -109,7 +109,7 @@ extension MLDSA65 {
 
             /// Initialize a ML-DSA-65 private key from a seed.
             ///
-            /// - Parameter seed: The seed to use to generate the private key.
+            /// - Parameter seedRepresentation: The seed to use to generate the private key.
             ///
             /// - Throws: `CryptoKitError.incorrectKeySize` if the seed is not 32 bytes long.
             init(seedRepresentation: some DataProtocol) throws {
