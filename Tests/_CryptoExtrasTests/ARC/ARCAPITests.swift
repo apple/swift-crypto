@@ -21,14 +21,20 @@ final class ARCAPITests: XCTestCase {
     func testVectors() throws {
         let data = ARCEncodedTestVector.data(using: .utf8)!
         let decoder = JSONDecoder()
-        for vector in try decoder.decode([ARCTestVector].self, from: data) {
-            try testVector(vector)
+        let vectors = try decoder.decode([ARCTestVector].self, from: data)
+        XCTAssert(vectors.count > 0, "No test vectors found")
+        for vector in vectors {
+            switch vector.suite {
+            case "ARCV1-P256": try testVector(vector, using: P256.self)
+            case "ARCV1-P384": try testVector(vector, using: P384.self)
+            default: XCTFail("Test vector suite not supported: \(vector.suite)")
+            }
         }
     }
 
-    func testVector(_ vector: ARCTestVector) throws {
+    fileprivate func testVector<Curve: ARCCurve>(_ vector: ARCTestVector, using _: Curve.Type = Curve.self) throws {
         // [Issuer] Create the server secrets.
-        let privateKey = try P384._ARCV1.PrivateKey(rawRepresentation: Data(
+        let privateKey = try Curve._ARCV1.PrivateKey(rawRepresentation: Data(
             hexString: vector.ServerKey.x0 + vector.ServerKey.x1 + vector.ServerKey.x2 + vector.ServerKey.xb
         ))
 
@@ -52,14 +58,14 @@ final class ARCAPITests: XCTestCase {
         _ = (publicKeyBytes, requestContext, presentationContext, presentationLimit)
 
         // [Client] Obtain public key out of band (other serializations may be available).
-        let publicKey = try P384._ARCV1.PublicKey(rawRepresentation: publicKeyBytes)
+        let publicKey = try Curve._ARCV1.PublicKey(rawRepresentation: publicKeyBytes)
 
         // [Client] Prepare a credential request using fixed values from test vector.
         let precredential = try publicKey.prepareCredentialRequest(
             requestContext: requestContext,
-            m1: P384._ARCV1.H2G.G.Scalar(bytes: Data(hexString: vector.CredentialRequest.m1)),
-            r1: P384._ARCV1.H2G.G.Scalar(bytes: Data(hexString: vector.CredentialRequest.r1)),
-            r2: P384._ARCV1.H2G.G.Scalar(bytes: Data(hexString: vector.CredentialRequest.r2))
+            m1: Curve._ARCV1.H2G.G.Scalar(bytes: Data(hexString: vector.CredentialRequest.m1)),
+            r1: Curve._ARCV1.H2G.G.Scalar(bytes: Data(hexString: vector.CredentialRequest.r1)),
+            r2: Curve._ARCV1.H2G.G.Scalar(bytes: Data(hexString: vector.CredentialRequest.r2))
         )
 
         // [Client -> Issuer] Send the credential request.
@@ -67,17 +73,17 @@ final class ARCAPITests: XCTestCase {
 
         // [CHECK] Credential request scalars match test vector.
         XCTAssertEqual(
-            credentialRequestBytes[..<(2 * P384.compressedx962PointByteCount)].hexString,
+            credentialRequestBytes[..<(2 * Curve.compressedx962PointByteCount)].hexString,
             vector.CredentialRequest.m1_enc + vector.CredentialRequest.m2_enc
         )
 
         // [Issuer] Receive the credential request.
-        let credentialRequest = try P384._ARCV1.CredentialRequest(rawRepresentation: credentialRequestBytes)
+        let credentialRequest = try Curve._ARCV1.CredentialRequest(rawRepresentation: credentialRequestBytes)
 
         // [Issuer] Generate a credential response with fixed value from test vector.
         let credentialResponse = try privateKey.issue(
             credentialRequest,
-            b: P384._ARCV1.H2G.G.Scalar(bytes: Data(hexString: vector.CredentialResponse.b))
+            b: Curve._ARCV1.H2G.G.Scalar(bytes: Data(hexString: vector.CredentialResponse.b))
         )
 
         // [Issuer -> Client] Send the credential response.
@@ -85,7 +91,7 @@ final class ARCAPITests: XCTestCase {
 
         // [CHECK] Credential response scalars match test vector, excluding proof.
         XCTAssertEqual(
-            credentialResponseBytes[..<(6 * P384.compressedx962PointByteCount)].hexString,
+            credentialResponseBytes[..<(6 * Curve.compressedx962PointByteCount)].hexString,
             vector.CredentialResponse.U
             + vector.CredentialResponse.enc_U_prime
             + vector.CredentialResponse.X0_aux
@@ -95,7 +101,7 @@ final class ARCAPITests: XCTestCase {
         )
 
         // [Client] Receive the credential response.
-        let _ = try P384._ARCV1.CredentialResponse(rawRepresentation: credentialResponseBytes)
+        let _ = try Curve._ARCV1.CredentialResponse(rawRepresentation: credentialResponseBytes)
 
         // [Client] Generate a credential.
         var credential = try publicKey.finalize(credentialResponse, for: precredential)
@@ -111,9 +117,9 @@ final class ARCAPITests: XCTestCase {
             context: presentationContext,
             presentationLimit: presentationLimit,
             fixedNonce: Int(vector.Presentation1.nonce.dropFirst(2), radix: 16)!,
-            a: P384._ARCV1.H2G.G.Scalar(bytes: Data(hexString: vector.Presentation1.a)),
-            r: P384._ARCV1.H2G.G.Scalar(bytes: Data(hexString: vector.Presentation1.r)),
-            z: P384._ARCV1.H2G.G.Scalar(bytes: Data(hexString: vector.Presentation1.z))
+            a: Curve._ARCV1.H2G.G.Scalar(bytes: Data(hexString: vector.Presentation1.a)),
+            r: Curve._ARCV1.H2G.G.Scalar(bytes: Data(hexString: vector.Presentation1.r)),
+            z: Curve._ARCV1.H2G.G.Scalar(bytes: Data(hexString: vector.Presentation1.z))
         )
 
         // NOTE: The presentation proof depends on randomly generated blinding factors. This layer doesn't expose
@@ -135,14 +141,14 @@ final class ARCAPITests: XCTestCase {
 
         // [CHECK]: Serialization of presentation (ecluding proof) matches spec.
         XCTAssertEqual(
-            presentation.rawRepresentation[..<(4 * P384.compressedx962PointByteCount)].hexString,
+            presentation.rawRepresentation[..<(4 * Curve.compressedx962PointByteCount)].hexString,
             vector.Presentation1.U
             + vector.Presentation1.U_prime_commit
             + vector.Presentation1.m1_commit
             + vector.Presentation1.tag
         )
         XCTAssertEqual(
-            presentation.rawRepresentation[(4 * P384.compressedx962PointByteCount)...].hexString.count,
+            presentation.rawRepresentation[(4 * Curve.compressedx962PointByteCount)...].hexString.count,
             vector.Presentation1.proof.count
         )
 
@@ -155,12 +161,12 @@ final class ARCAPITests: XCTestCase {
             + vector.Presentation1.proof
         )
         XCTAssertEqual(
-            try P384._ARCV1.Presentation(rawRepresentation: testVectorPresentationBytes).rawRepresentation.hexString,
+            try Curve._ARCV1.Presentation(rawRepresentation: testVectorPresentationBytes).rawRepresentation.hexString,
             testVectorPresentationBytes.hexString
         )
 
         // [Verifier] Receive the presentation (and the nonce, out of band).
-        let receivedPresentation = try P384._ARCV1.Presentation(rawRepresentation: testVectorPresentationBytes)
+        let receivedPresentation = try Curve._ARCV1.Presentation(rawRepresentation: testVectorPresentationBytes)
         let nonce = Int(vector.Presentation1.nonce.dropFirst(2), radix: 16)!
 
         // [Verifier] Verify the presentation.
@@ -174,3 +180,113 @@ final class ARCAPITests: XCTestCase {
         XCTAssertTrue(validPresentation)
     }
 }
+
+// MARK: - Fileprivate protocols to create a unified test over the ARC curves.
+
+fileprivate protocol ARCCredentialRequest {
+    init(rawRepresentation: some DataProtocol) throws
+    var rawRepresentation: Data { get }
+}
+
+fileprivate protocol ARCCredentialResponse {
+    init(rawRepresentation: some DataProtocol) throws
+    var rawRepresentation: Data { get }
+}
+
+fileprivate protocol ARCPresentation<H2G> {
+    associatedtype H2G: HashToGroup
+    var backing: ARC.Presentation<H2G> { get }
+    init(rawRepresentation: some DataProtocol) throws
+    var rawRepresentation: Data { get }
+}
+
+fileprivate protocol ARCCredential<H2G, Presentation> {
+    associatedtype H2G: HashToGroup
+    associatedtype Presentation: ARCPresentation
+    var backing: ARC.Credential<H2G> { get }
+    mutating func makePresentation(
+        context: some DataProtocol,
+        presentationLimit: Int,
+        fixedNonce: Int?,
+        a: H2G.G.Scalar,
+        r: H2G.G.Scalar,
+        z: H2G.G.Scalar
+    ) throws -> (presentation: Presentation, nonce: Int)
+    mutating func makePresentation(context: some DataProtocol, presentationLimit: Int) throws -> (presentation: Presentation, nonce: Int)
+}
+
+fileprivate protocol ARCPrivateKey<H2G, CredentialRequest, CredentialResponse, Credential, Presentation> {
+    associatedtype H2G: HashToGroup
+    associatedtype Credential
+    associatedtype PublicKey: ARCPublicKey<H2G, CredentialResponse, Credential>
+    associatedtype CredentialRequest: ARCCredentialRequest
+    associatedtype CredentialResponse: ARCCredentialResponse
+    associatedtype Presentation: ARCPresentation
+    init(rawRepresentation: some DataProtocol) throws
+    var rawRepresentation: Data { get }
+    var publicKey: PublicKey { get }
+    func issue(_ credentialRequest: CredentialRequest, b: H2G.G.Scalar) throws -> CredentialResponse
+    func verify(
+        _: Presentation,
+        requestContext: some DataProtocol,
+        presentationContext: some DataProtocol,
+        presentationLimit: Int,
+        nonce: Int
+    ) throws -> Bool
+}
+
+fileprivate protocol ARCPublicKey<H2G, CredentialResponse, Credential> {
+    associatedtype H2G: HashToGroup
+    associatedtype Precredential: ARCPrecredential
+    associatedtype CredentialResponse: ARCCredentialResponse
+    associatedtype Credential: ARCCredential
+    init(rawRepresentation: some DataProtocol) throws
+    var rawRepresentation: Data { get }
+    func prepareCredentialRequest(requestContext: some DataProtocol, m1: H2G.G.Scalar, r1: H2G.G.Scalar, r2: H2G.G.Scalar) throws -> Precredential
+    func prepareCredentialRequest(requestContext: some DataProtocol) throws -> Precredential
+    func finalize(_ credentialResponse: CredentialResponse, for precredential: Precredential) throws -> Credential
+}
+
+fileprivate protocol ARCPrecredential {
+    associatedtype CredentialRequest: ARCCredentialRequest
+    var credentialRequest: CredentialRequest { get }
+}
+
+fileprivate protocol ARCV1<H2G> {
+    associatedtype H2G: HashToGroup
+    associatedtype CredentialRequest: ARCCredentialRequest
+    associatedtype CredentialResponse: ARCCredentialResponse
+    associatedtype Presentation: ARCPresentation<H2G>
+    associatedtype Credential: ARCCredential<H2G, Presentation>
+    associatedtype PrivateKey: ARCPrivateKey<H2G, CredentialRequest, CredentialResponse, Credential, Presentation>
+    associatedtype PublicKey: ARCPublicKey<H2G, CredentialResponse, Credential>
+}
+
+fileprivate protocol ARCCurve: OpenSSLSupportedNISTCurve {
+    associatedtype H2G: HashToGroup where H2G == OpenSSLHashToCurve<Self>
+    associatedtype _ARCV1: ARCV1<H2G>
+}
+
+extension P256._ARCV1.Precredential: ARCPrecredential {}
+extension P256._ARCV1.CredentialRequest: ARCCredentialRequest {}
+extension P256._ARCV1.CredentialResponse: ARCCredentialResponse {}
+extension P256._ARCV1.Credential: ARCCredential {}
+extension P256._ARCV1.Presentation: ARCPresentation {}
+extension P256._ARCV1.PublicKey: ARCPublicKey {
+    typealias H2G = P256._ARCV1.H2G
+}
+extension P256._ARCV1.PrivateKey: ARCPrivateKey {}
+extension P256._ARCV1: ARCV1 {}
+extension P256: ARCCurve {}
+
+extension P384._ARCV1.Precredential: ARCPrecredential {}
+extension P384._ARCV1.CredentialRequest: ARCCredentialRequest {}
+extension P384._ARCV1.CredentialResponse: ARCCredentialResponse {}
+extension P384._ARCV1.Credential: ARCCredential {}
+extension P384._ARCV1.Presentation: ARCPresentation {}
+extension P384._ARCV1.PublicKey: ARCPublicKey {
+    typealias H2G = P384._ARCV1.H2G
+}
+extension P384._ARCV1.PrivateKey: ARCPrivateKey {}
+extension P384._ARCV1: ARCV1 {}
+extension P384: ARCCurve {}
