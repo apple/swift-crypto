@@ -68,7 +68,7 @@ extension MLKEM768 {
         /// - Throws: `CryptoKitError.incorrectParameterSize` if the encapsulated shared secret is not 1088 bytes long.
         ///
         /// - Returns: The symmetric key.
-        public func decapsulate(_ encapsulated: Data) throws -> SymmetricKey {
+        public func decapsulate(_ encapsulated: some DataProtocol) throws -> SymmetricKey {
             try self.backing.decapsulate(encapsulated)
         }
 
@@ -138,7 +138,7 @@ extension MLKEM768 {
             /// - Throws: `CryptoKitError.incorrectParameterSize` if the encapsulated shared secret is not 1088 bytes long.
             ///
             /// - Returns: The symmetric key.
-            func decapsulate(_ encapsulated: Data) throws -> SymmetricKey {
+            func decapsulate(_ encapsulated: some DataProtocol) throws -> SymmetricKey {
                 guard encapsulated.count == MLKEM768.ciphertextByteCount else {
                     throw CryptoKitError.incorrectParameterSize
                 }
@@ -339,7 +339,7 @@ extension MLKEM1024 {
         /// - Throws: `CryptoKitError.incorrectParameterSize` if the encapsulated shared secret is not 1088 bytes long.
         ///
         /// - Returns: The symmetric key.
-        public func decapsulate(_ encapsulated: Data) throws -> SymmetricKey {
+        public func decapsulate(_ encapsulated: some DataProtocol) throws -> SymmetricKey {
             try self.backing.decapsulate(encapsulated)
         }
 
@@ -409,7 +409,7 @@ extension MLKEM1024 {
             /// - Throws: `CryptoKitError.incorrectParameterSize` if the encapsulated shared secret is not 1088 bytes long.
             ///
             /// - Returns: The symmetric key.
-            func decapsulate(_ encapsulated: Data) throws -> SymmetricKey {
+            func decapsulate(_ encapsulated: some DataProtocol) throws -> SymmetricKey {
                 guard encapsulated.count == MLKEM1024.ciphertextByteCount else {
                     throw CryptoKitError.incorrectParameterSize
                 }
