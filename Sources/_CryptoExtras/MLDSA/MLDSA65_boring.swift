@@ -52,12 +52,22 @@ extension MLDSA65 {
 
         /// Generate a signature for the given data.
         ///
+        /// - Parameter data: The message to sign.
+        ///
+        /// - Returns: The signature of the message.
+        public func signature<D: DataProtocol>(for data: D) throws -> Data {
+            let context: Data? = nil
+            return try self.backing.signature(for: data, context: context)
+        }
+
+        /// Generate a signature for the given data.
+        ///
         /// - Parameters:
         ///   - data: The message to sign.
         ///   - context: The context to use for the signature.
         ///
         /// - Returns: The signature of the message.
-        public func signature<D: DataProtocol>(for data: D, context: D? = nil) throws -> Data {
+        public func signature<D: DataProtocol, C: DataProtocol>(for data: D, context: C?) throws -> Data {
             try self.backing.signature(for: data, context: context)
         }
 
@@ -135,7 +145,7 @@ extension MLDSA65 {
             ///   - context: The context to use for the signature.
             ///
             /// - Returns: The signature of the message.
-            func signature<D: DataProtocol>(for data: D, context: D? = nil) throws -> Data {
+            func signature<D: DataProtocol, C: DataProtocol>(for data: D, context: C?) throws -> Data {
                 var signature = Data(repeating: 0, count: MLDSA65.signatureByteCount)
 
                 let rc: CInt = signature.withUnsafeMutableBytes { signaturePtr in
