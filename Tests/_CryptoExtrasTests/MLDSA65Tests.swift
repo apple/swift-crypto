@@ -113,10 +113,27 @@ final class MLDSA65Tests: XCTestCase {
         line: UInt = #line,
         testFunction: (Vector) throws -> Void
     ) throws {
-        let testsDirectory: String = URL(fileURLWithPath: "\(#file)").pathComponents.dropLast(2).joined(separator: "/")
-        let fileURL: URL? = URL(fileURLWithPath: "\(testsDirectory)/_CryptoExtrasVectors/\(jsonName).json")
-        let data = try Data(contentsOf: fileURL!)
+        var fileURL = URL(fileURLWithPath: "\(#file)")
+        for _ in 0..<2 {
+            fileURL.deleteLastPathComponent()
+        }
+        #if compiler(>=6.0)
+        if #available(macOS 13, iOS 16, watchOS 9, tvOS 16, visionOS 1, macCatalyst 16, *) {
+            fileURL.append(path: "_CryptoExtrasVectors", directoryHint: .isDirectory)
+            fileURL.append(path: "\(jsonName).json", directoryHint: .notDirectory)
+        } else {
+            fileURL = fileURL.appendingPathComponent("_CryptoExtrasVectors", isDirectory: true)
+            fileURL = fileURL.appendingPathComponent("\(jsonName).json", isDirectory: false)
+        }
+        #else
+        fileURL = fileURL.appendingPathComponent("_CryptoExtrasVectors", isDirectory: true)
+        fileURL = fileURL.appendingPathComponent("\(jsonName).json", isDirectory: false)
+        #endif
+
+        let data = try Data(contentsOf: fileURL)
+
         let testFile = try JSONDecoder().decode(NISTTestFile<Vector>.self, from: data)
+
         for vector in testFile.testVectors {
             try testFunction(vector)
         }
