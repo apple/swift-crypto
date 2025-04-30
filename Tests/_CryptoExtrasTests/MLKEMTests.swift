@@ -12,7 +12,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-import CryptoKit
+import Crypto
 import XCTest
 
 @testable import _CryptoExtras
