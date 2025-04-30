@@ -14,7 +14,7 @@
 
 import SwiftASN1
 
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 struct SubjectPublicKeyInfo: DERImplicitlyTaggable, Hashable {
     static var defaultIdentifier: ASN1Identifier {
         .sequence
@@ -57,7 +57,7 @@ struct SubjectPublicKeyInfo: DERImplicitlyTaggable, Hashable {
     }
 }
 
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 struct RFC5480AlgorithmIdentifier: DERImplicitlyTaggable, Hashable {
     static var defaultIdentifier: ASN1Identifier {
         .sequence
@@ -106,7 +106,7 @@ struct RFC5480AlgorithmIdentifier: DERImplicitlyTaggable, Hashable {
     }
 }
 
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension SubjectPublicKeyInfo {
     static func stripRsaPssParameters(derEncoded: [UInt8]) throws -> [UInt8] {
         guard var spki = try? SubjectPublicKeyInfo(derEncoded: derEncoded),

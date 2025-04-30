@@ -18,7 +18,7 @@ import Crypto
 import CryptoBoringWrapper
 import Foundation
 
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension AES {
     private static let blockSize = 128 / 8
 
@@ -79,7 +79,7 @@ extension AES {
         }
     }
 
-    @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
+    @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
     enum Permutation {
         case forward
         case backward
@@ -112,7 +112,7 @@ extension AES {
         }
     }
 
-    @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
+    @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
     struct Block {
         private static var blockSize: Int { 16 }
 
@@ -207,7 +207,7 @@ extension AES {
     }
 }
 
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension AES.Block: RandomAccessCollection, MutableCollection {
     var startIndex: Int {
         0

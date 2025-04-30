@@ -16,10 +16,10 @@
 #else
 import Foundation
 
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension HPKE {
 	/// The key encapsulation mechanisms to use in HPKE.
-    @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
+    @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
     public enum KEM: CaseIterable, Hashable {
 		/// A key encapsulation mechanism using NIST P-256 elliptic curve key agreement
 		/// and SHA-2 hashing with a 256-bit digest.

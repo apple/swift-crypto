@@ -12,7 +12,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension UnsafeMutableRawBufferPointer {
     @inlinable
     package func initializeWithRandomBytes(count: Int) {
@@ -20,7 +20,7 @@ extension UnsafeMutableRawBufferPointer {
             return
         }
 
-        #if canImport(Darwin) || os(Linux) || os(Android) || os(Windows) || os(FreeBSD)
+        #if canImport(Darwin) || os(Linux) || os(Android) || os(Windows) || os(FreeBSD) || os(OpenBSD)
         var rng = SystemRandomNumberGenerator()
         precondition(count <= self.count)
 
@@ -45,7 +45,7 @@ extension UnsafeMutableRawBufferPointer {
     }
 }
 
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension SystemRandomNumberGenerator {
     @inlinable
     package static func randomBytes(count: Int) -> [UInt8] {
