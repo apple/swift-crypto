@@ -17,13 +17,16 @@ import Crypto
 import Foundation
 
 /// A stateless hash-based digital signature algorithm that provides security against quantum computing attacks.
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 public enum SLHDSA {}
 
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension SLHDSA {
     /// The SLH-DSA-SHA2-128s parameter set.
     public enum SHA2_128s {}
 }
 
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension SLHDSA.SHA2_128s {
     /// A SLH-DSA-SHA2-128s private key.
     public struct PrivateKey: Sendable {
@@ -127,23 +130,14 @@ extension SLHDSA.SHA2_128s {
                 let rc: CInt = signature.withUnsafeMutableBytes { signaturePtr in
                     let bytes: ContiguousBytes = data.regions.count == 1 ? data.regions.first! : Array(data)
                     return bytes.withUnsafeBytes { dataPtr in
-                        if let context {
+                        context.withUnsafeBytes { contextPtr in
                             CCryptoBoringSSL_SLHDSA_SHA2_128S_sign(
                                 signaturePtr.baseAddress,
                                 self.pointer,
                                 dataPtr.baseAddress,
                                 dataPtr.count,
-                                Array(context),
-                                context.count
-                            )
-                        } else {
-                            CCryptoBoringSSL_SLHDSA_SHA2_128S_sign(
-                                signaturePtr.baseAddress,
-                                self.pointer,
-                                dataPtr.baseAddress,
-                                dataPtr.count,
-                                nil,
-                                0
+                                contextPtr.baseAddress,
+                                contextPtr.count
                             )
                         }
                     }
@@ -162,6 +156,7 @@ extension SLHDSA.SHA2_128s {
     }
 }
 
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension SLHDSA.SHA2_128s {
     /// A SLH-DSA-SHA2-128s public key.
     public struct PublicKey: Sendable {
@@ -255,25 +250,15 @@ extension SLHDSA.SHA2_128s {
                 return signatureBytes.withUnsafeBytes { signaturePtr in
                     let dataBytes: ContiguousBytes = data.regions.count == 1 ? data.regions.first! : Array(data)
                     let rc: CInt = dataBytes.withUnsafeBytes { dataPtr in
-                        if let context {
+                        context.withUnsafeBytes { contextPtr in
                             CCryptoBoringSSL_SLHDSA_SHA2_128S_verify(
                                 signaturePtr.baseAddress,
                                 signaturePtr.count,
                                 self.pointer,
                                 dataPtr.baseAddress,
                                 dataPtr.count,
-                                Array(context),
-                                context.count
-                            )
-                        } else {
-                            CCryptoBoringSSL_SLHDSA_SHA2_128S_verify(
-                                signaturePtr.baseAddress,
-                                signaturePtr.count,
-                                self.pointer,
-                                dataPtr.baseAddress,
-                                dataPtr.count,
-                                nil,
-                                0
+                                contextPtr.baseAddress,
+                                contextPtr.count
                             )
                         }
                     }
@@ -287,6 +272,7 @@ extension SLHDSA.SHA2_128s {
     }
 }
 
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension SLHDSA.SHA2_128s {
     /// The size of the signature in bytes.
     private static let signatureByteCount = 7856
