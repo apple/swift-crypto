@@ -58,12 +58,22 @@ extension SLHDSA.SHA2_128s {
 
         /// Generate a signature for the given data.
         ///
+        /// - Parameter data: The message to sign.
+        ///
+        /// - Returns: The signature of the message.
+        public func signature<D: DataProtocol>(for data: D) throws -> Data {
+            let context: Data? = nil
+            return try self.backing.signature(for: data, context: context)
+        }
+
+        /// Generate a signature for the given data.
+        ///
         /// - Parameters:
         ///   - data: The message to sign.
         ///   - context: The context to use for the signature.
         ///
         /// - Returns: The signature of the message.
-        public func signature<D: DataProtocol>(for data: D, context: D? = nil) throws -> Data {
+        public func signature<D: DataProtocol, C: DataProtocol>(for data: D, context: C) throws -> Data {
             try self.backing.signature(for: data, context: context)
         }
 
@@ -124,7 +134,7 @@ extension SLHDSA.SHA2_128s {
             ///   - context: The context to use for the signature.
             ///
             /// - Returns: The signature of the message.
-            func signature<D: DataProtocol>(for data: D, context: D? = nil) throws -> Data {
+            func signature<D: DataProtocol, C: DataProtocol>(for data: D, context: C?) throws -> Data {
                 var signature = Data(repeating: 0, count: SLHDSA.SHA2_128s.signatureByteCount)
 
                 let rc: CInt = signature.withUnsafeMutableBytes { signaturePtr in
@@ -185,13 +195,28 @@ extension SLHDSA.SHA2_128s {
         /// - Parameters:
         ///   - signature: The signature to verify.
         ///   - data: The message to verify the signature against.
-        ///   - context: The context to use for the signature verification.
         ///
         /// - Returns: `true` if the signature is valid, `false` otherwise.
         public func isValidSignature<S: DataProtocol, D: DataProtocol>(
             _ signature: S,
+            for data: D
+        ) -> Bool {
+            let context: Data? = nil
+            return self.backing.isValidSignature(signature, for: data, context: context)
+        }
+
+        /// Verify a signature for the given data.
+        ///
+        /// - Parameters:
+        ///   - signature: The signature to verify.
+        ///   - data: The message to verify the signature against.
+        ///   - context: The context to use for the signature verification.
+        ///
+        /// - Returns: `true` if the signature is valid, `false` otherwise.
+        public func isValidSignature<S: DataProtocol, D: DataProtocol, C: DataProtocol>(
+            _ signature: S,
             for data: D,
-            context: D? = nil
+            context: C
         ) -> Bool {
             self.backing.isValidSignature(signature, for: data, context: context)
         }
@@ -240,10 +265,10 @@ extension SLHDSA.SHA2_128s {
             ///   - context: The context to use for the signature verification.
             ///
             /// - Returns: `true` if the signature is valid, `false` otherwise.
-            func isValidSignature<S: DataProtocol, D: DataProtocol>(
+            func isValidSignature<S: DataProtocol, D: DataProtocol, C: DataProtocol>(
                 _ signature: S,
                 for data: D,
-                context: D? = nil
+                context: C?
             ) -> Bool {
                 let signatureBytes: ContiguousBytes =
                     signature.regions.count == 1 ? signature.regions.first! : Array(signature)
