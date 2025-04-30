@@ -23,7 +23,11 @@ import Security
 typealias ChaChaPolyImpl = OpenSSLChaChaPolyImpl
 #endif
 
+#if canImport(FoundationEssentials)
+import FoundationEssentials
+#else
 import Foundation
+#endif
 
 /// An implementation of the ChaCha20-Poly1305 cipher.
 @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
