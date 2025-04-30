@@ -138,9 +138,17 @@ final class MLDSA65Tests: XCTestCase {
 
                 switch test.result {
                 case .valid:
-                    XCTAssertTrue(publicKey.isValidSignature(signature, for: message, context: context))
+                    if let context {
+                        XCTAssertTrue(publicKey.isValidSignature(signature, for: message, context: context))
+                    } else {
+                        XCTAssertTrue(publicKey.isValidSignature(signature, for: message))
+                    }
                 case .invalid:
-                    XCTAssertFalse(publicKey.isValidSignature(signature, for: message, context: context))
+                    if let context {
+                        XCTAssertFalse(publicKey.isValidSignature(signature, for: message, context: context))
+                    } else {
+                        XCTAssertFalse(publicKey.isValidSignature(signature, for: message))
+                    }
                 }
             }
         }

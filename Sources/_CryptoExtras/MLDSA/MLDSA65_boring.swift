@@ -67,7 +67,7 @@ extension MLDSA65 {
         ///   - context: The context to use for the signature.
         ///
         /// - Returns: The signature of the message.
-        public func signature<D: DataProtocol, C: DataProtocol>(for data: D, context: C?) throws -> Data {
+        public func signature<D: DataProtocol, C: DataProtocol>(for data: D, context: C) throws -> Data {
             try self.backing.signature(for: data, context: context)
         }
 
@@ -224,7 +224,7 @@ extension MLDSA65 {
         public func isValidSignature<S: DataProtocol, D: DataProtocol, C: DataProtocol>(
             _ signature: S,
             for data: D,
-            context: C?
+            context: C
         ) -> Bool {
             self.backing.isValidSignature(signature, for: data, context: context)
         }
