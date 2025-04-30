@@ -25,10 +25,10 @@ import Foundation
 % for parameter_set in parameter_sets:
 
 /// A module-lattice-based key encapsulation mechanism that provides security against quantum computing attacks.
-@available(macOS 14.0, *)
+@available(macOS 14.0, iOS 17, watchOS 10, tvOS 17, macCatalyst 17, visionOS 1.0, *)
 public enum MLKEM${parameter_set} {}
 
-@available(macOS 14.0, *)
+@available(macOS 14.0, iOS 17, watchOS 10, tvOS 17, macCatalyst 17, visionOS 1.0, *)
 extension MLKEM${parameter_set} {
     /// A ML-KEM-${parameter_set} private key.
     public struct PrivateKey: Sendable, KEMPrivateKey {
@@ -174,7 +174,7 @@ extension MLKEM${parameter_set} {
     }
 }
 
-@available(macOS 14.0, *)
+@available(macOS 14.0, iOS 17, watchOS 10, tvOS 17, macCatalyst 17, visionOS 1.0, *)
 extension MLKEM${parameter_set} {
     /// A ML-KEM-${parameter_set} public key.
     public struct PublicKey: Sendable, KEMPublicKey {
@@ -289,7 +289,7 @@ extension MLKEM${parameter_set} {
     }
 }
 
-@available(macOS 14.0, *)
+@available(macOS 14.0, iOS 17, watchOS 10, tvOS 17, macCatalyst 17, visionOS 1.0, *)
 extension MLKEM${parameter_set} {
     /// The size of the encapsulated shared secret in bytes.
     private static let ciphertextByteCount = Int(MLKEM${parameter_set}_CIPHERTEXT_BYTES)

@@ -21,10 +21,10 @@ import Crypto
 import Foundation
 
 /// A module-lattice-based key encapsulation mechanism that provides security against quantum computing attacks.
-@available(macOS 14.0, *)
+@available(macOS 14.0, iOS 17, watchOS 10, tvOS 17, macCatalyst 17, visionOS 1.0, *)
 public enum MLKEM768 {}
 
-@available(macOS 14.0, *)
+@available(macOS 14.0, iOS 17, watchOS 10, tvOS 17, macCatalyst 17, visionOS 1.0, *)
 extension MLKEM768 {
     /// A ML-KEM-768 private key.
     public struct PrivateKey: Sendable, KEMPrivateKey {
@@ -170,7 +170,7 @@ extension MLKEM768 {
     }
 }
 
-@available(macOS 14.0, *)
+@available(macOS 14.0, iOS 17, watchOS 10, tvOS 17, macCatalyst 17, visionOS 1.0, *)
 extension MLKEM768 {
     /// A ML-KEM-768 public key.
     public struct PublicKey: Sendable, KEMPublicKey {
@@ -285,17 +285,17 @@ extension MLKEM768 {
     }
 }
 
-@available(macOS 14.0, *)
+@available(macOS 14.0, iOS 17, watchOS 10, tvOS 17, macCatalyst 17, visionOS 1.0, *)
 extension MLKEM768 {
     /// The size of the encapsulated shared secret in bytes.
     private static let ciphertextByteCount = Int(MLKEM768_CIPHERTEXT_BYTES)
 }
 
 /// A module-lattice-based key encapsulation mechanism that provides security against quantum computing attacks.
-@available(macOS 14.0, *)
+@available(macOS 14.0, iOS 17, watchOS 10, tvOS 17, macCatalyst 17, visionOS 1.0, *)
 public enum MLKEM1024 {}
 
-@available(macOS 14.0, *)
+@available(macOS 14.0, iOS 17, watchOS 10, tvOS 17, macCatalyst 17, visionOS 1.0, *)
 extension MLKEM1024 {
     /// A ML-KEM-1024 private key.
     public struct PrivateKey: Sendable, KEMPrivateKey {
@@ -441,7 +441,7 @@ extension MLKEM1024 {
     }
 }
 
-@available(macOS 14.0, *)
+@available(macOS 14.0, iOS 17, watchOS 10, tvOS 17, macCatalyst 17, visionOS 1.0, *)
 extension MLKEM1024 {
     /// A ML-KEM-1024 public key.
     public struct PublicKey: Sendable, KEMPublicKey {
@@ -556,7 +556,7 @@ extension MLKEM1024 {
     }
 }
 
-@available(macOS 14.0, *)
+@available(macOS 14.0, iOS 17, watchOS 10, tvOS 17, macCatalyst 17, visionOS 1.0, *)
 extension MLKEM1024 {
     /// The size of the encapsulated shared secret in bytes.
     private static let ciphertextByteCount = Int(MLKEM1024_CIPHERTEXT_BYTES)
