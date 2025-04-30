@@ -47,6 +47,7 @@ final class MLKEMTests: XCTestCase {
         // Serialize and deserialize the private key with modifications
         var modifiedSeed = privateKey.seedRepresentation
         modifiedSeed[0] = 0xff
+        modifiedSeed[1] = 0xff
         XCTAssertNotEqual(
             try MLKEM768.PrivateKey(seedRepresentation: modifiedSeed).publicKey.rawRepresentation,
             publicKeyBytes
@@ -89,6 +90,7 @@ final class MLKEMTests: XCTestCase {
         // Serialize and deserialize the private key with modifications
         var modifiedSeed = privateKey.seedRepresentation
         modifiedSeed[0] = 0xff
+        modifiedSeed[1] = 0xff
         XCTAssertNotEqual(
             try MLKEM1024.PrivateKey(seedRepresentation: modifiedSeed).publicKey.rawRepresentation,
             publicKeyBytes
