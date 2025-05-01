@@ -37,6 +37,7 @@ add_library(Crypto
   "ASN1/SEC1PrivateKey.swift"
   "ASN1/SubjectPublicKeyInfo.swift"
   "CryptoKitErrors.swift"
+  "CryptoError_boring.swift"
   "Digests/BoringSSL/Digest_boring.swift"
   "Digests/Digest.swift"
   "Digests/Digests.swift"
