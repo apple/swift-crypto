@@ -67,7 +67,3 @@ public enum CryptoKitASN1Error: Equatable, Error, Hashable {
     case invalidPEMDocument
 }
 #endif
-
-public typealias CryptoError = CryptoKitError
-@available(iOS 14, macOS 11, tvOS 14, watchOS 7, *)
-public typealias CryptoASN1Error = CryptoKitASN1Error
