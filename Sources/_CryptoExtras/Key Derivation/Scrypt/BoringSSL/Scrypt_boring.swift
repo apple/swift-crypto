@@ -15,7 +15,6 @@
 @_implementationOnly import CCryptoBoringSSL
 @_implementationOnly import CCryptoBoringSSLShims
 import Crypto
-
 import Foundation
 
 #if canImport(Android)
