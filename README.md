@@ -118,7 +118,7 @@ Swift Crypto      | Minimum Swift Version
 `2.4.2 ..< 3.1.0` | 5.6
 `3.1.0 ..< 3.3.0` | 5.7
 `3.3.0 ..< 3.8.0` | 5.8
-`3.8.0 ...`       | 5.9
+`3.8.0 ..<`       | 5.9  **TODO:** Update version table
 
 ### Compatibility
 
