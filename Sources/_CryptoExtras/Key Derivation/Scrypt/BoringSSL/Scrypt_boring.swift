@@ -15,12 +15,7 @@
 @_implementationOnly import CCryptoBoringSSL
 @_implementationOnly import CCryptoBoringSSLShims
 import Crypto
-
-#if canImport(Darwin) || swift(>=5.9.1)
 import Foundation
-#else
-@preconcurrency import Foundation
-#endif
 
 #if canImport(Android)
 import Android
