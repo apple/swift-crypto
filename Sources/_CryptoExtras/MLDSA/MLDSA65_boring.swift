@@ -35,7 +35,7 @@ extension MLDSA65 {
         ///
         /// - Parameter seedRepresentation: The seed to use to generate the private key.
         ///
-        /// - Throws: `CryptoKitError.incorrectKeySize` if the seed is not 32 bytes long.
+        /// - Throws: `CryptoError.incorrectKeySize` if the seed is not 32 bytes long.
         public init(seedRepresentation: some DataProtocol) throws {
             self.backing = try Backing(seedRepresentation: seedRepresentation)
         }
@@ -111,7 +111,7 @@ extension MLDSA65 {
             ///
             /// - Parameter seedRepresentation: The seed to use to generate the private key.
             ///
-            /// - Throws: `CryptoKitError.incorrectKeySize` if the seed is not 32 bytes long.
+            /// - Throws: `CryptoError.incorrectKeySize` if the seed is not 32 bytes long.
             init(seedRepresentation: some DataProtocol) throws {
                 guard seedRepresentation.count == MLDSA65.seedByteCount else {
                     throw CryptoKitError.incorrectKeySize
@@ -191,7 +191,7 @@ extension MLDSA65 {
         ///
         /// - Parameter rawRepresentation: The public key bytes.
         ///
-        /// - Throws: `CryptoKitError.incorrectKeySize` if the raw representation is not the correct size.
+        /// - Throws: `CryptoError.incorrectKeySize` if the raw representation is not the correct size.
         public init(rawRepresentation: some DataProtocol) throws {
             self.backing = try Backing(rawRepresentation: rawRepresentation)
         }
@@ -244,7 +244,7 @@ extension MLDSA65 {
             ///
             /// - Parameter rawRepresentation: The public key bytes.
             ///
-            /// - Throws: `CryptoKitError.incorrectKeySize` if the raw representation is not the correct size.
+            /// - Throws: `CryptoError.incorrectKeySize` if the raw representation is not the correct size.
             init(rawRepresentation: some DataProtocol) throws {
                 guard rawRepresentation.count == MLDSA65.PublicKey.Backing.byteCount else {
                     throw CryptoKitError.incorrectKeySize
