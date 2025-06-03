@@ -14,18 +14,31 @@
 #if CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
 @_exported import CryptoKit
 #else
-import Foundation
+#if CRYPTOKIT_NO_ACCESS_TO_FOUNDATION
+public import SwiftSystem
+#else
+public import Foundation
+#endif
 // MARK: - Generated file, do NOT edit
 // any edits of this file WILL be overwritten and thus discarded
 // see section `gyb` in `README` for details.
+
 %{
-ciphers = [{"name": "AES.GCM", "recommendedNonceSize": "AES.GCM.defaultNonceByteCount", "nonceValidation": "< AES.GCM.defaultNonceByteCount"},{"name": "ChaChaPoly", "recommendedNonceSize": "ChaChaPoly.nonceByteCount", "nonceValidation": "!= ChaChaPoly.nonceByteCount"}]
+ciphers = [{"name": "AES.GCM", "recommendedNonceSize": "AES.GCM.defaultNonceByteCount", "nonceValidation": "< AES.GCM.defaultNonceByteCount", "dataDescription": "///   - data: A data representation of the nonce.\n///     The initializer throws an error if the data has a length smaller than 12 bytes."}]
+
+if "NO_CHACHAPOLY" in globals():
+    pass
+else:
+    ciphers.append({"name": "ChaChaPoly", "recommendedNonceSize": "ChaChaPoly.nonceByteCount", "nonceValidation": "!= ChaChaPoly.nonceByteCount", "dataDescription": "///   - data: A 12-byte data representation of the nonce.\n///     The initializer throws an error if the data isn't 12 bytes long."})
 }%
+
+
 % for cipher in ciphers:
 %{
 name = cipher["name"]
 nonceSize = cipher["recommendedNonceSize"]
 nonceValidation = cipher["nonceValidation"]
+dataDescription = cipher["dataDescription"]
 }%
 
 // MARK: - ${name} + Nonce
@@ -35,7 +48,7 @@ extension ${name} {
     /// Don’t reuse the same nonce for multiple calls to encryption APIs. It’s critical
     /// that nonces are unique per call to encryption APIs in order to protect the
     /// integrity of the encryption.
-    public struct Nonce: ContiguousBytes, Sequence {
+    public struct Nonce: ContiguousBytes, Sequence, Sendable {
         let bytes: Data
 
         /// Creates a new random nonce.
@@ -56,11 +69,10 @@ extension ${name} {
         /// ``init()`` method to instead create a random nonce.
         ///
         /// - Parameters:
-        ///   - data: A 12-byte data representation of the nonce. The initializer throws an
-        /// error if the data has a length other than 12 bytes.
-        public init<D: DataProtocol>(data: D) throws {
+${dataDescription}
+        public init<D: DataProtocol>(data: D) throws(CryptoKitMetaError) {
             if data.count ${nonceValidation} {
-                throw CryptoKitError.incorrectParameterSize
+                throw error(CryptoKitError.incorrectParameterSize)
             }
 
             self.bytes = Data(data)
@@ -77,10 +89,16 @@ extension ${name} {
         /// the duration of the closure’s execution.
         ///
         /// - Returns: The return value, if any, of the body closure parameter.
+#if !hasFeature(Embedded)
         public func withUnsafeBytes<R>(_ body: (UnsafeRawBufferPointer) throws -> R) rethrows -> R {
             return try self.bytes.withUnsafeBytes(body)
         }
-        
+#else
+        public func withUnsafeBytes<R, E: Error>(_ body: (UnsafeRawBufferPointer) throws(E) -> R) throws(E) -> R {
+            return try self.bytes.withUnsafeBytes(body)
+        }
+#endif
+
         /// Returns an iterator over the elements of the nonce.
         public func makeIterator() -> Array<UInt8>.Iterator {
             self.withUnsafeBytes({ (buffPtr) in

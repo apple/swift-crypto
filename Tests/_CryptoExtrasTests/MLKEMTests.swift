@@ -17,11 +17,13 @@ import XCTest
 
 @testable import _CryptoExtras
 
-@available(macOS 14.0, *)
 final class MLKEMTests: XCTestCase {
     func testMLKEM768() throws {
+        guard #available(iOS 19.0, macOS 16.0, watchOS 12.0, tvOS 19.0, visionOS 3.0, *) else {
+            throw XCTSkip("MLDSA is only available on iOS 19.0+, macOS 16.0+, watchOS 12.0+, tvOS 19.0+, visionOS 3.0+")
+        }
         // Generate a key pair
-        let privateKey = MLKEM768.PrivateKey()
+        let privateKey = try MLKEM768.PrivateKey()
         let publicKey = privateKey.publicKey
 
         // Serialize and deserialize the private key
@@ -54,7 +56,7 @@ final class MLKEMTests: XCTestCase {
         )
 
         // Encapsulation and decapsulation
-        let encapsulationResult = publicKey.encapsulate()
+        let encapsulationResult = try publicKey.encapsulate()
         let sharedSecret1 = encapsulationResult.sharedSecret
         let ciphertext = encapsulationResult.encapsulated
 
@@ -63,8 +65,11 @@ final class MLKEMTests: XCTestCase {
     }
 
     func testMLKEM1024() throws {
+        guard #available(iOS 19.0, macOS 16.0, watchOS 12.0, tvOS 19.0, visionOS 3.0, *) else {
+            throw XCTSkip("MLDSA is only available on iOS 19.0+, macOS 16.0+, watchOS 12.0+, tvOS 19.0+, visionOS 3.0+")
+        }
         // Generate a key pair
-        let privateKey = MLKEM1024.PrivateKey()
+        let privateKey = try MLKEM1024.PrivateKey()
         let publicKey = privateKey.publicKey
 
         // Serialize and deserialize the private key
@@ -97,7 +102,7 @@ final class MLKEMTests: XCTestCase {
         )
 
         // Encapsulation and decapsulation
-        let encapsulationResult = publicKey.encapsulate()
+        let encapsulationResult = try publicKey.encapsulate()
         let sharedSecret1 = encapsulationResult.sharedSecret
         let ciphertext = encapsulationResult.encapsulated
 

@@ -14,9 +14,11 @@
 #if CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
 @_exported import CryptoKit
 #else
-import Foundation
-#if canImport(Android)
-import Android
+
+#if CRYPTOKIT_NO_ACCESS_TO_FOUNDATION
+public import SwiftSystem
+#else
+public import Foundation
 #endif
 
 /// A standards-based implementation of an HMAC-based Key Derivation Function
@@ -35,7 +37,7 @@ import Android
 /// ``expand(pseudoRandomKey:info:outputByteCount:)`` using that key material to
 /// generate a symmetric key of the length you specify.
 @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
-public struct HKDF<H: HashFunction> {
+public struct HKDF<H: HashFunction>: Sendable {
     /// Derives a symmetric encryption key from a main key or passcode using
     /// HKDF key derivation with information and salt you specify.
     ///
@@ -116,7 +118,7 @@ public struct HKDF<H: HashFunction> {
     /// hashed authentication code.
     public static func extract<Salt: DataProtocol>(inputKeyMaterial: SymmetricKey, salt: Salt?) -> HashedAuthenticationCode<H> {
         let key: SymmetricKey
-        if let salt = salt {
+        if let salt {
             if salt.regions.count != 1 {
                 let contiguousBytes = Array(salt)
                 key = SymmetricKey(data: contiguousBytes)
@@ -146,21 +148,23 @@ public struct HKDF<H: HashFunction> {
     ///
     /// - Returns: The derived symmetric key.
     public static func expand<PRK: ContiguousBytes, Info: DataProtocol>(pseudoRandomKey prk: PRK, info: Info?, outputByteCount: Int) -> SymmetricKey {
-        let iterations: UInt8 = UInt8(ceil((Float(outputByteCount) / Float(H.Digest.byteCount))))
+       
+        let iterations: UInt8 = UInt8((Double(outputByteCount) / Double(H.Digest.byteCount)).rounded(.up))
+
         var output = SecureBytes()
         let key = SymmetricKey(data: prk)
         var TMinusOne = SecureBytes()
         for i in 1...iterations {
             var hmac = HMAC<H>(key: key)
             hmac.update(data: TMinusOne)
-            if let info = info {
+            if let info {
                 hmac.update(data: info)
             }
             
             withUnsafeBytes(of: i) { counter in
                 hmac.update(bufferPointer: counter)
             }
-            TMinusOne = SecureBytes(hmac.finalize())
+            TMinusOne = SecureBytes(bytes: hmac.finalize())
             output.append(TMinusOne)
         }
         

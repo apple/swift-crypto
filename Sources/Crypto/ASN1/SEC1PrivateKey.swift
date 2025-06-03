@@ -14,7 +14,12 @@
 #if CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
 @_exported import CryptoKit
 #else
+
+#if CRYPTOKIT_NO_ACCESS_TO_FOUNDATION
+import SwiftSystem
+#else
 import Foundation
+#endif
 
 @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension ASN1 {
@@ -38,18 +43,18 @@ extension ASN1 {
 
         var publicKey: ASN1.ASN1BitString?
 
-        init(asn1Encoded rootNode: ASN1.ASN1Node, withIdentifier identifier: ASN1.ASN1Identifier) throws {
-            self = try ASN1.sequence(rootNode, identifier: identifier) { nodes in
+        init(asn1Encoded rootNode: ASN1.ASN1Node, withIdentifier identifier: ASN1.ASN1Identifier) throws(CryptoKitMetaError) {
+            self = try ASN1.sequence(rootNode, identifier: identifier) { nodes throws(CryptoKitMetaError) in
                 let version = try Int(asn1Encoded: &nodes)
                 guard 1 == version else {
-                    throw CryptoKitASN1Error.invalidASN1Object
+                    throw error(CryptoKitASN1Error.invalidASN1Object)
                 }
 
                 let privateKey = try ASN1OctetString(asn1Encoded: &nodes)
-                let parameters = try ASN1.optionalExplicitlyTagged(&nodes, tagNumber: 0, tagClass: .contextSpecific) { node in
+                let parameters = try ASN1.optionalExplicitlyTagged(&nodes, tagNumber: 0, tagClass: .contextSpecific) { node throws(CryptoKitMetaError) in
                     return try ASN1.ASN1ObjectIdentifier(asn1Encoded: node)
                 }
-                let publicKey = try ASN1.optionalExplicitlyTagged(&nodes, tagNumber: 1, tagClass: .contextSpecific) { node in
+                let publicKey = try ASN1.optionalExplicitlyTagged(&nodes, tagNumber: 1, tagClass: .contextSpecific) { node throws(CryptoKitMetaError) in
                     return try ASN1.ASN1BitString(asn1Encoded: node)
                 }
 
@@ -57,10 +62,10 @@ extension ASN1 {
             }
         }
 
-        private init(privateKey: ASN1.ASN1OctetString, algorithm: ASN1.ASN1ObjectIdentifier?, publicKey: ASN1.ASN1BitString?) throws {
+        private init(privateKey: ASN1.ASN1OctetString, algorithm: ASN1.ASN1ObjectIdentifier?, publicKey: ASN1.ASN1BitString?) throws(CryptoKitMetaError) {
             self.privateKey = privateKey
             self.publicKey = publicKey
-            self.algorithm = try algorithm.map { algorithmOID in
+            self.algorithm = try algorithm.map { algorithmOID throws(CryptoKitMetaError) in
                 switch algorithmOID {
                 case ASN1ObjectIdentifier.NamedCurves.secp256r1:
                     return .ecdsaP256
@@ -69,7 +74,7 @@ extension ASN1 {
                 case ASN1ObjectIdentifier.NamedCurves.secp521r1:
                     return .ecdsaP521
                 default:
-                    throw CryptoKitASN1Error.invalidASN1Object
+                    throw error(CryptoKitASN1Error.invalidASN1Object)
                 }
             }
         }
@@ -80,8 +85,8 @@ extension ASN1 {
             self.publicKey = ASN1BitString(bytes: publicKey[...])
         }
 
-        func serialize(into coder: inout ASN1.Serializer, withIdentifier identifier: ASN1.ASN1Identifier) throws {
-            try coder.appendConstructedNode(identifier: identifier) { coder in
+        func serialize(into coder: inout ASN1.Serializer, withIdentifier identifier: ASN1.ASN1Identifier) throws(CryptoKitMetaError) {
+            try coder.appendConstructedNode(identifier: identifier) { coder throws(CryptoKitMetaError) in
                 try coder.serialize(1)  // version
                 try coder.serialize(self.privateKey)
 
@@ -95,7 +100,7 @@ extension ASN1 {
                     case .ecdsaP521:
                         oid = ASN1ObjectIdentifier.NamedCurves.secp521r1
                     default:
-                        throw CryptoKitASN1Error.invalidASN1Object
+                        throw error(CryptoKitASN1Error.invalidASN1Object)
                     }
 
                     try coder.serialize(oid, explicitlyTaggedWithTagNumber: 0, tagClass: .contextSpecific)
