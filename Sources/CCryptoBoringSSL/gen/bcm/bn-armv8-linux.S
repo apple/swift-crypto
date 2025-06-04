@@ -5,8 +5,6 @@
 #include <CCryptoBoringSSL_asm_base.h>
 
 #if !defined(OPENSSL_NO_ASM) && defined(OPENSSL_AARCH64) && defined(__ELF__)
-#include <CCryptoBoringSSL_arm_arch.h>
-
 .text
 
 // BN_ULONG bn_add_words(BN_ULONG *rp, const BN_ULONG *ap, const BN_ULONG *bp,

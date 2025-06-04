@@ -1,56 +1,16 @@
-/* Written by Lenka Fibikova <fibikova@exp-math.uni-essen.de>
- * and Bodo Moeller for the OpenSSL project. */
-/* ====================================================================
- * Copyright (c) 1998-2000 The OpenSSL Project.  All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
- *
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer. 
- *
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in
- *    the documentation and/or other materials provided with the
- *    distribution.
- *
- * 3. All advertising materials mentioning features or use of this
- *    software must display the following acknowledgment:
- *    "This product includes software developed by the OpenSSL Project
- *    for use in the OpenSSL Toolkit. (http://www.openssl.org/)"
- *
- * 4. The names "OpenSSL Toolkit" and "OpenSSL Project" must not be used to
- *    endorse or promote products derived from this software without
- *    prior written permission. For written permission, please contact
- *    openssl-core@openssl.org.
- *
- * 5. Products derived from this software may not be called "OpenSSL"
- *    nor may "OpenSSL" appear in their names without prior written
- *    permission of the OpenSSL Project.
- *
- * 6. Redistributions of any form whatsoever must retain the following
- *    acknowledgment:
- *    "This product includes software developed by the OpenSSL Project
- *    for use in the OpenSSL Toolkit (http://www.openssl.org/)"
- *
- * THIS SOFTWARE IS PROVIDED BY THE OpenSSL PROJECT ``AS IS'' AND ANY
- * EXPRESSED OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
- * PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL THE OpenSSL PROJECT OR
- * ITS CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
- * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
- * NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
- * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
- * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
- * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
- * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
- * OF THE POSSIBILITY OF SUCH DAMAGE.
- * ====================================================================
- *
- * This product includes cryptographic software written by Eric Young
- * (eay@cryptsoft.com).  This product includes software written by Tim
- * Hudson (tjh@cryptsoft.com). */
+// Copyright 2000-2016 The OpenSSL Project Authors. All Rights Reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     https://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 
 #include <CCryptoBoringSSL_bn.h>
 
@@ -103,7 +63,7 @@ BIGNUM *BN_mod_sqrt(BIGNUM *in, const BIGNUM *a, const BIGNUM *p, BN_CTX *ctx) {
     return ret;
   }
 
-  BN_CTX_start(ctx);
+  bssl::BN_CTXScope scope(ctx);
   A = BN_CTX_get(ctx);
   b = BN_CTX_get(ctx);
   q = BN_CTX_get(ctx);
@@ -418,82 +378,5 @@ end:
     }
     ret = NULL;
   }
-  BN_CTX_end(ctx);
   return ret;
-}
-
-int BN_sqrt(BIGNUM *out_sqrt, const BIGNUM *in, BN_CTX *ctx) {
-  BIGNUM *estimate, *tmp, *delta, *last_delta, *tmp2;
-  int ok = 0, last_delta_valid = 0;
-
-  if (in->neg) {
-    OPENSSL_PUT_ERROR(BN, BN_R_NEGATIVE_NUMBER);
-    return 0;
-  }
-  if (BN_is_zero(in)) {
-    BN_zero(out_sqrt);
-    return 1;
-  }
-
-  BN_CTX_start(ctx);
-  if (out_sqrt == in) {
-    estimate = BN_CTX_get(ctx);
-  } else {
-    estimate = out_sqrt;
-  }
-  tmp = BN_CTX_get(ctx);
-  last_delta = BN_CTX_get(ctx);
-  delta = BN_CTX_get(ctx);
-  if (estimate == NULL || tmp == NULL || last_delta == NULL || delta == NULL) {
-    goto err;
-  }
-
-  // We estimate that the square root of an n-bit number is 2^{n/2}.
-  if (!BN_lshift(estimate, BN_value_one(), BN_num_bits(in)/2)) {
-    goto err;
-  }
-
-  // This is Newton's method for finding a root of the equation |estimate|^2 -
-  // |in| = 0.
-  for (;;) {
-    // |estimate| = 1/2 * (|estimate| + |in|/|estimate|)
-    if (!BN_div(tmp, NULL, in, estimate, ctx) ||
-        !BN_add(tmp, tmp, estimate) ||
-        !BN_rshift1(estimate, tmp) ||
-        // |tmp| = |estimate|^2
-        !BN_sqr(tmp, estimate, ctx) ||
-        // |delta| = |in| - |tmp|
-        !BN_sub(delta, in, tmp)) {
-      OPENSSL_PUT_ERROR(BN, ERR_R_BN_LIB);
-      goto err;
-    }
-
-    delta->neg = 0;
-    // The difference between |in| and |estimate| squared is required to always
-    // decrease. This ensures that the loop always terminates, but I don't have
-    // a proof that it always finds the square root for a given square.
-    if (last_delta_valid && BN_cmp(delta, last_delta) >= 0) {
-      break;
-    }
-
-    last_delta_valid = 1;
-
-    tmp2 = last_delta;
-    last_delta = delta;
-    delta = tmp2;
-  }
-
-  if (BN_cmp(tmp, in) != 0) {
-    OPENSSL_PUT_ERROR(BN, BN_R_NOT_A_SQUARE);
-    goto err;
-  }
-
-  ok = 1;
-
-err:
-  if (ok && out_sqrt == in && !BN_copy(out_sqrt, estimate)) {
-    ok = 0;
-  }
-  BN_CTX_end(ctx);
-  return ok;
 }

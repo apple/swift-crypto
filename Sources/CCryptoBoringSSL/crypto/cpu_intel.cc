@@ -1,74 +1,31 @@
-/* Copyright (C) 1995-1998 Eric Young (eay@cryptsoft.com)
- * All rights reserved.
- *
- * This package is an SSL implementation written
- * by Eric Young (eay@cryptsoft.com).
- * The implementation was written so as to conform with Netscapes SSL.
- *
- * This library is free for commercial and non-commercial use as long as
- * the following conditions are aheared to.  The following conditions
- * apply to all code found in this distribution, be it the RC4, RSA,
- * lhash, DES, etc., code; not just the SSL code.  The SSL documentation
- * included with this distribution is covered by the same copyright terms
- * except that the holder is Tim Hudson (tjh@cryptsoft.com).
- *
- * Copyright remains Eric Young's, and as such any Copyright notices in
- * the code are not to be removed.
- * If this package is used in a product, Eric Young should be given attribution
- * as the author of the parts of the library used.
- * This can be in the form of a textual message at program startup or
- * in documentation (online or textual) provided with the package.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
- * 1. Redistributions of source code must retain the copyright
- *    notice, this list of conditions and the following disclaimer.
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- * 3. All advertising materials mentioning features or use of this software
- *    must display the following acknowledgement:
- *    "This product includes cryptographic software written by
- *     Eric Young (eay@cryptsoft.com)"
- *    The word 'cryptographic' can be left out if the rouines from the library
- *    being used are not cryptographic related :-).
- * 4. If you include any Windows specific code (or a derivative thereof) from
- *    the apps directory (application code) you must include an acknowledgement:
- *    "This product includes software written by Tim Hudson (tjh@cryptsoft.com)"
- *
- * THIS SOFTWARE IS PROVIDED BY ERIC YOUNG ``AS IS'' AND
- * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED.  IN NO EVENT SHALL THE AUTHOR OR CONTRIBUTORS BE LIABLE
- * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
- * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
- * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
- * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
- * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
- * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
- * SUCH DAMAGE.
- *
- * The licence and distribution terms for any publically available version or
- * derivative of this code cannot be changed.  i.e. this code cannot simply be
- * copied and put under another distribution licence
- * [including the GNU Public Licence.] */
+// Copyright 1995-2016 The OpenSSL Project Authors. All Rights Reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     https://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 
 #include <CCryptoBoringSSL_base.h>
 
 #if !defined(OPENSSL_NO_ASM) && \
     (defined(OPENSSL_X86) || defined(OPENSSL_X86_64))
 
+#include <errno.h>
 #include <inttypes.h>
-#include <stdio.h>
+#include <limits.h>
 #include <stdlib.h>
 #include <string.h>
 
 #if defined(_MSC_VER)
-OPENSSL_MSVC_PRAGMA(warning(push, 3))
 #include <immintrin.h>
 #include <intrin.h>
-OPENSSL_MSVC_PRAGMA(warning(pop))
 #endif
 
 #include "internal.h"
@@ -134,22 +91,25 @@ static bool os_supports_avx512(uint64_t xcr0) {
 }
 
 // handle_cpu_env applies the value from |in| to the CPUID values in |out[0]|
-// and |out[1]|. See the comment in |OPENSSL_cpuid_setup| about this.
-static void handle_cpu_env(uint32_t *out, const char *in) {
+// and |out[1]|. See the comment in |OPENSSL_cpuid_setup| about this. The
+// |is_last| argument specifies whether the value is at the end of the string.
+// Otherwise it may be followed by a colon.
+static void handle_cpu_env(uint32_t out[2], const char *in, bool is_last) {
   const int invert_op = in[0] == '~';
   const int or_op = in[0] == '|';
   const int skip_first_byte = invert_op || or_op;
   const int hex = in[skip_first_byte] == '0' && in[skip_first_byte + 1] == 'x';
+  const int base = hex ? 16 : 10;
 
-  int sscanf_result;
-  uint64_t v;
-  if (hex) {
-    sscanf_result = sscanf(in + invert_op + 2, "%" PRIx64, &v);
-  } else {
-    sscanf_result = sscanf(in + invert_op, "%" PRIu64, &v);
-  }
+  const char *start = in + skip_first_byte;
+  char *end;
+  errno = 0;
+  // We need to parse 64-bit values with `strtoull`.
+  static_assert(sizeof(unsigned long long) == sizeof(uint64_t));
+  unsigned long long v = strtoull(start, &end, base);
 
-  if (!sscanf_result) {
+  if (end == start || (*end != '\0' && (is_last || *end != ':')) ||
+      (v == ULLONG_MAX && errno == ERANGE)) {
     return;
   }
 
@@ -165,6 +125,27 @@ static void handle_cpu_env(uint32_t *out, const char *in) {
   }
 }
 
+void OPENSSL_adjust_ia32cap(uint32_t cap[4], const char *env) {
+  // OPENSSL_ia32cap can contain zero, one or two values, separated with a ':'.
+  // Each value is a 64-bit, unsigned value which may start with "0x" to
+  // indicate a hex value. Prior to the 64-bit value, a '~' or '|' may be given.
+  //
+  // If the '~' prefix is present:
+  //   the value is inverted and ANDed with the probed CPUID result
+  // If the '|' prefix is present:
+  //   the value is ORed with the probed CPUID result
+  // Otherwise:
+  //   the value is taken as the result of the CPUID
+  //
+  // The first value determines OPENSSL_ia32cap_P[0] and [1]. The second [2]
+  // and [3].
+  handle_cpu_env(cap, env, /*is_last=*/false);
+  env = strchr(env, ':');
+  if (env != nullptr) {
+    handle_cpu_env(cap + 2, env + 1, /*is_last=*/true);
+  }
+}
+
 void OPENSSL_cpuid_setup(void) {
   // Determine the vendor and maximum input value.
   uint32_t eax, ebx, ecx, edx;
@@ -172,11 +153,11 @@ void OPENSSL_cpuid_setup(void) {
 
   uint32_t num_ids = eax;
 
-  int is_intel = ebx == 0x756e6547 /* Genu */ && //
-                 edx == 0x49656e69 /* ineI */ && //
+  int is_intel = ebx == 0x756e6547 /* Genu */ &&  //
+                 edx == 0x49656e69 /* ineI */ &&  //
                  ecx == 0x6c65746e /* ntel */;
-  int is_amd = ebx == 0x68747541 /* Auth */ && //
-               edx == 0x69746e65 /* enti */ && //
+  int is_amd = ebx == 0x68747541 /* Auth */ &&  //
+               edx == 0x69746e65 /* enti */ &&  //
                ecx == 0x444d4163 /* cAMD */;
 
   uint32_t extended_features[2] = {0};
@@ -213,24 +194,12 @@ void OPENSSL_cpuid_setup(void) {
     }
   }
 
-  // Force the hyper-threading bit so that the more conservative path is always
-  // chosen.
-  edx |= 1u << 28;
-
-  // Reserved bit #20 was historically repurposed to control the in-memory
-  // representation of RC4 state. Always set it to zero.
-  edx &= ~(1u << 20);
-
   // Reserved bit #30 is repurposed to signal an Intel CPU.
   if (is_intel) {
     edx |= (1u << 30);
   } else {
     edx &= ~(1u << 30);
   }
-
-  // The SDBG bit is repurposed to denote AMD XOP support. Don't ever use AMD
-  // XOP code paths.
-  ecx &= ~(1u << 11);
 
   uint64_t xcr0 = 0;
   if (ecx & (1u << 27)) {
@@ -261,10 +230,6 @@ void OPENSSL_cpuid_setup(void) {
     // 128-bit or 256-bit vectors, and also volume 2a section 2.7.11 ("#UD
     // Equations for EVEX") which says that all EVEX-coded instructions raise an
     // undefined-instruction exception if any of these XCR0 bits is zero.
-    //
-    // AVX10 fixes this by reorganizing the features that used to be part of
-    // "AVX512" and allowing them to be used independently of 512-bit support.
-    // TODO: add AVX10 detection.
     extended_features[0] &= ~(1u << 16);  // AVX512F
     extended_features[0] &= ~(1u << 17);  // AVX512DQ
     extended_features[0] &= ~(1u << 21);  // AVX512IFMA
@@ -311,30 +276,9 @@ void OPENSSL_cpuid_setup(void) {
   OPENSSL_ia32cap_P[2] = extended_features[0];
   OPENSSL_ia32cap_P[3] = extended_features[1];
 
-  const char *env1, *env2;
-  env1 = getenv("OPENSSL_ia32cap");
-  if (env1 == NULL) {
-    return;
-  }
-
-  // OPENSSL_ia32cap can contain zero, one or two values, separated with a ':'.
-  // Each value is a 64-bit, unsigned value which may start with "0x" to
-  // indicate a hex value. Prior to the 64-bit value, a '~' or '|' may be given.
-  //
-  // If the '~' prefix is present:
-  //   the value is inverted and ANDed with the probed CPUID result
-  // If the '|' prefix is present:
-  //   the value is ORed with the probed CPUID result
-  // Otherwise:
-  //   the value is taken as the result of the CPUID
-  //
-  // The first value determines OPENSSL_ia32cap_P[0] and [1]. The second [2]
-  // and [3].
-
-  handle_cpu_env(&OPENSSL_ia32cap_P[0], env1);
-  env2 = strchr(env1, ':');
-  if (env2 != NULL) {
-    handle_cpu_env(&OPENSSL_ia32cap_P[2], env2 + 1);
+  const char *env = getenv("OPENSSL_ia32cap");
+  if (env != nullptr) {
+    OPENSSL_adjust_ia32cap(OPENSSL_ia32cap_P, env);
   }
 }
 

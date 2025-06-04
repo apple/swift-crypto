@@ -1,16 +1,16 @@
-/* Copyright 2014 The BoringSSL Authors
- *
- * Permission to use, copy, modify, and/or distribute this software for any
- * purpose with or without fee is hereby granted, provided that the above
- * copyright notice and this permission notice appear in all copies.
- *
- * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
- * WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
- * MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY
- * SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
- * WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION
- * OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN
- * CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. */
+// Copyright 2014 The BoringSSL Authors
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     https://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 
 #include <CCryptoBoringSSL_base.h>
 
@@ -29,6 +29,12 @@
 
 namespace mldsa {
 namespace {
+
+namespace fips {
+void ensure_keygen_self_test();
+void ensure_sign_self_test();
+void ensure_verify_self_test();
+}  // namespace fips
 
 constexpr int kDegree = 256;
 constexpr int kRhoBytes = 32;
@@ -51,126 +57,85 @@ constexpr uint32_t kInverseDegreeMontgomery = 41978;
 // Constants that vary depending on ML-DSA size.
 //
 // These are implemented as templates which take the K parameter to distinguish
-// the ML-DSA sizes. (At the time of writing, `if constexpr` was not available.)
-//
-// TODO(crbug.com/42290600): Switch this to `if constexpr` when C++17 is
-// available.
+// the ML-DSA sizes.
 
 template <int K>
-constexpr size_t public_key_bytes();
-
-template <>
-constexpr size_t public_key_bytes<6>() {
-  return BCM_MLDSA65_PUBLIC_KEY_BYTES;
-}
-
-template <>
-constexpr size_t public_key_bytes<8>() {
-  return BCM_MLDSA87_PUBLIC_KEY_BYTES;
+constexpr size_t public_key_bytes() {
+  if constexpr (K == 6) {
+    return BCM_MLDSA65_PUBLIC_KEY_BYTES;
+  } else if constexpr (K == 8) {
+    return BCM_MLDSA87_PUBLIC_KEY_BYTES;
+  }
 }
 
 template <int K>
-constexpr size_t signature_bytes();
-
-template <>
-constexpr size_t signature_bytes<6>() {
-  return BCM_MLDSA65_SIGNATURE_BYTES;
-}
-
-template <>
-constexpr size_t signature_bytes<8>() {
-  return BCM_MLDSA87_SIGNATURE_BYTES;
+constexpr size_t signature_bytes() {
+  if constexpr (K == 6) {
+    return BCM_MLDSA65_SIGNATURE_BYTES;
+  } else if constexpr (K == 8) {
+    return BCM_MLDSA87_SIGNATURE_BYTES;
+  }
 }
 
 template <int K>
-constexpr int tau();
-
-template <>
-constexpr int tau<6>() {
-  return 49;
-}
-
-template <>
-constexpr int tau<8>() {
-  return 60;
+constexpr int tau() {
+  if constexpr (K == 6) {
+    return 49;
+  } else if constexpr (K == 8) {
+    return 60;
+  }
 }
 
 template <int K>
-constexpr int lambda_bytes();
-
-template <>
-constexpr int lambda_bytes<6>() {
-  return 192 / 8;
-}
-
-template <>
-constexpr int lambda_bytes<8>() {
-  return 256 / 8;
+constexpr int lambda_bytes() {
+  if constexpr (K == 6) {
+    return 192 / 8;
+  } else if constexpr (K == 8) {
+    return 256 / 8;
+  }
 }
 
 template <int K>
-constexpr int gamma1();
-
-template <>
-constexpr int gamma1<6>() {
-  return 1 << 19;
-}
-
-template <>
-constexpr int gamma1<8>() {
-  return 1 << 19;
+constexpr int gamma1() {
+  if constexpr (K == 6 || K == 8) {
+    return 1 << 19;
+  }
 }
 
 template <int K>
-constexpr int beta();
-
-template <>
-constexpr int beta<6>() {
-  return 196;
-}
-
-template <>
-constexpr int beta<8>() {
-  return 120;
+constexpr int beta() {
+  if constexpr (K == 6) {
+    return 196;
+  } else if constexpr (K == 8) {
+    return 120;
+  }
 }
 
 template <int K>
-constexpr int omega();
-
-template <>
-constexpr int omega<6>() {
-  return 55;
-}
-
-template <>
-constexpr int omega<8>() {
-  return 75;
+constexpr int omega() {
+  if constexpr (K == 6) {
+    return 55;
+  } else if constexpr (K == 8) {
+    return 75;
+  }
 }
 
 template <int K>
-constexpr int eta();
-
-template <>
-constexpr int eta<6>() {
-  return 4;
-}
-
-template <>
-constexpr int eta<8>() {
-  return 2;
+constexpr int eta() {
+  if constexpr (K == 6) {
+    return 4;
+  } else if constexpr (K == 8) {
+    return 2;
+  }
 }
 
 template <int K>
-constexpr int plus_minus_eta_bitlen();
-
-template <>
-constexpr int plus_minus_eta_bitlen<6>() {
-  return 4;
-}
-
-template <>
-constexpr int plus_minus_eta_bitlen<8>() {
-  return 3;
+constexpr int plus_minus_eta_bitlen() {
+  if constexpr (K == 6) {
+    return 4;
+  } else if constexpr (K == 8) {
+    return 3;
+  }
 }
 
 // Fundamental types.
@@ -1438,7 +1403,7 @@ struct DeleterFree {
 // FIPS 204, Algorithm 6 (`ML-DSA.KeyGen_internal`). Returns 1 on success and 0
 // on failure.
 template <int K, int L>
-int mldsa_generate_key_external_entropy(
+int mldsa_generate_key_external_entropy_no_self_test(
     uint8_t out_encoded_public_key[public_key_bytes<K>()],
     struct private_key<K, L> *priv,
     const uint8_t entropy[BCM_MLDSA_SEED_BYTES]) {
@@ -1502,6 +1467,16 @@ int mldsa_generate_key_external_entropy(
 }
 
 template <int K, int L>
+int mldsa_generate_key_external_entropy(
+    uint8_t out_encoded_public_key[public_key_bytes<K>()],
+    struct private_key<K, L> *priv,
+    const uint8_t entropy[BCM_MLDSA_SEED_BYTES]) {
+  fips::ensure_keygen_self_test();
+  return mldsa_generate_key_external_entropy_no_self_test(
+      out_encoded_public_key, priv, entropy);
+}
+
+template <int K, int L>
 int mldsa_public_from_private(struct public_key<K> *pub,
                               const struct private_key<K, L> *priv) {
   // Intermediate values, allocated on the heap to allow use when there is a
@@ -1518,7 +1493,6 @@ int mldsa_public_from_private(struct public_key<K> *pub,
     return 0;
   }
 
-
   OPENSSL_memcpy(pub->rho, priv->rho, sizeof(pub->rho));
   OPENSSL_memcpy(pub->public_key_hash, priv->public_key_hash,
                  sizeof(pub->public_key_hash));
@@ -1533,29 +1507,20 @@ int mldsa_public_from_private(struct public_key<K> *pub,
   vector_add(&values->t, &values->t, &priv->s2);
 
   vector_power2_round(&pub->t1, &values->t0, &values->t);
+  // t1 is part of the public key and thus is public.
+  CONSTTIME_DECLASSIFY(&pub->t1, sizeof(pub->t1));
   return 1;
 }
 
-// FIPS 204, Algorithm 7 (`ML-DSA.Sign_internal`). Returns 1 on success and 0
-// on failure.
+// FIPS 204, Algorithm 7 (`ML-DSA.Sign_internal`), using a pre-computed mu.
+// Returns 1 on success and 0 on failure.
 template <int K, int L>
-int mldsa_sign_internal(
+int mldsa_sign_mu(
     uint8_t out_encoded_signature[signature_bytes<K>()],
-    const struct private_key<K, L> *priv, const uint8_t *msg, size_t msg_len,
-    const uint8_t *context_prefix, size_t context_prefix_len,
-    const uint8_t *context, size_t context_len,
+    const struct private_key<K, L> *priv, const uint8_t mu[kMuBytes],
     const uint8_t randomizer[BCM_MLDSA_SIGNATURE_RANDOMIZER_BYTES]) {
-  uint8_t mu[kMuBytes];
-  struct BORINGSSL_keccak_st keccak_ctx;
-  BORINGSSL_keccak_init(&keccak_ctx, boringssl_shake256);
-  BORINGSSL_keccak_absorb(&keccak_ctx, priv->public_key_hash,
-                          sizeof(priv->public_key_hash));
-  BORINGSSL_keccak_absorb(&keccak_ctx, context_prefix, context_prefix_len);
-  BORINGSSL_keccak_absorb(&keccak_ctx, context, context_len);
-  BORINGSSL_keccak_absorb(&keccak_ctx, msg, msg_len);
-  BORINGSSL_keccak_squeeze(&keccak_ctx, mu, kMuBytes);
-
   uint8_t rho_prime[kRhoPrimeBytes];
+  struct BORINGSSL_keccak_st keccak_ctx;
   BORINGSSL_keccak_init(&keccak_ctx, boringssl_shake256);
   BORINGSSL_keccak_absorb(&keccak_ctx, priv->k, sizeof(priv->k));
   BORINGSSL_keccak_absorb(&keccak_ctx, randomizer,
@@ -1645,6 +1610,11 @@ int mldsa_sign_internal(
     if (constant_time_declassify_w(
             constant_time_ge_w(z_max, gamma1<K>() - beta<K>()) |
             constant_time_ge_w(r0_max, kGamma2 - beta<K>()))) {
+#if defined(BORINGSSL_FIPS_BREAK_TESTS)
+      // In order to show that our self-tests trigger both restart cases in
+      // this loop, printf-logging is added when built in break-test mode.
+      printf("MLDSA signature restart case 1.\n");
+#endif
       continue;
     }
 
@@ -1658,6 +1628,11 @@ int mldsa_sign_internal(
     size_t h_ones = vector_count_ones(&values->sign.h);
     if (constant_time_declassify_w(constant_time_ge_w(ct0_max, kGamma2) |
                                    constant_time_lt_w(omega<K>(), h_ones))) {
+#if defined(BORINGSSL_FIPS_BREAK_TESTS)
+      // In order to show that our self-tests trigger both restart cases in
+      // this loop, printf-logging is added when built in break-test mode.
+      printf("MLDSA signature restart case 2.\n");
+#endif
       continue;
     }
 
@@ -1677,14 +1652,79 @@ int mldsa_sign_internal(
   }
 }
 
+// FIPS 204, Algorithm 7 (`ML-DSA.Sign_internal`). Returns 1 on success and 0
+// on failure.
+template <int K, int L>
+int mldsa_sign_internal_no_self_test(
+    uint8_t out_encoded_signature[signature_bytes<K>()],
+    const struct private_key<K, L> *priv, const uint8_t *msg, size_t msg_len,
+    const uint8_t *context_prefix, size_t context_prefix_len,
+    const uint8_t *context, size_t context_len,
+    const uint8_t randomizer[BCM_MLDSA_SIGNATURE_RANDOMIZER_BYTES]) {
+  uint8_t mu[kMuBytes];
+  struct BORINGSSL_keccak_st keccak_ctx;
+  BORINGSSL_keccak_init(&keccak_ctx, boringssl_shake256);
+  BORINGSSL_keccak_absorb(&keccak_ctx, priv->public_key_hash,
+                          sizeof(priv->public_key_hash));
+  BORINGSSL_keccak_absorb(&keccak_ctx, context_prefix, context_prefix_len);
+  BORINGSSL_keccak_absorb(&keccak_ctx, context, context_len);
+  BORINGSSL_keccak_absorb(&keccak_ctx, msg, msg_len);
+  BORINGSSL_keccak_squeeze(&keccak_ctx, mu, kMuBytes);
+
+  return mldsa_sign_mu(out_encoded_signature, priv, mu, randomizer);
+}
+
+// FIPS 204, Algorithm 7 (`ML-DSA.Sign_internal`). Returns 1 on success and 0
+// on failure.
+template <int K, int L>
+int mldsa_sign_internal(
+    uint8_t out_encoded_signature[signature_bytes<K>()],
+    const struct private_key<K, L> *priv, const uint8_t *msg, size_t msg_len,
+    const uint8_t *context_prefix, size_t context_prefix_len,
+    const uint8_t *context, size_t context_len,
+    const uint8_t randomizer[BCM_MLDSA_SIGNATURE_RANDOMIZER_BYTES]) {
+  fips::ensure_sign_self_test();
+  return mldsa_sign_internal_no_self_test(
+      out_encoded_signature, priv, msg, msg_len, context_prefix,
+      context_prefix_len, context, context_len, randomizer);
+}
+
+struct prehash_context {
+  struct BORINGSSL_keccak_st keccak_ctx;
+};
+
+template <int K>
+void mldsa_prehash_init(struct prehash_context *out_prehash_ctx,
+                        const struct public_key<K> *pub,
+                        const uint8_t *context_prefix,
+                        size_t context_prefix_len, const uint8_t *context,
+                        size_t context_len) {
+  BORINGSSL_keccak_init(&out_prehash_ctx->keccak_ctx, boringssl_shake256);
+  BORINGSSL_keccak_absorb(&out_prehash_ctx->keccak_ctx, pub->public_key_hash,
+                          sizeof(pub->public_key_hash));
+  BORINGSSL_keccak_absorb(&out_prehash_ctx->keccak_ctx, context_prefix,
+                          context_prefix_len);
+  BORINGSSL_keccak_absorb(&out_prehash_ctx->keccak_ctx, context, context_len);
+}
+
+void mldsa_prehash_update(struct prehash_context *inout_prehash_ctx,
+                          const uint8_t *msg, size_t msg_len) {
+  BORINGSSL_keccak_absorb(&inout_prehash_ctx->keccak_ctx, msg, msg_len);
+}
+
+void mldsa_prehash_finalize(uint8_t out_msg_rep[kMuBytes],
+                            struct prehash_context *inout_prehash_ctx) {
+  BORINGSSL_keccak_squeeze(&inout_prehash_ctx->keccak_ctx, out_msg_rep,
+                           kMuBytes);
+}
+
 // FIPS 204, Algorithm 8 (`ML-DSA.Verify_internal`).
 template <int K, int L>
-int mldsa_verify_internal(const struct public_key<K> *pub,
-                          const uint8_t encoded_signature[signature_bytes<K>()],
-                          const uint8_t *msg, size_t msg_len,
-                          const uint8_t *context_prefix,
-                          size_t context_prefix_len, const uint8_t *context,
-                          size_t context_len) {
+int mldsa_verify_internal_no_self_test(
+    const struct public_key<K> *pub,
+    const uint8_t encoded_signature[signature_bytes<K>()], const uint8_t *msg,
+    size_t msg_len, const uint8_t *context_prefix, size_t context_prefix_len,
+    const uint8_t *context, size_t context_len) {
   // Intermediate values, allocated on the heap to allow use when there is a
   // limited amount of stack.
   struct values_st {
@@ -1752,6 +1792,18 @@ int mldsa_verify_internal(const struct public_key<K> *pub,
          OPENSSL_memcmp(c_tilde, values->sign.c_tilde, 2 * lambda_bytes<K>()) ==
              0;
 }
+template <int K, int L>
+int mldsa_verify_internal(const struct public_key<K> *pub,
+                          const uint8_t encoded_signature[signature_bytes<K>()],
+                          const uint8_t *msg, size_t msg_len,
+                          const uint8_t *context_prefix,
+                          size_t context_prefix_len, const uint8_t *context,
+                          size_t context_len) {
+  fips::ensure_verify_self_test();
+  return mldsa_verify_internal_no_self_test<K, L>(
+      pub, encoded_signature, msg, msg_len, context_prefix, context_prefix_len,
+      context, context_len);
+}
 
 struct private_key<6, 5> *private_key_from_external_65(
     const struct BCM_mldsa65_private_key *external) {
@@ -1760,42 +1812,224 @@ struct private_key<6, 5> *private_key_from_external_65(
                 "MLDSA65 private key size incorrect");
   static_assert(alignof(struct BCM_mldsa65_private_key) ==
                     alignof(struct private_key<6, 5>),
-                "MLDSA65 private key align incorrect");
+                "MLDSA65 private key alignment incorrect");
   return (struct private_key<6, 5> *)external;
 }
 
-struct public_key<6> *
-public_key_from_external_65(const struct BCM_mldsa65_public_key *external) {
-  static_assert(sizeof(struct BCM_mldsa65_public_key) ==
-                    sizeof(struct public_key<6>),
-                "MLDSA65 public key size incorrect");
-  static_assert(alignof(struct BCM_mldsa65_public_key) ==
-                    alignof(struct public_key<6>),
-                "MLDSA65 public key align incorrect");
+struct public_key<6> *public_key_from_external_65(
+    const struct BCM_mldsa65_public_key *external) {
+  static_assert(
+      sizeof(struct BCM_mldsa65_public_key) == sizeof(struct public_key<6>),
+      "MLDSA65 public key size incorrect");
+  static_assert(
+      alignof(struct BCM_mldsa65_public_key) == alignof(struct public_key<6>),
+      "MLDSA65 public key alignment incorrect");
   return (struct public_key<6> *)external;
 }
 
-struct private_key<8, 7> *
-private_key_from_external_87(const struct BCM_mldsa87_private_key *external) {
+struct prehash_context *prehash_context_from_external_65(
+    struct BCM_mldsa65_prehash *external) {
+  static_assert(
+      sizeof(struct BCM_mldsa65_prehash) == sizeof(struct prehash_context),
+      "MLDSA pre-hash context size incorrect");
+  static_assert(
+      alignof(struct BCM_mldsa65_prehash) == alignof(struct prehash_context),
+      "MLDSA pre-hash context alignment incorrect");
+  return reinterpret_cast<prehash_context *>(external);
+}
+
+struct private_key<8, 7> *private_key_from_external_87(
+    const struct BCM_mldsa87_private_key *external) {
   static_assert(sizeof(struct BCM_mldsa87_private_key) ==
                     sizeof(struct private_key<8, 7>),
                 "MLDSA87 private key size incorrect");
   static_assert(alignof(struct BCM_mldsa87_private_key) ==
                     alignof(struct private_key<8, 7>),
-                "MLDSA87 private key align incorrect");
+                "MLDSA87 private key alignment incorrect");
   return (struct private_key<8, 7> *)external;
 }
 
-struct public_key<8> *
-public_key_from_external_87(const struct BCM_mldsa87_public_key *external) {
-  static_assert(sizeof(struct BCM_mldsa87_public_key) ==
-                    sizeof(struct public_key<8>),
-                "MLDSA87 public key size incorrect");
-  static_assert(alignof(struct BCM_mldsa87_public_key) ==
-                    alignof(struct public_key<8>),
-                "MLDSA87 public key align incorrect");
+struct public_key<8> *public_key_from_external_87(
+    const struct BCM_mldsa87_public_key *external) {
+  static_assert(
+      sizeof(struct BCM_mldsa87_public_key) == sizeof(struct public_key<8>),
+      "MLDSA87 public key size incorrect");
+  static_assert(
+      alignof(struct BCM_mldsa87_public_key) == alignof(struct public_key<8>),
+      "MLDSA87 public key alignment incorrect");
   return (struct public_key<8> *)external;
 }
+
+struct prehash_context *prehash_context_from_external_87(
+    struct BCM_mldsa87_prehash *external) {
+  static_assert(
+      sizeof(struct BCM_mldsa87_prehash) == sizeof(struct prehash_context),
+      "MLDSA pre-hash context size incorrect");
+  static_assert(
+      alignof(struct BCM_mldsa87_prehash) == alignof(struct prehash_context),
+      "MLDSA pre-hash context alignment incorrect");
+  return reinterpret_cast<prehash_context *>(external);
+}
+
+namespace fips {
+
+#include "fips_known_values.inc"
+
+static int keygen_self_test() {
+  private_key<6, 5> priv;
+  uint8_t pub_bytes[BCM_MLDSA65_PUBLIC_KEY_BYTES];
+  if (!mldsa_generate_key_external_entropy_no_self_test(pub_bytes, &priv,
+                                                        kGenerateKeyEntropy)) {
+    return 0;
+  }
+
+  uint8_t priv_bytes[BCM_MLDSA65_PRIVATE_KEY_BYTES];
+  CBB cbb;
+  CBB_init_fixed(&cbb, priv_bytes, sizeof(priv_bytes));
+  if (!mldsa_marshal_private_key(&cbb, &priv)) {
+    return 0;
+  }
+
+  static_assert(sizeof(pub_bytes) == sizeof(kExpectedPublicKey));
+  static_assert(sizeof(priv_bytes) == sizeof(kExpectedPrivateKey));
+  if (!BORINGSSL_check_test(kExpectedPublicKey, pub_bytes, sizeof(pub_bytes),
+                            "ML-DSA keygen public key") ||
+      !BORINGSSL_check_test(kExpectedPrivateKey, priv_bytes, sizeof(priv_bytes),
+                            "ML-DSA keygen private key")) {
+    return 0;
+  }
+
+  return 1;
+}
+
+static int sign_self_test() {
+  private_key<6, 5> priv;
+  uint8_t pub_bytes[BCM_MLDSA65_PUBLIC_KEY_BYTES];
+  if (!mldsa_generate_key_external_entropy(pub_bytes, &priv, kSignEntropy)) {
+    return 0;
+  }
+
+  const uint8_t randomizer[BCM_MLDSA_SIGNATURE_RANDOMIZER_BYTES] = {};
+  uint8_t sig[BCM_MLDSA65_SIGNATURE_BYTES];
+
+  // This message triggers the first restart case for signing.
+  uint8_t message[4] = {0};
+  if (!mldsa_sign_internal_no_self_test(sig, &priv, message, sizeof(message),
+                                        nullptr, 0, nullptr, 0, randomizer)) {
+    return 0;
+  }
+  static_assert(sizeof(kExpectedCase1Signature) == sizeof(sig));
+  if (!BORINGSSL_check_test(kExpectedCase1Signature, sig, sizeof(sig),
+                            "ML-DSA sign case 1")) {
+    return 0;
+  }
+
+  // This message triggers the second restart case for signing.
+  message[0] = 123;
+  if (!mldsa_sign_internal_no_self_test(sig, &priv, message, sizeof(message),
+                                        nullptr, 0, nullptr, 0, randomizer)) {
+    return 0;
+  }
+  static_assert(sizeof(kExpectedCase2Signature) == sizeof(sig));
+  if (!BORINGSSL_check_test(kExpectedCase2Signature, sig, sizeof(sig),
+                            "ML-DSA sign case 2")) {
+    return 0;
+  }
+
+  return 1;
+}
+
+static int verify_self_test() {
+  struct values_st {
+    private_key<6, 5> priv;
+    public_key<6> pub;
+    uint8_t pub_bytes[BCM_MLDSA65_PUBLIC_KEY_BYTES];
+  };
+  std::unique_ptr<values_st, DeleterFree<values_st>> values(
+      reinterpret_cast<struct values_st *>(OPENSSL_malloc(sizeof(values_st))));
+  if (!values) {
+    return 0;
+  }
+
+  if (!mldsa_generate_key_external_entropy(values->pub_bytes, &values->priv,
+                                           kSignEntropy)) {
+    return 0;
+  }
+
+  const uint8_t message[4] = {1, 0};
+  if (!mldsa_public_from_private(&values->pub, &values->priv) ||
+      !mldsa_verify_internal_no_self_test<6, 5>(
+          &values->pub, kExpectedVerifySignature, message, sizeof(message),
+          nullptr, 0, nullptr, 0)) {
+    return 0;
+  }
+
+  return 1;
+}
+
+template <int K, int L>
+int check_key(private_key<K, L> *priv) {
+  uint8_t sig[signature_bytes<K>()];
+  uint8_t randomizer[BCM_MLDSA_SIGNATURE_RANDOMIZER_BYTES] = {};
+  mldsa::public_key<K> pub;
+  if (!mldsa_public_from_private(&pub, priv) ||
+      !mldsa_sign_internal_no_self_test(sig, priv, nullptr, 0, nullptr, 0,
+                                        nullptr, 0, randomizer)) {
+    return 0;
+  }
+
+  if (boringssl_fips_break_test("MLDSA_PWCT")) {
+    sig[0] ^= 1;
+  }
+
+  if (!mldsa_verify_internal_no_self_test<K, L>(&pub, sig, nullptr, 0, nullptr,
+                                                0, nullptr, 0)) {
+    return 0;
+  }
+  return 1;
+}
+
+#if defined(BORINGSSL_FIPS)
+
+DEFINE_STATIC_ONCE(g_mldsa_keygen_self_test_once)
+
+void ensure_keygen_self_test(void) {
+  CRYPTO_once(g_mldsa_keygen_self_test_once_bss_get(), []() {
+    if (!keygen_self_test()) {
+      BORINGSSL_FIPS_abort();
+    }
+  });
+}
+
+DEFINE_STATIC_ONCE(g_mldsa_sign_self_test_once)
+
+void ensure_sign_self_test(void) {
+  CRYPTO_once(g_mldsa_sign_self_test_once_bss_get(), []() {
+    if (!sign_self_test()) {
+      BORINGSSL_FIPS_abort();
+    }
+  });
+}
+
+DEFINE_STATIC_ONCE(g_mldsa_verify_self_test_once)
+
+void ensure_verify_self_test(void) {
+  CRYPTO_once(g_mldsa_verify_self_test_once_bss_get(), []() {
+    if (!verify_self_test()) {
+      BORINGSSL_FIPS_abort();
+    }
+  });
+}
+
+#else
+
+void ensure_keygen_self_test(void) {}
+void ensure_sign_self_test(void) {}
+void ensure_verify_self_test(void) {}
+
+#endif
+
+}  // namespace fips
 
 }  // namespace
 }  // namespace mldsa
@@ -1823,6 +2057,12 @@ bcm_status BCM_mldsa65_parse_private_key(
       CBS_len(in) == 0);
 }
 
+bcm_status BCM_mldsa65_check_key_fips(
+    struct BCM_mldsa65_private_key *private_key) {
+  return bcm_as_approved_status(
+      mldsa::fips::check_key(mldsa::private_key_from_external_65(private_key)));
+}
+
 // Calls |MLDSA_generate_key_external_entropy| with random bytes from
 // |BCM_rand_bytes|.
 bcm_status BCM_mldsa65_generate_key(
@@ -1830,6 +2070,7 @@ bcm_status BCM_mldsa65_generate_key(
     uint8_t out_seed[BCM_MLDSA_SEED_BYTES],
     struct BCM_mldsa65_private_key *out_private_key) {
   BCM_rand_bytes(out_seed, BCM_MLDSA_SEED_BYTES);
+  CONSTTIME_SECRET(out_seed, BCM_MLDSA_SEED_BYTES);
   return BCM_mldsa65_generate_key_external_entropy(out_encoded_public_key,
                                                    out_private_key, out_seed);
 }
@@ -1846,9 +2087,49 @@ bcm_status BCM_mldsa65_generate_key_external_entropy(
     uint8_t out_encoded_public_key[BCM_MLDSA65_PUBLIC_KEY_BYTES],
     struct BCM_mldsa65_private_key *out_private_key,
     const uint8_t entropy[BCM_MLDSA_SEED_BYTES]) {
-  return bcm_as_approved_status(mldsa_generate_key_external_entropy(
+  return bcm_as_not_approved_status(mldsa_generate_key_external_entropy(
       out_encoded_public_key,
       mldsa::private_key_from_external_65(out_private_key), entropy));
+}
+
+bcm_status BCM_mldsa65_generate_key_fips(
+    uint8_t out_encoded_public_key[BCM_MLDSA65_PUBLIC_KEY_BYTES],
+    uint8_t out_seed[BCM_MLDSA_SEED_BYTES],
+    struct BCM_mldsa65_private_key *out_private_key) {
+  if (out_encoded_public_key == nullptr || out_private_key == nullptr) {
+    return bcm_status::failure;
+  }
+  if (BCM_mldsa65_generate_key(out_encoded_public_key, out_seed,
+                               out_private_key) == bcm_status::failure) {
+    return bcm_status::failure;
+  }
+  return BCM_mldsa65_check_key_fips(out_private_key);
+}
+
+bcm_status BCM_mldsa65_generate_key_external_entropy_fips(
+    uint8_t out_encoded_public_key[BCM_MLDSA65_PUBLIC_KEY_BYTES],
+    struct BCM_mldsa65_private_key *out_private_key,
+    const uint8_t entropy[BCM_MLDSA_SEED_BYTES]) {
+  if (out_encoded_public_key == nullptr || out_private_key == nullptr) {
+    return bcm_status::failure;
+  }
+  if (BCM_mldsa65_generate_key_external_entropy(out_encoded_public_key,
+                                                out_private_key, entropy) ==
+      bcm_status::failure) {
+    return bcm_status::failure;
+  }
+  return BCM_mldsa65_check_key_fips(out_private_key);
+}
+
+bcm_status BCM_mldsa65_private_key_from_seed_fips(
+    struct BCM_mldsa65_private_key *out_private_key,
+    const uint8_t seed[BCM_MLDSA_SEED_BYTES]) {
+  uint8_t public_key[BCM_MLDSA65_PUBLIC_KEY_BYTES];
+  if (BCM_mldsa65_generate_key_external_entropy(public_key, out_private_key,
+                                                seed) == bcm_status::failure) {
+    return bcm_status::failure;
+  }
+  return BCM_mldsa65_check_key_fips(out_private_key);
 }
 
 bcm_status BCM_mldsa65_public_from_private(
@@ -1880,11 +2161,54 @@ bcm_status BCM_mldsa65_sign(
   BSSL_CHECK(context_len <= 255);
   uint8_t randomizer[BCM_MLDSA_SIGNATURE_RANDOMIZER_BYTES];
   BCM_rand_bytes(randomizer, sizeof(randomizer));
+  CONSTTIME_SECRET(randomizer, sizeof(randomizer));
 
   const uint8_t context_prefix[2] = {0, static_cast<uint8_t>(context_len)};
   return BCM_mldsa65_sign_internal(
       out_encoded_signature, private_key, msg, msg_len, context_prefix,
       sizeof(context_prefix), context, context_len, randomizer);
+}
+
+// ML-DSA pre-hashed API: initializing a pre-hashing context.
+void BCM_mldsa65_prehash_init(struct BCM_mldsa65_prehash *out_prehash_ctx,
+                              const struct BCM_mldsa65_public_key *public_key,
+                              const uint8_t *context, size_t context_len) {
+  BSSL_CHECK(context_len <= 255);
+
+  const uint8_t context_prefix[2] = {0, static_cast<uint8_t>(context_len)};
+  mldsa_prehash_init(mldsa::prehash_context_from_external_65(out_prehash_ctx),
+                     mldsa::public_key_from_external_65(public_key),
+                     context_prefix, sizeof(context_prefix), context,
+                     context_len);
+}
+
+// ML-DSA pre-hashed API: updating a pre-hashing context with a message chunk.
+void BCM_mldsa65_prehash_update(struct BCM_mldsa65_prehash *inout_prehash_ctx,
+                                const uint8_t *msg, size_t msg_len) {
+  mldsa_prehash_update(
+      mldsa::prehash_context_from_external_65(inout_prehash_ctx), msg, msg_len);
+}
+
+// ML-DSA pre-hashed API: obtaining a message representative to sign.
+void BCM_mldsa65_prehash_finalize(
+    uint8_t out_msg_rep[BCM_MLDSA_MU_BYTES],
+    struct BCM_mldsa65_prehash *inout_prehash_ctx) {
+  mldsa_prehash_finalize(
+      out_msg_rep, mldsa::prehash_context_from_external_65(inout_prehash_ctx));
+}
+
+// ML-DSA pre-hashed API: signing a message representative.
+bcm_status BCM_mldsa65_sign_message_representative(
+    uint8_t out_encoded_signature[BCM_MLDSA65_SIGNATURE_BYTES],
+    const struct BCM_mldsa65_private_key *private_key,
+    const uint8_t msg_rep[BCM_MLDSA_MU_BYTES]) {
+  uint8_t randomizer[BCM_MLDSA_SIGNATURE_RANDOMIZER_BYTES];
+  BCM_rand_bytes(randomizer, sizeof(randomizer));
+  CONSTTIME_SECRET(randomizer, sizeof(randomizer));
+
+  return bcm_as_approved_status(mldsa_sign_mu(
+      out_encoded_signature, mldsa::private_key_from_external_65(private_key),
+      msg_rep, randomizer));
 }
 
 // FIPS 204, Algorithm 3 (`ML-DSA.Verify`).
@@ -1938,6 +2262,12 @@ bcm_status BCM_mldsa87_parse_private_key(
       CBS_len(in) == 0);
 }
 
+bcm_status BCM_mldsa87_check_key_fips(
+    struct BCM_mldsa87_private_key *private_key) {
+  return bcm_as_approved_status(
+      mldsa::fips::check_key(mldsa::private_key_from_external_87(private_key)));
+}
+
 // Calls |MLDSA_generate_key_external_entropy| with random bytes from
 // |BCM_rand_bytes|.
 bcm_status BCM_mldsa87_generate_key(
@@ -1961,9 +2291,49 @@ bcm_status BCM_mldsa87_generate_key_external_entropy(
     uint8_t out_encoded_public_key[BCM_MLDSA87_PUBLIC_KEY_BYTES],
     struct BCM_mldsa87_private_key *out_private_key,
     const uint8_t entropy[BCM_MLDSA_SEED_BYTES]) {
-  return bcm_as_approved_status(mldsa_generate_key_external_entropy(
+  return bcm_as_not_approved_status(mldsa_generate_key_external_entropy(
       out_encoded_public_key,
       mldsa::private_key_from_external_87(out_private_key), entropy));
+}
+
+bcm_status BCM_mldsa87_generate_key_fips(
+    uint8_t out_encoded_public_key[BCM_MLDSA87_PUBLIC_KEY_BYTES],
+    uint8_t out_seed[BCM_MLDSA_SEED_BYTES],
+    struct BCM_mldsa87_private_key *out_private_key) {
+  if (out_encoded_public_key == nullptr || out_private_key == nullptr) {
+    return bcm_status::failure;
+  }
+  if (BCM_mldsa87_generate_key(out_encoded_public_key, out_seed,
+                               out_private_key) == bcm_status::failure) {
+    return bcm_status::failure;
+  }
+  return BCM_mldsa87_check_key_fips(out_private_key);
+}
+
+bcm_status BCM_mldsa87_generate_key_external_entropy_fips(
+    uint8_t out_encoded_public_key[BCM_MLDSA87_PUBLIC_KEY_BYTES],
+    struct BCM_mldsa87_private_key *out_private_key,
+    const uint8_t entropy[BCM_MLDSA_SEED_BYTES]) {
+  if (out_encoded_public_key == nullptr || out_private_key == nullptr) {
+    return bcm_status::failure;
+  }
+  if (BCM_mldsa87_generate_key_external_entropy(out_encoded_public_key,
+                                                out_private_key, entropy) ==
+      bcm_status::failure) {
+    return bcm_status::failure;
+  }
+  return BCM_mldsa87_check_key_fips(out_private_key);
+}
+
+bcm_status BCM_mldsa87_private_key_from_seed_fips(
+    struct BCM_mldsa87_private_key *out_private_key,
+    const uint8_t seed[BCM_MLDSA_SEED_BYTES]) {
+  uint8_t public_key[BCM_MLDSA87_PUBLIC_KEY_BYTES];
+  if (BCM_mldsa87_generate_key_external_entropy(public_key, out_private_key,
+                                                seed) == bcm_status::failure) {
+    return bcm_status::failure;
+  }
+  return BCM_mldsa87_check_key_fips(out_private_key);
 }
 
 bcm_status BCM_mldsa87_public_from_private(
@@ -2002,6 +2372,48 @@ bcm_status BCM_mldsa87_sign(
       sizeof(context_prefix), context, context_len, randomizer);
 }
 
+// ML-DSA pre-hashed API: initializing a pre-hashing context.
+void BCM_mldsa87_prehash_init(struct BCM_mldsa87_prehash *out_prehash_ctx,
+                              const struct BCM_mldsa87_public_key *public_key,
+                              const uint8_t *context, size_t context_len) {
+  BSSL_CHECK(context_len <= 255);
+
+  const uint8_t context_prefix[2] = {0, static_cast<uint8_t>(context_len)};
+  mldsa_prehash_init(mldsa::prehash_context_from_external_87(out_prehash_ctx),
+                     mldsa::public_key_from_external_87(public_key),
+                     context_prefix, sizeof(context_prefix), context,
+                     context_len);
+}
+
+// ML-DSA pre-hashed API: updating a pre-hashing context with a message chunk.
+void BCM_mldsa87_prehash_update(struct BCM_mldsa87_prehash *inout_prehash_ctx,
+                                const uint8_t *msg, size_t msg_len) {
+  mldsa_prehash_update(
+      mldsa::prehash_context_from_external_87(inout_prehash_ctx), msg, msg_len);
+}
+
+// ML-DSA pre-hashed API: obtaining a message representative to sign.
+void BCM_mldsa87_prehash_finalize(
+    uint8_t out_msg_rep[BCM_MLDSA_MU_BYTES],
+    struct BCM_mldsa87_prehash *inout_prehash_ctx) {
+  mldsa_prehash_finalize(
+      out_msg_rep, mldsa::prehash_context_from_external_87(inout_prehash_ctx));
+}
+
+// ML-DSA pre-hashed API: signing a message representative.
+bcm_status BCM_mldsa87_sign_message_representative(
+    uint8_t out_encoded_signature[BCM_MLDSA87_SIGNATURE_BYTES],
+    const struct BCM_mldsa87_private_key *private_key,
+    const uint8_t msg_rep[BCM_MLDSA_MU_BYTES]) {
+  uint8_t randomizer[BCM_MLDSA_SIGNATURE_RANDOMIZER_BYTES];
+  BCM_rand_bytes(randomizer, sizeof(randomizer));
+  CONSTTIME_SECRET(randomizer, sizeof(randomizer));
+
+  return bcm_as_approved_status(mldsa_sign_mu(
+      out_encoded_signature, mldsa::private_key_from_external_87(private_key),
+      msg_rep, randomizer));
+}
+
 // FIPS 204, Algorithm 3 (`ML-DSA.Verify`).
 bcm_status BCM_mldsa87_verify(const struct BCM_mldsa87_public_key *public_key,
                               const uint8_t *signature, const uint8_t *msg,
@@ -2028,4 +2440,9 @@ bcm_status BCM_mldsa87_marshal_public_key(
     CBB *out, const struct BCM_mldsa87_public_key *public_key) {
   return bcm_as_approved_status(mldsa_marshal_public_key(
       out, mldsa::public_key_from_external_87(public_key)));
+}
+
+int boringssl_self_test_mldsa() {
+  return mldsa::fips::keygen_self_test() && mldsa::fips::sign_self_test() &&
+         mldsa::fips::verify_self_test();
 }

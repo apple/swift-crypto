@@ -1,54 +1,16 @@
-/* ====================================================================
- * Copyright (c) 1998-2003 The OpenSSL Project.  All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
- *
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
- *
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in
- *    the documentation and/or other materials provided with the
- *    distribution.
- *
- * 3. All advertising materials mentioning features or use of this
- *    software must display the following acknowledgment:
- *    "This product includes software developed by the OpenSSL Project
- *    for use in the OpenSSL Toolkit. (http://www.openssl.org/)"
- *
- * 4. The names "OpenSSL Toolkit" and "OpenSSL Project" must not be used to
- *    endorse or promote products derived from this software without
- *    prior written permission. For written permission, please contact
- *    openssl-core@openssl.org.
- *
- * 5. Products derived from this software may not be called "OpenSSL"
- *    nor may "OpenSSL" appear in their names without prior written
- *    permission of the OpenSSL Project.
- *
- * 6. Redistributions of any form whatsoever must retain the following
- *    acknowledgment:
- *    "This product includes software developed by the OpenSSL Project
- *    for use in the OpenSSL Toolkit (http://www.openssl.org/)"
- *
- * THIS SOFTWARE IS PROVIDED BY THE OpenSSL PROJECT ``AS IS'' AND ANY
- * EXPRESSED OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
- * PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL THE OpenSSL PROJECT OR
- * ITS CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
- * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
- * NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
- * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
- * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
- * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
- * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
- * OF THE POSSIBILITY OF SUCH DAMAGE.
- * ====================================================================
- *
- * This product includes cryptographic software written by Eric Young
- * (eay@cryptsoft.com).  This product includes software written by Tim
- * Hudson (tjh@cryptsoft.com). */
+// Copyright 1999-2016 The OpenSSL Project Authors. All Rights Reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     https://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 
 #include <CCryptoBoringSSL_bio.h>
 
@@ -59,8 +21,10 @@
 #include <CCryptoBoringSSL_mem.h>
 
 #include "../internal.h"
+#include "internal.h"
 
 
+namespace {
 struct bio_bio_st {
   BIO *peer;  // NULL if buf == NULL.
               // If peer != NULL, then peer->ptr is also a bio_bio_st,
@@ -79,6 +43,7 @@ struct bio_bio_st {
                    // it (unsuccessfully) tried to read,
                    // never more than buffer space (size-len) warrants.
 };
+}  // namespace
 
 static int bio_new(BIO *bio) {
   struct bio_bio_st *b =
@@ -349,33 +314,32 @@ static int bio_make_pair(BIO *bio1, BIO *bio2, size_t writebuf1_len,
 }
 
 static long bio_ctrl(BIO *bio, int cmd, long num, void *ptr) {
-  long ret;
   struct bio_bio_st *b = reinterpret_cast<bio_bio_st *>(bio->ptr);
-
-  assert(b != NULL);
-
+  assert(b != nullptr);
   switch (cmd) {
     // Specific control codes first:
     case BIO_C_GET_WRITE_BUF_SIZE:
-      ret = (long)b->size;
-      break;
+      // TODO(crbug.com/412584975): This can overflow on 64-bit Windows. Do we
+      // need it? It implements |BIO_get_write_buf_size|, but we don't have the
+      // wrapper.
+      return static_cast<long>(b->size);
 
     case BIO_C_GET_WRITE_GUARANTEE:
       // How many bytes can the caller feed to the next write
       // without having to keep any?
-      if (b->peer == NULL || b->closed) {
-        ret = 0;
-      } else {
-        ret = (long)b->size - b->len;
+      if (b->peer == nullptr || b->closed) {
+        return 0;
       }
-      break;
+      // TODO(crbug.com/412584975): This can overflow on 64-bit Windows.
+      return static_cast<long>(b->size - b->len);
 
     case BIO_C_GET_READ_REQUEST:
       // If the peer unsuccessfully tried to read, how many bytes
       // were requested?  (As with BIO_CTRL_PENDING, that number
       // can usually be treated as boolean.)
-      ret = (long)b->request;
-      break;
+      //
+      // TODO(crbug.com/412584975): This can overflow on 64-bit Windows.
+      return static_cast<long>(b->request);
 
     case BIO_C_RESET_READ_REQUEST:
       // Reset request.  (Can be useful after read attempts
@@ -383,70 +347,65 @@ static long bio_ctrl(BIO *bio, int cmd, long num, void *ptr) {
       // e.g. when probing SSL_read to see if any data is
       // available.)
       b->request = 0;
-      ret = 1;
-      break;
+      return 1;
 
     case BIO_C_SHUTDOWN_WR:
       // similar to shutdown(..., SHUT_WR)
       b->closed = 1;
-      ret = 1;
-      break;
-
+      return 1;
 
     // Standard control codes:
     case BIO_CTRL_GET_CLOSE:
-      ret = bio->shutdown;
-      break;
+      return bio->shutdown;
 
     case BIO_CTRL_SET_CLOSE:
-      bio->shutdown = (int)num;
-      ret = 1;
-      break;
+      bio->shutdown = static_cast<int>(num);
+      return 1;
 
     case BIO_CTRL_PENDING:
-      if (b->peer != NULL) {
+      if (b->peer != nullptr) {
         struct bio_bio_st *peer_b =
             reinterpret_cast<bio_bio_st *>(b->peer->ptr);
-        ret = (long)peer_b->len;
-      } else {
-        ret = 0;
+        // TODO(crbug.com/412584975): This can overflow on 64-bit Windows.
+        return static_cast<long>(peer_b->len);
       }
-      break;
+      return 0;
 
     case BIO_CTRL_WPENDING:
-      ret = 0;
-      if (b->buf != NULL) {
-        ret = (long)b->len;
+      if (b->buf == nullptr) {
+        return 0;
       }
-      break;
+      // TODO(crbug.com/412584975): This can overflow on 64-bit Windows.
+      return static_cast<long>(b->len);
 
     case BIO_CTRL_FLUSH:
-      ret = 1;
-      break;
+      return 1;
 
     case BIO_CTRL_EOF: {
-      BIO *other_bio = reinterpret_cast<BIO *>(ptr);
-
-      if (other_bio) {
-        struct bio_bio_st *other_b =
-            reinterpret_cast<bio_bio_st *>(other_bio->ptr);
-        assert(other_b != NULL);
-        ret = other_b->len == 0 && other_b->closed;
-      } else {
-        ret = 1;
+      if (b->peer) {
+        auto *peer_b = reinterpret_cast<bio_bio_st *>(b->peer->ptr);
+        assert(peer_b != nullptr);
+        return peer_b->len == 0 && peer_b->closed;
       }
-    } break;
+      return 1;
+    }
 
     default:
-      ret = 0;
+      return 0;
   }
-  return ret;
 }
 
 
 static const BIO_METHOD methods_biop = {
-    BIO_TYPE_BIO,    "BIO pair", bio_write, bio_read, NULL /* puts */,
-    NULL /* gets */, bio_ctrl,   bio_new,   bio_free, NULL /* callback_ctrl */,
+    BIO_TYPE_BIO,
+    "BIO pair",
+    bio_write,
+    bio_read,
+    /*gets=*/nullptr,
+    bio_ctrl,
+    bio_new,
+    bio_free,
+    /*callback_ctrl=*/nullptr,
 };
 
 static const BIO_METHOD *bio_s_bio(void) { return &methods_biop; }

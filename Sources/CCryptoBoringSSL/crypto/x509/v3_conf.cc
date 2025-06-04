@@ -1,58 +1,16 @@
-/*
- * Written by Dr Stephen N Henson (steve@openssl.org) for the OpenSSL project
- * 1999.
- */
-/* ====================================================================
- * Copyright (c) 1999-2002 The OpenSSL Project.  All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
- *
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
- *
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in
- *    the documentation and/or other materials provided with the
- *    distribution.
- *
- * 3. All advertising materials mentioning features or use of this
- *    software must display the following acknowledgment:
- *    "This product includes software developed by the OpenSSL Project
- *    for use in the OpenSSL Toolkit. (http://www.OpenSSL.org/)"
- *
- * 4. The names "OpenSSL Toolkit" and "OpenSSL Project" must not be used to
- *    endorse or promote products derived from this software without
- *    prior written permission. For written permission, please contact
- *    licensing@OpenSSL.org.
- *
- * 5. Products derived from this software may not be called "OpenSSL"
- *    nor may "OpenSSL" appear in their names without prior written
- *    permission of the OpenSSL Project.
- *
- * 6. Redistributions of any form whatsoever must retain the following
- *    acknowledgment:
- *    "This product includes software developed by the OpenSSL Project
- *    for use in the OpenSSL Toolkit (http://www.OpenSSL.org/)"
- *
- * THIS SOFTWARE IS PROVIDED BY THE OpenSSL PROJECT ``AS IS'' AND ANY
- * EXPRESSED OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
- * PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL THE OpenSSL PROJECT OR
- * ITS CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
- * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
- * NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
- * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
- * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
- * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
- * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
- * OF THE POSSIBILITY OF SUCH DAMAGE.
- * ====================================================================
- *
- * This product includes cryptographic software written by Eric Young
- * (eay@cryptsoft.com).  This product includes software written by Tim
- * Hudson (tjh@cryptsoft.com). */
+// Copyright 1999-2016 The OpenSSL Project Authors. All Rights Reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     https://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 
 // extension creation utilities
 
@@ -268,49 +226,41 @@ static int v3_check_generic(const char **value) {
 static X509_EXTENSION *v3_generic_extension(const char *ext, const char *value,
                                             int crit, int gen_type,
                                             const X509V3_CTX *ctx) {
-  unsigned char *ext_der = NULL;
-  size_t ext_len = 0;
-  ASN1_OBJECT *obj = NULL;
-  ASN1_OCTET_STRING *oct = NULL;
-  X509_EXTENSION *extension = NULL;
-  if (!(obj = OBJ_txt2obj(ext, 0))) {
+  bssl::UniquePtr<ASN1_OBJECT> obj(OBJ_txt2obj(ext, 0));
+  if (obj == nullptr) {
     OPENSSL_PUT_ERROR(X509V3, X509V3_R_EXTENSION_NAME_ERROR);
     ERR_add_error_data(2, "name=", ext);
-    goto err;
+    return nullptr;
   }
 
+  bssl::UniquePtr<unsigned char> ext_der;
+  size_t ext_len = 0;
   if (gen_type == 1) {
-    ext_der = x509v3_hex_to_bytes(value, &ext_len);
+    ext_der.reset(x509v3_hex_to_bytes(value, &ext_len));
   } else if (gen_type == 2) {
-    ext_der = generic_asn1(value, ctx, &ext_len);
+    ext_der.reset(generic_asn1(value, ctx, &ext_len));
   }
 
-  if (ext_der == NULL) {
+  if (ext_der == nullptr) {
     OPENSSL_PUT_ERROR(X509V3, X509V3_R_EXTENSION_VALUE_ERROR);
     ERR_add_error_data(2, "value=", value);
-    goto err;
+    return nullptr;
   }
 
   if (ext_len > INT_MAX) {
     OPENSSL_PUT_ERROR(X509V3, ERR_R_OVERFLOW);
-    goto err;
+    return nullptr;
   }
 
-  oct = ASN1_OCTET_STRING_new();
-  if (oct == NULL) {
-    goto err;
+  bssl::UniquePtr<ASN1_OCTET_STRING> oct(ASN1_OCTET_STRING_new());
+  if (oct == nullptr) {
+    return nullptr;
   }
 
-  ASN1_STRING_set0(oct, ext_der, (int)ext_len);
-  ext_der = NULL;
+  ASN1_STRING_set0(oct.get(), ext_der.get(), (int)ext_len);
+  ext_der.release();  // ASN1_STRING_set0 took ownership.
 
-  extension = X509_EXTENSION_create_by_OBJ(NULL, obj, crit, oct);
-
-err:
-  ASN1_OBJECT_free(obj);
-  ASN1_OCTET_STRING_free(oct);
-  OPENSSL_free(ext_der);
-  return extension;
+  return X509_EXTENSION_create_by_OBJ(nullptr, obj.get(), crit, oct.get());
 }
 
 static unsigned char *generic_asn1(const char *value, const X509V3_CTX *ctx,
