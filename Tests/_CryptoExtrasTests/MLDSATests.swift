@@ -185,6 +185,32 @@ final class MLDSATests: XCTestCase {
         XCTAssertThrowsError(try MLDSA87.PublicKey(rawRepresentation: encodedPublicKey))
     }
 
+    func testMLDSA65PrehashedSigning() throws {
+        let message = "Hello, world!".data(using: .utf8)!
+        let context = "ctx".data(using: .utf8)!
+
+        let key = try MLDSA65.PrivateKey()
+        let publicKey = key.publicKey
+
+        let mu = try publicKey.prehash(for: message, context: context)
+
+        let muSignature = try key.signature(forPrehashedMessageRepresentative: mu)
+        XCTAssertTrue(publicKey.isValidSignature(muSignature, for: message, context: context))
+    }
+
+    func testMLDSA87PrehashedSigning() throws {
+        let message = "Hello, world!".data(using: .utf8)!
+        let context = "ctx".data(using: .utf8)!
+
+        let key = try MLDSA87.PrivateKey()
+        let publicKey = key.publicKey
+
+        let mu = try publicKey.prehash(for: message, context: context)
+
+        let muSignature = try key.signature(forPrehashedMessageRepresentative: mu)
+        XCTAssertTrue(publicKey.isValidSignature(muSignature, for: message, context: context))
+    }
+
     func testMLDSA65NISTKeyGenFile() throws {
         guard #available(iOS 19.0, macOS 16.0, watchOS 12.0, tvOS 19.0, visionOS 3.0, *) else {
             throw XCTSkip("MLDSA is only available on iOS 19.0+, macOS 16.0+, watchOS 12.0+, tvOS 19.0+, visionOS 3.0+")
