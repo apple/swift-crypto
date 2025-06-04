@@ -195,7 +195,7 @@ let package = Package(
         ),
         .testTarget(name: "CryptoBoringWrapperTests", dependencies: ["CryptoBoringWrapper"]),
     ],
-    cxxLanguageStandard: .cxx14
+    cxxLanguageStandard: .cxx17
 )
 
 // Switch between local and remote dependencies depending on an environment variable
