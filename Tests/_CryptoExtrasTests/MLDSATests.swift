@@ -157,6 +157,32 @@ final class MLDSATests: XCTestCase {
         XCTAssertThrowsError(try MLDSA87.PublicKey(rawRepresentation: encodedPublicKey))
     }
 
+    func testMLDSA65PrehashedSigning() throws {
+        let message = "Hello, world!".data(using: .utf8)!
+        let context = "ctx".data(using: .utf8)!
+
+        let key = try MLDSA65.PrivateKey()
+        let publicKey = key.publicKey
+
+        let mu = try publicKey.prehash(for: message, context: context)
+
+        let muSignature = try key.signature(forPrehashedMessageRepresentative: mu)
+        XCTAssertTrue(publicKey.isValidSignature(muSignature, for: message, context: context))
+    }
+
+    func testMLDSA87PrehashedSigning() throws {
+        let message = "Hello, world!".data(using: .utf8)!
+        let context = "ctx".data(using: .utf8)!
+
+        let key = try MLDSA87.PrivateKey()
+        let publicKey = key.publicKey
+
+        let mu = try publicKey.prehash(for: message, context: context)
+
+        let muSignature = try key.signature(forPrehashedMessageRepresentative: mu)
+        XCTAssertTrue(publicKey.isValidSignature(muSignature, for: message, context: context))
+    }
+
     func testMLDSA65NISTKeyGenFile() throws {
         try nistTest(jsonName: "mldsa_nist_keygen_65_tests") { (testVector: NISTKeyGenTestVector) in
             let seed = try Data(hexString: testVector.seed)
