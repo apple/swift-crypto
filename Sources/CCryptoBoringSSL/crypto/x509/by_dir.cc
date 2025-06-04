@@ -1,58 +1,16 @@
-/* Copyright (C) 1995-1998 Eric Young (eay@cryptsoft.com)
- * All rights reserved.
- *
- * This package is an SSL implementation written
- * by Eric Young (eay@cryptsoft.com).
- * The implementation was written so as to conform with Netscapes SSL.
- *
- * This library is free for commercial and non-commercial use as long as
- * the following conditions are aheared to.  The following conditions
- * apply to all code found in this distribution, be it the RC4, RSA,
- * lhash, DES, etc., code; not just the SSL code.  The SSL documentation
- * included with this distribution is covered by the same copyright terms
- * except that the holder is Tim Hudson (tjh@cryptsoft.com).
- *
- * Copyright remains Eric Young's, and as such any Copyright notices in
- * the code are not to be removed.
- * If this package is used in a product, Eric Young should be given attribution
- * as the author of the parts of the library used.
- * This can be in the form of a textual message at program startup or
- * in documentation (online or textual) provided with the package.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
- * 1. Redistributions of source code must retain the copyright
- *    notice, this list of conditions and the following disclaimer.
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- * 3. All advertising materials mentioning features or use of this software
- *    must display the following acknowledgement:
- *    "This product includes cryptographic software written by
- *     Eric Young (eay@cryptsoft.com)"
- *    The word 'cryptographic' can be left out if the rouines from the library
- *    being used are not cryptographic related :-).
- * 4. If you include any Windows specific code (or a derivative thereof) from
- *    the apps directory (application code) you must include an acknowledgement:
- *    "This product includes software written by Tim Hudson (tjh@cryptsoft.com)"
- *
- * THIS SOFTWARE IS PROVIDED BY ERIC YOUNG ``AS IS'' AND
- * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED.  IN NO EVENT SHALL THE AUTHOR OR CONTRIBUTORS BE LIABLE
- * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
- * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
- * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
- * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
- * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
- * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
- * SUCH DAMAGE.
- *
- * The licence and distribution terms for any publically available version or
- * derivative of this code cannot be changed.  i.e. this code cannot simply be
- * copied and put under another distribution licence
- * [including the GNU Public Licence.] */
+// Copyright 1995-2016 The OpenSSL Project Authors. All Rights Reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     https://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 
 #include <inttypes.h>
 #include <string.h>
@@ -60,7 +18,6 @@
 #include <CCryptoBoringSSL_buf.h>
 #include <CCryptoBoringSSL_err.h>
 #include <CCryptoBoringSSL_mem.h>
-#include <CCryptoBoringSSL_thread.h>
 #include <CCryptoBoringSSL_x509.h>
 
 #include "../internal.h"
@@ -234,23 +191,15 @@ static int add_cert_dir(BY_DIR *ctx, const char *dir, int type) {
 
 static int get_cert_by_subject(X509_LOOKUP *xl, int type, X509_NAME *name,
                                X509_OBJECT *ret) {
-  union {
-    struct {
-      X509 st_x509;
-      X509_CINF st_x509_cinf;
-    } x509;
-    struct {
-      X509_CRL st_crl;
-      X509_CRL_INFO st_crl_info;
-    } crl;
-  } data;
+  bssl::UniquePtr<X509> lookup_cert;
+  bssl::UniquePtr<X509_CRL> lookup_crl;
   int ok = 0;
   size_t i;
-  int j, k;
+  int k;
   uint32_t h;
   uint32_t hash_array[2];
   int hash_index;
-  BUF_MEM *b = NULL;
+  char *b = NULL;
   X509_OBJECT stmp, *tmp;
   const char *postfix = "";
 
@@ -261,22 +210,23 @@ static int get_cert_by_subject(X509_LOOKUP *xl, int type, X509_NAME *name,
   stmp.type = type;
   BY_DIR *ctx = reinterpret_cast<BY_DIR *>(xl->method_data);
   if (type == X509_LU_X509) {
-    data.x509.st_x509.cert_info = &data.x509.st_x509_cinf;
-    data.x509.st_x509_cinf.subject = name;
-    stmp.data.x509 = &data.x509.st_x509;
+    lookup_cert.reset(X509_new());
+    if (lookup_cert == nullptr ||
+        !X509_set_subject_name(lookup_cert.get(), name)) {
+      return 0;
+    }
+    stmp.data.x509 = lookup_cert.get();
     postfix = "";
   } else if (type == X509_LU_CRL) {
-    data.crl.st_crl.crl = &data.crl.st_crl_info;
-    data.crl.st_crl_info.issuer = name;
-    stmp.data.crl = &data.crl.st_crl;
+    lookup_crl.reset(X509_CRL_new());
+    if (lookup_crl == nullptr ||
+        !X509_CRL_set_issuer_name(lookup_crl.get(), name)) {
+      return 0;
+    }
+    stmp.data.crl = lookup_crl.get();
     postfix = "r";
   } else {
     OPENSSL_PUT_ERROR(X509, X509_R_WRONG_LOOKUP_TYPE);
-    goto finish;
-  }
-
-  if ((b = BUF_MEM_new()) == NULL) {
-    OPENSSL_PUT_ERROR(X509, ERR_R_BUF_LIB);
     goto finish;
   }
 
@@ -289,10 +239,6 @@ static int get_cert_by_subject(X509_LOOKUP *xl, int type, X509_NAME *name,
       size_t idx;
       BY_DIR_HASH htmp, *hent;
       ent = sk_BY_DIR_ENTRY_value(ctx->dirs, i);
-      j = strlen(ent->dir) + 1 + 8 + 6 + 1 + 1;
-      if (!BUF_MEM_grow(b, j)) {
-        goto finish;
-      }
       if (type == X509_LU_CRL && ent->hashes) {
         htmp.hash = h;
         CRYPTO_MUTEX_lock_read(&ent->lock);
@@ -309,17 +255,22 @@ static int get_cert_by_subject(X509_LOOKUP *xl, int type, X509_NAME *name,
         hent = NULL;
       }
       for (;;) {
-        snprintf(b->data, b->max, "%s/%08" PRIx32 ".%s%d", ent->dir, h, postfix,
-                 k);
+        OPENSSL_free(b);
+        if (OPENSSL_asprintf(&b, "%s/%08" PRIx32 ".%s%d", ent->dir, h, postfix,
+                             k) == -1) {
+          OPENSSL_PUT_ERROR(X509, ERR_R_BUF_LIB);
+          b = nullptr;
+          goto finish;
+        }
         if (type == X509_LU_X509) {
-          if ((X509_load_cert_file(xl, b->data, ent->dir_type)) == 0) {
+          if ((X509_load_cert_file(xl, b, ent->dir_type)) == 0) {
             // Don't expose the lower level error, All of these boil
             // down to "we could not find a CA".
             ERR_clear_error();
             break;
           }
         } else if (type == X509_LU_CRL) {
-          if ((X509_load_crl_file(xl, b->data, ent->dir_type)) == 0) {
+          if ((X509_load_crl_file(xl, b, ent->dir_type)) == 0) {
             // Don't expose the lower level error, All of these boil
             // down to "we could not find a CRL".
             ERR_clear_error();
@@ -392,7 +343,7 @@ static int get_cert_by_subject(X509_LOOKUP *xl, int type, X509_NAME *name,
     }
   }
 finish:
-  BUF_MEM_free(b);
+  OPENSSL_free(b);
   return ok;
 }
 

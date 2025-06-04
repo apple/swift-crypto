@@ -5,8 +5,6 @@
 #include <CCryptoBoringSSL_asm_base.h>
 
 #if !defined(OPENSSL_NO_ASM) && defined(OPENSSL_AARCH64) && defined(_WIN32)
-#include <CCryptoBoringSSL_arm_arch.h>
-
 .text
 
 .globl	sha1_block_data_order_nohw

@@ -1,110 +1,16 @@
-/* Copyright (C) 1995-1998 Eric Young (eay@cryptsoft.com)
- * All rights reserved.
- *
- * This package is an SSL implementation written
- * by Eric Young (eay@cryptsoft.com).
- * The implementation was written so as to conform with Netscapes SSL.
- *
- * This library is free for commercial and non-commercial use as long as
- * the following conditions are aheared to.  The following conditions
- * apply to all code found in this distribution, be it the RC4, RSA,
- * lhash, DES, etc., code; not just the SSL code.  The SSL documentation
- * included with this distribution is covered by the same copyright terms
- * except that the holder is Tim Hudson (tjh@cryptsoft.com).
- *
- * Copyright remains Eric Young's, and as such any Copyright notices in
- * the code are not to be removed.
- * If this package is used in a product, Eric Young should be given attribution
- * as the author of the parts of the library used.
- * This can be in the form of a textual message at program startup or
- * in documentation (online or textual) provided with the package.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
- * 1. Redistributions of source code must retain the copyright
- *    notice, this list of conditions and the following disclaimer.
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- * 3. All advertising materials mentioning features or use of this software
- *    must display the following acknowledgement:
- *    "This product includes cryptographic software written by
- *     Eric Young (eay@cryptsoft.com)"
- *    The word 'cryptographic' can be left out if the rouines from the library
- *    being used are not cryptographic related :-).
- * 4. If you include any Windows specific code (or a derivative thereof) from
- *    the apps directory (application code) you must include an acknowledgement:
- *    "This product includes software written by Tim Hudson (tjh@cryptsoft.com)"
- *
- * THIS SOFTWARE IS PROVIDED BY ERIC YOUNG ``AS IS'' AND
- * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED.  IN NO EVENT SHALL THE AUTHOR OR CONTRIBUTORS BE LIABLE
- * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
- * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
- * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
- * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
- * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
- * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
- * SUCH DAMAGE.
- *
- * The licence and distribution terms for any publically available version or
- * derivative of this code cannot be changed.  i.e. this code cannot simply be
- * copied and put under another distribution licence
- * [including the GNU Public Licence.]
- */
-/* ====================================================================
- * Copyright (c) 1998-2001 The OpenSSL Project.  All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
- *
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
- *
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in
- *    the documentation and/or other materials provided with the
- *    distribution.
- *
- * 3. All advertising materials mentioning features or use of this
- *    software must display the following acknowledgment:
- *    "This product includes software developed by the OpenSSL Project
- *    for use in the OpenSSL Toolkit. (http://www.openssl.org/)"
- *
- * 4. The names "OpenSSL Toolkit" and "OpenSSL Project" must not be used to
- *    endorse or promote products derived from this software without
- *    prior written permission. For written permission, please contact
- *    openssl-core@openssl.org.
- *
- * 5. Products derived from this software may not be called "OpenSSL"
- *    nor may "OpenSSL" appear in their names without prior written
- *    permission of the OpenSSL Project.
- *
- * 6. Redistributions of any form whatsoever must retain the following
- *    acknowledgment:
- *    "This product includes software developed by the OpenSSL Project
- *    for use in the OpenSSL Toolkit (http://www.openssl.org/)"
- *
- * THIS SOFTWARE IS PROVIDED BY THE OpenSSL PROJECT ``AS IS'' AND ANY
- * EXPRESSED OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
- * PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL THE OpenSSL PROJECT OR
- * ITS CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
- * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
- * NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
- * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
- * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
- * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
- * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
- * OF THE POSSIBILITY OF SUCH DAMAGE.
- * ====================================================================
- *
- * This product includes cryptographic software written by Eric Young
- * (eay@cryptsoft.com).  This product includes software written by Tim
- * Hudson (tjh@cryptsoft.com). */
+// Copyright 1995-2016 The OpenSSL Project Authors. All Rights Reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     https://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 
 #include <CCryptoBoringSSL_bn.h>
 
@@ -127,23 +33,20 @@ int BN_mod_inverse_odd(BIGNUM *out, int *out_no_inverse, const BIGNUM *a,
     return 0;
   }
 
-  BIGNUM *A, *B, *X, *Y;
-  int ret = 0;
   int sign;
-
-  BN_CTX_start(ctx);
-  A = BN_CTX_get(ctx);
-  B = BN_CTX_get(ctx);
-  X = BN_CTX_get(ctx);
-  Y = BN_CTX_get(ctx);
+  bssl::BN_CTXScope scope(ctx);
+  BIGNUM *A = BN_CTX_get(ctx);
+  BIGNUM *B = BN_CTX_get(ctx);
+  BIGNUM *X = BN_CTX_get(ctx);
+  BIGNUM *Y = BN_CTX_get(ctx);
   BIGNUM *R = out;
   if (Y == NULL) {
-    goto err;
+    return 0;
   }
 
   BN_zero(Y);
   if (!BN_one(X) || BN_copy(B, a) == NULL || BN_copy(A, n) == NULL) {
-    goto err;
+    return 0;
   }
   A->neg = 0;
   sign = -1;
@@ -174,17 +77,17 @@ int BN_mod_inverse_odd(BIGNUM *out, int *out_no_inverse, const BIGNUM *a,
 
       if (BN_is_odd(X)) {
         if (!BN_uadd(X, X, n)) {
-          goto err;
+          return 0;
         }
       }
       // now X is even, so we can easily divide it by two
       if (!BN_rshift1(X, X)) {
-        goto err;
+        return 0;
       }
     }
     if (shift > 0) {
       if (!BN_rshift(B, B, shift)) {
-        goto err;
+        return 0;
       }
     }
 
@@ -196,17 +99,17 @@ int BN_mod_inverse_odd(BIGNUM *out, int *out_no_inverse, const BIGNUM *a,
 
       if (BN_is_odd(Y)) {
         if (!BN_uadd(Y, Y, n)) {
-          goto err;
+          return 0;
         }
       }
       // now Y is even
       if (!BN_rshift1(Y, Y)) {
-        goto err;
+        return 0;
       }
     }
     if (shift > 0) {
       if (!BN_rshift(A, A, shift)) {
-        goto err;
+        return 0;
       }
     }
 
@@ -223,21 +126,21 @@ int BN_mod_inverse_odd(BIGNUM *out, int *out_no_inverse, const BIGNUM *a,
     if (BN_ucmp(B, A) >= 0) {
       // -sign*(X + Y)*a == B - A  (mod |n|)
       if (!BN_uadd(X, X, Y)) {
-        goto err;
+        return 0;
       }
       // NB: we could use BN_mod_add_quick(X, X, Y, n), but that
       // actually makes the algorithm slower
       if (!BN_usub(B, B, A)) {
-        goto err;
+        return 0;
       }
     } else {
       //  sign*(X + Y)*a == A - B  (mod |n|)
       if (!BN_uadd(Y, Y, X)) {
-        goto err;
+        return 0;
       }
       // as above, BN_mod_add_quick(Y, Y, X, n) would slow things down
       if (!BN_usub(A, A, B)) {
-        goto err;
+        return 0;
       }
     }
   }
@@ -245,7 +148,7 @@ int BN_mod_inverse_odd(BIGNUM *out, int *out_no_inverse, const BIGNUM *a,
   if (!BN_is_one(A)) {
     *out_no_inverse = 1;
     OPENSSL_PUT_ERROR(BN, BN_R_NO_INVERSE);
-    goto err;
+    return 0;
   }
 
   // The while loop (Euclid's algorithm) ends when
@@ -256,7 +159,7 @@ int BN_mod_inverse_odd(BIGNUM *out, int *out_no_inverse, const BIGNUM *a,
 
   if (sign < 0) {
     if (!BN_sub(Y, n, Y)) {
-      goto err;
+      return 0;
     }
   }
   // Now  Y*a  ==  A  (mod |n|).
@@ -264,61 +167,49 @@ int BN_mod_inverse_odd(BIGNUM *out, int *out_no_inverse, const BIGNUM *a,
   // Y*a == 1  (mod |n|)
   if (Y->neg || BN_ucmp(Y, n) >= 0) {
     if (!BN_nnmod(Y, Y, n, ctx)) {
-      goto err;
+      return 0;
     }
   }
   if (!BN_copy(R, Y)) {
-    goto err;
+    return 0;
   }
 
-  ret = 1;
-
-err:
-  BN_CTX_end(ctx);
-  return ret;
+  return 1;
 }
 
 BIGNUM *BN_mod_inverse(BIGNUM *out, const BIGNUM *a, const BIGNUM *n,
                        BN_CTX *ctx) {
-  BIGNUM *new_out = NULL;
-  if (out == NULL) {
-    new_out = BN_new();
-    if (new_out == NULL) {
-      return NULL;
+  bssl::UniquePtr<BIGNUM> new_out;
+  if (out == nullptr) {
+    new_out.reset(BN_new());
+    if (new_out == nullptr) {
+      return nullptr;
     }
-    out = new_out;
+    out = new_out.get();
   }
 
-  int ok = 0;
-  BIGNUM *a_reduced = NULL;
+  bssl::UniquePtr<BIGNUM> a_reduced;
   if (a->neg || BN_ucmp(a, n) >= 0) {
-    a_reduced = BN_dup(a);
-    if (a_reduced == NULL) {
-      goto err;
+    a_reduced.reset(BN_dup(a));
+    if (a_reduced == nullptr) {
+      return nullptr;
     }
-    if (!BN_nnmod(a_reduced, a_reduced, n, ctx)) {
-      goto err;
+    if (!BN_nnmod(a_reduced.get(), a_reduced.get(), n, ctx)) {
+      return nullptr;
     }
-    a = a_reduced;
+    a = a_reduced.get();
   }
 
   int no_inverse;
   if (!BN_is_odd(n)) {
     if (!bn_mod_inverse_consttime(out, &no_inverse, a, n, ctx)) {
-      goto err;
+      return nullptr;
     }
   } else if (!BN_mod_inverse_odd(out, &no_inverse, a, n, ctx)) {
-    goto err;
+    return nullptr;
   }
 
-  ok = 1;
-
-err:
-  if (!ok) {
-    BN_free(new_out);
-    out = NULL;
-  }
-  BN_free(a_reduced);
+  new_out.release();  // Passed to the caller via |out|.
   return out;
 }
 
@@ -334,9 +225,10 @@ int BN_mod_inverse_blinded(BIGNUM *out, int *out_no_inverse, const BIGNUM *a,
     return 0;
   }
 
-  int ret = 0;
-  BIGNUM blinding_factor;
-  BN_init(&blinding_factor);
+  bssl::UniquePtr<BIGNUM> blinding_factor(BN_new());
+  if (blinding_factor == nullptr) {
+    return 0;
+  }
 
   // |BN_mod_inverse_odd| is leaky, so generate a secret blinding factor and
   // blind |a|. This works because (ar)^-1 * r = a^-1, supposing r is
@@ -347,12 +239,12 @@ int BN_mod_inverse_blinded(BIGNUM *out, int *out_no_inverse, const BIGNUM *a,
   //
   // TODO(crbug.com/boringssl/677): When the PRNG output is marked secret by
   // default, the explicit |bn_secret| call can be removed.
-  if (!BN_rand_range_ex(&blinding_factor, 1, &mont->N)) {
-    goto err;
+  if (!BN_rand_range_ex(blinding_factor.get(), 1, &mont->N)) {
+    return 0;
   }
-  bn_secret(&blinding_factor);
-  if (!BN_mod_mul_montgomery(out, &blinding_factor, a, mont, ctx)) {
-    goto err;
+  bn_secret(blinding_factor.get());
+  if (!BN_mod_mul_montgomery(out, blinding_factor.get(), a, mont, ctx)) {
+    return 0;
   }
 
   // Once blinded, |out| is no longer secret, so it may be passed to a leaky
@@ -360,35 +252,27 @@ int BN_mod_inverse_blinded(BIGNUM *out, int *out_no_inverse, const BIGNUM *a,
   // secret again after multiplying.
   bn_declassify(out);
   if (!BN_mod_inverse_odd(out, out_no_inverse, out, &mont->N, ctx) ||
-      !BN_mod_mul_montgomery(out, &blinding_factor, out, mont, ctx)) {
-    goto err;
+      !BN_mod_mul_montgomery(out, blinding_factor.get(), out, mont, ctx)) {
+    return 0;
   }
 
-  ret = 1;
-
-err:
-  BN_free(&blinding_factor);
-  return ret;
+  return 1;
 }
 
 int bn_mod_inverse_prime(BIGNUM *out, const BIGNUM *a, const BIGNUM *p,
                          BN_CTX *ctx, const BN_MONT_CTX *mont_p) {
-  BN_CTX_start(ctx);
+  bssl::BN_CTXScope scope(ctx);
   BIGNUM *p_minus_2 = BN_CTX_get(ctx);
-  int ok = p_minus_2 != NULL && BN_copy(p_minus_2, p) &&
-           BN_sub_word(p_minus_2, 2) &&
-           BN_mod_exp_mont(out, a, p_minus_2, p, ctx, mont_p);
-  BN_CTX_end(ctx);
-  return ok;
+  return p_minus_2 != nullptr && BN_copy(p_minus_2, p) &&
+         BN_sub_word(p_minus_2, 2) &&
+         BN_mod_exp_mont(out, a, p_minus_2, p, ctx, mont_p);
 }
 
 int bn_mod_inverse_secret_prime(BIGNUM *out, const BIGNUM *a, const BIGNUM *p,
                                 BN_CTX *ctx, const BN_MONT_CTX *mont_p) {
-  BN_CTX_start(ctx);
+  bssl::BN_CTXScope scope(ctx);
   BIGNUM *p_minus_2 = BN_CTX_get(ctx);
-  int ok = p_minus_2 != NULL && BN_copy(p_minus_2, p) &&
-           BN_sub_word(p_minus_2, 2) &&
-           BN_mod_exp_mont_consttime(out, a, p_minus_2, p, ctx, mont_p);
-  BN_CTX_end(ctx);
-  return ok;
+  return p_minus_2 != nullptr && BN_copy(p_minus_2, p) &&
+         BN_sub_word(p_minus_2, 2) &&
+         BN_mod_exp_mont_consttime(out, a, p_minus_2, p, ctx, mont_p);
 }

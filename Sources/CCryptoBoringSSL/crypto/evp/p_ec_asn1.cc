@@ -1,57 +1,16 @@
-/* Written by Dr Stephen N Henson (steve@openssl.org) for the OpenSSL project
- * 2006.
- */
-/* ====================================================================
- * Copyright (c) 2006 The OpenSSL Project.  All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
- *
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
- *
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in
- *    the documentation and/or other materials provided with the
- *    distribution.
- *
- * 3. All advertising materials mentioning features or use of this
- *    software must display the following acknowledgment:
- *    "This product includes software developed by the OpenSSL Project
- *    for use in the OpenSSL Toolkit. (http://www.OpenSSL.org/)"
- *
- * 4. The names "OpenSSL Toolkit" and "OpenSSL Project" must not be used to
- *    endorse or promote products derived from this software without
- *    prior written permission. For written permission, please contact
- *    licensing@OpenSSL.org.
- *
- * 5. Products derived from this software may not be called "OpenSSL"
- *    nor may "OpenSSL" appear in their names without prior written
- *    permission of the OpenSSL Project.
- *
- * 6. Redistributions of any form whatsoever must retain the following
- *    acknowledgment:
- *    "This product includes software developed by the OpenSSL Project
- *    for use in the OpenSSL Toolkit (http://www.OpenSSL.org/)"
- *
- * THIS SOFTWARE IS PROVIDED BY THE OpenSSL PROJECT ``AS IS'' AND ANY
- * EXPRESSED OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
- * PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL THE OpenSSL PROJECT OR
- * ITS CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
- * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
- * NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
- * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
- * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
- * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
- * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
- * OF THE POSSIBILITY OF SUCH DAMAGE.
- * ====================================================================
- *
- * This product includes cryptographic software written by Eric Young
- * (eay@cryptsoft.com).  This product includes software written by Tim
- * Hudson (tjh@cryptsoft.com). */
+// Copyright 2006-2016 The OpenSSL Project Authors. All Rights Reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     https://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 
 #include <CCryptoBoringSSL_evp.h>
 
@@ -71,11 +30,11 @@ static int eckey_pub_encode(CBB *out, const EVP_PKEY *key) {
   const EC_POINT *public_key = EC_KEY_get0_public_key(ec_key);
 
   // See RFC 5480, section 2.
-  CBB spki, algorithm, oid, key_bitstring;
+  CBB spki, algorithm, key_bitstring;
   if (!CBB_add_asn1(out, &spki, CBS_ASN1_SEQUENCE) ||
       !CBB_add_asn1(&spki, &algorithm, CBS_ASN1_SEQUENCE) ||
-      !CBB_add_asn1(&algorithm, &oid, CBS_ASN1_OBJECT) ||
-      !CBB_add_bytes(&oid, ec_asn1_meth.oid, ec_asn1_meth.oid_len) ||
+      !CBB_add_asn1_element(&algorithm, CBS_ASN1_OBJECT, ec_asn1_meth.oid,
+                            ec_asn1_meth.oid_len) ||
       !EC_KEY_marshal_curve_name(&algorithm, group) ||
       !CBB_add_asn1(&spki, &key_bitstring, CBS_ASN1_BITSTRING) ||
       !CBB_add_u8(&key_bitstring, 0 /* padding */) ||
@@ -93,26 +52,21 @@ static int eckey_pub_decode(EVP_PKEY *out, CBS *params, CBS *key) {
   // See RFC 5480, section 2.
 
   // The parameters are a named curve.
-  EC_KEY *eckey = NULL;
   const EC_GROUP *group = EC_KEY_parse_curve_name(params);
   if (group == NULL || CBS_len(params) != 0) {
     OPENSSL_PUT_ERROR(EVP, EVP_R_DECODE_ERROR);
-    goto err;
+    return 0;
   }
 
-  eckey = EC_KEY_new();
-  if (eckey == NULL ||  //
-      !EC_KEY_set_group(eckey, group) ||
-      !EC_KEY_oct2key(eckey, CBS_data(key), CBS_len(key), NULL)) {
-    goto err;
+  bssl::UniquePtr<EC_KEY> eckey(EC_KEY_new());
+  if (eckey == nullptr ||  //
+      !EC_KEY_set_group(eckey.get(), group) ||
+      !EC_KEY_oct2key(eckey.get(), CBS_data(key), CBS_len(key), nullptr)) {
+    return 0;
   }
 
-  EVP_PKEY_assign_EC_KEY(out, eckey);
+  EVP_PKEY_assign_EC_KEY(out, eckey.release());
   return 1;
-
-err:
-  EC_KEY_free(eckey);
-  return 0;
 }
 
 static int eckey_pub_cmp(const EVP_PKEY *a, const EVP_PKEY *b) {
@@ -160,12 +114,12 @@ static int eckey_priv_encode(CBB *out, const EVP_PKEY *key) {
   unsigned enc_flags = EC_KEY_get_enc_flags(ec_key) | EC_PKEY_NO_PARAMETERS;
 
   // See RFC 5915.
-  CBB pkcs8, algorithm, oid, private_key;
+  CBB pkcs8, algorithm, private_key;
   if (!CBB_add_asn1(out, &pkcs8, CBS_ASN1_SEQUENCE) ||
       !CBB_add_asn1_uint64(&pkcs8, 0 /* version */) ||
       !CBB_add_asn1(&pkcs8, &algorithm, CBS_ASN1_SEQUENCE) ||
-      !CBB_add_asn1(&algorithm, &oid, CBS_ASN1_OBJECT) ||
-      !CBB_add_bytes(&oid, ec_asn1_meth.oid, ec_asn1_meth.oid_len) ||
+      !CBB_add_asn1_element(&algorithm, CBS_ASN1_OBJECT, ec_asn1_meth.oid,
+                            ec_asn1_meth.oid_len) ||
       !EC_KEY_marshal_curve_name(&algorithm, EC_KEY_get0_group(ec_key)) ||
       !CBB_add_asn1(&pkcs8, &private_key, CBS_ASN1_OCTETSTRING) ||
       !EC_KEY_marshal_private_key(&private_key, ec_key, enc_flags) ||

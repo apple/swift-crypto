@@ -1,11 +1,16 @@
-/*
- * Copyright 2006-2019 The OpenSSL Project Authors. All Rights Reserved.
- *
- * Licensed under the OpenSSL license (the "License").  You may not use
- * this file except in compliance with the License.  You can obtain a copy
- * in the file LICENSE in the source distribution or at
- * https://www.openssl.org/source/license.html
- */
+// Copyright 2006-2019 The OpenSSL Project Authors. All Rights Reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     https://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 
 #include <CCryptoBoringSSL_evp.h>
 
@@ -18,9 +23,11 @@
 #include "internal.h"
 
 
+namespace {
 typedef struct dh_pkey_ctx_st {
   int pad;
 } DH_PKEY_CTX;
+}  // namespace
 
 static int pkey_dh_init(EVP_PKEY_CTX *ctx) {
   DH_PKEY_CTX *dctx =
@@ -56,7 +63,7 @@ static int pkey_dh_keygen(EVP_PKEY_CTX *ctx, EVP_PKEY *pkey) {
     return 0;
   }
 
-  if (ctx->pkey != NULL && !EVP_PKEY_copy_parameters(pkey, ctx->pkey)) {
+  if (ctx->pkey != NULL && !EVP_PKEY_copy_parameters(pkey, ctx->pkey.get())) {
     return 0;
   }
 

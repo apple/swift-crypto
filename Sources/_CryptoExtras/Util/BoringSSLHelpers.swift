@@ -21,7 +21,7 @@ import Crypto
 @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 internal enum BIOHelper {
     static func withReadOnlyMemoryBIO<ReturnValue>(
-        wrapping pointer: UnsafeRawBufferPointer, _ block: (UnsafeMutablePointer<BIO>) throws -> ReturnValue
+        wrapping pointer: UnsafeRawBufferPointer, _ block: (OpaquePointer) throws -> ReturnValue
     ) rethrows -> ReturnValue {
         let bio = CCryptoBoringSSL_BIO_new_mem_buf(pointer.baseAddress, pointer.count)!
         defer {
@@ -32,7 +32,7 @@ internal enum BIOHelper {
     }
 
     static func withReadOnlyMemoryBIO<ReturnValue>(
-        wrapping pointer: UnsafeBufferPointer<UInt8>, _ block: (UnsafeMutablePointer<BIO>) throws -> ReturnValue
+        wrapping pointer: UnsafeBufferPointer<UInt8>, _ block: (OpaquePointer) throws -> ReturnValue
     ) rethrows -> ReturnValue {
         let bio = CCryptoBoringSSL_BIO_new_mem_buf(pointer.baseAddress, pointer.count)!
         defer {
@@ -42,7 +42,7 @@ internal enum BIOHelper {
         return try block(bio)
     }
 
-    static func withWritableMemoryBIO<ReturnValue>(_ block: (UnsafeMutablePointer<BIO>) throws -> ReturnValue) rethrows -> ReturnValue {
+    static func withWritableMemoryBIO<ReturnValue>(_ block: (OpaquePointer) throws -> ReturnValue) rethrows -> ReturnValue {
         let bio = CCryptoBoringSSL_BIO_new(CCryptoBoringSSL_BIO_s_mem())!
         defer {
             CCryptoBoringSSL_BIO_free(bio)
@@ -54,7 +54,7 @@ internal enum BIOHelper {
 
 @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension Data {
-    init(copyingMemoryBIO bio: UnsafeMutablePointer<BIO>) throws {
+    init(copyingMemoryBIO bio: OpaquePointer) throws {
         var innerPointer: UnsafePointer<UInt8>? = nil
         var innerLength = 0
 
@@ -68,7 +68,7 @@ extension Data {
 
 @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension String {
-    init(copyingUTF8MemoryBIO bio: UnsafeMutablePointer<BIO>) throws {
+    init(copyingUTF8MemoryBIO bio: OpaquePointer) throws {
         var innerPointer: UnsafePointer<UInt8>? = nil
         var innerLength = 0
 

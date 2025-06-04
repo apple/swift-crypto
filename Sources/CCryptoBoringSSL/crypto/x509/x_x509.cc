@@ -1,69 +1,28 @@
-/* Copyright (C) 1995-1998 Eric Young (eay@cryptsoft.com)
- * All rights reserved.
- *
- * This package is an SSL implementation written
- * by Eric Young (eay@cryptsoft.com).
- * The implementation was written so as to conform with Netscapes SSL.
- *
- * This library is free for commercial and non-commercial use as long as
- * the following conditions are aheared to.  The following conditions
- * apply to all code found in this distribution, be it the RC4, RSA,
- * lhash, DES, etc., code; not just the SSL code.  The SSL documentation
- * included with this distribution is covered by the same copyright terms
- * except that the holder is Tim Hudson (tjh@cryptsoft.com).
- *
- * Copyright remains Eric Young's, and as such any Copyright notices in
- * the code are not to be removed.
- * If this package is used in a product, Eric Young should be given attribution
- * as the author of the parts of the library used.
- * This can be in the form of a textual message at program startup or
- * in documentation (online or textual) provided with the package.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
- * 1. Redistributions of source code must retain the copyright
- *    notice, this list of conditions and the following disclaimer.
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- * 3. All advertising materials mentioning features or use of this software
- *    must display the following acknowledgement:
- *    "This product includes cryptographic software written by
- *     Eric Young (eay@cryptsoft.com)"
- *    The word 'cryptographic' can be left out if the rouines from the library
- *    being used are not cryptographic related :-).
- * 4. If you include any Windows specific code (or a derivative thereof) from
- *    the apps directory (application code) you must include an acknowledgement:
- *    "This product includes software written by Tim Hudson (tjh@cryptsoft.com)"
- *
- * THIS SOFTWARE IS PROVIDED BY ERIC YOUNG ``AS IS'' AND
- * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED.  IN NO EVENT SHALL THE AUTHOR OR CONTRIBUTORS BE LIABLE
- * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
- * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
- * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
- * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
- * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
- * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
- * SUCH DAMAGE.
- *
- * The licence and distribution terms for any publically available version or
- * derivative of this code cannot be changed.  i.e. this code cannot simply be
- * copied and put under another distribution licence
- * [including the GNU Public Licence.] */
+// Copyright 1995-2016 The OpenSSL Project Authors. All Rights Reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     https://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 
 #include <assert.h>
 #include <limits.h>
 #include <stdio.h>
 
+#include <CCryptoBoringSSL_asn1.h>
 #include <CCryptoBoringSSL_asn1t.h>
+#include <CCryptoBoringSSL_bytestring.h>
 #include <CCryptoBoringSSL_evp.h>
 #include <CCryptoBoringSSL_mem.h>
 #include <CCryptoBoringSSL_obj.h>
 #include <CCryptoBoringSSL_pool.h>
-#include <CCryptoBoringSSL_thread.h>
 #include <CCryptoBoringSSL_x509.h>
 
 #include "../asn1/internal.h"
@@ -126,7 +85,7 @@ void X509_free(X509 *x509) {
     return;
   }
 
-  CRYPTO_free_ex_data(&g_ex_data_class, x509, &x509->ex_data);
+  CRYPTO_free_ex_data(&g_ex_data_class, &x509->ex_data);
 
   X509_CINF_free(x509->cert_info);
   X509_ALGOR_free(x509->sig_alg);
@@ -151,7 +110,7 @@ static X509 *x509_parse(CBS *cbs, CRYPTO_BUFFER *buf) {
       !CBS_get_asn1_element(&cert, &tbs, CBS_ASN1_SEQUENCE) ||
       !CBS_get_asn1_element(&cert, &sigalg, CBS_ASN1_SEQUENCE)) {
     OPENSSL_PUT_ERROR(ASN1, ASN1_R_DECODE_ERROR);
-    return NULL;
+    return nullptr;
   }
 
   // For just the signature field, we accept non-minimal BER lengths, though not
@@ -163,76 +122,70 @@ static X509 *x509_parse(CBS *cbs, CRYPTO_BUFFER *buf) {
   size_t header_len;
   int indefinite;
   if (!CBS_get_any_ber_asn1_element(&cert, &sig, &tag, &header_len,
-                                    /*out_ber_found=*/NULL,
+                                    /*out_ber_found=*/nullptr,
                                     &indefinite) ||
       tag != CBS_ASN1_BITSTRING || indefinite ||  //
       !CBS_skip(&sig, header_len) ||              //
       CBS_len(&cert) != 0) {
     OPENSSL_PUT_ERROR(ASN1, ASN1_R_DECODE_ERROR);
-    return NULL;
+    return nullptr;
   }
 
-  X509 *ret = x509_new_null();
-  if (ret == NULL) {
-    return NULL;
+  bssl::UniquePtr<X509> ret(x509_new_null());
+  if (ret == nullptr) {
+    return nullptr;
   }
 
-  {
-    // TODO(crbug.com/boringssl/443): When the rest of the library is decoupled
-    // from the tasn_*.c implementation, replace this with |CBS|-based
-    // functions.
-    const uint8_t *inp = CBS_data(&tbs);
-    if (ASN1_item_ex_d2i((ASN1_VALUE **)&ret->cert_info, &inp, CBS_len(&tbs),
-                         ASN1_ITEM_rptr(X509_CINF), /*tag=*/-1,
-                         /*aclass=*/0, /*opt=*/0, buf) <= 0 ||
-        inp != CBS_data(&tbs) + CBS_len(&tbs)) {
-      goto err;
-    }
-
-    inp = CBS_data(&sigalg);
-    ret->sig_alg = d2i_X509_ALGOR(NULL, &inp, CBS_len(&sigalg));
-    if (ret->sig_alg == NULL || inp != CBS_data(&sigalg) + CBS_len(&sigalg)) {
-      goto err;
-    }
-
-    inp = CBS_data(&sig);
-    ret->signature = c2i_ASN1_BIT_STRING(NULL, &inp, CBS_len(&sig));
-    if (ret->signature == NULL || inp != CBS_data(&sig) + CBS_len(&sig)) {
-      goto err;
-    }
-
-    // The version must be one of v1(0), v2(1), or v3(2).
-    long version = X509_VERSION_1;
-    if (ret->cert_info->version != NULL) {
-      version = ASN1_INTEGER_get(ret->cert_info->version);
-      // TODO(https://crbug.com/boringssl/364): |X509_VERSION_1| should
-      // also be rejected here. This means an explicitly-encoded X.509v1
-      // version. v1 is DEFAULT, so DER requires it be omitted.
-      if (version < X509_VERSION_1 || version > X509_VERSION_3) {
-        OPENSSL_PUT_ERROR(X509, X509_R_INVALID_VERSION);
-        goto err;
-      }
-    }
-
-    // Per RFC 5280, section 4.1.2.8, these fields require v2 or v3.
-    if (version == X509_VERSION_1 && (ret->cert_info->issuerUID != NULL ||
-                                      ret->cert_info->subjectUID != NULL)) {
-      OPENSSL_PUT_ERROR(X509, X509_R_INVALID_FIELD_FOR_VERSION);
-      goto err;
-    }
-
-    // Per RFC 5280, section 4.1.2.9, extensions require v3.
-    if (version != X509_VERSION_3 && ret->cert_info->extensions != NULL) {
-      OPENSSL_PUT_ERROR(X509, X509_R_INVALID_FIELD_FOR_VERSION);
-      goto err;
-    }
-
-    return ret;
+  // TODO(crbug.com/boringssl/443): When the rest of the library is decoupled
+  // from the tasn_*.c implementation, replace this with |CBS|-based
+  // functions.
+  const uint8_t *inp = CBS_data(&tbs);
+  if (ASN1_item_ex_d2i((ASN1_VALUE **)&ret->cert_info, &inp, CBS_len(&tbs),
+                       ASN1_ITEM_rptr(X509_CINF), /*tag=*/-1,
+                       /*aclass=*/0, /*opt=*/0, buf) <= 0 ||
+      inp != CBS_data(&tbs) + CBS_len(&tbs)) {
+    return nullptr;
   }
 
-err:
-  X509_free(ret);
-  return NULL;
+  inp = CBS_data(&sigalg);
+  ret->sig_alg = d2i_X509_ALGOR(nullptr, &inp, CBS_len(&sigalg));
+  if (ret->sig_alg == nullptr || inp != CBS_data(&sigalg) + CBS_len(&sigalg)) {
+    return nullptr;
+  }
+
+  inp = CBS_data(&sig);
+  ret->signature = c2i_ASN1_BIT_STRING(nullptr, &inp, CBS_len(&sig));
+  if (ret->signature == nullptr || inp != CBS_data(&sig) + CBS_len(&sig)) {
+    return nullptr;
+  }
+
+  // The version must be one of v1(0), v2(1), or v3(2).
+  long version = X509_VERSION_1;
+  if (ret->cert_info->version != nullptr) {
+    version = ASN1_INTEGER_get(ret->cert_info->version);
+    // TODO(https://crbug.com/boringssl/364): |X509_VERSION_1| should
+    // also be rejected here. This means an explicitly-encoded X.509v1
+    // version. v1 is DEFAULT, so DER requires it be omitted.
+    if (version < X509_VERSION_1 || version > X509_VERSION_3) {
+      OPENSSL_PUT_ERROR(X509, X509_R_INVALID_VERSION);
+      return nullptr;
+    }
+  }
+
+  // Per RFC 5280, section 4.1.2.8, these fields require v2 or v3.
+  if (version == X509_VERSION_1 && (ret->cert_info->issuerUID != nullptr ||
+                                    ret->cert_info->subjectUID != nullptr)) {
+    OPENSSL_PUT_ERROR(X509, X509_R_INVALID_FIELD_FOR_VERSION);
+    return nullptr;
+  }
+
+  // Per RFC 5280, section 4.1.2.9, extensions require v3.
+  if (version != X509_VERSION_3 && ret->cert_info->extensions != nullptr) {
+    OPENSSL_PUT_ERROR(X509, X509_R_INVALID_FIELD_FOR_VERSION);
+    return nullptr;
+  }
+
+  return ret.release();
 }
 
 X509 *d2i_X509(X509 **out, const uint8_t **inp, long len) {
@@ -265,42 +218,26 @@ int i2d_X509(X509 *x509, uint8_t **outp) {
     return -1;
   }
 
-  CBB cbb, cert;
-  int len;
-  if (!CBB_init(&cbb, 64) ||  //
-      !CBB_add_asn1(&cbb, &cert, CBS_ASN1_SEQUENCE)) {
-    goto err;
+  bssl::ScopedCBB cbb;
+  CBB cert;
+  if (!CBB_init(cbb.get(), 64) ||  //
+      !CBB_add_asn1(cbb.get(), &cert, CBS_ASN1_SEQUENCE)) {
+    return -1;
   }
 
   // TODO(crbug.com/boringssl/443): When the rest of the library is decoupled
   // from the tasn_*.c implementation, replace this with |CBS|-based functions.
   uint8_t *out;
-  len = i2d_X509_CINF(x509->cert_info, NULL);
+  int len = i2d_X509_CINF(x509->cert_info, NULL);
   if (len < 0 ||  //
-      !CBB_add_space(&cert, &out, (size_t)len) ||
-      i2d_X509_CINF(x509->cert_info, &out) != len) {
-    goto err;
+      !CBB_add_space(&cert, &out, static_cast<size_t>(len)) ||
+      i2d_X509_CINF(x509->cert_info, &out) != len ||
+      !x509_marshal_algorithm(&cert, x509->sig_alg) ||
+      !asn1_marshal_bit_string(&cert, x509->signature, /*tag=*/0)) {
+    return -1;
   }
 
-  len = i2d_X509_ALGOR(x509->sig_alg, NULL);
-  if (len < 0 ||  //
-      !CBB_add_space(&cert, &out, (size_t)len) ||
-      i2d_X509_ALGOR(x509->sig_alg, &out) != len) {
-    goto err;
-  }
-
-  len = i2d_ASN1_BIT_STRING(x509->signature, NULL);
-  if (len < 0 ||  //
-      !CBB_add_space(&cert, &out, (size_t)len) ||
-      i2d_ASN1_BIT_STRING(x509->signature, &out) != len) {
-    goto err;
-  }
-
-  return CBB_finish_i2d(&cbb, outp);
-
-err:
-  CBB_cleanup(&cbb);
-  return -1;
+  return CBB_finish_i2d(cbb.get(), outp);
 }
 
 static int x509_new_cb(ASN1_VALUE **pval, const ASN1_ITEM *it) {

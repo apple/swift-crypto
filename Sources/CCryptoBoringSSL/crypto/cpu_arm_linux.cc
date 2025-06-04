@@ -1,16 +1,16 @@
-/* Copyright 2016 The BoringSSL Authors
- *
- * Permission to use, copy, modify, and/or distribute this software for any
- * purpose with or without fee is hereby granted, provided that the above
- * copyright notice and this permission notice appear in all copies.
- *
- * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
- * WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
- * MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY
- * SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
- * WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION
- * OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN
- * CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. */
+// Copyright 2016 The BoringSSL Authors
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     https://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 
 #include "internal.h"
 
@@ -22,7 +22,6 @@
 #include <sys/types.h>
 #include <unistd.h>
 
-#include <CCryptoBoringSSL_arm_arch.h>
 #include <CCryptoBoringSSL_mem.h>
 
 #include "cpu_arm_linux.h"
@@ -110,7 +109,11 @@ void OPENSSL_cpuid_setup(void) {
 
   // Matching OpenSSL, only report other features if NEON is present.
   unsigned long hwcap = getauxval(AT_HWCAP);
-  if (hwcap & HWCAP_NEON) {
+  if (hwcap & CRYPTO_HWCAP_NEON) {
+#if defined(HWCAP_ARM_NEON)
+      static_assert(HWCAP_ARM_NEON == CRYPTO_HWCAP_NEON,
+                    "CRYPTO_HWCAP values must match Linux");
+#endif
     OPENSSL_armcap_P |= ARMV7_NEON;
 
     // Some ARMv8 Android devices don't expose AT_HWCAP2. Fall back to
@@ -124,16 +127,35 @@ void OPENSSL_cpuid_setup(void) {
       g_needs_hwcap2_workaround = hwcap2 != 0;
     }
 
-    if (hwcap2 & HWCAP2_AES) {
+    // HWCAP2_* values, without the "CRYPTO_" prefix, are exposed through
+    // <sys/auxv.h> in some versions of glibc(>= 2.41). Assert that we don't
+    // diverge from those values.
+    if (hwcap2 & CRYPTO_HWCAP2_AES) {
+#if defined(HWCAP2_AES)
+      static_assert(HWCAP2_AES == CRYPTO_HWCAP2_AES,
+                    "CRYPTO_HWCAP2 values must match Linux");
+#endif
       OPENSSL_armcap_P |= ARMV8_AES;
     }
-    if (hwcap2 & HWCAP2_PMULL) {
+    if (hwcap2 & CRYPTO_HWCAP2_PMULL) {
+#if defined(HWCAP2_PMULL)
+      static_assert(HWCAP2_PMULL == CRYPTO_HWCAP2_PMULL,
+                    "CRYPTO_HWCAP2 values must match Linux");
+#endif
       OPENSSL_armcap_P |= ARMV8_PMULL;
     }
-    if (hwcap2 & HWCAP2_SHA1) {
+    if (hwcap2 & CRYPTO_HWCAP2_SHA1) {
+#if defined(HWCAP2_SHA1)
+      static_assert(HWCAP2_SHA1 == CRYPTO_HWCAP2_SHA1,
+                    "CRYPTO_HWCAP2 values must match Linux");
+#endif
       OPENSSL_armcap_P |= ARMV8_SHA1;
     }
-    if (hwcap2 & HWCAP2_SHA2) {
+    if (hwcap2 & CRYPTO_HWCAP2_SHA2) {
+#if defined(HWCAP2_SHA2)
+      static_assert(HWCAP2_SHA2 == CRYPTO_HWCAP2_SHA2,
+                    "CRYPTO_HWCAP2 values must match Linux");
+#endif
       OPENSSL_armcap_P |= ARMV8_SHA256;
     }
   }

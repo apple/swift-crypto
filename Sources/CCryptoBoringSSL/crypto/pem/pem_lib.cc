@@ -1,66 +1,27 @@
-/* Copyright (C) 1995-1998 Eric Young (eay@cryptsoft.com)
- * All rights reserved.
- *
- * This package is an SSL implementation written
- * by Eric Young (eay@cryptsoft.com).
- * The implementation was written so as to conform with Netscapes SSL.
- *
- * This library is free for commercial and non-commercial use as long as
- * the following conditions are aheared to.  The following conditions
- * apply to all code found in this distribution, be it the RC4, RSA,
- * lhash, DES, etc., code; not just the SSL code.  The SSL documentation
- * included with this distribution is covered by the same copyright terms
- * except that the holder is Tim Hudson (tjh@cryptsoft.com).
- *
- * Copyright remains Eric Young's, and as such any Copyright notices in
- * the code are not to be removed.
- * If this package is used in a product, Eric Young should be given attribution
- * as the author of the parts of the library used.
- * This can be in the form of a textual message at program startup or
- * in documentation (online or textual) provided with the package.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
- * 1. Redistributions of source code must retain the copyright
- *    notice, this list of conditions and the following disclaimer.
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- * 3. All advertising materials mentioning features or use of this software
- *    must display the following acknowledgement:
- *    "This product includes cryptographic software written by
- *     Eric Young (eay@cryptsoft.com)"
- *    The word 'cryptographic' can be left out if the rouines from the library
- *    being used are not cryptographic related :-).
- * 4. If you include any Windows specific code (or a derivative thereof) from
- *    the apps directory (application code) you must include an acknowledgement:
- *    "This product includes software written by Tim Hudson (tjh@cryptsoft.com)"
- *
- * THIS SOFTWARE IS PROVIDED BY ERIC YOUNG ``AS IS'' AND
- * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED.  IN NO EVENT SHALL THE AUTHOR OR CONTRIBUTORS BE LIABLE
- * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
- * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
- * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
- * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
- * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
- * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
- * SUCH DAMAGE.
- *
- * The licence and distribution terms for any publically available version or
- * derivative of this code cannot be changed.  i.e. this code cannot simply be
- * copied and put under another distribution licence
- * [including the GNU Public Licence.] */
+// Copyright 1995-2016 The OpenSSL Project Authors. All Rights Reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     https://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 
 #include <assert.h>
 #include <ctype.h>
 #include <stdio.h>
 #include <string.h>
 
+#include <string_view>
+
 #include <CCryptoBoringSSL_base64.h>
 #include <CCryptoBoringSSL_buf.h>
+#include <CCryptoBoringSSL_cipher.h>
 #include <CCryptoBoringSSL_des.h>
 #include <CCryptoBoringSSL_err.h>
 #include <CCryptoBoringSSL_evp.h>
@@ -71,11 +32,12 @@
 #include <CCryptoBoringSSL_x509.h>
 
 #include "../internal.h"
+#include "internal.h"
 
 
 #define MIN_LENGTH 4
 
-static int load_iv(char **fromp, unsigned char *to, size_t num);
+static int load_iv(const char **fromp, unsigned char *to, size_t num);
 static int check_pem(const char *nm, const char *name);
 
 // PEM_proc_type appends a Proc-Type header to |buf|, determined by |type|.
@@ -106,18 +68,19 @@ static void PEM_dek_info(char buf[PEM_BUFSIZE], const char *type, size_t len,
   OPENSSL_strlcat(buf, "DEK-Info: ", PEM_BUFSIZE);
   OPENSSL_strlcat(buf, type, PEM_BUFSIZE);
   OPENSSL_strlcat(buf, ",", PEM_BUFSIZE);
-  size_t buf_len = strlen(buf);
-  // We must write an additional |2 * len + 2| bytes after |buf_len|, including
-  // the trailing newline and NUL.
-  if (len > (PEM_BUFSIZE - buf_len - 2) / 2) {
+
+  const size_t used = strlen(buf);
+  const size_t available = PEM_BUFSIZE - used;
+  if (len * 2 < len || len * 2 + 2 < len || available < len * 2 + 2) {
     return;
   }
+
   for (size_t i = 0; i < len; i++) {
-    buf[buf_len + i * 2] = map[(str[i] >> 4) & 0x0f];
-    buf[buf_len + i * 2 + 1] = map[(str[i]) & 0x0f];
+    buf[used + i * 2] = map[(str[i] >> 4) & 0x0f];
+    buf[used + i * 2 + 1] = map[(str[i]) & 0x0f];
   }
-  buf[buf_len + len * 2] = '\n';
-  buf[buf_len + len * 2 + 1] = '\0';
+  buf[used + len * 2] = '\n';
+  buf[used + len * 2 + 1] = '\0';
 }
 
 void *PEM_ASN1_read(d2i_of_void *d2i, const char *name, FILE *fp, void **x,
@@ -189,19 +152,19 @@ static int check_pem(const char *nm, const char *name) {
   return 0;
 }
 
-static const EVP_CIPHER *cipher_by_name(const char *name) {
+static const EVP_CIPHER *cipher_by_name(std::string_view name) {
   // This is similar to the (deprecated) function |EVP_get_cipherbyname|. Note
   // the PEM code assumes that ciphers have at least 8 bytes of IV, at most 20
   // bytes of overhead and generally behave like CBC mode.
-  if (0 == strcmp(name, SN_des_cbc)) {
+  if (name == SN_des_cbc) {
     return EVP_des_cbc();
-  } else if (0 == strcmp(name, SN_des_ede3_cbc)) {
+  } else if (name == SN_des_ede3_cbc) {
     return EVP_des_ede3_cbc();
-  } else if (0 == strcmp(name, SN_aes_128_cbc)) {
+  } else if (name == SN_aes_128_cbc) {
     return EVP_aes_128_cbc();
-  } else if (0 == strcmp(name, SN_aes_192_cbc)) {
+  } else if (name == SN_aes_192_cbc) {
     return EVP_aes_192_cbc();
-  } else if (0 == strcmp(name, SN_aes_256_cbc)) {
+  } else if (name == SN_aes_256_cbc) {
     return EVP_aes_256_cbc();
   } else {
     return NULL;
@@ -277,7 +240,7 @@ int PEM_ASN1_write(i2d_of_void *i2d, const char *name, FILE *fp, void *x,
 int PEM_ASN1_write_bio(i2d_of_void *i2d, const char *name, BIO *bp, void *x,
                        const EVP_CIPHER *enc, const unsigned char *pass,
                        int pass_len, pem_password_cb *callback, void *u) {
-  EVP_CIPHER_CTX ctx;
+  bssl::ScopedEVP_CIPHER_CTX ctx;
   int dsize = 0, i, j, ret = 0;
   unsigned char *p, *data = NULL;
   const char *objstr = NULL;
@@ -343,16 +306,14 @@ int PEM_ASN1_write_bio(i2d_of_void *i2d, const char *name, BIO *bp, void *x,
     PEM_dek_info(buf, objstr, iv_len, (char *)iv);
     // k=strlen(buf);
 
-    EVP_CIPHER_CTX_init(&ctx);
     ret = 1;
-    if (!EVP_EncryptInit_ex(&ctx, enc, NULL, key, iv) ||
-        !EVP_EncryptUpdate(&ctx, data, &j, data, i) ||
-        !EVP_EncryptFinal_ex(&ctx, &(data[j]), &i)) {
+    if (!EVP_EncryptInit_ex(ctx.get(), enc, NULL, key, iv) ||
+        !EVP_EncryptUpdate(ctx.get(), data, &j, data, i) ||
+        !EVP_EncryptFinal_ex(ctx.get(), &(data[j]), &i)) {
       ret = 0;
     } else {
       i += j;
     }
-    EVP_CIPHER_CTX_cleanup(&ctx);
     if (ret == 0) {
       goto err;
     }
@@ -367,17 +328,16 @@ int PEM_ASN1_write_bio(i2d_of_void *i2d, const char *name, BIO *bp, void *x,
 err:
   OPENSSL_cleanse(key, sizeof(key));
   OPENSSL_cleanse(iv, sizeof(iv));
-  OPENSSL_cleanse((char *)&ctx, sizeof(ctx));
   OPENSSL_cleanse(buf, PEM_BUFSIZE);
   OPENSSL_free(data);
   return ret;
 }
 
-int PEM_do_header(EVP_CIPHER_INFO *cipher, unsigned char *data, long *plen,
-                  pem_password_cb *callback, void *u) {
+int PEM_do_header(const EVP_CIPHER_INFO *cipher, unsigned char *data,
+                  long *plen, pem_password_cb *callback, void *u) {
   int i = 0, j, o, pass_len;
   long len;
-  EVP_CIPHER_CTX ctx;
+  bssl::ScopedEVP_CIPHER_CTX ctx;
   unsigned char key[EVP_MAX_KEY_LENGTH];
   char buf[PEM_BUFSIZE];
 
@@ -397,21 +357,19 @@ int PEM_do_header(EVP_CIPHER_INFO *cipher, unsigned char *data, long *plen,
     return 0;
   }
 
-  if (!EVP_BytesToKey(cipher->cipher, EVP_md5(), &(cipher->iv[0]),
+  if (!EVP_BytesToKey(cipher->cipher, EVP_md5(), cipher->iv,
                       (unsigned char *)buf, pass_len, 1, key, NULL)) {
     return 0;
   }
 
   j = (int)len;
-  EVP_CIPHER_CTX_init(&ctx);
-  o = EVP_DecryptInit_ex(&ctx, cipher->cipher, NULL, key, &(cipher->iv[0]));
+  o = EVP_DecryptInit_ex(ctx.get(), cipher->cipher, NULL, key, cipher->iv);
   if (o) {
-    o = EVP_DecryptUpdate(&ctx, data, &i, data, j);
+    o = EVP_DecryptUpdate(ctx.get(), data, &i, data, j);
   }
   if (o) {
-    o = EVP_DecryptFinal_ex(&ctx, &(data[i]), &j);
+    o = EVP_DecryptFinal_ex(ctx.get(), &(data[i]), &j);
   }
-  EVP_CIPHER_CTX_cleanup(&ctx);
   OPENSSL_cleanse((char *)buf, sizeof(buf));
   OPENSSL_cleanse((char *)key, sizeof(key));
   if (!o) {
@@ -423,11 +381,7 @@ int PEM_do_header(EVP_CIPHER_INFO *cipher, unsigned char *data, long *plen,
   return 1;
 }
 
-int PEM_get_EVP_CIPHER_INFO(char *header, EVP_CIPHER_INFO *cipher) {
-  const EVP_CIPHER *enc = NULL;
-  char *p, c;
-  char **header_pp = &header;
-
+int PEM_get_EVP_CIPHER_INFO(const char *header, EVP_CIPHER_INFO *cipher) {
   cipher->cipher = NULL;
   OPENSSL_memset(cipher->iv, 0, sizeof(cipher->iv));
   if ((header == NULL) || (*header == '\0') || (*header == '\n')) {
@@ -438,14 +392,11 @@ int PEM_get_EVP_CIPHER_INFO(char *header, EVP_CIPHER_INFO *cipher) {
     return 0;
   }
   header += 11;
-  if (*header != '4') {
+  if (header[0] != '4' || header[1] != ',') {
+    OPENSSL_PUT_ERROR(PEM, PEM_R_UNSUPPORTED_PROC_TYPE_VERSION);
     return 0;
   }
-  header++;
-  if (*header != ',') {
-    return 0;
-  }
-  header++;
+  header += 2;
   if (strncmp(header, "ENCRYPTED", 9) != 0) {
     OPENSSL_PUT_ERROR(PEM, PEM_R_NOT_ENCRYPTED);
     return 0;
@@ -464,40 +415,38 @@ int PEM_get_EVP_CIPHER_INFO(char *header, EVP_CIPHER_INFO *cipher) {
   }
   header += 10;
 
-  p = header;
+  const char *p = header;
   for (;;) {
-    c = *header;
+    char c = *header;
     if (!((c >= 'A' && c <= 'Z') || c == '-' || OPENSSL_isdigit(c))) {
       break;
     }
     header++;
   }
-  *header = '\0';
-  cipher->cipher = enc = cipher_by_name(p);
-  *header = c;
+  cipher->cipher = cipher_by_name(std::string_view(p, header - p));
   header++;
-
-  if (enc == NULL) {
+  if (cipher->cipher == NULL) {
     OPENSSL_PUT_ERROR(PEM, PEM_R_UNSUPPORTED_ENCRYPTION);
     return 0;
   }
   // The IV parameter must be at least 8 bytes long to be used as the salt in
   // the KDF. (This should not happen given |cipher_by_name|.)
-  if (EVP_CIPHER_iv_length(enc) < 8) {
+  if (EVP_CIPHER_iv_length(cipher->cipher) < 8) {
     assert(0);
     OPENSSL_PUT_ERROR(PEM, PEM_R_UNSUPPORTED_ENCRYPTION);
     return 0;
   }
-  if (!load_iv(header_pp, &(cipher->iv[0]), EVP_CIPHER_iv_length(enc))) {
+  const char **header_pp = &header;
+  if (!load_iv(header_pp, cipher->iv, EVP_CIPHER_iv_length(cipher->cipher))) {
     return 0;
   }
 
   return 1;
 }
 
-static int load_iv(char **fromp, unsigned char *to, size_t num) {
+static int load_iv(const char **fromp, unsigned char *to, size_t num) {
   uint8_t v;
-  char *from;
+  const char *from;
 
   from = *fromp;
   for (size_t i = 0; i < num; i++) {
@@ -535,6 +484,7 @@ int PEM_write_bio(BIO *bp, const char *name, const char *header,
   unsigned char *buf = NULL;
   EVP_ENCODE_CTX ctx;
   int reason = ERR_R_BUF_LIB;
+  int retval = 0;
 
   EVP_EncodeInit(&ctx);
   nlen = strlen(name);
@@ -572,20 +522,19 @@ int PEM_write_bio(BIO *bp, const char *name, const char *header,
   if ((outl > 0) && (BIO_write(bp, (char *)buf, outl) != outl)) {
     goto err;
   }
-  OPENSSL_free(buf);
-  buf = NULL;
   if ((BIO_write(bp, "-----END ", 9) != 9) ||
       (BIO_write(bp, name, nlen) != nlen) ||
       (BIO_write(bp, "-----\n", 6) != 6)) {
     goto err;
   }
-  return i + outl;
+  retval = i + outl;
+
 err:
-  if (buf) {
-    OPENSSL_free(buf);
+  if (retval == 0) {
+    OPENSSL_PUT_ERROR(PEM, reason);
   }
-  OPENSSL_PUT_ERROR(PEM, reason);
-  return 0;
+  OPENSSL_free(buf);
+  return retval;
 }
 
 int PEM_read(FILE *fp, char **name, char **header, unsigned char **data,
