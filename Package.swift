@@ -149,6 +149,14 @@ let package = Package(
             resources: privacyManifestResource
         ),
         .target(
+            name: "CXKCPShims",
+            dependencies: ["CXKCP"],
+            exclude: privacyManifestExclude + [
+                "CMakeLists.txt"
+            ],
+            resources: privacyManifestResource
+        ),
+        .target(
             name: "Crypto",
             dependencies: dependencies,
             exclude: privacyManifestExclude + [
