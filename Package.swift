@@ -49,6 +49,8 @@ if development || isFreeBSD {
         "CCryptoBoringSSL",
         "CCryptoBoringSSLShims",
         "CryptoBoringWrapper",
+        "CXKCP",
+        "CXKCPShims",
     ]
 } else {
     let platforms: [Platform] = [
@@ -66,6 +68,8 @@ if development || isFreeBSD {
         .target(name: "CCryptoBoringSSL", condition: .when(platforms: platforms)),
         .target(name: "CCryptoBoringSSLShims", condition: .when(platforms: platforms)),
         .target(name: "CryptoBoringWrapper", condition: .when(platforms: platforms)),
+        .target(name: "CXKCP", condition: .when(platforms: platforms)),
+        .target(name: "CXKCPShims", condition: .when(platforms: platforms)),
     ]
 }
 
