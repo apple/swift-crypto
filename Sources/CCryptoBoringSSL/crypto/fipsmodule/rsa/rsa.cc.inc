@@ -1,58 +1,16 @@
-/* Copyright (C) 1995-1998 Eric Young (eay@cryptsoft.com)
- * All rights reserved.
- *
- * This package is an SSL implementation written
- * by Eric Young (eay@cryptsoft.com).
- * The implementation was written so as to conform with Netscapes SSL.
- *
- * This library is free for commercial and non-commercial use as long as
- * the following conditions are aheared to.  The following conditions
- * apply to all code found in this distribution, be it the RC4, RSA,
- * lhash, DES, etc., code; not just the SSL code.  The SSL documentation
- * included with this distribution is covered by the same copyright terms
- * except that the holder is Tim Hudson (tjh@cryptsoft.com).
- *
- * Copyright remains Eric Young's, and as such any Copyright notices in
- * the code are not to be removed.
- * If this package is used in a product, Eric Young should be given attribution
- * as the author of the parts of the library used.
- * This can be in the form of a textual message at program startup or
- * in documentation (online or textual) provided with the package.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
- * 1. Redistributions of source code must retain the copyright
- *    notice, this list of conditions and the following disclaimer.
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- * 3. All advertising materials mentioning features or use of this software
- *    must display the following acknowledgement:
- *    "This product includes cryptographic software written by
- *     Eric Young (eay@cryptsoft.com)"
- *    The word 'cryptographic' can be left out if the rouines from the library
- *    being used are not cryptographic related :-).
- * 4. If you include any Windows specific code (or a derivative thereof) from
- *    the apps directory (application code) you must include an acknowledgement:
- *    "This product includes software written by Tim Hudson (tjh@cryptsoft.com)"
- *
- * THIS SOFTWARE IS PROVIDED BY ERIC YOUNG ``AS IS'' AND
- * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED.  IN NO EVENT SHALL THE AUTHOR OR CONTRIBUTORS BE LIABLE
- * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
- * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
- * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
- * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
- * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
- * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
- * SUCH DAMAGE.
- *
- * The licence and distribution terms for any publically available version or
- * derivative of this code cannot be changed.  i.e. this code cannot simply be
- * copied and put under another distribution licence
- * [including the GNU Public Licence.] */
+// Copyright 1995-2016 The OpenSSL Project Authors. All Rights Reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     https://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 
 #include <CCryptoBoringSSL_rsa.h>
 
@@ -68,7 +26,6 @@
 #include <CCryptoBoringSSL_md5.h>
 #include <CCryptoBoringSSL_mem.h>
 #include <CCryptoBoringSSL_nid.h>
-#include <CCryptoBoringSSL_thread.h>
 
 #include "../../internal.h"
 #include "../bcm_interface.h"
@@ -226,10 +183,8 @@ RSA *RSA_new_method(const ENGINE *engine) {
   CRYPTO_new_ex_data(&rsa->ex_data);
 
   if (rsa->meth->init && !rsa->meth->init(rsa)) {
-    CRYPTO_free_ex_data(g_rsa_ex_data_class_bss_get(), rsa, &rsa->ex_data);
-    CRYPTO_MUTEX_cleanup(&rsa->lock);
-    METHOD_unref(rsa->meth);
-    OPENSSL_free(rsa);
+    rsa->meth = nullptr;
+    RSA_free(rsa);
     return NULL;
   }
 
@@ -255,12 +210,12 @@ void RSA_free(RSA *rsa) {
     return;
   }
 
-  if (rsa->meth->finish) {
+  if (rsa->meth != nullptr && rsa->meth->finish != nullptr) {
     rsa->meth->finish(rsa);
   }
   METHOD_unref(rsa->meth);
 
-  CRYPTO_free_ex_data(g_rsa_ex_data_class_bss_get(), rsa, &rsa->ex_data);
+  CRYPTO_free_ex_data(g_rsa_ex_data_class_bss_get(), &rsa->ex_data);
 
   BN_free(rsa->n);
   BN_free(rsa->e);
@@ -421,14 +376,7 @@ int RSA_sign_raw(RSA *rsa, size_t *out_len, uint8_t *out, size_t max_out,
                                    padding);
 }
 
-unsigned RSA_size(const RSA *rsa) {
-  size_t ret = rsa->meth->size ? rsa->meth->size(rsa) : rsa_default_size(rsa);
-  // RSA modulus sizes are bounded by |BIGNUM|, which must fit in |unsigned|.
-  //
-  // TODO(https://crbug.com/boringssl/516): Should we make this return |size_t|?
-  assert(ret < UINT_MAX);
-  return (unsigned)ret;
-}
+unsigned RSA_size(const RSA *rsa) { return BN_num_bytes(rsa->n); }
 
 int RSA_is_opaque(const RSA *rsa) {
   return rsa->meth && (rsa->meth->flags & RSA_FLAG_OPAQUE);
@@ -767,15 +715,15 @@ static int check_mod_inverse(int *out_ok, const BIGNUM *a, const BIGNUM *ainv,
   // Note |bn_mul_consttime| and |bn_div_consttime| do not scale linearly, but
   // checking |ainv| is in range bounds the running time, assuming |m|'s bounds
   // were checked by the caller.
-  BN_CTX_start(ctx);
+  bssl::BN_CTXScope scope(ctx);
   BIGNUM *tmp = BN_CTX_get(ctx);
-  int ret = tmp != NULL && bn_mul_consttime(tmp, a, ainv, ctx) &&
-            bn_div_consttime(NULL, tmp, tmp, m, m_min_bits, ctx);
-  if (ret) {
-    *out_ok = constant_time_declassify_int(BN_is_one(tmp));
+  if (tmp == nullptr ||  //
+      !bn_mul_consttime(tmp, a, ainv, ctx) ||
+      !bn_div_consttime(NULL, tmp, tmp, m, m_min_bits, ctx)) {
+    return 0;
   }
-  BN_CTX_end(ctx);
-  return ret;
+  *out_ok = constant_time_declassify_int(BN_is_one(tmp));
+  return 1;
 }
 
 int RSA_check_key(const RSA *key) {
@@ -784,11 +732,6 @@ int RSA_check_key(const RSA *key) {
   // |BN_MONT_CTX_set_locked| as a result of API issues. See
   // https://crbug.com/boringssl/316. As a result, we inconsistently check RSA
   // invariants. We should fix this and integrate that logic.
-
-  if (RSA_is_opaque(key)) {
-    // Opaque keys can't be checked.
-    return 1;
-  }
 
   if (!rsa_check_public_key(key)) {
     return 0;
@@ -940,12 +883,6 @@ DEFINE_LOCAL_DATA(BIGNUM, g_small_factors) {
 }
 
 int RSA_check_fips(RSA *key) {
-  if (RSA_is_opaque(key)) {
-    // Opaque keys can't be checked.
-    OPENSSL_PUT_ERROR(RSA, RSA_R_PUBLIC_KEY_VALIDATION_FAILED);
-    return 0;
-  }
-
   if (!RSA_check_key(key)) {
     return 0;
   }
@@ -966,8 +903,11 @@ int RSA_check_fips(RSA *key) {
   // match. This is only a plausibility test and we expect the value to be
   // composite, so too few iterations will cause us to reject the key, not use
   // an implausible one.
+  //
+  // |key->e| may be nullptr if created with |RSA_new_private_key_no_e|.
   enum bn_primality_result_t primality_result;
-  if (BN_num_bits(key->e) <= 16 ||  //
+  if (key->e == nullptr ||          //
+      BN_num_bits(key->e) <= 16 ||  //
       BN_num_bits(key->e) > 256 ||  //
       !BN_is_odd(key->n) ||         //
       !BN_is_odd(key->e) ||
@@ -1038,5 +978,3 @@ int rsa_private_transform(RSA *rsa, uint8_t *out, const uint8_t *in,
 int RSA_flags(const RSA *rsa) { return rsa->flags; }
 
 int RSA_test_flags(const RSA *rsa, int flags) { return rsa->flags & flags; }
-
-int RSA_blinding_on(RSA *rsa, BN_CTX *ctx) { return 1; }

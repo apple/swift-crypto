@@ -1,23 +1,22 @@
-/* Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
- *
- * Permission to use, copy, modify, and/or distribute this software for any
- * purpose with or without fee is hereby granted, provided that the above
- * copyright notice and this permission notice appear in all copies.
- *
- * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
- * WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
- * MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY
- * SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
- * WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION
- * OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN
- * CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. */
+// Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     https://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 
 #include <CCryptoBoringSSL_crypto.h>
 #include <CCryptoBoringSSL_ec.h>
 #include <CCryptoBoringSSL_ec_key.h>
 #include <CCryptoBoringSSL_err.h>
 #include <CCryptoBoringSSL_evp.h>
-#include <CCryptoBoringSSL_service_indicator.h>
 
 #include "../../evp/internal.h"
 #include "../../internal.h"
@@ -228,7 +227,7 @@ static void evp_md_ctx_verify_service_indicator(const EVP_MD_CTX *ctx,
 
     // The approved RSA key sizes for signing are 2048, 3072 and 4096 bits.
     // Note: |EVP_PKEY_size| returns the size in bytes.
-    size_t pkey_size = EVP_PKEY_size(ctx->pctx->pkey);
+    size_t pkey_size = EVP_PKEY_size(ctx->pctx->pkey.get());
 
     // Check if the MD type and the RSA key size are approved.
     if (md_ok(md_type) &&
@@ -239,7 +238,7 @@ static void evp_md_ctx_verify_service_indicator(const EVP_MD_CTX *ctx,
     // Check if the MD type and the elliptic curve are approved.
     if (md_ok(md_type) &&
         is_ec_fips_approved(EC_GROUP_get_curve_name(
-            EC_KEY_get0_group(EVP_PKEY_get0_EC_KEY(ctx->pctx->pkey))))) {
+            EC_KEY_get0_group(EVP_PKEY_get0_EC_KEY(ctx->pctx->pkey.get()))))) {
       FIPS_service_indicator_update_state();
     }
   }

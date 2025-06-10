@@ -5,7 +5,6 @@
 #include <CCryptoBoringSSL_asm_base.h>
 
 #if !defined(OPENSSL_NO_ASM) && defined(OPENSSL_AARCH64) && defined(_WIN32)
-#include <CCryptoBoringSSL_arm_arch.h>
 .section	.rodata
 
 .align	7

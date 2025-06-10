@@ -1,16 +1,16 @@
-/* Copyright 2021 The BoringSSL Authors
- *
- * Permission to use, copy, modify, and/or distribute this software for any
- * purpose with or without fee is hereby granted, provided that the above
- * copyright notice and this permission notice appear in all copies.
- *
- * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
- * WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
- * MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY
- * SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
- * WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION
- * OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN
- * CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. */
+// Copyright 2021 The BoringSSL Authors
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     https://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 
 #include <CCryptoBoringSSL_blake2.h>
 
@@ -64,7 +64,7 @@ static void blake2b_transform(BLAKE2B_CTX *b2b,
                               size_t num_bytes, int is_final_block) {
   // https://tools.ietf.org/html/rfc7693#section-3.2
   uint64_t v[16];
-  static_assert(sizeof(v) == sizeof(b2b->h) + sizeof(kIV), "");
+  static_assert(sizeof(v) == sizeof(b2b->h) + sizeof(kIV));
   OPENSSL_memcpy(v, b2b->h, sizeof(b2b->h));
   OPENSSL_memcpy(&v[8], kIV, sizeof(kIV));
 
@@ -108,7 +108,7 @@ static void blake2b_transform(BLAKE2B_CTX *b2b,
 void BLAKE2B256_Init(BLAKE2B_CTX *b2b) {
   OPENSSL_memset(b2b, 0, sizeof(BLAKE2B_CTX));
 
-  static_assert(sizeof(kIV) == sizeof(b2b->h), "");
+  static_assert(sizeof(kIV) == sizeof(b2b->h));
   OPENSSL_memcpy(&b2b->h, kIV, sizeof(kIV));
 
   // https://tools.ietf.org/html/rfc7693#section-2.5
@@ -156,7 +156,7 @@ void BLAKE2B256_Final(uint8_t out[BLAKE2B256_DIGEST_LENGTH], BLAKE2B_CTX *b2b) {
                  sizeof(b2b->block) - b2b->block_used);
   blake2b_transform(b2b, b2b->block, b2b->block_used,
                     /*is_final_block=*/1);
-  static_assert(BLAKE2B256_DIGEST_LENGTH <= sizeof(b2b->h), "");
+  static_assert(BLAKE2B256_DIGEST_LENGTH <= sizeof(b2b->h));
   memcpy(out, b2b->h, BLAKE2B256_DIGEST_LENGTH);
 }
 

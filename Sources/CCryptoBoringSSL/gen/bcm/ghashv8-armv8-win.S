@@ -5,8 +5,6 @@
 #include <CCryptoBoringSSL_asm_base.h>
 
 #if !defined(OPENSSL_NO_ASM) && defined(OPENSSL_AARCH64) && defined(_WIN32)
-#include <CCryptoBoringSSL_arm_arch.h>
-
 #if __ARM_MAX_ARCH__>=7
 .text
 .arch	armv8-a+crypto

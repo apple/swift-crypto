@@ -1,54 +1,16 @@
-/* ====================================================================
- * Copyright (c) 1998-2000 The OpenSSL Project.  All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
- *
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
- *
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in
- *    the documentation and/or other materials provided with the
- *    distribution.
- *
- * 3. All advertising materials mentioning features or use of this
- *    software must display the following acknowledgment:
- *    "This product includes software developed by the OpenSSL Project
- *    for use in the OpenSSL Toolkit. (http://www.openssl.org/)"
- *
- * 4. The names "OpenSSL Toolkit" and "OpenSSL Project" must not be used to
- *    endorse or promote products derived from this software without
- *    prior written permission. For written permission, please contact
- *    openssl-core@openssl.org.
- *
- * 5. Products derived from this software may not be called "OpenSSL"
- *    nor may "OpenSSL" appear in their names without prior written
- *    permission of the OpenSSL Project.
- *
- * 6. Redistributions of any form whatsoever must retain the following
- *    acknowledgment:
- *    "This product includes software developed by the OpenSSL Project
- *    for use in the OpenSSL Toolkit (http://www.openssl.org/)"
- *
- * THIS SOFTWARE IS PROVIDED BY THE OpenSSL PROJECT ``AS IS'' AND ANY
- * EXPRESSED OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
- * PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL THE OpenSSL PROJECT OR
- * ITS CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
- * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
- * NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
- * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
- * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
- * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
- * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
- * OF THE POSSIBILITY OF SUCH DAMAGE.
- * ====================================================================
- *
- * This product includes cryptographic software written by Eric Young
- * (eay@cryptsoft.com).  This product includes software written by Tim
- * Hudson (tjh@cryptsoft.com). */
+// Copyright 2000-2016 The OpenSSL Project Authors. All Rights Reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     https://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 
 #include <CCryptoBoringSSL_bn.h>
 
@@ -80,32 +42,29 @@ int bn_jacobi(const BIGNUM *a, const BIGNUM *b, BN_CTX *ctx) {
     return -2;
   }
 
-  int ret = -2;
-  BN_CTX_start(ctx);
+  bssl::BN_CTXScope scope(ctx);
   BIGNUM *A = BN_CTX_get(ctx);
   BIGNUM *B = BN_CTX_get(ctx);
   if (B == NULL) {
-    goto end;
+    return -2;
   }
 
   if (!BN_copy(A, a) ||
       !BN_copy(B, b)) {
-    goto end;
+    return -2;
   }
 
   // Adapted from logic to compute the Kronecker symbol, originally implemented
   // according to Henri Cohen, "A Course in Computational Algebraic Number
   // Theory" (algorithm 1.4.10).
 
-  ret = 1;
-
+  int ret = 1;
   while (1) {
     // Cohen's step 3:
 
     // B is positive and odd
     if (BN_is_zero(A)) {
-      ret = BN_is_one(B) ? ret : 0;
-      goto end;
+      return BN_is_one(B) ? ret : 0;
     }
 
     // now A is non-zero
@@ -114,8 +73,7 @@ int bn_jacobi(const BIGNUM *a, const BIGNUM *b, BN_CTX *ctx) {
       i++;
     }
     if (!BN_rshift(A, A, i)) {
-      ret = -2;
-      goto end;
+      return -2;
     }
     if (i & 1) {
       // i is odd
@@ -131,16 +89,11 @@ int bn_jacobi(const BIGNUM *a, const BIGNUM *b, BN_CTX *ctx) {
 
     // (A, B) := (B mod |A|, |A|)
     if (!BN_nnmod(B, B, A, ctx)) {
-      ret = -2;
-      goto end;
+      return -2;
     }
     BIGNUM *tmp = A;
     A = B;
     B = tmp;
     tmp->neg = 0;
   }
-
-end:
-  BN_CTX_end(ctx);
-  return ret;
 }

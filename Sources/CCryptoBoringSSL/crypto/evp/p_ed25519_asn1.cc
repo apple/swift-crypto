@@ -1,16 +1,16 @@
-/* Copyright 2017 The BoringSSL Authors
- *
- * Permission to use, copy, modify, and/or distribute this software for any
- * purpose with or without fee is hereby granted, provided that the above
- * copyright notice and this permission notice appear in all copies.
- *
- * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
- * WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
- * MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY
- * SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
- * WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION
- * OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN
- * CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. */
+// Copyright 2017 The BoringSSL Authors
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     https://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 
 #include <CCryptoBoringSSL_evp.h>
 
@@ -129,11 +129,11 @@ static int ed25519_pub_encode(CBB *out, const EVP_PKEY *pkey) {
   const ED25519_KEY *key = reinterpret_cast<const ED25519_KEY *>(pkey->pkey);
 
   // See RFC 8410, section 4.
-  CBB spki, algorithm, oid, key_bitstring;
+  CBB spki, algorithm, key_bitstring;
   if (!CBB_add_asn1(out, &spki, CBS_ASN1_SEQUENCE) ||
       !CBB_add_asn1(&spki, &algorithm, CBS_ASN1_SEQUENCE) ||
-      !CBB_add_asn1(&algorithm, &oid, CBS_ASN1_OBJECT) ||
-      !CBB_add_bytes(&oid, ed25519_asn1_meth.oid, ed25519_asn1_meth.oid_len) ||
+      !CBB_add_asn1_element(&algorithm, CBS_ASN1_OBJECT, ed25519_asn1_meth.oid,
+                            ed25519_asn1_meth.oid_len) ||
       !CBB_add_asn1(&spki, &key_bitstring, CBS_ASN1_BITSTRING) ||
       !CBB_add_u8(&key_bitstring, 0 /* padding */) ||
       !CBB_add_bytes(&key_bitstring, key->key + ED25519_PUBLIC_KEY_OFFSET,
@@ -176,12 +176,12 @@ static int ed25519_priv_encode(CBB *out, const EVP_PKEY *pkey) {
   }
 
   // See RFC 8410, section 7.
-  CBB pkcs8, algorithm, oid, private_key, inner;
+  CBB pkcs8, algorithm, private_key, inner;
   if (!CBB_add_asn1(out, &pkcs8, CBS_ASN1_SEQUENCE) ||
       !CBB_add_asn1_uint64(&pkcs8, 0 /* version */) ||
       !CBB_add_asn1(&pkcs8, &algorithm, CBS_ASN1_SEQUENCE) ||
-      !CBB_add_asn1(&algorithm, &oid, CBS_ASN1_OBJECT) ||
-      !CBB_add_bytes(&oid, ed25519_asn1_meth.oid, ed25519_asn1_meth.oid_len) ||
+      !CBB_add_asn1_element(&algorithm, CBS_ASN1_OBJECT, ed25519_asn1_meth.oid,
+                            ed25519_asn1_meth.oid_len) ||
       !CBB_add_asn1(&pkcs8, &private_key, CBS_ASN1_OCTETSTRING) ||
       !CBB_add_asn1(&private_key, &inner, CBS_ASN1_OCTETSTRING) ||
       // The PKCS#8 encoding stores only the 32-byte seed which is the first 32

@@ -1,69 +1,17 @@
-/* Originally written by Bodo Moeller for the OpenSSL project.
- * ====================================================================
- * Copyright (c) 1998-2005 The OpenSSL Project.  All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
- *
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
- *
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in
- *    the documentation and/or other materials provided with the
- *    distribution.
- *
- * 3. All advertising materials mentioning features or use of this
- *    software must display the following acknowledgment:
- *    "This product includes software developed by the OpenSSL Project
- *    for use in the OpenSSL Toolkit. (http://www.openssl.org/)"
- *
- * 4. The names "OpenSSL Toolkit" and "OpenSSL Project" must not be used to
- *    endorse or promote products derived from this software without
- *    prior written permission. For written permission, please contact
- *    openssl-core@openssl.org.
- *
- * 5. Products derived from this software may not be called "OpenSSL"
- *    nor may "OpenSSL" appear in their names without prior written
- *    permission of the OpenSSL Project.
- *
- * 6. Redistributions of any form whatsoever must retain the following
- *    acknowledgment:
- *    "This product includes software developed by the OpenSSL Project
- *    for use in the OpenSSL Toolkit (http://www.openssl.org/)"
- *
- * THIS SOFTWARE IS PROVIDED BY THE OpenSSL PROJECT ``AS IS'' AND ANY
- * EXPRESSED OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
- * PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL THE OpenSSL PROJECT OR
- * ITS CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
- * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
- * NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
- * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
- * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
- * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
- * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
- * OF THE POSSIBILITY OF SUCH DAMAGE.
- * ====================================================================
- *
- * This product includes cryptographic software written by Eric Young
- * (eay@cryptsoft.com).  This product includes software written by Tim
- * Hudson (tjh@cryptsoft.com).
- *
- */
-/* ====================================================================
- * Copyright 2002 Sun Microsystems, Inc. ALL RIGHTS RESERVED.
- *
- * Portions of the attached software ("Contribution") are developed by
- * SUN MICROSYSTEMS, INC., and are contributed to the OpenSSL project.
- *
- * The Contribution is licensed pursuant to the OpenSSL open source
- * license provided above.
- *
- * The elliptic curve binary polynomial software is originally written by
- * Sheueling Chang Shantz and Douglas Stebila of Sun Microsystems
- * Laboratories. */
+// Copyright 2002-2016 The OpenSSL Project Authors. All Rights Reserved.
+// Copyright (c) 2002, Oracle and/or its affiliates. All rights reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     https://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 
 #include <CCryptoBoringSSL_ec_key.h>
 
@@ -75,7 +23,6 @@
 #include <CCryptoBoringSSL_err.h>
 #include <CCryptoBoringSSL_ex_data.h>
 #include <CCryptoBoringSSL_mem.h>
-#include <CCryptoBoringSSL_thread.h>
 
 #include "../../internal.h"
 #include "../bcm_interface.h"
@@ -126,7 +73,7 @@ EC_KEY *EC_KEY_new_method(const ENGINE *engine) {
   CRYPTO_new_ex_data(&ret->ex_data);
 
   if (ret->ecdsa_meth && ret->ecdsa_meth->init && !ret->ecdsa_meth->init(ret)) {
-    CRYPTO_free_ex_data(g_ec_ex_data_class_bss_get(), ret, &ret->ex_data);
+    CRYPTO_free_ex_data(g_ec_ex_data_class_bss_get(), &ret->ex_data);
     if (ret->ecdsa_meth) {
       METHOD_unref(ret->ecdsa_meth);
     }
@@ -166,7 +113,7 @@ void EC_KEY_free(EC_KEY *r) {
     METHOD_unref(r->ecdsa_meth);
   }
 
-  CRYPTO_free_ex_data(g_ec_ex_data_class_bss_get(), r, &r->ex_data);
+  CRYPTO_free_ex_data(g_ec_ex_data_class_bss_get(), &r->ex_data);
 
   EC_GROUP_free(r->group);
   EC_POINT_free(r->pub_key);
@@ -334,12 +281,6 @@ int EC_KEY_check_fips(const EC_KEY *key) {
   int ret = 0;
   FIPS_service_indicator_lock_state();
 
-  if (EC_KEY_is_opaque(key)) {
-    // Opaque keys can't be checked.
-    OPENSSL_PUT_ERROR(EC, EC_R_PUBLIC_KEY_VALIDATION_FAILED);
-    goto end;
-  }
-
   if (!EC_KEY_check_key(key)) {
     goto end;
   }
@@ -374,40 +315,33 @@ end:
 
 int EC_KEY_set_public_key_affine_coordinates(EC_KEY *key, const BIGNUM *x,
                                              const BIGNUM *y) {
-  EC_POINT *point = NULL;
-  int ok = 0;
-
   if (!key || !key->group || !x || !y) {
     OPENSSL_PUT_ERROR(EC, ERR_R_PASSED_NULL_PARAMETER);
     return 0;
   }
 
-  point = EC_POINT_new(key->group);
-  if (point == NULL ||
-      !EC_POINT_set_affine_coordinates_GFp(key->group, point, x, y, NULL) ||
-      !EC_KEY_set_public_key(key, point) || !EC_KEY_check_key(key)) {
-    goto err;
+  bssl::UniquePtr<EC_POINT> point(EC_POINT_new(key->group));
+  if (point == nullptr ||
+      !EC_POINT_set_affine_coordinates_GFp(key->group, point.get(), x, y,
+                                           nullptr) ||
+      !EC_KEY_set_public_key(key, point.get()) ||  //
+      !EC_KEY_check_key(key)) {
+    return 0;
   }
 
-  ok = 1;
-
-err:
-  EC_POINT_free(point);
-  return ok;
+  return 1;
 }
 
 int EC_KEY_oct2key(EC_KEY *key, const uint8_t *in, size_t len, BN_CTX *ctx) {
-  if (key->group == NULL) {
+  if (key->group == nullptr) {
     OPENSSL_PUT_ERROR(EC, EC_R_MISSING_PARAMETERS);
     return 0;
   }
 
-  EC_POINT *point = EC_POINT_new(key->group);
-  int ok = point != NULL &&
-           EC_POINT_oct2point(key->group, point, in, len, ctx) &&
-           EC_KEY_set_public_key(key, point);
-  EC_POINT_free(point);
-  return ok;
+  bssl::UniquePtr<EC_POINT> point(EC_POINT_new(key->group));
+  return point != nullptr &&
+         EC_POINT_oct2point(key->group, point.get(), in, len, ctx) &&
+         EC_KEY_set_public_key(key, point.get());
 }
 
 size_t EC_KEY_key2buf(const EC_KEY *key, point_conversion_form_t form,

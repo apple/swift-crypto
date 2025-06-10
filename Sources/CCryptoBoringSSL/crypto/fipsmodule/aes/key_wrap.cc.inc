@@ -1,50 +1,16 @@
-/* ====================================================================
- * Copyright (c) 2001-2011 The OpenSSL Project.  All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
- *
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
- *
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in
- *    the documentation and/or other materials provided with the
- *    distribution.
- *
- * 3. All advertising materials mentioning features or use of this
- *    software must display the following acknowledgment:
- *    "This product includes software developed by the OpenSSL Project
- *    for use in the OpenSSL Toolkit. (http://www.openssl.org/)"
- *
- * 4. The names "OpenSSL Toolkit" and "OpenSSL Project" must not be used to
- *    endorse or promote products derived from this software without
- *    prior written permission. For written permission, please contact
- *    openssl-core@openssl.org.
- *
- * 5. Products derived from this software may not be called "OpenSSL"
- *    nor may "OpenSSL" appear in their names without prior written
- *    permission of the OpenSSL Project.
- *
- * 6. Redistributions of any form whatsoever must retain the following
- *    acknowledgment:
- *    "This product includes software developed by the OpenSSL Project
- *    for use in the OpenSSL Toolkit (http://www.openssl.org/)"
- *
- * THIS SOFTWARE IS PROVIDED BY THE OpenSSL PROJECT ``AS IS'' AND ANY
- * EXPRESSED OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
- * PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL THE OpenSSL PROJECT OR
- * ITS CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
- * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
- * NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
- * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
- * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
- * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
- * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
- * OF THE POSSIBILITY OF SUCH DAMAGE.
- * ==================================================================== */
+// Copyright 2008-2016 The OpenSSL Project Authors. All Rights Reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     https://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 
 #include <CCryptoBoringSSL_aes.h>
 
@@ -54,6 +20,7 @@
 
 #include <CCryptoBoringSSL_mem.h>
 
+#include "../bcm_interface.h"
 #include "../../internal.h"
 #include "../service_indicator/internal.h"
 
@@ -87,7 +54,7 @@ int AES_wrap_key(const AES_KEY *key, const uint8_t *iv, uint8_t *out,
   for (unsigned j = 0; j < kBound; j++) {
     for (size_t i = 1; i <= n; i++) {
       OPENSSL_memcpy(A + 8, out + 8 * i, 8);
-      AES_encrypt(A, A, key);
+      BCM_aes_encrypt(A, A, key);
 
       uint32_t t = (uint32_t)(n * j + i);
       A[7] ^= t & 0xff;
@@ -130,7 +97,7 @@ static int aes_unwrap_key_inner(const AES_KEY *key, uint8_t *out,
       A[5] ^= (t >> 16) & 0xff;
       A[4] ^= (t >> 24) & 0xff;
       OPENSSL_memcpy(A + 8, out + 8 * (i - 1), 8);
-      AES_decrypt(A, A, key);
+      BCM_aes_decrypt(A, A, key);
       OPENSSL_memcpy(out + 8 * (i - 1), A + 8, 8);
     }
   }
@@ -179,7 +146,7 @@ int AES_wrap_key_padded(const AES_KEY *key, uint8_t *out, size_t *out_len,
   if (in_len <= 8) {
     memset(block + 8, 0, 8);
     memcpy(block + 8, in, in_len);
-    AES_encrypt(block, out, key);
+    BCM_aes_encrypt(block, out, key);
     *out_len = AES_BLOCK_SIZE;
     return 1;
   }
@@ -213,7 +180,7 @@ int AES_unwrap_key_padded(const AES_KEY *key, uint8_t *out, size_t *out_len,
   uint8_t iv[8];
   if (in_len == AES_BLOCK_SIZE) {
     uint8_t block[AES_BLOCK_SIZE];
-    AES_decrypt(in, block, key);
+    BCM_aes_decrypt(in, block, key);
     memcpy(iv, block, sizeof(iv));
     memcpy(out, block + 8, 8);
   } else if (!aes_unwrap_key_inner(key, out, iv, in, in_len)) {
