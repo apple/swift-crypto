@@ -49,4 +49,4 @@ extension XWingMLKEM768X25519.PublicKey {
     }
 }
 
-#endif // CRYPTO_IN_SWIFTPM
+#endif  // CRYPTO_IN_SWIFTPM

@@ -37,7 +37,11 @@ final class Drbg {
         precondition(count <= buffer.count)
 
         let rc = CCryptoBoringSSL_CTR_DRBG_generate(
-            self.state, buffer.baseAddress, buffer.count, nil, 0
+            self.state,
+            buffer.baseAddress,
+            buffer.count,
+            nil,
+            0
         )
         precondition(rc == 1)
     }
@@ -53,7 +57,7 @@ extension UnsafeMutableRawBufferPointer {
 
 extension SymmetricKey {
     var dataRepresentation: Data {
-        return self.withUnsafeBytes { ptr in
+        self.withUnsafeBytes { ptr in
             Data(ptr)
         }
     }
@@ -65,4 +69,4 @@ extension SymmetricKey {
     }
 }
 
-#endif // CRYPTO_IN_SWIFTPM
+#endif  // CRYPTO_IN_SWIFTPM

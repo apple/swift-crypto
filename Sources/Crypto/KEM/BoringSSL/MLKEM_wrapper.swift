@@ -64,7 +64,8 @@ protocol BoringSSLBackedMLKEMOuterPublicKey {
 
 @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 protocol BoringSSLBackedMLKEMParameters {
-    associatedtype BackingPrivateKey: BoringSSLBackedMLKEMPrivateKey where BackingPrivateKey.InteriorPublicKey == BackingPublicKey
+    associatedtype BackingPrivateKey: BoringSSLBackedMLKEMPrivateKey
+    where BackingPrivateKey.InteriorPublicKey == BackingPublicKey
     associatedtype BackingPublicKey: BoringSSLBackedMLKEMPublicKey
     associatedtype PublicKey: BoringSSLBackedMLKEMOuterPublicKey
 }
@@ -76,7 +77,7 @@ extension MLKEM768: BoringSSLBackedMLKEMParameters {
 }
 
 @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
-extension MLKEM768.PublicKey: BoringSSLBackedMLKEMOuterPublicKey { }
+extension MLKEM768.PublicKey: BoringSSLBackedMLKEMOuterPublicKey {}
 
 @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension MLKEM768.InternalPrivateKey: BoringSSLBackedMLKEMPrivateKey {
@@ -96,7 +97,7 @@ extension MLKEM768.InternalPrivateKey: BoringSSLBackedMLKEMPrivateKey {
         return try .init(seedRepresentation: fullSeed)
     }
 
-    init<Bytes>(seedRepresentation: Bytes, publicKeyRawRepresentation: Data?) throws where Bytes : DataProtocol {
+    init<Bytes>(seedRepresentation: Bytes, publicKeyRawRepresentation: Data?) throws where Bytes: DataProtocol {
         precondition(publicKeyRawRepresentation == nil)
         self = try .init(seedRepresentation: seedRepresentation)
     }
@@ -129,7 +130,7 @@ extension MLKEM1024: BoringSSLBackedMLKEMParameters {
 }
 
 @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
-extension MLKEM1024.PublicKey: BoringSSLBackedMLKEMOuterPublicKey { }
+extension MLKEM1024.PublicKey: BoringSSLBackedMLKEMOuterPublicKey {}
 
 @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension MLKEM1024.InternalPrivateKey: BoringSSLBackedMLKEMPrivateKey {
@@ -149,7 +150,7 @@ extension MLKEM1024.InternalPrivateKey: BoringSSLBackedMLKEMPrivateKey {
         return try .init(seedRepresentation: fullSeed)
     }
 
-    init<Bytes>(seedRepresentation: Bytes, publicKeyRawRepresentation: Data?) throws where Bytes : DataProtocol {
+    init<Bytes>(seedRepresentation: Bytes, publicKeyRawRepresentation: Data?) throws where Bytes: DataProtocol {
         precondition(publicKeyRawRepresentation == nil)
         self = try .init(seedRepresentation: seedRepresentation)
     }
@@ -242,7 +243,7 @@ struct OpenSSLMLKEMPrivateKeyImpl<Parameters: BoringSSLBackedMLKEMParameters>: B
         self.backing.seedRepresentation
     }
 
-    func decapsulate<Bytes>(_ encapsulated: Bytes) throws -> SymmetricKey where Bytes : DataProtocol {
+    func decapsulate<Bytes>(_ encapsulated: Bytes) throws -> SymmetricKey where Bytes: DataProtocol {
         try self.backing.decapsulate(encapsulated)
     }
 

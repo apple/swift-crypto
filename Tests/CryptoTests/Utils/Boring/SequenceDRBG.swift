@@ -27,4 +27,4 @@ final class SequenceDrbg {
     var detRngPtr: Self { self }
 }
 
-#endif // CRYPTO_IN_SWIFTPM
+#endif  // CRYPTO_IN_SWIFTPM

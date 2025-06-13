@@ -45,8 +45,11 @@ struct OpenSSLXWingPublicKeyImpl: Sendable {
 
     func encapsulateWithOptionalEntropy(entropy: [UInt8]?) throws -> KEM.EncapsulationResult {
         let (sharedSecret, encapsulatedSecret) = try self.publicKeyBytes.withUnsafeBytes { publicKeyBuffer in
-            try withUnsafeTemporaryAllocation(byteCount: Int(XWING_CIPHERTEXT_BYTES), alignment: 1) { ciphertextBuffer in
-                let sharedSecret = try SymmetricKey(unsafeUninitializedCapacity: Int(XWING_SHARED_SECRET_BYTES)) { sharedSecretBuffer, count in
+            try withUnsafeTemporaryAllocation(byteCount: Int(XWING_CIPHERTEXT_BYTES), alignment: 1) {
+                ciphertextBuffer in
+                let sharedSecret = try SymmetricKey(unsafeUninitializedCapacity: Int(XWING_SHARED_SECRET_BYTES)) {
+                    sharedSecretBuffer,
+                    count in
                     let rc: CInt
 
                     if let entropy {
@@ -164,7 +167,8 @@ extension OpenSSLXWingPrivateKeyImpl {
         init<D: DataProtocol>(seedRepresentation: D, publicKeyHash: SHA3_256Digest?) throws {
             self.privateKey = .init()
 
-            let seedRepresentation: ContiguousBytes = seedRepresentation.regions.count == 1 ? seedRepresentation.regions.first! : Array(seedRepresentation)
+            let seedRepresentation: ContiguousBytes =
+                seedRepresentation.regions.count == 1 ? seedRepresentation.regions.first! : Array(seedRepresentation)
 
             try seedRepresentation.withUnsafeBytes { privateKeyBytes in
                 guard privateKeyBytes.count == Int(XWING_PRIVATE_KEY_BYTES) else {
@@ -208,11 +212,11 @@ extension OpenSSLXWingPrivateKeyImpl {
         }
 
         static func generate() throws -> Self {
-            return try Self()
+            try Self()
         }
 
         func decapsulate(_ encapsulated: Data) throws -> SymmetricKey {
-            return try SymmetricKey(unsafeUninitializedCapacity: Int(XWING_SHARED_SECRET_BYTES)) { sharedSecretBytes, count in
+            try SymmetricKey(unsafeUninitializedCapacity: Int(XWING_SHARED_SECRET_BYTES)) { sharedSecretBytes, count in
                 try encapsulated.withUnsafeBytes { encapsulatedSecretBytes in
                     let rc = CCryptoBoringSSL_XWING_decap(
                         sharedSecretBytes.baseAddress,

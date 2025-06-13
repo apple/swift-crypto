@@ -48,7 +48,8 @@ protocol BoringSSLBackedMLDSAPublicKey {
 
 @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 protocol BoringSSLBackedMLDSAParameters {
-    associatedtype BackingPrivateKey: BoringSSLBackedMLDSAPrivateKey where BackingPrivateKey.AssociatedPublicKey == BackingPublicKey
+    associatedtype BackingPrivateKey: BoringSSLBackedMLDSAPrivateKey
+    where BackingPrivateKey.AssociatedPublicKey == BackingPublicKey
     associatedtype BackingPublicKey: BoringSSLBackedMLDSAPublicKey
 }
 
@@ -65,16 +66,16 @@ extension MLDSA87: BoringSSLBackedMLDSAParameters {
 }
 
 @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
-extension MLDSA65.InternalPrivateKey: BoringSSLBackedMLDSAPrivateKey { }
+extension MLDSA65.InternalPrivateKey: BoringSSLBackedMLDSAPrivateKey {}
 
 @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
-extension MLDSA65.InternalPublicKey: BoringSSLBackedMLDSAPublicKey { }
+extension MLDSA65.InternalPublicKey: BoringSSLBackedMLDSAPublicKey {}
 
 @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
-extension MLDSA87.InternalPrivateKey: BoringSSLBackedMLDSAPrivateKey { }
+extension MLDSA87.InternalPrivateKey: BoringSSLBackedMLDSAPrivateKey {}
 
 @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
-extension MLDSA87.InternalPublicKey: BoringSSLBackedMLDSAPublicKey { }
+extension MLDSA87.InternalPublicKey: BoringSSLBackedMLDSAPublicKey {}
 
 @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 struct OpenSSLMLDSAPrivateKeyImpl<Parameters: BoringSSLBackedMLDSAParameters> {
@@ -105,7 +106,7 @@ struct OpenSSLMLDSAPrivateKeyImpl<Parameters: BoringSSLBackedMLDSAParameters> {
         .init(backing: self.backing.publicKey)
     }
 
-    var seedRepresentation: Data { 
+    var seedRepresentation: Data {
         self.backing.seedRepresentation
     }
 
@@ -127,13 +128,16 @@ struct OpenSSLMLDSAPublicKeyImpl<Parameters: BoringSSLBackedMLDSAParameters> {
     }
 
     func isValidSignature<S: DataProtocol, D: DataProtocol>(
-        signature: S, for data: D
+        signature: S,
+        for data: D
     ) -> Bool {
         self.backing.isValidSignature(signature, for: data)
     }
 
     func isValidSignature<S: DataProtocol, D: DataProtocol, C: DataProtocol>(
-        signature: S, for data: D, context: C
+        signature: S,
+        for data: D,
+        context: C
     ) -> Bool {
         self.backing.isValidSignature(signature, for: data, context: context)
     }
