@@ -28,7 +28,7 @@ final class MLKEMTests: XCTestCase {
 
         // Serialize and deserialize the private key
         let seed = privateKey.seedRepresentation
-        let privateKey2 = try MLKEM768.PrivateKey(seedRepresentation: seed)
+        let privateKey2 = try MLKEM768.PrivateKey(seedRepresentation: seed, publicKey: nil)
         XCTAssertEqual(privateKey.seedRepresentation, privateKey2.seedRepresentation)
 
         // Serialize and deserialize the public key
@@ -51,7 +51,7 @@ final class MLKEMTests: XCTestCase {
         modifiedSeed[0] = 0xff
         modifiedSeed[1] = 0xff
         XCTAssertNotEqual(
-            try MLKEM768.PrivateKey(seedRepresentation: modifiedSeed).publicKey.rawRepresentation,
+            try MLKEM768.PrivateKey(seedRepresentation: modifiedSeed, publicKey: nil).publicKey.rawRepresentation,
             publicKeyBytes
         )
 
@@ -74,7 +74,7 @@ final class MLKEMTests: XCTestCase {
 
         // Serialize and deserialize the private key
         let seed = privateKey.seedRepresentation
-        let privateKey2 = try MLKEM1024.PrivateKey(seedRepresentation: seed)
+        let privateKey2 = try MLKEM1024.PrivateKey(seedRepresentation: seed, publicKey: nil)
         XCTAssertEqual(privateKey.seedRepresentation, privateKey2.seedRepresentation)
 
         // Serialize and deserialize the public key
@@ -97,7 +97,7 @@ final class MLKEMTests: XCTestCase {
         modifiedSeed[0] = 0xff
         modifiedSeed[1] = 0xff
         XCTAssertNotEqual(
-            try MLKEM1024.PrivateKey(seedRepresentation: modifiedSeed).publicKey.rawRepresentation,
+            try MLKEM1024.PrivateKey(seedRepresentation: modifiedSeed, publicKey: nil).publicKey.rawRepresentation,
             publicKeyBytes
         )
 

@@ -23,7 +23,7 @@ final class MLDSATests: XCTestCase {
         }
         try testMLDSA65Signing(MLDSA65.PrivateKey())
         let seed: [UInt8] = (0..<32).map { _ in UInt8.random(in: 0...255) }
-        try testMLDSA65Signing(MLDSA65.PrivateKey(seedRepresentation: seed))
+        try testMLDSA65Signing(MLDSA65.PrivateKey(seedRepresentation: seed, publicKey: nil))
     }
 
     @available(iOS 19.0, macOS 16.0, watchOS 12.0, tvOS 19.0, visionOS 3.0, *)
@@ -31,7 +31,7 @@ final class MLDSATests: XCTestCase {
         let test = "Hello, world!".data(using: .utf8)!
         try XCTAssertTrue(
             key.publicKey.isValidSignature(
-                key.signature(for: test),
+                signature: key.signature(for: test),
                 for: test
             )
         )
@@ -39,7 +39,7 @@ final class MLDSATests: XCTestCase {
         let context = "ctx".data(using: .utf8)!
         try XCTAssertTrue(
             key.publicKey.isValidSignature(
-                key.signature(for: test, context: context),
+                signature: key.signature(for: test, context: context),
                 for: test,
                 context: context
             )
@@ -52,7 +52,7 @@ final class MLDSATests: XCTestCase {
         }
         try testMLDSA87Signing(MLDSA87.PrivateKey())
         let seed: [UInt8] = (0..<32).map { _ in UInt8.random(in: 0...255) }
-        try testMLDSA87Signing(MLDSA87.PrivateKey(seedRepresentation: seed))
+        try testMLDSA87Signing(MLDSA87.PrivateKey(seedRepresentation: seed, publicKey: nil))
     }
 
     @available(iOS 19.0, macOS 16.0, watchOS 12.0, tvOS 19.0, visionOS 3.0, *)
@@ -60,7 +60,7 @@ final class MLDSATests: XCTestCase {
         let test = "Hello, world!".data(using: .utf8)!
         try XCTAssertTrue(
             key.publicKey.isValidSignature(
-                key.signature(for: test),
+                signature: key.signature(for: test),
                 for: test
             )
         )
@@ -68,7 +68,7 @@ final class MLDSATests: XCTestCase {
         let context = "ctx".data(using: .utf8)!
         try XCTAssertTrue(
             key.publicKey.isValidSignature(
-                key.signature(for: test, context: context),
+                signature: key.signature(for: test, context: context),
                 for: test,
                 context: context
             )
@@ -81,7 +81,7 @@ final class MLDSATests: XCTestCase {
         }
         let key = try MLDSA65.PrivateKey()
         let seed = key.seedRepresentation
-        let roundTripped = try MLDSA65.PrivateKey(seedRepresentation: seed)
+        let roundTripped = try MLDSA65.PrivateKey(seedRepresentation: seed, publicKey: nil)
         XCTAssertEqual(seed, roundTripped.seedRepresentation)
         XCTAssertEqual(key.publicKey.rawRepresentation, roundTripped.publicKey.rawRepresentation)
     }
@@ -92,7 +92,7 @@ final class MLDSATests: XCTestCase {
         }
         let key = try MLDSA87.PrivateKey()
         let seed = key.seedRepresentation
-        let roundTripped = try MLDSA87.PrivateKey(seedRepresentation: seed)
+        let roundTripped = try MLDSA87.PrivateKey(seedRepresentation: seed, publicKey: nil)
         XCTAssertEqual(seed, roundTripped.seedRepresentation)
         XCTAssertEqual(key.publicKey.rawRepresentation, roundTripped.publicKey.rawRepresentation)
     }
@@ -104,7 +104,7 @@ final class MLDSATests: XCTestCase {
         let message = "Hello, world!".data(using: .utf8)!
 
         let seed: [UInt8] = (0..<32).map { _ in UInt8.random(in: 0...255) }
-        let key = try MLDSA65.PrivateKey(seedRepresentation: seed)
+        let key = try MLDSA65.PrivateKey(seedRepresentation: seed, publicKey: nil)
         let publicKey = key.publicKey
 
         let signature1 = try key.signature(for: message)
@@ -113,8 +113,8 @@ final class MLDSATests: XCTestCase {
         XCTAssertNotEqual(signature1, signature2)
 
         // Even though the signatures are different, they both verify.
-        XCTAssertTrue(publicKey.isValidSignature(signature1, for: message))
-        XCTAssertTrue(publicKey.isValidSignature(signature2, for: message))
+        XCTAssertTrue(publicKey.isValidSignature(signature: signature1, for: message))
+        XCTAssertTrue(publicKey.isValidSignature(signature: signature2, for: message))
     }
 
     func testMLDSA87SignatureIsRandomized() throws {
@@ -124,7 +124,7 @@ final class MLDSATests: XCTestCase {
         let message = "Hello, world!".data(using: .utf8)!
 
         let seed: [UInt8] = (0..<32).map { _ in UInt8.random(in: 0...255) }
-        let key = try MLDSA87.PrivateKey(seedRepresentation: seed)
+        let key = try MLDSA87.PrivateKey(seedRepresentation: seed, publicKey: nil)
         let publicKey = key.publicKey
 
         let signature1 = try key.signature(for: message)
@@ -133,8 +133,8 @@ final class MLDSATests: XCTestCase {
         XCTAssertNotEqual(signature1, signature2)
 
         // Even though the signatures are different, they both verify.
-        XCTAssertTrue(publicKey.isValidSignature(signature1, for: message))
-        XCTAssertTrue(publicKey.isValidSignature(signature2, for: message))
+        XCTAssertTrue(publicKey.isValidSignature(signature: signature1, for: message))
+        XCTAssertTrue(publicKey.isValidSignature(signature: signature2, for: message))
     }
 
     func testInvalidMLDSA65PublicKeyEncodingLength() throws {
@@ -144,7 +144,7 @@ final class MLDSATests: XCTestCase {
         // Encode a public key with a trailing 0 at the end.
         var encodedPublicKey = [UInt8](repeating: 0, count: MLDSA65.PublicKey.byteCount + 1)
         let seed: [UInt8] = (0..<32).map { _ in UInt8.random(in: 0...255) }
-        let key = try MLDSA65.PrivateKey(seedRepresentation: seed)
+        let key = try MLDSA65.PrivateKey(seedRepresentation: seed, publicKey: nil)
         let publicKey = key.publicKey
         encodedPublicKey.replaceSubrange(0..<MLDSA65.PublicKey.byteCount, with: publicKey.rawRepresentation)
 
@@ -167,7 +167,7 @@ final class MLDSATests: XCTestCase {
         // Encode a public key with a trailing 0 at the end.
         var encodedPublicKey = [UInt8](repeating: 0, count: MLDSA87.PublicKey.byteCount + 1)
         let seed: [UInt8] = (0..<32).map { _ in UInt8.random(in: 0...255) }
-        let key = try MLDSA87.PrivateKey(seedRepresentation: seed)
+        let key = try MLDSA87.PrivateKey(seedRepresentation: seed, publicKey: nil)
         let publicKey = key.publicKey
         encodedPublicKey.replaceSubrange(0..<MLDSA87.PublicKey.byteCount, with: publicKey.rawRepresentation)
 
@@ -191,7 +191,7 @@ final class MLDSATests: XCTestCase {
             let seed = try Data(hexString: testVector.seed)
             let publicKey = try MLDSA65.PublicKey(rawRepresentation: Data(hexString: testVector.pub))
 
-            let expectedkey = try MLDSA65.PrivateKey(seedRepresentation: seed).publicKey
+            let expectedkey = try MLDSA65.PrivateKey(seedRepresentation: seed, publicKey: nil).publicKey
             XCTAssertEqual(publicKey.rawRepresentation, expectedkey.rawRepresentation)
         }
     }
@@ -204,7 +204,7 @@ final class MLDSATests: XCTestCase {
             let seed = try Data(hexString: testVector.seed)
             let publicKey = try MLDSA87.PublicKey(rawRepresentation: Data(hexString: testVector.pub))
 
-            let expectedkey = try MLDSA87.PrivateKey(seedRepresentation: seed).publicKey
+            let expectedkey = try MLDSA87.PrivateKey(seedRepresentation: seed, publicKey: nil).publicKey
             XCTAssertEqual(publicKey.rawRepresentation, expectedkey.rawRepresentation)
         }
     }
@@ -262,15 +262,15 @@ final class MLDSATests: XCTestCase {
                 switch test.result {
                 case .valid:
                     if let context {
-                        XCTAssertTrue(publicKey.isValidSignature(signature, for: message, context: context))
+                        XCTAssertTrue(publicKey.isValidSignature(signature: signature, for: message, context: context))
                     } else {
-                        XCTAssertTrue(publicKey.isValidSignature(signature, for: message))
+                        XCTAssertTrue(publicKey.isValidSignature(signature: signature, for: message))
                     }
                 case .invalid:
                     if let context {
-                        XCTAssertFalse(publicKey.isValidSignature(signature, for: message, context: context))
+                        XCTAssertFalse(publicKey.isValidSignature(signature: signature, for: message, context: context))
                     } else {
-                        XCTAssertFalse(publicKey.isValidSignature(signature, for: message))
+                        XCTAssertFalse(publicKey.isValidSignature(signature: signature, for: message))
                     }
                 }
             }
@@ -297,15 +297,15 @@ final class MLDSATests: XCTestCase {
                 switch test.result {
                 case .valid:
                     if let context {
-                        XCTAssertTrue(publicKey.isValidSignature(signature, for: message, context: context))
+                        XCTAssertTrue(publicKey.isValidSignature(signature: signature, for: message, context: context))
                     } else {
-                        XCTAssertTrue(publicKey.isValidSignature(signature, for: message))
+                        XCTAssertTrue(publicKey.isValidSignature(signature: signature, for: message))
                     }
                 case .invalid:
                     if let context {
-                        XCTAssertFalse(publicKey.isValidSignature(signature, for: message, context: context))
+                        XCTAssertFalse(publicKey.isValidSignature(signature: signature, for: message, context: context))
                     } else {
-                        XCTAssertFalse(publicKey.isValidSignature(signature, for: message))
+                        XCTAssertFalse(publicKey.isValidSignature(signature: signature, for: message))
                     }
                 }
             }
