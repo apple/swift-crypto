@@ -54,14 +54,14 @@ extension UnsafeMutableRawBufferPointer {
 extension SymmetricKey {
     var dataRepresentation: Data {
         return self.withUnsafeBytes { ptr in
-            return Data(ptr)
+            Data(ptr)
         }
     }
 }
 
 extension SymmetricKey {
     static func == (lhs: SymmetricKey, rhs: Data) -> Bool {
-        return lhs.dataRepresentation == rhs
+        lhs.dataRepresentation == rhs
     }
 }
 
