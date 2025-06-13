@@ -14,7 +14,12 @@
 #if CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
 @_exported import CryptoKit
 #else
+
+#if CRYPTOKIT_NO_ACCESS_TO_FOUNDATION
+import SwiftSystem
+#else
 import Foundation
+#endif
 
 @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension ASN1 {
@@ -27,18 +32,18 @@ extension ASN1 {
 
         init() { }
 
-        init(asn1Encoded node: ASN1.ASN1Node, withIdentifier identifier: ASN1.ASN1Identifier) throws {
+        init(asn1Encoded node: ASN1.ASN1Node, withIdentifier identifier: ASN1.ASN1Identifier) throws(CryptoKitMetaError) {
             guard node.identifier == identifier, case .primitive(let content) = node.content else {
-                throw CryptoKitASN1Error.unexpectedFieldType
+                throw error(CryptoKitASN1Error.unexpectedFieldType)
             }
 
             guard content.count == 0 else {
-                throw CryptoKitASN1Error.invalidASN1Object
+                throw error(CryptoKitASN1Error.invalidASN1Object)
             }
         }
 
-        func serialize(into coder: inout ASN1.Serializer, withIdentifier identifier: ASN1.ASN1Identifier) {
-            coder.appendPrimitiveNode(identifier: identifier, { _ in })
+        func serialize(into coder: inout ASN1.Serializer, withIdentifier identifier: ASN1.ASN1Identifier) throws(CryptoKitMetaError) {
+            try coder.appendPrimitiveNode(identifier: identifier, { _ in })
         }
     }
 }

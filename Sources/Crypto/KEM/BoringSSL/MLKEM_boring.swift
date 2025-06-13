@@ -2,7 +2,7 @@
 //
 // This source file is part of the SwiftCrypto open source project
 //
-// Copyright (c) 2024 Apple Inc. and the SwiftCrypto project authors
+// Copyright (c) 2024-2025 Apple Inc. and the SwiftCrypto project authors
 // Licensed under Apache License v2.0
 //
 // See LICENSE.txt for license information
@@ -16,29 +16,27 @@
 // any edits of this file WILL be overwritten and thus discarded
 // see section `gyb` in `README` for details.
 
+#if CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
+@_exported import CryptoKit
+#else
 @_implementationOnly import CCryptoBoringSSL
-import Crypto
 import Foundation
 
-/// A module-lattice-based key encapsulation mechanism that provides security against quantum computing attacks.
-@available(macOS 14.0, iOS 17, watchOS 10, tvOS 17, macCatalyst 17, visionOS 1.0, *)
-public enum MLKEM768 {}
-
-@available(macOS 14.0, iOS 17, watchOS 10, tvOS 17, macCatalyst 17, visionOS 1.0, *)
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension MLKEM768 {
     /// A ML-KEM-768 private key.
-    public struct PrivateKey: Sendable, KEMPrivateKey {
+    struct InternalPrivateKey: Sendable, KEMPrivateKey {
         private var backing: Backing
 
         /// Initialize a ML-KEM-768 private key from a random seed.
-        public init() {
+        init() {
             self.backing = Backing()
         }
 
         /// Generate a ML-KEM-768 private key from a random seed.
         ///
         /// - Returns: The generated private key.
-        public static func generate() -> MLKEM768.PrivateKey {
+        static func generate() -> MLKEM768.InternalPrivateKey {
             .init()
         }
 
@@ -47,17 +45,17 @@ extension MLKEM768 {
         /// - Parameter seedRepresentation: The seed to use to generate the private key.
         ///
         /// - Throws: `CryptoKitError.incorrectKeySize` if the seed is not 64 bytes long.
-        public init(seedRepresentation: some DataProtocol) throws {
+        init(seedRepresentation: some DataProtocol) throws {
             self.backing = try Backing(seedRepresentation: seedRepresentation)
         }
 
         /// The seed from which this private key was generated.
-        public var seedRepresentation: Data {
+        var seedRepresentation: Data {
             self.backing.seed
         }
 
         /// The public key associated with this private key.
-        public var publicKey: PublicKey {
+        var publicKey: InternalPublicKey {
             self.backing.publicKey
         }
 
@@ -68,7 +66,7 @@ extension MLKEM768 {
         /// - Throws: `CryptoKitError.incorrectParameterSize` if the encapsulated shared secret is not 1088 bytes long.
         ///
         /// - Returns: The symmetric key.
-        public func decapsulate(_ encapsulated: some DataProtocol) throws -> SymmetricKey {
+        func decapsulate(_ encapsulated: some DataProtocol) throws -> SymmetricKey {
             try self.backing.decapsulate(encapsulated)
         }
 
@@ -87,7 +85,7 @@ extension MLKEM768 {
                 ) { seedPtr in
                     withUnsafeTemporaryAllocation(
                         of: UInt8.self,
-                        capacity: MLKEM768.PublicKey.byteCount
+                        capacity: MLKEM768.InternalPublicKey.byteCount
                     ) { publicKeyPtr in
                         CCryptoBoringSSL_MLKEM768_generate_key(
                             publicKeyPtr.baseAddress,
@@ -127,8 +125,8 @@ extension MLKEM768 {
             }
 
             /// The public key associated with this private key.
-            var publicKey: PublicKey {
-                PublicKey(privateKeyBacking: self)
+            var publicKey: InternalPublicKey {
+                InternalPublicKey(privateKeyBacking: self)
             }
 
             /// Decapsulate a shared secret and create a symmetric key.
@@ -170,13 +168,13 @@ extension MLKEM768 {
     }
 }
 
-@available(macOS 14.0, iOS 17, watchOS 10, tvOS 17, macCatalyst 17, visionOS 1.0, *)
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension MLKEM768 {
     /// A ML-KEM-768 public key.
-    public struct PublicKey: Sendable, KEMPublicKey {
+    struct InternalPublicKey: Sendable, KEMPublicKey {
         private var backing: Backing
 
-        fileprivate init(privateKeyBacking: PrivateKey.Backing) {
+        fileprivate init(privateKeyBacking: InternalPrivateKey.Backing) {
             self.backing = Backing(privateKeyBacking: privateKeyBacking)
         }
 
@@ -185,19 +183,19 @@ extension MLKEM768 {
         /// - Parameter rawRepresentation: The public key bytes.
         ///
         /// - Throws: `CryptoKitError.incorrectKeySize` if the raw representation is not the correct size.
-        public init(rawRepresentation: some DataProtocol) throws {
+        init(rawRepresentation: some DataProtocol) throws {
             self.backing = try Backing(rawRepresentation: rawRepresentation)
         }
 
         /// The raw binary representation of the public key.
-        public var rawRepresentation: Data {
+        var rawRepresentation: Data {
             self.backing.rawRepresentation
         }
 
         /// Encapsulate a shared secret.
         ///
         /// - Returns: The shared secret and its encapsulated version.
-        public func encapsulate() -> KEM.EncapsulationResult {
+        func encapsulate() -> KEM.EncapsulationResult {
             self.backing.encapsulate()
         }
 
@@ -207,7 +205,7 @@ extension MLKEM768 {
         fileprivate final class Backing {
             var key: MLKEM768_public_key
 
-            init(privateKeyBacking: PrivateKey.Backing) {
+            init(privateKeyBacking: InternalPrivateKey.Backing) {
                 self.key = .init()
                 CCryptoBoringSSL_MLKEM768_public_from_private(&self.key, &privateKeyBacking.key)
             }
@@ -218,7 +216,7 @@ extension MLKEM768 {
             ///
             /// - Throws: `CryptoKitError.incorrectKeySize` if the raw representation is not the correct size.
             init(rawRepresentation: some DataProtocol) throws {
-                guard rawRepresentation.count == MLKEM768.PublicKey.byteCount else {
+                guard rawRepresentation.count == MLKEM768.InternalPublicKey.byteCount else {
                     throw CryptoKitError.incorrectKeySize
                 }
 
@@ -242,7 +240,7 @@ extension MLKEM768 {
             var rawRepresentation: Data {
                 var cbb = CBB()
                 // The following BoringSSL functions can only fail on allocation failure, which we define as impossible.
-                CCryptoBoringSSL_CBB_init(&cbb, MLKEM768.PublicKey.Backing.byteCount)
+                CCryptoBoringSSL_CBB_init(&cbb, MLKEM768.InternalPublicKey.Backing.byteCount)
                 defer { CCryptoBoringSSL_CBB_cleanup(&cbb) }
                 CCryptoBoringSSL_MLKEM768_marshal_public_key(&cbb, &self.key)
                 return Data(bytes: CCryptoBoringSSL_CBB_data(&cbb), count: CCryptoBoringSSL_CBB_len(&cbb))
@@ -285,31 +283,27 @@ extension MLKEM768 {
     }
 }
 
-@available(macOS 14.0, iOS 17, watchOS 10, tvOS 17, macCatalyst 17, visionOS 1.0, *)
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension MLKEM768 {
     /// The size of the encapsulated shared secret in bytes.
     private static let ciphertextByteCount = Int(MLKEM768_CIPHERTEXT_BYTES)
 }
 
-/// A module-lattice-based key encapsulation mechanism that provides security against quantum computing attacks.
-@available(macOS 14.0, iOS 17, watchOS 10, tvOS 17, macCatalyst 17, visionOS 1.0, *)
-public enum MLKEM1024 {}
-
-@available(macOS 14.0, iOS 17, watchOS 10, tvOS 17, macCatalyst 17, visionOS 1.0, *)
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension MLKEM1024 {
     /// A ML-KEM-1024 private key.
-    public struct PrivateKey: Sendable, KEMPrivateKey {
+    struct InternalPrivateKey: Sendable, KEMPrivateKey {
         private var backing: Backing
 
         /// Initialize a ML-KEM-1024 private key from a random seed.
-        public init() {
+        init() {
             self.backing = Backing()
         }
 
         /// Generate a ML-KEM-1024 private key from a random seed.
         ///
         /// - Returns: The generated private key.
-        public static func generate() -> MLKEM1024.PrivateKey {
+        static func generate() -> MLKEM1024.InternalPrivateKey {
             .init()
         }
 
@@ -318,17 +312,17 @@ extension MLKEM1024 {
         /// - Parameter seedRepresentation: The seed to use to generate the private key.
         ///
         /// - Throws: `CryptoKitError.incorrectKeySize` if the seed is not 64 bytes long.
-        public init(seedRepresentation: some DataProtocol) throws {
+        init(seedRepresentation: some DataProtocol) throws {
             self.backing = try Backing(seedRepresentation: seedRepresentation)
         }
 
         /// The seed from which this private key was generated.
-        public var seedRepresentation: Data {
+        var seedRepresentation: Data {
             self.backing.seed
         }
 
         /// The public key associated with this private key.
-        public var publicKey: PublicKey {
+        var publicKey: InternalPublicKey {
             self.backing.publicKey
         }
 
@@ -339,7 +333,7 @@ extension MLKEM1024 {
         /// - Throws: `CryptoKitError.incorrectParameterSize` if the encapsulated shared secret is not 1088 bytes long.
         ///
         /// - Returns: The symmetric key.
-        public func decapsulate(_ encapsulated: some DataProtocol) throws -> SymmetricKey {
+        func decapsulate(_ encapsulated: some DataProtocol) throws -> SymmetricKey {
             try self.backing.decapsulate(encapsulated)
         }
 
@@ -358,7 +352,7 @@ extension MLKEM1024 {
                 ) { seedPtr in
                     withUnsafeTemporaryAllocation(
                         of: UInt8.self,
-                        capacity: MLKEM1024.PublicKey.byteCount
+                        capacity: MLKEM1024.InternalPublicKey.byteCount
                     ) { publicKeyPtr in
                         CCryptoBoringSSL_MLKEM1024_generate_key(
                             publicKeyPtr.baseAddress,
@@ -398,8 +392,8 @@ extension MLKEM1024 {
             }
 
             /// The public key associated with this private key.
-            var publicKey: PublicKey {
-                PublicKey(privateKeyBacking: self)
+            var publicKey: InternalPublicKey {
+                InternalPublicKey(privateKeyBacking: self)
             }
 
             /// Decapsulate a shared secret and create a symmetric key.
@@ -441,13 +435,13 @@ extension MLKEM1024 {
     }
 }
 
-@available(macOS 14.0, iOS 17, watchOS 10, tvOS 17, macCatalyst 17, visionOS 1.0, *)
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension MLKEM1024 {
     /// A ML-KEM-1024 public key.
-    public struct PublicKey: Sendable, KEMPublicKey {
+    struct InternalPublicKey: Sendable, KEMPublicKey {
         private var backing: Backing
 
-        fileprivate init(privateKeyBacking: PrivateKey.Backing) {
+        fileprivate init(privateKeyBacking: InternalPrivateKey.Backing) {
             self.backing = Backing(privateKeyBacking: privateKeyBacking)
         }
 
@@ -456,19 +450,19 @@ extension MLKEM1024 {
         /// - Parameter rawRepresentation: The public key bytes.
         ///
         /// - Throws: `CryptoKitError.incorrectKeySize` if the raw representation is not the correct size.
-        public init(rawRepresentation: some DataProtocol) throws {
+        init(rawRepresentation: some DataProtocol) throws {
             self.backing = try Backing(rawRepresentation: rawRepresentation)
         }
 
         /// The raw binary representation of the public key.
-        public var rawRepresentation: Data {
+        var rawRepresentation: Data {
             self.backing.rawRepresentation
         }
 
         /// Encapsulate a shared secret.
         ///
         /// - Returns: The shared secret and its encapsulated version.
-        public func encapsulate() -> KEM.EncapsulationResult {
+        func encapsulate() -> KEM.EncapsulationResult {
             self.backing.encapsulate()
         }
 
@@ -478,7 +472,7 @@ extension MLKEM1024 {
         fileprivate final class Backing {
             var key: MLKEM1024_public_key
 
-            init(privateKeyBacking: PrivateKey.Backing) {
+            init(privateKeyBacking: InternalPrivateKey.Backing) {
                 self.key = .init()
                 CCryptoBoringSSL_MLKEM1024_public_from_private(&self.key, &privateKeyBacking.key)
             }
@@ -489,7 +483,7 @@ extension MLKEM1024 {
             ///
             /// - Throws: `CryptoKitError.incorrectKeySize` if the raw representation is not the correct size.
             init(rawRepresentation: some DataProtocol) throws {
-                guard rawRepresentation.count == MLKEM1024.PublicKey.byteCount else {
+                guard rawRepresentation.count == MLKEM1024.InternalPublicKey.byteCount else {
                     throw CryptoKitError.incorrectKeySize
                 }
 
@@ -513,7 +507,7 @@ extension MLKEM1024 {
             var rawRepresentation: Data {
                 var cbb = CBB()
                 // The following BoringSSL functions can only fail on allocation failure, which we define as impossible.
-                CCryptoBoringSSL_CBB_init(&cbb, MLKEM1024.PublicKey.Backing.byteCount)
+                CCryptoBoringSSL_CBB_init(&cbb, MLKEM1024.InternalPublicKey.Backing.byteCount)
                 defer { CCryptoBoringSSL_CBB_cleanup(&cbb) }
                 CCryptoBoringSSL_MLKEM1024_marshal_public_key(&cbb, &self.key)
                 return Data(bytes: CCryptoBoringSSL_CBB_data(&cbb), count: CCryptoBoringSSL_CBB_len(&cbb))
@@ -556,16 +550,18 @@ extension MLKEM1024 {
     }
 }
 
-@available(macOS 14.0, iOS 17, watchOS 10, tvOS 17, macCatalyst 17, visionOS 1.0, *)
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension MLKEM1024 {
     /// The size of the encapsulated shared secret in bytes.
     private static let ciphertextByteCount = Int(MLKEM1024_CIPHERTEXT_BYTES)
 }
 
-private enum MLKEM {
+enum MLKEM {
     /// The size of the seed in bytes.
-    fileprivate static let seedByteCount = 64
+    static let seedByteCount = 64
 
     // The size of the shared secret in bytes.
-    fileprivate static let sharedSecretByteCount = 32
+    static let sharedSecretByteCount = 32
 }
+
+#endif  // CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API

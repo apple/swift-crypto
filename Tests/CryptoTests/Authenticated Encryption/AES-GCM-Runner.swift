@@ -103,12 +103,7 @@ class AESGCMTests: XCTestCase {
         XCTAssertEqual(Array(nonceFromContiguous), testNonceBytes)
         XCTAssertEqual(Array(nonceFromDiscontiguous), testNonceBytes)
 
-        XCTAssertThrowsError(try AES.GCM.Nonce(data: DispatchData.empty)) { error in
-            guard case .some(.incorrectParameterSize) = error as? CryptoKitError else {
-                XCTFail("Unexpected error")
-                return
-            }
-        }
+        XCTAssertThrowsError(try AES.GCM.Nonce(data: DispatchData.empty), error: CryptoKitError.incorrectParameterSize)
     }
 
     func testUserConstructedSealedBoxesCombined() throws {
@@ -123,12 +118,8 @@ class AESGCMTests: XCTestCase {
         XCTAssertEqual(contiguousSB.tag, discontiguousSB.tag)
 
         // Empty dispatchdatas don't work, they are too small.
-        XCTAssertThrowsError(try AES.GCM.SealedBox(combined: DispatchData.empty)) { error in
-            guard case .some(.incorrectParameterSize) = error as? CryptoKitError else {
-                XCTFail("Unexpected error: \(error)")
-                return
-            }
-        }
+        XCTAssertThrowsError(try AES.GCM.SealedBox(combined: DispatchData.empty),
+                             error: CryptoKitError.incorrectParameterSize);
     }
 
     func testUserConstructedSealedBoxesSplit() throws {
@@ -152,12 +143,8 @@ class AESGCMTests: XCTestCase {
         XCTAssertEqual(contiguousDiscontiguous.combined, discontiguousDiscontiguous.combined)
 
         // Empty dispatchdatas for the tag don't work, they are too small.
-        XCTAssertThrowsError(try AES.GCM.SealedBox(nonce: nonce, ciphertext: ciphertext, tag: DispatchData.empty)) { error in
-            guard case .some(.incorrectParameterSize) = error as? CryptoKitError else {
-                XCTFail("Unexpected error: \(error)")
-                return
-            }
-        }
+        XCTAssertThrowsError(try AES.GCM.SealedBox(nonce: nonce, ciphertext: ciphertext, tag: DispatchData.empty),
+                             error: CryptoKitError.incorrectParameterSize)
 
         // They work fine for the ciphertext though.
         let weirdBox = try orFail { try AES.GCM.SealedBox(nonce: nonce, ciphertext: DispatchData.empty, tag: tag) }

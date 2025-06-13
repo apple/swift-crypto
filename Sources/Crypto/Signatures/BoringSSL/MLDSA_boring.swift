@@ -12,26 +12,27 @@
 //
 //===----------------------------------------------------------------------===//
 
+#if CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
+@_exported import CryptoKit
+#else
+@_implementationOnly import CCryptoBoringSSL
+import Foundation
+
 // MARK: - Generated file, do NOT edit
 // any edits of this file WILL be overwritten and thus discarded
 // see section `gyb` in `README` for details.
 
 @_implementationOnly import CCryptoBoringSSL
-import Crypto
 import Foundation
-
-/// A module-lattice-based digital signature algorithm that provides security against quantum computing attacks.
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
-public enum MLDSA65 {}
 
 @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension MLDSA65 {
     /// A ML-DSA-65 private key.
-    public struct PrivateKey: Sendable {
+    struct InternalPrivateKey: Sendable {
         private var backing: Backing
 
         /// Initialize a ML-DSA-65 private key from a random seed.
-        public init() throws {
+        init() throws {
             self.backing = try Backing()
         }
 
@@ -40,17 +41,17 @@ extension MLDSA65 {
         /// - Parameter seedRepresentation: The seed to use to generate the private key.
         ///
         /// - Throws: `CryptoKitError.incorrectKeySize` if the seed is not 32 bytes long.
-        public init(seedRepresentation: some DataProtocol) throws {
+        init(seedRepresentation: some DataProtocol) throws {
             self.backing = try Backing(seedRepresentation: seedRepresentation)
         }
 
         /// The seed from which this private key was generated.
-        public var seedRepresentation: Data {
+        var seedRepresentation: Data {
             self.backing.seed
         }
 
         /// The public key associated with this private key.
-        public var publicKey: PublicKey {
+        var publicKey: InternalPublicKey {
             self.backing.publicKey
         }
 
@@ -59,7 +60,7 @@ extension MLDSA65 {
         /// - Parameter data: The message to sign.
         ///
         /// - Returns: The signature of the message.
-        public func signature<D: DataProtocol>(for data: D) throws -> Data {
+        func signature<D: DataProtocol>(for data: D) throws -> Data {
             let context: Data? = nil
             return try self.backing.signature(for: data, context: context)
         }
@@ -71,7 +72,7 @@ extension MLDSA65 {
         ///   - context: The context to use for the signature.
         ///
         /// - Returns: The signature of the message.
-        public func signature<D: DataProtocol, C: DataProtocol>(for data: D, context: C) throws -> Data {
+        func signature<D: DataProtocol, C: DataProtocol>(for data: D, context: C) throws -> Data {
             try self.backing.signature(for: data, context: context)
         }
 
@@ -94,7 +95,7 @@ extension MLDSA65 {
                 ) { seedPtr in
                     try withUnsafeTemporaryAllocation(
                         of: UInt8.self,
-                        capacity: MLDSA65.PublicKey.Backing.byteCount
+                        capacity: MLDSA65.InternalPublicKey.Backing.byteCount
                     ) { publicKeyPtr in
                         guard
                             CCryptoBoringSSL_MLDSA65_generate_key(
@@ -138,8 +139,8 @@ extension MLDSA65 {
             }
 
             /// The public key associated with this private key.
-            var publicKey: PublicKey {
-                PublicKey(privateKeyBacking: self)
+            var publicKey: InternalPublicKey {
+                InternalPublicKey(privateKeyBacking: self)
             }
 
             /// Generate a signature for the given data.
@@ -184,10 +185,10 @@ extension MLDSA65 {
 @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension MLDSA65 {
     /// A ML-DSA-65 public key.
-    public struct PublicKey: Sendable {
+    struct InternalPublicKey: Sendable {
         private var backing: Backing
 
-        fileprivate init(privateKeyBacking: PrivateKey.Backing) {
+        fileprivate init(privateKeyBacking: InternalPrivateKey.Backing) {
             self.backing = Backing(privateKeyBacking: privateKeyBacking)
         }
 
@@ -196,12 +197,12 @@ extension MLDSA65 {
         /// - Parameter rawRepresentation: The public key bytes.
         ///
         /// - Throws: `CryptoKitError.incorrectKeySize` if the raw representation is not the correct size.
-        public init(rawRepresentation: some DataProtocol) throws {
+        init(rawRepresentation: some DataProtocol) throws {
             self.backing = try Backing(rawRepresentation: rawRepresentation)
         }
 
         /// The raw binary representation of the public key.
-        public var rawRepresentation: Data {
+        var rawRepresentation: Data {
             self.backing.rawRepresentation
         }
 
@@ -212,7 +213,7 @@ extension MLDSA65 {
         ///   - data: The message to verify the signature against.
         ///
         /// - Returns: `true` if the signature is valid, `false` otherwise.
-        public func isValidSignature<S: DataProtocol, D: DataProtocol>(_ signature: S, for data: D) -> Bool {
+        func isValidSignature<S: DataProtocol, D: DataProtocol>(_ signature: S, for data: D) -> Bool {
             let context: Data? = nil
             return self.backing.isValidSignature(signature, for: data, context: context)
         }
@@ -225,7 +226,7 @@ extension MLDSA65 {
         ///   - context: The context to use for the signature verification.
         ///
         /// - Returns: `true` if the signature is valid, `false` otherwise.
-        public func isValidSignature<S: DataProtocol, D: DataProtocol, C: DataProtocol>(
+        func isValidSignature<S: DataProtocol, D: DataProtocol, C: DataProtocol>(
             _ signature: S,
             for data: D,
             context: C
@@ -239,7 +240,7 @@ extension MLDSA65 {
         fileprivate final class Backing {
             private var key: MLDSA65_public_key
 
-            init(privateKeyBacking: PrivateKey.Backing) {
+            init(privateKeyBacking: InternalPrivateKey.Backing) {
                 self.key = .init()
                 CCryptoBoringSSL_MLDSA65_public_from_private(&self.key, &privateKeyBacking.key)
             }
@@ -250,7 +251,7 @@ extension MLDSA65 {
             ///
             /// - Throws: `CryptoKitError.incorrectKeySize` if the raw representation is not the correct size.
             init(rawRepresentation: some DataProtocol) throws {
-                guard rawRepresentation.count == MLDSA65.PublicKey.Backing.byteCount else {
+                guard rawRepresentation.count == MLDSA65.InternalPublicKey.Backing.byteCount else {
                     throw CryptoKitError.incorrectKeySize
                 }
 
@@ -274,7 +275,7 @@ extension MLDSA65 {
             var rawRepresentation: Data {
                 var cbb = CBB()
                 // The following BoringSSL functions can only fail on allocation failure, which we define as impossible.
-                CCryptoBoringSSL_CBB_init(&cbb, MLDSA65.PublicKey.Backing.byteCount)
+                CCryptoBoringSSL_CBB_init(&cbb, MLDSA65.InternalPublicKey.Backing.byteCount)
                 defer { CCryptoBoringSSL_CBB_cleanup(&cbb) }
                 CCryptoBoringSSL_MLDSA65_marshal_public_key(&cbb, &self.key)
                 return Data(bytes: CCryptoBoringSSL_CBB_data(&cbb), count: CCryptoBoringSSL_CBB_len(&cbb))
@@ -326,18 +327,14 @@ extension MLDSA65 {
     private static let signatureByteCount = Int(MLDSA65_SIGNATURE_BYTES)
 }
 
-/// A module-lattice-based digital signature algorithm that provides security against quantum computing attacks.
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
-public enum MLDSA87 {}
-
 @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension MLDSA87 {
     /// A ML-DSA-87 private key.
-    public struct PrivateKey: Sendable {
+    struct InternalPrivateKey: Sendable {
         private var backing: Backing
 
         /// Initialize a ML-DSA-87 private key from a random seed.
-        public init() throws {
+        init() throws {
             self.backing = try Backing()
         }
 
@@ -346,17 +343,17 @@ extension MLDSA87 {
         /// - Parameter seedRepresentation: The seed to use to generate the private key.
         ///
         /// - Throws: `CryptoKitError.incorrectKeySize` if the seed is not 32 bytes long.
-        public init(seedRepresentation: some DataProtocol) throws {
+        init(seedRepresentation: some DataProtocol) throws {
             self.backing = try Backing(seedRepresentation: seedRepresentation)
         }
 
         /// The seed from which this private key was generated.
-        public var seedRepresentation: Data {
+        var seedRepresentation: Data {
             self.backing.seed
         }
 
         /// The public key associated with this private key.
-        public var publicKey: PublicKey {
+        var publicKey: InternalPublicKey {
             self.backing.publicKey
         }
 
@@ -365,7 +362,7 @@ extension MLDSA87 {
         /// - Parameter data: The message to sign.
         ///
         /// - Returns: The signature of the message.
-        public func signature<D: DataProtocol>(for data: D) throws -> Data {
+        func signature<D: DataProtocol>(for data: D) throws -> Data {
             let context: Data? = nil
             return try self.backing.signature(for: data, context: context)
         }
@@ -377,7 +374,7 @@ extension MLDSA87 {
         ///   - context: The context to use for the signature.
         ///
         /// - Returns: The signature of the message.
-        public func signature<D: DataProtocol, C: DataProtocol>(for data: D, context: C) throws -> Data {
+        func signature<D: DataProtocol, C: DataProtocol>(for data: D, context: C) throws -> Data {
             try self.backing.signature(for: data, context: context)
         }
 
@@ -400,7 +397,7 @@ extension MLDSA87 {
                 ) { seedPtr in
                     try withUnsafeTemporaryAllocation(
                         of: UInt8.self,
-                        capacity: MLDSA87.PublicKey.Backing.byteCount
+                        capacity: MLDSA87.InternalPublicKey.Backing.byteCount
                     ) { publicKeyPtr in
                         guard
                             CCryptoBoringSSL_MLDSA87_generate_key(
@@ -444,8 +441,8 @@ extension MLDSA87 {
             }
 
             /// The public key associated with this private key.
-            var publicKey: PublicKey {
-                PublicKey(privateKeyBacking: self)
+            var publicKey: InternalPublicKey {
+                InternalPublicKey(privateKeyBacking: self)
             }
 
             /// Generate a signature for the given data.
@@ -490,10 +487,10 @@ extension MLDSA87 {
 @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension MLDSA87 {
     /// A ML-DSA-87 public key.
-    public struct PublicKey: Sendable {
+    struct InternalPublicKey: Sendable {
         private var backing: Backing
 
-        fileprivate init(privateKeyBacking: PrivateKey.Backing) {
+        fileprivate init(privateKeyBacking: InternalPrivateKey.Backing) {
             self.backing = Backing(privateKeyBacking: privateKeyBacking)
         }
 
@@ -502,12 +499,12 @@ extension MLDSA87 {
         /// - Parameter rawRepresentation: The public key bytes.
         ///
         /// - Throws: `CryptoKitError.incorrectKeySize` if the raw representation is not the correct size.
-        public init(rawRepresentation: some DataProtocol) throws {
+        init(rawRepresentation: some DataProtocol) throws {
             self.backing = try Backing(rawRepresentation: rawRepresentation)
         }
 
         /// The raw binary representation of the public key.
-        public var rawRepresentation: Data {
+        var rawRepresentation: Data {
             self.backing.rawRepresentation
         }
 
@@ -518,7 +515,7 @@ extension MLDSA87 {
         ///   - data: The message to verify the signature against.
         ///
         /// - Returns: `true` if the signature is valid, `false` otherwise.
-        public func isValidSignature<S: DataProtocol, D: DataProtocol>(_ signature: S, for data: D) -> Bool {
+        func isValidSignature<S: DataProtocol, D: DataProtocol>(_ signature: S, for data: D) -> Bool {
             let context: Data? = nil
             return self.backing.isValidSignature(signature, for: data, context: context)
         }
@@ -531,7 +528,7 @@ extension MLDSA87 {
         ///   - context: The context to use for the signature verification.
         ///
         /// - Returns: `true` if the signature is valid, `false` otherwise.
-        public func isValidSignature<S: DataProtocol, D: DataProtocol, C: DataProtocol>(
+        func isValidSignature<S: DataProtocol, D: DataProtocol, C: DataProtocol>(
             _ signature: S,
             for data: D,
             context: C
@@ -545,7 +542,7 @@ extension MLDSA87 {
         fileprivate final class Backing {
             private var key: MLDSA87_public_key
 
-            init(privateKeyBacking: PrivateKey.Backing) {
+            init(privateKeyBacking: InternalPrivateKey.Backing) {
                 self.key = .init()
                 CCryptoBoringSSL_MLDSA87_public_from_private(&self.key, &privateKeyBacking.key)
             }
@@ -556,7 +553,7 @@ extension MLDSA87 {
             ///
             /// - Throws: `CryptoKitError.incorrectKeySize` if the raw representation is not the correct size.
             init(rawRepresentation: some DataProtocol) throws {
-                guard rawRepresentation.count == MLDSA87.PublicKey.Backing.byteCount else {
+                guard rawRepresentation.count == MLDSA87.InternalPublicKey.Backing.byteCount else {
                     throw CryptoKitError.incorrectKeySize
                 }
 
@@ -580,7 +577,7 @@ extension MLDSA87 {
             var rawRepresentation: Data {
                 var cbb = CBB()
                 // The following BoringSSL functions can only fail on allocation failure, which we define as impossible.
-                CCryptoBoringSSL_CBB_init(&cbb, MLDSA87.PublicKey.Backing.byteCount)
+                CCryptoBoringSSL_CBB_init(&cbb, MLDSA87.InternalPublicKey.Backing.byteCount)
                 defer { CCryptoBoringSSL_CBB_cleanup(&cbb) }
                 CCryptoBoringSSL_MLDSA87_marshal_public_key(&cbb, &self.key)
                 return Data(bytes: CCryptoBoringSSL_CBB_data(&cbb), count: CCryptoBoringSSL_CBB_len(&cbb))
@@ -632,7 +629,9 @@ extension MLDSA87 {
     private static let signatureByteCount = Int(MLDSA87_SIGNATURE_BYTES)
 }
 
-private enum MLDSA {
+enum MLDSA {
     /// The size of the seed in bytes.
     fileprivate static let seedByteCount = 32
 }
+
+#endif  // CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API

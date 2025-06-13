@@ -16,7 +16,7 @@
 #else
 /// A container for Advanced Encryption Standard (AES) ciphers.
 @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
-public enum AES {
+public enum AES: Sendable {
     static let blockSizeByteCount = 16
 }
 

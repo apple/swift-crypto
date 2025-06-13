@@ -226,26 +226,12 @@ class SignatureTests: XCTestCase {
     }
 
     func testProperSignatureSizes() throws {
-        XCTAssertThrowsError(try P256.Signing.ECDSASignature(rawRepresentation: Array("hello".utf8))) { error in
-            guard case .some(.incorrectParameterSize) = error as? CryptoKitError else {
-                XCTFail("Incorrect error: \(error)")
-                return
-            }
-        }
-
-        XCTAssertThrowsError(try P384.Signing.ECDSASignature(rawRepresentation: Array("hello".utf8))) { error in
-            guard case .some(.incorrectParameterSize) = error as? CryptoKitError else {
-                XCTFail("Incorrect error: \(error)")
-                return
-            }
-        }
-
-        XCTAssertThrowsError(try P521.Signing.ECDSASignature(rawRepresentation: Array("hello".utf8))) { error in
-            guard case .some(.incorrectParameterSize) = error as? CryptoKitError else {
-                XCTFail("Incorrect error: \(error)")
-                return
-            }
-        }
+        XCTAssertThrowsError(try P256.Signing.ECDSASignature(rawRepresentation: Array("hello".utf8)),
+                             error: CryptoKitError.incorrectParameterSize)
+        XCTAssertThrowsError(try P384.Signing.ECDSASignature(rawRepresentation: Array("hello".utf8)),
+                             error: CryptoKitError.incorrectParameterSize)
+        XCTAssertThrowsError(try P521.Signing.ECDSASignature(rawRepresentation: Array("hello".utf8)),
+                             error: CryptoKitError.incorrectParameterSize)
     }
 
     func testP256SigningDiscontiguousData() throws {

@@ -172,12 +172,7 @@ final class SecureBytesTests: XCTestCase {
                 throw CryptoKitError.incorrectKeySize
             }
         }
-        XCTAssertThrowsError(try testThrowingInitialization()) { error in
-            guard case .some(.incorrectKeySize) = error as? CryptoKitError else {
-                XCTFail("unexpected error: \(error)")
-                return
-            }
-        }
+        XCTAssertThrowsError(try testThrowingInitialization(), error: CryptoKitError.incorrectKeySize)
     }
 
     func testAppendingDataPerformsACoW() {

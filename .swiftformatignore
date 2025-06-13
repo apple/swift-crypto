@@ -25,6 +25,7 @@ Sources/Crypto/Digests/Digest.swift
 Sources/Crypto/Digests/Digests.swift
 Sources/Crypto/Digests/HashFunctions.swift
 Sources/Crypto/Digests/HashFunctions_SHA2.swift
+Sources/Crypto/Digests/HashFunctions_SHA3.swift
 Sources/Crypto/HPKE/Ciphersuite/HPKE-AEAD.swift
 Sources/Crypto/HPKE/Ciphersuite/HPKE-Ciphersuite.swift
 Sources/Crypto/HPKE/Ciphersuite/HPKE-KDF.swift
@@ -43,8 +44,12 @@ Sources/Crypto/HPKE/Modes/HPKE-Modes.swift
 Sources/Crypto/Insecure/Insecure.swift
 Sources/Crypto/Insecure/Insecure_HashFunctions.swift
 Sources/Crypto/KEM/KEM.swift
+Sources/Crypto/KEM/KEM-Errors.swift
+Sources/Crypto/KEM/MLKEM.swift
+Sources/Crypto/KEM/XWing.swift
 Sources/Crypto/Key Agreement/DH.swift
 Sources/Crypto/Key Agreement/ECDH.swift
+Sources/Crypto/Key Derivation/ANSIx963.swift
 Sources/Crypto/Key Derivation/HKDF.swift
 Sources/Crypto/Key Wrapping/AESWrap.swift
 Sources/Crypto/Keys/EC/Curve25519.swift
@@ -58,6 +63,7 @@ Sources/Crypto/Message Authentication Codes/MessageAuthenticationCode.swift
 Sources/Crypto/PRF/AES.swift
 Sources/Crypto/Signatures/ECDSA.swift
 Sources/Crypto/Signatures/Ed25519.swift
+Sources/Crypto/Signatures/MLDSA.swift
 Sources/Crypto/Signatures/Signature.swift
 Sources/Crypto/Util/PrettyBytes.swift
 Sources/Crypto/Util/SafeCompare.swift
@@ -116,6 +122,9 @@ Tests/CryptoTests/Encodings/DERTests.swift
 Tests/CryptoTests/Encodings/ECKeyEncodingsTests.swift
 Tests/CryptoTests/HPKE/HPKETests-TestVectors.swift
 Tests/CryptoTests/HPKE/HPKETests.swift
+Tests/CryptoTests/KEM/MLKEMKeyGenTests.swift
+Tests/CryptoTests/KEM/MLKEMTests.swift
+Tests/CryptoTests/KEM/XWingTests.swift
 Tests/CryptoTests/Key Derivation/ECprivateKeysFromSeeds.swift
 Tests/CryptoTests/Key Derivation/HKDFTests.swift
 Tests/CryptoTests/Key Derivation/SharedSecretTests.swift
@@ -126,6 +135,8 @@ Tests/CryptoTests/SecureBytes/SecureBytesTests.swift
 Tests/CryptoTests/Signatures/ECDSA/ECDSASignatureTests.swift
 Tests/CryptoTests/Signatures/ECDSA/RawECDSASignaturesTests.swift
 Tests/CryptoTests/Signatures/EdDSA/Ed25519-Runner.swift
+Tests/CryptoTests/Signatures/MLDSA/MLDSAKeyGenTests.swift
+Tests/CryptoTests/Signatures/MLDSA/MLDSATests.swift
 Tests/CryptoTests/Utils/PrettyBytes.swift
 Tests/CryptoTests/Utils/RFCVector.swift
 Tests/CryptoTests/Utils/SplitData.swift

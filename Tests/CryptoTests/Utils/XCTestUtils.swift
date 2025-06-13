@@ -12,6 +12,7 @@
 //
 //===----------------------------------------------------------------------===//
 import XCTest
+import Crypto
 
 // Xcode 11.4 catches errors thrown during tests and reports them on the
 // correct line. But Linux and older Xcodes do not, so we need to use this
@@ -52,5 +53,16 @@ extension XCTestCase {
 
         return wrapped
     }
+}
 
+func XCTAssertThrowsError<T, E: Error & Equatable>(
+    _ expression: @autoclosure () throws -> T,
+    error: E,
+    _ message: @autoclosure () -> String = "",
+    file: StaticString = #file,
+    line: UInt = #line)
+{
+    XCTAssertThrowsError(try expression(), message(), file: file, line: line) { foundError in
+        XCTAssertEqual(foundError as? E, error, message(), file: file, line: line)
+    }
 }

@@ -14,7 +14,12 @@
 #if CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
 @_exported import CryptoKit
 #else
+
+#if CRYPTOKIT_NO_ACCESS_TO_FOUNDATION
+import SwiftSystem
+#else
 import Foundation
+#endif
 
 @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension ASN1 {
@@ -102,7 +107,7 @@ extension ASN1 {
         private var _seconds: Int
         private var _fractionalSeconds: Double
 
-        init(year: Int, month: Int, day: Int, hours: Int, minutes: Int, seconds: Int, fractionalSeconds: Double) throws {
+        init(year: Int, month: Int, day: Int, hours: Int, minutes: Int, seconds: Int, fractionalSeconds: Double) throws(CryptoKitMetaError) {
             self._year = year
             self._month = month
             self._day = day
@@ -114,9 +119,9 @@ extension ASN1 {
             try self.validate()
         }
 
-        init(asn1Encoded node: ASN1.ASN1Node, withIdentifier identifier: ASN1.ASN1Identifier) throws {
+        init(asn1Encoded node: ASN1.ASN1Node, withIdentifier identifier: ASN1.ASN1Identifier) throws(CryptoKitMetaError) {
             guard node.identifier == identifier else {
-                throw CryptoKitASN1Error.unexpectedFieldType
+                throw error(CryptoKitASN1Error.unexpectedFieldType)
             }
 
             guard case .primitive(let content) = node.content else {
@@ -126,33 +131,33 @@ extension ASN1 {
             self = try .parseDateBytes(content)
         }
 
-        func serialize(into coder: inout ASN1.Serializer, withIdentifier identifier: ASN1.ASN1Identifier) throws {
-            coder.appendPrimitiveNode(identifier: identifier) { bytes in
+        func serialize(into coder: inout ASN1.Serializer, withIdentifier identifier: ASN1.ASN1Identifier) throws(CryptoKitMetaError) {
+            try coder.appendPrimitiveNode(identifier: identifier) { bytes in
                 bytes.append(self)
             }
         }
 
-        private func validate() throws {
+        private func validate() throws(CryptoKitMetaError) {
             // Validate that the structure is well-formed.
             guard self._year >= 0 && self._year <= 9999 else {
-                throw CryptoKitASN1Error.invalidASN1Object
+                throw error(CryptoKitASN1Error.invalidASN1Object)
             }
 
             // This also validates the month.
             guard let daysInMonth = ASN1.GeneralizedTime.daysInMonth(self._month, ofYear: self._year) else {
-                throw CryptoKitASN1Error.invalidASN1Object
+                throw error(CryptoKitASN1Error.invalidASN1Object)
             }
 
             guard self._day >= 1 && self._day <= daysInMonth else {
-                throw CryptoKitASN1Error.invalidASN1Object
+                throw error(CryptoKitASN1Error.invalidASN1Object)
             }
 
             guard self._hours >= 0 && self._hours < 24 else {
-                throw CryptoKitASN1Error.invalidASN1Object
+                throw error(CryptoKitASN1Error.invalidASN1Object)
             }
 
             guard self._minutes >= 0 && self._minutes < 60 else {
-                throw CryptoKitASN1Error.invalidASN1Object
+                throw error(CryptoKitASN1Error.invalidASN1Object)
             }
 
             // We allow leap seconds here, but don't validate it.
@@ -160,12 +165,12 @@ extension ASN1 {
             // comparison here. We should consider whether this needs to be transformable
             // to `Date` or similar.
             guard self._seconds >= 0 && self._seconds <= 61 else {
-                throw CryptoKitASN1Error.invalidASN1Object
+                throw error(CryptoKitASN1Error.invalidASN1Object)
             }
 
             // Fractional seconds may not be negative and may not be 1 or more.
             guard self._fractionalSeconds >= 0 && self._fractionalSeconds < 1 else {
-                throw CryptoKitASN1Error.invalidASN1Object
+                throw error(CryptoKitASN1Error.invalidASN1Object)
             }
         }
     }
@@ -173,7 +178,7 @@ extension ASN1 {
 
 @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension ASN1.GeneralizedTime {
-    fileprivate static func parseDateBytes(_ bytes: ArraySlice<UInt8>) throws -> ASN1.GeneralizedTime {
+    fileprivate static func parseDateBytes(_ bytes: ArraySlice<UInt8>) throws(CryptoKitMetaError) -> ASN1.GeneralizedTime {
         var bytes = bytes
 
         // First, there must always be a calendar date. No separators, 4
@@ -181,7 +186,7 @@ extension ASN1.GeneralizedTime {
         guard let rawYear = bytes.readFourDigitDecimalInteger(),
               let rawMonth = bytes.readTwoDigitDecimalInteger(),
               let rawDay = bytes.readTwoDigitDecimalInteger() else {
-            throw CryptoKitASN1Error.invalidASN1Object
+            throw error(CryptoKitASN1Error.invalidASN1Object)
         }
 
         // Next there must be a _time_. Per DER rules, this time must always go
@@ -190,23 +195,23 @@ extension ASN1.GeneralizedTime {
         guard let rawHour = bytes.readTwoDigitDecimalInteger(),
               let rawMinutes = bytes.readTwoDigitDecimalInteger(),
               let rawSeconds = bytes.readTwoDigitDecimalInteger() else {
-            throw CryptoKitASN1Error.invalidASN1Object
+            throw error(CryptoKitASN1Error.invalidASN1Object)
         }
 
         // There may be some fractional seconds.
         var fractionalSeconds: Double = 0
-        if bytes.first == UInt8(ascii: ".") {
+        if bytes.first == UInt8(46 /* "." */) {
             fractionalSeconds = try bytes.readFractionalSeconds()
         }
 
         // The next character _must_ be Z, or the encoding is invalid.
-        guard bytes.popFirst() == UInt8(ascii: "Z") else {
-            throw CryptoKitASN1Error.invalidASN1Object
+        guard bytes.popFirst() == UInt8(90 /* "Z" */) else {
+            throw error(CryptoKitASN1Error.invalidASN1Object)
         }
 
         // Great! There better not be anything left.
         guard bytes.count == 0 else {
-            throw CryptoKitASN1Error.invalidASN1Object
+            throw error(CryptoKitASN1Error.invalidASN1Object)
         }
 
         return try ASN1.GeneralizedTime(year: rawYear,
@@ -284,8 +289,8 @@ extension ArraySlice where Element == UInt8 {
     }
 
     /// This may only be called if there's a leading period: we precondition on this fact.
-    fileprivate mutating func readFractionalSeconds() throws -> Double {
-        precondition(self.popFirst() == UInt8(ascii: "."))
+    fileprivate mutating func readFractionalSeconds() throws(CryptoKitMetaError) -> Double {
+        precondition(self.popFirst() == UInt8(46 /* "." */))
 
         var numerator = 0
         var denominator = 1
@@ -304,7 +309,7 @@ extension ArraySlice where Element == UInt8 {
 
             // If the numerator overflows, we don't support the result.
             if multiplyOverflow || addingOverflow {
-                throw CryptoKitASN1Error.invalidASN1Object
+                throw error(CryptoKitASN1Error.invalidASN1Object)
             }
 
             numerator = newNumeratorWithAdded
@@ -313,7 +318,7 @@ extension ArraySlice where Element == UInt8 {
         // Ok, we're either at the end or the next character is a Z. One final check: there may not have
         // been any trailing zeros here. This means the number may not be 0 mod 10.
         if numerator % 10 == 0 {
-            throw CryptoKitASN1Error.invalidASN1Object
+            throw error(CryptoKitASN1Error.invalidASN1Object)
         }
 
         return Double(numerator) / Double(denominator)
@@ -332,18 +337,40 @@ extension Array where Element == UInt8 {
 
         // Ok, tricky moment here. Is the fractional part non-zero? If it is, we need to write it out as well.
         if generalizedTime.fractionalSeconds != 0 {
-            let stringified = String(generalizedTime.fractionalSeconds)
-            assert(stringified.starts(with: "0."))
-
-            self.append(contentsOf: stringified.utf8.dropFirst(1))
-            // Remove any trailing zeros from self, they are forbidden.
-            while self.last == 0 {
-                self = self.dropLast()
-            }
+            self._appendFractionalPart(generalizedTime.fractionalSeconds)
         }
 
-        self.append(UInt8(ascii: "Z"))
+        self.append(UInt8(90 /* "Z" */))
     }
+
+#if hasFeature(Embedded)
+    private mutating func _appendFractionalPart(_ d: Double) {
+        precondition(d > 0 && d < 1)
+        let digitZero: UInt8 = 48 /* "0" */
+        var d = d - d.rounded(.down)
+        for _ in 0..<16 {
+            d *= 10
+            let x = d.rounded(.down)
+            self.append(UInt8(x) + digitZero)
+            d = d - x
+        }
+        while self.count > 1 && self.last == UInt8(48 /* "0" */) {
+            self = self.dropLast()
+        }
+    }
+#else
+    private mutating func _appendFractionalPart(_ d: Double) {
+        precondition(d > 0 && d < 1)
+        let stringified = String(d)
+        assert(stringified.starts(with: "0."))
+
+        self.append(contentsOf: stringified.utf8.dropFirst(1))
+        // Remove any trailing zeros from self, they are forbidden.
+        while self.last == UInt8(48 /* "0" */) {
+            self = self.dropLast()
+        }
+    }
+#endif
 
     fileprivate mutating func appendFourDigitDecimal(_ number: Int) {
         assert(number >= 0 && number <= 9999)
@@ -351,7 +378,7 @@ extension Array where Element == UInt8 {
         // Each digit can be isolated by dividing by the place and then taking the result modulo 10.
         // This is annoyingly division heavy. There may be a better algorithm floating around.
         // Unchecked math is fine, there cannot be an overflow here.
-        let asciiZero = UInt8(ascii: "0")
+        let asciiZero = UInt8(48 /* "0" */)
         self.append(UInt8(truncatingIfNeeded: (number / 1000) % 10) &+ asciiZero)
         self.append(UInt8(truncatingIfNeeded: (number / 100) % 10) &+ asciiZero)
         self.append(UInt8(truncatingIfNeeded: (number / 10) % 10) &+ asciiZero)
@@ -364,7 +391,7 @@ extension Array where Element == UInt8 {
         // Each digit can be isolated by dividing by the place and then taking the result modulo 10.
         // This is annoyingly division heavy. There may be a better algorithm floating around.
         // Unchecked math is fine, there cannot be an overflow here.
-        let asciiZero = UInt8(ascii: "0")
+        let asciiZero = UInt8(48 /* "0" */)
         self.append(UInt8(truncatingIfNeeded: (number / 10) % 10) &+ asciiZero)
         self.append(UInt8(truncatingIfNeeded: number % 10) &+ asciiZero)
     }
@@ -373,7 +400,7 @@ extension Array where Element == UInt8 {
 @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension Int {
     fileprivate init?(fromDecimalASCII ascii: UInt8) {
-        let asciiZero = UInt8(ascii: "0")
+        let asciiZero = UInt8(48 /* "0" */)
         let zeroToNine = 0...9
 
         // These are all coming from UInt8space, the subtraction cannot overflow.

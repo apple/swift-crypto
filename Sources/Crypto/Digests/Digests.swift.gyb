@@ -17,9 +17,15 @@
 // MARK: - Generated file, do NOT edit
 // any edits of this file WILL be overwritten and thus discarded
 // see section `gyb` in `README` for details.
+
 %{
-digests_and_length = [{"name": "SHA256", "count": 32},{"name": "SHA384","count":48},{"name":"SHA512", "count": 64},{"name":"SHA1", "count":20, "prefix":"Insecure "},{"name":"MD5", "count":16, "prefix":"Insecure "}]
+digests_and_length = [{"name": "SHA256", "count": 32},{"name": "SHA384","count":48},{"name":"SHA512", "count": 64}]
+if "NO_INSECURE_DIGEST" in globals():
+    pass
+else:
+    digests_and_length.extend([{"name":"SHA1", "count":20, "prefix":"Insecure "},{"name":"MD5", "count":16, "prefix":"Insecure "}])
 }%
+
 % for HF in digests_and_length:
 %{
     name = HF["name"]
@@ -73,6 +79,7 @@ public struct ${name}Digest: DigestPrivate {
     /// and returns the digest.
     ///
     /// - Returns: The digest, as returned from the body closure.
+#if !hasFeature(Embedded)
     public func withUnsafeBytes<R>(_ body: (UnsafeRawBufferPointer) throws -> R) rethrows -> R {
         return try Swift.withUnsafeBytes(of: bytes) {
             let boundsCheckedPtr = UnsafeRawBufferPointer(start: $0.baseAddress,
@@ -80,6 +87,15 @@ public struct ${name}Digest: DigestPrivate {
             return try body(boundsCheckedPtr)
         }
     }
+#else
+    public func withUnsafeBytes<R, E: Error>(_ body: (UnsafeRawBufferPointer) throws(E) -> R) throws(E) -> R {
+        return try Swift.withUnsafeBytes(of: bytes) { ptr throws(E) -> R in
+            let boundsCheckedPtr = UnsafeRawBufferPointer(start: ptr.baseAddress,
+                                                          count: Self.byteCount)
+            return try body(boundsCheckedPtr)
+        }
+    }
+#endif
 
     private func toArray() -> ArraySlice<UInt8> {
         var array = [UInt8]()
@@ -87,14 +103,16 @@ public struct ${name}Digest: DigestPrivate {
         % for index in range(wordsCount-1):
         array.appendByte(bytes.${index+1})
         % end
-        return array.prefix(upTo: ${name}Digest.byteCount)
+        return array.prefix(${name}Digest.byteCount)
     }
-    
+
+#if !hasFeature(Embedded)
     /// A human-readable description of the digest.
     public var description: String {
         return "\("${name}") digest: \(toArray().hexString)"
     }
-    
+#endif
+
     /// Hashes the essential components of the digest by feeding them into the
     /// given hash function.
     ///
@@ -113,4 +131,107 @@ public struct ${name}Digest: DigestPrivate {
 }
 ${protocol_suffix}
 % end
+
+
+#if !CRYPTOKIT_IN_SEP
+%{
+digests_and_length = [
+    {"name": "SHA3_256", "count": 32},
+    {"name": "SHA3_384", "count": 48},
+    {"name": "SHA3_512", "count": 64}
+]
+}%
+
+% for HF in digests_and_length:
+%{
+    name = HF["name"]
+    byteCount = HF["count"]
+    wordsCount = (byteCount*8)//64 + (0 if ((byteCount*8)%64) == 0 else 1)
+}%
+%{
+    parent = name
+    abstract = "The output of a Secure Hashing Algorithm 3 (SHA-2) hash with a " + name[-3:] + "-bit digest."
+}%
+// MARK: - ${name}Digest + DigestPrivate
+/// ${abstract}
+public struct ${name}Digest: DigestPrivate {
+    let bytes: (${(wordsCount-1)*"UInt64, "+"UInt64"})
+
+    init?(bufferPointer: UnsafeRawBufferPointer) {
+        guard bufferPointer.count == ${byteCount} else {
+            return nil
+        }
+
+        var bytes = (${(wordsCount-1)*"UInt64(0), "+"UInt64(0)"})
+        withUnsafeMutableBytes(of: &bytes) { targetPtr in
+            targetPtr.copyMemory(from: bufferPointer)
+        }
+        self.bytes = bytes
+    }
+
+    /// The number of bytes in the digest.
+    public static var byteCount: Int {
+        return ${byteCount}
+    }
+
+    /// Invokes the given closure with a buffer pointer covering the raw bytes of
+    /// the digest.
+    ///
+    /// - Parameters:
+    ///   - body: A closure that takes a raw buffer pointer to the bytes of the digest
+    /// and returns the digest.
+    ///
+    /// - Returns: The digest, as returned from the body closure.
+#if !hasFeature(Embedded)
+    public func withUnsafeBytes<R>(_ body: (UnsafeRawBufferPointer) throws -> R) rethrows -> R {
+        return try Swift.withUnsafeBytes(of: bytes) {
+            let boundsCheckedPtr = UnsafeRawBufferPointer(start: $0.baseAddress,
+                                                          count: Self.byteCount)
+            return try body(boundsCheckedPtr)
+        }
+    }
+#else
+    public func withUnsafeBytes<R, E: Error>(_ body: (UnsafeRawBufferPointer) throws(E) -> R) throws(E) -> R {
+        return try Swift.withUnsafeBytes(of: bytes) { ptr throws(E) -> R in
+            let boundsCheckedPtr = UnsafeRawBufferPointer(start: ptr.baseAddress,
+                                                          count: Self.byteCount)
+            return try body(boundsCheckedPtr)
+        }
+    }
+#endif
+
+    private func toArray() -> ArraySlice<UInt8> {
+        var array = [UInt8]()
+        array.appendByte(bytes.0)
+        % for index in range(wordsCount-1):
+        array.appendByte(bytes.${index+1})
+        % end
+        return array.prefix(upTo: ${name}Digest.byteCount)
+    }
+
+#if !hasFeature(Embedded)
+    /// A human-readable description of the digest.
+    public var description: String {
+        return "\("${name}") digest: \(toArray().hexString)"
+    }
+#endif
+
+    /// Hashes the essential components of the digest by feeding them into the
+    /// given hash function.
+    ///
+    /// This method is part of the digest’s conformance to Swift standard library’s
+    /// <doc://com.apple.documentation/documentation/swift/hashable> protocol, making
+    /// it possible to compare digests. Don’t confuse that hashing with the
+    /// cryptographically secure hashing that you use to create the digest in the
+    /// first place by, for example, calling ``${parent}/hash(data:)``.
+    ///
+    /// - Parameters:
+    ///   - hasher: The hash function to use when combining the components of
+    /// the digest.
+    public func hash(into hasher: inout Hasher) {
+        self.withUnsafeBytes { hasher.combine(bytes: $0) }
+    }
+}
+% end
+#endif // !CRYPTOKIT_IN_SEP
 #endif // Linux or !SwiftPM

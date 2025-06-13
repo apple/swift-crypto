@@ -14,7 +14,13 @@
 #if CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
 @_exported import CryptoKit
 #else
+
+#if CRYPTOKIT_NO_ACCESS_TO_FOUNDATION
+import SwiftSystem
+#else
 import Foundation
+#endif
+
 
 @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 private let suiteIDLabel = Data("KEM".utf8)
@@ -27,7 +33,7 @@ extension HPKE {
                                      pkRm: Data, pkSm: Data? = nil, kem: HPKE.KEM, kdf: HPKE.KDF) -> SymmetricKey {
             var suiteID = suiteIDLabel
             suiteID.append(kem.identifier)
-            #if !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
+            #if  !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
             return CryptoKit.ExtractAndExpand(zz: dh, kemContext: kemContext(enc: enc, pkRm: pkRm, pkSm: pkSm),
                                                      suiteID: suiteID, kem: kem, kdf: kdf)
             #else
@@ -40,7 +46,7 @@ extension HPKE {
             var context = Data()
             context.append(enc)
             context.append(pkRm)
-            if let pkSm = pkSm { context.append(pkSm) }
+            if let pkSm { context.append(pkSm) }
             return context
         }
     }

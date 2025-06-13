@@ -17,16 +17,18 @@ import XCTest
 
 @testable import _CryptoExtras
 
-@available(macOS 14.0, *)
 final class MLKEMTests: XCTestCase {
     func testMLKEM768() throws {
+        guard #available(iOS 19.0, macOS 16.0, watchOS 12.0, tvOS 19.0, visionOS 3.0, *) else {
+            throw XCTSkip("MLDSA is only available on iOS 19.0+, macOS 16.0+, watchOS 12.0+, tvOS 19.0+, visionOS 3.0+")
+        }
         // Generate a key pair
-        let privateKey = MLKEM768.PrivateKey()
+        let privateKey = try MLKEM768.PrivateKey()
         let publicKey = privateKey.publicKey
 
         // Serialize and deserialize the private key
         let seed = privateKey.seedRepresentation
-        let privateKey2 = try MLKEM768.PrivateKey(seedRepresentation: seed)
+        let privateKey2 = try MLKEM768.PrivateKey(seedRepresentation: seed, publicKey: nil)
         XCTAssertEqual(privateKey.seedRepresentation, privateKey2.seedRepresentation)
 
         // Serialize and deserialize the public key
@@ -49,12 +51,12 @@ final class MLKEMTests: XCTestCase {
         modifiedSeed[0] = 0xff
         modifiedSeed[1] = 0xff
         XCTAssertNotEqual(
-            try MLKEM768.PrivateKey(seedRepresentation: modifiedSeed).publicKey.rawRepresentation,
+            try MLKEM768.PrivateKey(seedRepresentation: modifiedSeed, publicKey: nil).publicKey.rawRepresentation,
             publicKeyBytes
         )
 
         // Encapsulation and decapsulation
-        let encapsulationResult = publicKey.encapsulate()
+        let encapsulationResult = try publicKey.encapsulate()
         let sharedSecret1 = encapsulationResult.sharedSecret
         let ciphertext = encapsulationResult.encapsulated
 
@@ -63,13 +65,16 @@ final class MLKEMTests: XCTestCase {
     }
 
     func testMLKEM1024() throws {
+        guard #available(iOS 19.0, macOS 16.0, watchOS 12.0, tvOS 19.0, visionOS 3.0, *) else {
+            throw XCTSkip("MLDSA is only available on iOS 19.0+, macOS 16.0+, watchOS 12.0+, tvOS 19.0+, visionOS 3.0+")
+        }
         // Generate a key pair
-        let privateKey = MLKEM1024.PrivateKey()
+        let privateKey = try MLKEM1024.PrivateKey()
         let publicKey = privateKey.publicKey
 
         // Serialize and deserialize the private key
         let seed = privateKey.seedRepresentation
-        let privateKey2 = try MLKEM1024.PrivateKey(seedRepresentation: seed)
+        let privateKey2 = try MLKEM1024.PrivateKey(seedRepresentation: seed, publicKey: nil)
         XCTAssertEqual(privateKey.seedRepresentation, privateKey2.seedRepresentation)
 
         // Serialize and deserialize the public key
@@ -92,12 +97,12 @@ final class MLKEMTests: XCTestCase {
         modifiedSeed[0] = 0xff
         modifiedSeed[1] = 0xff
         XCTAssertNotEqual(
-            try MLKEM1024.PrivateKey(seedRepresentation: modifiedSeed).publicKey.rawRepresentation,
+            try MLKEM1024.PrivateKey(seedRepresentation: modifiedSeed, publicKey: nil).publicKey.rawRepresentation,
             publicKeyBytes
         )
 
         // Encapsulation and decapsulation
-        let encapsulationResult = publicKey.encapsulate()
+        let encapsulationResult = try publicKey.encapsulate()
         let sharedSecret1 = encapsulationResult.sharedSecret
         let ciphertext = encapsulationResult.encapsulated
 

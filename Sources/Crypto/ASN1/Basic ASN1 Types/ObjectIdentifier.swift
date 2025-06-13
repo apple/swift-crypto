@@ -14,7 +14,12 @@
 #if CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
 @_exported import CryptoKit
 #else
+
+#if CRYPTOKIT_NO_ACCESS_TO_FOUNDATION
+import SwiftSystem
+#else
 import Foundation
+#endif
 
 @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension ASN1 {
@@ -31,9 +36,9 @@ extension ASN1 {
 
         private var oidComponents: [UInt]
 
-        init(asn1Encoded node: ASN1.ASN1Node, withIdentifier identifier: ASN1.ASN1Identifier) throws {
+        init(asn1Encoded node: ASN1.ASN1Node, withIdentifier identifier: ASN1.ASN1Identifier) throws(CryptoKitMetaError) {
             guard node.identifier == identifier else {
-                throw CryptoKitASN1Error.unexpectedFieldType
+                throw error(CryptoKitASN1Error.unexpectedFieldType)
             }
 
             guard case .primitive(var content) = node.content else {
@@ -67,7 +72,7 @@ extension ASN1 {
             }
 
             guard subcomponents.count >= 2 else {
-                throw CryptoKitASN1Error.invalidObjectIdentifier
+                throw error(CryptoKitASN1Error.invalidObjectIdentifier)
             }
 
             // Now we need to expand the subcomponents out. This means we need to undo the step above. The first component will be in the range 0..<40
@@ -92,8 +97,8 @@ extension ASN1 {
             self.oidComponents = oidComponents
         }
 
-        func serialize(into coder: inout ASN1.Serializer, withIdentifier identifier: ASN1.ASN1Identifier) throws {
-            coder.appendPrimitiveNode(identifier: identifier) { bytes in
+        func serialize(into coder: inout ASN1.Serializer, withIdentifier identifier: ASN1.ASN1Identifier) throws(CryptoKitMetaError) {
+            try coder.appendPrimitiveNode(identifier: identifier) { bytes in
                 var components = self.oidComponents[...]
                 guard let firstComponent = components.popFirst(), let secondComponent = components.popFirst() else {
                     preconditionFailure("Invalid number of OID components: must be at least two!")
@@ -191,11 +196,11 @@ extension ASN1.ASN1ObjectIdentifier {
 
 @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension ArraySlice where Element == UInt8 {
-    mutating fileprivate func readOIDSubidentifier() throws -> UInt {
+    mutating fileprivate func readOIDSubidentifier() throws(CryptoKitMetaError) -> UInt {
         // In principle OID subidentifiers can be too large to fit into a UInt. We are choosing to not care about that
         // because for us it shouldn't matter.
         guard let subidentifierEndIndex = self.firstIndex(where: { $0 & 0x80 == 0x00 }) else {
-            throw CryptoKitASN1Error.invalidASN1Object
+            throw error(CryptoKitASN1Error.invalidASN1Object)
         }
 
         let oidSlice = self[self.startIndex ... subidentifierEndIndex]
@@ -208,10 +213,10 @@ extension ArraySlice where Element == UInt8 {
 
 @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension UInt {
-    fileprivate init<Bytes: Collection>(sevenBitBigEndianBytes bytes: Bytes) throws where Bytes.Element == UInt8 {
+    fileprivate init<Bytes: Collection>(sevenBitBigEndianBytes bytes: Bytes) throws(CryptoKitMetaError) where Bytes.Element == UInt8 {
         // We need to know how many bytes we _need_ to store this "int".
         guard ((bytes.count * 7) + 7) / 8 <= MemoryLayout<UInt>.size else {
-            throw CryptoKitASN1Error.invalidASN1Object
+            throw error(CryptoKitASN1Error.invalidASN1Object)
         }
 
         self = 0
