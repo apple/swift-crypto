@@ -179,7 +179,7 @@ extension _RSA.Signing {
             }
         }
         
-        /// Construct an RSA public key from a PEM representation.
+        /// Construct an RSA private key from a PEM representation.
         ///
         /// This constructor supports key sizes of 1024 bits or more. Users should validate that key sizes are appropriate
         /// for their use-case.
@@ -204,7 +204,7 @@ extension _RSA.Signing {
             }
         }
         
-        /// Construct an RSA public key from a DER representation.
+        /// Construct an RSA private key from a DER representation.
         ///
         /// This constructor supports key sizes of 1024 bits or more. Users should validate that key sizes are appropriate
         /// for their use-case.
