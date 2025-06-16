@@ -12,6 +12,8 @@
 //
 //===----------------------------------------------------------------------===//
 
+#if !canImport(Darwin) || canImport(CryptoKit, _version: 324.0.4)
+
 import XCTest
 
 @testable import _CryptoExtras
@@ -352,3 +354,5 @@ extension MLDSA65.PublicKey {
 extension MLDSA87.PublicKey {
     static let byteCount = 2592
 }
+
+#endif // SDK has MLDSA

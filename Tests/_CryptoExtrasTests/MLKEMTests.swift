@@ -11,6 +11,7 @@
 // SPDX-License-Identifier: Apache-2.0
 //
 //===----------------------------------------------------------------------===//
+#if !canImport(Darwin) || canImport(CryptoKit, _version: 324.0.4)
 
 import Crypto
 import XCTest
@@ -110,3 +111,5 @@ final class MLKEMTests: XCTestCase {
         XCTAssertEqual(sharedSecret1, sharedSecret2)
     }
 }
+
+#endif // SDK has MLKEM
