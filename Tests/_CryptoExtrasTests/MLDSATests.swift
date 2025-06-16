@@ -12,22 +12,28 @@
 //
 //===----------------------------------------------------------------------===//
 
+#if !canImport(Darwin) || canImport(CryptoKit, _version: 324.0.4)
+
 import XCTest
 
 @testable import _CryptoExtras
 
 final class MLDSATests: XCTestCase {
     func testMLDSA65Signing() throws {
+        guard #available(iOS 19.0, macOS 16.0, watchOS 12.0, tvOS 19.0, visionOS 3.0, *) else {
+            throw XCTSkip("MLDSA is only available on iOS 19.0+, macOS 16.0+, watchOS 12.0+, tvOS 19.0+, visionOS 3.0+")
+        }
         try testMLDSA65Signing(MLDSA65.PrivateKey())
         let seed: [UInt8] = (0..<32).map { _ in UInt8.random(in: 0...255) }
-        try testMLDSA65Signing(MLDSA65.PrivateKey(seedRepresentation: seed))
+        try testMLDSA65Signing(MLDSA65.PrivateKey(seedRepresentation: seed, publicKey: nil))
     }
 
+    @available(iOS 19.0, macOS 16.0, watchOS 12.0, tvOS 19.0, visionOS 3.0, *)
     private func testMLDSA65Signing(_ key: MLDSA65.PrivateKey) throws {
         let test = "Hello, world!".data(using: .utf8)!
         try XCTAssertTrue(
             key.publicKey.isValidSignature(
-                key.signature(for: test),
+                signature: key.signature(for: test),
                 for: test
             )
         )
@@ -35,7 +41,7 @@ final class MLDSATests: XCTestCase {
         let context = "ctx".data(using: .utf8)!
         try XCTAssertTrue(
             key.publicKey.isValidSignature(
-                key.signature(for: test, context: context),
+                signature: key.signature(for: test, context: context),
                 for: test,
                 context: context
             )
@@ -43,16 +49,20 @@ final class MLDSATests: XCTestCase {
     }
 
     func testMLDSA87Signing() throws {
+        guard #available(iOS 19.0, macOS 16.0, watchOS 12.0, tvOS 19.0, visionOS 3.0, *) else {
+            throw XCTSkip("MLDSA is only available on iOS 19.0+, macOS 16.0+, watchOS 12.0+, tvOS 19.0+, visionOS 3.0+")
+        }
         try testMLDSA87Signing(MLDSA87.PrivateKey())
         let seed: [UInt8] = (0..<32).map { _ in UInt8.random(in: 0...255) }
-        try testMLDSA87Signing(MLDSA87.PrivateKey(seedRepresentation: seed))
+        try testMLDSA87Signing(MLDSA87.PrivateKey(seedRepresentation: seed, publicKey: nil))
     }
 
+    @available(iOS 19.0, macOS 16.0, watchOS 12.0, tvOS 19.0, visionOS 3.0, *)
     private func testMLDSA87Signing(_ key: MLDSA87.PrivateKey) throws {
         let test = "Hello, world!".data(using: .utf8)!
         try XCTAssertTrue(
             key.publicKey.isValidSignature(
-                key.signature(for: test),
+                signature: key.signature(for: test),
                 for: test
             )
         )
@@ -60,7 +70,7 @@ final class MLDSATests: XCTestCase {
         let context = "ctx".data(using: .utf8)!
         try XCTAssertTrue(
             key.publicKey.isValidSignature(
-                key.signature(for: test, context: context),
+                signature: key.signature(for: test, context: context),
                 for: test,
                 context: context
             )
@@ -68,26 +78,35 @@ final class MLDSATests: XCTestCase {
     }
 
     func testMLDSA65SeedRoundTripping() throws {
+        guard #available(iOS 19.0, macOS 16.0, watchOS 12.0, tvOS 19.0, visionOS 3.0, *) else {
+            throw XCTSkip("MLDSA is only available on iOS 19.0+, macOS 16.0+, watchOS 12.0+, tvOS 19.0+, visionOS 3.0+")
+        }
         let key = try MLDSA65.PrivateKey()
         let seed = key.seedRepresentation
-        let roundTripped = try MLDSA65.PrivateKey(seedRepresentation: seed)
+        let roundTripped = try MLDSA65.PrivateKey(seedRepresentation: seed, publicKey: nil)
         XCTAssertEqual(seed, roundTripped.seedRepresentation)
         XCTAssertEqual(key.publicKey.rawRepresentation, roundTripped.publicKey.rawRepresentation)
     }
 
     func testMLDSA87SeedRoundTripping() throws {
+        guard #available(iOS 19.0, macOS 16.0, watchOS 12.0, tvOS 19.0, visionOS 3.0, *) else {
+            throw XCTSkip("MLDSA is only available on iOS 19.0+, macOS 16.0+, watchOS 12.0+, tvOS 19.0+, visionOS 3.0+")
+        }
         let key = try MLDSA87.PrivateKey()
         let seed = key.seedRepresentation
-        let roundTripped = try MLDSA87.PrivateKey(seedRepresentation: seed)
+        let roundTripped = try MLDSA87.PrivateKey(seedRepresentation: seed, publicKey: nil)
         XCTAssertEqual(seed, roundTripped.seedRepresentation)
         XCTAssertEqual(key.publicKey.rawRepresentation, roundTripped.publicKey.rawRepresentation)
     }
 
     func testMLDSA65SignatureIsRandomized() throws {
+        guard #available(iOS 19.0, macOS 16.0, watchOS 12.0, tvOS 19.0, visionOS 3.0, *) else {
+            throw XCTSkip("MLDSA is only available on iOS 19.0+, macOS 16.0+, watchOS 12.0+, tvOS 19.0+, visionOS 3.0+")
+        }
         let message = "Hello, world!".data(using: .utf8)!
 
         let seed: [UInt8] = (0..<32).map { _ in UInt8.random(in: 0...255) }
-        let key = try MLDSA65.PrivateKey(seedRepresentation: seed)
+        let key = try MLDSA65.PrivateKey(seedRepresentation: seed, publicKey: nil)
         let publicKey = key.publicKey
 
         let signature1 = try key.signature(for: message)
@@ -96,15 +115,18 @@ final class MLDSATests: XCTestCase {
         XCTAssertNotEqual(signature1, signature2)
 
         // Even though the signatures are different, they both verify.
-        XCTAssertTrue(publicKey.isValidSignature(signature1, for: message))
-        XCTAssertTrue(publicKey.isValidSignature(signature2, for: message))
+        XCTAssertTrue(publicKey.isValidSignature(signature: signature1, for: message))
+        XCTAssertTrue(publicKey.isValidSignature(signature: signature2, for: message))
     }
 
     func testMLDSA87SignatureIsRandomized() throws {
+        guard #available(iOS 19.0, macOS 16.0, watchOS 12.0, tvOS 19.0, visionOS 3.0, *) else {
+            throw XCTSkip("MLDSA is only available on iOS 19.0+, macOS 16.0+, watchOS 12.0+, tvOS 19.0+, visionOS 3.0+")
+        }
         let message = "Hello, world!".data(using: .utf8)!
 
         let seed: [UInt8] = (0..<32).map { _ in UInt8.random(in: 0...255) }
-        let key = try MLDSA87.PrivateKey(seedRepresentation: seed)
+        let key = try MLDSA87.PrivateKey(seedRepresentation: seed, publicKey: nil)
         let publicKey = key.publicKey
 
         let signature1 = try key.signature(for: message)
@@ -113,15 +135,18 @@ final class MLDSATests: XCTestCase {
         XCTAssertNotEqual(signature1, signature2)
 
         // Even though the signatures are different, they both verify.
-        XCTAssertTrue(publicKey.isValidSignature(signature1, for: message))
-        XCTAssertTrue(publicKey.isValidSignature(signature2, for: message))
+        XCTAssertTrue(publicKey.isValidSignature(signature: signature1, for: message))
+        XCTAssertTrue(publicKey.isValidSignature(signature: signature2, for: message))
     }
 
     func testInvalidMLDSA65PublicKeyEncodingLength() throws {
+        guard #available(iOS 19.0, macOS 16.0, watchOS 12.0, tvOS 19.0, visionOS 3.0, *) else {
+            throw XCTSkip("MLDSA is only available on iOS 19.0+, macOS 16.0+, watchOS 12.0+, tvOS 19.0+, visionOS 3.0+")
+        }
         // Encode a public key with a trailing 0 at the end.
         var encodedPublicKey = [UInt8](repeating: 0, count: MLDSA65.PublicKey.byteCount + 1)
         let seed: [UInt8] = (0..<32).map { _ in UInt8.random(in: 0...255) }
-        let key = try MLDSA65.PrivateKey(seedRepresentation: seed)
+        let key = try MLDSA65.PrivateKey(seedRepresentation: seed, publicKey: nil)
         let publicKey = key.publicKey
         encodedPublicKey.replaceSubrange(0..<MLDSA65.PublicKey.byteCount, with: publicKey.rawRepresentation)
 
@@ -138,10 +163,13 @@ final class MLDSATests: XCTestCase {
     }
 
     func testInvalidMLDSA87PublicKeyEncodingLength() throws {
+        guard #available(iOS 19.0, macOS 16.0, watchOS 12.0, tvOS 19.0, visionOS 3.0, *) else {
+            throw XCTSkip("MLDSA is only available on iOS 19.0+, macOS 16.0+, watchOS 12.0+, tvOS 19.0+, visionOS 3.0+")
+        }
         // Encode a public key with a trailing 0 at the end.
         var encodedPublicKey = [UInt8](repeating: 0, count: MLDSA87.PublicKey.byteCount + 1)
         let seed: [UInt8] = (0..<32).map { _ in UInt8.random(in: 0...255) }
-        let key = try MLDSA87.PrivateKey(seedRepresentation: seed)
+        let key = try MLDSA87.PrivateKey(seedRepresentation: seed, publicKey: nil)
         let publicKey = key.publicKey
         encodedPublicKey.replaceSubrange(0..<MLDSA87.PublicKey.byteCount, with: publicKey.rawRepresentation)
 
@@ -158,21 +186,27 @@ final class MLDSATests: XCTestCase {
     }
 
     func testMLDSA65NISTKeyGenFile() throws {
+        guard #available(iOS 19.0, macOS 16.0, watchOS 12.0, tvOS 19.0, visionOS 3.0, *) else {
+            throw XCTSkip("MLDSA is only available on iOS 19.0+, macOS 16.0+, watchOS 12.0+, tvOS 19.0+, visionOS 3.0+")
+        }
         try nistTest(jsonName: "mldsa_nist_keygen_65_tests") { (testVector: NISTKeyGenTestVector) in
             let seed = try Data(hexString: testVector.seed)
             let publicKey = try MLDSA65.PublicKey(rawRepresentation: Data(hexString: testVector.pub))
 
-            let expectedkey = try MLDSA65.PrivateKey(seedRepresentation: seed).publicKey
+            let expectedkey = try MLDSA65.PrivateKey(seedRepresentation: seed, publicKey: nil).publicKey
             XCTAssertEqual(publicKey.rawRepresentation, expectedkey.rawRepresentation)
         }
     }
 
     func testMLDSA87NISTKeyGenFile() throws {
+        guard #available(iOS 19.0, macOS 16.0, watchOS 12.0, tvOS 19.0, visionOS 3.0, *) else {
+            throw XCTSkip("MLDSA is only available on iOS 19.0+, macOS 16.0+, watchOS 12.0+, tvOS 19.0+, visionOS 3.0+")
+        }
         try nistTest(jsonName: "mldsa_nist_keygen_87_tests") { (testVector: NISTKeyGenTestVector) in
             let seed = try Data(hexString: testVector.seed)
             let publicKey = try MLDSA87.PublicKey(rawRepresentation: Data(hexString: testVector.pub))
 
-            let expectedkey = try MLDSA87.PrivateKey(seedRepresentation: seed).publicKey
+            let expectedkey = try MLDSA87.PrivateKey(seedRepresentation: seed, publicKey: nil).publicKey
             XCTAssertEqual(publicKey.rawRepresentation, expectedkey.rawRepresentation)
         }
     }
@@ -187,6 +221,7 @@ final class MLDSATests: XCTestCase {
         let testVectors: [Vector]
     }
 
+    @available(iOS 19.0, macOS 16.0, watchOS 12.0, tvOS 19.0, visionOS 3.0, *)
     private func nistTest<Vector: Decodable>(
         jsonName: String,
         file: StaticString = #file,
@@ -210,6 +245,9 @@ final class MLDSATests: XCTestCase {
     }
 
     func testMLDSA65WycheproofVerifyFile() throws {
+        guard #available(iOS 19.0, macOS 16.0, watchOS 12.0, tvOS 19.0, visionOS 3.0, *) else {
+            throw XCTSkip("MLDSA is only available on iOS 19.0+, macOS 16.0+, watchOS 12.0+, tvOS 19.0+, visionOS 3.0+")
+        }
         try wycheproofTest(jsonName: "mldsa_65_verify_test") { (testGroup: WycheproofTestGroup) in
             let publicKey: MLDSA65.PublicKey
             do {
@@ -226,15 +264,15 @@ final class MLDSATests: XCTestCase {
                 switch test.result {
                 case .valid:
                     if let context {
-                        XCTAssertTrue(publicKey.isValidSignature(signature, for: message, context: context))
+                        XCTAssertTrue(publicKey.isValidSignature(signature: signature, for: message, context: context))
                     } else {
-                        XCTAssertTrue(publicKey.isValidSignature(signature, for: message))
+                        XCTAssertTrue(publicKey.isValidSignature(signature: signature, for: message))
                     }
                 case .invalid:
                     if let context {
-                        XCTAssertFalse(publicKey.isValidSignature(signature, for: message, context: context))
+                        XCTAssertFalse(publicKey.isValidSignature(signature: signature, for: message, context: context))
                     } else {
-                        XCTAssertFalse(publicKey.isValidSignature(signature, for: message))
+                        XCTAssertFalse(publicKey.isValidSignature(signature: signature, for: message))
                     }
                 }
             }
@@ -242,6 +280,9 @@ final class MLDSATests: XCTestCase {
     }
 
     func testMLDSA87WycheproofVerifyFile() throws {
+        guard #available(iOS 19.0, macOS 16.0, watchOS 12.0, tvOS 19.0, visionOS 3.0, *) else {
+            throw XCTSkip("MLDSA is only available on iOS 19.0+, macOS 16.0+, watchOS 12.0+, tvOS 19.0+, visionOS 3.0+")
+        }
         try wycheproofTest(jsonName: "mldsa_87_verify_test") { (testGroup: WycheproofTestGroup) in
             let publicKey: MLDSA87.PublicKey
             do {
@@ -258,15 +299,15 @@ final class MLDSATests: XCTestCase {
                 switch test.result {
                 case .valid:
                     if let context {
-                        XCTAssertTrue(publicKey.isValidSignature(signature, for: message, context: context))
+                        XCTAssertTrue(publicKey.isValidSignature(signature: signature, for: message, context: context))
                     } else {
-                        XCTAssertTrue(publicKey.isValidSignature(signature, for: message))
+                        XCTAssertTrue(publicKey.isValidSignature(signature: signature, for: message))
                     }
                 case .invalid:
                     if let context {
-                        XCTAssertFalse(publicKey.isValidSignature(signature, for: message, context: context))
+                        XCTAssertFalse(publicKey.isValidSignature(signature: signature, for: message, context: context))
                     } else {
-                        XCTAssertFalse(publicKey.isValidSignature(signature, for: message))
+                        XCTAssertFalse(publicKey.isValidSignature(signature: signature, for: message))
                     }
                 }
             }
@@ -303,3 +344,15 @@ final class MLDSATests: XCTestCase {
         }
     }
 }
+
+@available(iOS 19.0, macOS 16.0, watchOS 12.0, tvOS 19.0, visionOS 3.0, *)
+extension MLDSA65.PublicKey {
+    static let byteCount = 1952
+}
+
+@available(iOS 19.0, macOS 16.0, watchOS 12.0, tvOS 19.0, visionOS 3.0, *)
+extension MLDSA87.PublicKey {
+    static let byteCount = 2592
+}
+
+#endif  // SDK has MLDSA

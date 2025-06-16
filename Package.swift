@@ -177,7 +177,14 @@ let package = Package(
             name: "CryptoTests",
             dependencies: ["Crypto"],
             resources: [
-                .copy("HPKE/hpke-test-vectors.json")
+                .copy("HPKE/hpke-test-vectors.json"),
+                .copy("KEM/MLKEM768_BSSLKAT.json"),
+                .copy("KEM/MLKEM768KAT.json"),
+                .copy("KEM/MLKEM1024_BSSLKAT.json"),
+                .copy("KEM/MLKEM1024KAT.json"),
+                .copy("KEM/test-vectors.json"),
+                .copy("Signatures/MLDSA/MLDSA65_KeyGen_KAT.json"),
+                .copy("Signatures/MLDSA/MLDSA87_KeyGen_KAT.json"),
             ],
             swiftSettings: swiftSettings
         ),

@@ -14,10 +14,17 @@
 #if CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
 @_exported import CryptoKit
 #else
-import Foundation
+#if CRYPTOKIT_NO_ACCESS_TO_FOUNDATION
+public import SwiftSystem
+#else
+public import Foundation
+#endif
 // MARK: - Generated file, do NOT edit
 // any edits of this file WILL be overwritten and thus discarded
 // see section `gyb` in `README` for details.
+
+
+
 
 // MARK: - AES.GCM + Nonce
 @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
@@ -28,7 +35,7 @@ extension AES.GCM {
     /// that nonces are unique per call to encryption APIs in order to protect the
     /// integrity of the encryption.
     @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
-    public struct Nonce: ContiguousBytes, Sequence {
+    public struct Nonce: ContiguousBytes, Sequence, Sendable {
         let bytes: Data
 
         /// Creates a new random nonce.
@@ -49,11 +56,11 @@ extension AES.GCM {
         /// ``init()`` method to instead create a random nonce.
         ///
         /// - Parameters:
-        ///   - data: A 12-byte data representation of the nonce. The initializer throws an
-        /// error if the data has a length other than 12 bytes.
-        public init<D: DataProtocol>(data: D) throws {
+///   - data: A data representation of the nonce.
+///     The initializer throws an error if the data has a length smaller than 12 bytes.
+        public init<D: DataProtocol>(data: D) throws(CryptoKitMetaError) {
             if data.count < AES.GCM.defaultNonceByteCount {
-                throw CryptoKitError.incorrectParameterSize
+                throw error(CryptoKitError.incorrectParameterSize)
             }
 
             self.bytes = Data(data)
@@ -70,10 +77,16 @@ extension AES.GCM {
         /// the duration of the closure’s execution.
         ///
         /// - Returns: The return value, if any, of the body closure parameter.
+#if !hasFeature(Embedded)
         public func withUnsafeBytes<R>(_ body: (UnsafeRawBufferPointer) throws -> R) rethrows -> R {
             return try self.bytes.withUnsafeBytes(body)
         }
-        
+#else
+        public func withUnsafeBytes<R, E: Error>(_ body: (UnsafeRawBufferPointer) throws(E) -> R) throws(E) -> R {
+            return try self.bytes.withUnsafeBytes(body)
+        }
+#endif
+
         /// Returns an iterator over the elements of the nonce.
         public func makeIterator() -> Array<UInt8>.Iterator {
             self.withUnsafeBytes({ (buffPtr) in
@@ -92,7 +105,7 @@ extension ChaChaPoly {
     /// that nonces are unique per call to encryption APIs in order to protect the
     /// integrity of the encryption.
     @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
-    public struct Nonce: ContiguousBytes, Sequence {
+    public struct Nonce: ContiguousBytes, Sequence, Sendable {
         let bytes: Data
 
         /// Creates a new random nonce.
@@ -113,11 +126,11 @@ extension ChaChaPoly {
         /// ``init()`` method to instead create a random nonce.
         ///
         /// - Parameters:
-        ///   - data: A 12-byte data representation of the nonce. The initializer throws an
-        /// error if the data has a length other than 12 bytes.
-        public init<D: DataProtocol>(data: D) throws {
+///   - data: A 12-byte data representation of the nonce.
+///     The initializer throws an error if the data isn't 12 bytes long.
+        public init<D: DataProtocol>(data: D) throws(CryptoKitMetaError) {
             if data.count != ChaChaPoly.nonceByteCount {
-                throw CryptoKitError.incorrectParameterSize
+                throw error(CryptoKitError.incorrectParameterSize)
             }
 
             self.bytes = Data(data)
@@ -134,10 +147,16 @@ extension ChaChaPoly {
         /// the duration of the closure’s execution.
         ///
         /// - Returns: The return value, if any, of the body closure parameter.
+#if !hasFeature(Embedded)
         public func withUnsafeBytes<R>(_ body: (UnsafeRawBufferPointer) throws -> R) rethrows -> R {
             return try self.bytes.withUnsafeBytes(body)
         }
-        
+#else
+        public func withUnsafeBytes<R, E: Error>(_ body: (UnsafeRawBufferPointer) throws(E) -> R) throws(E) -> R {
+            return try self.bytes.withUnsafeBytes(body)
+        }
+#endif
+
         /// Returns an iterator over the elements of the nonce.
         public func makeIterator() -> Array<UInt8>.Iterator {
             self.withUnsafeBytes({ (buffPtr) in
