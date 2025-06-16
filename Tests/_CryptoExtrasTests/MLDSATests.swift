@@ -14,7 +14,7 @@
 
 import XCTest
 
-import _CryptoExtras
+@testable import _CryptoExtras
 
 #if !canImport(Darwin) || canImport(CryptoKit, _version: 324.0.4)
 final class MLDSATests: XCTestCase {
