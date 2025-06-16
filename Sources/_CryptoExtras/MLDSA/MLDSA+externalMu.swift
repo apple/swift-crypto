@@ -41,7 +41,7 @@ extension MLDSA65.PublicKey {
     ///
     /// - Returns: The prehashed message representative (a.k.a. "external mu").
     public func prehash<D: DataProtocol>(for data: D) throws -> Data {
-        return try self.prehash_boring(for: data)
+        try self.prehash_boring(for: data)
     }
 
     /// Generate a prehashed message representative (a.k.a. "external mu") for the given message.
@@ -78,7 +78,7 @@ extension MLDSA87.PublicKey {
     ///
     /// - Returns: The prehashed message representative (a.k.a. "external mu").
     public func prehash<D: DataProtocol>(for data: D) throws -> Data {
-        return try self.prehash_boring(for: data)
+        try self.prehash_boring(for: data)
     }
 
     /// Generate a prehashed message representative (a.k.a. "external mu") for the given message.
