@@ -94,11 +94,7 @@ extension ${NAME} {
         ///
         /// - Returns: The prehashed message representative (a.k.a. "external mu").
         package func prehash_boring<D: DataProtocol>(for data: D) throws -> Data {
-            let implementation =
-                self.impl is OpenSSLMLDSAPublicKeyImpl<${NAME}>
-                ? self.impl
-                : try OpenSSLMLDSAPublicKeyImpl<${NAME}>(rawRepresentation: self.rawRepresentation)
-            return try implementation.prehash_boring(for: data)
+            try self.boringSSLKey.prehash_boring(for: data)
         }
 
         /// Generate a prehashed message representative (a.k.a. "external mu") for the given message.
@@ -109,11 +105,15 @@ extension ${NAME} {
         ///
         /// - Returns: The prehashed message representative (a.k.a. "external mu").
         package func prehash_boring<D: DataProtocol, C: DataProtocol>(for data: D, context: C) throws -> Data {
-            let implementation =
+            try self.boringSSLKey.prehash_boring(for: data, context: context)
+        }
+
+        private var boringSSLKey: OpenSSLMLDSAPublicKeyImpl<${NAME}> {
+            get throws {
                 self.impl is OpenSSLMLDSAPublicKeyImpl<${NAME}>
-                ? self.impl
-                : try OpenSSLMLDSAPublicKeyImpl<${NAME}>(rawRepresentation: self.rawRepresentation)
-            return try implementation.prehash_boring(for: data, context: context)
+                    ? self.impl
+                    : try OpenSSLMLDSAPublicKeyImpl<${NAME}>(rawRepresentation: self.rawRepresentation)
+            }
         }
     }
 
@@ -148,11 +148,7 @@ extension ${NAME} {
         ///
         /// - Returns: The signature of the prehashed message representative.
         package func signature_boring(forPrehashedMessageRepresentative mu: some DataProtocol) throws -> Data {
-            let implementation =
-                self.impl is OpenSSLMLDSAPrivateKeyImpl<${NAME}>
-                ? self.impl
-                : try OpenSSLMLDSAPrivateKeyImpl<${NAME}>(seedRepresentation: self.seedRepresentation, publicKey: nil)
-            return try implementation.signature_boring(forPrehashedMessageRepresentative: mu)
+            try self.boringSSLKey.signature_boring(forPrehashedMessageRepresentative: mu)
         }
 
         /// The associated public key.
@@ -206,8 +202,19 @@ extension ${NAME} {
             }
         }
 
-        fileprivate init(impl: MLDSAPrivateKeyImpl<${NAME}>) {
+        private init(impl: MLDSAPrivateKeyImpl<${NAME}>) {
             self.impl = impl
+        }
+
+        private var boringSSLKey: OpenSSLMLDSAPrivateKeyImpl<${NAME}> {
+            get throws {
+                self.impl is OpenSSLMLDSAPrivateKeyImpl<${NAME}>
+                    ? self.impl
+                    : try OpenSSLMLDSAPrivateKeyImpl<${NAME}>(
+                        seedRepresentation: self.seedRepresentation,
+                        publicKey: nil
+                    )
+            }
         }
     }
 }
