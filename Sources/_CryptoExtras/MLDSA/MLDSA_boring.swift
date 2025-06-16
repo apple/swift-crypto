@@ -75,17 +75,6 @@ extension MLDSA65 {
             try self.backing.signature(for: data, context: context)
         }
 
-        /// Generate a signature for the prehashed message representative (a.k.a. "external mu").
-        ///
-        /// > Note: The message representative should be obtained via calls to ``MLDSA65/PublicKey/prehash(for:context:)``.
-        ///
-        /// - Parameter mu: The prehashed message representative (a.k.a. "external mu").
-        ///
-        /// - Returns: The signature of the prehashed message representative.
-        public func signature<M: DataProtocol>(forPrehashedMessageRepresentative mu: M) throws -> Data {
-            try self.backing.signature(forPrehashedMessageRepresentative: mu)
-        }
-
         /// The size of the private key in bytes.
         static let byteCount = Backing.byteCount
 
@@ -186,38 +175,6 @@ extension MLDSA65 {
                 return signature
             }
 
-            /// Generate a signature for the prehashed message representative (a.k.a. "external mu").
-            ///
-            /// > Note: The message representative should be obtained via calls to ``MLDSA65/PublicKey/prehash(for:context:)``.
-            ///
-            /// - Parameter mu: The prehashed message representative (a.k.a. "external mu").
-            ///
-            /// - Returns: The signature of the prehashed message representative.
-            func signature<M: DataProtocol>(forPrehashedMessageRepresentative mu: M) throws -> Data {
-                guard mu.count == MLDSA.muByteCount else {
-                    throw CryptoKitError.incorrectParameterSize
-                }
-
-                var signature = Data(repeating: 0, count: MLDSA65.signatureByteCount)
-
-                let rc: CInt = signature.withUnsafeMutableBytes { signaturePtr in
-                    let muBytes: ContiguousBytes = mu.regions.count == 1 ? mu.regions.first! : Array(mu)
-                    return muBytes.withUnsafeBytes { muPtr in
-                        CCryptoBoringSSL_MLDSA65_sign_message_representative(
-                            signaturePtr.baseAddress,
-                            &self.key,
-                            muPtr.baseAddress
-                        )
-                    }
-                }
-
-                guard rc == 1 else {
-                    throw CryptoKitError.internalBoringSSLError()
-                }
-
-                return signature
-            }
-
             /// The size of the private key in bytes.
             static let byteCount = Int(MLDSA65_PRIVATE_KEY_BYTES)
         }
@@ -274,27 +231,6 @@ extension MLDSA65 {
             context: C
         ) -> Bool {
             self.backing.isValidSignature(signature, for: data, context: context)
-        }
-
-        /// Generate a prehashed message representative (a.k.a. "external mu") for the given message.
-        ///
-        /// - Parameter data: The message to prehash.
-        ///
-        /// - Returns: The prehashed message representative (a.k.a. "external mu").
-        public func prehash<D: DataProtocol>(for data: D) throws -> Data {
-            let context: Data? = nil
-            return try self.backing.prehash(for: data, context: context)
-        }
-
-        /// Generate a prehashed message representative (a.k.a. "external mu") for the given message.
-        ///
-        /// - Parameters:
-        ///   - data: The message to prehash.
-        ///   - context: The context of the message.
-        ///
-        /// - Returns: The prehashed message representative (a.k.a. "external mu").
-        public func prehash<D: DataProtocol, C: DataProtocol>(for data: D, context: C) throws -> Data {
-            try self.backing.prehash(for: data, context: context)
         }
 
         /// The size of the public key in bytes.
@@ -378,41 +314,6 @@ extension MLDSA65 {
                 }
             }
 
-            /// Generate a prehashed message representative (a.k.a. "external mu") for the given message.
-            ///
-            /// - Parameters:
-            ///   - data: The message to prehash.
-            ///   - context: The context of the message.
-            ///
-            /// - Returns: The prehashed message representative (a.k.a. "external mu").
-            func prehash<D: DataProtocol, C: DataProtocol>(for data: D, context: C?) throws -> Data {
-                var mu = Data(repeating: 0, count: MLDSA.muByteCount)
-
-                let dataBytes: ContiguousBytes = data.regions.count == 1 ? data.regions.first! : Array(data)
-                let rc: CInt = mu.withUnsafeMutableBytes { muPtr in
-                    dataBytes.withUnsafeBytes { dataPtr in
-                        context.withUnsafeBytes { contextPtr in
-                            var prehash = MLDSA65_prehash()
-                            let rc = CCryptoBoringSSL_MLDSA65_prehash_init(
-                                &prehash,
-                                &key,
-                                contextPtr.baseAddress,
-                                contextPtr.count
-                            )
-                            CCryptoBoringSSL_MLDSA65_prehash_update(&prehash, dataPtr.baseAddress, dataPtr.count)
-                            CCryptoBoringSSL_MLDSA65_prehash_finalize(muPtr.baseAddress, &prehash)
-                            return rc
-                        }
-                    }
-                }
-
-                guard rc == 1 else {
-                    throw CryptoKitError.internalBoringSSLError()
-                }
-
-                return mu
-            }
-
             /// The size of the public key in bytes.
             static let byteCount = Int(MLDSA65_PUBLIC_KEY_BYTES)
         }
@@ -478,17 +379,6 @@ extension MLDSA87 {
         /// - Returns: The signature of the message.
         public func signature<D: DataProtocol, C: DataProtocol>(for data: D, context: C) throws -> Data {
             try self.backing.signature(for: data, context: context)
-        }
-
-        /// Generate a signature for the prehashed message representative (a.k.a. "external mu").
-        ///
-        /// > Note: The message representative should be obtained via calls to ``MLDSA87/PublicKey/prehash(for:context:)``.
-        ///
-        /// - Parameter mu: The prehashed message representative (a.k.a. "external mu").
-        ///
-        /// - Returns: The signature of the prehashed message representative.
-        public func signature<M: DataProtocol>(forPrehashedMessageRepresentative mu: M) throws -> Data {
-            try self.backing.signature(forPrehashedMessageRepresentative: mu)
         }
 
         /// The size of the private key in bytes.
@@ -591,38 +481,6 @@ extension MLDSA87 {
                 return signature
             }
 
-            /// Generate a signature for the prehashed message representative (a.k.a. "external mu").
-            ///
-            /// > Note: The message representative should be obtained via calls to ``MLDSA87/PublicKey/prehash(for:context:)``.
-            ///
-            /// - Parameter mu: The prehashed message representative (a.k.a. "external mu").
-            ///
-            /// - Returns: The signature of the prehashed message representative.
-            func signature<M: DataProtocol>(forPrehashedMessageRepresentative mu: M) throws -> Data {
-                guard mu.count == MLDSA.muByteCount else {
-                    throw CryptoKitError.incorrectParameterSize
-                }
-
-                var signature = Data(repeating: 0, count: MLDSA87.signatureByteCount)
-
-                let rc: CInt = signature.withUnsafeMutableBytes { signaturePtr in
-                    let muBytes: ContiguousBytes = mu.regions.count == 1 ? mu.regions.first! : Array(mu)
-                    return muBytes.withUnsafeBytes { muPtr in
-                        CCryptoBoringSSL_MLDSA87_sign_message_representative(
-                            signaturePtr.baseAddress,
-                            &self.key,
-                            muPtr.baseAddress
-                        )
-                    }
-                }
-
-                guard rc == 1 else {
-                    throw CryptoKitError.internalBoringSSLError()
-                }
-
-                return signature
-            }
-
             /// The size of the private key in bytes.
             static let byteCount = Int(MLDSA87_PRIVATE_KEY_BYTES)
         }
@@ -679,27 +537,6 @@ extension MLDSA87 {
             context: C
         ) -> Bool {
             self.backing.isValidSignature(signature, for: data, context: context)
-        }
-
-        /// Generate a prehashed message representative (a.k.a. "external mu") for the given message.
-        ///
-        /// - Parameter data: The message to prehash.
-        ///
-        /// - Returns: The prehashed message representative (a.k.a. "external mu").
-        public func prehash<D: DataProtocol>(for data: D) throws -> Data {
-            let context: Data? = nil
-            return try self.backing.prehash(for: data, context: context)
-        }
-
-        /// Generate a prehashed message representative (a.k.a. "external mu") for the given message.
-        ///
-        /// - Parameters:
-        ///   - data: The message to prehash.
-        ///   - context: The context of the message.
-        ///
-        /// - Returns: The prehashed message representative (a.k.a. "external mu").
-        public func prehash<D: DataProtocol, C: DataProtocol>(for data: D, context: C) throws -> Data {
-            try self.backing.prehash(for: data, context: context)
         }
 
         /// The size of the public key in bytes.
@@ -783,41 +620,6 @@ extension MLDSA87 {
                 }
             }
 
-            /// Generate a prehashed message representative (a.k.a. "external mu") for the given message.
-            ///
-            /// - Parameters:
-            ///   - data: The message to prehash.
-            ///   - context: The context of the message.
-            ///
-            /// - Returns: The prehashed message representative (a.k.a. "external mu").
-            func prehash<D: DataProtocol, C: DataProtocol>(for data: D, context: C?) throws -> Data {
-                var mu = Data(repeating: 0, count: MLDSA.muByteCount)
-
-                let dataBytes: ContiguousBytes = data.regions.count == 1 ? data.regions.first! : Array(data)
-                let rc: CInt = mu.withUnsafeMutableBytes { muPtr in
-                    dataBytes.withUnsafeBytes { dataPtr in
-                        context.withUnsafeBytes { contextPtr in
-                            var prehash = MLDSA87_prehash()
-                            let rc = CCryptoBoringSSL_MLDSA87_prehash_init(
-                                &prehash,
-                                &key,
-                                contextPtr.baseAddress,
-                                contextPtr.count
-                            )
-                            CCryptoBoringSSL_MLDSA87_prehash_update(&prehash, dataPtr.baseAddress, dataPtr.count)
-                            CCryptoBoringSSL_MLDSA87_prehash_finalize(muPtr.baseAddress, &prehash)
-                            return rc
-                        }
-                    }
-                }
-
-                guard rc == 1 else {
-                    throw CryptoKitError.internalBoringSSLError()
-                }
-
-                return mu
-            }
-
             /// The size of the public key in bytes.
             static let byteCount = Int(MLDSA87_PUBLIC_KEY_BYTES)
         }
@@ -833,7 +635,4 @@ extension MLDSA87 {
 private enum MLDSA {
     /// The size of the seed in bytes.
     fileprivate static let seedByteCount = 32
-
-    /// The size of the "mu" value in bytes.
-    fileprivate static let muByteCount = 64
 }
