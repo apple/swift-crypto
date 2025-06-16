@@ -20,7 +20,9 @@ public import Foundation
 typealias MLDSAPublicKeyImpl = CoreCryptoMLDSAPublicKeyImpl
 typealias MLDSAPrivateKeyImpl = CoreCryptoMLDSAPrivateKeyImpl
 #else
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 typealias MLDSAPublicKeyImpl = OpenSSLMLDSAPublicKeyImpl
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 typealias MLDSAPrivateKeyImpl = OpenSSLMLDSAPrivateKeyImpl
 #endif
 
@@ -34,8 +36,10 @@ typealias MLDSAPrivateKeyImpl = OpenSSLMLDSAPrivateKeyImpl
 }%
 
 /// The ${NAME} Digital Signature Algorithm
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 public enum ${NAME}: Sendable {}
 
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension ${NAME} {
     /// The public key for ${NAME}.
     public struct PublicKey: Sendable {
@@ -80,6 +84,32 @@ extension ${NAME} {
         fileprivate init(impl: MLDSAPublicKeyImpl<${NAME}>) {
             self.impl = impl
         }
+
+        /// Generate a prehashed message representative (a.k.a. "external mu") for the given message.
+        ///
+        /// - Parameter data: The message to prehash.
+        ///
+        /// - Returns: The prehashed message representative (a.k.a. "external mu").
+        package func prehash_boring<D: DataProtocol>(for data: D) throws -> Data {
+            let implementation = self.impl is OpenSSLMLDSAPublicKeyImpl<${NAME}>
+                ? self.impl
+                : try OpenSSLMLDSAPublicKeyImpl<${NAME}>(rawRepresentation: self.rawRepresentation)
+            return try implementation.prehash_boring(for: data)
+        }
+
+        /// Generate a prehashed message representative (a.k.a. "external mu") for the given message.
+        ///
+        /// - Parameters:
+        ///   - data: The message to prehash.
+        ///   - context: The context of the message.
+        ///
+        /// - Returns: The prehashed message representative (a.k.a. "external mu").
+        package func prehash_boring<D: DataProtocol, C: DataProtocol>(for data: D, context: C) throws -> Data {
+            let implementation = self.impl is OpenSSLMLDSAPublicKeyImpl<${NAME}>
+                ? self.impl
+                : try OpenSSLMLDSAPublicKeyImpl<${NAME}>(rawRepresentation: self.rawRepresentation)
+            return try implementation.prehash_boring(for: data, context: context)
+        }
     }
 
     /// The private key for ${NAME}.
@@ -103,6 +133,20 @@ extension ${NAME} {
         /// This method throws if CryptoKit encounters an error producing the signature.
         public func signature<D: DataProtocol, C: DataProtocol>(for data: D, context: C) throws -> Data {
             try self.impl.signature(for: data, context: context)
+        }
+
+        /// Generate a signature for the prehashed message representative (a.k.a. "external mu").
+        ///
+        /// > Note: The message representative should be obtained via calls to ``MLDSA87/PublicKey/prehash(for:context:)``.
+        ///
+        /// - Parameter mu: The prehashed message representative (a.k.a. "external mu").
+        ///
+        /// - Returns: The signature of the prehashed message representative.
+        package func signature_boring(forPrehashedMessageRepresentative mu: some DataProtocol) throws -> Data {
+            let implementation = self.impl is OpenSSLMLDSAPrivateKeyImpl<${NAME}>
+                ? self.impl
+                : try OpenSSLMLDSAPrivateKeyImpl<${NAME}>(seedRepresentation: self.seedRepresentation, publicKey: nil)
+            return try implementation.signature_boring(forPrehashedMessageRepresentative: mu)
         }
 
         /// The associated public key.
@@ -154,6 +198,10 @@ extension ${NAME} {
             get {
                 return self.impl.integrityCheckedRepresentation
             }
+        }
+
+        fileprivate init(impl: MLDSAPrivateKeyImpl<${NAME}>) {
+            self.impl = impl
         }
     }
 }

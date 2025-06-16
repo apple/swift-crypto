@@ -76,6 +76,32 @@ extension MLDSA65 {
         fileprivate init(impl: MLDSAPublicKeyImpl<MLDSA65>) {
             self.impl = impl
         }
+
+        /// Generate a prehashed message representative (a.k.a. "external mu") for the given message.
+        ///
+        /// - Parameter data: The message to prehash.
+        ///
+        /// - Returns: The prehashed message representative (a.k.a. "external mu").
+        package func prehash_boring<D: DataProtocol>(for data: D) throws -> Data {
+            let implementation = self.impl is OpenSSLMLDSAPublicKeyImpl<MLDSA65>
+                ? self.impl
+                : try OpenSSLMLDSAPublicKeyImpl<MLDSA65>(rawRepresentation: self.rawRepresentation)
+            return try implementation.prehash_boring(for: data)
+        }
+
+        /// Generate a prehashed message representative (a.k.a. "external mu") for the given message.
+        ///
+        /// - Parameters:
+        ///   - data: The message to prehash.
+        ///   - context: The context of the message.
+        ///
+        /// - Returns: The prehashed message representative (a.k.a. "external mu").
+        package func prehash_boring<D: DataProtocol, C: DataProtocol>(for data: D, context: C) throws -> Data {
+            let implementation = self.impl is OpenSSLMLDSAPublicKeyImpl<MLDSA65>
+                ? self.impl
+                : try OpenSSLMLDSAPublicKeyImpl<MLDSA65>(rawRepresentation: self.rawRepresentation)
+            return try implementation.prehash_boring(for: data, context: context)
+        }
     }
 
     /// The private key for MLDSA65.
@@ -99,6 +125,20 @@ extension MLDSA65 {
         /// This method throws if CryptoKit encounters an error producing the signature.
         public func signature<D: DataProtocol, C: DataProtocol>(for data: D, context: C) throws -> Data {
             try self.impl.signature(for: data, context: context)
+        }
+
+        /// Generate a signature for the prehashed message representative (a.k.a. "external mu").
+        ///
+        /// > Note: The message representative should be obtained via calls to ``MLDSA87/PublicKey/prehash(for:context:)``.
+        ///
+        /// - Parameter mu: The prehashed message representative (a.k.a. "external mu").
+        ///
+        /// - Returns: The signature of the prehashed message representative.
+        package func signature_boring(forPrehashedMessageRepresentative mu: some DataProtocol) throws -> Data {
+            let implementation = self.impl is OpenSSLMLDSAPrivateKeyImpl<MLDSA65>
+                ? self.impl
+                : try OpenSSLMLDSAPrivateKeyImpl<MLDSA65>(seedRepresentation: self.seedRepresentation, publicKey: nil)
+            return try implementation.signature_boring(forPrehashedMessageRepresentative: mu)
         }
 
         /// The associated public key.
@@ -150,6 +190,10 @@ extension MLDSA65 {
             get {
                 return self.impl.integrityCheckedRepresentation
             }
+        }
+
+        fileprivate init(impl: MLDSAPrivateKeyImpl<MLDSA65>) {
+            self.impl = impl
         }
     }
 }
@@ -204,6 +248,32 @@ extension MLDSA87 {
         fileprivate init(impl: MLDSAPublicKeyImpl<MLDSA87>) {
             self.impl = impl
         }
+
+        /// Generate a prehashed message representative (a.k.a. "external mu") for the given message.
+        ///
+        /// - Parameter data: The message to prehash.
+        ///
+        /// - Returns: The prehashed message representative (a.k.a. "external mu").
+        package func prehash_boring<D: DataProtocol>(for data: D) throws -> Data {
+            let implementation = self.impl is OpenSSLMLDSAPublicKeyImpl<MLDSA87>
+                ? self.impl
+                : try OpenSSLMLDSAPublicKeyImpl<MLDSA87>(rawRepresentation: self.rawRepresentation)
+            return try implementation.prehash_boring(for: data)
+        }
+
+        /// Generate a prehashed message representative (a.k.a. "external mu") for the given message.
+        ///
+        /// - Parameters:
+        ///   - data: The message to prehash.
+        ///   - context: The context of the message.
+        ///
+        /// - Returns: The prehashed message representative (a.k.a. "external mu").
+        package func prehash_boring<D: DataProtocol, C: DataProtocol>(for data: D, context: C) throws -> Data {
+            let implementation = self.impl is OpenSSLMLDSAPublicKeyImpl<MLDSA87>
+                ? self.impl
+                : try OpenSSLMLDSAPublicKeyImpl<MLDSA87>(rawRepresentation: self.rawRepresentation)
+            return try implementation.prehash_boring(for: data, context: context)
+        }
     }
 
     /// The private key for MLDSA87.
@@ -227,6 +297,20 @@ extension MLDSA87 {
         /// This method throws if CryptoKit encounters an error producing the signature.
         public func signature<D: DataProtocol, C: DataProtocol>(for data: D, context: C) throws -> Data {
             try self.impl.signature(for: data, context: context)
+        }
+
+        /// Generate a signature for the prehashed message representative (a.k.a. "external mu").
+        ///
+        /// > Note: The message representative should be obtained via calls to ``MLDSA87/PublicKey/prehash(for:context:)``.
+        ///
+        /// - Parameter mu: The prehashed message representative (a.k.a. "external mu").
+        ///
+        /// - Returns: The signature of the prehashed message representative.
+        package func signature_boring(forPrehashedMessageRepresentative mu: some DataProtocol) throws -> Data {
+            let implementation = self.impl is OpenSSLMLDSAPrivateKeyImpl<MLDSA87>
+                ? self.impl
+                : try OpenSSLMLDSAPrivateKeyImpl<MLDSA87>(seedRepresentation: self.seedRepresentation, publicKey: nil)
+            return try implementation.signature_boring(forPrehashedMessageRepresentative: mu)
         }
 
         /// The associated public key.
@@ -278,6 +362,10 @@ extension MLDSA87 {
             get {
                 return self.impl.integrityCheckedRepresentation
             }
+        }
+
+        fileprivate init(impl: MLDSAPrivateKeyImpl<MLDSA87>) {
+            self.impl = impl
         }
     }
 }
