@@ -12,16 +12,13 @@
 //
 //===----------------------------------------------------------------------===//
 
-#if CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
-@_exported import CryptoKit
-#else
-@_implementationOnly import CCryptoBoringSSL
-import Foundation
-
 // MARK: - Generated file, do NOT edit
 // any edits of this file WILL be overwritten and thus discarded
 // see section `gyb` in `README` for details.
 
+#if CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
+@_exported import CryptoKit
+#else
 @_implementationOnly import CCryptoBoringSSL
 import Foundation
 

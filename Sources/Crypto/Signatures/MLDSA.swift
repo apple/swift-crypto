@@ -26,7 +26,6 @@ typealias MLDSAPublicKeyImpl = OpenSSLMLDSAPublicKeyImpl
 typealias MLDSAPrivateKeyImpl = OpenSSLMLDSAPrivateKeyImpl
 #endif
 
-
 /// The MLDSA65 Digital Signature Algorithm
 @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 public enum MLDSA65: Sendable {}
@@ -52,7 +51,11 @@ extension MLDSA65 {
         ///   - data: The signed data.
         ///   - context: Context for the signature.
         /// - Returns: `true` if the signature is valid in the specified context, `false` otherwise.
-        public func isValidSignature<S: DataProtocol, D: DataProtocol, C: DataProtocol>(signature: S, for data: D, context: C) -> Bool {
+        public func isValidSignature<S: DataProtocol, D: DataProtocol, C: DataProtocol>(
+            signature: S,
+            for data: D,
+            context: C
+        ) -> Bool {
             self.impl.isValidSignature(signature: signature, for: data, context: context)
         }
 
@@ -83,7 +86,8 @@ extension MLDSA65 {
         ///
         /// - Returns: The prehashed message representative (a.k.a. "external mu").
         package func prehash_boring<D: DataProtocol>(for data: D) throws -> Data {
-            let implementation = self.impl is OpenSSLMLDSAPublicKeyImpl<MLDSA65>
+            let implementation =
+                self.impl is OpenSSLMLDSAPublicKeyImpl<MLDSA65>
                 ? self.impl
                 : try OpenSSLMLDSAPublicKeyImpl<MLDSA65>(rawRepresentation: self.rawRepresentation)
             return try implementation.prehash_boring(for: data)
@@ -97,7 +101,8 @@ extension MLDSA65 {
         ///
         /// - Returns: The prehashed message representative (a.k.a. "external mu").
         package func prehash_boring<D: DataProtocol, C: DataProtocol>(for data: D, context: C) throws -> Data {
-            let implementation = self.impl is OpenSSLMLDSAPublicKeyImpl<MLDSA65>
+            let implementation =
+                self.impl is OpenSSLMLDSAPublicKeyImpl<MLDSA65>
                 ? self.impl
                 : try OpenSSLMLDSAPublicKeyImpl<MLDSA65>(rawRepresentation: self.rawRepresentation)
             return try implementation.prehash_boring(for: data, context: context)
@@ -135,7 +140,8 @@ extension MLDSA65 {
         ///
         /// - Returns: The signature of the prehashed message representative.
         package func signature_boring(forPrehashedMessageRepresentative mu: some DataProtocol) throws -> Data {
-            let implementation = self.impl is OpenSSLMLDSAPrivateKeyImpl<MLDSA65>
+            let implementation =
+                self.impl is OpenSSLMLDSAPrivateKeyImpl<MLDSA65>
                 ? self.impl
                 : try OpenSSLMLDSAPrivateKeyImpl<MLDSA65>(seedRepresentation: self.seedRepresentation, publicKey: nil)
             return try implementation.signature_boring(forPrehashedMessageRepresentative: mu)
@@ -171,7 +177,7 @@ extension MLDSA65 {
         /// for the `ML-DSA.KeyGen_internal` algorithm (Algorithm 16) of FIPS 204.
         public var seedRepresentation: Data {
             get {
-                return self.impl.seedRepresentation
+                self.impl.seedRepresentation
             }
         }
 
@@ -188,7 +194,7 @@ extension MLDSA65 {
         /// This representation is 64 bytes long, and contains the seed and a hash of the public key.
         public var integrityCheckedRepresentation: Data {
             get {
-                return self.impl.integrityCheckedRepresentation
+                self.impl.integrityCheckedRepresentation
             }
         }
 
@@ -197,7 +203,6 @@ extension MLDSA65 {
         }
     }
 }
-
 
 /// The MLDSA87 Digital Signature Algorithm
 @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
@@ -224,7 +229,11 @@ extension MLDSA87 {
         ///   - data: The signed data.
         ///   - context: Context for the signature.
         /// - Returns: `true` if the signature is valid in the specified context, `false` otherwise.
-        public func isValidSignature<S: DataProtocol, D: DataProtocol, C: DataProtocol>(signature: S, for data: D, context: C) -> Bool {
+        public func isValidSignature<S: DataProtocol, D: DataProtocol, C: DataProtocol>(
+            signature: S,
+            for data: D,
+            context: C
+        ) -> Bool {
             self.impl.isValidSignature(signature: signature, for: data, context: context)
         }
 
@@ -255,7 +264,8 @@ extension MLDSA87 {
         ///
         /// - Returns: The prehashed message representative (a.k.a. "external mu").
         package func prehash_boring<D: DataProtocol>(for data: D) throws -> Data {
-            let implementation = self.impl is OpenSSLMLDSAPublicKeyImpl<MLDSA87>
+            let implementation =
+                self.impl is OpenSSLMLDSAPublicKeyImpl<MLDSA87>
                 ? self.impl
                 : try OpenSSLMLDSAPublicKeyImpl<MLDSA87>(rawRepresentation: self.rawRepresentation)
             return try implementation.prehash_boring(for: data)
@@ -269,7 +279,8 @@ extension MLDSA87 {
         ///
         /// - Returns: The prehashed message representative (a.k.a. "external mu").
         package func prehash_boring<D: DataProtocol, C: DataProtocol>(for data: D, context: C) throws -> Data {
-            let implementation = self.impl is OpenSSLMLDSAPublicKeyImpl<MLDSA87>
+            let implementation =
+                self.impl is OpenSSLMLDSAPublicKeyImpl<MLDSA87>
                 ? self.impl
                 : try OpenSSLMLDSAPublicKeyImpl<MLDSA87>(rawRepresentation: self.rawRepresentation)
             return try implementation.prehash_boring(for: data, context: context)
@@ -307,7 +318,8 @@ extension MLDSA87 {
         ///
         /// - Returns: The signature of the prehashed message representative.
         package func signature_boring(forPrehashedMessageRepresentative mu: some DataProtocol) throws -> Data {
-            let implementation = self.impl is OpenSSLMLDSAPrivateKeyImpl<MLDSA87>
+            let implementation =
+                self.impl is OpenSSLMLDSAPrivateKeyImpl<MLDSA87>
                 ? self.impl
                 : try OpenSSLMLDSAPrivateKeyImpl<MLDSA87>(seedRepresentation: self.seedRepresentation, publicKey: nil)
             return try implementation.signature_boring(forPrehashedMessageRepresentative: mu)
@@ -343,7 +355,7 @@ extension MLDSA87 {
         /// for the `ML-DSA.KeyGen_internal` algorithm (Algorithm 16) of FIPS 204.
         public var seedRepresentation: Data {
             get {
-                return self.impl.seedRepresentation
+                self.impl.seedRepresentation
             }
         }
 
@@ -360,7 +372,7 @@ extension MLDSA87 {
         /// This representation is 64 bytes long, and contains the seed and a hash of the public key.
         public var integrityCheckedRepresentation: Data {
             get {
-                return self.impl.integrityCheckedRepresentation
+                self.impl.integrityCheckedRepresentation
             }
         }
 
@@ -370,5 +382,4 @@ extension MLDSA87 {
     }
 }
 
-
-#endif // Linux or !SwiftPM
+#endif  // Linux or !SwiftPM
