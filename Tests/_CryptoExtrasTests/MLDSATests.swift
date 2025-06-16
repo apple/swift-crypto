@@ -355,4 +355,4 @@ extension MLDSA87.PublicKey {
     static let byteCount = 2592
 }
 
-#endif // SDK has MLDSA
+#endif  // SDK has MLDSA

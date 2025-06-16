@@ -112,4 +112,4 @@ final class MLKEMTests: XCTestCase {
     }
 }
 
-#endif // SDK has MLKEM
+#endif  // SDK has MLKEM
