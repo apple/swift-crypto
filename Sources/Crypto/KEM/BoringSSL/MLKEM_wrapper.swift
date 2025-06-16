@@ -23,7 +23,7 @@ import Foundation
 #endif
 
 @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
-protocol BoringSSLBackedMLKEMPrivateKey {
+protocol BoringSSLBackedMLKEMPrivateKey: Sendable {
     associatedtype InteriorPublicKey: BoringSSLBackedMLKEMPublicKey
 
     static func generatePrivateKey() throws -> Self
@@ -51,7 +51,7 @@ extension BoringSSLBackedMLKEMPrivateKey {
 }
 
 @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
-protocol BoringSSLBackedMLKEMPublicKey {
+protocol BoringSSLBackedMLKEMPublicKey: Sendable {
     init<Bytes: DataProtocol>(rawRepresentation: Bytes) throws
 
     var rawRepresentation: Data { get }
@@ -62,7 +62,7 @@ protocol BoringSSLBackedMLKEMPublicKey {
 }
 
 @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
-protocol BoringSSLBackedMLKEMOuterPublicKey {
+protocol BoringSSLBackedMLKEMOuterPublicKey: Sendable {
     init(rawRepresentation: Data) throws
 }
 
@@ -181,7 +181,7 @@ extension MLKEM1024.InternalPublicKey: BoringSSLBackedMLKEMPublicKey {
 }
 
 @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
-struct OpenSSLMLKEMPublicKeyImpl<Parameters: BoringSSLBackedMLKEMParameters>: BoringSSLBackedMLKEMPublicKey {
+struct OpenSSLMLKEMPublicKeyImpl<Parameters: BoringSSLBackedMLKEMParameters>: BoringSSLBackedMLKEMPublicKey, Sendable {
     private var backing: Parameters.BackingPublicKey
 
     init(backing: Parameters.BackingPublicKey) {
@@ -206,7 +206,7 @@ struct OpenSSLMLKEMPublicKeyImpl<Parameters: BoringSSLBackedMLKEMParameters>: Bo
 }
 
 @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
-struct OpenSSLMLKEMPrivateKeyImpl<Parameters: BoringSSLBackedMLKEMParameters>: BoringSSLBackedMLKEMPrivateKey {
+struct OpenSSLMLKEMPrivateKeyImpl<Parameters: BoringSSLBackedMLKEMParameters>: BoringSSLBackedMLKEMPrivateKey, Sendable {
     typealias InteriorPublicKey = OpenSSLMLKEMPublicKeyImpl<Parameters>
 
     private var backing: Parameters.BackingPrivateKey
