@@ -12,7 +12,11 @@
 //
 //===----------------------------------------------------------------------===//
 #if CRYPTO_IN_SWIFTPM && CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
+#if canImport(FoundationEssentials)
+import FoundationEssentials
+#else
 import Foundation
+#endif
 @_implementationOnly import CCryptoBoringSSL
 import Crypto
 

@@ -13,7 +13,11 @@
 //===----------------------------------------------------------------------===//
 import Crypto
 import CryptoBoringWrapper
+#if canImport(FoundationEssentials)
+import FoundationEssentials
+#else
 import Foundation
+#endif
 
 /// NOTE: This protocol is different from `Crypto.OpenSSLSupportedNISTCurve` module and has additional requirements to
 /// support ECToolbox. It is (re-)defined here because its counterpart in the Crypto module is only conditionally

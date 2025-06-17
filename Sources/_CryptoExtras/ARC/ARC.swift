@@ -12,7 +12,11 @@
 //
 //===----------------------------------------------------------------------===//
 import Crypto
+#if canImport(FoundationEssentials)
+import FoundationEssentials
+#else
 import Foundation
+#endif
 
 /// Anonymous Rate-Limited Credentials (ARC) using the CMZ14 MACGGM construction, as defined in
 /// https://chris-wood.github.io/draft-arc/draft-yun-cfrg-arc.html
