@@ -17,7 +17,11 @@
 // see section `gyb` in `README` for details.
 
 import Crypto
+#if canImport(FoundationEssentials)
+import FoundationEssentials
+#else
 import Foundation
+#endif
 
 @available(iOS 19.0, macOS 16.0, watchOS 12.0, tvOS 19.0, visionOS 3.0, *)
 extension MLDSA65.PrivateKey {
