@@ -123,7 +123,7 @@ extension MLDSA${parameter_set} {
             /// - Throws: `CryptoKitError.incorrectKeySize` if the seed is not 32 bytes long.
             init(seedRepresentation: some DataProtocol) throws {
                 guard seedRepresentation.count == MLDSA.seedByteCount else {
-                    throw CryptoKitError.incorrectKeySize
+                    throw MLDSA${parameter_set}.Errors.invalidInputLength
                 }
 
                 self.key = .init()
@@ -256,7 +256,7 @@ extension MLDSA${parameter_set} {
             /// - Throws: `CryptoKitError.incorrectKeySize` if the raw representation is not the correct size.
             init(rawRepresentation: some DataProtocol) throws {
                 guard rawRepresentation.count == MLDSA${parameter_set}.InternalPublicKey.Backing.byteCount else {
-                    throw CryptoKitError.incorrectKeySize
+                    throw MLDSA${parameter_set}.Errors.invalidInputLength
                 }
 
                 self.key = .init()
@@ -329,6 +329,18 @@ extension MLDSA${parameter_set} {
 extension MLDSA${parameter_set} {
     /// The size of the signature in bytes.
     private static let signatureByteCount = Int(MLDSA${parameter_set}_SIGNATURE_BYTES)
+}
+
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
+extension MLDSA${parameter_set} {
+    /// Errors that CryptoKit encounters in using module lattice digital signature algorithms.
+    public enum Errors: Error, Sendable, Hashable {
+        /// The input’s length is invalid.
+        case invalidInputLength
+
+        /// The public key doesn’t match the expected value during initialization.
+        case publicKeyMismatchDuringInitialization
+    }
 }
 % end
 
