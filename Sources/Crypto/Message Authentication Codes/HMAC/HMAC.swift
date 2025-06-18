@@ -17,7 +17,24 @@
 #if CRYPTOKIT_NO_ACCESS_TO_FOUNDATION
 public import SwiftSystem
 #else
+#if canImport(FoundationEssentials)
+#if os(Windows)
+import ucrt
+#elseif canImport(Darwin)
+import Darwin
+#elseif canImport(Glibc)
+import Glibc
+#elseif canImport(Musl)
+import Musl
+#elseif canImport(Android)
+import Android
+#elseif canImport(WASILibc)
+import WASILibc
+#endif
+public import FoundationEssentials
+#else
 public import Foundation
+#endif
 #endif
 
 /// A hash-based message authentication algorithm.

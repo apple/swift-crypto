@@ -14,7 +14,11 @@
 #if CRYPTOKIT_NO_ACCESS_TO_FOUNDATION
 import SwiftSystem
 #else
+#if canImport(FoundationEssentials)
+import FoundationEssentials
+#else
 import Foundation
+#endif
 #endif
 
 #if CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API

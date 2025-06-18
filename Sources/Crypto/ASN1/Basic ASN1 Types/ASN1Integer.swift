@@ -18,7 +18,11 @@
 #if CRYPTOKIT_NO_ACCESS_TO_FOUNDATION
 import SwiftSystem
 #else
+#if canImport(FoundationEssentials)
+import FoundationEssentials
+#else
 import Foundation
+#endif
 #endif
 
 /// A protocol that represents any internal object that can present itself as a INTEGER, or be parsed from

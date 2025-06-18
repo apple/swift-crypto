@@ -16,7 +16,11 @@
 #else
 @_implementationOnly import CCryptoBoringSSL
 @_implementationOnly import CCryptoBoringSSLShims
+#if canImport(FoundationEssentials)
+import FoundationEssentials
+#else
 import Foundation
+#endif
 
 /// A wrapper around the OpenSSL BIGNUM object that is appropriately lifetime managed,
 /// and that provides better Swift types for this object.

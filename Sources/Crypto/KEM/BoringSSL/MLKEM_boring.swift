@@ -20,7 +20,11 @@
 @_exported import CryptoKit
 #else
 @_implementationOnly import CCryptoBoringSSL
+#if canImport(FoundationEssentials)
+import FoundationEssentials
+#else
 import Foundation
+#endif
 
 @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension MLKEM768 {

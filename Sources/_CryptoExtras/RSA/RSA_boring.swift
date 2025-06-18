@@ -17,7 +17,25 @@
 @_implementationOnly import CCryptoBoringSSLShims
 import Crypto
 import CryptoBoringWrapper
+
+#if canImport(FoundationEssentials)
+#if os(Windows)
+import ucrt
+#elseif canImport(Darwin)
+import Darwin
+#elseif canImport(Glibc)
+import Glibc
+#elseif canImport(Musl)
+import Musl
+#elseif canImport(Android)
+import Android
+#elseif canImport(WASILibc)
+import WASILibc
+#endif
+import FoundationEssentials
+#else
 import Foundation
+#endif
 
 @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 internal struct BoringSSLRSAPublicKey: Sendable {

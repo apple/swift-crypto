@@ -20,7 +20,11 @@
 @_exported import CryptoKit
 #else
 @_implementationOnly import CCryptoBoringSSL
+#if canImport(FoundationEssentials)
+import FoundationEssentials
+#else
 import Foundation
+#endif
 %{
     parameter_sets = ["768", "1024"]
 }%
