@@ -15,7 +15,25 @@
 @_implementationOnly import CCryptoBoringSSL
 @_implementationOnly import CCryptoBoringSSLShims
 import Crypto
+
+#if canImport(FoundationEssentials)
+#if os(Windows)
+import ucrt
+#elseif canImport(Darwin)
+import Darwin
+#elseif canImport(Glibc)
+import Glibc
+#elseif canImport(Musl)
+import Musl
+#elseif canImport(Android)
+import Android
+#elseif canImport(WASILibc)
+import WASILibc
+#endif
+import FoundationEssentials
+#else
 import Foundation
+#endif
 
 #if canImport(Android)
 import Android

@@ -18,7 +18,24 @@
 #if CRYPTOKIT_NO_ACCESS_TO_FOUNDATION
 import SwiftSystem
 #else
+#if canImport(FoundationEssentials)
+#if os(Windows)
+import ucrt
+#elseif canImport(Darwin)
+import Darwin
+#elseif canImport(Glibc)
+import Glibc
+#elseif canImport(Musl)
+import Musl
+#elseif canImport(Android)
+import Android
+#elseif canImport(WASILibc)
+import WASILibc
+#endif
+import FoundationEssentials
+#else
 import Foundation
+#endif
 #endif
 
 

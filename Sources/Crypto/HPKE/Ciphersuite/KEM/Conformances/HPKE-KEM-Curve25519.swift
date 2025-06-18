@@ -18,7 +18,11 @@
 #if CRYPTOKIT_NO_ACCESS_TO_FOUNDATION
 public import SwiftSystem
 #else
+#if canImport(FoundationEssentials)
+public import FoundationEssentials
+#else
 public import Foundation
+#endif
 #endif
 
 

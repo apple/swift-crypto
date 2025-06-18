@@ -18,7 +18,11 @@
 #if CRYPTOKIT_NO_ACCESS_TO_FOUNDATION
 import SwiftSystem
 #else
+#if canImport(FoundationEssentials)
+import FoundationEssentials
+#else
 import Foundation
+#endif
 #endif
 
 // For temporary purposes we pretend that ArraySlice is our "bigint" type. We don't really need anything else.

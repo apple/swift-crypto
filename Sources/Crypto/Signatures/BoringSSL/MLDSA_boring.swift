@@ -16,14 +16,22 @@
 @_exported import CryptoKit
 #else
 @_implementationOnly import CCryptoBoringSSL
+#if canImport(FoundationEssentials)
+import FoundationEssentials
+#else
 import Foundation
+#endif
 
 // MARK: - Generated file, do NOT edit
 // any edits of this file WILL be overwritten and thus discarded
 // see section `gyb` in `README` for details.
 
 @_implementationOnly import CCryptoBoringSSL
+#if canImport(FoundationEssentials)
+import FoundationEssentials
+#else
 import Foundation
+#endif
 
 @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension MLDSA65 {
