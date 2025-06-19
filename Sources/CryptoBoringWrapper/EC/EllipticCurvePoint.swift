@@ -375,7 +375,8 @@ extension EllipticCurvePoint {
                 switch group.curveName {
                 case .p256: CCryptoBoringSSLShims_EC_hash_to_curve_p256_xmd_sha256_sswu
                 case .p384: CCryptoBoringSSLShims_EC_hash_to_curve_p384_xmd_sha384_sswu
-                case .p521: throw CryptoBoringWrapperError.invalidParameter  // BoringSSL has no P521 hash_to_curve API.
+                // BoringSSL has no P521 hash_to_curve API.
+                case .p521: throw CryptoBoringWrapperError.invalidParameter
                 case .none: throw CryptoBoringWrapperError.internalBoringSSLError()
                 }
 
