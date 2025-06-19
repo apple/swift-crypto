@@ -12,9 +12,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-import XCTest
-
 import CryptoBoringWrapper
+import XCTest
 
 final class EllipticCurvePointTests: XCTestCase {
     static let p256 = try! BoringSSLEllipticCurveGroup(.p256)
@@ -40,7 +39,8 @@ final class EllipticCurvePointTests: XCTestCase {
 
     func testInvertingHasValueSemantics() throws {
         let point = try Self.p256.generator.multiplying(
-            by: 2, on: Self.p256
+            by: 2,
+            on: Self.p256
         )
         var other = point
         try other.invert(on: Self.p256)
