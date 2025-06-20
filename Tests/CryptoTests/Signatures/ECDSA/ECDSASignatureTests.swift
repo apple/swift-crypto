@@ -148,7 +148,7 @@ class SignatureTests: XCTestCase {
         }
     }
     
-    func testGroup<C: NISTSigning, HF: HashFunction>(group: ECDSATestGroup, curve: C.Type, hashFunction: HF.Type, deserializeSignature: (Data) throws -> C.ECDSASignature, file: StaticString = #file, line: UInt = #line) throws where C.ECDSASignature == C.PublicKey.Signature {
+    func testGroup<C: NISTSigning, HF: HashFunction>(group: ECDSATestGroup, curve: C.Type, hashFunction: HF.Type, deserializeSignature: (Data) throws -> C.ECDSASignature, file: StaticString = #filePath, line: UInt = #line) throws where C.ECDSASignature == C.PublicKey.Signature {
         let keyBytes = try orFail(file: file, line: line) { try Array(hexString: group.publicKey.uncompressed) }
         let key = try orFail(file: file, line: line) { try C.PublicKey(x963Representation: keyBytes) }
 

@@ -29,7 +29,7 @@ struct RFCVectorDecoder {
         let bundle = Bundle(for: type(of: bundleType))
         let fileURL = bundle.url(forResource: fileName, withExtension: "txt")
         #else
-        var fileURL: URL? = URL(fileURLWithPath: "\(#file)")
+        var fileURL: URL? = URL(fileURLWithPath: "\(#filePath)")
         for _ in 0..<3 {
             fileURL!.deleteLastPathComponent()
         }
