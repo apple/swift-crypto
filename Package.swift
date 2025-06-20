@@ -142,6 +142,10 @@ let package = Package(
                 "Digests/Digests.swift.gyb",
                 "Key Agreement/ECDH.swift.gyb",
                 "Signatures/ECDSA.swift.gyb",
+                "Signatures/MLDSA.swift.gyb",
+                "Signatures/BoringSSL/MLDSA_boring.swift.gyb",
+                "KEM/MLKEM.swift.gyb",
+                "KEM/BoringSSL/MLKEM_boring.swift.gyb",
             ],
             resources: privacyManifestResource,
             swiftSettings: swiftSettings
