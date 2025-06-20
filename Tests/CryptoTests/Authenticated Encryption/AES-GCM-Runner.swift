@@ -44,6 +44,7 @@ struct AESGCMTestVector: Codable {
     let result: String
 }
 
+@available(iOS 17.4, macOS 14.4, watchOS 10.4, tvOS 17.4, macCatalyst 17.4, *)
 class AESGCMTests: XCTestCase {
     func testPropertiesStayTheSameAfterFailedOpening() throws {
         let message = Data("this is a message".utf8)
