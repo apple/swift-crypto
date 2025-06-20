@@ -34,9 +34,9 @@ import Foundation
 /// ourselves.
 @usableFromInline
 @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
-package class FiniteFieldArithmeticContext {
-    private var fieldSize: ArbitraryPrecisionInteger
-    package var bnCtx: OpaquePointer
+package class FiniteFieldArithmeticContext: @unchecked Sendable {
+    private let fieldSize: ArbitraryPrecisionInteger
+    package let bnCtx: OpaquePointer
 
     @usableFromInline
     package init(fieldSize: ArbitraryPrecisionInteger) throws {

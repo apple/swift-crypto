@@ -25,7 +25,7 @@ import XCTest
 typealias TestVector = (publicKey: Data, privateKey: Data, rs: rAndS)
 typealias rAndS = (r: Data, s: Data)
 
-func testVectorForCurve<S: NISTSigning>(curve: S.Type, file: StaticString = #file, line: UInt = #line) throws -> TestVector {
+func testVectorForCurve<S: NISTSigning>(curve: S.Type, file: StaticString = #filePath, line: UInt = #line) throws -> TestVector {
     switch S.self {
     case is P256.Signing.Type:
         do {
@@ -56,7 +56,7 @@ func testVectorForCurve<S: NISTSigning>(curve: S.Type, file: StaticString = #fil
 }
 
 class RawECDSASignaturesTests: XCTestCase {
-    func testForCurve<S: NISTSigning>(curve: S.Type, file: StaticString = #file, line: UInt = #line) throws {
+    func testForCurve<S: NISTSigning>(curve: S.Type, file: StaticString = #filePath, line: UInt = #line) throws {
         let msg = try unwrap("abc".data(using: .utf8), file: file, line: line)
         // We check that the test message is correctly encoded.
         XCTAssertEqual(msg, try Data(hexString: "616263"), file: file, line: line)

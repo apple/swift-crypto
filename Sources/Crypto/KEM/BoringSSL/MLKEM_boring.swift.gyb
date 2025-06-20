@@ -33,7 +33,7 @@ import Foundation
 @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension MLKEM${parameter_set} {
     /// A ML-KEM-${parameter_set} private key.
-    struct InternalPrivateKey: Sendable, KEMPrivateKey {
+    struct InternalPrivateKey: @unchecked Sendable, KEMPrivateKey {
         private var backing: Backing
 
         /// Initialize a ML-KEM-${parameter_set} private key from a random seed.
@@ -179,7 +179,7 @@ extension MLKEM${parameter_set} {
 @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension MLKEM${parameter_set} {
     /// A ML-KEM-${parameter_set} public key.
-    struct InternalPublicKey: Sendable, KEMPublicKey {
+    struct InternalPublicKey: @unchecked Sendable, KEMPublicKey {
         private var backing: Backing
 
         fileprivate init(privateKeyBacking: InternalPrivateKey.Backing) {
@@ -205,13 +205,6 @@ extension MLKEM${parameter_set} {
         /// - Returns: The shared secret and its encapsulated version.
         func encapsulate() -> KEM.EncapsulationResult {
             self.backing.encapsulate()
-        }
-
-        /// Encapsulate a shared secret using a fixed RNG result.
-        ///
-        /// - Returns: The shared secret and its encapsulated version.
-        func encapsulateWithSeed(_ encapWithSeed: Data) -> KEM.EncapsulationResult {
-            self.backing.encapsulate(encapWithSeed)
         }
 
         /// The size of the public key in bytes.

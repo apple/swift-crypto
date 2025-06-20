@@ -20,8 +20,8 @@ struct WycheproofTest<T: Codable>: Codable {
 }
 
 extension XCTestCase {
-    func wycheproofTest<T: Codable>(jsonName: String, file: StaticString = #file, line: UInt = #line, testFunction: (T) throws -> Void) throws {
-        var fileURL = URL(fileURLWithPath: "\(#file)")
+    func wycheproofTest<T: Codable>(jsonName: String, file: StaticString = #filePath, line: UInt = #line, testFunction: (T) throws -> Void) throws {
+        var fileURL = URL(fileURLWithPath: "\(#filePath)")
         for _ in 0..<3 {
             fileURL.deleteLastPathComponent()
         }

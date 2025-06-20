@@ -44,6 +44,7 @@ struct AESGCMTestVector: Codable {
     let result: String
 }
 
+@available(iOS 17.4, macOS 14.4, watchOS 10.4, tvOS 17.4, macCatalyst 17.4, *)
 class AESGCMTests: XCTestCase {
     func testPropertiesStayTheSameAfterFailedOpening() throws {
         let message = Data("this is a message".utf8)
@@ -156,7 +157,7 @@ class AESGCMTests: XCTestCase {
     }
 
     func testRoundTripDataProtocols() throws {
-        func roundTrip<Message: DataProtocol, AAD: DataProtocol>(message: Message, aad: AAD, file: StaticString = (#file), line: UInt = #line) throws {
+        func roundTrip<Message: DataProtocol, AAD: DataProtocol>(message: Message, aad: AAD, file: StaticString = (#filePath), line: UInt = #line) throws {
             let key = SymmetricKey(size: .bits256)
             let nonce = AES.GCM.Nonce()
             let ciphertext = try orFail(file: file, line: line) { try AES.GCM.seal(message, using: key, nonce: nonce, authenticating: aad) }

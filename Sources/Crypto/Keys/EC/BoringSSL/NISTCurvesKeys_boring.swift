@@ -64,7 +64,7 @@ extension P521: OpenSSLSupportedNISTCurve {
 
 @usableFromInline
 @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
-struct OpenSSLNISTCurvePrivateKeyImpl<Curve: OpenSSLSupportedNISTCurve> {
+struct OpenSSLNISTCurvePrivateKeyImpl<Curve: OpenSSLSupportedNISTCurve>: Sendable {
     @usableFromInline
     var key: BoringSSLECPrivateKeyWrapper<Curve>
 
@@ -95,7 +95,7 @@ struct OpenSSLNISTCurvePrivateKeyImpl<Curve: OpenSSLSupportedNISTCurve> {
 
 @usableFromInline
 @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
-struct OpenSSLNISTCurvePublicKeyImpl<Curve: OpenSSLSupportedNISTCurve> {
+struct OpenSSLNISTCurvePublicKeyImpl<Curve: OpenSSLSupportedNISTCurve>: Sendable {
     @usableFromInline
     var key: BoringSSLECPublicKeyWrapper<Curve>
 
@@ -145,9 +145,9 @@ struct OpenSSLNISTCurvePublicKeyImpl<Curve: OpenSSLSupportedNISTCurve> {
 /// allows some helper operations.
 @usableFromInline
 @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
-class BoringSSLECPrivateKeyWrapper<Curve: OpenSSLSupportedNISTCurve> {
+class BoringSSLECPrivateKeyWrapper<Curve: OpenSSLSupportedNISTCurve>: @unchecked Sendable {
     @usableFromInline
-    var key: OpaquePointer
+    let key: OpaquePointer
 
     init(compactRepresentable: Bool) throws {
         // We cannot handle allocation failure.
@@ -350,9 +350,9 @@ class BoringSSLECPrivateKeyWrapper<Curve: OpenSSLSupportedNISTCurve> {
 /// allows some helper operations.
 @usableFromInline
 @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
-class BoringSSLECPublicKeyWrapper<Curve: OpenSSLSupportedNISTCurve> {
+class BoringSSLECPublicKeyWrapper<Curve: OpenSSLSupportedNISTCurve>: @unchecked Sendable {
     @usableFromInline
-    var key: OpaquePointer
+    let key: OpaquePointer
 
     init<Bytes: ContiguousBytes>(compactRepresentation bytes: Bytes) throws {
         let group = Curve.group

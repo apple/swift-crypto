@@ -25,7 +25,7 @@ struct RFCVectorDecoder {
     private var index: Int?
 
     init(bundleType: AnyObject, fileName: String) throws {
-        var fileURL: URL? = URL(fileURLWithPath: "\(#file)")
+        var fileURL: URL? = URL(fileURLWithPath: "\(#filePath)")
         for _ in 0..<3 {
             fileURL!.deleteLastPathComponent()
         }

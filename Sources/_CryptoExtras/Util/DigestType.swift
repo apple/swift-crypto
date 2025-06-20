@@ -17,12 +17,12 @@
 import Crypto
 
 @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
-struct DigestType {
-    var dispatchTable: OpaquePointer
+struct DigestType: @unchecked Sendable {
+    let dispatchTable: OpaquePointer
 
-    var nid: CInt
+    let nid: CInt
 
-    var digestLength: Int
+    let digestLength: Int
 
     /// The dispatchtable pointer must have static storage and not be lifetime managed,
     /// as it is assumed to last for the duration of the program.

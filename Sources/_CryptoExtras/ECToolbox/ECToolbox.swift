@@ -57,7 +57,7 @@ protocol HashToGroup {
 }
 
 @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
-protocol GroupScalar {
+protocol GroupScalar: Sendable {
     init(bytes: Data, reductionIsModOrder: Bool) throws
 
     var rawRepresentation: Data { get }
@@ -80,7 +80,7 @@ protocol GroupScalar {
 }
 
 @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
-protocol GroupElement {
+protocol GroupElement: Sendable {
     associatedtype Scalar: GroupScalar
 
     static var generator: Self { get }

@@ -36,7 +36,7 @@ import Foundation
 @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension MLDSA65 {
     /// A ML-DSA-65 private key.
-    struct InternalPrivateKey: Sendable {
+    struct InternalPrivateKey: @unchecked Sendable {
         private var backing: Backing
 
         /// Initialize a ML-DSA-65 private key from a random seed.
@@ -193,7 +193,7 @@ extension MLDSA65 {
 @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension MLDSA65 {
     /// A ML-DSA-65 public key.
-    struct InternalPublicKey: Sendable {
+    struct InternalPublicKey: @unchecked Sendable {
         private var backing: Backing
 
         fileprivate init(privateKeyBacking: InternalPrivateKey.Backing) {
@@ -338,7 +338,7 @@ extension MLDSA65 {
 @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension MLDSA87 {
     /// A ML-DSA-87 private key.
-    struct InternalPrivateKey: Sendable {
+    struct InternalPrivateKey: @unchecked Sendable {
         private var backing: Backing
 
         /// Initialize a ML-DSA-87 private key from a random seed.
@@ -495,7 +495,7 @@ extension MLDSA87 {
 @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension MLDSA87 {
     /// A ML-DSA-87 public key.
-    struct InternalPublicKey: Sendable {
+    struct InternalPublicKey: @unchecked Sendable {
         private var backing: Backing
 
         fileprivate init(privateKeyBacking: InternalPrivateKey.Backing) {

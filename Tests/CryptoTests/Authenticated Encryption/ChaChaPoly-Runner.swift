@@ -26,6 +26,7 @@ import CryptoKit
 import Crypto
 #endif
 
+@available(iOS 17.4, macOS 14.4, watchOS 10.4, tvOS 17.4, macCatalyst 17.4, *)
 class ChaChaPolyTests: XCTestCase {
     func testIncorrectKeySize() throws {
         let plaintext: Data = "Some Super Secret Message".data(using: String.Encoding.utf8)!
@@ -122,7 +123,7 @@ class ChaChaPolyTests: XCTestCase {
     }
 
     func testRoundTripDataProtocols() throws {
-        func roundTrip<Message: DataProtocol, AAD: DataProtocol>(message: Message, aad: AAD, file: StaticString = (#file), line: UInt = #line) throws {
+        func roundTrip<Message: DataProtocol, AAD: DataProtocol>(message: Message, aad: AAD, file: StaticString = (#filePath), line: UInt = #line) throws {
             let key = SymmetricKey(size: .bits256)
             let nonce = ChaChaPoly.Nonce()
 

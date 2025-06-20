@@ -43,7 +43,7 @@ struct RFC9474TestVector: Codable {
 
     static let allValues: [Self] = try! RFC9474TestVector.load(from: URL(
         fileURLWithPath: "../_CryptoExtrasVectors/rfc9474.json",
-        relativeTo: URL(fileURLWithPath: #file)
+        relativeTo: URL(fileURLWithPath: #filePath)
     ))
 }
 
