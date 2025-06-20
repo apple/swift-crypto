@@ -37,8 +37,12 @@ final class MLKEMTests: XCTestCase {
         var modifiedPublicKeyBytes = publicKeyBytes
         modifiedPublicKeyBytes[0] = 0xff
         modifiedPublicKeyBytes[1] = 0xff
-        // Parsing should fail because the first coefficient is >= kPrime;
-        XCTAssertThrowsError(try MLKEM768.PublicKey(rawRepresentation: modifiedPublicKeyBytes))
+        // Parsing should fail because the first coefficient is >= kPrime. The check may be delayed
+        // to the encapsulation stage.
+        XCTAssertThrowsError(try {
+            let pk = try MLKEM768.PublicKey(rawRepresentation: modifiedPublicKeyBytes)
+            _ = try pk.encapsulate()
+        }())
 
         let publicKey2 = try MLKEM768.PublicKey(rawRepresentation: publicKeyBytes)
         XCTAssertEqual(publicKeyBytes, publicKey2.rawRepresentation)
@@ -83,8 +87,12 @@ final class MLKEMTests: XCTestCase {
         var modifiedPublicKeyBytes = publicKeyBytes
         modifiedPublicKeyBytes[0] = 0xff
         modifiedPublicKeyBytes[1] = 0xff
-        // Parsing should fail because the first coefficient is >= kPrime;
-        XCTAssertThrowsError(try MLKEM1024.PublicKey(rawRepresentation: modifiedPublicKeyBytes))
+        // Parsing should fail because the first coefficient is >= kPrime. The check may be delayed
+        // to the encapsulation stage.
+        XCTAssertThrowsError(try {
+            let pk = try MLKEM1024.PublicKey(rawRepresentation: modifiedPublicKeyBytes)
+            _ = try pk.encapsulate()
+        }())
 
         let publicKey2 = try MLKEM1024.PublicKey(rawRepresentation: publicKeyBytes)
         XCTAssertEqual(publicKeyBytes, publicKey2.rawRepresentation)
