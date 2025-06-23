@@ -20,7 +20,7 @@ import Foundation
 
 @available(macOS 10.15, iOS 13.2, tvOS 13.2, watchOS 6.1, macCatalyst 13.2, visionOS 1.2, *)
 extension ARC {
-    struct ServerPrivateKey<Scalar> {
+    struct ServerPrivateKey<Scalar: GroupScalar> {
         let x0: Scalar
         let x1: Scalar
         let x2: Scalar

@@ -20,7 +20,7 @@ import Foundation
 
 @available(macOS 10.15, iOS 13.2, tvOS 13.2, watchOS 6.1, macCatalyst 13.2, visionOS 1.2, *)
 extension ARC {
-    struct ClientSecrets<Scalar> {
+    struct ClientSecrets<Scalar: GroupScalar> {
         let m1: Scalar // secret at request and verification
         let m2: Scalar // secret at request, public at verification (server expected to know value)
         let r1: Scalar // secret blinding factor for m1
