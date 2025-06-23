@@ -23,7 +23,7 @@ import Foundation
 #endif
 
 @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
-protocol BoringSSLBackedMLDSAPrivateKey {
+protocol BoringSSLBackedMLDSAPrivateKey: Sendable {
     associatedtype AssociatedPublicKey: BoringSSLBackedMLDSAPublicKey
 
     init() throws
@@ -42,7 +42,7 @@ protocol BoringSSLBackedMLDSAPrivateKey {
 }
 
 @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
-protocol BoringSSLBackedMLDSAPublicKey {
+protocol BoringSSLBackedMLDSAPublicKey: Sendable {
     init<D: DataProtocol>(rawRepresentation: D) throws
 
     func isValidSignature<S: DataProtocol, D: DataProtocol>(_: S, for data: D) -> Bool

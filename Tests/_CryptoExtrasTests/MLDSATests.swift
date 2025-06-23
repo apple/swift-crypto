@@ -223,11 +223,11 @@ final class MLDSATests: XCTestCase {
     @available(iOS 19.0, macOS 16.0, watchOS 12.0, tvOS 19.0, visionOS 3.0, *)
     private func nistTest<Vector: Decodable>(
         jsonName: String,
-        file: StaticString = #file,
+        file: StaticString = #filePath,
         line: UInt = #line,
         testFunction: (Vector) throws -> Void
     ) throws {
-        var fileURL = URL(fileURLWithPath: "\(#file)")
+        var fileURL = URL(fileURLWithPath: "\(#filePath)")
         for _ in 0..<2 {
             fileURL.deleteLastPathComponent()
         }

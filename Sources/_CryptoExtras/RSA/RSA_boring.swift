@@ -200,7 +200,7 @@ extension BoringSSLRSAPublicKey {
 @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension BoringSSLRSAPublicKey {
     @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
-    fileprivate final class Backing {
+    fileprivate final class Backing: @unchecked Sendable {
         private let pointer: OpaquePointer
 
         fileprivate init(takingOwnershipOf pointer: OpaquePointer) {
@@ -571,7 +571,7 @@ extension BoringSSLRSAPublicKey {
 @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension BoringSSLRSAPrivateKey {
     @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
-    fileprivate final class Backing {
+    fileprivate final class Backing: @unchecked Sendable {
         private let pointer: OpaquePointer
 
         fileprivate init(copying other: Backing) {

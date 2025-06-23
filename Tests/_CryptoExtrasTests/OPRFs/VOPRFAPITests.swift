@@ -24,7 +24,7 @@ extension OPRFSuite {
 
     static let allValues: [Self] = try! OPRFSuite.load(from: URL(
         fileURLWithPath: "OPRFVectors/OPRFVectors-VOPRFDraft19.json",
-        relativeTo: URL(fileURLWithPath: #file)
+        relativeTo: URL(fileURLWithPath: #filePath)
     ))
 
     static var P384_SHA384_VORPF: Self {

@@ -29,7 +29,7 @@ import Foundation
 @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension MLKEM768 {
     /// A ML-KEM-768 private key.
-    struct InternalPrivateKey: Sendable, KEMPrivateKey {
+    struct InternalPrivateKey: @unchecked Sendable, KEMPrivateKey {
         private var backing: Backing
 
         /// Initialize a ML-KEM-768 private key from a random seed.
@@ -175,7 +175,7 @@ extension MLKEM768 {
 @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension MLKEM768 {
     /// A ML-KEM-768 public key.
-    struct InternalPublicKey: Sendable, KEMPublicKey {
+    struct InternalPublicKey: @unchecked Sendable, KEMPublicKey {
         private var backing: Backing
 
         fileprivate init(privateKeyBacking: InternalPrivateKey.Backing) {
@@ -296,7 +296,7 @@ extension MLKEM768 {
 @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension MLKEM1024 {
     /// A ML-KEM-1024 private key.
-    struct InternalPrivateKey: Sendable, KEMPrivateKey {
+    struct InternalPrivateKey: @unchecked Sendable, KEMPrivateKey {
         private var backing: Backing
 
         /// Initialize a ML-KEM-1024 private key from a random seed.
@@ -442,7 +442,7 @@ extension MLKEM1024 {
 @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension MLKEM1024 {
     /// A ML-KEM-1024 public key.
-    struct InternalPublicKey: Sendable, KEMPublicKey {
+    struct InternalPublicKey: @unchecked Sendable, KEMPublicKey {
         private var backing: Backing
 
         fileprivate init(privateKeyBacking: InternalPrivateKey.Backing) {
