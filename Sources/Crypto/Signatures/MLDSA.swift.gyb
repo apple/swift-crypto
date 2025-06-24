@@ -114,9 +114,11 @@ extension ${NAME} {
 
         private var boringSSLKey: OpenSSLMLDSAPublicKeyImpl<${NAME}> {
             get throws {
-                self.impl is OpenSSLMLDSAPublicKeyImpl<${NAME}>
-                    ? self.impl
-                    : try OpenSSLMLDSAPublicKeyImpl<${NAME}>(rawRepresentation: self.rawRepresentation)
+                #if (!CRYPTO_IN_SWIFTPM_FORCE_BUILD_API) || CRYPTOKIT_NO_ACCESS_TO_FOUNDATION
+                try OpenSSLMLDSAPublicKeyImpl<${NAME}>(rawRepresentation: self.rawRepresentation)
+                #else
+                self.impl
+                #endif
             }
         }
     }
@@ -212,12 +214,14 @@ extension ${NAME} {
 
         private var boringSSLKey: OpenSSLMLDSAPrivateKeyImpl<${NAME}> {
             get throws {
-                self.impl is OpenSSLMLDSAPrivateKeyImpl<${NAME}>
-                    ? self.impl
-                    : try OpenSSLMLDSAPrivateKeyImpl<${NAME}>(
-                        seedRepresentation: self.seedRepresentation,
-                        publicKey: nil
-                    )
+                #if (!CRYPTO_IN_SWIFTPM_FORCE_BUILD_API) || CRYPTOKIT_NO_ACCESS_TO_FOUNDATION
+                try OpenSSLMLDSAPrivateKeyImpl<${NAME}>(
+                    seedRepresentation: self.seedRepresentation,
+                    publicKey: nil
+                )
+                #else
+                self.impl
+                #endif
             }
         }
     }

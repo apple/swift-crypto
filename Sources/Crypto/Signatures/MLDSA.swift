@@ -106,9 +106,11 @@ extension MLDSA65 {
 
         private var boringSSLKey: OpenSSLMLDSAPublicKeyImpl<MLDSA65> {
             get throws {
-                self.impl is OpenSSLMLDSAPublicKeyImpl<MLDSA65>
-                    ? self.impl
-                    : try OpenSSLMLDSAPublicKeyImpl<MLDSA65>(rawRepresentation: self.rawRepresentation)
+                #if (!CRYPTO_IN_SWIFTPM_FORCE_BUILD_API) || CRYPTOKIT_NO_ACCESS_TO_FOUNDATION
+                try OpenSSLMLDSAPublicKeyImpl<MLDSA65>(rawRepresentation: self.rawRepresentation)
+                #else
+                self.impl
+                #endif
             }
         }
     }
@@ -204,12 +206,14 @@ extension MLDSA65 {
 
         private var boringSSLKey: OpenSSLMLDSAPrivateKeyImpl<MLDSA65> {
             get throws {
-                self.impl is OpenSSLMLDSAPrivateKeyImpl<MLDSA65>
-                    ? self.impl
-                    : try OpenSSLMLDSAPrivateKeyImpl<MLDSA65>(
-                        seedRepresentation: self.seedRepresentation,
-                        publicKey: nil
-                    )
+                #if (!CRYPTO_IN_SWIFTPM_FORCE_BUILD_API) || CRYPTOKIT_NO_ACCESS_TO_FOUNDATION
+                try OpenSSLMLDSAPrivateKeyImpl<MLDSA65>(
+                    seedRepresentation: self.seedRepresentation,
+                    publicKey: nil
+                )
+                #else
+                self.impl
+                #endif
             }
         }
     }
@@ -291,9 +295,11 @@ extension MLDSA87 {
 
         private var boringSSLKey: OpenSSLMLDSAPublicKeyImpl<MLDSA87> {
             get throws {
-                self.impl is OpenSSLMLDSAPublicKeyImpl<MLDSA87>
-                    ? self.impl
-                    : try OpenSSLMLDSAPublicKeyImpl<MLDSA87>(rawRepresentation: self.rawRepresentation)
+                #if (!CRYPTO_IN_SWIFTPM_FORCE_BUILD_API) || CRYPTOKIT_NO_ACCESS_TO_FOUNDATION
+                try OpenSSLMLDSAPublicKeyImpl<MLDSA87>(rawRepresentation: self.rawRepresentation)
+                #else
+                self.impl
+                #endif
             }
         }
     }
@@ -389,12 +395,14 @@ extension MLDSA87 {
 
         private var boringSSLKey: OpenSSLMLDSAPrivateKeyImpl<MLDSA87> {
             get throws {
-                self.impl is OpenSSLMLDSAPrivateKeyImpl<MLDSA87>
-                    ? self.impl
-                    : try OpenSSLMLDSAPrivateKeyImpl<MLDSA87>(
-                        seedRepresentation: self.seedRepresentation,
-                        publicKey: nil
-                    )
+                #if (!CRYPTO_IN_SWIFTPM_FORCE_BUILD_API) || CRYPTOKIT_NO_ACCESS_TO_FOUNDATION
+                try OpenSSLMLDSAPrivateKeyImpl<MLDSA87>(
+                    seedRepresentation: self.seedRepresentation,
+                    publicKey: nil
+                )
+                #else
+                self.impl
+                #endif
             }
         }
     }
