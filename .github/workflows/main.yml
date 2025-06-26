@@ -32,4 +32,3 @@ jobs:
     with:
       runner_pool: nightly
       build_scheme: swift-crypto-Package
->>>>>>> main
