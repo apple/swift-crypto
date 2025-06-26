@@ -342,8 +342,26 @@ elseif(CMAKE_SYSTEM_NAME MATCHES "Linux|Android|FreeBSD|OpenBSD" AND CMAKE_SYSTE
     gen/bcm/vpaes-armv8-linux.S
     gen/crypto/chacha-armv8-linux.S
     gen/crypto/chacha20_poly1305_armv8-linux.S)
+elseif(CMAKE_SYSTEM_NAME MATCHES "Windows" AND CMAKE_SYSTEM_PROCESSOR MATCHES "AMD64|amd64|x86_64")
+  # No assembly sources for x86_64 on Windows.
+elseif(CMAKE_SYSTEM_NAME MATCHES "Windows" AND CMAKE_SYSTEM_PROCESSOR MATCHES "ARM64|arm64|aarch64")
+  target_sources(CCryptoBoringSSL PRIVATE
+    gen/bcm/aesv8-armv8-win.S
+    gen/bcm/aesv8-gcm-armv8-win.S
+    gen/bcm/armv8-mont-win.S
+    gen/bcm/bn-armv8-win.S
+    gen/bcm/ghash-neon-armv8-win.S
+    gen/bcm/ghashv8-armv8-win.S
+    gen/bcm/p256-armv8-asm-win.S
+    gen/bcm/p256_beeu-armv8-asm-win.S
+    gen/bcm/sha1-armv8-win.S
+    gen/bcm/sha256-armv8-win.S
+    gen/bcm/sha512-armv8-win.S
+    gen/bcm/vpaes-armv8-win.S
+    gen/crypto/chacha-armv8-win.S
+    gen/crypto/chacha20_poly1305_armv8-win.S)
 else()
-   message(FATAL_ERROR "platform sources are not defined here")
+   message(FATAL_ERROR "platform sources are not defined here for ${CMAKE_SYSTEM_NAME} on ${CMAKE_SYSTEM_PROCESSOR}")
 endif()
 
 target_include_directories(CCryptoBoringSSL PUBLIC
