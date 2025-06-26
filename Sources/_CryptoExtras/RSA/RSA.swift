@@ -259,6 +259,10 @@ extension _RSA.Signing {
             self.backing.pemRepresentation
         }
 
+        public var pkcs8DERRepresentation: Data {
+            self.backing.pkcs8DERRepresentation
+        }
+
         public var pkcs8PEMRepresentation: String {
             self.backing.pkcs8PEMRepresentation
         }
