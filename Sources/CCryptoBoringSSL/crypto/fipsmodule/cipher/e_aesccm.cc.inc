@@ -1,50 +1,16 @@
-/* ====================================================================
- * Copyright (c) 2008 The OpenSSL Project.  All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
- *
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
- *
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in
- *    the documentation and/or other materials provided with the
- *    distribution.
- *
- * 3. All advertising materials mentioning features or use of this
- *    software must display the following acknowledgment:
- *    "This product includes software developed by the OpenSSL Project
- *    for use in the OpenSSL Toolkit. (http://www.openssl.org/)"
- *
- * 4. The names "OpenSSL Toolkit" and "OpenSSL Project" must not be used to
- *    endorse or promote products derived from this software without
- *    prior written permission. For written permission, please contact
- *    openssl-core@openssl.org.
- *
- * 5. Products derived from this software may not be called "OpenSSL"
- *    nor may "OpenSSL" appear in their names without prior written
- *    permission of the OpenSSL Project.
- *
- * 6. Redistributions of any form whatsoever must retain the following
- *    acknowledgment:
- *    "This product includes software developed by the OpenSSL Project
- *    for use in the OpenSSL Toolkit (http://www.openssl.org/)"
- *
- * THIS SOFTWARE IS PROVIDED BY THE OpenSSL PROJECT ``AS IS'' AND ANY
- * EXPRESSED OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
- * PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL THE OpenSSL PROJECT OR
- * ITS CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
- * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
- * NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
- * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
- * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
- * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
- * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
- * OF THE POSSIBILITY OF SUCH DAMAGE.
- * ==================================================================== */
+// Copyright 2011-2016 The OpenSSL Project Authors. All Rights Reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     https://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 
 #include <CCryptoBoringSSL_aead.h>
 
@@ -54,8 +20,8 @@
 #include <CCryptoBoringSSL_err.h>
 #include <CCryptoBoringSSL_mem.h>
 
+#include "../aes/internal.h"
 #include "../delocate.h"
-#include "../modes/internal.h"
 #include "../service_indicator/internal.h"
 #include "internal.h"
 
@@ -99,8 +65,8 @@ static int ccm128_init_state(const struct ccm128_context *ctx,
   const unsigned L = ctx->L;
 
   // |L| determines the expected |nonce_len| and the limit for |plaintext_len|.
-  if (plaintext_len > CRYPTO_ccm128_max_input(ctx) ||
-      nonce_len != 15 - L) {
+  if (plaintext_len > CRYPTO_ccm128_max_input(ctx)  //
+      || nonce_len != 15 - L) {
     return 0;
   }
 
@@ -166,7 +132,7 @@ static int ccm128_init_state(const struct ccm128_context *ctx,
   size_t remaining_blocks = 2 * ((plaintext_len + 15) / 16) + 1;
   if (plaintext_len + 15 < plaintext_len ||
       remaining_blocks + blocks < blocks ||
-      (uint64_t) remaining_blocks + blocks > UINT64_C(1) << 61) {
+      (uint64_t)remaining_blocks + blocks > UINT64_C(1) << 61) {
     return 0;
   }
 
@@ -188,13 +154,8 @@ static int ccm128_encrypt(const struct ccm128_context *ctx,
 
   uint8_t partial_buf[16];
   unsigned num = 0;
-  if (ctx->ctr != NULL) {
-    CRYPTO_ctr128_encrypt_ctr32(in, out, len, key, state->nonce, partial_buf,
-                                &num, ctx->ctr);
-  } else {
-    CRYPTO_ctr128_encrypt(in, out, len, key, state->nonce, partial_buf, &num,
-                          ctx->block);
-  }
+  CRYPTO_ctr128_encrypt_ctr32(in, out, len, key, state->nonce, partial_buf,
+                              &num, ctx->ctr);
   return 1;
 }
 
@@ -261,6 +222,7 @@ static int CRYPTO_ccm128_decrypt(const struct ccm128_context *ctx,
 
 #define EVP_AEAD_AES_CCM_MAX_TAG_LEN 16
 
+namespace {
 struct aead_aes_ccm_ctx {
   union {
     double align;
@@ -268,6 +230,7 @@ struct aead_aes_ccm_ctx {
   } ks;
   struct ccm128_context ccm;
 };
+}  // namespace
 
 static_assert(sizeof(((EVP_AEAD_CTX *)NULL)->state) >=
                   sizeof(struct aead_aes_ccm_ctx),

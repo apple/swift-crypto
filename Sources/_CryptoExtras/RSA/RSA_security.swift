@@ -18,7 +18,7 @@ import Crypto
 @_implementationOnly import Security
 
 // unchecked sendable until `SecKey` gets sendable annotations
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 internal struct SecurityRSAPublicKey: @unchecked Sendable {
     private var backing: SecKey
 
@@ -80,7 +80,7 @@ internal struct SecurityRSAPublicKey: @unchecked Sendable {
 }
 
 // unchecked sendable until `SecKey` gets sendable annotations
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 internal struct SecurityRSAPrivateKey: @unchecked Sendable {
     private var backing: SecKey
 
@@ -178,7 +178,7 @@ internal struct SecurityRSAPrivateKey: @unchecked Sendable {
     }
 }
 
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension SecurityRSAPrivateKey {
     internal func signature<D: Digest>(for digest: D, padding: _RSA.Signing.Padding) throws -> _RSA.Signing.RSASignature {
         let algorithm = try SecKeyAlgorithm(digestType: D.self, padding: padding)
@@ -195,7 +195,7 @@ extension SecurityRSAPrivateKey {
     }
  }
  
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
  extension SecurityRSAPrivateKey {
     internal func decrypt<D: DataProtocol>(_ data: D, padding: _RSA.Encryption.Padding) throws -> Data {
         let algorithm = try SecKeyAlgorithm(padding: padding)
@@ -211,7 +211,7 @@ extension SecurityRSAPrivateKey {
     }
 }
 
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension SecurityRSAPublicKey {
     func isValidSignature<D: Digest>(_ signature: _RSA.Signing.RSASignature, for digest: D, padding: _RSA.Signing.Padding) -> Bool {
         do {
@@ -231,7 +231,7 @@ extension SecurityRSAPublicKey {
     }
 }
 
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension SecurityRSAPublicKey {
     internal func encrypt<D: DataProtocol>(_ data: D, padding: _RSA.Encryption.Padding) throws -> Data {
         let algorithm = try SecKeyAlgorithm(padding: padding)
@@ -247,7 +247,7 @@ extension SecurityRSAPublicKey {
     }
 }
 
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension SecKeyAlgorithm {
     fileprivate init<D: Digest>(digestType: D.Type = D.self, padding: _RSA.Signing.Padding) throws {
         switch (digestType, padding.backing) {
@@ -288,7 +288,7 @@ extension SecKeyAlgorithm {
     }
 }
 
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension Data {
     init<D: Digest>(_ digest: D) {
         self = digest.withUnsafeBytes { Data($0) }
@@ -448,7 +448,7 @@ extension Data {
     }
 }
 
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension Int {
     fileprivate var _bytesNeededToEncodeASN1Length: Int {
         // ASN.1 lengths are in two forms. If we can store the length in 7 bits, we should:
@@ -466,7 +466,7 @@ extension Int {
     }
 }
 
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension UInt {
     // Bytes needed to store a given integer in 7 bit bytes.
     fileprivate var neededBytes: Int {

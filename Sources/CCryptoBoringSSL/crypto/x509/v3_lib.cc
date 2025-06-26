@@ -1,60 +1,17 @@
-/*
- * Written by Dr Stephen N Henson (steve@openssl.org) for the OpenSSL project
- * 1999.
- */
-/* ====================================================================
- * Copyright (c) 1999 The OpenSSL Project.  All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
- *
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
- *
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in
- *    the documentation and/or other materials provided with the
- *    distribution.
- *
- * 3. All advertising materials mentioning features or use of this
- *    software must display the following acknowledgment:
- *    "This product includes software developed by the OpenSSL Project
- *    for use in the OpenSSL Toolkit. (http://www.OpenSSL.org/)"
- *
- * 4. The names "OpenSSL Toolkit" and "OpenSSL Project" must not be used to
- *    endorse or promote products derived from this software without
- *    prior written permission. For written permission, please contact
- *    licensing@OpenSSL.org.
- *
- * 5. Products derived from this software may not be called "OpenSSL"
- *    nor may "OpenSSL" appear in their names without prior written
- *    permission of the OpenSSL Project.
- *
- * 6. Redistributions of any form whatsoever must retain the following
- *    acknowledgment:
- *    "This product includes software developed by the OpenSSL Project
- *    for use in the OpenSSL Toolkit (http://www.OpenSSL.org/)"
- *
- * THIS SOFTWARE IS PROVIDED BY THE OpenSSL PROJECT ``AS IS'' AND ANY
- * EXPRESSED OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
- * PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL THE OpenSSL PROJECT OR
- * ITS CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
- * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
- * NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
- * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
- * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
- * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
- * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
- * OF THE POSSIBILITY OF SUCH DAMAGE.
- * ====================================================================
- *
- * This product includes cryptographic software written by Eric Young
- * (eay@cryptsoft.com).  This product includes software written by Tim
- * Hudson (tjh@cryptsoft.com).
- *
- */
+// Copyright 1999-2016 The OpenSSL Project Authors. All Rights Reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     https://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 /* X509 v3 extension utilities */
 
 #include <assert.h>
@@ -67,8 +24,6 @@
 #include <CCryptoBoringSSL_x509.h>
 
 #include "internal.h"
-
-#include "ext_dat.h"
 
 DEFINE_STACK_OF(X509V3_EXT_METHOD)
 
@@ -94,33 +49,81 @@ int X509V3_EXT_add(X509V3_EXT_METHOD *ext) {
   return 1;
 }
 
-static int ext_cmp(const void *void_a, const void *void_b) {
-  const X509V3_EXT_METHOD **a = (const X509V3_EXT_METHOD **)void_a;
-  const X509V3_EXT_METHOD **b = (const X509V3_EXT_METHOD **)void_b;
-  return ext_stack_cmp(a, b);
-}
-
 const X509V3_EXT_METHOD *X509V3_EXT_get_nid(int nid) {
-  X509V3_EXT_METHOD tmp;
-  const X509V3_EXT_METHOD *t = &tmp, *const * ret;
-  size_t idx;
-
   if (nid < 0) {
-    return NULL;
-  }
-  tmp.ext_nid = nid;
-  ret = reinterpret_cast<X509V3_EXT_METHOD **>(
-      bsearch(&t, standard_exts, STANDARD_EXTENSION_COUNT,
-              sizeof(X509V3_EXT_METHOD *), ext_cmp));
-  if (ret) {
-    return *ret;
-  }
-  if (!ext_list) {
-    return NULL;
+    return nullptr;
   }
 
-  if (!sk_X509V3_EXT_METHOD_find(ext_list, &idx, &tmp)) {
-    return NULL;
+  switch (nid) {
+    case NID_netscape_cert_type:
+      return &v3_nscert;
+    case NID_netscape_base_url:
+      return &v3_netscape_base_url;
+    case NID_netscape_revocation_url:
+      return &v3_netscape_revocation_url;
+    case NID_netscape_ca_revocation_url:
+      return &v3_netscape_ca_revocation_url;
+    case NID_netscape_renewal_url:
+      return &v3_netscape_renewal_url;
+    case NID_netscape_ca_policy_url:
+      return &v3_netscape_ca_policy_url;
+    case NID_netscape_ssl_server_name:
+      return &v3_netscape_ssl_server_name;
+    case NID_netscape_comment:
+      return &v3_netscape_comment;
+    case NID_subject_key_identifier:
+      return &v3_skey_id;
+    case NID_key_usage:
+      return &v3_key_usage;
+    case NID_subject_alt_name:
+      return &v3_subject_alt_name;
+    case NID_issuer_alt_name:
+      return &v3_issuer_alt_name;
+    case NID_certificate_issuer:
+      return &v3_certificate_issuer;
+    case NID_basic_constraints:
+      return &v3_bcons;
+    case NID_crl_number:
+      return &v3_crl_num;
+    case NID_certificate_policies:
+      return &v3_cpols;
+    case NID_authority_key_identifier:
+      return &v3_akey_id;
+    case NID_crl_distribution_points:
+      return &v3_crld;
+    case NID_ext_key_usage:
+      return &v3_ext_ku;
+    case NID_delta_crl:
+      return &v3_delta_crl;
+    case NID_crl_reason:
+      return &v3_crl_reason;
+    case NID_invalidity_date:
+      return &v3_crl_invdate;
+    case NID_info_access:
+      return &v3_info;
+    case NID_id_pkix_OCSP_noCheck:
+      return &v3_ocsp_nocheck;
+    case NID_sinfo_access:
+      return &v3_sinfo;
+    case NID_policy_constraints:
+      return &v3_policy_constraints;
+    case NID_name_constraints:
+      return &v3_name_constraints;
+    case NID_policy_mappings:
+      return &v3_policy_mappings;
+    case NID_inhibit_any_policy:
+      return &v3_inhibit_anyp;
+    case NID_issuing_distribution_point:
+      return &v3_idp;
+    case NID_freshest_crl:
+      return &v3_freshest_crl;
+  }
+
+  X509V3_EXT_METHOD tmp;
+  tmp.ext_nid = nid;
+  size_t idx;
+  if (ext_list == nullptr || !sk_X509V3_EXT_METHOD_find(ext_list, &idx, &tmp)) {
+    return nullptr;
   }
   return sk_X509V3_EXT_METHOD_value(ext_list, idx);
 }
@@ -167,9 +170,6 @@ int X509V3_EXT_add_alias(int nid_to, int nid_from) {
   return 1;
   OPENSSL_END_ALLOW_DEPRECATED
 }
-
-// Legacy function: we don't need to add standard extensions any more because
-// they are now kept in ext_dat.h.
 
 int X509V3_add_standard_extensions(void) { return 1; }
 

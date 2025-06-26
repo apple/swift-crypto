@@ -1,57 +1,16 @@
-/* Written by Dr Stephen N Henson (steve@openssl.org) for the OpenSSL project
- * 1999-2004.
- */
-/* ====================================================================
- * Copyright (c) 1999 The OpenSSL Project.  All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
- *
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
- *
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in
- *    the documentation and/or other materials provided with the
- *    distribution.
- *
- * 3. All advertising materials mentioning features or use of this
- *    software must display the following acknowledgment:
- *    "This product includes software developed by the OpenSSL Project
- *    for use in the OpenSSL Toolkit. (http://www.OpenSSL.org/)"
- *
- * 4. The names "OpenSSL Toolkit" and "OpenSSL Project" must not be used to
- *    endorse or promote products derived from this software without
- *    prior written permission. For written permission, please contact
- *    licensing@OpenSSL.org.
- *
- * 5. Products derived from this software may not be called "OpenSSL"
- *    nor may "OpenSSL" appear in their names without prior written
- *    permission of the OpenSSL Project.
- *
- * 6. Redistributions of any form whatsoever must retain the following
- *    acknowledgment:
- *    "This product includes software developed by the OpenSSL Project
- *    for use in the OpenSSL Toolkit (http://www.OpenSSL.org/)"
- *
- * THIS SOFTWARE IS PROVIDED BY THE OpenSSL PROJECT ``AS IS'' AND ANY
- * EXPRESSED OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
- * PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL THE OpenSSL PROJECT OR
- * ITS CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
- * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
- * NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
- * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
- * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
- * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
- * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
- * OF THE POSSIBILITY OF SUCH DAMAGE.
- * ====================================================================
- *
- * This product includes cryptographic software written by Eric Young
- * (eay@cryptsoft.com).  This product includes software written by Tim
- * Hudson (tjh@cryptsoft.com). */
+// Copyright 1999-2016 The OpenSSL Project Authors. All Rights Reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     https://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 
 #include <CCryptoBoringSSL_pkcs8.h>
 
@@ -119,28 +78,34 @@ static const struct {
 };
 
 static const EVP_CIPHER *cbs_to_cipher(const CBS *cbs) {
-  for (size_t i = 0; i < OPENSSL_ARRAY_SIZE(kCipherOIDs); i++) {
-    if (CBS_mem_equal(cbs, kCipherOIDs[i].oid, kCipherOIDs[i].oid_len)) {
-      return kCipherOIDs[i].cipher_func();
+  for (const auto &cipher : kCipherOIDs) {
+    if (CBS_mem_equal(cbs, cipher.oid, cipher.oid_len)) {
+      return cipher.cipher_func();
     }
   }
 
-  return NULL;
+  return nullptr;
 }
 
 static int add_cipher_oid(CBB *out, int nid) {
-  for (size_t i = 0; i < OPENSSL_ARRAY_SIZE(kCipherOIDs); i++) {
-    if (kCipherOIDs[i].nid == nid) {
-      CBB child;
-      return CBB_add_asn1(out, &child, CBS_ASN1_OBJECT) &&
-             CBB_add_bytes(&child, kCipherOIDs[i].oid,
-                           kCipherOIDs[i].oid_len) &&
-             CBB_flush(out);
+  for (const auto &cipher : kCipherOIDs) {
+    if (cipher.nid == nid) {
+      return CBB_add_asn1_element(out, CBS_ASN1_OBJECT, cipher.oid,
+                                  cipher.oid_len);
     }
   }
 
   OPENSSL_PUT_ERROR(PKCS8, PKCS8_R_UNSUPPORTED_CIPHER);
   return 0;
+}
+
+const EVP_CIPHER *pkcs5_pbe2_nid_to_cipher(int nid) {
+  for (const auto &cipher : kCipherOIDs) {
+    if (cipher.nid == nid) {
+      return cipher.cipher_func();
+    }
+  }
+  return nullptr;
 }
 
 static int pkcs5_pbe2_cipher_init(EVP_CIPHER_CTX *ctx, const EVP_CIPHER *cipher,
@@ -177,35 +142,36 @@ int PKCS5_pbe2_encrypt_init(CBB *out, EVP_CIPHER_CTX *ctx,
     return 0;
   }
 
-  // See RFC 2898, appendix A.
-  CBB algorithm, oid, param, kdf, kdf_oid, kdf_param, salt_cbb, cipher_cbb,
-      iv_cbb;
+  // See RFC 8018, appendix A.
+  CBB algorithm, param, kdf, kdf_param, prf, cipher_cbb;
   if (!CBB_add_asn1(out, &algorithm, CBS_ASN1_SEQUENCE) ||
-      !CBB_add_asn1(&algorithm, &oid, CBS_ASN1_OBJECT) ||
-      !CBB_add_bytes(&oid, kPBES2, sizeof(kPBES2)) ||
+      !CBB_add_asn1_element(&algorithm, CBS_ASN1_OBJECT, kPBES2,
+                            sizeof(kPBES2)) ||
       !CBB_add_asn1(&algorithm, &param, CBS_ASN1_SEQUENCE) ||
       !CBB_add_asn1(&param, &kdf, CBS_ASN1_SEQUENCE) ||
-      !CBB_add_asn1(&kdf, &kdf_oid, CBS_ASN1_OBJECT) ||
-      !CBB_add_bytes(&kdf_oid, kPBKDF2, sizeof(kPBKDF2)) ||
+      !CBB_add_asn1_element(&kdf, CBS_ASN1_OBJECT, kPBKDF2, sizeof(kPBKDF2)) ||
       !CBB_add_asn1(&kdf, &kdf_param, CBS_ASN1_SEQUENCE) ||
-      !CBB_add_asn1(&kdf_param, &salt_cbb, CBS_ASN1_OCTETSTRING) ||
-      !CBB_add_bytes(&salt_cbb, salt, salt_len) ||
+      !CBB_add_asn1_octet_string(&kdf_param, salt, salt_len) ||
       !CBB_add_asn1_uint64(&kdf_param, iterations) ||
       // Specify a key length for RC2.
       (cipher_nid == NID_rc2_cbc &&
        !CBB_add_asn1_uint64(&kdf_param, EVP_CIPHER_key_length(cipher))) ||
-      // Omit the PRF. We use the default hmacWithSHA1.
+      // Use hmacWithSHA256 for the PRF.
+      !CBB_add_asn1(&kdf_param, &prf, CBS_ASN1_SEQUENCE) ||
+      !CBB_add_asn1_element(&prf, CBS_ASN1_OBJECT, kHMACWithSHA256,
+                            sizeof(kHMACWithSHA256)) ||
+      !CBB_add_asn1_element(&prf, CBS_ASN1_NULL, nullptr, 0) ||
       !CBB_add_asn1(&param, &cipher_cbb, CBS_ASN1_SEQUENCE) ||
       !add_cipher_oid(&cipher_cbb, cipher_nid) ||
-      // RFC 2898 says RC2-CBC and RC5-CBC-Pad use a SEQUENCE with version and
+      // RFC 8018 says RC2-CBC and RC5-CBC-Pad use a SEQUENCE with version and
       // IV, but OpenSSL always uses an OCTET STRING IV, so we do the same.
-      !CBB_add_asn1(&cipher_cbb, &iv_cbb, CBS_ASN1_OCTETSTRING) ||
-      !CBB_add_bytes(&iv_cbb, iv, EVP_CIPHER_iv_length(cipher)) ||
+      !CBB_add_asn1_octet_string(&cipher_cbb, iv,
+                                 EVP_CIPHER_iv_length(cipher)) ||
       !CBB_flush(out)) {
     return 0;
   }
 
-  return pkcs5_pbe2_cipher_init(ctx, cipher, EVP_sha1(), iterations, pass,
+  return pkcs5_pbe2_cipher_init(ctx, cipher, EVP_sha256(), iterations, pass,
                                 pass_len, salt, salt_len, iv,
                                 EVP_CIPHER_iv_length(cipher), 1 /* encrypt */);
 }
@@ -300,7 +266,7 @@ int PKCS5_pbe2_decrypt_init(const struct pbe_suite *suite, EVP_CIPHER_CTX *ctx,
   }
 
   // Parse the encryption scheme parameters. Note OpenSSL does not match the
-  // specification. Per RFC 2898, this should depend on the encryption scheme.
+  // specification. Per RFC 8018, this should depend on the encryption scheme.
   // In particular, RC2-CBC uses a SEQUENCE with version and IV. We align with
   // OpenSSL.
   CBS iv;

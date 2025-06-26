@@ -21,8 +21,8 @@ import Foundation
 /// A wrapper around the OpenSSL BIGNUM object that is appropriately lifetime managed,
 /// and that provides better Swift types for this object.
 @usableFromInline
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
-package struct ArbitraryPrecisionInteger {
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
+package struct ArbitraryPrecisionInteger: @unchecked Sendable {
     private var _backing: BackingStorage
 
     @usableFromInline
@@ -47,9 +47,9 @@ package struct ArbitraryPrecisionInteger {
 
 // MARK: - BackingStorage
 
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension ArbitraryPrecisionInteger {
-    @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
+    @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
     fileprivate final class BackingStorage {
         private var _backing: BIGNUM
 
@@ -93,7 +93,7 @@ extension ArbitraryPrecisionInteger {
 
 // MARK: - Extra initializers
 
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension ArbitraryPrecisionInteger {
     @usableFromInline
     package init<Bytes: ContiguousBytes>(bytes: Bytes) throws {
@@ -109,7 +109,7 @@ extension ArbitraryPrecisionInteger {
     }
 }
 
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension ArbitraryPrecisionInteger.BackingStorage {
     convenience init<Bytes: ContiguousBytes>(bytes: Bytes) throws {
         self.init()
@@ -146,7 +146,7 @@ extension ArbitraryPrecisionInteger.BackingStorage {
 
 // MARK: - Pointer helpers
 
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension ArbitraryPrecisionInteger {
     package func withUnsafeBignumPointer<T>(
         _ body: (UnsafePointer<BIGNUM>) throws -> T
@@ -168,7 +168,7 @@ extension ArbitraryPrecisionInteger {
     }
 }
 
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension ArbitraryPrecisionInteger.BackingStorage {
     func withUnsafeBignumPointer<T>(_ body: (UnsafePointer<BIGNUM>) throws -> T) rethrows -> T {
         try body(&self._backing)
@@ -185,7 +185,7 @@ extension ArbitraryPrecisionInteger.BackingStorage {
 
 // MARK: - Other helpers
 
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension ArbitraryPrecisionInteger {
     @usableFromInline static func _compare(
         lhs: ArbitraryPrecisionInteger,
@@ -258,7 +258,7 @@ extension ArbitraryPrecisionInteger {
 
 // MARK: - Equatable
 
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension ArbitraryPrecisionInteger: Equatable {
     @inlinable
     package static func == (lhs: ArbitraryPrecisionInteger, rhs: ArbitraryPrecisionInteger) -> Bool {
@@ -268,7 +268,7 @@ extension ArbitraryPrecisionInteger: Equatable {
 
 // MARK: - Comparable
 
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension ArbitraryPrecisionInteger: Comparable {
     @inlinable
     package static func < (lhs: ArbitraryPrecisionInteger, rhs: ArbitraryPrecisionInteger) -> Bool {
@@ -293,12 +293,12 @@ extension ArbitraryPrecisionInteger: Comparable {
 
 // MARK: - ExpressibleByIntegerLiteral
 
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension ArbitraryPrecisionInteger: ExpressibleByIntegerLiteral {}
 
 // MARK: - AdditiveArithmetic
 
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension ArbitraryPrecisionInteger: AdditiveArithmetic {
     @inlinable
     package static var zero: ArbitraryPrecisionInteger {
@@ -370,7 +370,7 @@ extension ArbitraryPrecisionInteger: AdditiveArithmetic {
 
 // MARK: - Numeric
 
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension ArbitraryPrecisionInteger: Numeric {
     @usableFromInline
     package typealias Magnitude = Self
@@ -433,7 +433,7 @@ extension ArbitraryPrecisionInteger: Numeric {
 
 // MARK: - Modular arithmetic
 
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension ArbitraryPrecisionInteger {
     @usableFromInline
     package func modulo(
@@ -563,7 +563,7 @@ extension ArbitraryPrecisionInteger {
 
 // MARK: - SignedNumeric
 
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension ArbitraryPrecisionInteger: SignedNumeric {
     @usableFromInline
     package mutating func negate() {
@@ -577,7 +577,7 @@ extension ArbitraryPrecisionInteger: SignedNumeric {
 
 // MARK: - Other arithmetic operations
 
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension ArbitraryPrecisionInteger {
     @usableFromInline
     package var trailingZeroBitCount: Int32 {
@@ -687,7 +687,7 @@ extension ArbitraryPrecisionInteger {
 
 // MARK: - Serializing
 
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension Data {
     /// Serializes an ArbitraryPrecisionInteger padded out to a certain minimum size.
     @usableFromInline
@@ -726,7 +726,7 @@ extension Data {
 
 // MARK: - Printing
 
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension ArbitraryPrecisionInteger: CustomDebugStringConvertible {
     @usableFromInline
     package var debugDescription: String {

@@ -5,8 +5,6 @@
 #include <CCryptoBoringSSL_asm_base.h>
 
 #if !defined(OPENSSL_NO_ASM) && defined(OPENSSL_AARCH64) && defined(__ELF__)
-#include <CCryptoBoringSSL_arm_arch.h>
-
 .text
 
 .globl	gcm_init_neon

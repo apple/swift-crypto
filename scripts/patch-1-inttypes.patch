@@ -1,25 +1,25 @@
-diff --git a/Sources/CCryptoBoringSSL/crypto/hrss/hrss.cc b/Sources/CCryptoBoringSSL/crypto/hrss/hrss.cc
-index 93a214e..eee4e58 100644
---- a/Sources/CCryptoBoringSSL/crypto/hrss/hrss.cc
-+++ b/Sources/CCryptoBoringSSL/crypto/hrss/hrss.cc
+diff --git a/Sources/CCryptoBoringSSL/crypto/x509/t_x509.cc b/Sources/CCryptoBoringSSL/crypto/x509/t_x509.cc
+index d2a1ddc8..6f8be6c2 100644
+--- a/Sources/CCryptoBoringSSL/crypto/x509/t_x509.cc
++++ b/Sources/CCryptoBoringSSL/crypto/x509/t_x509.cc
 @@ -13,6 +13,7 @@
-  * CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. */
- 
- #include <CCryptoBoringSSL_hrss.h>
-+#include <inttypes.h>
+ // limitations under the License.
  
  #include <assert.h>
- #include <stdio.h>
++#include <inttypes.h>  // for PRIu64 and friends
+ 
+ #include <CCryptoBoringSSL_asn1.h>
+ #include <CCryptoBoringSSL_bio.h>
 diff --git a/Sources/CCryptoBoringSSL/include/CCryptoBoringSSL_bn.h b/Sources/CCryptoBoringSSL/include/CCryptoBoringSSL_bn.h
-index c86c1ef..7013140 100644
+index 5eadecad..b5a16586 100644
 --- a/Sources/CCryptoBoringSSL/include/CCryptoBoringSSL_bn.h
 +++ b/Sources/CCryptoBoringSSL/include/CCryptoBoringSSL_bn.h
-@@ -126,7 +126,8 @@
- #include "CCryptoBoringSSL_base.h"
- #include "CCryptoBoringSSL_thread.h"
+@@ -18,7 +18,6 @@
  
- #include <inttypes.h>  // for PRIu64 and friends
-+#include <sys/types.h>
+ #include "CCryptoBoringSSL_base.h"   // IWYU pragma: export
+ 
+-#include <inttypes.h>  // for PRIu64 and friends
  #include <stdio.h>  // for FILE*
  
  #if defined(__cplusplus)
+

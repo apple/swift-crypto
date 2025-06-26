@@ -1,16 +1,16 @@
-/* Copyright 2017 The BoringSSL Authors
- *
- * Permission to use, copy, modify, and/or distribute this software for any
- * purpose with or without fee is hereby granted, provided that the above
- * copyright notice and this permission notice appear in all copies.
- *
- * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
- * WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
- * MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY
- * SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
- * WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION
- * OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN
- * CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. */
+// Copyright 2017 The BoringSSL Authors
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     https://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 
 #if !defined(_GNU_SOURCE)
 #define _GNU_SOURCE  // needed for syscall() on Linux.
@@ -36,8 +36,14 @@
 // separate compilation units again.
 #include "aes/aes.cc.inc"
 #include "aes/aes_nohw.cc.inc"
+#include "aes/cbc.cc.inc"
+#include "aes/cfb.cc.inc"
+#include "aes/ctr.cc.inc"
+#include "aes/gcm.cc.inc"
+#include "aes/gcm_nohw.cc.inc"
 #include "aes/key_wrap.cc.inc"
 #include "aes/mode_wrappers.cc.inc"
+#include "aes/ofb.cc.inc"
 #include "bn/add.cc.inc"
 #include "bn/asm/x86_64-gcc.cc.inc"
 #include "bn/bn.cc.inc"
@@ -88,13 +94,7 @@
 #include "hmac/hmac.cc.inc"
 #include "keccak/keccak.cc.inc"
 #include "mldsa/mldsa.cc.inc"
-#include "modes/cbc.cc.inc"
-#include "modes/cfb.cc.inc"
-#include "modes/ctr.cc.inc"
-#include "modes/gcm.cc.inc"
-#include "modes/gcm_nohw.cc.inc"
-#include "modes/ofb.cc.inc"
-#include "modes/polyval.cc.inc"
+#include "mlkem/mlkem.cc.inc"
 #include "rand/ctrdrbg.cc.inc"
 #include "rand/rand.cc.inc"
 #include "rsa/blinding.cc.inc"
@@ -107,6 +107,11 @@
 #include "sha/sha1.cc.inc"
 #include "sha/sha256.cc.inc"
 #include "sha/sha512.cc.inc"
+#include "slhdsa/fors.cc.inc"
+#include "slhdsa/merkle.cc.inc"
+#include "slhdsa/slhdsa.cc.inc"
+#include "slhdsa/thash.cc.inc"
+#include "slhdsa/wots.cc.inc"
 #include "tls/kdf.cc.inc"
 
 
@@ -192,7 +197,7 @@ int BORINGSSL_integrity_test(void) {
   const uint8_t *const start = BORINGSSL_bcm_text_start;
   const uint8_t *const end = BORINGSSL_bcm_text_end;
 
-  assert_within(start, reinterpret_cast<const void *>(AES_encrypt), end);
+  assert_within(start, reinterpret_cast<const void *>(BCM_aes_encrypt), end);
   assert_within(start, reinterpret_cast<const void *>(RSA_sign), end);
   assert_within(start, reinterpret_cast<const void *>(BCM_rand_bytes), end);
   assert_within(start, reinterpret_cast<const void *>(EC_GROUP_cmp), end);
@@ -252,7 +257,8 @@ int BORINGSSL_integrity_test(void) {
 
   const uint8_t *expected = BORINGSSL_bcm_text_hash;
 
-  if (!check_test(expected, result, sizeof(result), "FIPS integrity test")) {
+  if (!BORINGSSL_check_test(expected, result, sizeof(result),
+                            "FIPS integrity test")) {
 #if !defined(BORINGSSL_FIPS_BREAK_TESTS)
     return 0;
 #endif

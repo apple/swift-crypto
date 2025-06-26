@@ -17,14 +17,14 @@ import CryptoBoringWrapper
 import SwiftASN1
 
 #if CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 fileprivate typealias BackingPublicKey = SecurityRSAPublicKey
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 fileprivate typealias BackingPrivateKey = SecurityRSAPrivateKey
 #else
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 fileprivate typealias BackingPublicKey = BoringSSLRSAPublicKey
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 fileprivate typealias BackingPrivateKey = BoringSSLRSAPrivateKey
 #endif
 
@@ -38,20 +38,20 @@ fileprivate typealias BackingPrivateKey = BoringSSLRSAPrivateKey
 /// When rolling out new cryptosystems, users should avoid RSA and use ECDSA or edDSA instead. RSA
 /// support is provided for interoperability with legacy systems.
 @_documentation(visibility: public)
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 public enum _RSA { }
 
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension _RSA {
-    @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
+    @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
     public enum Signing { }
-    @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
+    @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
     public enum Encryption { }
 }
 
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension _RSA.Signing {
-    @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
+    @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
     public struct PublicKey: Sendable {
         public struct Primitives: Sendable, Hashable {
             public var modulus: Data
@@ -161,9 +161,9 @@ extension _RSA.Signing {
     }
 }
 
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension _RSA.Signing {
-    @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
+    @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
     public struct PrivateKey: Sendable {
         private var backing: BackingPrivateKey
 
@@ -179,7 +179,7 @@ extension _RSA.Signing {
             }
         }
         
-        /// Construct an RSA public key from a PEM representation.
+        /// Construct an RSA private key from a PEM representation.
         ///
         /// This constructor supports key sizes of 1024 bits or more. Users should validate that key sizes are appropriate
         /// for their use-case.
@@ -204,7 +204,7 @@ extension _RSA.Signing {
             }
         }
         
-        /// Construct an RSA public key from a DER representation.
+        /// Construct an RSA private key from a DER representation.
         ///
         /// This constructor supports key sizes of 1024 bits or more. Users should validate that key sizes are appropriate
         /// for their use-case.
@@ -299,9 +299,9 @@ extension _RSA.Signing {
     }
 }
 
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension _RSA.Signing {
-    @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
+    @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
     public struct RSASignature: Sendable, ContiguousBytes {
         public var rawRepresentation: Data
 
@@ -319,9 +319,9 @@ extension _RSA.Signing {
     }
 }
 
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension _RSA.Signing {
-    @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
+    @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
     public struct Padding: Sendable {
         internal enum Backing {
             case pkcs1v1_5
@@ -357,7 +357,7 @@ extension _RSA.Signing {
     }
 }
 
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension _RSA.Signing.PrivateKey {
     ///  Generates an RSA signature with the given key using the default padding.
     ///
@@ -406,7 +406,7 @@ extension _RSA.Signing.PrivateKey {
     }
  }
 
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension _RSA.Signing.PublicKey {
     /// Verifies an RSA signature with the given padding over a given digest using the default padding.
     ///
@@ -459,9 +459,9 @@ extension _RSA.Signing.PublicKey {
     }
 }
 
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension _RSA.Signing {
-    @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
+    @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
     public struct KeySize: Sendable {
         public let bitCount: Int
 
@@ -485,10 +485,10 @@ extension _RSA.Signing {
     }
 }
 
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension _RSA.Encryption {
     /// Identical to ``_RSA/Signing/PublicKey``.
-    @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
+    @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
     public struct PublicKey {
         public struct Primitives: Sendable, Hashable {
             public var modulus: Data
@@ -565,7 +565,7 @@ extension _RSA.Encryption {
     }
     
     /// Identical to ``_RSA/Signing/PrivateKey``.
-    @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
+    @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
     public struct PrivateKey {
         private var backing: BackingPrivateKey
 
@@ -672,9 +672,9 @@ extension _RSA.Encryption {
     }
 }
 
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension _RSA.Encryption {
-    @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
+    @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
     public struct Padding: Sendable {
         internal enum Backing {
             case pkcs1_oaep(Digest)
@@ -693,14 +693,14 @@ extension _RSA.Encryption {
         public static let PKCS1_OAEP_SHA256 = Self(.pkcs1_oaep(.sha256))
     }
 
-    @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
+    @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
     internal enum Digest {
         case sha1
         case sha256
     }
 }
 
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension _RSA.Encryption.PrivateKey {
     /// Decrypt a message encrypted with this key's public key and using the specified padding mode.
     ///
@@ -711,7 +711,7 @@ extension _RSA.Encryption.PrivateKey {
     }
 }
 
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension _RSA.Encryption.PublicKey {
     /// Return the maximum amount of data in bytes this key can encrypt in a single operation when using
     /// the specified padding mode.
@@ -741,7 +741,7 @@ extension _RSA.Encryption.PublicKey {
     }
 }
 
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension _RSA {
     static let PKCS1KeyType = "RSA PRIVATE KEY"
 
@@ -752,7 +752,7 @@ extension _RSA {
     static let SPKIPublicKeyType = "PUBLIC KEY"
 }
 
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension _RSA {
     static func extractPrimeFactors(
         n: ArbitraryPrecisionInteger, 

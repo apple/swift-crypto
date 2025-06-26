@@ -101,9 +101,9 @@ function mangle_symbols {
         )
 
         # Now cross compile for our targets.
-        docker run -t -i --rm --privileged -v"$(pwd)":/src -w/src --platform linux/arm64 swift:5.9-jammy \
+        docker run -t -i --rm --privileged -v"$(pwd)":/src -w/src --platform linux/arm64 swift:5.10-jammy \
             swift build --product CCryptoBoringSSL
-        docker run -t -i --rm --privileged -v"$(pwd)":/src -w/src --platform linux/amd64 swift:5.9-jammy \
+        docker run -t -i --rm --privileged -v"$(pwd)":/src -w/src --platform linux/amd64 swift:5.10-jammy \
             swift build --product CCryptoBoringSSL
 
         # Now we need to generate symbol mangles for Linux. We can do this in
@@ -200,6 +200,7 @@ PATTERNS=(
 'crypto/*/*.S'
 'crypto/*/*/*.h'
 'crypto/*/*/*.cc.inc'
+'crypto/*/*/*.inc'
 'crypto/*/*/*.S'
 'crypto/*/*/*/*.cc.inc'
 'gen/crypto/*.cc'
@@ -345,6 +346,8 @@ cat << EOF > "$DSTROOT/include/CCryptoBoringSSL.h"
 #include "CCryptoBoringSSL_hrss.h"
 #include "CCryptoBoringSSL_md4.h"
 #include "CCryptoBoringSSL_md5.h"
+#include "CCryptoBoringSSL_mldsa.h"
+#include "CCryptoBoringSSL_mlkem.h"
 #include "CCryptoBoringSSL_obj_mac.h"
 #include "CCryptoBoringSSL_objects.h"
 #include "CCryptoBoringSSL_opensslv.h"

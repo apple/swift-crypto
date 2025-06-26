@@ -1,57 +1,16 @@
-/* Written by Dr Stephen N Henson (steve@openssl.org) for the OpenSSL project
- * 1999.
- */
-/* ====================================================================
- * Copyright (c) 1999 The OpenSSL Project.  All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
- *
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
- *
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in
- *    the documentation and/or other materials provided with the
- *    distribution.
- *
- * 3. All advertising materials mentioning features or use of this
- *    software must display the following acknowledgment:
- *    "This product includes software developed by the OpenSSL Project
- *    for use in the OpenSSL Toolkit. (http://www.OpenSSL.org/)"
- *
- * 4. The names "OpenSSL Toolkit" and "OpenSSL Project" must not be used to
- *    endorse or promote products derived from this software without
- *    prior written permission. For written permission, please contact
- *    licensing@OpenSSL.org.
- *
- * 5. Products derived from this software may not be called "OpenSSL"
- *    nor may "OpenSSL" appear in their names without prior written
- *    permission of the OpenSSL Project.
- *
- * 6. Redistributions of any form whatsoever must retain the following
- *    acknowledgment:
- *    "This product includes software developed by the OpenSSL Project
- *    for use in the OpenSSL Toolkit (http://www.OpenSSL.org/)"
- *
- * THIS SOFTWARE IS PROVIDED BY THE OpenSSL PROJECT ``AS IS'' AND ANY
- * EXPRESSED OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
- * PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL THE OpenSSL PROJECT OR
- * ITS CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
- * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
- * NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
- * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
- * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
- * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
- * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
- * OF THE POSSIBILITY OF SUCH DAMAGE.
- * ====================================================================
- *
- * This product includes cryptographic software written by Eric Young
- * (eay@cryptsoft.com).  This product includes software written by Tim
- * Hudson (tjh@cryptsoft.com). */
+// Copyright 1999-2016 The OpenSSL Project Authors. All Rights Reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     https://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 
 #include <CCryptoBoringSSL_pkcs8.h>
 
@@ -74,8 +33,8 @@
 
 static int pkcs12_encode_password(const char *in, size_t in_len, uint8_t **out,
                                   size_t *out_len) {
-  CBB cbb;
-  if (!CBB_init(&cbb, in_len * 2)) {
+  bssl::ScopedCBB cbb;
+  if (!CBB_init(cbb.get(), in_len * 2)) {
     return 0;
   }
 
@@ -85,22 +44,18 @@ static int pkcs12_encode_password(const char *in, size_t in_len, uint8_t **out,
   CBS_init(&cbs, (const uint8_t *)in, in_len);
   while (CBS_len(&cbs) != 0) {
     uint32_t c;
-    if (!CBS_get_utf8(&cbs, &c) || !CBB_add_ucs2_be(&cbb, c)) {
+    if (!CBS_get_utf8(&cbs, &c) || !CBB_add_ucs2_be(cbb.get(), c)) {
       OPENSSL_PUT_ERROR(PKCS8, PKCS8_R_INVALID_CHARACTERS);
-      goto err;
+      return 0;
     }
   }
 
   // Terminate the result with a UCS-2 NUL.
-  if (!CBB_add_ucs2_be(&cbb, 0) || !CBB_finish(&cbb, out, out_len)) {
-    goto err;
+  if (!CBB_add_ucs2_be(cbb.get(), 0) || !CBB_finish(cbb.get(), out, out_len)) {
+    return 0;
   }
 
   return 1;
-
-err:
-  CBB_cleanup(&cbb);
-  return 0;
 }
 
 int pkcs12_key_gen(const char *pass, size_t pass_len, const uint8_t *salt,
@@ -327,24 +282,35 @@ static const struct pbe_suite *get_pkcs12_pbe_suite(int pbe_nid) {
   return NULL;
 }
 
-int pkcs12_pbe_encrypt_init(CBB *out, EVP_CIPHER_CTX *ctx, int alg,
-                            uint32_t iterations, const char *pass,
-                            size_t pass_len, const uint8_t *salt,
-                            size_t salt_len) {
-  const struct pbe_suite *suite = get_pkcs12_pbe_suite(alg);
+int pkcs12_pbe_encrypt_init(CBB *out, EVP_CIPHER_CTX *ctx, int alg_nid,
+                            const EVP_CIPHER *alg_cipher, uint32_t iterations,
+                            const char *pass, size_t pass_len,
+                            const uint8_t *salt, size_t salt_len) {
+  // TODO(davidben): OpenSSL has since extended |pbe_nid| to control either
+  // the PBES1 scheme or the PBES2 PRF. E.g. passing |NID_hmacWithSHA256| will
+  // select PBES2 with HMAC-SHA256 as the PRF. Implement this if anything uses
+  // it. See 5693a30813a031d3921a016a870420e7eb93ec90 in OpenSSL.
+  if (alg_nid == -1) {
+    return PKCS5_pbe2_encrypt_init(out, ctx, alg_cipher, iterations, pass,
+                                   pass_len, salt, salt_len);
+  }
+
+  const struct pbe_suite *suite = get_pkcs12_pbe_suite(alg_nid);
   if (suite == NULL) {
     OPENSSL_PUT_ERROR(PKCS8, PKCS8_R_UNKNOWN_ALGORITHM);
     return 0;
   }
 
-  // See RFC 2898, appendix A.3.
-  CBB algorithm, oid, param, salt_cbb;
+  // See RFC 7292, appendix C. All our supported "PBES1" schemes are the PKCS#12
+  // schemes, which use a different KDF. The true PBES1 schemes in RFC 8018 use
+  // PBKDF1, which use a very similar PBEParameter structure, but require the
+  // salt be exactly 8 bytes.
+  CBB algorithm, param;
   if (!CBB_add_asn1(out, &algorithm, CBS_ASN1_SEQUENCE) ||
-      !CBB_add_asn1(&algorithm, &oid, CBS_ASN1_OBJECT) ||
-      !CBB_add_bytes(&oid, suite->oid, suite->oid_len) ||
+      !CBB_add_asn1_element(&algorithm, CBS_ASN1_OBJECT, suite->oid,
+                            suite->oid_len) ||
       !CBB_add_asn1(&algorithm, &param, CBS_ASN1_SEQUENCE) ||
-      !CBB_add_asn1(&param, &salt_cbb, CBS_ASN1_OCTETSTRING) ||
-      !CBB_add_bytes(&salt_cbb, salt, salt_len) ||
+      !CBB_add_asn1_octet_string(&param, salt, salt_len) ||
       !CBB_add_asn1_uint64(&param, iterations) || !CBB_flush(out)) {
     return 0;
   }
@@ -358,9 +324,7 @@ int pkcs8_pbe_decrypt(uint8_t **out, size_t *out_len, CBS *algorithm,
                       size_t in_len) {
   int ret = 0;
   uint8_t *buf = NULL;
-  ;
-  EVP_CIPHER_CTX ctx;
-  EVP_CIPHER_CTX_init(&ctx);
+  bssl::ScopedEVP_CIPHER_CTX ctx;
 
   CBS obj;
   const struct pbe_suite *suite = NULL;
@@ -380,7 +344,7 @@ int pkcs8_pbe_decrypt(uint8_t **out, size_t *out_len, CBS *algorithm,
     goto err;
   }
 
-  if (!suite->decrypt_init(suite, &ctx, pass, pass_len, algorithm)) {
+  if (!suite->decrypt_init(suite, ctx.get(), pass, pass_len, algorithm)) {
     OPENSSL_PUT_ERROR(PKCS8, PKCS8_R_KEYGEN_FAILURE);
     goto err;
   }
@@ -396,8 +360,8 @@ int pkcs8_pbe_decrypt(uint8_t **out, size_t *out_len, CBS *algorithm,
   }
 
   int n1, n2;
-  if (!EVP_DecryptUpdate(&ctx, buf, &n1, in, (int)in_len) ||
-      !EVP_DecryptFinal_ex(&ctx, buf + n1, &n2)) {
+  if (!EVP_DecryptUpdate(ctx.get(), buf, &n1, in, (int)in_len) ||
+      !EVP_DecryptFinal_ex(ctx.get(), buf + n1, &n2)) {
     goto err;
   }
 
@@ -408,7 +372,6 @@ int pkcs8_pbe_decrypt(uint8_t **out, size_t *out_len, CBS *algorithm,
 
 err:
   OPENSSL_free(buf);
-  EVP_CIPHER_CTX_cleanup(&ctx);
   return ret;
 }
 
@@ -446,8 +409,7 @@ int PKCS8_marshal_encrypted_private_key(CBB *out, int pbe_nid,
   int ret = 0;
   uint8_t *plaintext = NULL, *salt_buf = NULL;
   size_t plaintext_len = 0;
-  EVP_CIPHER_CTX ctx;
-  EVP_CIPHER_CTX_init(&ctx);
+  bssl::ScopedEVP_CIPHER_CTX ctx;
 
   {
     // Generate a random salt if necessary.
@@ -478,29 +440,14 @@ int PKCS8_marshal_encrypted_private_key(CBB *out, int pbe_nid,
     }
 
     CBB epki;
-    if (!CBB_add_asn1(out, &epki, CBS_ASN1_SEQUENCE)) {
+    if (!CBB_add_asn1(out, &epki, CBS_ASN1_SEQUENCE) ||
+        !pkcs12_pbe_encrypt_init(&epki, ctx.get(), pbe_nid, cipher,
+                                 (uint32_t)iterations, pass, pass_len, salt,
+                                 salt_len)) {
       goto err;
     }
 
-    // TODO(davidben): OpenSSL has since extended |pbe_nid| to control either
-    // the PBES1 scheme or the PBES2 PRF. E.g. passing |NID_hmacWithSHA256| will
-    // select PBES2 with HMAC-SHA256 as the PRF. Implement this if anything uses
-    // it. See 5693a30813a031d3921a016a870420e7eb93ec90 in OpenSSL.
-    int alg_ok;
-    if (pbe_nid == -1) {
-      alg_ok =
-          PKCS5_pbe2_encrypt_init(&epki, &ctx, cipher, (uint32_t)iterations,
-                                  pass, pass_len, salt, salt_len);
-    } else {
-      alg_ok =
-          pkcs12_pbe_encrypt_init(&epki, &ctx, pbe_nid, (uint32_t)iterations,
-                                  pass, pass_len, salt, salt_len);
-    }
-    if (!alg_ok) {
-      goto err;
-    }
-
-    size_t max_out = plaintext_len + EVP_CIPHER_CTX_block_size(&ctx);
+    size_t max_out = plaintext_len + EVP_CIPHER_CTX_block_size(ctx.get());
     if (max_out < plaintext_len) {
       OPENSSL_PUT_ERROR(PKCS8, PKCS8_R_TOO_LONG);
       goto err;
@@ -511,8 +458,8 @@ int PKCS8_marshal_encrypted_private_key(CBB *out, int pbe_nid,
     int n1, n2;
     if (!CBB_add_asn1(&epki, &ciphertext, CBS_ASN1_OCTETSTRING) ||
         !CBB_reserve(&ciphertext, &ptr, max_out) ||
-        !EVP_CipherUpdate(&ctx, ptr, &n1, plaintext, plaintext_len) ||
-        !EVP_CipherFinal_ex(&ctx, ptr + n1, &n2) ||
+        !EVP_CipherUpdate(ctx.get(), ptr, &n1, plaintext, plaintext_len) ||
+        !EVP_CipherFinal_ex(ctx.get(), ptr + n1, &n2) ||
         !CBB_did_write(&ciphertext, n1 + n2) || !CBB_flush(out)) {
       goto err;
     }
@@ -523,6 +470,5 @@ int PKCS8_marshal_encrypted_private_key(CBB *out, int pbe_nid,
 err:
   OPENSSL_free(plaintext);
   OPENSSL_free(salt_buf);
-  EVP_CIPHER_CTX_cleanup(&ctx);
   return ret;
 }

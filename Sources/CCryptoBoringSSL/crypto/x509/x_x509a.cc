@@ -1,58 +1,16 @@
-/*
- * Written by Dr Stephen N Henson (steve@openssl.org) for the OpenSSL project
- * 1999.
- */
-/* ====================================================================
- * Copyright (c) 1999 The OpenSSL Project.  All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
- *
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
- *
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in
- *    the documentation and/or other materials provided with the
- *    distribution.
- *
- * 3. All advertising materials mentioning features or use of this
- *    software must display the following acknowledgment:
- *    "This product includes software developed by the OpenSSL Project
- *    for use in the OpenSSL Toolkit. (http://www.OpenSSL.org/)"
- *
- * 4. The names "OpenSSL Toolkit" and "OpenSSL Project" must not be used to
- *    endorse or promote products derived from this software without
- *    prior written permission. For written permission, please contact
- *    licensing@OpenSSL.org.
- *
- * 5. Products derived from this software may not be called "OpenSSL"
- *    nor may "OpenSSL" appear in their names without prior written
- *    permission of the OpenSSL Project.
- *
- * 6. Redistributions of any form whatsoever must retain the following
- *    acknowledgment:
- *    "This product includes software developed by the OpenSSL Project
- *    for use in the OpenSSL Toolkit (http://www.OpenSSL.org/)"
- *
- * THIS SOFTWARE IS PROVIDED BY THE OpenSSL PROJECT ``AS IS'' AND ANY
- * EXPRESSED OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
- * PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL THE OpenSSL PROJECT OR
- * ITS CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
- * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
- * NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
- * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
- * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
- * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
- * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
- * OF THE POSSIBILITY OF SUCH DAMAGE.
- * ====================================================================
- *
- * This product includes cryptographic software written by Eric Young
- * (eay@cryptsoft.com).  This product includes software written by Tim
- * Hudson (tjh@cryptsoft.com). */
+// Copyright 1999-2016 The OpenSSL Project Authors. All Rights Reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     https://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 
 #include <stdio.h>
 
@@ -151,49 +109,33 @@ const uint8_t *X509_keyid_get0(const X509 *x, int *out_len) {
 }
 
 int X509_add1_trust_object(X509 *x, const ASN1_OBJECT *obj) {
-  X509_CERT_AUX *aux;
-  ASN1_OBJECT *objtmp = OBJ_dup(obj);
-  if (objtmp == NULL) {
-    goto err;
+  bssl::UniquePtr<ASN1_OBJECT> objtmp(OBJ_dup(obj));
+  if (objtmp == nullptr) {
+    return 0;
   }
-  aux = aux_get(x);
-  if (aux->trust == NULL) {
+  X509_CERT_AUX *aux = aux_get(x);
+  if (aux->trust == nullptr) {
     aux->trust = sk_ASN1_OBJECT_new_null();
-    if (aux->trust == NULL) {
-      goto err;
+    if (aux->trust == nullptr) {
+      return 0;
     }
   }
-  if (!sk_ASN1_OBJECT_push(aux->trust, objtmp)) {
-    goto err;
-  }
-  return 1;
-
-err:
-  ASN1_OBJECT_free(objtmp);
-  return 0;
+  return bssl::PushToStack(aux->trust, std::move(objtmp));
 }
 
 int X509_add1_reject_object(X509 *x, const ASN1_OBJECT *obj) {
-  X509_CERT_AUX *aux;
-  ASN1_OBJECT *objtmp = OBJ_dup(obj);
-  if (objtmp == NULL) {
-    goto err;
+  bssl::UniquePtr<ASN1_OBJECT> objtmp(OBJ_dup(obj));
+  if (objtmp == nullptr) {
+    return 0;
   }
-  aux = aux_get(x);
-  if (aux->reject == NULL) {
+  X509_CERT_AUX *aux = aux_get(x);
+  if (aux->reject == nullptr) {
     aux->reject = sk_ASN1_OBJECT_new_null();
-    if (aux->reject == NULL) {
-      goto err;
+    if (aux->reject == nullptr) {
+      return 0;
     }
   }
-  if (!sk_ASN1_OBJECT_push(aux->reject, objtmp)) {
-    goto err;
-  }
-  return 1;
-
-err:
-  ASN1_OBJECT_free(objtmp);
-  return 0;
+  return bssl::PushToStack(aux->reject, std::move(objtmp));
 }
 
 void X509_trust_clear(X509 *x) {

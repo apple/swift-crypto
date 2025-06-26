@@ -15,12 +15,7 @@
 @_implementationOnly import CCryptoBoringSSL
 @_implementationOnly import CCryptoBoringSSLShims
 import Crypto
-
-#if canImport(Darwin) || swift(>=5.9.1)
 import Foundation
-#else
-@preconcurrency import Foundation
-#endif
 
 #if canImport(Android)
 import Android
@@ -29,21 +24,21 @@ import Android
 #if os(Windows)
 import WinSDK
 
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 private func getPageSize() -> Int {
-    @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
+    @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
     var info = SYSTEM_INFO()
     GetSystemInfo(&info)
     return Int(info.dwPageSize)
 }
 #else
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 private func getPageSize() -> Int {
     Int(sysconf(Int32(_SC_PAGESIZE)))
 }
 #endif
 
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *)
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 internal struct BoringSSLScrypt {
     /// Derives a secure key using the provided passphrase and salt.
     ///

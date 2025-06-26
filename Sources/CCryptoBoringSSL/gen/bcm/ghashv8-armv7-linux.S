@@ -5,8 +5,6 @@
 #include <CCryptoBoringSSL_asm_base.h>
 
 #if !defined(OPENSSL_NO_ASM) && defined(OPENSSL_ARM) && defined(__ELF__)
-#include <CCryptoBoringSSL_arm_arch.h>
-
 #if __ARM_MAX_ARCH__>=7
 .text
 .fpu	neon

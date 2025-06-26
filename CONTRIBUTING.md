@@ -58,6 +58,20 @@ A good swift-crypto patch is:
 
 Please open a pull request at https://github.com/apple/swift-crypto. Make sure the CI passes, and then wait for code review.
 
+### How to update CMakeLists files
+
+If you wish to update the CMakeLists files you can either do this by using [act](https://github.com/nektos/act) or calling the remotely hosted CI script.
+
+Issuing a command such as the following to `act` causes it to run the `cmake-lists` job locally which updates the CMakeLists files and if it finds no changes performs a build. The `--bind` flag means that the VM be acts on your local filesystem so be aware that this could delete/change files (including your git setup/branches).
+```
+act --container-architecture linux/amd64 pull_request -j cmake-lists -W ./.github/workflows/pull_request.yml  --bind
+```
+
+You can find the underlying script at https://github.com/apple/swift-nio/blob/main/scripts/update-cmake-lists.sh . Using the script directly is less straightforwards because it requires you to pass the JSON config from the `pull_request.yml` file into the script, such as:
+```
+curl -s https://raw.githubusercontent.com/apple/swift-nio/main/scripts/update-cmake-lists.sh | CONFIG_JSON='{"targets":[{"name":"CCryptoBoringSSL","type":"source","exceptions":[]},{"name":"CCryptoBoringSSLShims","type":"source","exceptions":[]},{"name":"CryptoBoringWrapper","type":"source","exceptions":[]},{"name":"Crypto","type":"source","exceptions":[]},{"name":"_CryptoExtras","type":"source","exceptions":[]},{"name":"CCryptoBoringSSL","type":"assembly","exceptions":["*/AES/*.swift"]}]}' bash
+```
+
 ## API Evolution
 
 swift-crypto is a unique project in that it is an open-source reimplementation of APIs provided by an Apple system library. For this reason, it is intended to remain compatible with those APIs.
