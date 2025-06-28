@@ -19,6 +19,7 @@ Provides additional cryptographic APIs that are not available in CryptoKit (and 
 - ``MLKEM1024``
 - ``MLDSA65``
 - ``MLDSA87``
+- ``SLHDSA``
 
 ### Key derivation functions
 

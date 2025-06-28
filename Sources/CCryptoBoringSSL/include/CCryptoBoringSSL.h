@@ -60,6 +60,7 @@
 #include "CCryptoBoringSSL_safestack.h"
 #include "CCryptoBoringSSL_sha.h"
 #include "CCryptoBoringSSL_siphash.h"
+#include "CCryptoBoringSSL_slhdsa.h"
 #include "CCryptoBoringSSL_trust_token.h"
 #include "CCryptoBoringSSL_x509v3.h"
 
