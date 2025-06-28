@@ -49,7 +49,7 @@ SRCROOT="${TMPDIR}/src/boringssl.googlesource.com/boringssl"
 # and BoringSSL.
 function namespace_inlines {
     # Pull out all STACK_OF functions.
-    STACKS=$(grep --no-filename -rE -e "DEFINE_(SPECIAL_)?STACK_OF\([A-Z_0-9a-z]+\)" -e "DEFINE_NAMED_STACK_OF\([A-Z_0-9a-z]+, +[A-Z_0-9a-z:]+\)" "$1/"* | grep -v '//' | grep -v '#' | gsed -e 's/DEFINE_\(SPECIAL_\)\?STACK_OF(\(.*\))/\2/' -e 's/DEFINE_NAMED_STACK_OF(\(.*\), .*)/\1/')
+    STACKS=$(grep --no-filename -rE -e "DEFINE_(SPECIAL_)?STACK_OF\([A-Z_0-9a-z]+\)" -e "DEFINE_NAMED_STACK_OF\([A-Z_0-9a-z]+, +[A-Z_0-9a-z:]+\)" "$1/"* | grep -v '//' | grep -v '#' | $sed -e 's/DEFINE_\(SPECIAL_\)\?STACK_OF(\(.*\))/\2/' -e 's/DEFINE_NAMED_STACK_OF(\(.*\), .*)/\1/')
     STACK_FUNCTIONS=("call_free_func" "call_copy_func" "call_cmp_func" "new" "new_null" "num" "zero" "value" "set" "free" "pop_free" "insert" "delete" "delete_ptr" "find" "shift" "push" "pop" "dup" "sort" "is_sorted" "set_cmp_func" "deep_copy" "delete_if")
 
     for s in $STACKS; do
@@ -59,7 +59,7 @@ function namespace_inlines {
     done
 
     # Now pull out all LHASH_OF functions.
-    LHASHES=$(grep --no-filename -rE "DEFINE_LHASH_OF\([A-Z_0-9a-z]+\)" "$1/"* | grep -v '//' | grep -v '#' | grep -v '\\$' | gsed 's/DEFINE_LHASH_OF(\(.*\))/\1/')
+    LHASHES=$(grep --no-filename -rE "DEFINE_LHASH_OF\([A-Z_0-9a-z]+\)" "$1/"* | grep -v '//' | grep -v '#' | grep -v '\\$' | $sed 's/DEFINE_LHASH_OF(\(.*\))/\1/')
     LHASH_FUNCTIONS=("call_cmp_func" "call_hash_func" "new" "free" "num_items" "retrieve" "call_cmp_key" "retrieve_key" "insert" "delete" "call_doall" "call_doall_arg" "doall" "doall_arg")
 
     for l in $LHASHES; do
@@ -105,12 +105,14 @@ function mangle_symbols {
             swift build --product CCryptoBoringSSL
         docker run -t -i --rm --privileged -v"$(pwd)":/src -w/src --platform linux/amd64 swift:5.10-jammy \
             swift build --product CCryptoBoringSSL
+        docker run -t -i --rm --privileged -v$(pwd):/src -w/src --platform linux/amd64 orobio/swift-armv7-cross-bullseye:5.10 \
+            swift build --product CCryptoBoringSSL --destination /opt/swift-armv7-sysroot.json
 
         # Now we need to generate symbol mangles for Linux. We can do this in
         # one go for all of them.
         (
             cd "${SRCROOT}"
-            go run "util/read_symbols.go" -obj-file-format elf -out "${TMPDIR}/symbols-linux-all.txt" "${HERE}"/.build/*-unknown-linux-gnu/debug/libCCryptoBoringSSL.a
+            go run "util/read_symbols.go" -obj-file-format elf -out "${TMPDIR}/symbols-linux-all.txt" "${HERE}"/.build/*-unknown-linux-gnu*/debug/libCCryptoBoringSSL.a
         )
 
         # Now we concatenate all the symbols together and uniquify it. At this stage remove anything that
@@ -248,7 +250,7 @@ echo "DISABLING assembly on x86 Windows"
     # x86 Windows builds require nasm for acceleration. SwiftPM can't do that right now,
     # so we disable the assembly.
     cd "$DSTROOT"
-    gsed -i "/#define OPENSSL_HEADER_BASE_H/a#if defined(_WIN32) && (defined(__x86_64) || defined(_M_AMD64) || defined(_M_X64) || defined(__x86) || defined(__i386) || defined(__i386__) || defined(_M_IX86))\n#define OPENSSL_NO_ASM\n#endif" "include/openssl/base.h"
+    $sed -i "/#define OPENSSL_HEADER_BASE_H/a#if defined(_WIN32) && (defined(__x86_64) || defined(_M_AMD64) || defined(_M_X64) || defined(__x86) || defined(__i386) || defined(__i386__) || defined(_M_IX86))\n#define OPENSSL_NO_ASM\n#endif" "include/openssl/base.h"
 
 )
 
