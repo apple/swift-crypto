@@ -18,6 +18,7 @@ import XCTest
 @available(iOS 16.0, macOS 13.0, watchOS 9.0, tvOS 16.0, macCatalyst 16.0, visionOS 2.0, *)
 final class ARCAPITests: XCTestCase {
 
+    @available(*, deprecated, message: "ARC(P-384) has been removed from the IETF draft; use ARC(P-256) instead.")
     func testVectors() throws {
         let data = ARCEncodedTestVector.data(using: .utf8)!
         let decoder = JSONDecoder()
@@ -279,14 +280,24 @@ extension P256._ARCV1.PrivateKey: ARCPrivateKey {}
 extension P256._ARCV1: ARCV1 {}
 extension P256: ARCCurve {}
 
+
+@available(*, deprecated, message: "ARC(P-384) has been removed from the IETF draft; use ARC(P-256) instead.")
 extension P384._ARCV1.Precredential: ARCPrecredential {}
+@available(*, deprecated, message: "ARC(P-384) has been removed from the IETF draft; use ARC(P-256) instead.")
 extension P384._ARCV1.CredentialRequest: ARCCredentialRequest {}
+@available(*, deprecated, message: "ARC(P-384) has been removed from the IETF draft; use ARC(P-256) instead.")
 extension P384._ARCV1.CredentialResponse: ARCCredentialResponse {}
+@available(*, deprecated, message: "ARC(P-384) has been removed from the IETF draft; use ARC(P-256) instead.")
 extension P384._ARCV1.Credential: ARCCredential {}
+@available(*, deprecated, message: "ARC(P-384) has been removed from the IETF draft; use ARC(P-256) instead.")
 extension P384._ARCV1.Presentation: ARCPresentation {}
+@available(*, deprecated, message: "ARC(P-384) has been removed from the IETF draft; use ARC(P-256) instead.")
 extension P384._ARCV1.PublicKey: ARCPublicKey {
     typealias H2G = P384._ARCV1.H2G
 }
+@available(*, deprecated, message: "ARC(P-384) has been removed from the IETF draft; use ARC(P-256) instead.")
 extension P384._ARCV1.PrivateKey: ARCPrivateKey {}
+@available(*, deprecated, message: "ARC(P-384) has been removed from the IETF draft; use ARC(P-256) instead.")
 extension P384._ARCV1: ARCV1 {}
+@available(*, deprecated, message: "ARC(P-384) has been removed from the IETF draft; use ARC(P-256) instead.")
 extension P384: ARCCurve {}
