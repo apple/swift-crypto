@@ -70,7 +70,7 @@ final class PKCS8DERRepresentationTests: XCTestCase {
     }
 
     func test_ed25519() {
-        let privatKeyPEM = """
+        let privateKeyPEM = """
             -----BEGIN PRIVATE KEY-----
             MC4CAQAwBQYDK2VwBCIEIFSrpkDrDWBMoz/YWjFaW9t4TQaKWyalZ6TRDUS/4+LE
             -----END PRIVATE KEY-----
