@@ -83,7 +83,7 @@ final class PKCS8DERRepresentationTests: XCTestCase {
         )!
 
         // We only need the 32 bytes of the key.
-        let document = try! ASN1.PEMDocument(pemString: privatKeyPEM)
+        let document = try! ASN1.PEMDocument(pemString: privateKeyPEM)
         var bytes = document.derBytes
         bytes.removeFirst(bytes.count - 32)
 
@@ -114,7 +114,7 @@ final class PKCS8DERRepresentationTests: XCTestCase {
     }
 
     func test_x25519() {
-        let privatKeyPEM = """
+        let privateKeyPEM = """
             -----BEGIN PRIVATE KEY-----
             MC4CAQAwBQYDK2VuBCIEIKBtrFwBvmRtGZjMyj0rXewOQclz/8cdEY981glA/w5a
             -----END PRIVATE KEY-----
@@ -127,7 +127,7 @@ final class PKCS8DERRepresentationTests: XCTestCase {
         )!
 
         // We only need the 32 bytes of the key.
-        let document = try! ASN1.PEMDocument(pemString: privatKeyPEM)
+        let document = try! ASN1.PEMDocument(pemString: privateKeyPEM)
         var bytes = document.derBytes
         bytes.removeFirst(bytes.count - 32)
 
@@ -138,7 +138,7 @@ final class PKCS8DERRepresentationTests: XCTestCase {
     }
 
     func test_P256() {
-        let privatKeyPEM = """
+        let privateKeyPEM = """
             -----BEGIN PRIVATE KEY-----
             MIGHAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBG0wawIBAQQgO6fz+J/sZqbCki3h
             chsrVb69KW8q24pLDwotAtwz/gahRANCAASkBqszxMCGrd8l+xZitPto300blCWk
@@ -150,13 +150,13 @@ final class PKCS8DERRepresentationTests: XCTestCase {
         let privateKeyPKCS8DER = Data(base64Encoded: encodedPKCS8DER)!
 
         // Create key from PEM and compare our exported representation.
-        let keyFromPEM = try! P256.Signing.PrivateKey(pemRepresentation: privatKeyPEM)
+        let keyFromPEM = try! P256.Signing.PrivateKey(pemRepresentation: privateKeyPEM)
 
         XCTAssertEqual(keyFromPEM.pkcs8DERRepresentation, privateKeyPKCS8DER)
     }
 
     func test_P384() {
-        let privatKeyPEM = """
+        let privateKeyPEM = """
             -----BEGIN PRIVATE KEY-----
             MIG2AgEAMBAGByqGSM49AgEGBSuBBAAiBIGeMIGbAgEBBDD2qUnvEDviY5Hon7fx
             rsJmgWCGQcNlU+nXEWOoFPC49kioBm1hsveCH0q3vk9GjZKhZANiAAQFzxvdG2gI
@@ -171,13 +171,13 @@ final class PKCS8DERRepresentationTests: XCTestCase {
         let privateKeyPKCS8DER = Data(base64Encoded: encodedPKCS8DER)!
 
         // Create key from PEM and compare our exported representation.
-        let keyFromPEM = try! P384.Signing.PrivateKey(pemRepresentation: privatKeyPEM)
+        let keyFromPEM = try! P384.Signing.PrivateKey(pemRepresentation: privateKeyPEM)
 
         XCTAssertEqual(keyFromPEM.pkcs8DERRepresentation, privateKeyPKCS8DER)
     }
 
     func test_P521() {
-        let privatKeyPEM = """
+        let privateKeyPEM = """
             -----BEGIN PRIVATE KEY-----
             MIHuAgEAMBAGByqGSM49AgEGBSuBBAAjBIHWMIHTAgEBBEIBcQv0MVt8xb5teBQJ
             Mqn7wnQ2GVzgL+jkMERcMaABU7+UL7uC0ff+15RKEI2RwKLVUVvp3WJigCHBDpwY
@@ -194,7 +194,7 @@ final class PKCS8DERRepresentationTests: XCTestCase {
         let privateKeyPKCS8DER = Data(base64Encoded: encodedPKCS8DER)
 
         // Create key from PEM and compare our exported representation.
-        let keyFromPEM = try! P521.Signing.PrivateKey(pemRepresentation: privatKeyPEM)
+        let keyFromPEM = try! P521.Signing.PrivateKey(pemRepresentation: privateKeyPEM)
 
         XCTAssertEqual(keyFromPEM.pkcs8DERRepresentation, privateKeyPKCS8DER)
     }
