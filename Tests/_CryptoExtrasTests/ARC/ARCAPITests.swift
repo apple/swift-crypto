@@ -194,6 +194,7 @@ fileprivate protocol ARCCredentialResponse {
     var rawRepresentation: Data { get }
 }
 
+@available(macOS 10.15, iOS 13.2, tvOS 13.2, watchOS 6.1, macCatalyst 13.2, visionOS 1.2, *)
 fileprivate protocol ARCPresentation<H2G> {
     associatedtype H2G: HashToGroup
     var backing: ARC.Presentation<H2G> { get }
@@ -201,6 +202,7 @@ fileprivate protocol ARCPresentation<H2G> {
     var rawRepresentation: Data { get }
 }
 
+@available(macOS 10.15, iOS 13.2, tvOS 13.2, watchOS 6.1, macCatalyst 13.2, visionOS 1.2, *)
 fileprivate protocol ARCCredential<H2G, Presentation> {
     associatedtype H2G: HashToGroup
     associatedtype Presentation: ARCPresentation
@@ -216,6 +218,7 @@ fileprivate protocol ARCCredential<H2G, Presentation> {
     mutating func makePresentation(context: some DataProtocol, presentationLimit: Int) throws -> (presentation: Presentation, nonce: Int)
 }
 
+@available(macOS 10.15, iOS 13.2, tvOS 13.2, watchOS 6.1, macCatalyst 13.2, visionOS 1.2, *)
 fileprivate protocol ARCPrivateKey<H2G, CredentialRequest, CredentialResponse, Credential, Presentation> {
     associatedtype H2G: HashToGroup
     associatedtype Credential
@@ -236,6 +239,7 @@ fileprivate protocol ARCPrivateKey<H2G, CredentialRequest, CredentialResponse, C
     ) throws -> Bool
 }
 
+@available(macOS 10.15, iOS 13.2, tvOS 13.2, watchOS 6.1, macCatalyst 13.2, visionOS 1.2, *)
 fileprivate protocol ARCPublicKey<H2G, CredentialResponse, Credential> {
     associatedtype H2G: HashToGroup
     associatedtype Precredential: ARCPrecredential
@@ -253,6 +257,7 @@ fileprivate protocol ARCPrecredential {
     var credentialRequest: CredentialRequest { get }
 }
 
+@available(macOS 10.15, iOS 13.2, tvOS 13.2, watchOS 6.1, macCatalyst 13.2, visionOS 1.2, *)
 fileprivate protocol ARCV1<H2G> {
     associatedtype H2G: HashToGroup
     associatedtype CredentialRequest: ARCCredentialRequest
@@ -263,41 +268,60 @@ fileprivate protocol ARCV1<H2G> {
     associatedtype PublicKey: ARCPublicKey<H2G, CredentialResponse, Credential>
 }
 
+@available(macOS 10.15, iOS 13.2, tvOS 13.2, watchOS 6.1, macCatalyst 13.2, visionOS 1.2, *)
 fileprivate protocol ARCCurve: OpenSSLSupportedNISTCurve {
     associatedtype H2G: HashToGroup where H2G == OpenSSLHashToCurve<Self>
     associatedtype _ARCV1: ARCV1<H2G>
 }
 
+@available(iOS 16.0, macOS 13.0, watchOS 9.0, tvOS 16.0, macCatalyst 16.0, visionOS 2.0, *)
 extension P256._ARCV1.Precredential: ARCPrecredential {}
+@available(iOS 16.0, macOS 13.0, watchOS 9.0, tvOS 16.0, macCatalyst 16.0, visionOS 2.0, *)
 extension P256._ARCV1.CredentialRequest: ARCCredentialRequest {}
+@available(iOS 16.0, macOS 13.0, watchOS 9.0, tvOS 16.0, macCatalyst 16.0, visionOS 2.0, *)
 extension P256._ARCV1.CredentialResponse: ARCCredentialResponse {}
+@available(iOS 16.0, macOS 13.0, watchOS 9.0, tvOS 16.0, macCatalyst 16.0, visionOS 2.0, *)
 extension P256._ARCV1.Credential: ARCCredential {}
+@available(iOS 16.0, macOS 13.0, watchOS 9.0, tvOS 16.0, macCatalyst 16.0, visionOS 2.0, *)
 extension P256._ARCV1.Presentation: ARCPresentation {}
+@available(iOS 16.0, macOS 13.0, watchOS 9.0, tvOS 16.0, macCatalyst 16.0, visionOS 2.0, *)
 extension P256._ARCV1.PublicKey: ARCPublicKey {
     typealias H2G = P256._ARCV1.H2G
 }
+@available(iOS 16.0, macOS 13.0, watchOS 9.0, tvOS 16.0, macCatalyst 16.0, visionOS 2.0, *)
 extension P256._ARCV1.PrivateKey: ARCPrivateKey {}
+@available(iOS 16.0, macOS 13.0, watchOS 9.0, tvOS 16.0, macCatalyst 16.0, visionOS 2.0, *)
 extension P256._ARCV1: ARCV1 {}
+@available(iOS 16.0, macOS 13.0, watchOS 9.0, tvOS 16.0, macCatalyst 16.0, visionOS 2.0, *)
 extension P256: ARCCurve {}
 
 
 @available(*, deprecated, message: "ARC(P-384) has been removed from the IETF draft; use ARC(P-256) instead.")
+@available(iOS 16.0, macOS 13.0, watchOS 9.0, tvOS 16.0, macCatalyst 16.0, visionOS 2.0, *)
 extension P384._ARCV1.Precredential: ARCPrecredential {}
 @available(*, deprecated, message: "ARC(P-384) has been removed from the IETF draft; use ARC(P-256) instead.")
+@available(iOS 16.0, macOS 13.0, watchOS 9.0, tvOS 16.0, macCatalyst 16.0, visionOS 2.0, *)
 extension P384._ARCV1.CredentialRequest: ARCCredentialRequest {}
 @available(*, deprecated, message: "ARC(P-384) has been removed from the IETF draft; use ARC(P-256) instead.")
+@available(iOS 16.0, macOS 13.0, watchOS 9.0, tvOS 16.0, macCatalyst 16.0, visionOS 2.0, *)
 extension P384._ARCV1.CredentialResponse: ARCCredentialResponse {}
 @available(*, deprecated, message: "ARC(P-384) has been removed from the IETF draft; use ARC(P-256) instead.")
+@available(iOS 16.0, macOS 13.0, watchOS 9.0, tvOS 16.0, macCatalyst 16.0, visionOS 2.0, *)
 extension P384._ARCV1.Credential: ARCCredential {}
 @available(*, deprecated, message: "ARC(P-384) has been removed from the IETF draft; use ARC(P-256) instead.")
+@available(iOS 16.0, macOS 13.0, watchOS 9.0, tvOS 16.0, macCatalyst 16.0, visionOS 2.0, *)
 extension P384._ARCV1.Presentation: ARCPresentation {}
 @available(*, deprecated, message: "ARC(P-384) has been removed from the IETF draft; use ARC(P-256) instead.")
+@available(iOS 16.0, macOS 13.0, watchOS 9.0, tvOS 16.0, macCatalyst 16.0, visionOS 2.0, *)
 extension P384._ARCV1.PublicKey: ARCPublicKey {
     typealias H2G = P384._ARCV1.H2G
 }
 @available(*, deprecated, message: "ARC(P-384) has been removed from the IETF draft; use ARC(P-256) instead.")
+@available(iOS 16.0, macOS 13.0, watchOS 9.0, tvOS 16.0, macCatalyst 16.0, visionOS 2.0, *)
 extension P384._ARCV1.PrivateKey: ARCPrivateKey {}
 @available(*, deprecated, message: "ARC(P-384) has been removed from the IETF draft; use ARC(P-256) instead.")
+@available(iOS 16.0, macOS 13.0, watchOS 9.0, tvOS 16.0, macCatalyst 16.0, visionOS 2.0, *)
 extension P384._ARCV1: ARCV1 {}
 @available(*, deprecated, message: "ARC(P-384) has been removed from the IETF draft; use ARC(P-256) instead.")
+@available(iOS 16.0, macOS 13.0, watchOS 9.0, tvOS 16.0, macCatalyst 16.0, visionOS 2.0, *)
 extension P384: ARCCurve {}
