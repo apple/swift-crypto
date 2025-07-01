@@ -14,7 +14,6 @@
 
 import SwiftASN1
 
-// Defined in RFC 8410
 extension ASN1ObjectIdentifier.AlgorithmIdentifier {
     // Identifies the key agreement algorithm X25519.
     //
