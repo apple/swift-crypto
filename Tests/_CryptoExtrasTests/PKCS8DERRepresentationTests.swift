@@ -18,7 +18,7 @@ import XCTest
 
 @testable import _CryptoExtras
 
-final class TestPKCS8DERRepresentationTests: XCTestCase {
+final class PKCS8DERRepresentationTests: XCTestCase {
     func test_RSA() {
         let rsaPrivateKeyPEM = """
             -----BEGIN RSA PRIVATE KEY-----
