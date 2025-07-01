@@ -27,8 +27,7 @@ extension P256 {
         internal typealias Ciphersuite = ARC.Ciphersuite<H2G>
         fileprivate typealias Server = ARC.Server<H2G>
 
-        // TODO: ARC internals changed recently to use this a lot more——might benefit from being a stored property.
-        internal static var ciphersuite: Ciphersuite { Ciphersuite(H2G.self) }
+        internal static let ciphersuite = Ciphersuite(H2G.self)
     }
 }
 
@@ -408,8 +407,7 @@ extension P384 {
         internal typealias Ciphersuite = ARC.Ciphersuite<H2G>
         fileprivate typealias Server = ARC.Server<H2G>
 
-        // TODO: ARC internals changed recently to use this a lot more——might benefit from being a stored property.
-        internal static var ciphersuite: Ciphersuite { Ciphersuite(H2G.self) }
+        internal static let ciphersuite = Ciphersuite(H2G.self)
     }
 }
 
