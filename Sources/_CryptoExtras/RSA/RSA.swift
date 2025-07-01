@@ -113,14 +113,8 @@ extension _RSA.Signing {
         }
 
         /// Construct an RSA public key with the specified parameters.
-        ///
-        /// Only the BoringSSL backend provides APIs to create a key from its parameters so we first create a BoringSSL
-        /// key, and then pass it to the platform-specific initializer that accepts a BoringSSL key.
-        ///
-        /// On Darwin platforms, this will serialize it to PEM format, and then construct a platform-specific key from
-        /// the PEM representation.
         public init(n: some ContiguousBytes, e: some ContiguousBytes) throws {
-            self.backing = try BackingPublicKey(BoringSSLRSAPublicKey(n: n, e: e))
+            self.backing = try BackingPublicKey(n: n, e: e)
         }
 
         public var pkcs1DERRepresentation: Data {
@@ -211,14 +205,8 @@ extension _RSA.Signing {
         }
 
         /// Construct an RSA private key with the specified parameters.
-        ///
-        /// Only the BoringSSL backend provides APIs to create a key from its parameters so we first create a BoringSSL
-        /// key, and then pass it to the platform-specific initializer that accepts a BoringSSL key.
-        ///
-        /// On Darwin platforms, this will serialize it to DER format, and then construct a platform-specific key from
-        /// the DER representation.
         public init(n: some ContiguousBytes, e: some ContiguousBytes, d: some ContiguousBytes, p: some ContiguousBytes, q: some ContiguousBytes) throws {
-            self.backing = try BackingPrivateKey(BoringSSLRSAPrivateKey(n: n, e: e, d: d, p: p, q: q))
+            self.backing = try BackingPrivateKey(n: n, e: e, d: d, p: p, q: q)
         }
 
         /// Randomly generate a new RSA private key of a given size.
@@ -534,14 +522,8 @@ extension _RSA.Encryption {
         }
 
         /// Construct an RSA public key with the specified parameters.
-        ///
-        /// Only the BoringSSL backend provides APIs to create a key from its parameters so we first create a BoringSSL
-        /// key, and then pass it to the platform-specific initializer that accepts a BoringSSL key.
-        ///
-        /// On Darwin platforms, this will serialize it to DER format, and then construct a platform-specific key from
-        /// the DER representation.
         public init(n: some ContiguousBytes, e: some ContiguousBytes) throws {
-            self.backing = try BackingPublicKey(BoringSSLRSAPublicKey(n: n, e: e))
+            self.backing = try BackingPublicKey(n: n, e: e)
         }
 
         public var pkcs1DERRepresentation: Data { self.backing.pkcs1DERRepresentation }
@@ -602,14 +584,8 @@ extension _RSA.Encryption {
 
 
         /// Construct an RSA private key with the specified parameters.
-        ///
-        /// Only the BoringSSL backend provides APIs to create a key from its parameters so we first create a BoringSSL
-        /// key, and then pass it to the platform-specific initializer that accepts a BoringSSL key.
-        ///
-        /// On Darwin platforms, this will serialize it to PEM format, and then construct a platform-specific key from
-        /// the PEM representation.
         public init(n: some ContiguousBytes, e: some ContiguousBytes, d: some ContiguousBytes, p: some ContiguousBytes, q: some ContiguousBytes) throws {
-            self.backing = try BackingPrivateKey(BoringSSLRSAPrivateKey(n: n, e: e, d: d, p: p, q: q))
+            self.backing = try BackingPrivateKey(n: n, e: e, d: d, p: p, q: q)
         }
 
         /// Randomly generate a new RSA private key of a given size.
