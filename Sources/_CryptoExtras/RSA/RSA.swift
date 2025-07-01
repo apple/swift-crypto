@@ -16,17 +16,10 @@ import Crypto
 import CryptoBoringWrapper
 import SwiftASN1
 
-#if CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
-fileprivate typealias BackingPublicKey = SecurityRSAPublicKey
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
-fileprivate typealias BackingPrivateKey = SecurityRSAPrivateKey
-#else
 @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 fileprivate typealias BackingPublicKey = BoringSSLRSAPublicKey
 @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 fileprivate typealias BackingPrivateKey = BoringSSLRSAPrivateKey
-#endif
 
 /// Types associated with the RSA algorithm
 ///
