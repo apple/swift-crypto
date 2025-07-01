@@ -18,6 +18,7 @@ import SwiftASN1
 
 @available(iOS 14.0, macOS 11.0, watchOS 7.0, tvOS 14.0, *)
 extension Curve25519.Signing.PrivateKey {
+    /// A Distinguished Encoding Rules (DER) encoded representation of the private key in PKCS#8 format.
     public var pkcs8DERRepresentation: Data {
         let pkey = ASN1.PKCS8PrivateKey(algorithm: .ed25519, privateKey: Array(self.rawRepresentation))
         var serializer = DER.Serializer()
@@ -30,6 +31,7 @@ extension Curve25519.Signing.PrivateKey {
 
 @available(iOS 14.0, macOS 11.0, watchOS 7.0, tvOS 14.0, *)
 extension Curve25519.KeyAgreement.PrivateKey {
+    /// A Distinguished Encoding Rules (DER) encoded representation of the private key in PKCS#8 format.
     public var pkcs8DERRepresentation: Data {
         let pkey = ASN1.PKCS8PrivateKey(algorithm: .x25519, privateKey: Array(self.rawRepresentation))
         var serializer = DER.Serializer()
@@ -42,6 +44,10 @@ extension Curve25519.KeyAgreement.PrivateKey {
 
 @available(iOS 14.0, macOS 11.0, watchOS 7.0, tvOS 14.0, *)
 extension P256.Signing.PrivateKey {
+    /// A Distinguished Encoding Rules (DER) encoded representation of the private key in PKCS#8 format.
+    ///
+    /// This property provides the same output as the existing `derRepresentation` property,
+    /// which already conforms to the PKCS#8 standard.
     public var pkcs8DERRepresentation: Data {
         self.derRepresentation
     }
@@ -49,6 +55,10 @@ extension P256.Signing.PrivateKey {
 
 @available(iOS 14.0, macOS 11.0, watchOS 7.0, tvOS 14.0, *)
 extension P384.Signing.PrivateKey {
+    /// A Distinguished Encoding Rules (DER) encoded representation of the private key in PKCS#8 format.
+    ///
+    /// This property provides the same output as the existing `derRepresentation` property,
+    /// which already conforms to the PKCS#8 standard.
     public var pkcs8DERRepresentation: Data {
         self.derRepresentation
     }
@@ -56,6 +66,10 @@ extension P384.Signing.PrivateKey {
 
 @available(iOS 14.0, macOS 11.0, watchOS 7.0, tvOS 14.0, *)
 extension P521.Signing.PrivateKey {
+    /// A Distinguished Encoding Rules (DER) encoded representation of the private key in PKCS#8 format.
+    ///
+    /// This property provides the same output as the existing `derRepresentation` property,
+    /// which already conforms to the PKCS#8 standard.
     public var pkcs8DERRepresentation: Data {
         self.derRepresentation
     }

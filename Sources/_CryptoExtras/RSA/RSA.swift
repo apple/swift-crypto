@@ -259,6 +259,7 @@ extension _RSA.Signing {
             self.backing.pemRepresentation
         }
 
+        /// A Distinguished Encoding Rules (DER) encoded representation of the private key in PKCS#8 format.
         public var pkcs8DERRepresentation: Data {
             self.backing.pkcs8DERRepresentation
         }
