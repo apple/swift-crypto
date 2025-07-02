@@ -325,3 +325,28 @@ extension P384._ARCV1: ARCV1 {}
 @available(*, deprecated, message: "ARC(P-384) has been removed from the IETF draft; use ARC(P-256) instead.")
 @available(iOS 16.0, macOS 13.0, watchOS 9.0, tvOS 16.0, macCatalyst 16.0, visionOS 2.0, *)
 extension P384: ARCCurve {}
+
+
+// Swift 5.10 compiler needs a little more help to infer the conformances.
+#if swift(<6.0)
+@available(iOS 16.0, macOS 13.0, watchOS 9.0, tvOS 16.0, macCatalyst 16.0, visionOS 2.0, *)
+fileprivate extension P256._ARCV1.PrivateKey {
+    typealias H2G = P256._ARCV1.H2G
+    typealias Credential = P256._ARCV1.Credential
+    typealias PublicKey = P256._ARCV1.PublicKey
+    typealias CredentialRequest = P256._ARCV1.CredentialRequest
+    typealias CredentialResponse = P256._ARCV1.CredentialResponse
+    typealias Presentation = P256._ARCV1.Presentation
+}
+
+@available(*, deprecated, message: "ARC(P-384) has been removed from the IETF draft; use ARC(P-256) instead.")
+@available(iOS 16.0, macOS 13.0, watchOS 9.0, tvOS 16.0, macCatalyst 16.0, visionOS 2.0, *)
+fileprivate extension P384._ARCV1.PrivateKey {
+    typealias H2G = P384._ARCV1.H2G
+    typealias Credential = P384._ARCV1.Credential
+    typealias PublicKey = P384._ARCV1.PublicKey
+    typealias CredentialRequest = P384._ARCV1.CredentialRequest
+    typealias CredentialResponse = P384._ARCV1.CredentialResponse
+    typealias Presentation = P384._ARCV1.Presentation
+}
+#endif
