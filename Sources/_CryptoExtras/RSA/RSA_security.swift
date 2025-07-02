@@ -169,6 +169,12 @@ internal struct SecurityRSAPrivateKey: @unchecked Sendable {
         return pemString.appending("\n")
     }
 
+    var pkcs8DERRepresentation: Data {
+        let pkcs1Bytes = self.derRepresentation
+        let pkcs8Bytes = Data(privateKeyPKCS8BytesForPKCS1Bytes: pkcs1Bytes)
+        return pkcs8Bytes
+    }
+
     var keySizeInBits: Int {
         SecKeyGetBlockSize(self.backing) * 8
     }
