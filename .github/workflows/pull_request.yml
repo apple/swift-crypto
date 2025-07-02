@@ -56,3 +56,7 @@ jobs:
     with:
       runner_pool: general
       build_scheme: swift-crypto-Package
+
+  static-sdk:
+    name: Static SDK
+    uses: apple/swift-nio/.github/workflows/static_sdk.yml@main
