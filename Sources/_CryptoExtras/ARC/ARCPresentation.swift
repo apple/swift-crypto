@@ -45,9 +45,9 @@ extension ARC {
             let V = z * credential.X1 - r * generatorG
 
             // Create tag: (m1 + nonce)^(-1) * H2G(presentationContext)
-            let nonceScalar = try Group.Scalar(bytes: I2OSP(value: nonce, outputByteCount: ARCCurve.orderByteCount), reductionIsModOrder: true)
+            let nonceScalar = try Group.Scalar(bytes: I2OSP(value: nonce, outputByteCount: credential.ciphersuite.scalarByteCount), reductionIsModOrder: true)
             let inverse = (nonceScalar + credential.m1) ^ (-1)
-            let T = H2G.hashToGroup(presentationContext, domainSeparationString: Data(("HashToGroup-" + ARC.domain + "Tag").utf8))
+            let T = H2G.hashToGroup(presentationContext, domainSeparationString: Data(("HashToGroup-" + credential.ciphersuite.domain + "Tag").utf8))
             let tag = inverse * T
 
             // m1Tag is a helper element in the ZKP, and is needed to ensure the
@@ -55,7 +55,7 @@ extension ARC {
             let m1Tag = credential.m1 * tag
 
             // Create a prover, and allocate variables for the constrained scalars.
-            var prover = Prover<H2G>(label: ARC.domain + ARC.domain + "CredentialPresentation")
+            var prover = Prover<H2G>(label: credential.ciphersuite.domain + credential.ciphersuite.domain + "CredentialPresentation")
             let m1Var = prover.appendScalar(label: "m1", assignment: credential.m1)
             let zVar = prover.appendScalar(label: "z", assignment: z)
             let rNegVar = prover.appendScalar(label: "-r", assignment: -r)
@@ -86,12 +86,10 @@ extension ARC {
             - nonce: Integer which is used for rate limiting, which should be in `[0, presentationLimit)`.
             - generatorG: Public generator G
             - generatorH: Public generator H
+            - ciphersuite: The ciphersuite for ARC
          - Returns: a boolean for if the tag is valid and the tag proof verifies correctly.
          */
-        func verify(
-            serverPrivateKey: ServerPrivateKey<Group.Scalar>, X1: Group.Element, m2: Group.Scalar, presentationContext: Data, presentationLimit: Int, nonce: Int,
-            generatorG: Group.Element, generatorH: Group.Element
-        ) throws -> Bool {
+        func verify(serverPrivateKey: ServerPrivateKey<Group.Scalar>, X1: Group.Element, m2: Group.Scalar, presentationContext: Data, presentationLimit: Int, nonce: Int, generatorG: Group.Element, generatorH: Group.Element, ciphersuite: Ciphersuite<H2G>) throws -> Bool {
             if nonce < 0 || nonce >= presentationLimit {
                 return false // nonce is outside of the presentationLimit
             }
@@ -103,14 +101,14 @@ extension ARC {
             let V = serverPrivateKey.x0 * self.U + serverPrivateKey.x1 * self.m1Commit + serverPrivateKey.x2 * m2 * self.U - self.UPrimeCommit
 
             // Recompute T = H2G(presentationContext)
-            let T = H2G.hashToGroup(presentationContext, domainSeparationString: Data(("HashToGroup-" + ARC.domain + "Tag").utf8))
+            let T = H2G.hashToGroup(presentationContext, domainSeparationString: Data(("HashToGroup-" + ciphersuite.domain + "Tag").utf8))
 
             // Recompute m1Tag = H2G(presentationContext) - nonce * tag
             var m1Tag = T
             for _ in 0..<nonce { m1Tag = m1Tag - self.tag }
 
             // Create a verifier, and allocate variables for the constrained scalars.
-            var verifier = Verifier<H2G>(label: ARC.domain + ARC.domain + "CredentialPresentation")
+            var verifier = Verifier<H2G>(label: ciphersuite.domain + ciphersuite.domain + "CredentialPresentation")
             let m1Var = verifier.appendScalar(label: "m1")
             let zVar = verifier.appendScalar(label: "z")
             let rNegVar = verifier.appendScalar(label: "-r")

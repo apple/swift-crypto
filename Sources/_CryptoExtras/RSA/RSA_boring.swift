@@ -106,6 +106,10 @@ internal struct BoringSSLRSAPrivateKey: Sendable {
         self.backing.pemRepresentation
     }
 
+    var pkcs8DERRepresentation: Data {
+        self.backing.pkcs8DERRepresentation
+    }
+
     var pkcs8PEMRepresentation: String {
         self.backing.pkcs8PEMRepresentation
     }
@@ -734,6 +738,15 @@ extension BoringSSLRSAPrivateKey {
                 precondition(rc == 1)
 
                 return try! String(copyingUTF8MemoryBIO: bio)
+            }
+        }
+
+        fileprivate var pkcs8DERRepresentation: Data {
+            BIOHelper.withWritableMemoryBIO { bio in
+                let rc = CCryptoBoringSSL_i2d_PKCS8PrivateKeyInfo_bio(bio, self.pointer)
+                precondition(rc == 1, "Exporting PKCS8 DER key failed")
+
+                return try! Data(copyingMemoryBIO: bio)
             }
         }
 
