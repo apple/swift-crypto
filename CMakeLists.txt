@@ -14,6 +14,10 @@
 
 cmake_minimum_required(VERSION 3.15.1)
 
+if(POLICY CMP0157)
+  cmake_policy(SET CMP0157 NEW)
+endif()
+
 project(SwiftCrypto
   LANGUAGES ASM C CXX Swift)
 
@@ -45,6 +49,18 @@ if(CMAKE_SYSTEM_NAME STREQUAL Darwin AND NOT CMAKE_CROSSCOMPILING)
   set(CMAKE_AR "/usr/bin/ar")
   set(CMAKE_C_ARCHIVE_CREATE "<CMAKE_AR> crs <TARGET> <LINK_FLAGS> <OBJECTS>")
   set(CMAKE_RANLIB "/usr/bin/ranlib")
+endif()
+
+set(CMAKE_CXX_STANDARD 17)
+if(CMAKE_SYSTEM_NAME STREQUAL Windows)
+  # We need to ensure that we don't include the min/max macros from the Windows SDK.
+  add_compile_definitions(NOMINMAX)
+  # We can only link against the DLL version of the MSVC runtime library for now.
+  set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreadedDLL")
+  if(CMAKE_Swift_COMPILER_VERSION VERSION_EQUAL 0.0.0 OR CMAKE_Swift_COMPILER_VERSION VERSION_GREATER_EQUAL 6.2)
+    # We need to set the static library prefix to "lib" so that we can link against the static libraries.
+    set(CMAKE_STATIC_LIBRARY_PREFIX_Swift "lib")
+  endif()
 endif()
 
 if(NOT CMAKE_SYSTEM_NAME STREQUAL Darwin)
