@@ -46,7 +46,7 @@ extension MLKEM768 {
         ///
         /// - Parameter seedRepresentation: The seed to use to generate the private key.
         ///
-        /// - Throws: `CryptoKitError.incorrectKeySize` if the seed is not 64 bytes long.
+        /// - Throws: `CryptoError.incorrectKeySize` if the seed is not 64 bytes long.
         public init(seedRepresentation: some DataProtocol) throws {
             self.backing = try Backing(seedRepresentation: seedRepresentation)
         }
@@ -65,7 +65,7 @@ extension MLKEM768 {
         ///
         /// - Parameter encapsulated: The encapsulated shared secret.
         ///
-        /// - Throws: `CryptoKitError.incorrectParameterSize` if the encapsulated shared secret is not 1088 bytes long.
+        /// - Throws: `CryptoError.incorrectParameterSize` if the encapsulated shared secret is not 1088 bytes long.
         ///
         /// - Returns: The symmetric key.
         public func decapsulate(_ encapsulated: some DataProtocol) throws -> SymmetricKey {
@@ -104,7 +104,7 @@ extension MLKEM768 {
             ///
             /// - Parameter seedRepresentation: The seed to use to generate the private key.
             ///
-            /// - Throws: `CryptoKitError.incorrectKeySize` if the seed is not 64 bytes long.
+            /// - Throws: `CryptoError.incorrectKeySize` if the seed is not 64 bytes long.
             init(seedRepresentation: some DataProtocol) throws {
                 guard seedRepresentation.count == MLKEM.seedByteCount else {
                     throw CryptoKitError.incorrectKeySize
@@ -135,7 +135,7 @@ extension MLKEM768 {
             ///
             /// - Parameter encapsulated: The encapsulated shared secret.
             ///
-            /// - Throws: `CryptoKitError.incorrectParameterSize` if the encapsulated shared secret is not 1088 bytes long.
+            /// - Throws: `CryptoError.incorrectParameterSize` if the encapsulated shared secret is not 1088 bytes long.
             ///
             /// - Returns: The symmetric key.
             func decapsulate(_ encapsulated: some DataProtocol) throws -> SymmetricKey {
@@ -184,7 +184,7 @@ extension MLKEM768 {
         ///
         /// - Parameter rawRepresentation: The public key bytes.
         ///
-        /// - Throws: `CryptoKitError.incorrectKeySize` if the raw representation is not the correct size.
+        /// - Throws: `CryptoError.incorrectKeySize` if the raw representation is not the correct size.
         public init(rawRepresentation: some DataProtocol) throws {
             self.backing = try Backing(rawRepresentation: rawRepresentation)
         }
@@ -216,7 +216,7 @@ extension MLKEM768 {
             ///
             /// - Parameter rawRepresentation: The public key bytes.
             ///
-            /// - Throws: `CryptoKitError.incorrectKeySize` if the raw representation is not the correct size.
+            /// - Throws: `CryptoError.incorrectKeySize` if the raw representation is not the correct size.
             init(rawRepresentation: some DataProtocol) throws {
                 guard rawRepresentation.count == MLKEM768.PublicKey.byteCount else {
                     throw CryptoKitError.incorrectKeySize
@@ -317,7 +317,7 @@ extension MLKEM1024 {
         ///
         /// - Parameter seedRepresentation: The seed to use to generate the private key.
         ///
-        /// - Throws: `CryptoKitError.incorrectKeySize` if the seed is not 64 bytes long.
+        /// - Throws: `CryptoError.incorrectKeySize` if the seed is not 64 bytes long.
         public init(seedRepresentation: some DataProtocol) throws {
             self.backing = try Backing(seedRepresentation: seedRepresentation)
         }
@@ -336,7 +336,7 @@ extension MLKEM1024 {
         ///
         /// - Parameter encapsulated: The encapsulated shared secret.
         ///
-        /// - Throws: `CryptoKitError.incorrectParameterSize` if the encapsulated shared secret is not 1088 bytes long.
+        /// - Throws: `CryptoError.incorrectParameterSize` if the encapsulated shared secret is not 1088 bytes long.
         ///
         /// - Returns: The symmetric key.
         public func decapsulate(_ encapsulated: some DataProtocol) throws -> SymmetricKey {
@@ -375,7 +375,7 @@ extension MLKEM1024 {
             ///
             /// - Parameter seedRepresentation: The seed to use to generate the private key.
             ///
-            /// - Throws: `CryptoKitError.incorrectKeySize` if the seed is not 64 bytes long.
+            /// - Throws: `CryptoError.incorrectKeySize` if the seed is not 64 bytes long.
             init(seedRepresentation: some DataProtocol) throws {
                 guard seedRepresentation.count == MLKEM.seedByteCount else {
                     throw CryptoKitError.incorrectKeySize
@@ -406,7 +406,7 @@ extension MLKEM1024 {
             ///
             /// - Parameter encapsulated: The encapsulated shared secret.
             ///
-            /// - Throws: `CryptoKitError.incorrectParameterSize` if the encapsulated shared secret is not 1088 bytes long.
+            /// - Throws: `CryptoError.incorrectParameterSize` if the encapsulated shared secret is not 1088 bytes long.
             ///
             /// - Returns: The symmetric key.
             func decapsulate(_ encapsulated: some DataProtocol) throws -> SymmetricKey {
@@ -455,7 +455,7 @@ extension MLKEM1024 {
         ///
         /// - Parameter rawRepresentation: The public key bytes.
         ///
-        /// - Throws: `CryptoKitError.incorrectKeySize` if the raw representation is not the correct size.
+        /// - Throws: `CryptoError.incorrectKeySize` if the raw representation is not the correct size.
         public init(rawRepresentation: some DataProtocol) throws {
             self.backing = try Backing(rawRepresentation: rawRepresentation)
         }
@@ -487,7 +487,7 @@ extension MLKEM1024 {
             ///
             /// - Parameter rawRepresentation: The public key bytes.
             ///
-            /// - Throws: `CryptoKitError.incorrectKeySize` if the raw representation is not the correct size.
+            /// - Throws: `CryptoError.incorrectKeySize` if the raw representation is not the correct size.
             init(rawRepresentation: some DataProtocol) throws {
                 guard rawRepresentation.count == MLKEM1024.PublicKey.byteCount else {
                     throw CryptoKitError.incorrectKeySize
