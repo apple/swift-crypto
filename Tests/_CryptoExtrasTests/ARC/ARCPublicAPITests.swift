@@ -20,7 +20,7 @@ final class ARCPublicAPITests: XCTestCase {
 
     func testARCEndToEnd() throws {
         // [Issuer] Create the server secrets (other initializers will be available).
-        let privateKey = P384._ARCV1.PrivateKey()
+        let privateKey = P256._ARCV1.PrivateKey()
 
         // [Issuer] Serialize public key to share with client (other serializations may be available).
         let publicKeyBytes = privateKey.publicKey.rawRepresentation
@@ -35,7 +35,7 @@ final class ARCPublicAPITests: XCTestCase {
         _ = (publicKeyBytes, requestContext, presentationContext, presentationLimit)
 
         // [Client] Obtain public key out of band (other serializations may be available).
-        let publicKey = try P384._ARCV1.PublicKey(rawRepresentation: publicKeyBytes)
+        let publicKey = try P256._ARCV1.PublicKey(rawRepresentation: publicKeyBytes)
 
         // [Client] Prepare a credential request.
         let precredential = try publicKey.prepareCredentialRequest(requestContext: requestContext)
@@ -44,7 +44,7 @@ final class ARCPublicAPITests: XCTestCase {
         let credentialRequestBytes = precredential.credentialRequest.rawRepresentation
 
         // [Issuer] Receive the credential request.
-        let credentialRequest = try P384._ARCV1.CredentialRequest(rawRepresentation: credentialRequestBytes)
+        let credentialRequest = try P256._ARCV1.CredentialRequest(rawRepresentation: credentialRequestBytes)
 
         // [Issuer] Generate a credential response.
         let credentialResponse = try privateKey.issue(credentialRequest)
@@ -53,7 +53,7 @@ final class ARCPublicAPITests: XCTestCase {
         let credentialResponseBytes = credentialResponse.rawRepresentation
 
         // [Client] Receive the credential response.
-        let _ = try P384._ARCV1.CredentialResponse(rawRepresentation: credentialResponseBytes)
+        let _ = try P256._ARCV1.CredentialResponse(rawRepresentation: credentialResponseBytes)
 
         // [Client] Generate a credential.
         // NOTE: This is a var because it enforces the presentation limits for each presentation prefix.
@@ -70,7 +70,7 @@ final class ARCPublicAPITests: XCTestCase {
         let presentationBytes = presentation.rawRepresentation
 
         // [Verifier] Receive the presentation.
-        let _ = try P384._ARCV1.Presentation(rawRepresentation: presentationBytes)
+        let _ = try P256._ARCV1.Presentation(rawRepresentation: presentationBytes)
 
         // [Verifier] Verify the presentation.
         let validPresentation = try privateKey.verify(
@@ -87,7 +87,7 @@ final class ARCPublicAPITests: XCTestCase {
     }
 
     func testCrendentialEnforcesPresentationLimitLocally() throws {
-        let privateKey = P384._ARCV1.PrivateKey()
+        let privateKey = P256._ARCV1.PrivateKey()
         let publicKey = privateKey.publicKey
         let requestContext = Data("shared request context".utf8)
         let presentationContext = Data("shared presentation context".utf8)
