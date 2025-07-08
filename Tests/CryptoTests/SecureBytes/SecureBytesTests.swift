@@ -147,7 +147,7 @@ final class SecureBytesTests: XCTestCase {
 
         base.withUnsafeBytes { XCTAssertEqual($0.count, 10) }
         base.withUnsafeMutableBytes { XCTAssertEqual($0.count, 10) }
-        base.backing._withVeryUnsafeMutableBytes { XCTAssertGreaterThanOrEqual($0.count, 16) }
+        base.backing._withVeryUnsafeMutableBytes(base.backing.allocatedCapacity) { XCTAssertGreaterThanOrEqual($0.count, 16) }
     }
 
     func testTheresOnlyOneRegion() {
