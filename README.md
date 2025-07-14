@@ -1,6 +1,6 @@
 # Swift Crypto
 
-Swift Crypto is an open-source implementation of a substantial portion of the API of [Apple CryptoKit](https://developer.apple.com/documentation/cryptokit) suitable for use on Linux platforms. It enables cross-platform or server applications with the advantages of CryptoKit.
+Swift Crypto is an open-source implementation of a substantial portion of the API of [Apple CryptoKit](https://developer.apple.com/documentation/cryptokit) suitable for use on Linux and ARM64 Windows platforms. It enables cross-platform or server applications with the advantages of CryptoKit.
 
 ## Using Swift Crypto
 
@@ -28,7 +28,7 @@ Swift Crypto compiles in two distinct modes depending on the platform for which 
 
 When building Swift Crypto for use on an Apple platform where CryptoKit is already available, Swift Crypto compiles its entire API surface down to nothing and simply re-exports the API of CryptoKit. This means that when using Apple platforms Swift Crypto simply delegates all work to the core implementation of CryptoKit, as though Swift Crypto was not even there.
 
-When building Swift Crypto for use on Linux, Swift Crypto builds substantially more code. In particular, we build:
+When building Swift Crypto for use on Linux or Windows, Swift Crypto builds substantially more code. In particular, we build:
 
 1. A vendored copy of BoringSSL's libcrypto.
 2. The common API of Swift Crypto and CryptoKit.
