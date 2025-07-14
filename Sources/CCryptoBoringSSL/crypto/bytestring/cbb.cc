@@ -1,16 +1,16 @@
-/* Copyright 2014 The BoringSSL Authors
- *
- * Permission to use, copy, modify, and/or distribute this software for any
- * purpose with or without fee is hereby granted, provided that the above
- * copyright notice and this permission notice appear in all copies.
- *
- * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
- * WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
- * MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY
- * SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
- * WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION
- * OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN
- * CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. */
+// Copyright 2014 The BoringSSL Authors
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     https://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 
 #include <CCryptoBoringSSL_bytestring.h>
 
@@ -468,6 +468,13 @@ int CBB_add_u64le(CBB *cbb, uint64_t value) {
   return CBB_add_u64(cbb, CRYPTO_bswap8(value));
 }
 
+void CBB_discard(CBB *cbb, size_t len) {
+  BSSL_CHECK(cbb->child == nullptr);
+  BSSL_CHECK(len <= CBB_len(cbb));
+  struct cbb_buffer_st *base = cbb_get_base(cbb);
+  base->len -= len;
+}
+
 void CBB_discard_child(CBB *cbb) {
   if (cbb->child == NULL) {
     return;
@@ -479,6 +486,19 @@ void CBB_discard_child(CBB *cbb) {
 
   cbb->child->u.child.base = NULL;
   cbb->child = NULL;
+}
+
+int CBB_add_asn1_element(CBB *cbb, CBS_ASN1_TAG tag, const uint8_t *data,
+                         size_t data_len) {
+  CBB child;
+  if (!CBB_add_asn1(cbb, &child, tag) ||
+      !CBB_add_bytes(&child, data, data_len) ||  //
+      !CBB_flush(cbb)) {
+    cbb_on_error(cbb);
+    return 0;
+  }
+
+  return 1;
 }
 
 int CBB_add_asn1_uint64(CBB *cbb, uint64_t value) {
@@ -557,14 +577,7 @@ err:
 }
 
 int CBB_add_asn1_octet_string(CBB *cbb, const uint8_t *data, size_t data_len) {
-  CBB child;
-  if (!CBB_add_asn1(cbb, &child, CBS_ASN1_OCTETSTRING) ||
-      !CBB_add_bytes(&child, data, data_len) || !CBB_flush(cbb)) {
-    cbb_on_error(cbb);
-    return 0;
-  }
-
-  return 1;
+  return CBB_add_asn1_element(cbb, CBS_ASN1_OCTETSTRING, data, data_len);
 }
 
 int CBB_add_asn1_bool(CBB *cbb, int value) {

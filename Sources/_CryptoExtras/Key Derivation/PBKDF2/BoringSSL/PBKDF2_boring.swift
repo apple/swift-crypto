@@ -12,12 +12,7 @@
 //
 //===----------------------------------------------------------------------===//
 import Crypto
-
-#if canImport(Darwin) || swift(>=5.9.1)
 import Foundation
-#else
-@preconcurrency import Foundation
-#endif
 
 #if !canImport(CommonCrypto)
 @_implementationOnly import CCryptoBoringSSL

@@ -110,15 +110,16 @@ If you believe you have identified a vulnerability in Swift Crypto, please [repo
 
 The most recent versions of Swift Crypto support Swift 5.7 and newer. The minimum Swift version supported by Swift Crypto releases are detailed below:
 
-Swift Crypto      | Minimum Swift Version
-------------------|----------------------
-`2.0.0 ..< 2.1.0` | 5.2
-`2.1.0 ..< 2.2.0` | 5.4
-`2.2.0 ..< 2.4.2` | 5.5
-`2.4.2 ..< 3.1.0` | 5.6
-`3.1.0 ..< 3.3.0` | 5.7
-`3.3.0 ..< 3.8.0` | 5.8
-`3.8.0 ...`       | 5.9
+Swift Crypto        | Minimum Swift Version
+--------------------|----------------------
+`2.0.0  ..< 2.1.0`  | 5.2
+`2.1.0  ..< 2.2.0`  | 5.4
+`2.2.0  ..< 2.4.2`  | 5.5
+`2.4.2  ..< 3.1.0`  | 5.6
+`3.1.0  ..< 3.3.0`  | 5.7
+`3.3.0  ..< 3.8.0`  | 5.8
+`3.9.0  ..< 3.13.0` | 5.9
+`3.13.0 ...`        | 5.10
 
 ### Compatibility
 
@@ -128,7 +129,7 @@ What this means for you is that you should depend on Swift Crypto with a version
 In SwiftPM that can be easily done specifying for example `from: "1.0.0"` meaning that you support Swift Crypto in every version starting from 1.0.0 up to (excluding) 2.0.0.
 SemVer and Swift Crypto's Public API guarantees should result in a working program without having to worry about testing every single version for compatibility.
 
-Swift Crypto 2.0.0 was released in September 2021. The only breaking change between Swift Crypto 2.0.0 and 1.0.0 was the addition of new cases in the `CryptoKitError` enumeration. For most users, then, it's safe to depend on either the 1.0.0 _or_ 2.0.0 series of releases.
+Swift Crypto 2.0.0 was released in September 2021. The only breaking change between Swift Crypto 2.0.0 and 1.0.0 was the addition of new cases in the `CryptoError` enumeration. For most users, then, it's safe to depend on either the 1.0.0 _or_ 2.0.0 series of releases.
 
 To do so, please use the following dependency in your `Package.swift`:
 

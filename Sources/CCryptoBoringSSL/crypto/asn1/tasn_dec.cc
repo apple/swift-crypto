@@ -1,58 +1,16 @@
-/* Copyright (C) 1995-1998 Eric Young (eay@cryptsoft.com)
- * All rights reserved.
- *
- * This package is an SSL implementation written
- * by Eric Young (eay@cryptsoft.com).
- * The implementation was written so as to conform with Netscapes SSL.
- *
- * This library is free for commercial and non-commercial use as long as
- * the following conditions are aheared to.  The following conditions
- * apply to all code found in this distribution, be it the RC4, RSA,
- * lhash, DES, etc., code; not just the SSL code.  The SSL documentation
- * included with this distribution is covered by the same copyright terms
- * except that the holder is Tim Hudson (tjh@cryptsoft.com).
- *
- * Copyright remains Eric Young's, and as such any Copyright notices in
- * the code are not to be removed.
- * If this package is used in a product, Eric Young should be given attribution
- * as the author of the parts of the library used.
- * This can be in the form of a textual message at program startup or
- * in documentation (online or textual) provided with the package.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
- * 1. Redistributions of source code must retain the copyright
- *    notice, this list of conditions and the following disclaimer.
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- * 3. All advertising materials mentioning features or use of this software
- *    must display the following acknowledgement:
- *    "This product includes cryptographic software written by
- *     Eric Young (eay@cryptsoft.com)"
- *    The word 'cryptographic' can be left out if the rouines from the library
- *    being used are not cryptographic related :-).
- * 4. If you include any Windows specific code (or a derivative thereof) from
- *    the apps directory (application code) you must include an acknowledgement:
- *    "This product includes software written by Tim Hudson (tjh@cryptsoft.com)"
- *
- * THIS SOFTWARE IS PROVIDED BY ERIC YOUNG ``AS IS'' AND
- * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED.  IN NO EVENT SHALL THE AUTHOR OR CONTRIBUTORS BE LIABLE
- * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
- * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
- * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
- * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
- * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
- * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
- * SUCH DAMAGE.
- *
- * The licence and distribution terms for any publically available version or
- * derivative of this code cannot be changed.  i.e. this code cannot simply be
- * copied and put under another distribution licence
- * [including the GNU Public Licence.] */
+// Copyright 2000-2016 The OpenSSL Project Authors. All Rights Reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     https://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 
 #include <CCryptoBoringSSL_asn1.h>
 #include <CCryptoBoringSSL_asn1t.h>
@@ -94,46 +52,43 @@ static int asn1_item_ex_d2i(ASN1_VALUE **pval, const unsigned char **in,
                             long len, const ASN1_ITEM *it, int tag, int aclass,
                             char opt, CRYPTO_BUFFER *buf, int depth);
 
-// Table to convert tags to bit values, used for MSTRING type
-static const unsigned long tag2bit[31] = {
-    0,  // (reserved)
-    0,  // BOOLEAN
-    0,  // INTEGER
-    B_ASN1_BIT_STRING,
-    B_ASN1_OCTET_STRING,
-    0,               // NULL
-    0,               // OBJECT IDENTIFIER
-    B_ASN1_UNKNOWN,  // ObjectDescriptor
-    B_ASN1_UNKNOWN,  // EXTERNAL
-    B_ASN1_UNKNOWN,  // REAL
-    B_ASN1_UNKNOWN,  // ENUMERATED
-    B_ASN1_UNKNOWN,  // EMBEDDED PDV
-    B_ASN1_UTF8STRING,
-    B_ASN1_UNKNOWN,  // RELATIVE-OID
-    B_ASN1_UNKNOWN,  // TIME
-    B_ASN1_UNKNOWN,  // (reserved)
-    B_ASN1_SEQUENCE,
-    0,  // SET
-    B_ASN1_NUMERICSTRING,
-    B_ASN1_PRINTABLESTRING,
-    B_ASN1_T61STRING,
-    B_ASN1_VIDEOTEXSTRING,
-    B_ASN1_IA5STRING,
-    B_ASN1_UTCTIME,
-    B_ASN1_GENERALIZEDTIME,
-    B_ASN1_GRAPHICSTRING,
-    B_ASN1_ISO64STRING,
-    B_ASN1_GENERALSTRING,
-    B_ASN1_UNIVERSALSTRING,
-    B_ASN1_UNKNOWN,  // CHARACTER STRING
-    B_ASN1_BMPSTRING,
-};
-
 unsigned long ASN1_tag2bit(int tag) {
-  if (tag < 0 || tag > 30) {
-    return 0;
+  switch (tag) {
+    case V_ASN1_BIT_STRING:
+      return B_ASN1_BIT_STRING;
+    case V_ASN1_OCTET_STRING:
+      return B_ASN1_OCTET_STRING;
+    case V_ASN1_UTF8STRING:
+      return B_ASN1_UTF8STRING;
+    case V_ASN1_SEQUENCE:
+      return B_ASN1_SEQUENCE;
+    case V_ASN1_NUMERICSTRING:
+      return B_ASN1_NUMERICSTRING;
+    case V_ASN1_PRINTABLESTRING:
+      return B_ASN1_PRINTABLESTRING;
+    case V_ASN1_T61STRING:
+      return B_ASN1_T61STRING;
+    case V_ASN1_VIDEOTEXSTRING:
+      return B_ASN1_VIDEOTEXSTRING;
+    case V_ASN1_IA5STRING:
+      return B_ASN1_IA5STRING;
+    case V_ASN1_UTCTIME:
+      return B_ASN1_UTCTIME;
+    case V_ASN1_GENERALIZEDTIME:
+      return B_ASN1_GENERALIZEDTIME;
+    case V_ASN1_GRAPHICSTRING:
+      return B_ASN1_GRAPHICSTRING;
+    case V_ASN1_ISO64STRING:
+      return B_ASN1_ISO64STRING;
+    case V_ASN1_GENERALSTRING:
+      return B_ASN1_GENERALSTRING;
+    case V_ASN1_UNIVERSALSTRING:
+      return B_ASN1_UNIVERSALSTRING;
+    case V_ASN1_BMPSTRING:
+      return B_ASN1_BMPSTRING;
+    default:
+      return 0;
   }
-  return tag2bit[tag];
 }
 
 static int is_supported_universal_type(int tag, int aclass) {
@@ -671,6 +626,7 @@ static int asn1_d2i_ex_primitive(ASN1_VALUE **pval, const unsigned char **in,
     return 0;  // Should never happen
   }
 
+  assert(it->itype == ASN1_ITYPE_PRIMITIVE || it->itype == ASN1_ITYPE_MSTRING);
   if (it->itype == ASN1_ITYPE_MSTRING) {
     utype = tag;
     tag = -1;
@@ -678,7 +634,7 @@ static int asn1_d2i_ex_primitive(ASN1_VALUE **pval, const unsigned char **in,
     utype = it->utype;
   }
 
-  if (utype == V_ASN1_ANY) {
+  if (utype == V_ASN1_ANY || utype == V_ASN1_ANY_AS_STRING) {
     // If type is ANY need to figure out type from tag
     unsigned char oclass;
     if (tag >= 0) {
@@ -689,13 +645,45 @@ static int asn1_d2i_ex_primitive(ASN1_VALUE **pval, const unsigned char **in,
       OPENSSL_PUT_ERROR(ASN1, ASN1_R_ILLEGAL_OPTIONAL_ANY);
       return 0;
     }
+    const int is_string = utype == V_ASN1_ANY_AS_STRING;
     p = *in;
-    ret = asn1_check_tlen(NULL, &utype, &oclass, NULL, &p, inlen, -1, 0, 0);
+    ret = asn1_check_tlen(&plen, &utype, &oclass, &cst, &p, inlen, -1, 0, 0);
     if (!ret) {
       OPENSSL_PUT_ERROR(ASN1, ASN1_R_NESTED_ASN1_ERROR);
       return 0;
     }
     if (!is_supported_universal_type(utype, oclass)) {
+      utype = V_ASN1_OTHER;
+    }
+    // These three types are not represented as |ASN1_STRING|, so they must be
+    // parsed separately and then treated as an opaque |V_ASN1_OTHER|.
+    if (is_string && (utype == V_ASN1_OBJECT || utype == V_ASN1_NULL ||
+                      utype == V_ASN1_BOOLEAN)) {
+      if (cst) {
+        OPENSSL_PUT_ERROR(ASN1, ASN1_R_TYPE_NOT_PRIMITIVE);
+        return 0;
+      }
+      CBS cbs;
+      CBS_init(&cbs, p, plen);
+      if (utype == V_ASN1_OBJECT && !CBS_is_valid_asn1_oid(&cbs)) {
+        OPENSSL_PUT_ERROR(ASN1, ASN1_R_INVALID_OBJECT_ENCODING);
+        return 0;
+      }
+      if (utype == V_ASN1_NULL && CBS_len(&cbs) != 0) {
+        OPENSSL_PUT_ERROR(ASN1, ASN1_R_NULL_IS_WRONG_LENGTH);
+        return 0;
+      }
+      if (utype == V_ASN1_BOOLEAN) {
+        if (CBS_len(&cbs) != 1) {
+          OPENSSL_PUT_ERROR(ASN1, ASN1_R_BOOLEAN_IS_WRONG_LENGTH);
+          return 0;
+        }
+        uint8_t v = CBS_data(&cbs)[0];
+        if (v != 0 && v != 0xff) {
+          OPENSSL_PUT_ERROR(ASN1, ASN1_R_DECODE_ERROR);
+          return 0;
+        }
+      }
       utype = V_ASN1_OTHER;
     }
   }
@@ -780,6 +768,10 @@ static int asn1_ex_c2i(ASN1_VALUE **pval, const unsigned char *cont, long len,
     opval = pval;
     pval = &typ->value.asn1_value;
   }
+
+  // If implementing a type that is not represented in |ASN1_STRING|, the
+  // |V_ASN1_ANY_AS_STRING| logic must be modified to redirect it to
+  // |V_ASN1_OTHER|.
   switch (utype) {
     case V_ASN1_OBJECT:
       if (!c2i_ASN1_OBJECT((ASN1_OBJECT **)pval, &cont, len)) {
@@ -838,14 +830,7 @@ static int asn1_ex_c2i(ASN1_VALUE **pval, const unsigned char *cont, long len,
     case V_ASN1_UTF8STRING:
     case V_ASN1_OTHER:
     case V_ASN1_SET:
-    case V_ASN1_SEQUENCE:
-    // TODO(crbug.com/boringssl/412): This default case should be removed, now
-    // that we've resolved https://crbug.com/boringssl/561. However, it is still
-    // needed to support some edge cases in |ASN1_PRINTABLE|. |ASN1_PRINTABLE|
-    // broadly doesn't tolerate unrecognized universal tags, but except for
-    // eight values that map to |B_ASN1_UNKNOWN| instead of zero. See the
-    // X509Test.NameAttributeValues test.
-    default: {
+    case V_ASN1_SEQUENCE: {
       CBS cbs;
       CBS_init(&cbs, cont, (size_t)len);
       if (utype == V_ASN1_BMPSTRING) {
@@ -908,6 +893,10 @@ static int asn1_ex_c2i(ASN1_VALUE **pval, const unsigned char *cont, long len,
       }
       break;
     }
+
+    default:
+      OPENSSL_PUT_ERROR(ASN1, ASN1_R_BAD_TEMPLATE);
+      goto err;
   }
   // If ASN1_ANY and NULL type fix up value
   if (typ && (utype == V_ASN1_NULL)) {

@@ -22,7 +22,7 @@ import Foundation
 /// and that provides better Swift types for this object.
 @usableFromInline
 @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
-package struct ArbitraryPrecisionInteger {
+package struct ArbitraryPrecisionInteger: @unchecked Sendable {
     private var _backing: BackingStorage
 
     @usableFromInline

@@ -48,7 +48,8 @@ extension ARC {
             serverPublicKey: ServerPublicKey<H2G>,
             generatorG: Group.Element,
             generatorH: Group.Element,
-            b: Group.Scalar = Group.Scalar.random
+            b: Group.Scalar = Group.Scalar.random,
+            ciphersuite: Ciphersuite<H2G>
         ) throws {
             let U = b * generatorG
             let X0Aux = b * serverPrivateKey.x0Blinding * generatorH
@@ -61,7 +62,7 @@ extension ARC {
             let encUPrime = b * (serverPublicKey.X0 + serverPrivateKey.x1 * request.m1Enc + serverPrivateKey.x2 * request.m2Enc)
 
             // Create a prover, and allocate variables for the constrained scalars.
-            var prover = Prover<H2G>(label: ARC.domain + ARC.domain + "CredentialResponse")
+            var prover = Prover<H2G>(label: ciphersuite.domain + ciphersuite.domain + "CredentialResponse")
             let x0Var = prover.appendScalar(label: "x0", assignment: serverPrivateKey.x0)
             let x1Var = prover.appendScalar(label: "x1", assignment: serverPrivateKey.x1)
             let x2Var = prover.appendScalar(label: "x2", assignment: serverPrivateKey.x2)
@@ -95,15 +96,14 @@ extension ARC {
             self.proof = proof
         }
 
-        func verify(request: CredentialRequest<H2G>, serverPublicKey: ServerPublicKey<H2G>, generatorG: Group.Element, generatorH: Group.Element
-        ) throws -> Bool {
+        func verify(request: CredentialRequest<H2G>, serverPublicKey: ServerPublicKey<H2G>, generatorG: Group.Element, generatorH: Group.Element, ciphersuite: Ciphersuite<H2G>) throws -> Bool {
             // Check that U, encUPrime are not 0
             if (self.U == self.U + self.U) || (self.encUPrime == self.encUPrime + self.encUPrime) {
                 return false
             }
 
             // Create a verifier, and allocate variables for the constrained scalars.
-            var verifier = Verifier<H2G>(label: ARC.domain + ARC.domain + "CredentialResponse")
+            var verifier = Verifier<H2G>(label: ciphersuite.domain + ciphersuite.domain + "CredentialResponse")
             let x0Var = verifier.appendScalar(label: "x0")
             let x1Var = verifier.appendScalar(label: "x1")
             let x2Var = verifier.appendScalar(label: "x2")

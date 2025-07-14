@@ -1,16 +1,16 @@
-/* Copyright 2014 The BoringSSL Authors
- *
- * Permission to use, copy, modify, and/or distribute this software for any
- * purpose with or without fee is hereby granted, provided that the above
- * copyright notice and this permission notice appear in all copies.
- *
- * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
- * WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
- * MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY
- * SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
- * WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION
- * OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN
- * CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. */
+// Copyright 2014 The BoringSSL Authors
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     https://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 
 #include <CCryptoBoringSSL_crypto.h>
 
@@ -67,54 +67,19 @@ uint32_t OPENSSL_get_ia32cap(int idx) {
   return OPENSSL_ia32cap_P[idx];
 }
 
-#elif defined(OPENSSL_ARM) || defined(OPENSSL_AARCH64)
-
-#include <CCryptoBoringSSL_arm_arch.h>
-
-#if defined(OPENSSL_STATIC_ARMCAP)
-
-// See ARM ACLE for the definitions of these macros. Note |__ARM_FEATURE_AES|
-// covers both AES and PMULL and |__ARM_FEATURE_SHA2| covers SHA-1 and SHA-256.
-// https://developer.arm.com/architectures/system-architectures/software-standards/acle
-// https://github.com/ARM-software/acle/issues/152
-//
-// TODO(davidben): Do we still need |OPENSSL_STATIC_ARMCAP_*| or are the
-// standard flags and -march sufficient?
-HIDDEN uint32_t OPENSSL_armcap_P =
-#if defined(OPENSSL_STATIC_ARMCAP_NEON) || defined(__ARM_NEON)
-    ARMV7_NEON |
-#endif
-#if defined(OPENSSL_STATIC_ARMCAP_AES) || defined(__ARM_FEATURE_AES)
-    ARMV8_AES |
-#endif
-#if defined(OPENSSL_STATIC_ARMCAP_PMULL) || defined(__ARM_FEATURE_AES)
-    ARMV8_PMULL |
-#endif
-#if defined(OPENSSL_STATIC_ARMCAP_SHA1) || defined(__ARM_FEATURE_SHA2)
-    ARMV8_SHA1 |
-#endif
-#if defined(OPENSSL_STATIC_ARMCAP_SHA256) || defined(__ARM_FEATURE_SHA2)
-    ARMV8_SHA256 |
-#endif
-#if defined(__ARM_FEATURE_SHA512)
-    ARMV8_SHA512 |
-#endif
-    0;
-
-#else
+#elif (defined(OPENSSL_ARM) || defined(OPENSSL_AARCH64)) && \
+    !defined(OPENSSL_STATIC_ARMCAP)
 HIDDEN uint32_t OPENSSL_armcap_P = 0;
 
 uint32_t *OPENSSL_get_armcap_pointer_for_test(void) {
   OPENSSL_init_cpuid();
   return &OPENSSL_armcap_P;
 }
-#endif
 
 uint32_t OPENSSL_get_armcap(void) {
   OPENSSL_init_cpuid();
   return OPENSSL_armcap_P;
 }
-
 #endif
 
 #if defined(NEED_CPUID)

@@ -30,7 +30,7 @@ extension ARC {
         init(credentialResponse: CredentialResponse<H2G>, credentialRequest: CredentialRequest<H2G>, clientSecrets: ClientSecrets<Group.Scalar>, serverPublicKey: ServerPublicKey<H2G>, ciphersuite: Ciphersuite<H2G>, generatorG: Group.Element, generatorH: Group.Element) throws {
             // Verify credential response proof
             guard
-                try credentialResponse.verify(request: credentialRequest, serverPublicKey: serverPublicKey, generatorG: generatorG, generatorH: generatorH)
+                try credentialResponse.verify(request: credentialRequest, serverPublicKey: serverPublicKey, generatorG: generatorG, generatorH: generatorH, ciphersuite: ciphersuite)
             else {
                 throw ARC.Errors.invalidProof
             }

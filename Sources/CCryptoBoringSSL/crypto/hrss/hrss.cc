@@ -1,19 +1,18 @@
-/* Copyright 2018 The BoringSSL Authors
- *
- * Permission to use, copy, modify, and/or distribute this software for any
- * purpose with or without fee is hereby granted, provided that the above
- * copyright notice and this permission notice appear in all copies.
- *
- * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
- * WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
- * MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY
- * SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
- * WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION
- * OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN
- * CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. */
+// Copyright 2018 The BoringSSL Authors
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     https://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 
 #include <CCryptoBoringSSL_hrss.h>
-#include <inttypes.h>
 
 #include <assert.h>
 #include <stdio.h>
@@ -276,7 +275,7 @@ static inline void poly3_vec_rshift1(vec_t a_s[6], vec_t a_a[6]) {
 #endif  // (ARM || AARCH64) && NEON
 
 // Polynomials in this scheme have N terms.
-// #define N 701
+#define N HRSS_N
 
 // Underlying data types and arithmetic operations.
 // ------------------------------------------------
@@ -848,6 +847,7 @@ void HRSS_poly3_invert(struct poly3 *out, const struct poly3 *in) {
 #define COEFFICIENTS_PER_VEC (sizeof(vec_t) / sizeof(uint16_t))
 #define VECS_PER_POLY ((N + COEFFICIENTS_PER_VEC - 1) / COEFFICIENTS_PER_VEC)
 
+namespace {
 // poly represents a polynomial with coefficients mod Q. Note that, while Q is a
 // power of two, this does not operate in GF(Q). That would be a binary field
 // but this is simply mod Q. Thus the coefficients are not a field.
@@ -868,6 +868,7 @@ struct poly {
   alignas(16) uint16_t v[N + 3];
 #endif
 };
+}  // namespace
 
 // poly_normalize zeros out the excess elements of |x| which are included only
 // for alignment.
@@ -883,6 +884,7 @@ static void poly_assert_normalized(const struct poly *x) {
   assert(x->v[N + 2] == 0);
 }
 
+namespace {
 // POLY_MUL_SCRATCH contains space for the working variables needed by
 // |poly_mul|. The contents afterwards may be discarded, but the object may also
 // be reused with future |poly_mul| calls to save heap allocations.
@@ -910,6 +912,7 @@ struct POLY_MUL_SCRATCH {
 #endif
   } u;
 };
+}  // namespace
 
 #if defined(HRSS_HAVE_VECTOR_UNIT)
 
@@ -1832,6 +1835,8 @@ static void poly_lift(struct poly *out, const struct poly *a) {
   poly_normalize(out);
 }
 
+namespace {
+
 struct public_key {
   struct poly ph;
 };
@@ -1841,6 +1846,8 @@ struct private_key {
   struct poly ph_inverse;
   uint8_t hmac_key[32];
 };
+
+}  // namespace
 
 // public_key_from_external converts an external public key pointer into an
 // internal one. Externally the alignment is only specified to be eight bytes

@@ -1,58 +1,16 @@
-/* Copyright (C) 1995-1998 Eric Young (eay@cryptsoft.com)
- * All rights reserved.
- *
- * This package is an SSL implementation written
- * by Eric Young (eay@cryptsoft.com).
- * The implementation was written so as to conform with Netscapes SSL.
- *
- * This library is free for commercial and non-commercial use as long as
- * the following conditions are aheared to.  The following conditions
- * apply to all code found in this distribution, be it the RC4, RSA,
- * lhash, DES, etc., code; not just the SSL code.  The SSL documentation
- * included with this distribution is covered by the same copyright terms
- * except that the holder is Tim Hudson (tjh@cryptsoft.com).
- *
- * Copyright remains Eric Young's, and as such any Copyright notices in
- * the code are not to be removed.
- * If this package is used in a product, Eric Young should be given attribution
- * as the author of the parts of the library used.
- * This can be in the form of a textual message at program startup or
- * in documentation (online or textual) provided with the package.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
- * 1. Redistributions of source code must retain the copyright
- *    notice, this list of conditions and the following disclaimer.
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- * 3. All advertising materials mentioning features or use of this software
- *    must display the following acknowledgement:
- *    "This product includes cryptographic software written by
- *     Eric Young (eay@cryptsoft.com)"
- *    The word 'cryptographic' can be left out if the rouines from the library
- *    being used are not cryptographic related :-).
- * 4. If you include any Windows specific code (or a derivative thereof) from
- *    the apps directory (application code) you must include an acknowledgement:
- *    "This product includes software written by Tim Hudson (tjh@cryptsoft.com)"
- *
- * THIS SOFTWARE IS PROVIDED BY ERIC YOUNG ``AS IS'' AND
- * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED.  IN NO EVENT SHALL THE AUTHOR OR CONTRIBUTORS BE LIABLE
- * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
- * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
- * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
- * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
- * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
- * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
- * SUCH DAMAGE.
- *
- * The licence and distribution terms for any publically available version or
- * derivative of this code cannot be changed.  i.e. this code cannot simply be
- * copied and put under another distribution licence
- * [including the GNU Public Licence.] */
+// Copyright 1995-2016 The OpenSSL Project Authors. All Rights Reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     https://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 
 #if defined(__linux) || defined(__sun) || defined(__hpux)
 // Following definition aliases fopen to fopen64 on above mentioned
@@ -82,6 +40,7 @@
 #include <CCryptoBoringSSL_mem.h>
 
 #include "../internal.h"
+#include "internal.h"
 
 #if defined(OPENSSL_WINDOWS)
 #include <fcntl.h>
@@ -180,24 +139,18 @@ static int file_write(BIO *b, const char *in, int inl) {
 }
 
 static long file_ctrl(BIO *b, int cmd, long num, void *ptr) {
-  long ret = 1;
-  FILE *fp = (FILE *)b->ptr;
-  FILE **fpp;
-
+  FILE *fp = static_cast<FILE *>(b->ptr);
   switch (cmd) {
     case BIO_CTRL_RESET:
       num = 0;
-      OPENSSL_FALLTHROUGH;
+      [[fallthrough]];
     case BIO_C_FILE_SEEK:
-      ret = (long)fseek(fp, num, 0);
-      break;
+      return fseek(fp, num, 0);
     case BIO_CTRL_EOF:
-      ret = (long)feof(fp);
-      break;
+      return feof(fp);
     case BIO_C_FILE_TELL:
     case BIO_CTRL_INFO:
-      ret = ftell(fp);
-      break;
+      return ftell(fp);
     case BIO_C_SET_FILE_PTR:
       file_free(b);
       static_assert((BIO_CLOSE & BIO_FP_TEXT) == 0,
@@ -211,13 +164,13 @@ static long file_ctrl(BIO *b, int cmd, long num, void *ptr) {
         _setmode(_fileno(reinterpret_cast<FILE *>(ptr)), _O_TEXT);
       }
 #endif
-      b->shutdown = (int)num & BIO_CLOSE;
+      b->shutdown = static_cast<int>(num) & BIO_CLOSE;
       b->ptr = ptr;
       b->init = 1;
-      break;
+      return 1;
     case BIO_C_SET_FILENAME:
       file_free(b);
-      b->shutdown = (int)num & BIO_CLOSE;
+      b->shutdown = static_cast<int>(num) & BIO_CLOSE;
       const char *mode;
       if (num & BIO_FP_APPEND) {
         if (num & BIO_FP_READ) {
@@ -233,43 +186,35 @@ static long file_ctrl(BIO *b, int cmd, long num, void *ptr) {
         mode = "rb";
       } else {
         OPENSSL_PUT_ERROR(BIO, BIO_R_BAD_FOPEN_MODE);
-        ret = 0;
-        break;
+        return 0;
       }
       fp = fopen_if_available(reinterpret_cast<const char *>(ptr), mode);
-      if (fp == NULL) {
+      if (fp == nullptr) {
         OPENSSL_PUT_SYSTEM_ERROR();
         ERR_add_error_data(5, "fopen('", ptr, "','", mode, "')");
         OPENSSL_PUT_ERROR(BIO, ERR_R_SYS_LIB);
-        ret = 0;
-        break;
+        return 0;
       }
       b->ptr = fp;
       b->init = 1;
-      break;
+      return 1;
     case BIO_C_GET_FILE_PTR:
       // the ptr parameter is actually a FILE ** in this case.
-      if (ptr != NULL) {
-        fpp = (FILE **)ptr;
-        *fpp = (FILE *)b->ptr;
+      if (ptr != nullptr) {
+        FILE **out = static_cast<FILE **>(ptr);
+        *out = fp;
       }
-      break;
+      return 1;
     case BIO_CTRL_GET_CLOSE:
-      ret = (long)b->shutdown;
-      break;
+      return b->shutdown;
     case BIO_CTRL_SET_CLOSE:
-      b->shutdown = (int)num;
-      break;
+      b->shutdown = static_cast<int>(num);
+      return 1;
     case BIO_CTRL_FLUSH:
-      ret = 0 == fflush((FILE *)b->ptr);
-      break;
-    case BIO_CTRL_WPENDING:
-    case BIO_CTRL_PENDING:
+      return fflush(fp) == 0;
     default:
-      ret = 0;
-      break;
+      return 0;
   }
-  return ret;
 }
 
 static int file_gets(BIO *bp, char *buf, int size) {
@@ -288,11 +233,9 @@ static int file_gets(BIO *bp, char *buf, int size) {
 }
 
 static const BIO_METHOD methods_filep = {
-    BIO_TYPE_FILE,   "FILE pointer",
-    file_write,      file_read,
-    NULL /* puts */, file_gets,
-    file_ctrl,       NULL /* create */,
-    file_free,       NULL /* callback_ctrl */,
+    BIO_TYPE_FILE,      "FILE pointer", file_write,
+    file_read,          file_gets,      file_ctrl,
+    /*create=*/nullptr, file_free,      /*callback_ctrl=*/nullptr,
 };
 
 const BIO_METHOD *BIO_s_file(void) { return &methods_filep; }

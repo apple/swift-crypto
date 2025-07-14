@@ -32,7 +32,7 @@ import Foundation
 @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 package class FiniteFieldArithmeticContext {
     private var fieldSize: ArbitraryPrecisionInteger
-    private var bnCtx: OpaquePointer
+    package var bnCtx: OpaquePointer
 
     @usableFromInline
     package init(fieldSize: ArbitraryPrecisionInteger) throws {

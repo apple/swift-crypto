@@ -1,66 +1,29 @@
-/* Copyright (C) 1995-1998 Eric Young (eay@cryptsoft.com)
- * All rights reserved.
- *
- * This package is an SSL implementation written
- * by Eric Young (eay@cryptsoft.com).
- * The implementation was written so as to conform with Netscapes SSL.
- *
- * This library is free for commercial and non-commercial use as long as
- * the following conditions are aheared to.  The following conditions
- * apply to all code found in this distribution, be it the RC4, RSA,
- * lhash, DES, etc., code; not just the SSL code.  The SSL documentation
- * included with this distribution is covered by the same copyright terms
- * except that the holder is Tim Hudson (tjh@cryptsoft.com).
- *
- * Copyright remains Eric Young's, and as such any Copyright notices in
- * the code are not to be removed.
- * If this package is used in a product, Eric Young should be given attribution
- * as the author of the parts of the library used.
- * This can be in the form of a textual message at program startup or
- * in documentation (online or textual) provided with the package.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
- * 1. Redistributions of source code must retain the copyright
- *    notice, this list of conditions and the following disclaimer.
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- * 3. All advertising materials mentioning features or use of this software
- *    must display the following acknowledgement:
- *    "This product includes cryptographic software written by
- *     Eric Young (eay@cryptsoft.com)"
- *    The word 'cryptographic' can be left out if the rouines from the library
- *    being used are not cryptographic related :-).
- * 4. If you include any Windows specific code (or a derivative thereof) from
- *    the apps directory (application code) you must include an acknowledgement:
- *    "This product includes software written by Tim Hudson (tjh@cryptsoft.com)"
- *
- * THIS SOFTWARE IS PROVIDED BY ERIC YOUNG ``AS IS'' AND
- * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED.  IN NO EVENT SHALL THE AUTHOR OR CONTRIBUTORS BE LIABLE
- * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
- * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
- * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
- * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
- * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
- * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
- * SUCH DAMAGE.
- *
- * The licence and distribution terms for any publically available version or
- * derivative of this code cannot be changed.  i.e. this code cannot simply be
- * copied and put under another distribution licence
- * [including the GNU Public Licence.] */
+// Copyright 1995-2016 The OpenSSL Project Authors. All Rights Reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     https://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 
 #include <CCryptoBoringSSL_dh.h>
 
 #include <CCryptoBoringSSL_bn.h>
 #include <CCryptoBoringSSL_err.h>
 
+#include "../bn/internal.h"
 #include "internal.h"
 
+
+static_assert(OPENSSL_DH_MAX_MODULUS_BITS <=
+                  BN_MONTGOMERY_MAX_WORDS * BN_BITS2,
+              "Max DH size too big for Montgomery arithmetic");
 
 int dh_check_params_fast(const DH *dh) {
   // Most operations scale with p and q.
@@ -92,13 +55,11 @@ int DH_check_pub_key(const DH *dh, const BIGNUM *pub_key, int *out_flags) {
     return 0;
   }
 
-  BN_CTX *ctx = BN_CTX_new();
+  bssl::UniquePtr<BN_CTX> ctx(BN_CTX_new());
   if (ctx == NULL) {
     return 0;
   }
-  BN_CTX_start(ctx);
-
-  int ok = 0;
+  bssl::BN_CTXScope scope(ctx.get());
 
   // Check |pub_key| is greater than 1.
   if (BN_cmp(pub_key, BN_value_one()) <= 0) {
@@ -106,11 +67,11 @@ int DH_check_pub_key(const DH *dh, const BIGNUM *pub_key, int *out_flags) {
   }
 
   // Check |pub_key| is less than |dh->p| - 1.
-  BIGNUM *tmp = BN_CTX_get(ctx);
+  BIGNUM *tmp = BN_CTX_get(ctx.get());
   if (tmp == NULL ||
       !BN_copy(tmp, dh->p) ||
       !BN_sub_word(tmp, 1)) {
-    goto err;
+    return 0;
   }
   if (BN_cmp(pub_key, tmp) >= 0) {
     *out_flags |= DH_CHECK_PUBKEY_TOO_LARGE;
@@ -120,22 +81,16 @@ int DH_check_pub_key(const DH *dh, const BIGNUM *pub_key, int *out_flags) {
     // Check |pub_key|^|dh->q| is 1 mod |dh->p|. This is necessary for RFC 5114
     // groups which are not safe primes but pick a generator on a prime-order
     // subgroup of size |dh->q|.
-    if (!BN_mod_exp_mont(tmp, pub_key, dh->q, dh->p, ctx, NULL)) {
-      goto err;
+    if (!BN_mod_exp_mont(tmp, pub_key, dh->q, dh->p, ctx.get(), NULL)) {
+      return 0;
     }
     if (!BN_is_one(tmp)) {
       *out_flags |= DH_CHECK_PUBKEY_INVALID;
     }
   }
 
-  ok = 1;
-
-err:
-  BN_CTX_end(ctx);
-  BN_CTX_free(ctx);
-  return ok;
+  return 1;
 }
-
 
 int DH_check(const DH *dh, int *out_flags) {
   *out_flags = 0;
@@ -149,23 +104,18 @@ int DH_check(const DH *dh, int *out_flags) {
   //   for 3, p mod 12 == 5
   //   for 5, p mod 10 == 3 or 7
   // should hold.
-  int ok = 0, r;
-  BN_CTX *ctx = NULL;
-  BN_ULONG l;
-  BIGNUM *t1 = NULL, *t2 = NULL;
-
-  ctx = BN_CTX_new();
-  if (ctx == NULL) {
-    goto err;
+  bssl::UniquePtr<BN_CTX> ctx(BN_CTX_new());
+  if (ctx == nullptr) {
+    return 0;
   }
-  BN_CTX_start(ctx);
-  t1 = BN_CTX_get(ctx);
-  if (t1 == NULL) {
-    goto err;
+  bssl::BN_CTXScope scope(ctx.get());
+  BIGNUM *t1 = BN_CTX_get(ctx.get());
+  if (t1 == nullptr) {
+    return 0;
   }
-  t2 = BN_CTX_get(ctx);
-  if (t2 == NULL) {
-    goto err;
+  BIGNUM *t2 = BN_CTX_get(ctx.get());
+  if (t2 == nullptr) {
+    return 0;
   }
 
   if (dh->q) {
@@ -175,39 +125,40 @@ int DH_check(const DH *dh, int *out_flags) {
       *out_flags |= DH_CHECK_NOT_SUITABLE_GENERATOR;
     } else {
       // Check g^q == 1 mod p
-      if (!BN_mod_exp_mont(t1, dh->g, dh->q, dh->p, ctx, NULL)) {
-        goto err;
+      if (!BN_mod_exp_mont(t1, dh->g, dh->q, dh->p, ctx.get(), nullptr)) {
+        return 0;
       }
       if (!BN_is_one(t1)) {
         *out_flags |= DH_CHECK_NOT_SUITABLE_GENERATOR;
       }
     }
-    r = BN_is_prime_ex(dh->q, BN_prime_checks_for_validation, ctx, NULL);
+    int r = BN_is_prime_ex(dh->q, BN_prime_checks_for_validation, ctx.get(),
+                           nullptr);
     if (r < 0) {
-      goto err;
+      return 0;
     }
     if (!r) {
       *out_flags |= DH_CHECK_Q_NOT_PRIME;
     }
     // Check p == 1 mod q  i.e. q divides p - 1
-    if (!BN_div(t1, t2, dh->p, dh->q, ctx)) {
-      goto err;
+    if (!BN_div(t1, t2, dh->p, dh->q, ctx.get())) {
+      return 0;
     }
     if (!BN_is_one(t2)) {
       *out_flags |= DH_CHECK_INVALID_Q_VALUE;
     }
   } else if (BN_is_word(dh->g, DH_GENERATOR_2)) {
-    l = BN_mod_word(dh->p, 24);
+    BN_ULONG l = BN_mod_word(dh->p, 24);
     if (l == (BN_ULONG)-1) {
-      goto err;
+      return 0;
     }
     if (l != 11) {
       *out_flags |= DH_CHECK_NOT_SUITABLE_GENERATOR;
     }
   } else if (BN_is_word(dh->g, DH_GENERATOR_5)) {
-    l = BN_mod_word(dh->p, 10);
+    BN_ULONG l = BN_mod_word(dh->p, 10);
     if (l == (BN_ULONG)-1) {
-      goto err;
+      return 0;
     }
     if (l != 3 && l != 7) {
       *out_flags |= DH_CHECK_NOT_SUITABLE_GENERATOR;
@@ -216,30 +167,24 @@ int DH_check(const DH *dh, int *out_flags) {
     *out_flags |= DH_CHECK_UNABLE_TO_CHECK_GENERATOR;
   }
 
-  r = BN_is_prime_ex(dh->p, BN_prime_checks_for_validation, ctx, NULL);
+  int r =
+      BN_is_prime_ex(dh->p, BN_prime_checks_for_validation, ctx.get(), nullptr);
   if (r < 0) {
-    goto err;
+    return 0;
   }
   if (!r) {
     *out_flags |= DH_CHECK_P_NOT_PRIME;
   } else if (!dh->q) {
     if (!BN_rshift1(t1, dh->p)) {
-      goto err;
+      return 0;
     }
-    r = BN_is_prime_ex(t1, BN_prime_checks_for_validation, ctx, NULL);
+    r = BN_is_prime_ex(t1, BN_prime_checks_for_validation, ctx.get(), nullptr);
     if (r < 0) {
-      goto err;
+      return 0;
     }
     if (!r) {
       *out_flags |= DH_CHECK_P_NOT_SAFE_PRIME;
     }
   }
-  ok = 1;
-
-err:
-  if (ctx != NULL) {
-    BN_CTX_end(ctx);
-    BN_CTX_free(ctx);
-  }
-  return ok;
+  return 1;
 }

@@ -1,4 +1,4 @@
-// swift-tools-version:5.9
+// swift-tools-version:5.10
 //===----------------------------------------------------------------------===//
 //
 // This source file is part of the SwiftCrypto open source project
@@ -20,7 +20,7 @@
 // Sources/CCryptoBoringSSL directory. The source repository is at
 // https://boringssl.googlesource.com/boringssl.
 //
-// BoringSSL Commit: aefa5d24da34ef77ac797bdbe684734e5bd870f4
+// BoringSSL Commit: 035e720641f385e82c72b7b0a9e1d89e58cb5ed5
 
 import PackageDescription
 
@@ -56,6 +56,7 @@ if development || isFreeBSD {
         Platform.android,
         Platform.windows,
         Platform.wasi,
+        Platform.openbsd,
     ]
     swiftSettings = [
         .define("CRYPTO_IN_SWIFTPM"),
@@ -194,7 +195,7 @@ let package = Package(
         ),
         .testTarget(name: "CryptoBoringWrapperTests", dependencies: ["CryptoBoringWrapper"]),
     ],
-    cxxLanguageStandard: .cxx14
+    cxxLanguageStandard: .cxx17
 )
 
 // Switch between local and remote dependencies depending on an environment variable

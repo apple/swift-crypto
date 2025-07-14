@@ -94,7 +94,6 @@ Sources/_CryptoExtras/OPRFs/VOPRFClient.swift
 Sources/_CryptoExtras/OPRFs/VOPRFServer.swift
 Sources/_CryptoExtras/RSA/RSA+BlindSigning.swift
 Sources/_CryptoExtras/RSA/RSA.swift
-Sources/_CryptoExtras/RSA/RSA_security.swift
 Sources/_CryptoExtras/Util/BoringSSLHelpers.swift
 Sources/_CryptoExtras/Util/DigestType.swift
 Sources/_CryptoExtras/Util/Error.swift

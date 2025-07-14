@@ -68,7 +68,7 @@ extension ARC {
 
         func respond(credentialRequest: CredentialRequest<H2G>, b: Group.Scalar = Group.Scalar.random) throws -> CredentialResponse<H2G> {
             guard
-                try credentialRequest.verify(generatorG: generatorG, generatorH: generatorH)
+                try credentialRequest.verify(generatorG: generatorG, generatorH: generatorH, ciphersuite: self.ciphersuite)
             else {
                 throw ARC.Errors.invalidProof
             }
@@ -78,12 +78,13 @@ extension ARC {
                 serverPublicKey: self.serverPublicKey,
                 generatorG: generatorG,
                 generatorH: generatorH,
-                b: b
+                b: b,
+                ciphersuite: self.ciphersuite
             )
         }
 
         func verify(presentation: Presentation<H2G>, requestContext: Data, presentationContext: Data, presentationLimit: Int, nonce: Int) throws -> Bool {
-            let m2 = try H2G.hashToScalar(requestContext, domainSeparationString: Data((ARC.domain + "requestContext").utf8))
+            let m2 = try H2G.hashToScalar(requestContext, domainSeparationString: Data((self.ciphersuite.domain + "requestContext").utf8))
             return try presentation.verify(
                 serverPrivateKey: self.serverPrivateKey,
                 X1: self.serverPublicKey.X1,
@@ -92,7 +93,8 @@ extension ARC {
                 presentationLimit: presentationLimit,
                 nonce: nonce,
                 generatorG: generatorG,
-                generatorH: generatorH
+                generatorH: generatorH,
+                ciphersuite: self.ciphersuite
             )
         }
     }

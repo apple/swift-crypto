@@ -17,30 +17,35 @@ import Crypto
 
 @available(macOS 10.15, iOS 13.2, tvOS 13.2, watchOS 6.1, macCatalyst 13.2, visionOS 1.2, *)
 class ARCEncodingTests: XCTestCase {
-    func testserverPublicKeyEncoding() throws {
-        let ciphersuite = ARC.Ciphersuite(HashToCurveImpl<ARCCurve>.self)
+    func serverPublicKeyEncoding<Curve: SupportedCurveDetailsImpl>(CurveType _: Curve.Type) throws {
+        let ciphersuite = ARC.Ciphersuite(HashToCurveImpl<Curve>.self)
         let server = ARC.Server(ciphersuite: ciphersuite)
         let publicKey = server.serverPublicKey
 
-        let publicKeyData = publicKey.serialize()
-        let publicKey2 = try ARC.ServerPublicKey.deserialize(serverPublicKeyData: publicKeyData)
+        let publicKeyData = publicKey.serialize(ciphersuite: ciphersuite)
+        let publicKey2 = try ARC.ServerPublicKey.deserialize(serverPublicKeyData: publicKeyData, ciphersuite: ciphersuite)
         XCTAssert(publicKey.X0 == publicKey2.X0)
         XCTAssert(publicKey.X1 == publicKey2.X1)
         XCTAssert(publicKey.X2 == publicKey2.X2)
 
-        let publicKeyData2 = publicKey2.serialize()
+        let publicKeyData2 = publicKey2.serialize(ciphersuite: ciphersuite)
         XCTAssertEqual(publicKeyData, publicKeyData2)
     }
 
-    func testRequestEncoding() throws {
-        let ciphersuite = ARC.Ciphersuite(HashToCurveImpl<ARCCurve>.self)
+    func testServerPublicKeyEncoding() throws {
+        try serverPublicKeyEncoding(CurveType: P256.self)
+        try serverPublicKeyEncoding(CurveType: P384.self)
+    }
+
+    func requestEncoding<Curve: SupportedCurveDetailsImpl>(CurveType _: Curve.Type) throws {
+        let ciphersuite = ARC.Ciphersuite(HashToCurveImpl<Curve>.self)
         let server = ARC.Server(ciphersuite: ciphersuite)
         let requestContext = Data("test request context".utf8)
         let precredential = try ARC.Precredential(ciphersuite: ciphersuite, requestContext: requestContext, serverPublicKey: server.serverPublicKey)
         let request = precredential.credentialRequest
 
-        let requestData = request.serialize()
-        let request2 = try ARC.CredentialRequest.deserialize(requestData: requestData)
+        let requestData = request.serialize(ciphersuite: ciphersuite)
+        let request2 = try ARC.CredentialRequest.deserialize(requestData: requestData, ciphersuite: ciphersuite)
         XCTAssert(request.m1Enc == request2.m1Enc)
         XCTAssert(request.m2Enc == request2.m2Enc)
         XCTAssert(request.proof.challenge == request2.proof.challenge)
@@ -48,20 +53,25 @@ class ARCEncodingTests: XCTestCase {
             XCTAssert(response == request2.proof.responses[index])
         }
 
-        let requestData2 = request2.serialize()
+        let requestData2 = request2.serialize(ciphersuite: ciphersuite)
         XCTAssertEqual(requestData, requestData2)
     }
 
-    func testResponseEncoding() throws {
-        let ciphersuite = ARC.Ciphersuite(HashToCurveImpl<ARCCurve>.self)
+    func testRequestEncoding() throws {
+        try requestEncoding(CurveType: P256.self)
+        try requestEncoding(CurveType: P384.self)
+    }
+
+    func responseEncoding<Curve: SupportedCurveDetailsImpl>(CurveType _: Curve.Type) throws {
+        let ciphersuite = ARC.Ciphersuite(HashToCurveImpl<Curve>.self)
         let server = ARC.Server(ciphersuite: ciphersuite)
         let requestContext = Data("test request context".utf8)
         let precredential = try ARC.Precredential(ciphersuite: ciphersuite, requestContext: requestContext, serverPublicKey: server.serverPublicKey)
         let request = precredential.credentialRequest
         let response = try server.respond(credentialRequest: request)
 
-        let responseData = response.serialize()
-        let response2 = try ARC.CredentialResponse.deserialize(responseData: responseData)
+        let responseData = response.serialize(ciphersuite: ciphersuite)
+        let response2 = try ARC.CredentialResponse.deserialize(responseData: responseData, ciphersuite: ciphersuite)
         XCTAssert(response.U == response2.U)
         XCTAssert(response.encUPrime == response2.encUPrime)
         XCTAssert(response.X0Aux == response2.X0Aux)
@@ -73,12 +83,17 @@ class ARCEncodingTests: XCTestCase {
             XCTAssert(response == response2.proof.responses[index])
         }
 
-        let responseData2 = response2.serialize()
+        let responseData2 = response2.serialize(ciphersuite: ciphersuite)
         XCTAssertEqual(responseData, responseData2)
     }
 
-    func testCredentialEncoding() throws {
-        let ciphersuite = ARC.Ciphersuite(HashToCurveImpl<ARCCurve>.self)
+    func testResponseEncoding() throws {
+        try responseEncoding(CurveType: P256.self)
+        try responseEncoding(CurveType: P384.self)
+    }
+
+    func credentialEncoding<Curve: SupportedCurveDetailsImpl>(CurveType _: Curve.Type) throws {
+        let ciphersuite = ARC.Ciphersuite(HashToCurveImpl<Curve>.self)
         let server = ARC.Server(ciphersuite: ciphersuite)
         let requestContext = Data("test request context".utf8)
         let precredential = try ARC.Precredential(ciphersuite: ciphersuite, requestContext: requestContext, serverPublicKey: server.serverPublicKey)
@@ -86,8 +101,8 @@ class ARCEncodingTests: XCTestCase {
         let response = try server.respond(credentialRequest: request)
         let credential = try precredential.makeCredential(credentialResponse: response)
 
-        let credentialData = try credential.serialize()
-        let credential2 = try ARC.Credential.deserialize(credentialData: credentialData)
+        let credentialData = try credential.serialize(ciphersuite: ciphersuite)
+        let credential2 = try ARC.Credential.deserialize(credentialData: credentialData, ciphersuite: ciphersuite)
         XCTAssert(credential.m1 == credential2.m1)
         XCTAssert(credential.U == credential2.U)
         XCTAssert(credential.UPrime == credential2.UPrime)
@@ -99,12 +114,17 @@ class ARCEncodingTests: XCTestCase {
             XCTAssertEqual(value.1, credential2.presentationState.state[key]?.1)
         }
 
-        let credentialData2 = try credential2.serialize()
+        let credentialData2 = try credential2.serialize(ciphersuite: ciphersuite)
         XCTAssertEqual(credentialData, credentialData2)
     }
 
-    func testPresentationEncoding() throws {
-        let ciphersuite = ARC.Ciphersuite(HashToCurveImpl<ARCCurve>.self)
+    func testCredentialEncoding() throws {
+        try credentialEncoding(CurveType: P256.self)
+        try credentialEncoding(CurveType: P384.self)
+    }
+
+    func presentationEncoding<Curve: SupportedCurveDetailsImpl>(CurveType _: Curve.Type) throws {
+        let ciphersuite = ARC.Ciphersuite(HashToCurveImpl<Curve>.self)
         let server = ARC.Server(ciphersuite: ciphersuite)
         let requestContext = Data("test request context".utf8)
         let precredential = try ARC.Precredential(ciphersuite: ciphersuite, requestContext: requestContext, serverPublicKey: server.serverPublicKey)
@@ -113,8 +133,8 @@ class ARCEncodingTests: XCTestCase {
         var credential = try precredential.makeCredential(credentialResponse: response)
         let (presentation, _) = try credential.makePresentation(presentationContext: Data("test presentation context".utf8), presentationLimit: 1)
 
-        let presentationData = presentation.serialize()
-        let presentation2 = try ARC.Presentation.deserialize(presentationData: presentationData)
+        let presentationData = presentation.serialize(ciphersuite: ciphersuite)
+        let presentation2 = try ARC.Presentation.deserialize(presentationData: presentationData, ciphersuite: ciphersuite)
         XCTAssert(presentation.U == presentation2.U)
         XCTAssert(presentation.UPrimeCommit == presentation2.UPrimeCommit)
         XCTAssert(presentation.m1Commit == presentation2.m1Commit)
@@ -124,8 +144,13 @@ class ARCEncodingTests: XCTestCase {
             XCTAssert(response == presentation2.proof.responses[index])
         }
 
-        let presentationData2 = presentation2.serialize()
+        let presentationData2 = presentation2.serialize(ciphersuite: ciphersuite)
         XCTAssertEqual(presentationData, presentationData2)
+    }
+
+    func testPresentationEncoding() throws {
+        try presentationEncoding(CurveType: P256.self)
+        try presentationEncoding(CurveType: P384.self)
     }
 
     func testPresentationStateEncoding() throws {

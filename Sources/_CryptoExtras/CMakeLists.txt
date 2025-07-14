@@ -32,6 +32,10 @@ add_library(_CryptoExtras
   "ARC/ARCServer.swift"
   "ChaCha20CTR/BoringSSL/ChaCha20CTR_boring.swift"
   "ChaCha20CTR/ChaCha20CTR.swift"
+  "EC/ObjectIdentifier.swift"
+  "EC/PKCS8DERRepresentation.swift"
+  "EC/PKCS8PrivateKey.swift"
+  "EC/RFC8410AlgorithmIdentifier.swift"
   "ECToolbox/BoringSSL/ECToolbox_boring.swift"
   "ECToolbox/ECToolbox.swift"
   "H2G/HashToField.swift"
@@ -41,6 +45,8 @@ add_library(_CryptoExtras
   "Key Derivation/PBKDF2/PBKDF2.swift"
   "Key Derivation/Scrypt/BoringSSL/Scrypt_boring.swift"
   "Key Derivation/Scrypt/Scrypt.swift"
+  "MLDSA/MLDSA_boring.swift"
+  "MLKEM/MLKEM_boring.swift"
   "OPRFs/OPRF.swift"
   "OPRFs/OPRFClient.swift"
   "OPRFs/OPRFServer.swift"
@@ -50,13 +56,14 @@ add_library(_CryptoExtras
   "RSA/RSA+BlindSigning.swift"
   "RSA/RSA.swift"
   "RSA/RSA_boring.swift"
-  "RSA/RSA_security.swift"
   "Util/BoringSSLHelpers.swift"
   "Util/CryptoKitErrors_boring.swift"
+  "Util/Data+Extensions.swift"
   "Util/DigestType.swift"
   "Util/Error.swift"
   "Util/I2OSP.swift"
   "Util/IntegerEncoding.swift"
+  "Util/Optional+withUnsafeBytes.swift"
   "Util/PEMDocument.swift"
   "Util/PrettyBytes.swift"
   "Util/SubjectPublicKeyInfo.swift"
@@ -68,7 +75,7 @@ add_library(_CryptoExtras
 
 target_compile_options(_CryptoExtras PRIVATE -DCRYPTO_IN_SWIFTPM)
 
-if(CMAKE_SYSTEM_NAME STREQUAL "Linux" OR CMAKE_SYSTEM_NAME STREQUAL "Windows" OR CMAKE_SYSTEM_NAME STREQUAL "Android" OR CMAKE_SYSTEM_NAME STREQUAL "WASI" OR CMAKE_SYSTEM_NAME STREQUAL FreeBSD)
+if(NOT CMAKE_SYSTEM_NAME STREQUAL "Darwin")
   target_compile_options(_CryptoExtras PRIVATE -DCRYPTO_IN_SWIFTPM_FORCE_BUILD_API)
 endif()
 

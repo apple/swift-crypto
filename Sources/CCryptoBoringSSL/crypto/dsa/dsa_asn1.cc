@@ -1,56 +1,16 @@
-/* Written by Dr Stephen N Henson (steve@openssl.org) for the OpenSSL project
- * 2000. */
-/* ====================================================================
- * Copyright (c) 2000-2005 The OpenSSL Project.  All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
- *
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
- *
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in
- *    the documentation and/or other materials provided with the
- *    distribution.
- *
- * 3. All advertising materials mentioning features or use of this
- *    software must display the following acknowledgment:
- *    "This product includes software developed by the OpenSSL Project
- *    for use in the OpenSSL Toolkit. (http://www.OpenSSL.org/)"
- *
- * 4. The names "OpenSSL Toolkit" and "OpenSSL Project" must not be used to
- *    endorse or promote products derived from this software without
- *    prior written permission. For written permission, please contact
- *    licensing@OpenSSL.org.
- *
- * 5. Products derived from this software may not be called "OpenSSL"
- *    nor may "OpenSSL" appear in their names without prior written
- *    permission of the OpenSSL Project.
- *
- * 6. Redistributions of any form whatsoever must retain the following
- *    acknowledgment:
- *    "This product includes software developed by the OpenSSL Project
- *    for use in the OpenSSL Toolkit (http://www.OpenSSL.org/)"
- *
- * THIS SOFTWARE IS PROVIDED BY THE OpenSSL PROJECT ``AS IS'' AND ANY
- * EXPRESSED OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
- * PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL THE OpenSSL PROJECT OR
- * ITS CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
- * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
- * NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
- * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
- * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
- * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
- * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
- * OF THE POSSIBILITY OF SUCH DAMAGE.
- * ====================================================================
- *
- * This product includes cryptographic software written by Eric Young
- * (eay@cryptsoft.com).  This product includes software written by Tim
- * Hudson (tjh@cryptsoft.com). */
+// Copyright 1999-2016 The OpenSSL Project Authors. All Rights Reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     https://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 
 #include <CCryptoBoringSSL_dsa.h>
 
@@ -176,9 +136,9 @@ int DSA_SIG_marshal(CBB *cbb, const DSA_SIG *sig) {
 }
 
 DSA *DSA_parse_public_key(CBS *cbs) {
-  DSA *ret = DSA_new();
-  if (ret == NULL) {
-    return NULL;
+  bssl::UniquePtr<DSA> ret(DSA_new());
+  if (ret == nullptr) {
+    return nullptr;
   }
   CBS child;
   if (!CBS_get_asn1(cbs, &child, CBS_ASN1_SEQUENCE) ||
@@ -188,16 +148,12 @@ DSA *DSA_parse_public_key(CBS *cbs) {
       !parse_integer(&child, &ret->g) ||
       CBS_len(&child) != 0) {
     OPENSSL_PUT_ERROR(DSA, DSA_R_DECODE_ERROR);
-    goto err;
+    return nullptr;
   }
-  if (!dsa_check_key(ret)) {
-    goto err;
+  if (!dsa_check_key(ret.get())) {
+    return nullptr;
   }
-  return ret;
-
-err:
-  DSA_free(ret);
-  return NULL;
+  return ret.release();
 }
 
 int DSA_marshal_public_key(CBB *cbb, const DSA *dsa) {
@@ -215,9 +171,9 @@ int DSA_marshal_public_key(CBB *cbb, const DSA *dsa) {
 }
 
 DSA *DSA_parse_parameters(CBS *cbs) {
-  DSA *ret = DSA_new();
-  if (ret == NULL) {
-    return NULL;
+  bssl::UniquePtr<DSA> ret(DSA_new());
+  if (ret == nullptr) {
+    return nullptr;
   }
   CBS child;
   if (!CBS_get_asn1(cbs, &child, CBS_ASN1_SEQUENCE) ||
@@ -226,16 +182,12 @@ DSA *DSA_parse_parameters(CBS *cbs) {
       !parse_integer(&child, &ret->g) ||
       CBS_len(&child) != 0) {
     OPENSSL_PUT_ERROR(DSA, DSA_R_DECODE_ERROR);
-    goto err;
+    return nullptr;
   }
-  if (!dsa_check_key(ret)) {
-    goto err;
+  if (!dsa_check_key(ret.get())) {
+    return nullptr;
   }
-  return ret;
-
-err:
-  DSA_free(ret);
-  return NULL;
+  return ret.release();
 }
 
 int DSA_marshal_parameters(CBB *cbb, const DSA *dsa) {
@@ -252,9 +204,9 @@ int DSA_marshal_parameters(CBB *cbb, const DSA *dsa) {
 }
 
 DSA *DSA_parse_private_key(CBS *cbs) {
-  DSA *ret = DSA_new();
-  if (ret == NULL) {
-    return NULL;
+  bssl::UniquePtr<DSA> ret(DSA_new());
+  if (ret == nullptr) {
+    return nullptr;
   }
 
   CBS child;
@@ -262,12 +214,12 @@ DSA *DSA_parse_private_key(CBS *cbs) {
   if (!CBS_get_asn1(cbs, &child, CBS_ASN1_SEQUENCE) ||
       !CBS_get_asn1_uint64(&child, &version)) {
     OPENSSL_PUT_ERROR(DSA, DSA_R_DECODE_ERROR);
-    goto err;
+    return nullptr;
   }
 
   if (version != 0) {
     OPENSSL_PUT_ERROR(DSA, DSA_R_BAD_VERSION);
-    goto err;
+    return nullptr;
   }
 
   if (!parse_integer(&child, &ret->p) ||
@@ -277,17 +229,13 @@ DSA *DSA_parse_private_key(CBS *cbs) {
       !parse_integer(&child, &ret->priv_key) ||
       CBS_len(&child) != 0) {
     OPENSSL_PUT_ERROR(DSA, DSA_R_DECODE_ERROR);
-    goto err;
+    return nullptr;
   }
-  if (!dsa_check_key(ret)) {
-    goto err;
+  if (!dsa_check_key(ret.get())) {
+    return nullptr;
   }
 
-  return ret;
-
-err:
-  DSA_free(ret);
-  return NULL;
+  return ret.release();
 }
 
 int DSA_marshal_private_key(CBB *cbb, const DSA *dsa) {

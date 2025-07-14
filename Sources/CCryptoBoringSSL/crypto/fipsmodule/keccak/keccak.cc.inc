@@ -1,16 +1,16 @@
-/* Copyright 2023 The BoringSSL Authors
- *
- * Permission to use, copy, modify, and/or distribute this software for any
- * purpose with or without fee is hereby granted, provided that the above
- * copyright notice and this permission notice appear in all copies.
- *
- * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
- * WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
- * MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY
- * SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
- * WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION
- * OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN
- * CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. */
+// Copyright 2023 The BoringSSL Authors
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     https://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 
 #include <CCryptoBoringSSL_base.h>
 
@@ -126,25 +126,25 @@ static void keccak_f(uint64_t state[25]) {
 }
 
 static void keccak_init(struct BORINGSSL_keccak_st *ctx,
-                        size_t *out_required_out_len,
                         enum boringssl_keccak_config_t config) {
+  size_t required_out_len;
   size_t capacity_bytes;
   switch (config) {
     case boringssl_sha3_256:
       capacity_bytes = 512 / 8;
-      *out_required_out_len = 32;
+      required_out_len = 32;
       break;
     case boringssl_sha3_512:
       capacity_bytes = 1024 / 8;
-      *out_required_out_len = 64;
+      required_out_len = 64;
       break;
     case boringssl_shake128:
       capacity_bytes = 256 / 8;
-      *out_required_out_len = 0;
+      required_out_len = 0;
       break;
     case boringssl_shake256:
       capacity_bytes = 512 / 8;
-      *out_required_out_len = 0;
+      required_out_len = 0;
       break;
     default:
       abort();
@@ -153,6 +153,7 @@ static void keccak_init(struct BORINGSSL_keccak_st *ctx,
   OPENSSL_memset(ctx, 0, sizeof(*ctx));
   ctx->config = config;
   ctx->phase = boringssl_keccak_phase_absorb;
+  ctx->required_out_len = required_out_len;
   ctx->rate_bytes = 200 - capacity_bytes;
   assert(ctx->rate_bytes % 8 == 0);
 }
@@ -160,9 +161,8 @@ static void keccak_init(struct BORINGSSL_keccak_st *ctx,
 void BORINGSSL_keccak(uint8_t *out, size_t out_len, const uint8_t *in,
                       size_t in_len, enum boringssl_keccak_config_t config) {
   struct BORINGSSL_keccak_st ctx;
-  size_t required_out_len;
-  keccak_init(&ctx, &required_out_len, config);
-  if (required_out_len != 0 && out_len != required_out_len) {
+  keccak_init(&ctx, config);
+  if (ctx.required_out_len != 0 && out_len != ctx.required_out_len) {
     abort();
   }
   BORINGSSL_keccak_absorb(&ctx, in, in_len);
@@ -171,11 +171,7 @@ void BORINGSSL_keccak(uint8_t *out, size_t out_len, const uint8_t *in,
 
 void BORINGSSL_keccak_init(struct BORINGSSL_keccak_st *ctx,
                            enum boringssl_keccak_config_t config) {
-  size_t required_out_len;
-  keccak_init(ctx, &required_out_len, config);
-  if (required_out_len != 0) {
-    abort();
-  }
+  keccak_init(ctx, config);
 }
 
 void BORINGSSL_keccak_absorb(struct BORINGSSL_keccak_st *ctx, const uint8_t *in,
@@ -252,6 +248,14 @@ static void keccak_finalize(struct BORINGSSL_keccak_st *ctx) {
 
 void BORINGSSL_keccak_squeeze(struct BORINGSSL_keccak_st *ctx, uint8_t *out,
                               size_t out_len) {
+  if (ctx->required_out_len != 0 &&
+      (ctx->phase == boringssl_keccak_phase_squeeze ||
+       out_len != ctx->required_out_len)) {
+    // The SHA-3 variants must be squeezed in a single call, to confirm that the
+    // output length is correct.
+    abort();
+  }
+
   if (ctx->phase == boringssl_keccak_phase_absorb) {
     keccak_finalize(ctx);
     ctx->phase = boringssl_keccak_phase_squeeze;
