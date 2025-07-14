@@ -39,11 +39,11 @@ extension P256 {
     /// A mechanism used to create or verify a cryptographic signature using
     /// the NIST P-256 elliptic curve digital signature algorithm (ECDSA).
     @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
-    public enum Signing {
+    public enum Signing: Sendable {
             
         /// A P-256 public key used to verify cryptographic signatures.
         @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
-        public struct PublicKey: NISTECPublicKey {
+        public struct PublicKey: NISTECPublicKey, Sendable {
             var impl: NISTCurvePublicKeyImpl<P256>
 
             /// Creates a P-256 public key for signing from a collection of bytes.
@@ -143,7 +143,7 @@ extension P256 {
 
         /// A P-256 private key used to create cryptographic signatures.
         @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
-        public struct PrivateKey: NISTECPrivateKey {
+        public struct PrivateKey: NISTECPrivateKey, Sendable {
             let impl: NISTCurvePrivateKeyImpl<P256>
 
             /// Creates a random P-256 private key for signing.
@@ -258,11 +258,11 @@ extension P256 {
     /// performing NIST P-256 elliptic curve Diffie Hellman (ECDH) key
     /// exchange.
     @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
-    public enum KeyAgreement {
+    public enum KeyAgreement: Sendable {
             
         /// A P-256 public key used for key agreement.
         @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
-        public struct PublicKey: NISTECPublicKey {
+        public struct PublicKey: NISTECPublicKey, Sendable {
             var impl: NISTCurvePublicKeyImpl<P256>
 
             /// Creates a P-256 public key for key agreement from a collection of bytes.
@@ -362,7 +362,7 @@ extension P256 {
 
         /// A P-256 private key used for key agreement.
         @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
-        public struct PrivateKey: NISTECPrivateKey {
+        public struct PrivateKey: NISTECPrivateKey, Sendable {
             let impl: NISTCurvePrivateKeyImpl<P256>
 
             /// Creates a random P-256 private key for key agreement.
@@ -476,11 +476,11 @@ extension P384 {
     /// A mechanism used to create or verify a cryptographic signature using
     /// the NIST P-384 elliptic curve digital signature algorithm (ECDSA).
     @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
-    public enum Signing {
+    public enum Signing: Sendable {
             
         /// A P-384 public key used to verify cryptographic signatures.
         @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
-        public struct PublicKey: NISTECPublicKey {
+        public struct PublicKey: NISTECPublicKey, Sendable {
             var impl: NISTCurvePublicKeyImpl<P384>
 
             /// Creates a P-384 public key for signing from a collection of bytes.
@@ -580,7 +580,7 @@ extension P384 {
 
         /// A P-384 private key used to create cryptographic signatures.
         @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
-        public struct PrivateKey: NISTECPrivateKey {
+        public struct PrivateKey: NISTECPrivateKey, Sendable {
             let impl: NISTCurvePrivateKeyImpl<P384>
 
             /// Creates a random P-384 private key for signing.
@@ -695,11 +695,11 @@ extension P384 {
     /// performing NIST P-384 elliptic curve Diffie Hellman (ECDH) key
     /// exchange.
     @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
-    public enum KeyAgreement {
+    public enum KeyAgreement: Sendable {
             
         /// A P-384 public key used for key agreement.
         @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
-        public struct PublicKey: NISTECPublicKey {
+        public struct PublicKey: NISTECPublicKey, Sendable {
             var impl: NISTCurvePublicKeyImpl<P384>
 
             /// Creates a P-384 public key for key agreement from a collection of bytes.
@@ -799,7 +799,7 @@ extension P384 {
 
         /// A P-384 private key used for key agreement.
         @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
-        public struct PrivateKey: NISTECPrivateKey {
+        public struct PrivateKey: NISTECPrivateKey, Sendable {
             let impl: NISTCurvePrivateKeyImpl<P384>
 
             /// Creates a random P-384 private key for key agreement.
@@ -913,11 +913,11 @@ extension P521 {
     /// A mechanism used to create or verify a cryptographic signature using
     /// the NIST P-521 elliptic curve digital signature algorithm (ECDSA).
     @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
-    public enum Signing {
+    public enum Signing: Sendable {
             
         /// A P-521 public key used to verify cryptographic signatures.
         @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
-        public struct PublicKey: NISTECPublicKey {
+        public struct PublicKey: NISTECPublicKey, Sendable {
             var impl: NISTCurvePublicKeyImpl<P521>
 
             /// Creates a P-521 public key for signing from a collection of bytes.
@@ -1017,7 +1017,7 @@ extension P521 {
 
         /// A P-521 private key used to create cryptographic signatures.
         @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
-        public struct PrivateKey: NISTECPrivateKey {
+        public struct PrivateKey: NISTECPrivateKey, Sendable {
             let impl: NISTCurvePrivateKeyImpl<P521>
 
             /// Creates a random P-521 private key for signing.
@@ -1132,11 +1132,11 @@ extension P521 {
     /// performing NIST P-521 elliptic curve Diffie Hellman (ECDH) key
     /// exchange.
     @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
-    public enum KeyAgreement {
+    public enum KeyAgreement: Sendable {
             
         /// A P-521 public key used for key agreement.
         @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
-        public struct PublicKey: NISTECPublicKey {
+        public struct PublicKey: NISTECPublicKey, Sendable {
             var impl: NISTCurvePublicKeyImpl<P521>
 
             /// Creates a P-521 public key for key agreement from a collection of bytes.
@@ -1236,7 +1236,7 @@ extension P521 {
 
         /// A P-521 private key used for key agreement.
         @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
-        public struct PrivateKey: NISTECPrivateKey {
+        public struct PrivateKey: NISTECPrivateKey, Sendable {
             let impl: NISTCurvePrivateKeyImpl<P521>
 
             /// Creates a random P-521 private key for key agreement.

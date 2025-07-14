@@ -29,7 +29,7 @@ extension AES {
     /// An implementation of AES Key Wrapping in accordance with the IETF RFC
     /// 3394 specification.
     @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
-    public enum KeyWrap {
+    public enum KeyWrap: Sendable {
         /// Wraps a key using the AES wrap algorithm.
         ///
         /// Wrap is an implementation of the AES key wrap algorithm as specified

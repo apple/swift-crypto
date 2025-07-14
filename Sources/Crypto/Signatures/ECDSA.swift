@@ -40,7 +40,7 @@ extension P256.Signing {
 
     /// A P-256 elliptic curve digital signature algorithm (ECDSA) signature.
     @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
-    public struct ECDSASignature: ContiguousBytes, NISTECDSASignature {
+    public struct ECDSASignature: ContiguousBytes, NISTECDSASignature, Sendable {
         
         /// A raw data representation of a P-256 digital signature.
         public var rawRepresentation: Data
@@ -210,7 +210,7 @@ extension P384.Signing {
 
     /// A P-384 elliptic curve digital signature algorithm (ECDSA) signature.
     @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
-    public struct ECDSASignature: ContiguousBytes, NISTECDSASignature {
+    public struct ECDSASignature: ContiguousBytes, NISTECDSASignature, Sendable {
         
         /// A raw data representation of a P-384 digital signature.
         public var rawRepresentation: Data
@@ -380,7 +380,7 @@ extension P521.Signing {
 
     /// A P-521 elliptic curve digital signature algorithm (ECDSA) signature.
     @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
-    public struct ECDSASignature: ContiguousBytes, NISTECDSASignature {
+    public struct ECDSASignature: ContiguousBytes, NISTECDSASignature, Sendable {
         
         /// A raw data representation of a P-521 digital signature.
         public var rawRepresentation: Data

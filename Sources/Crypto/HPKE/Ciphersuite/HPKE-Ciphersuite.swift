@@ -26,7 +26,7 @@ extension HPKE {
     /// mechanism (KEM) for sharing the symmetric key. The sender and recipient of encrypted messages need to use the
     /// same cipher suite.
     @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
-    public struct Ciphersuite {
+    public struct Ciphersuite: Sendable {
 		/// A cipher suite for HPKE that uses NIST P-256 elliptic curve key agreement, SHA-2 key derivation
         /// with a 256-bit digest, and the Advanced Encryption Standard cipher in Galois/Counter Mode with a key length of 256 bits.
         public static let P256_SHA256_AES_GCM_256 = Ciphersuite(kem: .P256_HKDF_SHA256, kdf: .HKDF_SHA256, aead: .AES_GCM_256)

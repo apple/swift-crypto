@@ -18,9 +18,9 @@ import Foundation
 
 /// A Diffie-Hellman Key Agreement Key
 @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
-public protocol DiffieHellmanKeyAgreement {
+public protocol DiffieHellmanKeyAgreement: Sendable {
     /// The public key share type to perform the DH Key Agreement
-    associatedtype PublicKey
+    associatedtype PublicKey: Sendable
     var publicKey: PublicKey { get }
 
     /// Performs a Diffie-Hellman Key Agreement.
@@ -49,7 +49,7 @@ public protocol DiffieHellmanKeyAgreement {
 /// ``HMAC``, or for opening and closing a sealed box with a cipher like
 /// ``ChaChaPoly`` or ``AES``.
 @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
-public struct SharedSecret: ContiguousBytes {
+public struct SharedSecret: ContiguousBytes, Sendable {
     var ss: SecureBytes
 
     /// Invokes the given closure with a buffer pointer covering the raw bytes

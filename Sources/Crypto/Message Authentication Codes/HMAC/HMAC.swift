@@ -30,7 +30,7 @@ import Foundation
 /// ``AES`` or ``ChaChaPoly`` to put the data into a sealed box (an instance of
 /// ``AES/GCM/SealedBox`` or ``ChaChaPoly/SealedBox``).
 @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
-public struct HMAC<H: HashFunction>: MACAlgorithm {
+public struct HMAC<H: HashFunction>: MACAlgorithm, Sendable {
     /// An alias for the symmetric key type used to compute or verify a message
     /// authentication code.
     public typealias Key = SymmetricKey
@@ -195,7 +195,7 @@ public struct HMAC<H: HashFunction>: MACAlgorithm {
 
 /// A hash-based message authentication code.
 @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
-public struct HashedAuthenticationCode<H: HashFunction>: MessageAuthenticationCode {
+public struct HashedAuthenticationCode<H: HashFunction>: MessageAuthenticationCode, Sendable {
     let digest: H.Digest
     
     /// The number of bytes in the message authentication code.

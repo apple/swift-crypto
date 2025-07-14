@@ -28,7 +28,7 @@ extension Curve25519 {
     /// A mechanism used to create or verify a cryptographic signature using
     /// Ed25519.
     @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
-    public enum Signing {
+    public enum Signing: Sendable {
         #if !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
         typealias Curve25519PrivateKeyImpl = Curve25519.Signing.CoreCryptoCurve25519PrivateKeyImpl
         typealias Curve25519PublicKeyImpl = Curve25519.Signing.CoreCryptoCurve25519PublicKeyImpl
@@ -39,7 +39,7 @@ extension Curve25519 {
 
         /// A Curve25519 private key used to create cryptographic signatures.
         @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
-        public struct PrivateKey: ECPrivateKey {
+        public struct PrivateKey: ECPrivateKey, Sendable {
             private var baseKey: Curve25519.Signing.Curve25519PrivateKeyImpl
             
             /// Creates a random Curve25519 private key for signing.
@@ -75,7 +75,7 @@ extension Curve25519 {
 
         /// A Curve25519 public key used to verify cryptographic signatures.
         @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
-        public struct PublicKey {
+        public struct PublicKey: Sendable {
             private var baseKey: Curve25519.Signing.Curve25519PublicKeyImpl
 
             /// Creates a Curve25519 public key from a data representation.

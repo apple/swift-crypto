@@ -27,7 +27,7 @@
 /// instance, calling the ``update(data:)`` method repeatedly with blocks of
 /// data, and then calling the ``finalize()`` method to get the result.
 @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
-public struct SHA256: HashFunctionImplementationDetails {
+public struct SHA256: HashFunctionImplementationDetails, Sendable {
     /// The number of bytes that represents the hash function’s internal state.
     public static var blockByteCount: Int {
         get { 64 }
@@ -110,7 +110,7 @@ public struct SHA256: HashFunctionImplementationDetails {
 /// instance, calling the ``update(data:)`` method repeatedly with blocks of
 /// data, and then calling the ``finalize()`` method to get the result.
 @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
-public struct SHA384: HashFunctionImplementationDetails {
+public struct SHA384: HashFunctionImplementationDetails, Sendable {
     /// The number of bytes that represents the hash function’s internal state.
     public static var blockByteCount: Int {
         get { 128 }
@@ -194,7 +194,7 @@ public struct SHA384: HashFunctionImplementationDetails {
 /// instance, calling the ``update(data:)`` method repeatedly with blocks of
 /// data, and then calling the ``finalize()`` method to get the result.
 @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
-public struct SHA512: HashFunctionImplementationDetails {
+public struct SHA512: HashFunctionImplementationDetails, Sendable {
     /// The number of bytes that represents the hash function’s internal state.
     public static var blockByteCount: Int {
         get { 128 }

@@ -18,10 +18,10 @@ import Foundation
 
 /// A Key Encapsulation Mechanism
 @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
-public enum KEM {
+public enum KEM: Sendable {
     /// The result of an encapsulation operation
     @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
-    public struct EncapsulationResult {
+    public struct EncapsulationResult: Sendable {
         /// The shared secret
         public let sharedSecret: SymmetricKey
         /// The encapsulated secret
@@ -36,7 +36,7 @@ public enum KEM {
 
 /// A Key Encapsulation Mechanism's Public Key
 @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
-public protocol KEMPublicKey {
+public protocol KEMPublicKey: Sendable {
     /// Encapsulates the generated shared secret
     /// - Returns: The shared secret and its encapsulated version
     func encapsulate() throws -> KEM.EncapsulationResult
@@ -44,7 +44,7 @@ public protocol KEMPublicKey {
 
 /// A Key Encapsulation Mechanism's Private Key
 @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
-public protocol KEMPrivateKey {
+public protocol KEMPrivateKey: Sendable {
     associatedtype PublicKey: KEMPublicKey
     
     /// Generate a new random Private Key

@@ -18,7 +18,7 @@ import Foundation
 
 /// A type that represents a message authentication code.
 @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
-public protocol MessageAuthenticationCode: Hashable, ContiguousBytes, CustomStringConvertible, Sequence where Element == UInt8 {
+public protocol MessageAuthenticationCode: Hashable, ContiguousBytes, CustomStringConvertible, Sequence, Sendable where Element == UInt8 {
     /// The number of bytes in the message authentication code.
     var byteCount: Int { get }
 }

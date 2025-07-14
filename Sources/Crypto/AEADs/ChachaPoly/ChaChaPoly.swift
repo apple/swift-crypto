@@ -27,7 +27,7 @@ import Foundation
 
 /// An implementation of the ChaCha20-Poly1305 cipher.
 @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
-public enum ChaChaPoly: Cipher {
+public enum ChaChaPoly: Cipher, Sendable {
     static let tagByteCount = 16
     static let keyBitsCount = 256
     static let nonceByteCount = 12
@@ -111,7 +111,7 @@ extension ChaChaPoly {
     /// ``open(_:using:)`` method, to open the box.
     @frozen
     @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
-    public struct SealedBox: AEADSealedBox {
+    public struct SealedBox: AEADSealedBox, Sendable {
         /// A combined element composed of the tag, the nonce, and the
         /// ciphertext.
         ///

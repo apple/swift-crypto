@@ -43,7 +43,7 @@ import Foundation
 /// incorporate a secret cryptographic key into the digest computation. Only a
 /// user that has the key can generate a valid MAC.
 @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
-public protocol HashFunction {
+public protocol HashFunction: Sendable {
     /// The number of bytes that represents the hash function’s internal state.
     static var blockByteCount: Int { get }
     #if !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API

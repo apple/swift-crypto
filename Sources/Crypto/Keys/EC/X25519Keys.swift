@@ -28,7 +28,7 @@ extension Curve25519 {
     /// A mechanism used to create a shared secret between two users by
     /// performing X25519 key agreement.
     @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
-    public enum KeyAgreement {
+    public enum KeyAgreement: Sendable {
         #if !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
         typealias Curve25519PrivateKeyImpl = Curve25519.KeyAgreement.CoreCryptoCurve25519PrivateKeyImpl
         typealias Curve25519PublicKeyImpl = Curve25519.KeyAgreement.CoreCryptoCurve25519PublicKeyImpl
@@ -39,7 +39,7 @@ extension Curve25519 {
 
         /// A Curve25519 public key used for key agreement.
         @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
-        public struct PublicKey: ECPublicKey {
+        public struct PublicKey: ECPublicKey, Sendable {
             fileprivate var baseKey: Curve25519PublicKeyImpl
 
             /// Creates a Curve25519 public key for key agreement from a

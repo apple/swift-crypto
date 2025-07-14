@@ -241,7 +241,7 @@ extension Insecure {
 // MARK: - SHA1Digest + DigestPrivate
 /// The output of a SHA1 hash.
 @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
-public struct SHA1Digest: DigestPrivate {
+public struct SHA1Digest: DigestPrivate, Sendable {
     let bytes: (UInt64, UInt64, UInt64)
     
     init?(bufferPointer: UnsafeRawBufferPointer) {
@@ -312,7 +312,7 @@ extension Insecure {
 // MARK: - MD5Digest + DigestPrivate
 /// The output of a MD5 hash.
 @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
-public struct MD5Digest: DigestPrivate {
+public struct MD5Digest: DigestPrivate, Sendable {
     let bytes: (UInt64, UInt64)
     
     init?(bufferPointer: UnsafeRawBufferPointer) {

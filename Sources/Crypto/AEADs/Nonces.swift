@@ -28,7 +28,7 @@ extension AES.GCM {
     /// that nonces are unique per call to encryption APIs in order to protect the
     /// integrity of the encryption.
     @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
-    public struct Nonce: ContiguousBytes, Sequence {
+    public struct Nonce: ContiguousBytes, Sequence, Sendable {
         let bytes: Data
 
         /// Creates a new random nonce.
@@ -92,7 +92,7 @@ extension ChaChaPoly {
     /// that nonces are unique per call to encryption APIs in order to protect the
     /// integrity of the encryption.
     @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
-    public struct Nonce: ContiguousBytes, Sequence {
+    public struct Nonce: ContiguousBytes, Sequence, Sendable {
         let bytes: Data
 
         /// Creates a new random nonce.

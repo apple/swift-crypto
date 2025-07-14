@@ -46,7 +46,7 @@ import Foundation
 /// ### Handling errors
 ///  - ``Errors``
 @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
-public enum HPKE {}
+public enum HPKE: Sendable {}
 
 @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension HPKE {
@@ -59,7 +59,7 @@ extension HPKE {
     /// same order as the `Sender`, using the same encryption mode, cipher suite, and key schedule information
     ///  (`info`), as well as the `Sender`'s ``encapsulatedKey``.
     @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
-    public struct Sender {
+    public struct Sender: Sendable {
         private var context: Context
         /// The encapsulated symmetric key that the recipient uses to decrypt messages.
         public let encapsulatedKey: Data
@@ -197,7 +197,7 @@ extension HPKE {
     /// (`info` data).
     /// Use a separate `Recipient` instance for each stream of messages.
     @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
-    public struct Recipient {
+    public struct Recipient: Sendable {
         
         private var context: Context
 

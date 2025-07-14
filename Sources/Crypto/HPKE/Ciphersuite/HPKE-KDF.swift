@@ -20,7 +20,7 @@ import Foundation
 extension HPKE {
     /// The key derivation functions to use in HPKE.
     @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
-    public enum KDF: CaseIterable, Hashable {
+    public enum KDF: CaseIterable, Hashable, Sendable {
 		/// An HMAC-based key derivation function that uses SHA-2 hashing with a 256-bit digest.
         case HKDF_SHA256
 		/// An HMAC-based key derivation function that uses SHA-2 hashing with a 384-bit digest.

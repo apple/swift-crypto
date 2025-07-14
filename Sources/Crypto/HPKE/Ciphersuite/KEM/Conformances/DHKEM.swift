@@ -18,7 +18,7 @@ import Foundation
 
 /// A type that ``HPKE`` uses to encode the public key.
 @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
-public protocol HPKEPublicKeySerialization {
+public protocol HPKEPublicKeySerialization: Sendable {
 	/// Creates a public key from an encoded representation.
 	///
 	/// - Parameters:
@@ -57,7 +57,7 @@ public protocol HPKEDiffieHellmanPrivateKeyGeneration: HPKEDiffieHellmanPrivateK
 extension HPKE {
 	/// A container for Diffie-Hellman key encapsulation mechanisms (KEMs).
     @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
-    public enum DHKEM {
+    public enum DHKEM: Sendable {
         @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
         struct PublicKey<DHPK: HPKEDiffieHellmanPublicKey>: KEMPublicKey where DHPK == DHPK.EphemeralPrivateKey.PublicKey {
             let kem: HPKE.KEM

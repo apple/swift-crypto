@@ -30,7 +30,7 @@ extension AES {
     /// The Advanced Encryption Standard (AES) Galois Counter Mode (GCM) cipher
     /// suite.
     @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
-    public enum GCM: Cipher {
+    public enum GCM: Cipher, Sendable {
         static let tagByteCount = 16
         static let defaultNonceByteCount = 12
         
@@ -112,7 +112,7 @@ extension AES.GCM {
     /// The receiver uses another instance of the same cipher, like the
     /// ``open(_:using:)`` method, to open the box.
     @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
-    public struct SealedBox: AEADSealedBox {
+    public struct SealedBox: AEADSealedBox, Sendable {
         private let combinedRepresentation: Data
         private let nonceByteCount: Int
         

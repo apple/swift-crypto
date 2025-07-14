@@ -54,13 +54,13 @@ protocol NISTECPrivateKey: ECPrivateKey where PK: NISTECPublicKey {
 
 /// An elliptic curve that enables NIST P-256 signatures and key agreement.
 @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
-public enum P256 { }
+public enum P256: Sendable { }
 
 /// An elliptic curve that enables NIST P-384 signatures and key agreement.
 @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
-public enum P384 { }
+public enum P384: Sendable { }
 
 /// An elliptic curve that enables NIST P-521 signatures and key agreement.
 @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
-public enum P521 { }
+public enum P521: Sendable { }
 #endif // Linux or !SwiftPM

@@ -20,7 +20,7 @@ import Foundation
 private let emptyStorage:SecureBytes.Backing = SecureBytes.Backing.createEmpty()
 
 @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
-struct SecureBytes {
+struct SecureBytes: Sendable {
     @usableFromInline
     var backing: Backing
 
@@ -267,9 +267,10 @@ extension SecureBytes {
         internal var capacity: Int
     }
 
+    // Unchecked sendable here because we're inheriting from ManagedBuffer
     @usableFromInline
     @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
-    internal class Backing: ManagedBuffer<BackingHeader, UInt8> {
+    internal class Backing: ManagedBuffer<BackingHeader, UInt8>, @unchecked Sendable {
 
         @usableFromInline
         class func createEmpty() -> Backing {

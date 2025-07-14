@@ -24,7 +24,7 @@ import Foundation
 /// need a key with a non-standard length, use the ``init(bitCount:)``
 /// initializer to create a `SymmetricKeySize` instance with a custom bit count.
 @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
-public struct SymmetricKeySize {
+public struct SymmetricKeySize: Sendable {
     /// The number of bits in the key.
     public let bitCount: Int
 
@@ -65,7 +65,7 @@ public struct SymmetricKeySize {
 /// open and close a sealed box (``ChaChaPoly/SealedBox`` or
 /// ``AES/GCM/SealedBox``) using a cipher like ``ChaChaPoly`` or ``AES``.
 @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
-public struct SymmetricKey: ContiguousBytes {
+public struct SymmetricKey: ContiguousBytes, Sendable {
     let sb: SecureBytes
 
     /// Invokes the given closure with a buffer pointer covering the raw bytes
