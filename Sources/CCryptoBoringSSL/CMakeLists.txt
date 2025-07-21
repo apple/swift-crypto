@@ -334,6 +334,22 @@ elseif(CMAKE_SYSTEM_NAME MATCHES "Linux|Android|FreeBSD" AND CMAKE_SYSTEM_PROCES
     gen/bcm/vpaes-armv8-linux.S
     gen/crypto/chacha-armv8-linux.S
     gen/crypto/chacha20_poly1305_armv8-linux.S)
+elseif(WIN32 AND CMAKE_SYSTEM_PROCESSOR MATCHES ARM64)
+  target_sources(CCryptoBoringSSL PRIVATE
+    gen/bcm/aesv8-armv8-win.S
+    gen/bcm/aesv8-gcm-armv8-win.S
+    gen/bcm/armv8-mont-win.S
+    gen/bcm/bn-armv8-win.S
+    gen/bcm/ghash-neon-armv8-win.S
+    gen/bcm/ghashv8-armv8-win.S
+    gen/bcm/p256-armv8-asm-win.S
+    gen/bcm/p256_beeu-armv8-asm-win.S
+    gen/bcm/sha1-armv8-win.S
+    gen/bcm/sha256-armv8-win.S
+    gen/bcm/sha512-armv8-win.S
+    gen/bcm/vpaes-armv8-win.S
+    gen/crypto/chacha-armv8-win.S
+    gen/crypto/chacha20_poly1305_armv8-win.S)
 endif()
 
 target_include_directories(CCryptoBoringSSL PUBLIC
