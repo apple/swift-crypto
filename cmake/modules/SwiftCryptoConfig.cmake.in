@@ -13,5 +13,7 @@
 ##===----------------------------------------------------------------------===##
 
 if(NOT TARGET SwiftCrypto)
+  include(CMakeFindDependencyMacro)
+  find_dependency(SwiftASN1)
   include(@SWIFT_CRYPTO_EXPORTS_FILE@)
 endif()
