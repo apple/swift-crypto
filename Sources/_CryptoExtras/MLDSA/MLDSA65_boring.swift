@@ -12,34 +12,26 @@
 //
 //===----------------------------------------------------------------------===//
 
-// MARK: - Generated file, do NOT edit
-// any edits of this file WILL be overwritten and thus discarded
-// see section `gyb` in `README` for details.
-
 @_implementationOnly import CCryptoBoringSSL
 import Crypto
 import Foundation
-%{
-    parameter_sets = ["65"]
-}%
-% for parameter_set in parameter_sets:
 
 /// A module-lattice-based digital signature algorithm that provides security against quantum computing attacks.
 @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
-public enum MLDSA${parameter_set} {}
+public enum MLDSA65 {}
 
 @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
-extension MLDSA${parameter_set} {
-    /// A ML-DSA-${parameter_set} private key.
+extension MLDSA65 {
+    /// A ML-DSA-65 private key.
     public struct PrivateKey: Sendable {
         private var backing: Backing
 
-        /// Initialize a ML-DSA-${parameter_set} private key from a random seed.
+        /// Initialize a ML-DSA-65 private key from a random seed.
         public init() throws {
             self.backing = try Backing()
         }
 
-        /// Initialize a ML-DSA-${parameter_set} private key from a seed.
+        /// Initialize a ML-DSA-65 private key from a seed.
         ///
         /// - Parameter seedRepresentation: The seed to use to generate the private key.
         ///
@@ -83,10 +75,10 @@ extension MLDSA${parameter_set} {
         static let byteCount = Backing.byteCount
 
         fileprivate final class Backing {
-            fileprivate var key: MLDSA${parameter_set}_private_key
+            fileprivate var key: MLDSA65_private_key
             var seed: Data
 
-            /// Initialize a ML-DSA-${parameter_set} private key from a random seed.
+            /// Initialize a ML-DSA-65 private key from a random seed.
             init() throws {
                 // We have to initialize all members before `self` is captured by the closure
                 self.key = .init()
@@ -94,14 +86,14 @@ extension MLDSA${parameter_set} {
 
                 self.seed = try withUnsafeTemporaryAllocation(
                     of: UInt8.self,
-                    capacity: MLDSA.seedByteCount
+                    capacity: MLDSA65.seedByteCount
                 ) { seedPtr in
                     try withUnsafeTemporaryAllocation(
                         of: UInt8.self,
-                        capacity: MLDSA${parameter_set}.PublicKey.Backing.byteCount
+                        capacity: MLDSA65.PublicKey.Backing.byteCount
                     ) { publicKeyPtr in
                         guard
-                            CCryptoBoringSSL_MLDSA${parameter_set}_generate_key(
+                            CCryptoBoringSSL_MLDSA65_generate_key(
                                 publicKeyPtr.baseAddress,
                                 seedPtr.baseAddress,
                                 &self.key
@@ -110,18 +102,18 @@ extension MLDSA${parameter_set} {
                             throw CryptoKitError.internalBoringSSLError()
                         }
 
-                        return Data(bytes: seedPtr.baseAddress!, count: MLDSA.seedByteCount)
+                        return Data(bytes: seedPtr.baseAddress!, count: MLDSA65.seedByteCount)
                     }
                 }
             }
 
-            /// Initialize a ML-DSA-${parameter_set} private key from a seed.
+            /// Initialize a ML-DSA-65 private key from a seed.
             ///
             /// - Parameter seedRepresentation: The seed to use to generate the private key.
             ///
             /// - Throws: `CryptoError.incorrectKeySize` if the seed is not 32 bytes long.
             init(seedRepresentation: some DataProtocol) throws {
-                guard seedRepresentation.count == MLDSA.seedByteCount else {
+                guard seedRepresentation.count == MLDSA65.seedByteCount else {
                     throw CryptoKitError.incorrectKeySize
                 }
 
@@ -130,10 +122,10 @@ extension MLDSA${parameter_set} {
 
                 guard
                     self.seed.withUnsafeBytes({ seedPtr in
-                        CCryptoBoringSSL_MLDSA${parameter_set}_private_key_from_seed(
+                        CCryptoBoringSSL_MLDSA65_private_key_from_seed(
                             &self.key,
                             seedPtr.baseAddress,
-                            MLDSA.seedByteCount
+                            MLDSA65.seedByteCount
                         )
                     }) == 1
                 else {
@@ -154,13 +146,13 @@ extension MLDSA${parameter_set} {
             ///
             /// - Returns: The signature of the message.
             func signature<D: DataProtocol, C: DataProtocol>(for data: D, context: C?) throws -> Data {
-                var signature = Data(repeating: 0, count: MLDSA${parameter_set}.signatureByteCount)
+                var signature = Data(repeating: 0, count: MLDSA65.signatureByteCount)
 
                 let rc: CInt = signature.withUnsafeMutableBytes { signaturePtr in
                     let bytes: ContiguousBytes = data.regions.count == 1 ? data.regions.first! : Array(data)
                     return bytes.withUnsafeBytes { dataPtr in
                         context.withUnsafeBytes { contextPtr in
-                            CCryptoBoringSSL_MLDSA${parameter_set}_sign(
+                            CCryptoBoringSSL_MLDSA65_sign(
                                 signaturePtr.baseAddress,
                                 &self.key,
                                 dataPtr.baseAddress,
@@ -180,14 +172,14 @@ extension MLDSA${parameter_set} {
             }
 
             /// The size of the private key in bytes.
-            static let byteCount = Int(MLDSA${parameter_set}_PRIVATE_KEY_BYTES)
+            static let byteCount = 4032
         }
     }
 }
 
 @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
-extension MLDSA${parameter_set} {
-    /// A ML-DSA-${parameter_set} public key.
+extension MLDSA65 {
+    /// A ML-DSA-65 public key.
     public struct PublicKey: Sendable {
         private var backing: Backing
 
@@ -195,7 +187,7 @@ extension MLDSA${parameter_set} {
             self.backing = Backing(privateKeyBacking: privateKeyBacking)
         }
 
-        /// Initialize a ML-DSA-${parameter_set} public key from a raw representation.
+        /// Initialize a ML-DSA-65 public key from a raw representation.
         ///
         /// - Parameter rawRepresentation: The public key bytes.
         ///
@@ -241,20 +233,20 @@ extension MLDSA${parameter_set} {
         static let byteCount = Backing.byteCount
 
         fileprivate final class Backing {
-            private var key: MLDSA${parameter_set}_public_key
+            private var key: MLDSA65_public_key
 
             init(privateKeyBacking: PrivateKey.Backing) {
                 self.key = .init()
-                CCryptoBoringSSL_MLDSA${parameter_set}_public_from_private(&self.key, &privateKeyBacking.key)
+                CCryptoBoringSSL_MLDSA65_public_from_private(&self.key, &privateKeyBacking.key)
             }
 
-            /// Initialize a ML-DSA-${parameter_set} public key from a raw representation.
+            /// Initialize a ML-DSA-65 public key from a raw representation.
             ///
             /// - Parameter rawRepresentation: The public key bytes.
             ///
             /// - Throws: `CryptoError.incorrectKeySize` if the raw representation is not the correct size.
             init(rawRepresentation: some DataProtocol) throws {
-                guard rawRepresentation.count == MLDSA${parameter_set}.PublicKey.Backing.byteCount else {
+                guard rawRepresentation.count == MLDSA65.PublicKey.Backing.byteCount else {
                     throw CryptoKitError.incorrectKeySize
                 }
 
@@ -267,7 +259,7 @@ extension MLDSA${parameter_set} {
                 try bytes.withUnsafeBytes { rawBuffer in
                     try rawBuffer.withMemoryRebound(to: UInt8.self) { buffer in
                         var cbs = CBS(data: buffer.baseAddress, len: buffer.count)
-                        guard CCryptoBoringSSL_MLDSA${parameter_set}_parse_public_key(&self.key, &cbs) == 1 else {
+                        guard CCryptoBoringSSL_MLDSA65_parse_public_key(&self.key, &cbs) == 1 else {
                             throw CryptoKitError.internalBoringSSLError()
                         }
                     }
@@ -278,9 +270,9 @@ extension MLDSA${parameter_set} {
             var rawRepresentation: Data {
                 var cbb = CBB()
                 // The following BoringSSL functions can only fail on allocation failure, which we define as impossible.
-                CCryptoBoringSSL_CBB_init(&cbb, MLDSA${parameter_set}.PublicKey.Backing.byteCount)
+                CCryptoBoringSSL_CBB_init(&cbb, MLDSA65.PublicKey.Backing.byteCount)
                 defer { CCryptoBoringSSL_CBB_cleanup(&cbb) }
-                CCryptoBoringSSL_MLDSA${parameter_set}_marshal_public_key(&cbb, &self.key)
+                CCryptoBoringSSL_MLDSA65_marshal_public_key(&cbb, &self.key)
                 return Data(bytes: CCryptoBoringSSL_CBB_data(&cbb), count: CCryptoBoringSSL_CBB_len(&cbb))
             }
 
@@ -303,7 +295,7 @@ extension MLDSA${parameter_set} {
                     let dataBytes: ContiguousBytes = data.regions.count == 1 ? data.regions.first! : Array(data)
                     let rc: CInt = dataBytes.withUnsafeBytes { dataPtr in
                         context.withUnsafeBytes { contextPtr in
-                            CCryptoBoringSSL_MLDSA${parameter_set}_verify(
+                            CCryptoBoringSSL_MLDSA65_verify(
                                 &self.key,
                                 signaturePtr.baseAddress,
                                 signaturePtr.count,
@@ -319,19 +311,16 @@ extension MLDSA${parameter_set} {
             }
 
             /// The size of the public key in bytes.
-            static let byteCount = Int(MLDSA${parameter_set}_PUBLIC_KEY_BYTES)
+            static let byteCount = 1952
         }
     }
 }
 
 @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
-extension MLDSA${parameter_set} {
-    /// The size of the signature in bytes.
-    private static let signatureByteCount = Int(MLDSA${parameter_set}_SIGNATURE_BYTES)
-}
-% end
-
-private enum MLDSA {
+extension MLDSA65 {
     /// The size of the seed in bytes.
-    fileprivate static let seedByteCount = 32
+    private static let seedByteCount = 32
+
+    /// The size of the signature in bytes.
+    private static let signatureByteCount = 3309
 }
