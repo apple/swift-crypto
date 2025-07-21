@@ -20,7 +20,7 @@
 import Crypto
 import Foundation
 %{
-    parameter_sets = ["65", "87"]
+    parameter_sets = ["65"]
 }%
 % for parameter_set in parameter_sets:
 
