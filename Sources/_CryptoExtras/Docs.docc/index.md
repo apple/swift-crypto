@@ -15,7 +15,6 @@ Provides additional cryptographic APIs that are not available in CryptoKit (and 
 ### Public key cryptography
 
 - ``_RSA``
-- ``MLDSA65``
 
 ### Key derivation functions
 
