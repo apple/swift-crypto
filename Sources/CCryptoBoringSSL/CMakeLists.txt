@@ -344,7 +344,7 @@ elseif(CMAKE_SYSTEM_NAME MATCHES "Linux|Android|FreeBSD|OpenBSD" AND CMAKE_SYSTE
     gen/crypto/chacha20_poly1305_armv8-linux.S)
 elseif(CMAKE_SYSTEM_NAME MATCHES "Windows" AND CMAKE_SYSTEM_PROCESSOR MATCHES "AMD64|amd64|x86_64")
   target_sources(CCryptoBoringSSL PRIVATE
-  )
+)
 elseif(CMAKE_SYSTEM_NAME MATCHES "Windows" AND CMAKE_SYSTEM_PROCESSOR MATCHES "ARM64|arm64|aarch64")
   target_sources(CCryptoBoringSSL PRIVATE
     gen/bcm/aesv8-armv8-win.S
