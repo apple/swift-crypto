@@ -14,10 +14,6 @@
 
 cmake_minimum_required(VERSION 3.15.1)
 
-if(POLICY CMP0157)
-  cmake_policy(SET CMP0157 NEW)
-endif()
-
 project(SwiftCrypto
   LANGUAGES ASM C CXX Swift)
 
