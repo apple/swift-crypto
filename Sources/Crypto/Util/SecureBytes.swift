@@ -20,6 +20,7 @@ import Foundation
 private let emptyStorage:SecureBytes.Backing = SecureBytes.Backing.createEmpty()
 
 @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
+@usableFromInline
 struct SecureBytes {
     @usableFromInline
     var backing: Backing
@@ -238,6 +239,7 @@ extension SecureBytes.Index: Hashable { }
 
 @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension SecureBytes.Index: Comparable {
+    @inlinable
     static func <(lhs: SecureBytes.Index, rhs: SecureBytes.Index) -> Bool {
         return lhs.offset < rhs.offset
     }
@@ -245,10 +247,12 @@ extension SecureBytes.Index: Comparable {
 
 @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension SecureBytes.Index: Strideable {
+    @inlinable
     func advanced(by n: Int) -> SecureBytes.Index {
         return SecureBytes.Index(offset: self.offset + n)
     }
 
+    @inlinable
     func distance(to other: SecureBytes.Index) -> Int {
         return other.offset - self.offset
     }
@@ -355,6 +359,7 @@ extension SecureBytes.Backing {
 #endif
     }
 
+    @inlinable
     func replaceSubrangeFittingWithinCapacity<C: Collection>(_ subrange: Range<Int>, with newElements: C) where C.Element == UInt8 {
         // This function is called when have a unique reference to the backing storage, and we have enough room to store these bytes without
         // any problem. We have one pre-existing buffer made up of 4 regions: a prefix set of bytes that are
@@ -384,6 +389,7 @@ extension SecureBytes.Backing {
     }
 
     /// Appends the bytes of a collection to this storage, crashing if there is not enough room.
+    @inlinable
     /* private but inlinable */ func _appendBytes<C: Collection>(_ bytes: C) where C.Element == UInt8 {
         let byteCount = bytes.count
 
@@ -399,6 +405,7 @@ extension SecureBytes.Backing {
 
     /// Appends the bytes of a slice of another backing buffer to this storage, crashing if there
     /// is not enough room.
+    @inlinable
     /* private but inlinable */ func _appendBytes(_ backing: SecureBytes.Backing, inRange range: Range<Int>) {
         precondition(range.lowerBound >= 0)
         precondition(range.upperBound <= backing.allocatedCapacity)
@@ -453,6 +460,7 @@ extension SecureBytes.Backing {
 
 @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension SecureBytes.Backing: ContiguousBytes {
+    @inlinable
     func withUnsafeBytes<T>(_ body: (UnsafeRawBufferPointer) throws -> T) rethrows -> T {
         let count = self.count
 
@@ -461,6 +469,7 @@ extension SecureBytes.Backing: ContiguousBytes {
         }
     }
 
+    @inlinable
     func withUnsafeMutableBytes<T>(_ body: (UnsafeMutableRawBufferPointer) throws -> T) rethrows -> T {
         let count = self.count
 
@@ -479,6 +488,7 @@ extension SecureBytes.Backing: ContiguousBytes {
         }
     }
 
+    @inlinable
     func withContiguousStorageIfAvailable<R>(_ body: (UnsafeBufferPointer<UInt8>) throws -> R) rethrows -> R? {
         let count = self.count
 
