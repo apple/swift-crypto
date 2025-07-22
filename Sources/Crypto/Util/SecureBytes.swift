@@ -20,17 +20,13 @@ import Foundation
 private let emptyStorage:SecureBytes.Backing = SecureBytes.Backing.createEmpty()
 
 @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
-@usableFromInline
 struct SecureBytes {
-    @usableFromInline
     var backing: Backing
 
-    @inlinable
     init() {
         self = .init(count: 0)
     }
 
-    @usableFromInline
     init(count: Int) {
         if count == 0 {
             self.backing = emptyStorage
@@ -44,7 +40,6 @@ struct SecureBytes {
     }
 
     /// Allows initializing a SecureBytes object with a closure that will initialize the memory.
-    @usableFromInline
     init(unsafeUninitializedCapacity: Int, initializingWith callback: (inout UnsafeMutableRawBufferPointer, inout Int) throws -> Void) rethrows {
         self.backing = Backing.create(capacity: unsafeUninitializedCapacity)
         try self.backing._withVeryUnsafeMutableBytes { veryUnsafePointer in
@@ -60,7 +55,6 @@ struct SecureBytes {
 
 @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension SecureBytes {
-    @inlinable
     mutating func append<C: Collection>(_ data: C) where C.Element == UInt8 {
         let requiredCapacity = self.count + data.count
         let backingCapacity = self.backing.allocatedCapacity
@@ -72,7 +66,6 @@ extension SecureBytes {
         self.backing._appendBytes(data)
     }
 
-    @usableFromInline
     mutating func reserveCapacity(_ n: Int) {
         let backingCapacity = self.backing.allocatedCapacity
         if backingCapacity >= n {
@@ -96,32 +89,27 @@ extension SecureBytes: Equatable {
 // MARK: - Collection conformance
 @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension SecureBytes: Collection {
-    @usableFromInline
     @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
     struct Index {
-        /* fileprivate but usableFromInline */ @usableFromInline var offset: Int
+        /* fileprivate but usableFromInline */ var offset: Int
 
-        /*@inlinable*/ @usableFromInline internal init(offset: Int) {
+        /*@inlinable*/ internal init(offset: Int) {
             self.offset = offset
         }
     }
 
-    @inlinable
     var startIndex: Index {
         return Index(offset: 0)
     }
 
-    @inlinable
     var endIndex: Index {
         return Index(offset: self.count)
     }
 
-    @inlinable
     var count: Int {
         return self.backing.count
     }
 
-    @inlinable
     subscript(_ index: Index) -> UInt8 {
         get {
             return self.backing[offset: index.offset]
@@ -131,7 +119,6 @@ extension SecureBytes: Collection {
         }
     }
 
-    @inlinable
     func index(after index: Index) -> Index {
         return index.advanced(by: 1)
     }
@@ -140,7 +127,6 @@ extension SecureBytes: Collection {
 // MARK: - BidirectionalCollection conformance
 @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension SecureBytes: BidirectionalCollection {
-    @inlinable
     func index(before index: Index) -> Index {
         return index.advanced(by: -1)
     }
@@ -157,7 +143,6 @@ extension SecureBytes: MutableCollection { }
 // MARK: - RangeReplaceableCollection conformance
 @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension SecureBytes: RangeReplaceableCollection {
-    @inlinable
     mutating func replaceSubrange<C: Collection>(_ subrange: Range<Index>, with newElements: C) where C.Element == UInt8 {
         let requiredCapacity = self.backing.count - subrange.count + newElements.count
         let backingCapacity = self.backing.allocatedCapacity
@@ -183,7 +168,6 @@ extension SecureBytes: RangeReplaceableCollection {
     }
 
     // The default implementation of this from RangeReplaceableCollection can't take advantage of `ContiguousBytes`, so we override it here
-    @inlinable
     public mutating func append<Elements: Sequence>(contentsOf newElements: Elements) where Elements.Element == UInt8 {
         let done:Void? = newElements.withContiguousStorageIfAvailable {
             replaceSubrange(endIndex..<endIndex, with: $0)
@@ -200,12 +184,10 @@ extension SecureBytes: RangeReplaceableCollection {
 // MARK: - ContiguousBytes conformance
 @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension SecureBytes: ContiguousBytes {
-    @inlinable
     func withUnsafeBytes<T>(_ body: (UnsafeRawBufferPointer) throws -> T) rethrows -> T {
         return try self.backing.withUnsafeBytes(body)
     }
 
-    @inlinable
     mutating func withUnsafeMutableBytes<T>(_ body: (UnsafeMutableRawBufferPointer) throws -> T) rethrows -> T {
         if !isKnownUniquelyReferenced(&self.backing) {
             self.backing = Backing.create(copying: self.backing)
@@ -214,7 +196,6 @@ extension SecureBytes: ContiguousBytes {
         return try self.backing.withUnsafeMutableBytes(body)
     }
 
-    @inlinable
     func withContiguousStorageIfAvailable<R>(_ body: (UnsafeBufferPointer<UInt8>) throws -> R) rethrows -> R? {
         return try self.backing.withContiguousStorageIfAvailable(body)
     }
@@ -223,7 +204,6 @@ extension SecureBytes: ContiguousBytes {
 // MARK: - DataProtocol conformance
 @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension SecureBytes: DataProtocol {
-    @inlinable
     var regions: CollectionOfOne<SecureBytes> {
         return CollectionOfOne(self)
     }
@@ -239,7 +219,6 @@ extension SecureBytes.Index: Hashable { }
 
 @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension SecureBytes.Index: Comparable {
-    @inlinable
     static func <(lhs: SecureBytes.Index, rhs: SecureBytes.Index) -> Bool {
         return lhs.offset < rhs.offset
     }
@@ -247,12 +226,10 @@ extension SecureBytes.Index: Comparable {
 
 @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension SecureBytes.Index: Strideable {
-    @inlinable
     func advanced(by n: Int) -> SecureBytes.Index {
         return SecureBytes.Index(offset: self.offset + n)
     }
 
-    @inlinable
     func distance(to other: SecureBytes.Index) -> Int {
         return other.offset - self.offset
     }
@@ -261,37 +238,29 @@ extension SecureBytes.Index: Strideable {
 // MARK: - Heap allocated backing storage.
 @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension SecureBytes {
-    @usableFromInline
     @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
     internal struct BackingHeader {
-        @usableFromInline
         internal var count: Int
 
-        @usableFromInline
         internal var capacity: Int
     }
 
-    @usableFromInline
     @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
     internal class Backing: ManagedBuffer<BackingHeader, UInt8> {
 
-        @usableFromInline
         class func createEmpty() -> Backing {
             return Backing.create(minimumCapacity: 0, makingHeaderWith: { _ in BackingHeader(count: 0, capacity: 0) }) as! Backing
         }
 
-        @usableFromInline
         class func create(capacity: Int) -> Backing {
             let capacity = Int(UInt32(capacity).nextPowerOf2ClampedToMax())
             return Backing.create(minimumCapacity: capacity, makingHeaderWith: { _ in BackingHeader(count: 0, capacity: capacity) }) as! Backing
         }
 
-        @usableFromInline
         class func create(copying original: Backing) -> Backing {
             return Backing.create(bytes: original)
         }
 
-        @inlinable
         class func create<D: ContiguousBytes>(bytes: D) -> Backing {
             return bytes.withUnsafeBytes { bytesPtr in
                 let backing = Backing.create(capacity: bytesPtr.count)
@@ -304,7 +273,6 @@ extension SecureBytes {
             }
         }
 
-        @usableFromInline
         class func create(randomBytes: Int) -> Backing {
             let backing = Backing.create(capacity: randomBytes)
             backing._withVeryUnsafeMutableBytes { targetPtr in
@@ -324,7 +292,6 @@ extension SecureBytes {
             }
         }
 
-        @usableFromInline
         var count: Int {
             get {
                 return self.header.count
@@ -334,7 +301,6 @@ extension SecureBytes {
             }
         }
 
-        @usableFromInline
         subscript(offset offset: Int) -> UInt8 {
             get {
                 // precondition(offset >= 0 && offset < self.count)
@@ -350,7 +316,6 @@ extension SecureBytes {
 
 @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension SecureBytes.Backing {
-    @usableFromInline
     var allocatedCapacity: Int {
 #if os(OpenBSD)
         return self.header.capacity
@@ -359,7 +324,6 @@ extension SecureBytes.Backing {
 #endif
     }
 
-    @inlinable
     func replaceSubrangeFittingWithinCapacity<C: Collection>(_ subrange: Range<Int>, with newElements: C) where C.Element == UInt8 {
         // This function is called when have a unique reference to the backing storage, and we have enough room to store these bytes without
         // any problem. We have one pre-existing buffer made up of 4 regions: a prefix set of bytes that are
@@ -389,7 +353,6 @@ extension SecureBytes.Backing {
     }
 
     /// Appends the bytes of a collection to this storage, crashing if there is not enough room.
-    @inlinable
     /* private but inlinable */ func _appendBytes<C: Collection>(_ bytes: C) where C.Element == UInt8 {
         let byteCount = bytes.count
 
@@ -405,7 +368,6 @@ extension SecureBytes.Backing {
 
     /// Appends the bytes of a slice of another backing buffer to this storage, crashing if there
     /// is not enough room.
-    @inlinable
     /* private but inlinable */ func _appendBytes(_ backing: SecureBytes.Backing, inRange range: Range<Int>) {
         precondition(range.lowerBound >= 0)
         precondition(range.upperBound <= backing.allocatedCapacity)
@@ -426,7 +388,6 @@ extension SecureBytes.Backing {
     /// Moves the range of bytes identified by the slice by the delta, crashing if the move would
     /// place the bytes out of the storage. Note that this does not update the count: external code
     /// must ensure that that happens.
-    @usableFromInline
     /* private but usableFromInline */ func _moveBytes(range: Range<Int>, by delta: Int) {
         // We have to check that the range is within the delta, as is the new location.
         precondition(range.lowerBound >= 0)
@@ -444,7 +405,6 @@ extension SecureBytes.Backing {
     }
 
     // Copies some bytes into the buffer at the appropriate place. Does not update count: external code must do so.
-    @inlinable
     /* private but inlinable */ func _copyBytes<C: Collection>(_ bytes: C, at offset: Int) where C.Element == UInt8 {
         precondition(offset >= 0)
         precondition(offset + bytes.count <= self.allocatedCapacity)
@@ -460,7 +420,6 @@ extension SecureBytes.Backing {
 
 @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension SecureBytes.Backing: ContiguousBytes {
-    @inlinable
     func withUnsafeBytes<T>(_ body: (UnsafeRawBufferPointer) throws -> T) rethrows -> T {
         let count = self.count
 
@@ -469,7 +428,6 @@ extension SecureBytes.Backing: ContiguousBytes {
         }
     }
 
-    @inlinable
     func withUnsafeMutableBytes<T>(_ body: (UnsafeMutableRawBufferPointer) throws -> T) rethrows -> T {
         let count = self.count
 
@@ -479,7 +437,6 @@ extension SecureBytes.Backing: ContiguousBytes {
     }
 
     /// Very unsafe in the sense that this points to uninitialized memory. Used only for implementations within this file.
-    @inlinable
     /* private but inlinable */ func _withVeryUnsafeMutableBytes<T>(_ body: (UnsafeMutableRawBufferPointer) throws -> T) rethrows -> T {
         let capacity = self.allocatedCapacity
 
@@ -488,7 +445,6 @@ extension SecureBytes.Backing: ContiguousBytes {
         }
     }
 
-    @inlinable
     func withContiguousStorageIfAvailable<R>(_ body: (UnsafeBufferPointer<UInt8>) throws -> R) rethrows -> R? {
         let count = self.count
 
