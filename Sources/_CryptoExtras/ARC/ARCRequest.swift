@@ -26,12 +26,12 @@ extension ARC {
         let m2Enc: Group.Element
         let proof: Proof<H2G>
 
-        init(clientSecrets: ClientSecrets<Group.Scalar>, generatorG: Group.Element, generatorH: Group.Element) throws {
+        init(clientSecrets: ClientSecrets<Group.Scalar>, generatorG: Group.Element, generatorH: Group.Element, ciphersuite: Ciphersuite<H2G>) throws {
             let m1Enc = clientSecrets.m1 * generatorG + clientSecrets.r1 * generatorH
             let m2Enc = clientSecrets.m2 * generatorG + clientSecrets.r2 * generatorH
 
             // Create a prover, and allocate variables for the constrained scalars.
-            var prover = Prover<H2G>(label: ARC.domain + ARC.domain + "CredentialRequest")
+            var prover = Prover<H2G>(label: ciphersuite.domain + ciphersuite.domain + "CredentialRequest")
             let m1Var = prover.appendScalar(label: "m1", assignment: clientSecrets.m1)
             let m2Var = prover.appendScalar(label: "m2", assignment: clientSecrets.m2)
             let r1Var = prover.appendScalar(label: "r1", assignment: clientSecrets.r1)
@@ -50,7 +50,7 @@ extension ARC {
             self.proof = proof
         }
 
-        func verify(generatorG: Group.Element, generatorH: Group.Element) throws -> Bool {
+        func verify(generatorG: Group.Element, generatorH: Group.Element, ciphersuite: Ciphersuite<H2G>) throws -> Bool {
             // Check that the encrypted attributes were generated with nonzero `m` and `r` values.
             if (self.m1Enc == generatorG || self.m1Enc == generatorH || self.m1Enc == self.m1Enc + self.m1Enc) ||
                (self.m2Enc == generatorG || self.m2Enc == generatorH || self.m2Enc == self.m2Enc + self.m2Enc) {
@@ -58,7 +58,7 @@ extension ARC {
             }
 
             // Create a verifier, and allocate variables for the constrained scalars.
-            var verifier = Verifier<H2G>(label: ARC.domain + ARC.domain + "CredentialRequest")
+            var verifier = Verifier<H2G>(label: ciphersuite.domain + ciphersuite.domain + "CredentialRequest")
             let m1Var = verifier.appendScalar(label: "m1")
             let m2Var = verifier.appendScalar(label: "m2")
             let r1Var = verifier.appendScalar(label: "r1")

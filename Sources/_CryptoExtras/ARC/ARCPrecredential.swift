@@ -40,12 +40,12 @@ extension ARC {
         let credentialRequest: CredentialRequest<H2G>
 
         init(ciphersuite: Ciphersuite<H2G>, m1: Group.Scalar = Group.Scalar.random, requestContext: Data, r1: Group.Scalar = Group.Scalar.random, r2: Group.Scalar = Group.Scalar.random, serverPublicKey: ServerPublicKey<H2G>) throws {
-            let m2 = try H2G.hashToScalar(requestContext, domainSeparationString: Data((ARC.domain + "requestContext").utf8))
+            let m2 = try H2G.hashToScalar(requestContext, domainSeparationString: Data((ciphersuite.domain + "requestContext").utf8))
             self.clientSecrets = ClientSecrets(m1: m1, m2: m2, r1: r1, r2: r2)
             self.serverPublicKey = serverPublicKey
             self.ciphersuite = ciphersuite
             (self.generatorG, self.generatorH) = ARC.getGenerators(suite: ciphersuite)
-            self.credentialRequest = try CredentialRequest(clientSecrets: self.clientSecrets, generatorG: generatorG, generatorH: generatorH)
+            self.credentialRequest = try CredentialRequest(clientSecrets: self.clientSecrets, generatorG: generatorG, generatorH: generatorH, ciphersuite: ciphersuite)
         }
 
         func makeCredential(credentialResponse: CredentialResponse<H2G>) throws -> Credential<H2G> {
