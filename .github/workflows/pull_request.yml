@@ -30,6 +30,10 @@ jobs:
       windows_nightly_next_arguments_override: "--explicit-target-dependency-import-check error"
       windows_nightly_main_arguments_override: "--explicit-target-dependency-import-check error"
 
+  release-builds:
+    name: Release builds
+    uses: apple/swift-nio/.github/workflows/release_builds.yml@main
+
   cxx-interop:
     name: Cxx interop
     uses: apple/swift-nio/.github/workflows/cxx_interop.yml@main
