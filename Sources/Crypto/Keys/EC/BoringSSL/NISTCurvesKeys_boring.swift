@@ -36,26 +36,20 @@ extension OpenSSLSupportedNISTCurve {
 
 @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension P256: OpenSSLSupportedNISTCurve {
-    @inlinable
-    static var group: BoringSSLEllipticCurveGroup {
-        try! BoringSSLEllipticCurveGroup(.p256)
-    }
+    @usableFromInline
+    static let group = try! BoringSSLEllipticCurveGroup(.p256)
 }
 
 @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension P384: OpenSSLSupportedNISTCurve {
-    @inlinable
-    static var group: BoringSSLEllipticCurveGroup {
-        try! BoringSSLEllipticCurveGroup(.p384)
-    }
+    @usableFromInline
+    static let group = try! BoringSSLEllipticCurveGroup(.p384)
 }
 
 @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension P521: OpenSSLSupportedNISTCurve {
-    @inlinable
-    static var group: BoringSSLEllipticCurveGroup {
-        try! BoringSSLEllipticCurveGroup(.p521)
-    }
+    @usableFromInline
+    static let group = try! BoringSSLEllipticCurveGroup(.p521)
 }
 
 @usableFromInline
