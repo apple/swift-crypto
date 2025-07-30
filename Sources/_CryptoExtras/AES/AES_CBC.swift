@@ -194,7 +194,7 @@ extension AES._CBC {
             }
         }
         
-        public func makeIterator() -> Array<UInt8>.Iterator {
+        public func makeIterator() -> some IteratorProtocol<UInt8> {
             withUnsafeBytes(of: ivBytes) { unsafeRawBufferPointer in
                 Array(unsafeRawBufferPointer).makeIterator()
             }
