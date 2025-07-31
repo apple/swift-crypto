@@ -158,4 +158,49 @@ let benchmarks = {
             blackHole(try privateKey.evaluate(blindedElement))
         }
     }
+
+    Benchmark(
+        "key-exchange-p256",
+        configuration: Benchmark.Configuration(
+            metrics: defaultMetrics,
+            scalingFactor: .kilo,
+            maxDuration: .seconds(10_000_000),
+            maxIterations: 10
+        )
+    ) { benchmark in
+        for _ in benchmark.scaledIterations {
+            let (key1, key2) = (P256.KeyAgreement.PrivateKey(), P256.KeyAgreement.PrivateKey())
+            blackHole(try key1.sharedSecretFromKeyAgreement(with: key2.publicKey))
+        }
+    }
+
+    Benchmark(
+        "key-exchange-p384",
+        configuration: Benchmark.Configuration(
+            metrics: defaultMetrics,
+            scalingFactor: .kilo,
+            maxDuration: .seconds(10_000_000),
+            maxIterations: 10
+        )
+    ) { benchmark in
+        for _ in benchmark.scaledIterations {
+            let (key1, key2) = (P384.KeyAgreement.PrivateKey(), P384.KeyAgreement.PrivateKey())
+            blackHole(try key1.sharedSecretFromKeyAgreement(with: key2.publicKey))
+        }
+    }
+
+    Benchmark(
+        "key-exchange-p521",
+        configuration: Benchmark.Configuration(
+            metrics: defaultMetrics,
+            scalingFactor: .kilo,
+            maxDuration: .seconds(10_000_000),
+            maxIterations: 10
+        )
+    ) { benchmark in
+        for _ in benchmark.scaledIterations {
+            let (key1, key2) = (P521.KeyAgreement.PrivateKey(), P521.KeyAgreement.PrivateKey())
+            blackHole(try key1.sharedSecretFromKeyAgreement(with: key2.publicKey))
+        }
+    }
 }
