@@ -54,6 +54,7 @@ add_library(_CryptoExtras
   "RSA/RSA+BlindSigning.swift"
   "RSA/RSA.swift"
   "RSA/RSA_boring.swift"
+  "SLHDSA/SLHDSA_boring.swift"
   "Util/BoringSSLHelpers.swift"
   "Util/CryptoKitErrors_boring.swift"
   "Util/Data+Extensions.swift"
