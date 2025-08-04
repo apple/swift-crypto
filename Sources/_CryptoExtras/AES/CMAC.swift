@@ -26,7 +26,7 @@ extension AES {
         fileprivate var backing: Backing
 
         /// Creates a message authentication code generator.
-        /// 
+        ///
         /// Defaults the output size to 128 bits.
         ///
         /// - Parameters:
@@ -104,7 +104,7 @@ extension AES.CMAC {
 
         /// The number of bytes in the message authentication code.
         public var byteCount: Int {
-            return self.underlyingData.count
+            self.underlyingData.count
         }
 
         /// Invokes the given closure with a buffer pointer covering the raw bytes
@@ -151,7 +151,7 @@ extension AES.CMAC {
             precondition(rc == 1)
 
             // Ensure we don't lose `other` at this time.
-            withExtendedLifetime(other) { }
+            withExtendedLifetime(other) {}
         }
 
         deinit {

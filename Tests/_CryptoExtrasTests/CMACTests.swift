@@ -12,9 +12,9 @@
 //
 //===----------------------------------------------------------------------===//
 import Crypto
-import _CryptoExtras
 import Foundation
 import XCTest
+import _CryptoExtras
 
 final class CMACTests: XCTestCase {
     // Borrowed from CryptoKit
@@ -33,21 +33,21 @@ final class CMACTests: XCTestCase {
     let exampleVector1 = ""
 
     let exampleVector2 = """
-    6bc1bee22e409f96e93d7e117393172a
-    """
+        6bc1bee22e409f96e93d7e117393172a
+        """
 
     let exampleVector3 = """
-    6bc1bee22e409f96e93d7e117393172a\
-    ae2d8a571e03ac9c9eb76fac45af8e51\
-    30c81c46a35ce411
-    """
+        6bc1bee22e409f96e93d7e117393172a\
+        ae2d8a571e03ac9c9eb76fac45af8e51\
+        30c81c46a35ce411
+        """
 
     let exampleVector4 = """
-    6bc1bee22e409f96e93d7e117393172a\
-    ae2d8a571e03ac9c9eb76fac45af8e51\
-    30c81c46a35ce411e5fbc1191a0a52ef\
-    f69f2445df4f9b17ad2b417be66c3710
-    """
+        6bc1bee22e409f96e93d7e117393172a\
+        ae2d8a571e03ac9c9eb76fac45af8e51\
+        30c81c46a35ce411e5fbc1191a0a52ef\
+        f69f2445df4f9b17ad2b417be66c3710
+        """
 
     func testExampleVector1() throws {
         let key = try Array(hexString: "2b7e151628aed2a6abf7158809cf4f3c")
@@ -141,15 +141,24 @@ final class CMACTests: XCTestCase {
 
                     switch test.result {
                     case "valid":
-                        XCTAssertTrue(result == test.computedTag, "Unexpected invalid test \(test.tcId) (\(test.comment))")
+                        XCTAssertTrue(
+                            result == test.computedTag,
+                            "Unexpected invalid test \(test.tcId) (\(test.comment))"
+                        )
                     case "invalid":
-                        XCTAssertFalse(result == test.computedTag, "Unexpected valid test \(test.tcId) (\(test.comment))")
+                        XCTAssertFalse(
+                            result == test.computedTag,
+                            "Unexpected valid test \(test.tcId) (\(test.comment))"
+                        )
                     default:
                         fatalError("Unexpected result type")
                     }
                 } catch {
                     XCTAssertTrue(test.result == "invalid", "Unexpected invalid test \(test.tcId) (\(test.comment))")
-                    XCTAssertTrue(test.comment == "invalid key size", "Unexpected invalid test \(test.tcId) (\(test.comment))")
+                    XCTAssertTrue(
+                        test.comment == "invalid key size",
+                        "Unexpected invalid test \(test.tcId) (\(test.comment))"
+                    )
                 }
             }
         }
