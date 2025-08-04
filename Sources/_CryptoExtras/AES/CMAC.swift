@@ -77,7 +77,7 @@ extension AES {
         ///
         /// - Parameter data: The data to update the MAC
         public mutating func update<D: DataProtocol>(data: D) {
-            data.regions.forEach { memoryRegion in
+            for memoryRegion in data.regions {
                 memoryRegion.withUnsafeBytes { bp in
                     self.update(bufferPointer: bp)
                 }
