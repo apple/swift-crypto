@@ -22,7 +22,12 @@ import Foundation
 
 @available(iOS 13.0, macOS 10.15, watchOS 6.0, tvOS 13.0, *)
 extension AES {
+    /// A cipher-based message authentication code.
+    /// 
+    /// CMAC uses AES to implement a MAC.  CMAC is useful in contexts where access to
+    /// a hash function is not guaranteed, but a block cipher will be available.
     public struct CMAC: @unchecked Sendable {
+        // Unchecked sendable because this is CoW.
         fileprivate var backing: Backing
 
         /// Creates a message authentication code generator.
@@ -54,7 +59,7 @@ extension AES {
         /// Adds data to be authenticated by MAC function. This can be called one or more times to append additional data.
         ///
         /// - Parameters:
-        ///   - data: The data to be authenticated.
+        ///   - bufferPointer: The data to be authenticated.
         public mutating func update(bufferPointer: UnsafeRawBufferPointer) {
             self.cowIfNeeded()
             self.backing.update(bufferPointer)
