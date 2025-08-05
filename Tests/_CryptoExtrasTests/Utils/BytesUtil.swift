@@ -41,7 +41,11 @@ extension Array where Element == UInt8 {
     init(hexString: String) throws {
         self.init()
         
-        guard hexString.count.isMultiple(of: 2), !hexString.isEmpty else {
+        if hexString.count == 0 {
+            return
+        }
+
+        if hexString.count % 2 != 0 {
             throw ByteHexEncodingErrors.incorrectString
         }
 

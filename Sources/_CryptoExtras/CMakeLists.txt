@@ -21,6 +21,7 @@ add_library(_CryptoExtras
   "AES/BoringSSL/AES_CFB_boring.swift"
   "AES/BoringSSL/AES_CTR_boring.swift"
   "AES/BoringSSL/AES_GCM_SIV_boring.swift"
+  "AES/CMAC.swift"
   "ARC/ARC+API.swift"
   "ARC/ARC.swift"
   "ARC/ARCCredential.swift"
