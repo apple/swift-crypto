@@ -23,7 +23,7 @@ import Foundation
 @available(iOS 13.0, macOS 10.15, watchOS 6.0, tvOS 13.0, *)
 extension AES {
     /// A cipher-based message authentication code.
-    /// 
+    ///
     /// CMAC uses AES to implement a MAC.  CMAC is useful in contexts where access to
     /// a hash function is not guaranteed, but a block cipher will be available.
     public struct CMAC: @unchecked Sendable {
