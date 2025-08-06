@@ -40,18 +40,18 @@ final class MLDSATests: XCTestCase {
         let message = Data("ML-DSA test message".utf8)
         let signature = try privateKey.signature(for: message)
         XCTAssertNotNil(signature)
-        let isValid = publicKey.isValidSignature(signature: signature, for: message)
+        let isValid = publicKey.isValidSignature(signature, for: message)
         XCTAssertTrue(isValid)
 
         // Test signing with a context
         let context = Data("ML-DSA test context".utf8)
         let signatureWithContext = try privateKey.signature(for: message, context: context)
-        let isValidWithContext = publicKey.isValidSignature(signature: signatureWithContext, for: message, context: context)
+        let isValidWithContext = publicKey.isValidSignature(signatureWithContext, for: message, context: context)
         XCTAssertTrue(isValidWithContext)
 
         // Check that invalid signatures (mismatching contexts) fail
-        XCTAssertFalse(publicKey.isValidSignature(signature: signature, for: message, context: context))
-        XCTAssertFalse(publicKey.isValidSignature(signature: signatureWithContext, for: message))
+        XCTAssertFalse(publicKey.isValidSignature(signature, for: message, context: context))
+        XCTAssertFalse(publicKey.isValidSignature(signatureWithContext, for: message))
     }
 
     func testMLDSA87() throws {
@@ -71,18 +71,18 @@ final class MLDSATests: XCTestCase {
         let message = Data("ML-DSA test message".utf8)
         let signature = try privateKey.signature(for: message)
         XCTAssertNotNil(signature)
-        let isValid = publicKey.isValidSignature(signature: signature, for: message)
+        let isValid = publicKey.isValidSignature(signature, for: message)
         XCTAssertTrue(isValid)
 
         // Test signing with a context
         let context = Data("ML-DSA test context".utf8)
         let signatureWithContext = try privateKey.signature(for: message, context: context)
-        let isValidWithContext = publicKey.isValidSignature(signature: signatureWithContext, for: message, context: context)
+        let isValidWithContext = publicKey.isValidSignature(signatureWithContext, for: message, context: context)
         XCTAssertTrue(isValidWithContext)
 
         // Check that invalid signatures (mismatching contexts) fail
-        XCTAssertFalse(publicKey.isValidSignature(signature: signature, for: message, context: context))
-        XCTAssertFalse(publicKey.isValidSignature(signature: signatureWithContext, for: message))
+        XCTAssertFalse(publicKey.isValidSignature(signature, for: message, context: context))
+        XCTAssertFalse(publicKey.isValidSignature(signatureWithContext, for: message))
     }
 }
 
