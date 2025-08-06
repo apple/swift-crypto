@@ -142,14 +142,14 @@ struct OpenSSLMLDSAPublicKeyImpl<Parameters: BoringSSLBackedMLDSAParameters> {
     }
 
     func isValidSignature<S: DataProtocol, D: DataProtocol>(
-        signature: S,
+        _ signature: S,
         for data: D
     ) -> Bool {
         self.backing.isValidSignature(signature, for: data)
     }
 
     func isValidSignature<S: DataProtocol, D: DataProtocol, C: DataProtocol>(
-        signature: S,
+        _ signature: S,
         for data: D,
         context: C
     ) -> Bool {

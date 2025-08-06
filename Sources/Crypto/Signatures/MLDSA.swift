@@ -45,8 +45,8 @@ extension MLDSA65 {
         ///   - signature: The MLDSA65 signature to verify.
         ///   - data: The signed data.
         /// - Returns: `true` if the signature is valid, `false` otherwise.
-        public func isValidSignature<S: DataProtocol, D: DataProtocol>(signature: S, for data: D) -> Bool {
-            self.impl.isValidSignature(signature: signature, for: data)
+        public func isValidSignature<S: DataProtocol, D: DataProtocol>(_ signature: S, for data: D) -> Bool {
+            self.impl.isValidSignature(signature, for: data)
         }
 
         /// Verifies a MLDSA65 signature, in a specific context.
@@ -56,11 +56,11 @@ extension MLDSA65 {
         ///   - context: Context for the signature.
         /// - Returns: `true` if the signature is valid in the specified context, `false` otherwise.
         public func isValidSignature<S: DataProtocol, D: DataProtocol, C: DataProtocol>(
-            signature: S,
+            _ signature: S,
             for data: D,
             context: C
         ) -> Bool {
-            self.impl.isValidSignature(signature: signature, for: data, context: context)
+            self.impl.isValidSignature(signature, for: data, context: context)
         }
 
         /// Parses a public key from a serialized representation.
@@ -234,8 +234,8 @@ extension MLDSA87 {
         ///   - signature: The MLDSA87 signature to verify.
         ///   - data: The signed data.
         /// - Returns: `true` if the signature is valid, `false` otherwise.
-        public func isValidSignature<S: DataProtocol, D: DataProtocol>(signature: S, for data: D) -> Bool {
-            self.impl.isValidSignature(signature: signature, for: data)
+        public func isValidSignature<S: DataProtocol, D: DataProtocol>(_ signature: S, for data: D) -> Bool {
+            self.impl.isValidSignature(signature, for: data)
         }
 
         /// Verifies a MLDSA87 signature, in a specific context.
@@ -245,11 +245,11 @@ extension MLDSA87 {
         ///   - context: Context for the signature.
         /// - Returns: `true` if the signature is valid in the specified context, `false` otherwise.
         public func isValidSignature<S: DataProtocol, D: DataProtocol, C: DataProtocol>(
-            signature: S,
+            _ signature: S,
             for data: D,
             context: C
         ) -> Bool {
-            self.impl.isValidSignature(signature: signature, for: data, context: context)
+            self.impl.isValidSignature(signature, for: data, context: context)
         }
 
         /// Parses a public key from a serialized representation.
