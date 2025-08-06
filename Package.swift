@@ -220,6 +220,7 @@ let package = Package(
             swiftSettings: swiftSettings
         ),
         .testTarget(name: "CryptoBoringWrapperTests", dependencies: ["CryptoBoringWrapper"]),
+        .testTarget(name: "CXKCPTests", dependencies: ["CXKCP"]),
     ],
     cxxLanguageStandard: .cxx17
 )
