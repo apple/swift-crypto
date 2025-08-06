@@ -17,9 +17,13 @@
 #if (!CRYPTO_IN_SWIFTPM_FORCE_BUILD_API) || CRYPTOKIT_NO_ACCESS_TO_FOUNDATION
 @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 typealias DigestImpl = CoreCryptoDigestImpl
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
+typealias DigestImplSHA3 = CoreCryptoDigestImpl
 #else
 @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 typealias DigestImpl = OpenSSLDigestImpl
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
+typealias DigestImplSHA3 = XKCPDigestImpl
 #endif
 
 #if CRYPTOKIT_NO_ACCESS_TO_FOUNDATION

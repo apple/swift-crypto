@@ -35,7 +35,7 @@ public struct SHA3_256: HashFunctionImplementationDetails, Sendable {
     /// The digest type for a SHA3-256 hash function.
     public typealias Digest = SHA3_256Digest
 
-    var impl: DigestImpl<SHA3_256>
+    var impl: DigestImplSHA3<SHA3_256>
 
     /// Creates a SHA3-256 hash function.
     ///
@@ -48,7 +48,7 @@ public struct SHA3_256: HashFunctionImplementationDetails, Sendable {
     /// If your data fits into a single buffer, you can use the ``hash(data:)``
     /// method instead, to compute the digest in a single call.
     public init() {
-        impl = DigestImpl()
+        impl = DigestImplSHA3()
     }
 
     /// Incrementally updates the hash function with the contents of the buffer.
@@ -106,7 +106,7 @@ public struct SHA3_384: HashFunctionImplementationDetails, Sendable {
     /// The digest type for a SHA3-384 hash function.
     public typealias Digest = SHA3_384Digest
 
-    var impl: DigestImpl<SHA3_384>
+    var impl: DigestImplSHA3<SHA3_384>
 
     /// Creates a SHA3-384 hash function.
     ///
@@ -119,7 +119,7 @@ public struct SHA3_384: HashFunctionImplementationDetails, Sendable {
     /// If your data fits into a single buffer, you can use the ``hash(data:)``
     /// method instead, to compute the digest in a single call.
     public init() {
-        impl = DigestImpl()
+        impl = DigestImplSHA3()
     }
 
     /// Incrementally updates the hash function with the contents of the buffer.
@@ -177,7 +177,7 @@ public struct SHA3_512: HashFunctionImplementationDetails, Sendable {
     /// The digest type for a SHA3-512 hash function.
     public typealias Digest = SHA3_512Digest
 
-    var impl: DigestImpl<SHA3_512>
+    var impl: DigestImplSHA3<SHA3_512>
 
     /// Creates a SHA3-512 hash function.
     ///
@@ -190,7 +190,7 @@ public struct SHA3_512: HashFunctionImplementationDetails, Sendable {
     /// If your data fits into a single buffer, you can use the ``hash(data:)``
     /// method instead, to compute the digest in a single call.
     public init() {
-        impl = DigestImpl()
+        impl = DigestImplSHA3()
     }
 
     /// Incrementally updates the hash function with the contents of the buffer.
