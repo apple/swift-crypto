@@ -44,7 +44,7 @@ extension SHA3_256: XKCPBackedHashFunction {
     }
 
     static func finalize(_ context: inout Keccak_HashInstance, digest: UnsafeMutableRawBufferPointer) -> Bool {
-        guard let baseAddress = digest.baseAddress else { return false }
+        guard let baseAddress = digest.baseAddress, digest.count == Self.digestSize else { return false }
         return Keccak_HashFinal(&context, baseAddress) == KECCAK_SUCCESS
     }
 }
@@ -67,7 +67,7 @@ extension SHA3_384: XKCPBackedHashFunction {
     }
 
     static func finalize(_ context: inout Keccak_HashInstance, digest: UnsafeMutableRawBufferPointer) -> Bool {
-        guard let baseAddress = digest.baseAddress else { return false }
+        guard let baseAddress = digest.baseAddress, digest.count == Self.digestSize else { return false }
         return Keccak_HashFinal(&context, baseAddress) == KECCAK_SUCCESS
     }
 }
@@ -90,7 +90,7 @@ extension SHA3_512: XKCPBackedHashFunction {
     }
 
     static func finalize(_ context: inout Keccak_HashInstance, digest: UnsafeMutableRawBufferPointer) -> Bool {
-        guard let baseAddress = digest.baseAddress else { return false }
+        guard let baseAddress = digest.baseAddress, digest.count == Self.digestSize else { return false }
         return Keccak_HashFinal(&context, baseAddress) == KECCAK_SUCCESS
     }
 }
