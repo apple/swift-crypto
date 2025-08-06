@@ -11,8 +11,6 @@
 // SPDX-License-Identifier: Apache-2.0
 //
 //===----------------------------------------------------------------------===//
-// No BoringSSL support for SHA3.
-#if false
 #if CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
 @_exported import CryptoKit
 #else
@@ -231,4 +229,3 @@ public struct SHA3_512: HashFunctionImplementationDetails, Sendable {
 }
 #endif // !CRYPTOKIT_IN_SEP
 #endif // Linux or !SwiftPM
-#endif // No BoringSSL support for SHA3.
