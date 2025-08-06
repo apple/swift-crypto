@@ -126,6 +126,21 @@ let package = Package(
             ]
         ),
         .target(
+            name: "CXKCP",
+            exclude: [
+                "CMakeLists.txt"
+            ],
+            cSettings: [
+                .define("XKCP_has_KeccakP1600"),
+                .headerSearchPath("include"),
+                .headerSearchPath("high"),
+                .headerSearchPath("low"),
+                .headerSearchPath("low/KeccakP-1600"),
+                .headerSearchPath("low/common"),
+                .headerSearchPath("common"),
+            ]
+        ),
+        .target(
             name: "CCryptoBoringSSLShims",
             dependencies: ["CCryptoBoringSSL"],
             exclude: privacyManifestExclude + [
