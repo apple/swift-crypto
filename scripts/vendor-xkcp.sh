@@ -9,7 +9,7 @@ trap 'error "command failed (line ${LINENO})"' ERR
 CURRENT_SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT=$(git -C "${CURRENT_SCRIPT_DIR}" rev-parse --show-toplevel)
 DESTINATION_DIR=${REPO_ROOT}/Sources/CXKCP
-VENDOR_LOGFILE="${REPO_ROOT}/vendored-sources.txt"
+VENDOR_LOGFILE="${DESTINATION_DIR}/vendored-sources.txt"
 
 log "Checking required environment variables..."
 test -n "${XKCP_PATH:-}" || fatal "XKCP_PATH unset"
