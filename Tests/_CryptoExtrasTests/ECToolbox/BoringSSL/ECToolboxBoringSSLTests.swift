@@ -28,7 +28,13 @@ final class ECToolboxBoringSSLTests: XCTestCase {
         let numThreads = 3
         let numReadsPerThread = 2
 
-        var threads: [(thread: Thread, thisThreadDidReads: XCTestExpectation, allThreadsDidReads: XCTestExpectation, thisThreadFinished: XCTestExpectation)] = []
+        var threads:
+            [(
+                thread: Thread,
+                thisThreadDidReads: XCTestExpectation,
+                allThreadsDidReads: XCTestExpectation,
+                thisThreadFinished: XCTestExpectation
+            )] = []
 
         var objectIdentifiers: [(threadID: Int, ffacID: ObjectIdentifier)] = []
         let lock = NSLock()
@@ -52,7 +58,7 @@ final class ECToolboxBoringSSLTests: XCTestCase {
             thread.start()
         }
         await fulfillment(of: threads.map(\.thisThreadDidReads), timeout: 0.5)
-        threads.forEach { $0.allThreadsDidReads.fulfill() }
+        for thread in threads { thread.allThreadsDidReads.fulfill() }
         await fulfillment(of: threads.map(\.thisThreadFinished), timeout: 0.5)
 
         XCTAssertEqual(objectIdentifiers.count, numThreads * numReadsPerThread)
