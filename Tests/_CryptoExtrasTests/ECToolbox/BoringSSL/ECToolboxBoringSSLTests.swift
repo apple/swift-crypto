@@ -49,8 +49,8 @@ final class ECToolboxBoringSSLTests: XCTestCase {
         XCTAssertEqual(objectIdentifiers.count, numThreads * numReadsPerThread)
         for threadID in 1...numThreads {
             let partitionBoundary = objectIdentifiers.partition(by: { $0.threadID == threadID })
-            let thisThreadObjIDs = objectIdentifiers[..<partitionBoundary].map(\.ffacID)
-            let otherThreadsObjIDs = objectIdentifiers[partitionBoundary...].map(\.ffacID)
+            let otherThreadsObjIDs = objectIdentifiers[..<partitionBoundary].map(\.ffacID)
+            let thisThreadObjIDs = objectIdentifiers[partitionBoundary...].map(\.ffacID)
             let intersection = Set(thisThreadObjIDs).intersection(Set(otherThreadsObjIDs))
             XCTAssertEqual(thisThreadObjIDs.count, numReadsPerThread, "Thread should read \(numReadsPerThread) times.")
             XCTAssertEqual(Set(thisThreadObjIDs).count, 1, "Thread should see same object on every read.")
