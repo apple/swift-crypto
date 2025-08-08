@@ -34,10 +34,10 @@ final class ECToolboxBoringSSLTests: XCTestCase {
         expectation.expectedFulfillmentCount = numThreads
         for i in 1...numThreads {
             let thread = Thread {
-                lock.withLock {
-                    for _ in 1...numReadsPerThread {
-                        objectIdentifiers.append((i, ObjectIdentifier(Curve.__ffac)))
-                    }
+                lock.lock()
+                defer { lock.unlock() }
+                for _ in 1...numReadsPerThread {
+                    objectIdentifiers.append((i, ObjectIdentifier(Curve.__ffac)))
                 }
                 expectation.fulfill()
             }
