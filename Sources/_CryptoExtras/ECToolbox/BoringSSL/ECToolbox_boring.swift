@@ -66,7 +66,6 @@ extension P256: OpenSSLSupportedNISTCurve {
     static var hashToFieldByteCount: Int { 48 }
 
     @usableFromInline
-    // NOTE: This could be a let when Swift 6.0 is the minimum supported version.
     static var __ffac: FiniteFieldArithmeticContext {
         let key = "com.apple.swift-crypto.P256.__ffac"
         if let value = Thread.current.threadDictionary[key] as? FiniteFieldArithmeticContext {
@@ -100,7 +99,6 @@ extension P384: OpenSSLSupportedNISTCurve {
     static var hashToFieldByteCount: Int { 72 }
 
     @usableFromInline
-    // NOTE: This could be a let when Swift 6.0 is the minimum supported version.
     static var __ffac: FiniteFieldArithmeticContext {
         let key = "com.apple.swift-crypto.P384.__ffac"
         if let value = Thread.current.threadDictionary[key] as? FiniteFieldArithmeticContext {
@@ -134,7 +132,6 @@ extension P521: OpenSSLSupportedNISTCurve {
     static var hashToFieldByteCount: Int { 98 }
 
     @usableFromInline
-    // NOTE: This could be a let when Swift 6.0 is the minimum supported version.
     static var __ffac: FiniteFieldArithmeticContext {
         let key = "com.apple.swift-crypto.P521.__ffac"
         if let value = Thread.current.threadDictionary[key] as? FiniteFieldArithmeticContext {
