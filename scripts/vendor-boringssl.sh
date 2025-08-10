@@ -101,9 +101,9 @@ function mangle_symbols {
         )
 
         # Now cross compile for our targets.
-        docker run -t -i --rm --privileged -v"$(pwd)":/src -w/src --platform linux/arm64 swift:5.10-jammy \
+        docker run -t -i --rm --privileged -v"$(pwd)":/src -w/src --platform linux/arm64 swift:6.0-jammy \
             swift build --product CCryptoBoringSSL
-        docker run -t -i --rm --privileged -v"$(pwd)":/src -w/src --platform linux/amd64 swift:5.10-jammy \
+        docker run -t -i --rm --privileged -v"$(pwd)":/src -w/src --platform linux/amd64 swift:6.0-jammy \
             swift build --product CCryptoBoringSSL
 
         # Now we need to generate symbol mangles for Linux. We can do this in
