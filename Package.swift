@@ -98,7 +98,6 @@ let package = Package(
             name: "CCryptoBoringSSL",
             exclude: privacyManifestExclude + [
                 "hash.txt",
-                "include/boringssl_prefix_symbols_nasm.inc",
                 "CMakeLists.txt",
                 /*
                  * These files are excluded to support WASI libc which doesn't provide <netdb.h>.
