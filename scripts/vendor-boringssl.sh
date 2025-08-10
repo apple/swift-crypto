@@ -170,7 +170,8 @@ echo "CLONING boringssl"
 mkdir -p "$SRCROOT"
 git clone https://boringssl.googlesource.com/boringssl "$SRCROOT"
 cd "$SRCROOT"
-BORINGSSL_REVISION=$(git rev-parse HEAD)
+BORINGSSL_REVISION=035e720641f385e82c72b7b0a9e1d89e58cb5ed5
+git checkout $BORINGSSL_REVISION
 cd "$HERE"
 echo "CLONED boringssl@${BORINGSSL_REVISION}"
 
