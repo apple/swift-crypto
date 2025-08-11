@@ -46,7 +46,9 @@ TMPDIR=$(mktemp -d /tmp/.workingXXXXXX)
 SRCROOT="${TMPDIR}/src/boringssl.googlesource.com/boringssl"
 
 # BoringSSL revision can be passed as the first argument to this script.
-BORINGSSL_REVISION=$1
+if [ "$#" -gt 0 ]; then
+    BORINGSSL_REVISION="$1"
+fi
 
 # This function namespaces the awkward inline functions declared in OpenSSL
 # and BoringSSL.
@@ -173,9 +175,9 @@ echo "CLONING boringssl"
 mkdir -p "$SRCROOT"
 git clone https://boringssl.googlesource.com/boringssl "$SRCROOT"
 cd "$SRCROOT"
-if [ $BORINGSSL_REVISION ]; then
+if [ "$BORINGSSL_REVISION" ]; then
     echo "CHECKING OUT boringssl@${BORINGSSL_REVISION}"
-    git checkout $BORINGSSL_REVISION
+    git checkout "$BORINGSSL_REVISION"
 else 
     BORINGSSL_REVISION=$(git rev-parse HEAD)
     echo "CLONED boringssl@${BORINGSSL_REVISION}"
