@@ -14,6 +14,8 @@
 
 add_subdirectory(CCryptoBoringSSL)
 add_subdirectory(CCryptoBoringSSLShims)
+add_subdirectory(CXKCP)
+add_subdirectory(CXKCPShims)
 add_subdirectory(CryptoBoringWrapper)
 add_subdirectory(Crypto)
 add_subdirectory(_CryptoExtras)
