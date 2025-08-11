@@ -49,6 +49,8 @@ if development || isFreeBSD {
         "CCryptoBoringSSL",
         "CCryptoBoringSSLShims",
         "CryptoBoringWrapper",
+        "CXKCP",
+        "CXKCPShims",
     ]
 } else {
     let platforms: [Platform] = [
@@ -66,6 +68,8 @@ if development || isFreeBSD {
         .target(name: "CCryptoBoringSSL", condition: .when(platforms: platforms)),
         .target(name: "CCryptoBoringSSLShims", condition: .when(platforms: platforms)),
         .target(name: "CryptoBoringWrapper", condition: .when(platforms: platforms)),
+        .target(name: "CXKCP", condition: .when(platforms: platforms)),
+        .target(name: "CXKCPShims", condition: .when(platforms: platforms)),
     ]
 }
 
@@ -126,8 +130,31 @@ let package = Package(
             ]
         ),
         .target(
+            name: "CXKCP",
+            exclude: [
+                "CMakeLists.txt"
+            ],
+            cSettings: [
+                .define("XKCP_has_KeccakP1600"),
+                .headerSearchPath("include"),
+                .headerSearchPath("high"),
+                .headerSearchPath("low"),
+                .headerSearchPath("low/KeccakP-1600"),
+                .headerSearchPath("low/common"),
+                .headerSearchPath("common"),
+            ]
+        ),
+        .target(
             name: "CCryptoBoringSSLShims",
             dependencies: ["CCryptoBoringSSL"],
+            exclude: privacyManifestExclude + [
+                "CMakeLists.txt"
+            ],
+            resources: privacyManifestResource
+        ),
+        .target(
+            name: "CXKCPShims",
+            dependencies: ["CXKCP"],
             exclude: privacyManifestExclude + [
                 "CMakeLists.txt"
             ],
@@ -205,6 +232,7 @@ let package = Package(
             swiftSettings: swiftSettings
         ),
         .testTarget(name: "CryptoBoringWrapperTests", dependencies: ["CryptoBoringWrapper"]),
+        .testTarget(name: "CXKCPTests", dependencies: ["CXKCP"]),
     ],
     cxxLanguageStandard: .cxx17
 )
