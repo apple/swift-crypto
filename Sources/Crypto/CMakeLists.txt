@@ -43,6 +43,7 @@ add_library(Crypto
   "Digests/HashFunctions.swift"
   "Digests/HashFunctions_SHA2.swift"
   "Digests/HashFunctions_SHA3.swift"
+  "Digests/XKCP/Digest_xkcp.swift"
   "HPKE/Ciphersuite/HPKE-AEAD.swift"
   "HPKE/Ciphersuite/HPKE-Ciphersuite.swift"
   "HPKE/Ciphersuite/HPKE-KDF.swift"
