@@ -106,16 +106,20 @@ function mangle_symbols {
         )
 
         # Now cross compile for our targets.
+        rm -r .build
         docker run -t -i --rm --privileged -v"$(pwd)":/src -w/src --platform linux/arm64 swift:5.10-jammy \
             swift build --product CCryptoBoringSSL
         docker run -t -i --rm --privileged -v"$(pwd)":/src -w/src --platform linux/amd64 swift:5.10-jammy \
             swift build --product CCryptoBoringSSL
+        docker build -t swift-5.10-armv7 "${HERE}/scripts" && \
+        docker run -t -i --rm --privileged -v"$(pwd)":/src -w/src swift-5.10-armv7 \
+            swift build --product CCryptoBoringSSL --destination /opt/swift-5.10-RELEASE-ubuntu-jammy-armv7/ubuntu-jammy.json
 
         # Now we need to generate symbol mangles for Linux. We can do this in
         # one go for all of them.
         (
             cd "${SRCROOT}"
-            go run "util/read_symbols.go" -obj-file-format elf -out "${TMPDIR}/symbols-linux-all.txt" "${HERE}"/.build/*-unknown-linux-gnu/debug/libCCryptoBoringSSL.a
+            go run "util/read_symbols.go" -obj-file-format elf -out "${TMPDIR}/symbols-linux-all.txt" "${HERE}"/.build/*-unknown-linux-*/debug/libCCryptoBoringSSL.a
         )
 
         # Now we concatenate all the symbols together and uniquify it. At this stage remove anything that
