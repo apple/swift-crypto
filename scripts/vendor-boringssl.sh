@@ -44,6 +44,7 @@ HERE=$(pwd)
 DSTROOT=Sources/CCryptoBoringSSL
 TMPDIR=$(mktemp -d /tmp/.workingXXXXXX)
 SRCROOT="${TMPDIR}/src/boringssl.googlesource.com/boringssl"
+SWIFT_SDKS_PATH="${TMPDIR}/swift-sdk-generator/Bundles"
 
 # BoringSSL revision can be passed as the first argument to this script.
 if [ "$#" -gt 0 ]; then
@@ -106,16 +107,18 @@ function mangle_symbols {
         )
 
         # Now cross compile for our targets.
-        docker run -t -i --rm --privileged -v"$(pwd)":/src -w/src --platform linux/arm64 swift:5.10-jammy \
-            swift build --product CCryptoBoringSSL
-        docker run -t -i --rm --privileged -v"$(pwd)":/src -w/src --platform linux/amd64 swift:5.10-jammy \
-            swift build --product CCryptoBoringSSL
+        swift build --swift-sdks-path "${SWIFT_SDKS_PATH}" --swift-sdk 5.10-RELEASE_ubuntu_jammy_x86_64 \
+            --product CCryptoBoringSSL
+        swift build --swift-sdks-path "${SWIFT_SDKS_PATH}" --swift-sdk 5.10-RELEASE_ubuntu_jammy_aarch64 \
+            --product CCryptoBoringSSL
+        swift build --swift-sdks-path "${SWIFT_SDKS_PATH}" --swift-sdk 5.10-RELEASE_ubuntu_jammy_armv7 \
+            --product CCryptoBoringSSL
 
         # Now we need to generate symbol mangles for Linux. We can do this in
         # one go for all of them.
         (
             cd "${SRCROOT}"
-            go run "util/read_symbols.go" -obj-file-format elf -out "${TMPDIR}/symbols-linux-all.txt" "${HERE}"/.build/*-unknown-linux-gnu/debug/libCCryptoBoringSSL.a
+            go run "util/read_symbols.go" -obj-file-format elf -out "${TMPDIR}/symbols-linux-all.txt" "${HERE}"/.build/*-unknown-linux-*/debug/libCCryptoBoringSSL.a
         )
 
         # Now we concatenate all the symbols together and uniquify it. At this stage remove anything that
@@ -145,6 +148,45 @@ function mangle_symbols {
         $sed -i '1 i #define BORINGSSL_PREFIX CCryptoBoringSSL' "$assembly_file"
     done
     namespace_inlines "$DSTROOT"
+}
+
+function generate_swift_sdk {
+    TARGET_ARCH=$1
+    SWIFT_VERSION=5.10
+    TARGET_DISTRO=ubuntu-jammy
+
+    cd "$TMPDIR"
+    if [ ! -d swift-sdk-generator ]; then
+        echo "Cloning SDK generator..."
+        git clone https://github.com/swiftlang/swift-sdk-generator.git
+    fi
+
+    cd swift-sdk-generator
+
+    if [ "$TARGET_ARCH" = "armv7" ]; then
+        DOWNLOAD_FILE=swift-${SWIFT_VERSION}-RELEASE-${TARGET_DISTRO}-armv7-install
+        DOWNLOAD_PATH="${TMPDIR}/${DOWNLOAD_FILE}"
+        echo "Downloading armv7 runtime..."
+        wget -nc https://github.com/swift-embedded-linux/armhf-debian/releases/download/${SWIFT_VERSION}/${DOWNLOAD_FILE}.tar.gz && \
+            echo "Extracting armv7 runtime..." && \
+            mkdir "${DOWNLOAD_PATH}" && true && \
+            tar -xf ${DOWNLOAD_FILE}.tar.gz -C "${DOWNLOAD_PATH}"
+
+        echo "Creating Swift SDK for ${TARGET_ARCH}..."
+        swift run swift-sdk-generator make-linux-sdk \
+            --swift-version ${SWIFT_VERSION}-RELEASE \
+            --distribution-name ubuntu \
+            --distribution-version 22.04 \
+            --target armv7-unknown-linux-gnueabihf \
+            --target-swift-package-path "${DOWNLOAD_PATH}"
+    else
+        echo "Creating Swift SDK for ${TARGET_ARCH}..."
+        swift run swift-sdk-generator make-linux-sdk \
+            --swift-version ${SWIFT_VERSION}-RELEASE \
+            --distribution-name ubuntu \
+            --distribution-version 22.04 \
+            --target ${TARGET_ARCH}-unknown-linux-gnu
+    fi
 }
 
 case "$(uname -s)" in
@@ -260,6 +302,13 @@ echo "DISABLING assembly on x86 Windows"
     cd "$DSTROOT"
     $sed -i "/#define OPENSSL_HEADER_BASE_H/a#if defined(_WIN32) && (defined(__x86_64) || defined(_M_AMD64) || defined(_M_X64) || defined(__x86) || defined(__i386) || defined(__i386__) || defined(_M_IX86))\n#define OPENSSL_NO_ASM\n#endif" "include/openssl/base.h"
 
+)
+
+echo "Generating Swift SDKs for mangling symbols for Linux targets"
+(
+    generate_swift_sdk "x86_64"
+    generate_swift_sdk "aarch64"
+    generate_swift_sdk "armv7"
 )
 
 mangle_symbols
