@@ -44,7 +44,6 @@ HERE=$(pwd)
 DSTROOT=Sources/CCryptoBoringSSL
 TMPDIR=$(mktemp -d /tmp/.workingXXXXXX)
 SRCROOT="${TMPDIR}/src/boringssl.googlesource.com/boringssl"
-SWIFT_SDKS_PATH="${TMPDIR}/swift-sdk-generator/Bundles"
 
 # BoringSSL revision can be passed as the first argument to this script.
 if [ "$#" -gt 0 ]; then

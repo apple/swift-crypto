@@ -79,7 +79,7 @@ function generate_swift_sdk {
             --swift-version ${SWIFT_VERSION}-RELEASE \
             --distribution-name ubuntu \
             --distribution-version 22.04 \
-            --target ${TARGET_ARCH}-unknown-linux-gnu
+            --target "${TARGET_ARCH}-unknown-linux-gnu"
     fi
 
     swift sdk remove "${SDK_NAME}" || true  # ignore error if it doesn't exist
