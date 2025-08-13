@@ -111,8 +111,7 @@ function mangle_symbols {
             swift build --product CCryptoBoringSSL
         docker run -t -i --rm --privileged -v"$(pwd)":/src -w/src --platform linux/amd64 swift:5.10-jammy \
             swift build --product CCryptoBoringSSL
-        docker build -t swift-5.10-armv7 "${HERE}/scripts" && \
-        docker run -t -i --rm --privileged -v"$(pwd)":/src -w/src swift-5.10-armv7 \
+        docker run -t -i --rm --privileged -v"$(pwd)":/src -w/src $(docker build -q "${HERE}/scripts") \
             swift build --product CCryptoBoringSSL --destination /opt/swift-5.10-RELEASE-ubuntu-jammy-armv7/ubuntu-jammy.json
 
         # Now we need to generate symbol mangles for Linux. We can do this in
