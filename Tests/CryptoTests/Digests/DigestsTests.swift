@@ -27,7 +27,7 @@ enum TestError: Error {
 
 func nullTestVectorForAlgorithm<H: HashFunction>(hashFunction: H.Type) throws -> String {
 #if !CRYPTOKIT_IN_SEP
-#if !canImport(Darwin) || canImport(CryptoKit, _version: 324.0.4)
+#if !CRYPTO_IN_SWIFTPM || canImport(CryptoKit, _version: 324.0.4)
     if #available(iOS 19.0, macOS 16.0, watchOS 12.0, tvOS 19.0, macCatalyst 19.0, visionOS 2.0, *) {
         switch H.self {
         case is SHA3_256.Type: return "a7ffc6f8bf1ed76651c14756a061d662f580ff4de43b49fa82d80a4b80f8434a"
@@ -37,7 +37,7 @@ func nullTestVectorForAlgorithm<H: HashFunction>(hashFunction: H.Type) throws ->
             break
         }
     }
-#endif // !canImport(Darwin) || canImport(CryptoKit, _version: 324.0.4)
+#endif // !CRYPTO_IN_SWIFTPM || canImport(CryptoKit, _version: 324.0.4)
 #endif // !CRYPTOKIT_IN_SEP
 
     switch H.self {
@@ -53,7 +53,7 @@ func nullTestVectorForAlgorithm<H: HashFunction>(hashFunction: H.Type) throws ->
 
 func testVectorForAlgorithm<H: HashFunction>(hashFunction: H.Type) throws -> String {
 #if !CRYPTOKIT_IN_SEP
-#if !canImport(Darwin) || canImport(CryptoKit, _version: 324.0.4)
+#if !CRYPTO_IN_SWIFTPM || canImport(CryptoKit, _version: 324.0.4)
     if #available(iOS 19.0, macOS 16.0, watchOS 12.0, tvOS 19.0, macCatalyst 19.0, visionOS 2.0, *) {
         switch H.self {
         case is SHA3_256.Type: return "916f6061fe879741ca6469b43971dfdb28b1a32dc36cb3254e812be27aad1d18"
@@ -63,7 +63,7 @@ func testVectorForAlgorithm<H: HashFunction>(hashFunction: H.Type) throws -> Str
             break
         }
     }
-#endif // !canImport(Darwin) || canImport(CryptoKit, _version: 324.0.4)
+#endif // !CRYPTO_IN_SWIFTPM || canImport(CryptoKit, _version: 324.0.4)
 #endif // !CRYPTOKIT_IN_SEP
 
 	switch H.self {
@@ -118,13 +118,13 @@ class DigestsTests: XCTestCase {
         try orFail { try testHashFunction(hf: SHA384.self) }
         try orFail { try testHashFunction(hf: SHA512.self) }
 #if !CRYPTOKIT_IN_SEP
-#if !canImport(Darwin) || canImport(CryptoKit, _version: 324.0.4)
+#if !CRYPTO_IN_SWIFTPM || canImport(CryptoKit, _version: 324.0.4)
         if #available(iOS 19.0, macOS 16.0, watchOS 12.0, tvOS 19.0, macCatalyst 19.0, visionOS 2.0, *) {
             try orFail { try testHashFunction(hf: SHA3_256.self) }
             try orFail { try testHashFunction(hf: SHA3_384.self) }
             try orFail { try testHashFunction(hf: SHA3_512.self) }
         }
-#endif // !canImport(Darwin) || canImport(CryptoKit, _version: 324.0.4)
+#endif // !CRYPTO_IN_SWIFTPM || canImport(CryptoKit, _version: 324.0.4)
 #endif // !CRYPTOKIT_IN_SEP
 	}
 
@@ -149,13 +149,13 @@ class DigestsTests: XCTestCase {
         try orFail { try testHashFunctionImplementsCoW(hf: SHA384.self) }
         try orFail { try testHashFunctionImplementsCoW(hf: SHA512.self) }
 #if !CRYPTOKIT_IN_SEP
-#if !canImport(Darwin) || canImport(CryptoKit, _version: 324.0.4)
+#if !CRYPTO_IN_SWIFTPM || canImport(CryptoKit, _version: 324.0.4)
         if #available(iOS 19.0, macOS 16.0, watchOS 12.0, tvOS 19.0, macCatalyst 19.0, visionOS 2.0, *) {
             try orFail { try testHashFunctionImplementsCoW(hf: SHA3_256.self) }
             try orFail { try testHashFunctionImplementsCoW(hf: SHA3_384.self) }
             try orFail { try testHashFunctionImplementsCoW(hf: SHA3_512.self) }
         }
-#endif // !canImport(Darwin) || canImport(CryptoKit, _version: 324.0.4)
+#endif // !CRYPTO_IN_SWIFTPM || canImport(CryptoKit, _version: 324.0.4)
 #endif // !CRYPTOKIT_IN_SEP
     }
     
@@ -168,13 +168,13 @@ class DigestsTests: XCTestCase {
         XCTAssertEqual(SHA512.blockByteCount, 128)
 
 #if !CRYPTOKIT_IN_SEP
-#if !canImport(Darwin) || canImport(CryptoKit, _version: 324.0.4)
+#if !CRYPTO_IN_SWIFTPM || canImport(CryptoKit, _version: 324.0.4)
         if #available(iOS 19.0, macOS 16.0, watchOS 12.0, tvOS 19.0, macCatalyst 19.0, visionOS 2.0, *) {
             XCTAssertEqual(SHA3_256.blockByteCount, 136)
             XCTAssertEqual(SHA3_384.blockByteCount, 104)
             XCTAssertEqual(SHA3_512.blockByteCount, 72)
         }
-#endif // !canImport(Darwin) || canImport(CryptoKit, _version: 324.0.4)
+#endif // !CRYPTO_IN_SWIFTPM || canImport(CryptoKit, _version: 324.0.4)
 #endif // !CRYPTOKIT_IN_SEP
     }
 }
