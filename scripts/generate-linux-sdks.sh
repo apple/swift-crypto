@@ -12,42 +12,28 @@
 ## SPDX-License-Identifier: Apache-2.0
 ##
 ##===----------------------------------------------------------------------===##
-# This was substantially adapted from grpc-swift's vendor-boringssl.sh script.
-# The license for the original work is reproduced below. See NOTICES.txt for
-# more.
 #
-# Copyright 2016, gRPC Authors All rights reserved.
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-#
-# This script creates a vendored copy of BoringSSL that is
-# suitable for building with the Swift Package Manager.
+# This script generates Swift SDKs for Linux targets using the swift-sdk-generator.
+# It should be run once before running the `vendor-boringssl.sh` script, which requires
+# the Linux Swift SDKs to be installed.
 #
 # Usage:
-#   1. Run this script to generate Swift SDKs for Linux targets before running the
-#      `vendor-boringssl.sh` script, which depends on them. This script can be re-run to 
-#      re-generate Swift SDKs if needed- old SDKs will be removed before installing generated ones.
+#   1. Run this script to generate and install the Swift SDKs. This script can be re-run to
+#      re-generate Swift SDKs if needed. Old SDKs will be removed before installing newly
+#      generated ones.
 #
 
 set -e
 
 SWIFT_VERSION=5.10
-TARGET_DISTRO=ubuntu-jammy
+DISTRO_NAME=ubuntu
+DISTRO_VERSION=jammy
+DISTRO_VERSION_GENERATOR=22.04
 TMPDIR=$(mktemp -d /tmp/.workingXXXXXX)
 
 function generate_swift_sdk {
     TARGET_ARCH=$1
-    SDK_NAME="${SWIFT_VERSION}-RELEASE_${TARGET_DISTRO/-/_}_${TARGET_ARCH}"
+    SDK_NAME="${SWIFT_VERSION}-RELEASE_${DISTRO_NAME}_${DISTRO_VERSION}_${TARGET_ARCH}"
 
     cd "$TMPDIR"
     if [ ! -d swift-sdk-generator ]; then
@@ -58,7 +44,7 @@ function generate_swift_sdk {
     cd swift-sdk-generator
 
     if [ "$TARGET_ARCH" = "armv7" ]; then
-        DOWNLOAD_FILE=swift-${SWIFT_VERSION}-RELEASE-${TARGET_DISTRO}-armv7-install
+        DOWNLOAD_FILE=swift-${SWIFT_VERSION}-RELEASE-${DISTRO_NAME}-${DISTRO_VERSION}-armv7-install
         DOWNLOAD_PATH="${TMPDIR}/${DOWNLOAD_FILE}"
         echo "Downloading armv7 runtime..."
         wget -nc https://github.com/swift-embedded-linux/armhf-debian/releases/download/${SWIFT_VERSION}/${DOWNLOAD_FILE}.tar.gz && \
@@ -69,16 +55,16 @@ function generate_swift_sdk {
         echo "Creating Swift SDK for ${TARGET_ARCH}..."
         swift run swift-sdk-generator make-linux-sdk \
             --swift-version ${SWIFT_VERSION}-RELEASE \
-            --distribution-name ubuntu \
-            --distribution-version 22.04 \
+            --distribution-name ${DISTRO_NAME} \
+            --distribution-version ${DISTRO_VERSION_GENERATOR} \
             --target armv7-unknown-linux-gnueabihf \
             --target-swift-package-path "${DOWNLOAD_PATH}"
     else
         echo "Creating Swift SDK for ${TARGET_ARCH}..."
         swift run swift-sdk-generator make-linux-sdk \
             --swift-version ${SWIFT_VERSION}-RELEASE \
-            --distribution-name ubuntu \
-            --distribution-version 22.04 \
+            --distribution-name ${DISTRO_NAME} \
+            --distribution-version ${DISTRO_VERSION_GENERATOR} \
             --target "${TARGET_ARCH}-unknown-linux-gnu"
     fi
 
