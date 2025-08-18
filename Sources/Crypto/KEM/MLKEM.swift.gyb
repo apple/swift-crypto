@@ -24,10 +24,14 @@ public import Foundation
 }%
 
 #if (!CRYPTO_IN_SWIFTPM_FORCE_BUILD_API) || CRYPTOKIT_NO_ACCESS_TO_FOUNDATION
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 typealias MLKEMPublicKeyImpl = CoreCryptoMLKEMPublicKeyImpl
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 typealias MLKEMPrivateKeyImpl = CoreCryptoMLKEMPrivateKeyImpl
 #else
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 typealias MLKEMPublicKeyImpl = OpenSSLMLKEMPublicKeyImpl
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 typealias MLKEMPrivateKeyImpl = OpenSSLMLKEMPrivateKeyImpl
 #endif
 
@@ -36,12 +40,14 @@ typealias MLKEMPrivateKeyImpl = OpenSSLMLKEMPrivateKeyImpl
     NAME           = MLKEM_VARIANT["name"]
     INFO           = MLKEM_VARIANT["ccinfo"]
 }%
-
 /// The Module-Lattice key encapsulation mechanism (KEM).
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 public enum ${NAME}: Sendable {}
 
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension ${NAME} {
     /// A public key you use to encapsulate shared secrets with the Module-Lattice key encapsulation mechanism.
+    @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
     public struct PublicKey: KEMPublicKey, Sendable {
         var impl: MLKEMPublicKeyImpl<${NAME}>
 
@@ -54,7 +60,7 @@ extension ${NAME} {
         /// A serialized representation of the public key.
         public var rawRepresentation: Data {
             get {
-                return self.impl.rawRepresentation
+                self.impl.rawRepresentation
             }
         }
 
@@ -62,15 +68,16 @@ extension ${NAME} {
         ///
         /// - Returns: an encapsulated shared secret, that you decapsulate by calling ``${NAME}/PrivateKey/decapsulate(_:)`` on the corresponding private key.
         public func encapsulate() throws -> KEM.EncapsulationResult {
-            return try self.impl.encapsulate()
+            try self.impl.encapsulate()
         }
 
         func encapsulateWithSeed(encapSeed: Data) throws -> KEM.EncapsulationResult {
-            return try self.impl.encapsulateWithSeed(encapSeed)
+            try self.impl.encapsulateWithSeed(encapSeed)
         }
     }
 
     /// A private key you use to decapsulate shared secrets with the Module-Lattice key encapsulation mechanism.
+    @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
     public struct PrivateKey: KEMPrivateKey {
         internal let impl: MLKEMPrivateKeyImpl<${NAME}>
 
@@ -104,7 +111,10 @@ extension ${NAME} {
             if publicKey != nil {
                 publicKeyRawRepresentation = publicKey!.rawRepresentation
             }
-            self.impl = try MLKEMPrivateKeyImpl<${NAME}>(seedRepresentation: seedRepresentation, publicKeyRawRepresentation: publicKeyRawRepresentation)
+            self.impl = try MLKEMPrivateKeyImpl<${NAME}>(
+                seedRepresentation: seedRepresentation,
+                publicKeyRawRepresentation: publicKeyRawRepresentation
+            )
         }
 
         /// The private key's seed representation.
@@ -112,7 +122,7 @@ extension ${NAME} {
         /// The seed is `d||z`, as specified in the algorithm `ML-KEM.KeyGen_internal(d,z)` (Algorithm 16) of FIPS 203.
         public var seedRepresentation: Data {
             get {
-                return self.impl.seedRepresentation
+                self.impl.seedRepresentation
             }
         }
 
@@ -122,13 +132,13 @@ extension ${NAME} {
         ///   - encapsulated: An encapsulated shared secret, that you get by calling ``${NAME}/PublicKey/encapsulate()`` on the corresponding public key.
         /// - Returns: The shared secret.
         public func decapsulate<D: DataProtocol>(_ encapsulated: D) throws -> SymmetricKey {
-            return try impl.decapsulate(encapsulated: encapsulated)
+            try impl.decapsulate(encapsulated: encapsulated)
         }
 
         /// The corresponding public key.
         public var publicKey: ${NAME}.PublicKey {
             get {
-                try self.impl.publicKey
+                self.impl.publicKey
             }
         }
 
@@ -140,7 +150,8 @@ extension ${NAME} {
                 throw KEM.Errors.invalidSeed
             }
             let seed = Data(integrityCheckedRepresentation).subdata(in: 0..<MLKEMPrivateKeyImpl<${NAME}>.seedSize)
-            let publicKeyHashData = Data(integrityCheckedRepresentation).subdata(in: MLKEMPrivateKeyImpl<${NAME}>.seedSize..<integrityCheckedRepresentation.count)
+            let publicKeyHashData = Data(integrityCheckedRepresentation)
+                .subdata(in: MLKEMPrivateKeyImpl<${NAME}>.seedSize..<integrityCheckedRepresentation.count)
             let publicKeyHash = SHA3_256Digest(bytes: [UInt8](publicKeyHashData))
 
             self.impl = try MLKEMPrivateKeyImpl<${NAME}>(seedRepresentation: seed, publicKeyHash: publicKeyHash)
@@ -151,12 +162,11 @@ extension ${NAME} {
         /// This representation includes the seed value, and a hash of the corresponding public key.
         public var integrityCheckedRepresentation: Data {
             get {
-                return self.impl.integrityCheckedRepresentation
+                self.impl.integrityCheckedRepresentation
             }
         }
     }
 }
 
 % end
-
-#endif // Linux or !SwiftPM
+#endif  // Linux or !SwiftPM

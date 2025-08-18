@@ -187,7 +187,8 @@ let package = Package(
                 .product(name: "SwiftASN1", package: "swift-asn1"),
             ],
             exclude: privacyManifestExclude + [
-                "CMakeLists.txt"
+                "CMakeLists.txt",
+                "MLDSA/MLDSA+externalMu.swift.gyb",
             ],
             resources: privacyManifestResource,
             swiftSettings: swiftSettings
