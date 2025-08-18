@@ -1,0 +1,4 @@
+module CXKCP {
+    header "CXKCP.h"
+    export *
+}

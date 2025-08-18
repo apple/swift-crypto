@@ -1,0 +1,17 @@
+Vendored code from XKCP#master (heads/master-0-g11297f5):
+- FIPS202-opt64/align.h
+- FIPS202-opt64/brg_endian.h
+- FIPS202-opt64/config.h
+- FIPS202-opt64/KeccakHash.c
+- FIPS202-opt64/KeccakHash.h
+- FIPS202-opt64/KeccakP-1600-64.macros
+- FIPS202-opt64/KeccakP-1600-opt64-config.h
+- FIPS202-opt64/KeccakP-1600-opt64.c
+- FIPS202-opt64/KeccakP-1600-SnP.h
+- FIPS202-opt64/KeccakP-1600-unrolling.macros
+- FIPS202-opt64/KeccakSponge.c
+- FIPS202-opt64/KeccakSponge.h
+- FIPS202-opt64/KeccakSponge.inc
+- FIPS202-opt64/SimpleFIPS202.c
+- FIPS202-opt64/SimpleFIPS202.h
+- FIPS202-opt64/SnP-Relaned.h

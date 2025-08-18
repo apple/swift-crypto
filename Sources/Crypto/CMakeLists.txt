@@ -43,6 +43,7 @@ add_library(Crypto
   "Digests/HashFunctions.swift"
   "Digests/HashFunctions_SHA2.swift"
   "Digests/HashFunctions_SHA3.swift"
+  "Digests/XKCP/Digest_xkcp.swift"
   "HPKE/Ciphersuite/HPKE-AEAD.swift"
   "HPKE/Ciphersuite/HPKE-Ciphersuite.swift"
   "HPKE/Ciphersuite/HPKE-KDF.swift"
@@ -117,13 +118,17 @@ endif()
 target_include_directories(Crypto PRIVATE
   $<TARGET_PROPERTY:CCryptoBoringSSL,INCLUDE_DIRECTORIES>
   $<TARGET_PROPERTY:CCryptoBoringSSLShims,INCLUDE_DIRECTORIES>
-  $<TARGET_PROPERTY:CryptoBoringWrapper,INCLUDE_DIRECTORIES>)
+  $<TARGET_PROPERTY:CryptoBoringWrapper,INCLUDE_DIRECTORIES>
+  $<TARGET_PROPERTY:CXKCP,INCLUDE_DIRECTORIES>
+  $<TARGET_PROPERTY:CXKCPShims,INCLUDE_DIRECTORIES>)
 target_link_libraries(Crypto PUBLIC
   $<$<NOT:$<PLATFORM_ID:Darwin>>:dispatch>
   $<$<NOT:$<PLATFORM_ID:Darwin>>:Foundation>
   CCryptoBoringSSL
   CCryptoBoringSSLShims
-  CryptoBoringWrapper)
+  CryptoBoringWrapper
+  CXKCP
+  CXKCPShims)
 target_compile_options(Crypto PRIVATE ${SWIFT_CRYPTO_COMPILE_OPTIONS})
 set_target_properties(Crypto PROPERTIES
   INTERFACE_INCLUDE_DIRECTORIES ${CMAKE_Swift_MODULE_DIRECTORY})

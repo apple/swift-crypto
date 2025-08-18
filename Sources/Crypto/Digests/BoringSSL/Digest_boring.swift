@@ -47,7 +47,8 @@ extension Insecure.MD5: BoringSSLBackedHashFunction {
     }
 
     static func finalize(_ context: inout MD5_CTX, digest: UnsafeMutableRawBufferPointer) -> Bool {
-        CCryptoBoringSSL_MD5_Final(digest.baseAddress, &context) == 1
+        guard let baseAddress = digest.baseAddress, digest.count == Self.digestSize else { return false }
+        return CCryptoBoringSSL_MD5_Final(baseAddress, &context) == 1
     }
 }
 
@@ -70,7 +71,8 @@ extension Insecure.SHA1: BoringSSLBackedHashFunction {
     }
 
     static func finalize(_ context: inout SHA_CTX, digest: UnsafeMutableRawBufferPointer) -> Bool {
-        CCryptoBoringSSL_SHA1_Final(digest.baseAddress, &context) == 1
+        guard let baseAddress = digest.baseAddress, digest.count == Self.digestSize else { return false }
+        return CCryptoBoringSSL_SHA1_Final(baseAddress, &context) == 1
     }
 }
 
@@ -93,7 +95,8 @@ extension SHA256: BoringSSLBackedHashFunction {
     }
 
     static func finalize(_ context: inout SHA256_CTX, digest: UnsafeMutableRawBufferPointer) -> Bool {
-        CCryptoBoringSSL_SHA256_Final(digest.baseAddress, &context) == 1
+        guard let baseAddress = digest.baseAddress, digest.count == Self.digestSize else { return false }
+        return CCryptoBoringSSL_SHA256_Final(baseAddress, &context) == 1
     }
 }
 
@@ -116,7 +119,8 @@ extension SHA384: BoringSSLBackedHashFunction {
     }
 
     static func finalize(_ context: inout SHA512_CTX, digest: UnsafeMutableRawBufferPointer) -> Bool {
-        CCryptoBoringSSL_SHA384_Final(digest.baseAddress, &context) == 1
+        guard let baseAddress = digest.baseAddress, digest.count == Self.digestSize else { return false }
+        return CCryptoBoringSSL_SHA384_Final(baseAddress, &context) == 1
     }
 }
 
@@ -139,7 +143,8 @@ extension SHA512: BoringSSLBackedHashFunction {
     }
 
     static func finalize(_ context: inout SHA512_CTX, digest: UnsafeMutableRawBufferPointer) -> Bool {
-        CCryptoBoringSSL_SHA512_Final(digest.baseAddress, &context) == 1
+        guard let baseAddress = digest.baseAddress, digest.count == Self.digestSize else { return false }
+        return CCryptoBoringSSL_SHA512_Final(baseAddress, &context) == 1
     }
 }
 
