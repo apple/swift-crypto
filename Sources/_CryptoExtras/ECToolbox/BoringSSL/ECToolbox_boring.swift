@@ -70,10 +70,16 @@ extension P256: OpenSSLSupportedNISTCurve {
     @inlinable
     static var hashToFieldByteCount: Int { 48 }
 
-    @TaskLocal
     @usableFromInline
-    // NOTE: This could be a let when Swift 6.0 is the minimum supported version.
-    static var __ffac = try! FiniteFieldArithmeticContext(fieldSize: P256.group.order)
+    static var __ffac: FiniteFieldArithmeticContext {
+        let key = "com.apple.swift-crypto.P256.__ffac"
+        if let value = Thread.current.threadDictionary[key] as? FiniteFieldArithmeticContext {
+            return value
+        }
+        let value = try! FiniteFieldArithmeticContext(fieldSize: P256.group.order)
+        Thread.current.threadDictionary[key] = value
+        return value
+    }
 }
 
 /// NOTE: This conformance applies to this type from the Crypto module even if it comes from the SDK.
@@ -97,10 +103,16 @@ extension P384: OpenSSLSupportedNISTCurve {
     @inlinable
     static var hashToFieldByteCount: Int { 72 }
 
-    @TaskLocal
     @usableFromInline
-    // NOTE: This could be a let when Swift 6.0 is the minimum supported version.
-    static var __ffac = try! FiniteFieldArithmeticContext(fieldSize: P384.group.order)
+    static var __ffac: FiniteFieldArithmeticContext {
+        let key = "com.apple.swift-crypto.P384.__ffac"
+        if let value = Thread.current.threadDictionary[key] as? FiniteFieldArithmeticContext {
+            return value
+        }
+        let value = try! FiniteFieldArithmeticContext(fieldSize: P384.group.order)
+        Thread.current.threadDictionary[key] = value
+        return value
+    }
 }
 
 /// NOTE: This conformance applies to this type from the Crypto module even if it comes from the SDK.
@@ -124,10 +136,16 @@ extension P521: OpenSSLSupportedNISTCurve {
     @inlinable
     static var hashToFieldByteCount: Int { 98 }
 
-    @TaskLocal
     @usableFromInline
-    // NOTE: This could be a let when Swift 6.0 is the minimum supported version.
-    static var __ffac = try! FiniteFieldArithmeticContext(fieldSize: P521.group.order)
+    static var __ffac: FiniteFieldArithmeticContext {
+        let key = "com.apple.swift-crypto.P521.__ffac"
+        if let value = Thread.current.threadDictionary[key] as? FiniteFieldArithmeticContext {
+            return value
+        }
+        let value = try! FiniteFieldArithmeticContext(fieldSize: P521.group.order)
+        Thread.current.threadDictionary[key] = value
+        return value
+    }
 }
 
 @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)

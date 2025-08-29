@@ -151,8 +151,9 @@ extension AES {
 extension AES._CBC {
     /// An initialization vector.
     @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
-    public struct IV: Sendable {
+    public struct IV: Sendable, Sequence {
         // AES CBC uses a 128-bit IV.
+        @usableFromInline
         var ivBytes: (
             UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8,
             UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8
@@ -195,6 +196,13 @@ extension AES._CBC {
 
             withUnsafeMutableBytes(of: &self.ivBytes) { bytesPtr in
                 bytesPtr.copyBytes(from: ivBytes)
+            }
+        }
+        
+        @inlinable
+        public func makeIterator() -> some IteratorProtocol<UInt8> {
+            withUnsafeBytes(of: ivBytes) { unsafeRawBufferPointer in
+                Array(unsafeRawBufferPointer).makeIterator()
             }
         }
     }
