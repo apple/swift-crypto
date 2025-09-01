@@ -66,6 +66,13 @@ jobs:
       runner_pool: general
       build_scheme: swift-crypto-Package
 
-  static-sdk:
-    name: Static SDK
+  static-linux-sdk:
+    name: Static Linux Swift SDK
     uses: apple/swift-nio/.github/workflows/static_sdk.yml@main
+
+  wasm:
+    name: Wasm Swift SDK
+    uses: apple/swift-nio/.github/workflows/wasm_sdk.yml@main
+    with:
+      swift_flags: --target Crypto
+      swift_nightly_flags: --target Crypto
