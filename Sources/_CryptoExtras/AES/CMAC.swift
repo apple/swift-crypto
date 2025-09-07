@@ -65,6 +65,10 @@ extension AES {
             self.backing.update(bufferPointer)
         }
 
+        // This enhancement can only be present on 6.1 or later because of the
+        // absence of https://github.com/swiftlang/swift/pull/76186 in older
+        // compilers.
+        #if compiler(>=6.1)
         /// Finalizes the message authentication computation and returns the
         /// computed code.
         ///
@@ -77,6 +81,16 @@ extension AES {
             self.cowIfNeeded()
             return self.backing.finalize()
         }
+        #else
+        /// Finalizes the message authentication computation and returns the
+        /// computed code.
+        ///
+        /// - Returns: The message authentication code.
+        public func finalize() -> AES.CMAC.MAC {
+            var `self` = self
+            return self.backing.finalize()
+        }
+        #endif
 
         /// Updates the MAC with data.
         ///
