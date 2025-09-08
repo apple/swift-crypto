@@ -54,7 +54,7 @@ OPENSSL_EXPORT int DH_up_ref(DH *dh);
 
 // OPENSSL_DH_MAX_MODULUS_BITS is the maximum supported Diffie-Hellman group
 // modulus, in bits.
-#define OPENSSL_DH_MAX_MODULUS_BITS 10000
+#define OPENSSL_DH_MAX_MODULUS_BITS 8192
 
 // DH_bits returns the size of |dh|'s group modulus, in bits.
 OPENSSL_EXPORT unsigned DH_bits(const DH *dh);
@@ -111,32 +111,38 @@ OPENSSL_EXPORT DH *DH_get_rfc7919_2048(void);
 
 // BN_get_rfc3526_prime_1536 sets |*ret| to the 1536-bit MODP group from RFC
 // 3526 and returns |ret|. If |ret| is NULL then a fresh |BIGNUM| is allocated
-// and returned. It returns NULL on allocation failure.
+// and returned. It returns NULL on allocation failure. The generator for this
+// group is 2.
 OPENSSL_EXPORT BIGNUM *BN_get_rfc3526_prime_1536(BIGNUM *ret);
 
 // BN_get_rfc3526_prime_2048 sets |*ret| to the 2048-bit MODP group from RFC
 // 3526 and returns |ret|. If |ret| is NULL then a fresh |BIGNUM| is allocated
-// and returned. It returns NULL on allocation failure.
+// and returned. It returns NULL on allocation failure. The generator for this
+// group is 2.
 OPENSSL_EXPORT BIGNUM *BN_get_rfc3526_prime_2048(BIGNUM *ret);
 
 // BN_get_rfc3526_prime_3072 sets |*ret| to the 3072-bit MODP group from RFC
 // 3526 and returns |ret|. If |ret| is NULL then a fresh |BIGNUM| is allocated
-// and returned. It returns NULL on allocation failure.
+// and returned. It returns NULL on allocation failure. The generator for this
+// group is 2.
 OPENSSL_EXPORT BIGNUM *BN_get_rfc3526_prime_3072(BIGNUM *ret);
 
 // BN_get_rfc3526_prime_4096 sets |*ret| to the 4096-bit MODP group from RFC
 // 3526 and returns |ret|. If |ret| is NULL then a fresh |BIGNUM| is allocated
-// and returned. It returns NULL on allocation failure.
+// and returned. It returns NULL on allocation failure. The generator for this
+// group is 2.
 OPENSSL_EXPORT BIGNUM *BN_get_rfc3526_prime_4096(BIGNUM *ret);
 
 // BN_get_rfc3526_prime_6144 sets |*ret| to the 6144-bit MODP group from RFC
 // 3526 and returns |ret|. If |ret| is NULL then a fresh |BIGNUM| is allocated
-// and returned. It returns NULL on allocation failure.
+// and returned. It returns NULL on allocation failure. The generator for this
+// group is 2.
 OPENSSL_EXPORT BIGNUM *BN_get_rfc3526_prime_6144(BIGNUM *ret);
 
 // BN_get_rfc3526_prime_8192 sets |*ret| to the 8192-bit MODP group from RFC
 // 3526 and returns |ret|. If |ret| is NULL then a fresh |BIGNUM| is allocated
-// and returned. It returns NULL on allocation failure.
+// and returned. It returns NULL on allocation failure. The generator for this
+// group is 2.
 OPENSSL_EXPORT BIGNUM *BN_get_rfc3526_prime_8192(BIGNUM *ret);
 
 

@@ -222,3 +222,19 @@ int ASN1_TIME_to_posix(const ASN1_TIME *t, int64_t *out_time) {
   }
   return OPENSSL_tm_to_posix(&tm, out_time);
 }
+
+int asn1_parse_time(CBS *cbs, ASN1_TIME *out, int allow_utc_timezone_offset) {
+  if (CBS_peek_asn1_tag(cbs, CBS_ASN1_UTCTIME)) {
+    return asn1_parse_utc_time(cbs, out, /*tag=*/0, allow_utc_timezone_offset);
+  }
+  return asn1_parse_generalized_time(cbs, out, /*tag=*/0);
+}
+
+int asn1_marshal_time(CBB *cbb, const ASN1_TIME *in) {
+  if (in->type != V_ASN1_UTCTIME && in->type != V_ASN1_GENERALIZEDTIME) {
+    OPENSSL_PUT_ERROR(ASN1, ASN1_R_WRONG_TYPE);
+    return 0;
+  }
+  return asn1_marshal_octet_string(cbb, in,
+                                   static_cast<CBS_ASN1_TAG>(in->type));
+}

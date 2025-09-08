@@ -12,9 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#define OPENSSL_UNSTABLE_EXPERIMENTAL_KYBER
-#include <experimental/CCryptoBoringSSL_kyber.h>
-
 #include <assert.h>
 #include <stdlib.h>
 
