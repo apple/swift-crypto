@@ -51,10 +51,6 @@ enum ThreadOpsWindows: ThreadOps {
     static func setThreadSpecificValue(key: ThreadSpecificKey, value: UnsafeMutableRawPointer?) {
         FlsSetValue(key, value)
     }
-
-    static func compareThreads(_ lhs: ThreadOpsSystem.ThreadHandle, _ rhs: ThreadOpsSystem.ThreadHandle) -> Bool {
-        CompareObjectHandles(lhs, rhs)
-    }
 }
 
 #endif
