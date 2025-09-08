@@ -132,7 +132,7 @@ extension P521: OpenSSLSupportedNISTCurve {
 
     @inlinable
     static var hashToFieldByteCount: Int { 98 }
-    
+
     private static let __ffacTSV = ThreadSpecificVariable<FiniteFieldArithmeticContext>()
 
     @usableFromInline
