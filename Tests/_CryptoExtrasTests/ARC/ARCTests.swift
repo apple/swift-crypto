@@ -47,7 +47,7 @@ class ARCTests: XCTestCase {
         XCTAssert(m1Decrypted == m1 * generatorG)
         let m2Decrypted = request.m2Enc - r2 * generatorH
         XCTAssert(m2Decrypted == precredential.clientSecrets.m2 * generatorG)
-        XCTAssert(try request.verify(generatorG: generatorG, generatorH: generatorH))
+        XCTAssert(try request.verify(generatorG: generatorG, generatorH: generatorH, ciphersuite: ciphersuite))
 
         // Server receives the CredentialRequest, and makes an CredentialResponse with its server keys.
         let issuance = try server.respond(credentialRequest: request)
@@ -84,7 +84,8 @@ class ARCTests: XCTestCase {
             presentationLimit: presentationLimit,
             nonce: nonce1,
             generatorG: generatorG,
-            generatorH: generatorH))
+            generatorH: generatorH,
+            ciphersuite: ciphersuite))
 
         // Server verifies Presentation2 with its server keys.
         XCTAssert(try server.verify(
@@ -102,7 +103,8 @@ class ARCTests: XCTestCase {
             presentationLimit: presentationLimit,
             nonce: nonce2,
             generatorG: generatorG,
-            generatorH: generatorH))
+            generatorH: generatorH,
+            ciphersuite: ciphersuite))
 
         // Test that two presentations with the same presentationContext and privateAttribute,
         // but difference nonces, have different tag elements

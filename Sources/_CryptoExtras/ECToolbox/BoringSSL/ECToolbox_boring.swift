@@ -70,10 +70,17 @@ extension P256: OpenSSLSupportedNISTCurve {
     @inlinable
     static var hashToFieldByteCount: Int { 48 }
 
-    @TaskLocal
+    private static let __ffacTSV = ThreadSpecificVariable<FiniteFieldArithmeticContext>()
+
     @usableFromInline
-    // NOTE: This could be a let when Swift 6.0 is the minimum supported version.
-    static var __ffac = try! FiniteFieldArithmeticContext(fieldSize: P256.group.order)
+    static var __ffac: FiniteFieldArithmeticContext {
+        if let value = Self.__ffacTSV.currentValue {
+            return value
+        }
+        let value = try! FiniteFieldArithmeticContext(fieldSize: P256.group.order)
+        Self.__ffacTSV.currentValue = value
+        return value
+    }
 }
 
 /// NOTE: This conformance applies to this type from the Crypto module even if it comes from the SDK.
@@ -97,10 +104,17 @@ extension P384: OpenSSLSupportedNISTCurve {
     @inlinable
     static var hashToFieldByteCount: Int { 72 }
 
-    @TaskLocal
+    private static let __ffacTSV = ThreadSpecificVariable<FiniteFieldArithmeticContext>()
+
     @usableFromInline
-    // NOTE: This could be a let when Swift 6.0 is the minimum supported version.
-    static var __ffac = try! FiniteFieldArithmeticContext(fieldSize: P384.group.order)
+    static var __ffac: FiniteFieldArithmeticContext {
+        if let value = Self.__ffacTSV.currentValue {
+            return value
+        }
+        let value = try! FiniteFieldArithmeticContext(fieldSize: P384.group.order)
+        Self.__ffacTSV.currentValue = value
+        return value
+    }
 }
 
 /// NOTE: This conformance applies to this type from the Crypto module even if it comes from the SDK.
@@ -124,10 +138,17 @@ extension P521: OpenSSLSupportedNISTCurve {
     @inlinable
     static var hashToFieldByteCount: Int { 98 }
 
-    @TaskLocal
+    private static let __ffacTSV = ThreadSpecificVariable<FiniteFieldArithmeticContext>()
+
     @usableFromInline
-    // NOTE: This could be a let when Swift 6.0 is the minimum supported version.
-    static var __ffac = try! FiniteFieldArithmeticContext(fieldSize: P521.group.order)
+    static var __ffac: FiniteFieldArithmeticContext {
+        if let value = Self.__ffacTSV.currentValue {
+            return value
+        }
+        let value = try! FiniteFieldArithmeticContext(fieldSize: P521.group.order)
+        Self.__ffacTSV.currentValue = value
+        return value
+    }
 }
 
 @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
