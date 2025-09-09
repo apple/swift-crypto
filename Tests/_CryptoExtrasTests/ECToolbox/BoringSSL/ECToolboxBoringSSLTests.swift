@@ -17,11 +17,11 @@ import XCTest
 #if !canImport(Darwin) || canImport(CryptoKit, _version: 241.100.42)
 // Corresponds to the CryptoKit in XCode 16.3, which has Sendable annotations
 import Crypto
+@testable import _CryptoExtras
 #else
 @preconcurrency import Crypto
-#endif
-
 @testable import _CryptoExtras
+#endif
 
 final class ECToolboxBoringSSLTests: XCTestCase {
     func testThreadLocalFFAC() async {
