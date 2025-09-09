@@ -36,8 +36,7 @@ final class ECToolboxBoringSSLTests: XCTestCase {
                 thisThreadFinished: XCTestExpectation
             )] = []
 
-        var objectIdentifiers: [(threadID: Int, ffacID: ObjectIdentifier)] = []
-        let lock = NSLock()
+        let objectIdentifiers: LockedBox<[(threadID: Int, ffacID: ObjectIdentifier)]> = .init(initialValue: [])
 
         for i in 1...numThreads {
             let thisThreadDidReads = expectation(description: "this thread did its reads")
@@ -45,9 +44,9 @@ final class ECToolboxBoringSSLTests: XCTestCase {
             let thisThreadFinished = expectation(description: "this thread is finished")
             let thread = Thread {
                 for _ in 1...numReadsPerThread {
-                    lock.lock()
-                    objectIdentifiers.append((i, ObjectIdentifier(Curve.__ffac)))
-                    lock.unlock()
+                    objectIdentifiers.withLockedValue {
+                        $0.append((i, ObjectIdentifier(Curve.__ffac)))
+                    }
                 }
                 thisThreadDidReads.fulfill()
                 XCTWaiter().wait(for: [allThreadsDidReads], timeout: .greatestFiniteMagnitude)
@@ -61,15 +60,35 @@ final class ECToolboxBoringSSLTests: XCTestCase {
         for thread in threads { thread.allThreadsDidReads.fulfill() }
         await fulfillment(of: threads.map(\.thisThreadFinished), timeout: 0.5)
 
+        objectIdentifiers.withLockedValue { objectIdentifiers in
         XCTAssertEqual(objectIdentifiers.count, numThreads * numReadsPerThread)
-        for threadID in 1...numThreads {
-            let partitionBoundary = objectIdentifiers.partition(by: { $0.threadID == threadID })
-            let otherThreadsObjIDs = objectIdentifiers[..<partitionBoundary].map(\.ffacID)
-            let thisThreadObjIDs = objectIdentifiers[partitionBoundary...].map(\.ffacID)
-            let intersection = Set(thisThreadObjIDs).intersection(Set(otherThreadsObjIDs))
-            XCTAssertEqual(thisThreadObjIDs.count, numReadsPerThread, "Thread should read \(numReadsPerThread) times.")
-            XCTAssertEqual(Set(thisThreadObjIDs).count, 1, "Thread should see same object on every read.")
-            XCTAssert(intersection.isEmpty, "Thread should see different objects from other threads.")
+            for threadID in 1...numThreads {
+                let partitionBoundary = objectIdentifiers.partition(by: { $0.threadID == threadID })
+                let otherThreadsObjIDs = objectIdentifiers[..<partitionBoundary].map(\.ffacID)
+                let thisThreadObjIDs = objectIdentifiers[partitionBoundary...].map(\.ffacID)
+                let intersection = Set(thisThreadObjIDs).intersection(Set(otherThreadsObjIDs))
+                XCTAssertEqual(thisThreadObjIDs.count, numReadsPerThread, "Thread should read \(numReadsPerThread) times.")
+                XCTAssertEqual(Set(thisThreadObjIDs).count, 1, "Thread should see same object on every read.")
+                XCTAssert(intersection.isEmpty, "Thread should see different objects from other threads.")
+            }
         }
+    }
+}
+
+final class LockedBox<Value: Sendable>: @unchecked Sendable {
+    private let lock: NSLock
+    private var value: Value
+
+    init(initialValue: Value) {
+        self.value = initialValue
+        self.lock = NSLock()
+    }
+
+    func withLockedValue<ReturnType>(_ body: (inout Value) throws -> ReturnType) rethrows -> ReturnType {
+        self.lock.lock()
+        defer {
+            self.lock.unlock()
+        }
+        return try body(&self.value)
     }
 }
