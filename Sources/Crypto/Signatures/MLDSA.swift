@@ -43,6 +43,10 @@ extension MLDSA65 {
     @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
     public struct PublicKey: Sendable {
         var impl: MLDSAPublicKeyImpl<MLDSA65>
+
+        internal init(_ impl: MLDSAPublicKeyImpl<MLDSA65>) {
+            self.impl = impl
+        }
         
         /// Parses a public key from a serialized representation.
         ///
@@ -144,8 +148,7 @@ extension MLDSA65 {
         /// The associated public key.
         public var publicKey: PublicKey {
             get {
-                let publicKeyRawRepresentation = try! MLDSAPrivateKeyImpl<MLDSA65>.publicKeyRawRepresentationFromSeed(seedRepresentation: self.impl.seedRepresentation)
-                return try! MLDSA65.PublicKey(rawRepresentation: publicKeyRawRepresentation)
+                PublicKey(impl.publicKey)
             }
         }
 
@@ -188,6 +191,10 @@ extension MLDSA87 {
     @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
     public struct PublicKey: Sendable {
         var impl: MLDSAPublicKeyImpl<MLDSA87>
+
+        internal init(_ impl: MLDSAPublicKeyImpl<MLDSA87>) {
+            self.impl = impl
+        }
         
         /// Parses a public key from a serialized representation.
         ///
@@ -289,8 +296,7 @@ extension MLDSA87 {
         /// The associated public key.
         public var publicKey: PublicKey {
             get {
-                let publicKeyRawRepresentation = try! MLDSAPrivateKeyImpl<MLDSA87>.publicKeyRawRepresentationFromSeed(seedRepresentation: self.impl.seedRepresentation)
-                return try! MLDSA87.PublicKey(rawRepresentation: publicKeyRawRepresentation)
+                PublicKey(impl.publicKey)
             }
         }
 

@@ -30,8 +30,8 @@ struct OpenSSLXWingPublicKeyImpl: Sendable {
         self.publicKeyBytes = publicKeyBytes
     }
 
-    init<D: ContiguousBytes>(dataRepresentation: D) throws {
-        self.publicKeyBytes = try dataRepresentation.withUnsafeBytes {
+    init<D: ContiguousBytes>(rawRepresentation: D) throws {
+        self.publicKeyBytes = try rawRepresentation.withUnsafeBytes {
             guard $0.count == XWING_PUBLIC_KEY_BYTES else {
                 throw CryptoKitError.incorrectKeySize
             }
@@ -164,7 +164,7 @@ extension OpenSSLXWingPrivateKeyImpl {
                 }
 
                 // Matching CryptoKit, we only care that this _is_ a public key, not that it matches.
-                let _ = try OpenSSLXWingPublicKeyImpl(dataRepresentation: publicKeyBytes)
+                let _ = try OpenSSLXWingPublicKeyImpl(rawRepresentation: publicKeyBytes)
             }
         }
 
@@ -187,6 +187,10 @@ extension OpenSSLXWingPrivateKeyImpl {
                     throw CryptoKitError.internalBoringSSLError()
                 }
             }
+
+            if let publicKeyHash, publicKeyHash != self.publicKeyDigest {
+                throw KEM.Errors.publicKeyMismatchDuringInitialization
+            }
         }
 
         var seedRepresentation: Data {
@@ -200,7 +204,11 @@ extension OpenSSLXWingPrivateKeyImpl {
         }
 
         var integrityCheckedRepresentation: Data {
-            fatalError()
+            var representation = self.seedRepresentation
+            self.publicKeyDigest.withUnsafeBytes {
+                representation.append(contentsOf: $0)
+            }
+            return representation
         }
 
         var dataRepresentation: Data {
@@ -212,6 +220,14 @@ extension OpenSSLXWingPrivateKeyImpl {
                 let rc = CCryptoBoringSSL_XWING_public_from_private($0.baseAddress, &self.privateKey)
                 precondition(rc == 1)
                 return Data($0)
+            }
+        }
+
+        private var publicKeyDigest: SHA3_256Digest {
+            withUnsafeTemporaryAllocation(byteCount: Int(XWING_PUBLIC_KEY_BYTES), alignment: 1) {
+                let rc = CCryptoBoringSSL_XWING_public_from_private($0.baseAddress, &self.privateKey)
+                precondition(rc == 1)
+                return SHA3_256.hash(bufferPointer: UnsafeRawBufferPointer($0))
             }
         }
 

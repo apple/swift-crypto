@@ -639,7 +639,7 @@ extension MLDSA87 {
 
 enum MLDSA {
     /// The size of the seed in bytes.
-    fileprivate static let seedByteCount = 32
+    static let seedByteCount = 32
 }
 
 #endif  // CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API

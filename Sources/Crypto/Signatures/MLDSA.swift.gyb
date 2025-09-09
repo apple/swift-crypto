@@ -143,8 +143,7 @@ extension ${NAME} {
         /// The associated public key.
         public var publicKey: PublicKey {
             get {
-                let publicKeyRawRepresentation = try! MLDSAPrivateKeyImpl<${NAME}>.publicKeyRawRepresentationFromSeed(seedRepresentation: self.impl.seedRepresentation)
-                return try! ${NAME}.PublicKey(rawRepresentation: publicKeyRawRepresentation)
+                PublicKey(impl.publicKey)
             }
         }
 

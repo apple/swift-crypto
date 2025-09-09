@@ -33,7 +33,7 @@ final class MLDSATests: XCTestCase {
         let test = "Hello, world!".data(using: .utf8)!
         try XCTAssertTrue(
             key.publicKey.isValidSignature(
-                signature: key.signature(for: test),
+                key.signature(for: test),
                 for: test
             )
         )
@@ -41,7 +41,7 @@ final class MLDSATests: XCTestCase {
         let context = "ctx".data(using: .utf8)!
         try XCTAssertTrue(
             key.publicKey.isValidSignature(
-                signature: key.signature(for: test, context: context),
+                key.signature(for: test, context: context),
                 for: test,
                 context: context
             )
@@ -62,7 +62,7 @@ final class MLDSATests: XCTestCase {
         let test = "Hello, world!".data(using: .utf8)!
         try XCTAssertTrue(
             key.publicKey.isValidSignature(
-                signature: key.signature(for: test),
+                key.signature(for: test),
                 for: test
             )
         )
@@ -70,7 +70,7 @@ final class MLDSATests: XCTestCase {
         let context = "ctx".data(using: .utf8)!
         try XCTAssertTrue(
             key.publicKey.isValidSignature(
-                signature: key.signature(for: test, context: context),
+                key.signature(for: test, context: context),
                 for: test,
                 context: context
             )
@@ -115,8 +115,8 @@ final class MLDSATests: XCTestCase {
         XCTAssertNotEqual(signature1, signature2)
 
         // Even though the signatures are different, they both verify.
-        XCTAssertTrue(publicKey.isValidSignature(signature: signature1, for: message))
-        XCTAssertTrue(publicKey.isValidSignature(signature: signature2, for: message))
+        XCTAssertTrue(publicKey.isValidSignature(signature1, for: message))
+        XCTAssertTrue(publicKey.isValidSignature(signature2, for: message))
     }
 
     func testMLDSA87SignatureIsRandomized() throws {
@@ -135,8 +135,8 @@ final class MLDSATests: XCTestCase {
         XCTAssertNotEqual(signature1, signature2)
 
         // Even though the signatures are different, they both verify.
-        XCTAssertTrue(publicKey.isValidSignature(signature: signature1, for: message))
-        XCTAssertTrue(publicKey.isValidSignature(signature: signature2, for: message))
+        XCTAssertTrue(publicKey.isValidSignature(signature1, for: message))
+        XCTAssertTrue(publicKey.isValidSignature(signature2, for: message))
     }
 
     func testInvalidMLDSA65PublicKeyEncodingLength() throws {
@@ -264,15 +264,15 @@ final class MLDSATests: XCTestCase {
                 switch test.result {
                 case .valid:
                     if let context {
-                        XCTAssertTrue(publicKey.isValidSignature(signature: signature, for: message, context: context))
+                        XCTAssertTrue(publicKey.isValidSignature(signature, for: message, context: context))
                     } else {
-                        XCTAssertTrue(publicKey.isValidSignature(signature: signature, for: message))
+                        XCTAssertTrue(publicKey.isValidSignature(signature, for: message))
                     }
                 case .invalid:
                     if let context {
-                        XCTAssertFalse(publicKey.isValidSignature(signature: signature, for: message, context: context))
+                        XCTAssertFalse(publicKey.isValidSignature(signature, for: message, context: context))
                     } else {
-                        XCTAssertFalse(publicKey.isValidSignature(signature: signature, for: message))
+                        XCTAssertFalse(publicKey.isValidSignature(signature, for: message))
                     }
                 }
             }
@@ -299,15 +299,15 @@ final class MLDSATests: XCTestCase {
                 switch test.result {
                 case .valid:
                     if let context {
-                        XCTAssertTrue(publicKey.isValidSignature(signature: signature, for: message, context: context))
+                        XCTAssertTrue(publicKey.isValidSignature(signature, for: message, context: context))
                     } else {
-                        XCTAssertTrue(publicKey.isValidSignature(signature: signature, for: message))
+                        XCTAssertTrue(publicKey.isValidSignature(signature, for: message))
                     }
                 case .invalid:
                     if let context {
-                        XCTAssertFalse(publicKey.isValidSignature(signature: signature, for: message, context: context))
+                        XCTAssertFalse(publicKey.isValidSignature(signature, for: message, context: context))
                     } else {
-                        XCTAssertFalse(publicKey.isValidSignature(signature: signature, for: message))
+                        XCTAssertFalse(publicKey.isValidSignature(signature, for: message))
                     }
                 }
             }
