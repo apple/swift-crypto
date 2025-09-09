@@ -70,14 +70,15 @@ extension P256: OpenSSLSupportedNISTCurve {
     @inlinable
     static var hashToFieldByteCount: Int { 48 }
 
+    private static let __ffacTSV = ThreadSpecificVariable<FiniteFieldArithmeticContext>()
+
     @usableFromInline
     static var __ffac: FiniteFieldArithmeticContext {
-        let key = "com.apple.swift-crypto.P256.__ffac"
-        if let value = Thread.current.threadDictionary[key] as? FiniteFieldArithmeticContext {
+        if let value = Self.__ffacTSV.currentValue {
             return value
         }
         let value = try! FiniteFieldArithmeticContext(fieldSize: P256.group.order)
-        Thread.current.threadDictionary[key] = value
+        Self.__ffacTSV.currentValue = value
         return value
     }
 }
@@ -103,14 +104,15 @@ extension P384: OpenSSLSupportedNISTCurve {
     @inlinable
     static var hashToFieldByteCount: Int { 72 }
 
+    private static let __ffacTSV = ThreadSpecificVariable<FiniteFieldArithmeticContext>()
+
     @usableFromInline
     static var __ffac: FiniteFieldArithmeticContext {
-        let key = "com.apple.swift-crypto.P384.__ffac"
-        if let value = Thread.current.threadDictionary[key] as? FiniteFieldArithmeticContext {
+        if let value = Self.__ffacTSV.currentValue {
             return value
         }
         let value = try! FiniteFieldArithmeticContext(fieldSize: P384.group.order)
-        Thread.current.threadDictionary[key] = value
+        Self.__ffacTSV.currentValue = value
         return value
     }
 }
@@ -136,14 +138,15 @@ extension P521: OpenSSLSupportedNISTCurve {
     @inlinable
     static var hashToFieldByteCount: Int { 98 }
 
+    private static let __ffacTSV = ThreadSpecificVariable<FiniteFieldArithmeticContext>()
+
     @usableFromInline
     static var __ffac: FiniteFieldArithmeticContext {
-        let key = "com.apple.swift-crypto.P521.__ffac"
-        if let value = Thread.current.threadDictionary[key] as? FiniteFieldArithmeticContext {
+        if let value = Self.__ffacTSV.currentValue {
             return value
         }
         let value = try! FiniteFieldArithmeticContext(fieldSize: P521.group.order)
-        Thread.current.threadDictionary[key] = value
+        Self.__ffacTSV.currentValue = value
         return value
     }
 }
