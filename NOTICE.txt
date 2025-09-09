@@ -34,7 +34,7 @@ This product contains test vectors from Google's wycheproof project.
 
 ---
 
-This product contains a derivation of various scripts from SwiftNIO.
+This product contains a derivation of various files from SwiftNIO.
 
   * LICENSE (Apache License 2.0):
     * https://www.apache.org/licenses/LICENSE-2.0
