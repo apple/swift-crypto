@@ -61,7 +61,7 @@ final class ECToolboxBoringSSLTests: XCTestCase {
         await fulfillment(of: threads.map(\.thisThreadFinished), timeout: 0.5)
 
         objectIdentifiers.withLockedValue { objectIdentifiers in
-        XCTAssertEqual(objectIdentifiers.count, numThreads * numReadsPerThread)
+            XCTAssertEqual(objectIdentifiers.count, numThreads * numReadsPerThread)
             for threadID in 1...numThreads {
                 let partitionBoundary = objectIdentifiers.partition(by: { $0.threadID == threadID })
                 let otherThreadsObjIDs = objectIdentifiers[..<partitionBoundary].map(\.ffacID)
