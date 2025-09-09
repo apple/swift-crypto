@@ -9,7 +9,7 @@ _[One line description of your change]_
 - [ ] I've updated the documentation if necessary
 
 #### If you've made changes to `gyb` files
-- [ ] I've run `.script/generate_boilerplate_files_with_gyb` and included updated generated files in a commit of this pull request
+- [ ] I've run `./scripts/generate_boilerplate_files_with_gyb.sh` and included updated generated files in a commit of this pull request
 
 ### Motivation:
 
