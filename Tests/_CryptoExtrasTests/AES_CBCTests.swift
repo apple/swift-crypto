@@ -162,6 +162,14 @@ final class CBCTests: XCTestCase {
             }
         }
     }
+    
+    func testToDataConversion() throws {
+        let randomBytes = (0..<16).map { _ in UInt8.random(in: UInt8.min...UInt8.max) }
+        let dataIn = Data(randomBytes)
+        let iv = try AES._CBC.IV(ivBytes: dataIn)
+        let dataOut = Data(iv)
+        XCTAssertEqual(dataIn, dataOut)
+    }
 }
 
 

@@ -637,6 +637,8 @@
 %xdefine _bn_mul4x_mont_capable _ %+ BORINGSSL_PREFIX %+ _bn_mul4x_mont_capable
 %xdefine _bn_mul4x_mont_gather5 _ %+ BORINGSSL_PREFIX %+ _bn_mul4x_mont_gather5
 %xdefine _bn_mul4x_mont_gather5_capable _ %+ BORINGSSL_PREFIX %+ _bn_mul4x_mont_gather5_capable
+%xdefine _bn_mul8x_mont_neon _ %+ BORINGSSL_PREFIX %+ _bn_mul8x_mont_neon
+%xdefine _bn_mul8x_mont_neon_capable _ %+ BORINGSSL_PREFIX %+ _bn_mul8x_mont_neon_capable
 %xdefine _bn_mulx_adx_capable _ %+ BORINGSSL_PREFIX %+ _bn_mulx_adx_capable
 %xdefine _bn_mulx4x_mont _ %+ BORINGSSL_PREFIX %+ _bn_mulx4x_mont
 %xdefine _bn_mulx4x_mont_capable _ %+ BORINGSSL_PREFIX %+ _bn_mulx4x_mont_capable
@@ -732,6 +734,7 @@
 %xdefine _boringssl_self_test_slhdsa _ %+ BORINGSSL_PREFIX %+ _boringssl_self_test_slhdsa
 %xdefine _bsaes_capable _ %+ BORINGSSL_PREFIX %+ _bsaes_capable
 %xdefine _bsaes_cbc_encrypt _ %+ BORINGSSL_PREFIX %+ _bsaes_cbc_encrypt
+%xdefine _bsaes_ctr32_encrypt_blocks _ %+ BORINGSSL_PREFIX %+ _bsaes_ctr32_encrypt_blocks
 %xdefine _BUF_MEM_append _ %+ BORINGSSL_PREFIX %+ _BUF_MEM_append
 %xdefine _BUF_MEM_free _ %+ BORINGSSL_PREFIX %+ _BUF_MEM_free
 %xdefine _BUF_MEM_grow _ %+ BORINGSSL_PREFIX %+ _BUF_MEM_grow
@@ -928,6 +931,7 @@
 %xdefine _CRYPTO_get_thread_local _ %+ BORINGSSL_PREFIX %+ _CRYPTO_get_thread_local
 %xdefine _CRYPTO_ghash_init _ %+ BORINGSSL_PREFIX %+ _CRYPTO_ghash_init
 %xdefine _CRYPTO_has_asm _ %+ BORINGSSL_PREFIX %+ _CRYPTO_has_asm
+%xdefine _CRYPTO_has_broken_NEON _ %+ BORINGSSL_PREFIX %+ _CRYPTO_has_broken_NEON
 %xdefine _CRYPTO_hchacha20 _ %+ BORINGSSL_PREFIX %+ _CRYPTO_hchacha20
 %xdefine _CRYPTO_init_sysrand _ %+ BORINGSSL_PREFIX %+ _CRYPTO_init_sysrand
 %xdefine _CRYPTO_is_ADX_capable _ %+ BORINGSSL_PREFIX %+ _CRYPTO_is_ADX_capable
@@ -964,13 +968,17 @@
 %xdefine _CRYPTO_MUTEX_lock_write _ %+ BORINGSSL_PREFIX %+ _CRYPTO_MUTEX_lock_write
 %xdefine _CRYPTO_MUTEX_unlock_read _ %+ BORINGSSL_PREFIX %+ _CRYPTO_MUTEX_unlock_read
 %xdefine _CRYPTO_MUTEX_unlock_write _ %+ BORINGSSL_PREFIX %+ _CRYPTO_MUTEX_unlock_write
+%xdefine _CRYPTO_needs_hwcap2_workaround _ %+ BORINGSSL_PREFIX %+ _CRYPTO_needs_hwcap2_workaround
 %xdefine _CRYPTO_new_ex_data _ %+ BORINGSSL_PREFIX %+ _CRYPTO_new_ex_data
 %xdefine _CRYPTO_num_locks _ %+ BORINGSSL_PREFIX %+ _CRYPTO_num_locks
 %xdefine _CRYPTO_ofb128_encrypt _ %+ BORINGSSL_PREFIX %+ _CRYPTO_ofb128_encrypt
 %xdefine _CRYPTO_once _ %+ BORINGSSL_PREFIX %+ _CRYPTO_once
 %xdefine _CRYPTO_poly1305_finish _ %+ BORINGSSL_PREFIX %+ _CRYPTO_poly1305_finish
+%xdefine _CRYPTO_poly1305_finish_neon _ %+ BORINGSSL_PREFIX %+ _CRYPTO_poly1305_finish_neon
 %xdefine _CRYPTO_poly1305_init _ %+ BORINGSSL_PREFIX %+ _CRYPTO_poly1305_init
+%xdefine _CRYPTO_poly1305_init_neon _ %+ BORINGSSL_PREFIX %+ _CRYPTO_poly1305_init_neon
 %xdefine _CRYPTO_poly1305_update _ %+ BORINGSSL_PREFIX %+ _CRYPTO_poly1305_update
+%xdefine _CRYPTO_poly1305_update_neon _ %+ BORINGSSL_PREFIX %+ _CRYPTO_poly1305_update_neon
 %xdefine _CRYPTO_pre_sandbox_init _ %+ BORINGSSL_PREFIX %+ _CRYPTO_pre_sandbox_init
 %xdefine _CRYPTO_rdrand _ %+ BORINGSSL_PREFIX %+ _CRYPTO_rdrand
 %xdefine _CRYPTO_rdrand_multiple8_buf _ %+ BORINGSSL_PREFIX %+ _CRYPTO_rdrand_multiple8_buf
@@ -2237,6 +2245,8 @@
 %xdefine _OPENSSL_malloc_init _ %+ BORINGSSL_PREFIX %+ _OPENSSL_malloc_init
 %xdefine _OPENSSL_memdup _ %+ BORINGSSL_PREFIX %+ _OPENSSL_memdup
 %xdefine _OPENSSL_no_config _ %+ BORINGSSL_PREFIX %+ _OPENSSL_no_config
+%xdefine _openssl_poly1305_neon2_addmulmod _ %+ BORINGSSL_PREFIX %+ _openssl_poly1305_neon2_addmulmod
+%xdefine _openssl_poly1305_neon2_blocks _ %+ BORINGSSL_PREFIX %+ _openssl_poly1305_neon2_blocks
 %xdefine _OPENSSL_posix_to_tm _ %+ BORINGSSL_PREFIX %+ _OPENSSL_posix_to_tm
 %xdefine _OPENSSL_realloc _ %+ BORINGSSL_PREFIX %+ _OPENSSL_realloc
 %xdefine _OPENSSL_secure_clear_free _ %+ BORINGSSL_PREFIX %+ _OPENSSL_secure_clear_free
@@ -2575,6 +2585,7 @@
 %xdefine _sha1_block_data_order_avx _ %+ BORINGSSL_PREFIX %+ _sha1_block_data_order_avx
 %xdefine _sha1_block_data_order_avx2 _ %+ BORINGSSL_PREFIX %+ _sha1_block_data_order_avx2
 %xdefine _sha1_block_data_order_hw _ %+ BORINGSSL_PREFIX %+ _sha1_block_data_order_hw
+%xdefine _sha1_block_data_order_neon _ %+ BORINGSSL_PREFIX %+ _sha1_block_data_order_neon
 %xdefine _sha1_block_data_order_nohw _ %+ BORINGSSL_PREFIX %+ _sha1_block_data_order_nohw
 %xdefine _sha1_block_data_order_ssse3 _ %+ BORINGSSL_PREFIX %+ _sha1_block_data_order_ssse3
 %xdefine _SHA1_Final _ %+ BORINGSSL_PREFIX %+ _SHA1_Final
@@ -2591,6 +2602,7 @@
 %xdefine _sha256_avx_capable _ %+ BORINGSSL_PREFIX %+ _sha256_avx_capable
 %xdefine _sha256_block_data_order_avx _ %+ BORINGSSL_PREFIX %+ _sha256_block_data_order_avx
 %xdefine _sha256_block_data_order_hw _ %+ BORINGSSL_PREFIX %+ _sha256_block_data_order_hw
+%xdefine _sha256_block_data_order_neon _ %+ BORINGSSL_PREFIX %+ _sha256_block_data_order_neon
 %xdefine _sha256_block_data_order_nohw _ %+ BORINGSSL_PREFIX %+ _sha256_block_data_order_nohw
 %xdefine _sha256_block_data_order_ssse3 _ %+ BORINGSSL_PREFIX %+ _sha256_block_data_order_ssse3
 %xdefine _SHA256_Final _ %+ BORINGSSL_PREFIX %+ _SHA256_Final
@@ -2612,6 +2624,7 @@
 %xdefine _sha512_avx_capable _ %+ BORINGSSL_PREFIX %+ _sha512_avx_capable
 %xdefine _sha512_block_data_order_avx _ %+ BORINGSSL_PREFIX %+ _sha512_block_data_order_avx
 %xdefine _sha512_block_data_order_hw _ %+ BORINGSSL_PREFIX %+ _sha512_block_data_order_hw
+%xdefine _sha512_block_data_order_neon _ %+ BORINGSSL_PREFIX %+ _sha512_block_data_order_neon
 %xdefine _sha512_block_data_order_nohw _ %+ BORINGSSL_PREFIX %+ _sha512_block_data_order_nohw
 %xdefine _SHA512_Final _ %+ BORINGSSL_PREFIX %+ _SHA512_Final
 %xdefine _sha512_hw_capable _ %+ BORINGSSL_PREFIX %+ _sha512_hw_capable
@@ -2952,9 +2965,11 @@
 %xdefine _vpaes_capable _ %+ BORINGSSL_PREFIX %+ _vpaes_capable
 %xdefine _vpaes_cbc_encrypt _ %+ BORINGSSL_PREFIX %+ _vpaes_cbc_encrypt
 %xdefine _vpaes_ctr32_encrypt_blocks _ %+ BORINGSSL_PREFIX %+ _vpaes_ctr32_encrypt_blocks
+%xdefine _vpaes_ctr32_encrypt_blocks_with_bsaes _ %+ BORINGSSL_PREFIX %+ _vpaes_ctr32_encrypt_blocks_with_bsaes
 %xdefine _vpaes_decrypt _ %+ BORINGSSL_PREFIX %+ _vpaes_decrypt
 %xdefine _vpaes_decrypt_key_to_bsaes _ %+ BORINGSSL_PREFIX %+ _vpaes_decrypt_key_to_bsaes
 %xdefine _vpaes_encrypt _ %+ BORINGSSL_PREFIX %+ _vpaes_encrypt
+%xdefine _vpaes_encrypt_key_to_bsaes _ %+ BORINGSSL_PREFIX %+ _vpaes_encrypt_key_to_bsaes
 %xdefine _vpaes_set_decrypt_key _ %+ BORINGSSL_PREFIX %+ _vpaes_set_decrypt_key
 %xdefine _vpaes_set_encrypt_key _ %+ BORINGSSL_PREFIX %+ _vpaes_set_encrypt_key
 %xdefine _X25519 _ %+ BORINGSSL_PREFIX %+ _X25519
@@ -2971,6 +2986,7 @@
 %xdefine _x25519_ge_sub _ %+ BORINGSSL_PREFIX %+ _x25519_ge_sub
 %xdefine _x25519_ge_tobytes _ %+ BORINGSSL_PREFIX %+ _x25519_ge_tobytes
 %xdefine _X25519_keypair _ %+ BORINGSSL_PREFIX %+ _X25519_keypair
+%xdefine _x25519_NEON _ %+ BORINGSSL_PREFIX %+ _x25519_NEON
 %xdefine _x25519_pkey_meth _ %+ BORINGSSL_PREFIX %+ _x25519_pkey_meth
 %xdefine _X25519_public_from_private _ %+ BORINGSSL_PREFIX %+ _X25519_public_from_private
 %xdefine _x25519_sc_reduce _ %+ BORINGSSL_PREFIX %+ _x25519_sc_reduce
@@ -4068,6 +4084,8 @@
 %xdefine bn_mul4x_mont_capable BORINGSSL_PREFIX %+ _bn_mul4x_mont_capable
 %xdefine bn_mul4x_mont_gather5 BORINGSSL_PREFIX %+ _bn_mul4x_mont_gather5
 %xdefine bn_mul4x_mont_gather5_capable BORINGSSL_PREFIX %+ _bn_mul4x_mont_gather5_capable
+%xdefine bn_mul8x_mont_neon BORINGSSL_PREFIX %+ _bn_mul8x_mont_neon
+%xdefine bn_mul8x_mont_neon_capable BORINGSSL_PREFIX %+ _bn_mul8x_mont_neon_capable
 %xdefine bn_mulx_adx_capable BORINGSSL_PREFIX %+ _bn_mulx_adx_capable
 %xdefine bn_mulx4x_mont BORINGSSL_PREFIX %+ _bn_mulx4x_mont
 %xdefine bn_mulx4x_mont_capable BORINGSSL_PREFIX %+ _bn_mulx4x_mont_capable
@@ -4163,6 +4181,7 @@
 %xdefine boringssl_self_test_slhdsa BORINGSSL_PREFIX %+ _boringssl_self_test_slhdsa
 %xdefine bsaes_capable BORINGSSL_PREFIX %+ _bsaes_capable
 %xdefine bsaes_cbc_encrypt BORINGSSL_PREFIX %+ _bsaes_cbc_encrypt
+%xdefine bsaes_ctr32_encrypt_blocks BORINGSSL_PREFIX %+ _bsaes_ctr32_encrypt_blocks
 %xdefine BUF_MEM_append BORINGSSL_PREFIX %+ _BUF_MEM_append
 %xdefine BUF_MEM_free BORINGSSL_PREFIX %+ _BUF_MEM_free
 %xdefine BUF_MEM_grow BORINGSSL_PREFIX %+ _BUF_MEM_grow
@@ -4359,6 +4378,7 @@
 %xdefine CRYPTO_get_thread_local BORINGSSL_PREFIX %+ _CRYPTO_get_thread_local
 %xdefine CRYPTO_ghash_init BORINGSSL_PREFIX %+ _CRYPTO_ghash_init
 %xdefine CRYPTO_has_asm BORINGSSL_PREFIX %+ _CRYPTO_has_asm
+%xdefine CRYPTO_has_broken_NEON BORINGSSL_PREFIX %+ _CRYPTO_has_broken_NEON
 %xdefine CRYPTO_hchacha20 BORINGSSL_PREFIX %+ _CRYPTO_hchacha20
 %xdefine CRYPTO_init_sysrand BORINGSSL_PREFIX %+ _CRYPTO_init_sysrand
 %xdefine CRYPTO_is_ADX_capable BORINGSSL_PREFIX %+ _CRYPTO_is_ADX_capable
@@ -4395,13 +4415,17 @@
 %xdefine CRYPTO_MUTEX_lock_write BORINGSSL_PREFIX %+ _CRYPTO_MUTEX_lock_write
 %xdefine CRYPTO_MUTEX_unlock_read BORINGSSL_PREFIX %+ _CRYPTO_MUTEX_unlock_read
 %xdefine CRYPTO_MUTEX_unlock_write BORINGSSL_PREFIX %+ _CRYPTO_MUTEX_unlock_write
+%xdefine CRYPTO_needs_hwcap2_workaround BORINGSSL_PREFIX %+ _CRYPTO_needs_hwcap2_workaround
 %xdefine CRYPTO_new_ex_data BORINGSSL_PREFIX %+ _CRYPTO_new_ex_data
 %xdefine CRYPTO_num_locks BORINGSSL_PREFIX %+ _CRYPTO_num_locks
 %xdefine CRYPTO_ofb128_encrypt BORINGSSL_PREFIX %+ _CRYPTO_ofb128_encrypt
 %xdefine CRYPTO_once BORINGSSL_PREFIX %+ _CRYPTO_once
 %xdefine CRYPTO_poly1305_finish BORINGSSL_PREFIX %+ _CRYPTO_poly1305_finish
+%xdefine CRYPTO_poly1305_finish_neon BORINGSSL_PREFIX %+ _CRYPTO_poly1305_finish_neon
 %xdefine CRYPTO_poly1305_init BORINGSSL_PREFIX %+ _CRYPTO_poly1305_init
+%xdefine CRYPTO_poly1305_init_neon BORINGSSL_PREFIX %+ _CRYPTO_poly1305_init_neon
 %xdefine CRYPTO_poly1305_update BORINGSSL_PREFIX %+ _CRYPTO_poly1305_update
+%xdefine CRYPTO_poly1305_update_neon BORINGSSL_PREFIX %+ _CRYPTO_poly1305_update_neon
 %xdefine CRYPTO_pre_sandbox_init BORINGSSL_PREFIX %+ _CRYPTO_pre_sandbox_init
 %xdefine CRYPTO_rdrand BORINGSSL_PREFIX %+ _CRYPTO_rdrand
 %xdefine CRYPTO_rdrand_multiple8_buf BORINGSSL_PREFIX %+ _CRYPTO_rdrand_multiple8_buf
@@ -5668,6 +5692,8 @@
 %xdefine OPENSSL_malloc_init BORINGSSL_PREFIX %+ _OPENSSL_malloc_init
 %xdefine OPENSSL_memdup BORINGSSL_PREFIX %+ _OPENSSL_memdup
 %xdefine OPENSSL_no_config BORINGSSL_PREFIX %+ _OPENSSL_no_config
+%xdefine openssl_poly1305_neon2_addmulmod BORINGSSL_PREFIX %+ _openssl_poly1305_neon2_addmulmod
+%xdefine openssl_poly1305_neon2_blocks BORINGSSL_PREFIX %+ _openssl_poly1305_neon2_blocks
 %xdefine OPENSSL_posix_to_tm BORINGSSL_PREFIX %+ _OPENSSL_posix_to_tm
 %xdefine OPENSSL_realloc BORINGSSL_PREFIX %+ _OPENSSL_realloc
 %xdefine OPENSSL_secure_clear_free BORINGSSL_PREFIX %+ _OPENSSL_secure_clear_free
@@ -6006,6 +6032,7 @@
 %xdefine sha1_block_data_order_avx BORINGSSL_PREFIX %+ _sha1_block_data_order_avx
 %xdefine sha1_block_data_order_avx2 BORINGSSL_PREFIX %+ _sha1_block_data_order_avx2
 %xdefine sha1_block_data_order_hw BORINGSSL_PREFIX %+ _sha1_block_data_order_hw
+%xdefine sha1_block_data_order_neon BORINGSSL_PREFIX %+ _sha1_block_data_order_neon
 %xdefine sha1_block_data_order_nohw BORINGSSL_PREFIX %+ _sha1_block_data_order_nohw
 %xdefine sha1_block_data_order_ssse3 BORINGSSL_PREFIX %+ _sha1_block_data_order_ssse3
 %xdefine SHA1_Final BORINGSSL_PREFIX %+ _SHA1_Final
@@ -6022,6 +6049,7 @@
 %xdefine sha256_avx_capable BORINGSSL_PREFIX %+ _sha256_avx_capable
 %xdefine sha256_block_data_order_avx BORINGSSL_PREFIX %+ _sha256_block_data_order_avx
 %xdefine sha256_block_data_order_hw BORINGSSL_PREFIX %+ _sha256_block_data_order_hw
+%xdefine sha256_block_data_order_neon BORINGSSL_PREFIX %+ _sha256_block_data_order_neon
 %xdefine sha256_block_data_order_nohw BORINGSSL_PREFIX %+ _sha256_block_data_order_nohw
 %xdefine sha256_block_data_order_ssse3 BORINGSSL_PREFIX %+ _sha256_block_data_order_ssse3
 %xdefine SHA256_Final BORINGSSL_PREFIX %+ _SHA256_Final
@@ -6043,6 +6071,7 @@
 %xdefine sha512_avx_capable BORINGSSL_PREFIX %+ _sha512_avx_capable
 %xdefine sha512_block_data_order_avx BORINGSSL_PREFIX %+ _sha512_block_data_order_avx
 %xdefine sha512_block_data_order_hw BORINGSSL_PREFIX %+ _sha512_block_data_order_hw
+%xdefine sha512_block_data_order_neon BORINGSSL_PREFIX %+ _sha512_block_data_order_neon
 %xdefine sha512_block_data_order_nohw BORINGSSL_PREFIX %+ _sha512_block_data_order_nohw
 %xdefine SHA512_Final BORINGSSL_PREFIX %+ _SHA512_Final
 %xdefine sha512_hw_capable BORINGSSL_PREFIX %+ _sha512_hw_capable
@@ -6383,9 +6412,11 @@
 %xdefine vpaes_capable BORINGSSL_PREFIX %+ _vpaes_capable
 %xdefine vpaes_cbc_encrypt BORINGSSL_PREFIX %+ _vpaes_cbc_encrypt
 %xdefine vpaes_ctr32_encrypt_blocks BORINGSSL_PREFIX %+ _vpaes_ctr32_encrypt_blocks
+%xdefine vpaes_ctr32_encrypt_blocks_with_bsaes BORINGSSL_PREFIX %+ _vpaes_ctr32_encrypt_blocks_with_bsaes
 %xdefine vpaes_decrypt BORINGSSL_PREFIX %+ _vpaes_decrypt
 %xdefine vpaes_decrypt_key_to_bsaes BORINGSSL_PREFIX %+ _vpaes_decrypt_key_to_bsaes
 %xdefine vpaes_encrypt BORINGSSL_PREFIX %+ _vpaes_encrypt
+%xdefine vpaes_encrypt_key_to_bsaes BORINGSSL_PREFIX %+ _vpaes_encrypt_key_to_bsaes
 %xdefine vpaes_set_decrypt_key BORINGSSL_PREFIX %+ _vpaes_set_decrypt_key
 %xdefine vpaes_set_encrypt_key BORINGSSL_PREFIX %+ _vpaes_set_encrypt_key
 %xdefine X25519 BORINGSSL_PREFIX %+ _X25519
@@ -6402,6 +6433,7 @@
 %xdefine x25519_ge_sub BORINGSSL_PREFIX %+ _x25519_ge_sub
 %xdefine x25519_ge_tobytes BORINGSSL_PREFIX %+ _x25519_ge_tobytes
 %xdefine X25519_keypair BORINGSSL_PREFIX %+ _X25519_keypair
+%xdefine x25519_NEON BORINGSSL_PREFIX %+ _x25519_NEON
 %xdefine x25519_pkey_meth BORINGSSL_PREFIX %+ _x25519_pkey_meth
 %xdefine X25519_public_from_private BORINGSSL_PREFIX %+ _X25519_public_from_private
 %xdefine x25519_sc_reduce BORINGSSL_PREFIX %+ _x25519_sc_reduce
