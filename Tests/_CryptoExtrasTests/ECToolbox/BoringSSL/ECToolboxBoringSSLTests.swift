@@ -11,14 +11,15 @@
 // SPDX-License-Identifier: Apache-2.0
 //
 //===----------------------------------------------------------------------===//
+import Foundation
+import XCTest
+
 #if !canImport(Darwin) || canImport(CryptoKit, _version: 241.100.42)
 // Corresponds to the CryptoKit in XCode 16.3, which has Sendable annotations
 import Crypto
 #else
 @preconcurrency import Crypto
 #endif
-import Foundation
-import XCTest
 
 @testable import _CryptoExtras
 
