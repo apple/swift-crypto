@@ -105,7 +105,6 @@ struct OpenSSLNISTCurvePublicKeyImpl<Curve: OpenSSLSupportedNISTCurve> {
         self.key = try BoringSSLECPublicKeyWrapper(compressedRepresentation: compressedRepresentation)
     }
 
-    @inlinable
     init(wrapping key: BoringSSLECPublicKeyWrapper<Curve>) {
         self.key = key
     }
