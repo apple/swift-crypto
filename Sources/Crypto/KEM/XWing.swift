@@ -14,24 +14,11 @@
 #if CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
 @_exported import CryptoKit
 #else
-#if canImport(FoundationEssentials)
-public import FoundationEssentials
-#else
-public import Foundation
-#endif
 
-#if _runtime(_ObjC) && CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
-@_exported import CryptoKit
-#else
-
-#if CRYPTOKIT_NO_ACCESS_TO_FOUNDATION
-import SwiftSystem
-#else
 #if canImport(FoundationEssentials)
 import FoundationEssentials
 #else
 import Foundation
-#endif
 #endif
 
 #if (!CRYPTO_IN_SWIFTPM_FORCE_BUILD_API) || CRYPTOKIT_NO_ACCESS_TO_FOUNDATION
@@ -61,8 +48,8 @@ extension XWingMLKEM768X25519 {
             self.impl = impl
         }
 
-        public init<D: ContiguousBytes>(dataRepresentation: D) throws {
-            self.impl = try .init(dataRepresentation: dataRepresentation)
+        public init<D: ContiguousBytes>(rawRepresentation: D) throws {
+            self.impl = try .init(rawRepresentation: rawRepresentation)
         }
 
         public var rawRepresentation: Data {
@@ -96,18 +83,8 @@ extension XWingMLKEM768X25519 {
             self.impl = impl
         }
 
-        public init<D: ContiguousBytes>(bytes: D) throws {
-            self.impl = try .init(bytes: bytes)
-        }
-
         internal init<D: DataProtocol>(seedRepresentation: D, publicKeyHash: SHA3_256Digest?) throws {
             self.impl = try .init(seedRepresentation: seedRepresentation, publicKeyHash: publicKeyHash)
-        }
-
-        public var dataRepresentation: Data {
-            get {
-                self.impl.dataRepresentation
-            }
         }
 
         public static func generate() throws -> XWingMLKEM768X25519.PrivateKey {
@@ -133,17 +110,12 @@ extension XWingMLKEM768X25519.PrivateKey: HPKEKEMPrivateKeyGeneration {
     }
 
     public init<D: DataProtocol>(seedRepresentation: D, publicKey: XWingMLKEM768X25519.PublicKey?) throws {
-        #if false
         var publicKeyHash: SHA3_256Digest? = nil
         if publicKey != nil {
             publicKeyHash = SHA3_256.hash(data: publicKey!.rawRepresentation)
         }
 
         self = try XWingMLKEM768X25519.PrivateKey.init(seedRepresentation: seedRepresentation, publicKeyHash: publicKeyHash)
-        #else
-        precondition(publicKey == nil)
-        self = try XWingMLKEM768X25519.PrivateKey.init(seedRepresentation: seedRepresentation, publicKeyHash: nil)
-        #endif
     }
 
     public init<D: DataProtocol>(integrityCheckedRepresentation: D) throws {
@@ -178,7 +150,7 @@ extension XWingMLKEM768X25519.PublicKey: HPKEKEMPublicKey {
     /// - Throws: ``CryptoKit/HPKE/Errors/inconsistentCiphersuiteAndKey`` if the key encapsulation mechanism requested is incompatible with this public key.
     public init<D>(_ serialization: D, kem: HPKE.KEM) throws where D: ContiguousBytes {
         try Self.validateCiphersuite(kem)
-        try self.init(dataRepresentation: serialization)
+        try self.init(rawRepresentation: serialization)
     }
 
     /// Creates a serialized representation of the public key.
@@ -197,5 +169,4 @@ extension XWingMLKEM768X25519.PublicKey: HPKEKEMPublicKey {
     /// The type of the ephemeral private key associated with this public key.
     public typealias HPKEEphemeralPrivateKey = XWingMLKEM768X25519.PrivateKey
 }
-#endif
 #endif // Linux or !SwiftPM

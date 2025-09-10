@@ -12,7 +12,6 @@
 //
 //===----------------------------------------------------------------------===//
 import XCTest
-
 #if CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
 // Skip tests that require @testable imports of CryptoKit.
 #else
@@ -31,10 +30,8 @@ final class MLDSATests: XCTestCase {
         try XCTAssert(publicKey.rawRepresentation == MLDSA65.PublicKey(rawRepresentation: publicKey.rawRepresentation).rawRepresentation)
 
         // Test Private Key serialization
-        #if false
         try XCTAssert(privateKey.seedRepresentation == MLDSA65.PrivateKey(seedRepresentation: privateKey.seedRepresentation, publicKey: publicKey).seedRepresentation)
         try XCTAssert(privateKey.integrityCheckedRepresentation == MLDSA65.PrivateKey(integrityCheckedRepresentation: privateKey.integrityCheckedRepresentation).integrityCheckedRepresentation)
-        #endif
 
         // Test signing without a context
         let message = Data("ML-DSA test message".utf8)
@@ -62,10 +59,8 @@ final class MLDSATests: XCTestCase {
         try XCTAssert(publicKey.rawRepresentation == MLDSA87.PublicKey(rawRepresentation: publicKey.rawRepresentation).rawRepresentation)
 
         // Test Private Key serialization
-        #if false
         try XCTAssert(privateKey.seedRepresentation == MLDSA87.PrivateKey(seedRepresentation: privateKey.seedRepresentation, publicKey: publicKey).seedRepresentation)
         try XCTAssert(privateKey.integrityCheckedRepresentation == MLDSA87.PrivateKey(integrityCheckedRepresentation: privateKey.integrityCheckedRepresentation).integrityCheckedRepresentation)
-        #endif
 
         // Test signing without a context
         let message = Data("ML-DSA test message".utf8)

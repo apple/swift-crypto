@@ -90,18 +90,29 @@ extension MLDSA87.InternalPublicKey: BoringSSLBackedMLDSAPublicKey {}
 @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 struct OpenSSLMLDSAPrivateKeyImpl<Parameters: BoringSSLBackedMLDSAParameters> {
     private var backing: Parameters.BackingPrivateKey
+    private let publicKeyHash: SHA3_256Digest
 
     init() throws {
         self.backing = try .init()
+        self.publicKeyHash = SHA3_256.hash(data: self.backing.publicKey.rawRepresentation)
     }
 
-    init<D: DataProtocol>(seedRepresentation: D, publicKey: OpenSSLMLDSAPublicKeyImpl<Parameters>?) throws {
-        precondition(publicKey == nil)
+    init<D: DataProtocol>(seedRepresentation: D, publicKeyRawRepresentation: Data?) throws {
+        let publicKeyHash = publicKeyRawRepresentation.map {
+            SHA3_256.hash(data: $0)
+        }
+        self = try Self(seedRepresentation: seedRepresentation, publicKeyHash: publicKeyHash)
+    }
+
+    init<D: DataProtocol>(seedRepresentation: D, publicKeyHash: SHA3_256Digest?) throws {
         self.backing = try .init(seedRepresentation: seedRepresentation)
-    }
+        let generatedHash = SHA3_256.hash(data: self.backing.publicKey.rawRepresentation)
 
-    init<D: DataProtocol>(integrityCheckedRepresentation: D) throws {
-        fatalError()
+        if let publicKeyHash, generatedHash != publicKeyHash {
+            throw CryptoKitError.unwrapFailure
+        }
+
+        self.publicKeyHash = generatedHash
     }
 
     func signature<D: DataProtocol>(for data: D) throws -> Data {
@@ -125,7 +136,16 @@ struct OpenSSLMLDSAPrivateKeyImpl<Parameters: BoringSSLBackedMLDSAParameters> {
     }
 
     var integrityCheckedRepresentation: Data {
-        fatalError()
+        var representation = self.seedRepresentation
+        representation.reserveCapacity(SHA3_256Digest.byteCount)
+        self.publicKeyHash.withUnsafeBytes {
+            representation.append(contentsOf: $0)
+        }
+        return representation
+    }
+
+    static var seedSize: Int {
+        MLDSA.seedByteCount
     }
 }
 

@@ -830,7 +830,7 @@ extension MLDSA87 {
 
 enum MLDSA {
     /// The size of the seed in bytes.
-    fileprivate static let seedByteCount = 32
+    static let seedByteCount = 32
 
     /// The size of the "mu" value in bytes.
     fileprivate static let muByteCount = 64

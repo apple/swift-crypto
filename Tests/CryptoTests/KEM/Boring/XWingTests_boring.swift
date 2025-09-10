@@ -22,13 +22,13 @@
 #endif
 
 extension XWingMLKEM768X25519.PrivateKey {
-    static func generateWithRng(ccrngState: SequenceDrbg) throws -> Self {
+    static func generateWithRng(rngState: SequenceDrbg) throws -> Self {
         // We're going to generate a "random" seed.
         var seed: [UInt8] = []
         seed.reserveCapacity(32)
 
         for i in 0..<32 {
-            seed.append(ccrngState.state[i % ccrngState.state.count])
+            seed.append(rngState.state[i % rngState.state.count])
         }
 
         return try Self(seedRepresentation: seed, publicKey: nil)
@@ -36,13 +36,13 @@ extension XWingMLKEM768X25519.PrivateKey {
 }
 
 extension XWingMLKEM768X25519.PublicKey {
-    func encapsulateWithRng(ccrngState: SequenceDrbg) throws -> KEM.EncapsulationResult {
+    func encapsulateWithRng(rngState: SequenceDrbg) throws -> KEM.EncapsulationResult {
         // We're going to generate "random" entropy
         var seed: [UInt8] = []
         seed.reserveCapacity(64)
 
         for i in 0..<64 {
-            seed.append(ccrngState.state[i % ccrngState.state.count])
+            seed.append(rngState.state[i % rngState.state.count])
         }
 
         return try self.impl.encapsulateWithOptionalEntropy(entropy: seed)

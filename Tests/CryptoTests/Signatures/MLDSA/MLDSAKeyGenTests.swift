@@ -12,7 +12,6 @@
 //
 //===----------------------------------------------------------------------===//
 import XCTest
-
 #if CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
 // Skip tests that require @testable imports of CryptoKit.
 #else
@@ -40,28 +39,20 @@ final class MLDSAKeyGenTests: XCTestCase {
         let katTests = try processKeyGenKATFile(filename: "MLDSA65_KeyGen_KAT")
         for katTest in katTests {
             let publicKey = try MLDSA65.PublicKey(rawRepresentation: katTest.pk)
-            #if false
             let privateKey = try MLDSA65.PrivateKey(seedRepresentation: katTest.seed, publicKey: publicKey)
             let publicKeyHash = Data(SHA3_256.hash(data: privateKey.publicKey.rawRepresentation))
-            #else
-            let privateKey = try MLDSA65.PrivateKey(seedRepresentation: katTest.seed, publicKey: nil)
-            #endif
 
             XCTAssert(privateKey.seedRepresentation == katTest.seed)
-            #if false
             XCTAssert(privateKey.integrityCheckedRepresentation == katTest.seed + publicKeyHash)
-            #endif
             XCTAssert(privateKey.publicKey.rawRepresentation == katTest.pk)
 
             // Try initializing keys with incorrect integrity checks
             let randomPrivateKey = try MLDSA65.PrivateKey()
-            #if false
             let randomPublicKeyHash = Data(SHA3_256.hash(data: randomPrivateKey.publicKey.rawRepresentation))
             XCTAssertThrowsError(try MLDSA65.PrivateKey(seedRepresentation: privateKey.seedRepresentation, publicKey: randomPrivateKey.publicKey), error: CryptoKitError.unwrapFailure)
             XCTAssertThrowsError(try MLDSA65.PrivateKey(seedRepresentation: randomPrivateKey.seedRepresentation, publicKey: publicKey), error: CryptoKitError.unwrapFailure)
             XCTAssertThrowsError(try MLDSA65.PrivateKey(integrityCheckedRepresentation: privateKey.seedRepresentation + randomPublicKeyHash), error: CryptoKitError.unwrapFailure)
             XCTAssertThrowsError(try MLDSA65.PrivateKey(integrityCheckedRepresentation: randomPrivateKey.seedRepresentation + publicKeyHash), error: CryptoKitError.unwrapFailure)
-            #endif
         }
     }
 
@@ -69,28 +60,20 @@ final class MLDSAKeyGenTests: XCTestCase {
         let katTests = try processKeyGenKATFile(filename: "MLDSA87_KeyGen_KAT")
         for katTest in katTests {
             let publicKey = try MLDSA87.PublicKey(rawRepresentation: katTest.pk)
-            #if false
             let privateKey = try MLDSA87.PrivateKey(seedRepresentation: katTest.seed, publicKey: publicKey)
             let publicKeyHash = Data(SHA3_256.hash(data: privateKey.publicKey.rawRepresentation))
-            #else
-            let privateKey = try MLDSA87.PrivateKey(seedRepresentation: katTest.seed, publicKey: nil)
-            #endif
 
             XCTAssert(privateKey.seedRepresentation == katTest.seed)
-            #if false
             XCTAssert(privateKey.integrityCheckedRepresentation == katTest.seed + publicKeyHash)
-            #endif
             XCTAssert(privateKey.publicKey.rawRepresentation == katTest.pk)
 
             // Try initializing keys with incorrect integrity checks
             let randomPrivateKey = try MLDSA87.PrivateKey()
-            #if false
             let randomPublicKeyHash = Data(SHA3_256.hash(data: randomPrivateKey.publicKey.rawRepresentation))
             XCTAssertThrowsError(try MLDSA87.PrivateKey(seedRepresentation: privateKey.seedRepresentation, publicKey: randomPrivateKey.publicKey), error: CryptoKitError.unwrapFailure)
             XCTAssertThrowsError(try MLDSA87.PrivateKey(seedRepresentation: randomPrivateKey.seedRepresentation, publicKey: publicKey), error: CryptoKitError.unwrapFailure)
             XCTAssertThrowsError(try MLDSA87.PrivateKey(integrityCheckedRepresentation: privateKey.seedRepresentation + randomPublicKeyHash), error: CryptoKitError.unwrapFailure)
             XCTAssertThrowsError(try MLDSA87.PrivateKey(integrityCheckedRepresentation: randomPrivateKey.seedRepresentation + publicKeyHash), error: CryptoKitError.unwrapFailure)
-            #endif
         }
     }
 }
