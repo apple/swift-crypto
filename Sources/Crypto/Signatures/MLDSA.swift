@@ -46,7 +46,7 @@ extension MLDSA65 {
         internal init(_ impl: MLDSAPublicKeyImpl<MLDSA65>) {
             self.impl = impl
         }
-        
+
         /// Parses a public key from a serialized representation.
         ///
         /// - Parameter rawRepresentation: The public key, in the FIPS 204 standard serialization format.
@@ -61,6 +61,36 @@ extension MLDSA65 {
         public var rawRepresentation: Data {
             get {
                 return self.impl.rawRepresentation
+            }
+        }
+
+        /// Generate a prehashed message representative (a.k.a. "external mu") for the given message.
+        ///
+        /// - Parameter data: The message to prehash.
+        ///
+        /// - Returns: The prehashed message representative (a.k.a. "external mu").
+        package func prehash_boring<D: DataProtocol>(for data: D) throws -> Data {
+            try self.boringSSLKey.prehash_boring(for: data)
+        }
+
+        /// Generate a prehashed message representative (a.k.a. "external mu") for the given message.
+        ///
+        /// - Parameters:
+        ///   - data: The message to prehash.
+        ///   - context: The context of the message.
+        ///
+        /// - Returns: The prehashed message representative (a.k.a. "external mu").
+        package func prehash_boring<D: DataProtocol, C: DataProtocol>(for data: D, context: C) throws -> Data {
+            try self.boringSSLKey.prehash_boring(for: data, context: context)
+        }
+
+        private var boringSSLKey: OpenSSLMLDSAPublicKeyImpl<MLDSA65> {
+            get throws {
+                #if (!CRYPTO_IN_SWIFTPM_FORCE_BUILD_API) || CRYPTOKIT_NO_ACCESS_TO_FOUNDATION
+                try OpenSSLMLDSAPublicKeyImpl<MLDSA65>(rawRepresentation: self.rawRepresentation)
+                #else
+                self.impl
+                #endif
             }
         }
 
@@ -121,7 +151,7 @@ extension MLDSA65 {
         /// for the `ML-DSA.KeyGen_internal` algorithm (Algorithm 16) of FIPS 204.
         public var seedRepresentation: Data {
             get {
-                self.impl.seedRepresentation
+                return self.impl.seedRepresentation
             }
         }
 
@@ -143,7 +173,18 @@ extension MLDSA65 {
         public func signature<D: DataProtocol, C: DataProtocol>(for data: D, context: C) throws -> Data {
             return try impl.signature(for: data, context: context)
         }
-        
+
+        /// Generate a signature for the prehashed message representative (a.k.a. "external mu").
+        ///
+        /// > Note: The message representative should be obtained via calls to ``MLDSA87/PublicKey/prehash(for:context:)``.
+        ///
+        /// - Parameter mu: The prehashed message representative (a.k.a. "external mu").
+        ///
+        /// - Returns: The signature of the prehashed message representative.
+        package func signature_boring(forPrehashedMessageRepresentative mu: some DataProtocol) throws -> Data {
+            try self.boringSSLKey.signature_boring(forPrehashedMessageRepresentative: mu)
+        }
+
         /// The associated public key.
         public var publicKey: PublicKey {
             get {
@@ -173,12 +214,8 @@ extension MLDSA65 {
         /// This representation is 64 bytes long, and contains the seed and a hash of the public key.
         public var integrityCheckedRepresentation: Data {
             get {
-                self.impl.integrityCheckedRepresentation
+                return self.impl.integrityCheckedRepresentation
             }
-        }
-
-        private init(impl: MLDSAPrivateKeyImpl<MLDSA65>) {
-            self.impl = impl
         }
 
         private var boringSSLKey: OpenSSLMLDSAPrivateKeyImpl<MLDSA65> {
@@ -210,7 +247,7 @@ extension MLDSA87 {
         internal init(_ impl: MLDSAPublicKeyImpl<MLDSA87>) {
             self.impl = impl
         }
-        
+
         /// Parses a public key from a serialized representation.
         ///
         /// - Parameter rawRepresentation: The public key, in the FIPS 204 standard serialization format.
@@ -225,6 +262,36 @@ extension MLDSA87 {
         public var rawRepresentation: Data {
             get {
                 return self.impl.rawRepresentation
+            }
+        }
+
+        /// Generate a prehashed message representative (a.k.a. "external mu") for the given message.
+        ///
+        /// - Parameter data: The message to prehash.
+        ///
+        /// - Returns: The prehashed message representative (a.k.a. "external mu").
+        package func prehash_boring<D: DataProtocol>(for data: D) throws -> Data {
+            try self.boringSSLKey.prehash_boring(for: data)
+        }
+
+        /// Generate a prehashed message representative (a.k.a. "external mu") for the given message.
+        ///
+        /// - Parameters:
+        ///   - data: The message to prehash.
+        ///   - context: The context of the message.
+        ///
+        /// - Returns: The prehashed message representative (a.k.a. "external mu").
+        package func prehash_boring<D: DataProtocol, C: DataProtocol>(for data: D, context: C) throws -> Data {
+            try self.boringSSLKey.prehash_boring(for: data, context: context)
+        }
+
+        private var boringSSLKey: OpenSSLMLDSAPublicKeyImpl<MLDSA87> {
+            get throws {
+                #if (!CRYPTO_IN_SWIFTPM_FORCE_BUILD_API) || CRYPTOKIT_NO_ACCESS_TO_FOUNDATION
+                try OpenSSLMLDSAPublicKeyImpl<MLDSA87>(rawRepresentation: self.rawRepresentation)
+                #else
+                self.impl
+                #endif
             }
         }
 
@@ -285,7 +352,7 @@ extension MLDSA87 {
         /// for the `ML-DSA.KeyGen_internal` algorithm (Algorithm 16) of FIPS 204.
         public var seedRepresentation: Data {
             get {
-                self.impl.seedRepresentation
+                return self.impl.seedRepresentation
             }
         }
 
@@ -307,7 +374,18 @@ extension MLDSA87 {
         public func signature<D: DataProtocol, C: DataProtocol>(for data: D, context: C) throws -> Data {
             return try impl.signature(for: data, context: context)
         }
-        
+
+        /// Generate a signature for the prehashed message representative (a.k.a. "external mu").
+        ///
+        /// > Note: The message representative should be obtained via calls to ``MLDSA87/PublicKey/prehash(for:context:)``.
+        ///
+        /// - Parameter mu: The prehashed message representative (a.k.a. "external mu").
+        ///
+        /// - Returns: The signature of the prehashed message representative.
+        package func signature_boring(forPrehashedMessageRepresentative mu: some DataProtocol) throws -> Data {
+            try self.boringSSLKey.signature_boring(forPrehashedMessageRepresentative: mu)
+        }
+
         /// The associated public key.
         public var publicKey: PublicKey {
             get {
@@ -337,12 +415,8 @@ extension MLDSA87 {
         /// This representation is 64 bytes long, and contains the seed and a hash of the public key.
         public var integrityCheckedRepresentation: Data {
             get {
-                self.impl.integrityCheckedRepresentation
+                return self.impl.integrityCheckedRepresentation
             }
-        }
-
-        private init(impl: MLDSAPrivateKeyImpl<MLDSA87>) {
-            self.impl = impl
         }
 
         private var boringSSLKey: OpenSSLMLDSAPrivateKeyImpl<MLDSA87> {
