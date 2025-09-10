@@ -12,7 +12,6 @@
 //
 //===----------------------------------------------------------------------===//
 import XCTest
-
 #if CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
 // Skip tests that require @testable imports of CryptoKit.
 #else
@@ -31,12 +30,8 @@ final class MLKEMTests: XCTestCase {
         try XCTAssert(publicKey.rawRepresentation == MLKEM768.PublicKey(rawRepresentation: publicKey.rawRepresentation).rawRepresentation)
 
         // Test Private Key serialization
-        #if false
         try XCTAssert(privateKey.seedRepresentation == MLKEM768.PrivateKey(seedRepresentation: privateKey.seedRepresentation, publicKey: publicKey).seedRepresentation)
         try XCTAssert(privateKey.integrityCheckedRepresentation == MLKEM768.PrivateKey(integrityCheckedRepresentation: privateKey.integrityCheckedRepresentation).integrityCheckedRepresentation)
-        #else
-        try XCTAssert(privateKey.seedRepresentation == MLKEM768.PrivateKey(seedRepresentation: privateKey.seedRepresentation, publicKey: nil).seedRepresentation)
-        #endif
 
         let er = try publicKey.encapsulate()
         let ss = try privateKey.decapsulate(er.encapsulated)
@@ -52,12 +47,8 @@ final class MLKEMTests: XCTestCase {
         try XCTAssert(publicKey.rawRepresentation == MLKEM1024.PublicKey(rawRepresentation: publicKey.rawRepresentation).rawRepresentation)
 
         // Test Private Key serialization
-        #if false
         try XCTAssert(privateKey.seedRepresentation == MLKEM1024.PrivateKey(seedRepresentation: privateKey.seedRepresentation, publicKey: publicKey).seedRepresentation)
         try XCTAssert(privateKey.integrityCheckedRepresentation == MLKEM1024.PrivateKey(integrityCheckedRepresentation: privateKey.integrityCheckedRepresentation).integrityCheckedRepresentation)
-        #else
-        try XCTAssert(privateKey.seedRepresentation == MLKEM1024.PrivateKey(seedRepresentation: privateKey.seedRepresentation, publicKey: nil).seedRepresentation)
-        #endif
 
         let er = try publicKey.encapsulate()
         let ss = try privateKey.decapsulate(er.encapsulated)
@@ -80,6 +71,7 @@ final class MLKEMTests: XCTestCase {
 
     func test768KAT() throws {
         #if CRYPTO_IN_SWIFTPM
+        // No support for encapsulateWithSeed in BoringSSL.
         throw XCTSkip()
         #else
         let katTests = try processKATFile(filename:"MLKEM768KAT")
@@ -87,12 +79,12 @@ final class MLKEMTests: XCTestCase {
             let rndGen = try Drbg(katTest.rngSeed)
 
             var keyGenSeed = Data(count: 64)
-            keyGenSeed.withUnsafeMutableBytes { buffer in
-                buffer.initializeWithRandomBytes(count: buffer.count, ccrngState: rndGen.detRngPtr)
+            try keyGenSeed.withUnsafeMutableBytes { buffer in
+                try buffer.initializeWithRandomBytes(count: buffer.count, rngState: rndGen)
             }
             var encapSeed = Data(count: 32)
-            encapSeed.withUnsafeMutableBytes { buffer in
-                buffer.initializeWithRandomBytes(count: buffer.count, ccrngState: rndGen.detRngPtr)
+            try encapSeed.withUnsafeMutableBytes { buffer in
+                try buffer.initializeWithRandomBytes(count: buffer.count, rngState: rndGen)
             }
 
             let privateKey = try MLKEM768.PrivateKey.generateWithSeed(keyGenSeed) // 2 * 32 bytes
@@ -110,6 +102,7 @@ final class MLKEMTests: XCTestCase {
 
     func test1024KAT() throws {
         #if CRYPTO_IN_SWIFTPM
+        // No support for encapsulateWithSeed in BoringSSL.
         throw XCTSkip()
         #else
         let katTests = try processKATFile(filename:"MLKEM1024KAT")
@@ -117,12 +110,12 @@ final class MLKEMTests: XCTestCase {
             let rndGen = try Drbg(katTest.rngSeed)
 
             var keyGenSeed = Data(count: 64)
-            keyGenSeed.withUnsafeMutableBytes { buffer in
-                buffer.initializeWithRandomBytes(count: buffer.count, ccrngState: rndGen.detRngPtr)
+            try keyGenSeed.withUnsafeMutableBytes { buffer in
+                try buffer.initializeWithRandomBytes(count: buffer.count, rngState: rndGen)
             }
             var encapSeed = Data(count: 32)
-            encapSeed.withUnsafeMutableBytes { buffer in
-                buffer.initializeWithRandomBytes(count: buffer.count, ccrngState: rndGen.detRngPtr)
+            try encapSeed.withUnsafeMutableBytes { buffer in
+                try buffer.initializeWithRandomBytes(count: buffer.count, rngState: rndGen)
             }
 
             let privateKey = try MLKEM1024.PrivateKey.generateWithSeed(keyGenSeed)

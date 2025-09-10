@@ -102,17 +102,26 @@ extension MLKEM768.InternalPrivateKey: BoringSSLBackedMLKEMPrivateKey {
     }
 
     init<Bytes>(seedRepresentation: Bytes, publicKeyRawRepresentation: Data?) throws where Bytes: DataProtocol {
-        precondition(publicKeyRawRepresentation == nil)
-        self = try .init(seedRepresentation: seedRepresentation)
+        let publicKeyHash = publicKeyRawRepresentation.map {
+            SHA3_256.hash(data: $0)
+        }
+        self = try .init(seedRepresentation: seedRepresentation, publicKeyHash: publicKeyHash)
     }
 
     init<Bytes: DataProtocol>(seedRepresentation: Bytes, publicKeyHash: SHA3_256Digest?) throws {
-        precondition(publicKeyHash == nil)
         self = try .init(seedRepresentation: seedRepresentation)
+        let generatedHash = SHA3_256.hash(data: self.publicKey.rawRepresentation)
+        if let publicKeyHash, generatedHash != publicKeyHash {
+            throw KEM.Errors.publicKeyMismatchDuringInitialization
+        }
     }
 
     var integrityCheckedRepresentation: Data {
-        fatalError()
+        var representation = self.seedRepresentation
+        SHA3_256.hash(data: self.publicKey.rawRepresentation).withUnsafeBytes {
+            representation.append(contentsOf: $0)
+        }
+        return representation
     }
 
     var interiorPublicKey: MLKEM768.InternalPublicKey {
@@ -155,17 +164,26 @@ extension MLKEM1024.InternalPrivateKey: BoringSSLBackedMLKEMPrivateKey {
     }
 
     init<Bytes>(seedRepresentation: Bytes, publicKeyRawRepresentation: Data?) throws where Bytes: DataProtocol {
-        precondition(publicKeyRawRepresentation == nil)
-        self = try .init(seedRepresentation: seedRepresentation)
+        let publicKeyHash = publicKeyRawRepresentation.map {
+            SHA3_256.hash(data: $0)
+        }
+        self = try .init(seedRepresentation: seedRepresentation, publicKeyHash: publicKeyHash)
     }
 
     init<Bytes: DataProtocol>(seedRepresentation: Bytes, publicKeyHash: SHA3_256Digest?) throws {
-        precondition(publicKeyHash == nil)
         self = try .init(seedRepresentation: seedRepresentation)
+        let generatedHash = SHA3_256.hash(data: self.publicKey.rawRepresentation)
+        if let publicKeyHash, generatedHash != publicKeyHash {
+            throw KEM.Errors.publicKeyMismatchDuringInitialization
+        }
     }
 
     var integrityCheckedRepresentation: Data {
-        fatalError()
+        var representation = self.seedRepresentation
+        SHA3_256.hash(data: self.publicKey.rawRepresentation).withUnsafeBytes {
+            representation.append(contentsOf: $0)
+        }
+        return representation
     }
 
     var interiorPublicKey: MLKEM1024.InternalPublicKey {
