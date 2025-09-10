@@ -34,7 +34,7 @@ When building Swift Crypto for use on Linux or Windows, Swift Crypto builds subs
 2. The common API of Swift Crypto and CryptoKit.
 3. The backing implementation of this common API, which calls into BoringSSL.
 
-The API code, and some cryptographic primitives which are directly implemented in Swift, are exactly the same for both Apple CryptoKit and Swift Crypto. The backing BoringSSL-based implementation is unique to Swift Crypto.
+The API code, and some cryptographic primitives which are directly implemented in Swift, are exactly the same for both Apple CryptoKit and Swift Crypto. The backing BoringSSL-based implementation is unique to Swift Crypto. In addition, there is another product, `CryptoExtras`, which provides additional functionality that is not offered in CryptoKit, which contains cryptographic APIS predominantly useful in the server ecosystem. **Note**: if you depend on CryptoExtras you'll bundle the BoringSSL implementation of the library in your application, no matter the platform.
 
 ## Evolution
 
