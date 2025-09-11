@@ -7,11 +7,11 @@
 #if !defined(OPENSSL_NO_ASM) && defined(OPENSSL_AARCH64) && defined(__ELF__)
 .text
 
-.globl	bn_mul_mont
-.hidden	bn_mul_mont
-.type	bn_mul_mont,%function
+.globl	bn_mul_mont_words
+.hidden	bn_mul_mont_words
+.type	bn_mul_mont_words,%function
 .align	5
-bn_mul_mont:
+bn_mul_mont_words:
 	AARCH64_SIGN_LINK_REGISTER
 	tst	x5,#7
 	b.eq	__bn_sqr8x_mont
@@ -212,12 +212,12 @@ bn_mul_mont:
 	ldr	x29,[sp],#64
 	AARCH64_VALIDATE_LINK_REGISTER
 	ret
-.size	bn_mul_mont,.-bn_mul_mont
+.size	bn_mul_mont_words,.-bn_mul_mont_words
 .type	__bn_sqr8x_mont,%function
 .align	5
 __bn_sqr8x_mont:
 	// Not adding AARCH64_SIGN_LINK_REGISTER here because __bn_sqr8x_mont is jumped to
-	// only from bn_mul_mont which has already signed the return address.
+	// only from bn_mul_mont_words which has already signed the return address.
 	cmp	x1,x2
 	b.ne	__bn_mul4x_mont
 .Lsqr8x_mont:
@@ -979,7 +979,7 @@ __bn_sqr8x_mont:
 .align	5
 __bn_mul4x_mont:
 	// Not adding AARCH64_SIGN_LINK_REGISTER here because __bn_mul4x_mont is jumped to
-	// only from bn_mul_mont or __bn_mul8x_mont which have already signed the
+	// only from bn_mul_mont_words or __bn_mul8x_mont which have already signed the
 	// return address.
 	stp	x29,x30,[sp,#-128]!
 	add	x29,sp,#0

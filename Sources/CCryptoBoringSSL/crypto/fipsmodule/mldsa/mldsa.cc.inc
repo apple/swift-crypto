@@ -50,7 +50,6 @@ constexpr uint32_t kPrime = 8380417;
 constexpr uint32_t kPrimeNegInverse = 4236238847;
 constexpr int kDroppedBits = 13;
 constexpr uint32_t kHalfPrime = (kPrime - 1) / 2;
-constexpr uint32_t kGamma2 = (kPrime - 1) / 32;
 // 256^-1 mod kPrime, in Montgomery form.
 constexpr uint32_t kInverseDegreeMontgomery = 41978;
 
@@ -65,6 +64,8 @@ constexpr size_t public_key_bytes() {
     return BCM_MLDSA65_PUBLIC_KEY_BYTES;
   } else if constexpr (K == 8) {
     return BCM_MLDSA87_PUBLIC_KEY_BYTES;
+  } else if constexpr (K == 4) {
+    return BCM_MLDSA44_PUBLIC_KEY_BYTES;
   }
 }
 
@@ -74,6 +75,8 @@ constexpr size_t signature_bytes() {
     return BCM_MLDSA65_SIGNATURE_BYTES;
   } else if constexpr (K == 8) {
     return BCM_MLDSA87_SIGNATURE_BYTES;
+  } else if constexpr (K == 4) {
+    return BCM_MLDSA44_SIGNATURE_BYTES;
   }
 }
 
@@ -83,6 +86,8 @@ constexpr int tau() {
     return 49;
   } else if constexpr (K == 8) {
     return 60;
+  } else if constexpr (K == 4) {
+    return 39;
   }
 }
 
@@ -92,14 +97,61 @@ constexpr int lambda_bytes() {
     return 192 / 8;
   } else if constexpr (K == 8) {
     return 256 / 8;
+  } else if constexpr (K == 4) {
+    return 128 / 8;
+  }
+}
+
+template <int K>
+constexpr int gamma1_bits() {
+  if constexpr (K == 6 || K == 8) {
+    return 19;
+  } else if constexpr (K == 4) {
+    return 17;
   }
 }
 
 template <int K>
 constexpr int gamma1() {
+  return 1 << gamma1_bits<K>();
+}
+
+template <int K>
+constexpr int scalar_le_gamma1_bytes() {
+  return ((gamma1_bits<K>() + 1) * kDegree) / 8;
+}
+
+template <int K>
+constexpr uint32_t w1_coeffs_bits() {
   if constexpr (K == 6 || K == 8) {
-    return 1 << 19;
+    return 4;
+  } else if constexpr (K == 4) {
+    return 6;
   }
+}
+
+template <int K>
+constexpr uint32_t w1_scalar_bytes() {
+  return (w1_coeffs_bits<K>() * kDegree) / 8;
+}
+
+template <int K>
+constexpr uint32_t w1_bytes() {
+  return w1_scalar_bytes<K>() * K;
+}
+
+template <int K>
+constexpr uint32_t prime_minus_one_over_gamma2() {
+  if constexpr (K == 6 || K == 8) {
+    return 32;
+  } else if constexpr (K == 4) {
+    return 88;
+  }
+}
+
+template <int K>
+constexpr uint32_t gamma2() {
+  return (kPrime - 1) / prime_minus_one_over_gamma2<K>();
 }
 
 template <int K>
@@ -108,6 +160,8 @@ constexpr int beta() {
     return 196;
   } else if constexpr (K == 8) {
     return 120;
+  } else if constexpr (K == 4) {
+    return 78;
   }
 }
 
@@ -117,6 +171,8 @@ constexpr int omega() {
     return 55;
   } else if constexpr (K == 8) {
     return 75;
+  } else if constexpr (K == 4) {
+    return 80;
   }
 }
 
@@ -124,7 +180,7 @@ template <int K>
 constexpr int eta() {
   if constexpr (K == 6) {
     return 4;
-  } else if constexpr (K == 8) {
+  } else if constexpr (K == 8 || K == 4) {
     return 2;
   }
 }
@@ -133,7 +189,7 @@ template <int K>
 constexpr int plus_minus_eta_bitlen() {
   if constexpr (K == 6) {
     return 4;
-  } else if constexpr (K == 8) {
+  } else if constexpr (K == 8 || K == 4) {
     return 3;
   }
 }
@@ -433,42 +489,54 @@ void scale_power2_round(uint32_t *out, uint32_t r1) {
 }
 
 // FIPS 204, Algorithm 37 (`HighBits`).
+template <int K>
 uint32_t high_bits(uint32_t x) {
   // Reference description (given 0 <= x < q):
   //
   // ```
-  // int32_t r0 = x mod+- (2 * kGamma2);
+  // int32_t r0 = x mod+- (2 * gamma2);
   // if (x - r0 == q - 1) {
   //   return 0;
   // } else {
-  //   return (x - r0) / (2 * kGamma2);
+  //   return (x - r0) / (2 * gamma2);
   // }
   // ```
   //
-  // Below is the formula taken from the reference implementation.
-  //
-  // Here, kGamma2 == 2^18 - 2^8
-  // This returns ((ceil(x / 2^7) * (2^10 + 1) + 2^21) / 2^22) mod 2^4
   uint32_t r1 = (x + 127) >> 7;
-  r1 = (r1 * 1025 + (1 << 21)) >> 22;
-  r1 &= 15;
+  if constexpr (prime_minus_one_over_gamma2<K>() == 32) {
+    // Below is the formula taken from the reference implementation.
+    //
+    // Here, Gamma2 == 2^18 - 2^8
+    // This returns ((ceil(x / 2^7) * (2^10 + 1) + 2^21) / 2^22) mod 2^4
+    r1 = (r1 * 1025 + (1 << 21)) >> 22;
+    r1 &= 15;
+  } else if constexpr (prime_minus_one_over_gamma2<K>() == 88) {
+    // 1488/2^24 is close enough to 1/1488 so that r1 becomes x/(2 gamma2)
+    // rounded down.
+    r1 = (r1 * 11275 + (1 << 23)) >> 24;
+
+    // For corner-case r1 = (Q-1)/(2 gamma2) = 44, we have to set r1=0.
+    r1 ^= ((uint32_t)(((int32_t)(43 - r1)) >> 31)) & r1;
+  }
   return r1;
 }
 
 // FIPS 204, Algorithm 36 (`Decompose`).
+template <int K>
 void decompose(uint32_t *r1, int32_t *r0, uint32_t r) {
-  *r1 = high_bits(r);
+  *r1 = high_bits<K>(r);
 
   *r0 = r;
-  *r0 -= *r1 * 2 * (int32_t)kGamma2;
+  *r0 -= *r1 * 2 * (int32_t)gamma2<K>();
   *r0 -= (((int32_t)kHalfPrime - *r0) >> 31) & (int32_t)kPrime;
 }
 
 // FIPS 204, Algorithm 38 (`LowBits`).
+template <int K>
 int32_t low_bits(uint32_t x) {
   uint32_t r1;
   int32_t r0;
-  decompose(&r1, &r0, x);
+  decompose<K>(&r1, &r0, x);
   return r0;
 }
 
@@ -480,24 +548,45 @@ int32_t low_bits(uint32_t x) {
 //
 // It then computes HighBits (algorithm 37) of z and z+r. But z+r is just w -
 // cs2, so this takes three arguments and saves an addition.
+template <int K>
 int32_t make_hint(uint32_t ct0, uint32_t cs2, uint32_t w) {
   uint32_t r_plus_z = mod_sub(w, cs2);
   uint32_t r = reduce_once(r_plus_z + ct0);
-  return high_bits(r) != high_bits(r_plus_z);
+  return high_bits<K>(r) != high_bits<K>(r_plus_z);
 }
 
 // FIPS 204, Algorithm 40 (`UseHint`).
+template <int K>
 uint32_t use_hint_vartime(uint32_t h, uint32_t r) {
   uint32_t r1;
   int32_t r0;
-  decompose(&r1, &r0, r);
+  decompose<K>(&r1, &r0, r);
 
   if (h) {
-    if (r0 > 0) {
-      // m = 16, thus |mod m| in the spec turns into |& 15|.
-      return (r1 + 1) & 15;
+    if constexpr (prime_minus_one_over_gamma2<K>() == 32) {
+      if (r0 > 0) {
+        // (Q-1)/(2 gamma2) = m = 16, thus |mod m| in the spec turns into |&
+        // 15|.
+        return (r1 + 1) & 15;
+      } else {
+        return (r1 - 1) & 15;
+      }
     } else {
-      return (r1 - 1) & 15;
+      // m = 44
+      static_assert(prime_minus_one_over_gamma2<K>() == 88);
+      if (r0 > 0) {
+        if (r1 == 43) {
+          return 0;
+        } else {
+          return r1 + 1;
+        }
+      } else {
+        if (r1 == 0) {
+          return 43;
+        } else {
+          return r1 - 1;
+        }
+      }
     }
   }
   return r1;
@@ -515,15 +604,17 @@ void scalar_scale_power2_round(scalar *out, const scalar *in) {
   }
 }
 
+template <int K>
 void scalar_high_bits(scalar *out, const scalar *in) {
   for (int i = 0; i < kDegree; i++) {
-    out->c[i] = high_bits(in->c[i]);
+    out->c[i] = high_bits<K>(in->c[i]);
   }
 }
 
+template <int K>
 void scalar_low_bits(scalar *out, const scalar *in) {
   for (int i = 0; i < kDegree; i++) {
-    out->c[i] = low_bits(in->c[i]);
+    out->c[i] = low_bits<K>(in->c[i]);
   }
 }
 
@@ -541,16 +632,18 @@ void scalar_max_signed(uint32_t *max, const scalar *s) {
   }
 }
 
+template <int K>
 void scalar_make_hint(scalar *out, const scalar *ct0, const scalar *cs2,
                       const scalar *w) {
   for (int i = 0; i < kDegree; i++) {
-    out->c[i] = make_hint(ct0->c[i], cs2->c[i], w->c[i]);
+    out->c[i] = make_hint<K>(ct0->c[i], cs2->c[i], w->c[i]);
   }
 }
 
+template <int K>
 void scalar_use_hint_vartime(scalar *out, const scalar *h, const scalar *r) {
   for (int i = 0; i < kDegree; i++) {
-    out->c[i] = use_hint_vartime(h->c[i], r->c[i]);
+    out->c[i] = use_hint_vartime<K>(h->c[i], r->c[i]);
   }
 }
 
@@ -568,17 +661,17 @@ void vector_scale_power2_round(vector<X> *out, const vector<X> *in) {
   }
 }
 
-template <int X>
-void vector_high_bits(vector<X> *out, const vector<X> *in) {
-  for (int i = 0; i < X; i++) {
-    scalar_high_bits(&out->v[i], &in->v[i]);
+template <int K>
+void vector_high_bits(vector<K> *out, const vector<K> *in) {
+  for (int i = 0; i < K; i++) {
+    scalar_high_bits<K>(&out->v[i], &in->v[i]);
   }
 }
 
-template <int X>
-void vector_low_bits(vector<X> *out, const vector<X> *in) {
-  for (int i = 0; i < X; i++) {
-    scalar_low_bits(&out->v[i], &in->v[i]);
+template <int K>
+void vector_low_bits(vector<K> *out, const vector<K> *in) {
+  for (int i = 0; i < K; i++) {
+    scalar_low_bits<K>(&out->v[i], &in->v[i]);
   }
 }
 
@@ -612,19 +705,19 @@ size_t vector_count_ones(const vector<X> *a) {
   return count;
 }
 
-template <int X>
-void vector_make_hint(vector<X> *out, const vector<X> *ct0,
-                      const vector<X> *cs2, const vector<X> *w) {
-  for (int i = 0; i < X; i++) {
-    scalar_make_hint(&out->v[i], &ct0->v[i], &cs2->v[i], &w->v[i]);
+template <int K>
+void vector_make_hint(vector<K> *out, const vector<K> *ct0,
+                      const vector<K> *cs2, const vector<K> *w) {
+  for (int i = 0; i < K; i++) {
+    scalar_make_hint<K>(&out->v[i], &ct0->v[i], &cs2->v[i], &w->v[i]);
   }
 }
 
-template <int X>
-void vector_use_hint_vartime(vector<X> *out, const vector<X> *h,
-                             const vector<X> *r) {
-  for (int i = 0; i < X; i++) {
-    scalar_use_hint_vartime(&out->v[i], &h->v[i], &r->v[i]);
+template <int K>
+void vector_use_hint_vartime(vector<K> *out, const vector<K> *h,
+                             const vector<K> *r) {
+  for (int i = 0; i < K; i++) {
+    scalar_use_hint_vartime<K>(&out->v[i], &h->v[i], &r->v[i]);
   }
 }
 
@@ -640,6 +733,25 @@ static void scalar_encode_4(uint8_t out[128], const scalar *s) {
     declassify_assert(a < 16);
     declassify_assert(b < 16);
     out[i] = a | (b << 4);
+  }
+}
+
+// FIPS 204, Algorithm 16 (`SimpleBitPack`). Specialized to bitlen(b) = 6.
+void scalar_encode_6(uint8_t out[192], const scalar *s) {
+  // Every four elements lands on a byte boundary.
+  static_assert(kDegree % 4 == 0, "kDegree must be a multiple of 4");
+  for (int i = 0; i < kDegree / 4; i++) {
+    uint32_t a = s->c[4 * i];
+    uint32_t b = s->c[4 * i + 1];
+    uint32_t c = s->c[4 * i + 2];
+    uint32_t d = s->c[4 * i + 3];
+    declassify_assert(a < 64);
+    declassify_assert(b < 64);
+    declassify_assert(c < 64);
+    declassify_assert(d < 64);
+    out[3 * i] = a | (b << 6);
+    out[3 * i + 1] = (b >> 2) | (c << 4);
+    out[3 * i + 2] = (c >> 4) | (d << 2);
   }
 }
 
@@ -730,10 +842,10 @@ void scalar_encode_signed_13_12(uint8_t out[416], const scalar *s) {
     e |= g << 14;
     e |= h << 27;
     h >>= 5;
-    OPENSSL_memcpy(&out[13 * i], &a, sizeof(a));
-    OPENSSL_memcpy(&out[13 * i + 4], &c, sizeof(c));
-    OPENSSL_memcpy(&out[13 * i + 8], &e, sizeof(e));
-    OPENSSL_memcpy(&out[13 * i + 12], &h, 1);
+    CRYPTO_store_u32_le(&out[13 * i], a);
+    CRYPTO_store_u32_le(&out[13 * i + 4], c);
+    CRYPTO_store_u32_le(&out[13 * i + 8], e);
+    out[13 * i + 12] = static_cast<uint8_t>(h);
   }
 }
 
@@ -757,9 +869,35 @@ void scalar_encode_signed_20_19(uint8_t out[640], const scalar *s) {
     b |= c << 8;
     b |= d << 28;
     d >>= 4;
-    OPENSSL_memcpy(&out[10 * i], &a, sizeof(a));
-    OPENSSL_memcpy(&out[10 * i + 4], &b, sizeof(b));
-    OPENSSL_memcpy(&out[10 * i + 8], &d, 2);
+    CRYPTO_store_u32_le(&out[10 * i], a);
+    CRYPTO_store_u32_le(&out[10 * i + 4], b);
+    CRYPTO_store_u16_le(&out[10 * i + 8], static_cast<uint16_t>(d));
+  }
+}
+
+// FIPS 204, Algorithm 17 (`BitPack`). Specialized to bitlen(a+b) = 18 and b =
+// 2^17.
+void scalar_encode_signed_18_17(uint8_t out[576], const scalar *s) {
+  static const uint32_t kMax = 1u << 17;
+  static_assert(kDegree % 4 == 0, "kDegree must be a multiple of 4");
+  for (int i = 0; i < kDegree / 4; i++) {
+    uint32_t a = mod_sub(kMax, s->c[4 * i]);
+    uint32_t b = mod_sub(kMax, s->c[4 * i + 1]);
+    uint32_t c = mod_sub(kMax, s->c[4 * i + 2]);
+    uint32_t d = mod_sub(kMax, s->c[4 * i + 3]);
+    declassify_assert(a < (1u << 18));
+    declassify_assert(b < (1u << 18));
+    declassify_assert(c < (1u << 18));
+    declassify_assert(d < (1u << 18));
+    out[9 * i] = (uint8_t)a;
+    out[9 * i + 1] = (uint8_t)(a >> 8);
+    out[9 * i + 2] = (uint8_t)(a >> 16) | (uint8_t)(b << 2);
+    out[9 * i + 3] = (uint8_t)(b >> 6);
+    out[9 * i + 4] = (uint8_t)(b >> 14) | (uint8_t)(c << 4);
+    out[9 * i + 5] = (uint8_t)(c >> 4);
+    out[9 * i + 6] = (uint8_t)(c >> 12) | (uint8_t)(d << 6);
+    out[9 * i + 7] = (uint8_t)(d >> 2);
+    out[9 * i + 8] = (uint8_t)(d >> 10);
   }
 }
 
@@ -775,6 +913,9 @@ void scalar_encode_signed(uint8_t *out, const scalar *s, int bits,
   } else if (bits == 20) {
     assert(max == 1u << 19);
     scalar_encode_signed_20_19(out, s);
+  } else if (bits == 18) {
+    assert(max == 1u << 17);
+    scalar_encode_signed_18_17(out, s);
   } else {
     assert(bits == 13);
     assert(max == 1u << 12);
@@ -784,10 +925,9 @@ void scalar_encode_signed(uint8_t *out, const scalar *s, int bits,
 
 // FIPS 204, Algorithm 18 (`SimpleBitUnpack`). Specialized for bitlen(b) == 10.
 void scalar_decode_10(scalar *out, const uint8_t in[320]) {
-  uint32_t v;
   static_assert(kDegree % 4 == 0, "kDegree must be a multiple of 4");
   for (int i = 0; i < kDegree / 4; i++) {
-    OPENSSL_memcpy(&v, &in[5 * i], sizeof(v));
+    uint32_t v = CRYPTO_load_u32_le(&in[5 * i]);
     out->c[4 * i] = v & 0x3ff;
     out->c[4 * i + 1] = (v >> 10) & 0x3ff;
     out->c[4 * i + 2] = (v >> 20) & 0x3ff;
@@ -798,10 +938,9 @@ void scalar_decode_10(scalar *out, const uint8_t in[320]) {
 // FIPS 204, Algorithm 19 (`BitUnpack`). Specialized to bitlen(a+b) = 4 and b =
 // 4.
 int scalar_decode_signed_4_4(scalar *out, const uint8_t in[128]) {
-  uint32_t v;
   static_assert(kDegree % 8 == 0, "kDegree must be a multiple of 8");
   for (int i = 0; i < kDegree / 8; i++) {
-    OPENSSL_memcpy(&v, &in[4 * i], sizeof(v));
+    uint32_t v = CRYPTO_load_u32_le(&in[4 * i]);
     // None of the nibbles may be >= 9. So if the MSB of any nibble is set, none
     // of the other bits may be set. First, select all the MSBs.
     const uint32_t msbs = v & 0x88888888u;
@@ -865,14 +1004,12 @@ void scalar_decode_signed_13_12(scalar *out, const uint8_t in[416]) {
   static const uint32_t k13Bits = (1u << 13) - 1;
   static const uint32_t k7Bits = (1u << 7) - 1;
 
-  uint32_t a, b, c;
-  uint8_t d;
   static_assert(kDegree % 8 == 0, "kDegree must be a multiple of 8");
   for (int i = 0; i < kDegree / 8; i++) {
-    OPENSSL_memcpy(&a, &in[13 * i], sizeof(a));
-    OPENSSL_memcpy(&b, &in[13 * i + 4], sizeof(b));
-    OPENSSL_memcpy(&c, &in[13 * i + 8], sizeof(c));
-    d = in[13 * i + 12];
+    uint32_t a = CRYPTO_load_u32_le(&in[13 * i]);
+    uint32_t b = CRYPTO_load_u32_le(&in[13 * i + 4]);
+    uint32_t c = CRYPTO_load_u32_le(&in[13 * i + 8]);
+    uint8_t d = in[13 * i + 12];
 
     // It's not possible for a 13-bit number to be out of range when the max is
     // 2^12.
@@ -887,19 +1024,43 @@ void scalar_decode_signed_13_12(scalar *out, const uint8_t in[416]) {
   }
 }
 
+// FIPS 204, Algorithm 19 (`BitUnpack`). Specialized to bitlen(a+b) = 18 and b =
+// 2^17.
+void scalar_decode_signed_18_17(scalar *out, const uint8_t in[576]) {
+  static const uint32_t kMax = 1u << 17;
+
+  static_assert(kDegree % 4 == 0, "kDegree must be a multiple of 4");
+  for (int i = 0; i < kDegree / 4; i++) {
+    uint32_t a = uint32_t{in[9 * i]} | (uint32_t{in[9 * i + 1]} << 8) |
+                 ((uint32_t{in[9 * i + 2]} & 0x3) << 16);
+    uint32_t b = (uint32_t{in[9 * i + 2]} >> 2) |
+                 (uint32_t{in[9 * i + 3]} << 6) |
+                 ((uint32_t{in[9 * i + 4]} & 0xf) << 14);
+    uint32_t c = (uint32_t{in[9 * i + 4]} >> 4) |
+                 (uint32_t{in[9 * i + 5]} << 4) |
+                 ((uint32_t{in[9 * i + 6]} & 0x3f) << 12);
+    uint32_t d = (uint32_t{in[9 * i + 6]} >> 6) |
+                 (uint32_t{in[9 * i + 7]} << 2) |
+                 (uint32_t{in[9 * i + 8]} << 10);
+
+    out->c[i * 4] = mod_sub(kMax, a);
+    out->c[i * 4 + 1] = mod_sub(kMax, b);
+    out->c[i * 4 + 2] = mod_sub(kMax, c);
+    out->c[i * 4 + 3] = mod_sub(kMax, d);
+  }
+}
+
 // FIPS 204, Algorithm 19 (`BitUnpack`). Specialized to bitlen(a+b) = 20 and b =
 // 2^19.
 void scalar_decode_signed_20_19(scalar *out, const uint8_t in[640]) {
   static const uint32_t kMax = 1u << 19;
   static const uint32_t k20Bits = (1u << 20) - 1;
 
-  uint32_t a, b;
-  uint16_t c;
   static_assert(kDegree % 4 == 0, "kDegree must be a multiple of 4");
   for (int i = 0; i < kDegree / 4; i++) {
-    OPENSSL_memcpy(&a, &in[10 * i], sizeof(a));
-    OPENSSL_memcpy(&b, &in[10 * i + 4], sizeof(b));
-    OPENSSL_memcpy(&c, &in[10 * i + 8], sizeof(c));
+    uint32_t a = CRYPTO_load_u32_le(&in[10 * i]);
+    uint32_t b = CRYPTO_load_u32_le(&in[10 * i + 4]);
+    uint16_t c = CRYPTO_load_u16_le(&in[10 * i + 8]);
 
     // It's not possible for a 20-bit number to be out of range when the max is
     // 2^19.
@@ -922,6 +1083,10 @@ int scalar_decode_signed(scalar *out, const uint8_t *in, int bits,
   } else if (bits == 13) {
     assert(max == (1u << 12));
     scalar_decode_signed_13_12(out, in);
+    return 1;
+  } else if (bits == 18) {
+    assert(max == (1u << 17));
+    scalar_decode_signed_18_17(out, in);
     return 1;
   } else if (bits == 20) {
     assert(max == (1u << 19));
@@ -1016,13 +1181,14 @@ void scalar_uniform(scalar *out, const uint8_t derived_seed[kSigmaBytes + 2]) {
 }
 
 // FIPS 204, Algorithm 34 (`ExpandMask`), but just a single step.
+template <int K>
 void scalar_sample_mask(scalar *out,
                         const uint8_t derived_seed[kRhoPrimeBytes + 2]) {
-  uint8_t buf[640];
+  uint8_t buf[scalar_le_gamma1_bytes<K>()];
   BORINGSSL_keccak(buf, sizeof(buf), derived_seed, kRhoPrimeBytes + 2,
                    boringssl_shake256);
 
-  scalar_decode_signed_20_19(out, buf);
+  scalar_decode_signed(out, buf, gamma1_bits<K>() + 1, gamma1<K>());
 }
 
 // FIPS 204, Algorithm 29 (`SampleInBall`).
@@ -1108,7 +1274,7 @@ void vector_expand_short(vector<L> *s1, vector<K> *s2,
 }
 
 // FIPS 204, Algorithm 34 (`ExpandMask`).
-template <int L>
+template <int K, int L>
 void vector_expand_mask(vector<L> *out, const uint8_t seed[kRhoPrimeBytes],
                         size_t kappa) {
   assert(kappa + L <= 0x10000);
@@ -1119,7 +1285,7 @@ void vector_expand_mask(vector<L> *out, const uint8_t seed[kRhoPrimeBytes],
     size_t index = kappa + i;
     derived_seed[kRhoPrimeBytes] = index & 0xFF;
     derived_seed[kRhoPrimeBytes + 1] = (index >> 8) & 0xFF;
-    scalar_sample_mask(&out->v[i], derived_seed);
+    scalar_sample_mask<K>(&out->v[i], derived_seed);
   }
 }
 
@@ -1135,6 +1301,10 @@ void vector_encode(uint8_t *out, const vector<K> *a, int bits) {
   if (bits == 4) {
     for (int i = 0; i < K; i++) {
       scalar_encode_4(out + i * bits * kDegree / 8, &a->v[i]);
+    }
+  } else if (bits == 6) {
+    for (int i = 0; i < K; i++) {
+      scalar_encode_6(out + i * bits * kDegree / 8, &a->v[i]);
     }
   } else {
     assert(bits == 10);
@@ -1179,8 +1349,8 @@ int vector_decode_signed(vector<X> *out, const uint8_t *in, int bits,
 
 // FIPS 204, Algorithm 28 (`w1Encode`).
 template <int K>
-void w1_encode(uint8_t out[128 * K], const vector<K> *w1) {
-  vector_encode(out, w1, 4);
+void w1_encode(uint8_t out[w1_bytes<K>()], const vector<K> *w1) {
+  vector_encode(out, w1, w1_coeffs_bits<K>());
 }
 
 // FIPS 204, Algorithm 20 (`HintBitPack`).
@@ -1364,10 +1534,11 @@ int mldsa_marshal_signature(CBB *out, const struct signature<K, L> *sign) {
   }
 
   uint8_t *vectorl_output;
-  if (!CBB_add_space(out, &vectorl_output, 640 * L)) {
+  if (!CBB_add_space(out, &vectorl_output, scalar_le_gamma1_bytes<K>() * L)) {
     return 0;
   }
-  vector_encode_signed(vectorl_output, &sign->z, 20, 1 << 19);
+  vector_encode_signed(vectorl_output, &sign->z, gamma1_bits<K>() + 1,
+                       gamma1<K>());
 
   uint8_t *hint_output;
   if (!CBB_add_space(out, &hint_output, omega<K>() + K)) {
@@ -1384,9 +1555,10 @@ int mldsa_parse_signature(struct signature<K, L> *sign, CBS *in) {
   CBS z_bytes;
   CBS hint_bytes;
   if (!CBS_copy_bytes(in, sign->c_tilde, sizeof(sign->c_tilde)) ||
-      !CBS_get_bytes(in, &z_bytes, 640 * L) ||
-      // Note: Decoding 20 bits into (-2^19, 2^19] cannot fail.
-      !vector_decode_signed(&sign->z, CBS_data(&z_bytes), 20, 1 << 19) ||
+      !CBS_get_bytes(in, &z_bytes, scalar_le_gamma1_bytes<K>() * L) ||
+      // Note: Decoding b+1 bits into (-2^b, 2^b] cannot fail.
+      !vector_decode_signed(&sign->z, CBS_data(&z_bytes), gamma1_bits<K>() + 1,
+                            gamma1<K>()) ||
       !CBS_get_bytes(in, &hint_bytes, omega<K>() + K) ||
       !hint_bit_unpack(&sign->h, CBS_data(&hint_bytes))) {
     return 0;
@@ -1561,7 +1733,7 @@ int mldsa_sign_mu(
   // kappa must not exceed 2**16/L = 13107. But the probability of it
   // exceeding even 1000 iterations is vanishingly small.
   for (size_t kappa = 0;; kappa += L) {
-    vector_expand_mask(&values->y, rho_prime, kappa);
+    vector_expand_mask<K, L>(&values->y, rho_prime, kappa);
 
     vector<L> *y_ntt = &values->cs1;
     OPENSSL_memcpy(y_ntt, &values->y, sizeof(*y_ntt));
@@ -1571,12 +1743,12 @@ int mldsa_sign_mu(
     vector_inverse_ntt(&values->w);
 
     vector_high_bits(&values->w1, &values->w);
-    uint8_t w1_encoded[128 * K];
+    uint8_t w1_encoded[w1_bytes<K>()];
     w1_encode(w1_encoded, &values->w1);
 
     BORINGSSL_keccak_init(&keccak_ctx, boringssl_shake256);
     BORINGSSL_keccak_absorb(&keccak_ctx, mu, kMuBytes);
-    BORINGSSL_keccak_absorb(&keccak_ctx, w1_encoded, 128 * K);
+    BORINGSSL_keccak_absorb(&keccak_ctx, w1_encoded, w1_bytes<K>());
     BORINGSSL_keccak_squeeze(&keccak_ctx, values->sign.c_tilde,
                              2 * lambda_bytes<K>());
 
@@ -1609,7 +1781,7 @@ int mldsa_sign_mu(
     uint32_t r0_max = vector_max_signed(r0);
     if (constant_time_declassify_w(
             constant_time_ge_w(z_max, gamma1<K>() - beta<K>()) |
-            constant_time_ge_w(r0_max, kGamma2 - beta<K>()))) {
+            constant_time_ge_w(r0_max, gamma2<K>() - beta<K>()))) {
 #if defined(BORINGSSL_FIPS_BREAK_TESTS)
       // In order to show that our self-tests trigger both restart cases in
       // this loop, printf-logging is added when built in break-test mode.
@@ -1626,7 +1798,7 @@ int mldsa_sign_mu(
     // See above.
     uint32_t ct0_max = vector_max(ct0);
     size_t h_ones = vector_count_ones(&values->sign.h);
-    if (constant_time_declassify_w(constant_time_ge_w(ct0_max, kGamma2) |
+    if (constant_time_declassify_w(constant_time_ge_w(ct0_max, gamma2<K>()) |
                                    constant_time_lt_w(omega<K>(), h_ones))) {
 #if defined(BORINGSSL_FIPS_BREAK_TESTS)
       // In order to show that our self-tests trigger both restart cases in
@@ -1778,13 +1950,13 @@ int mldsa_verify_internal_no_self_test(
   vector_inverse_ntt(w1);
 
   vector_use_hint_vartime(w1, &values->sign.h, w1);
-  uint8_t w1_encoded[128 * K];
+  uint8_t w1_encoded[w1_bytes<K>()];
   w1_encode(w1_encoded, w1);
 
   uint8_t c_tilde[2 * lambda_bytes<K>()];
   BORINGSSL_keccak_init(&keccak_ctx, boringssl_shake256);
   BORINGSSL_keccak_absorb(&keccak_ctx, mu, kMuBytes);
-  BORINGSSL_keccak_absorb(&keccak_ctx, w1_encoded, 128 * K);
+  BORINGSSL_keccak_absorb(&keccak_ctx, w1_encoded, w1_bytes<K>());
   BORINGSSL_keccak_squeeze(&keccak_ctx, c_tilde, 2 * lambda_bytes<K>());
 
   uint32_t z_max = vector_max(&values->sign.z);
@@ -1867,6 +2039,39 @@ struct prehash_context *prehash_context_from_external_87(
       "MLDSA pre-hash context size incorrect");
   static_assert(
       alignof(struct BCM_mldsa87_prehash) == alignof(struct prehash_context),
+      "MLDSA pre-hash context alignment incorrect");
+  return reinterpret_cast<prehash_context *>(external);
+}
+
+struct private_key<4, 4> *private_key_from_external_44(
+    const struct BCM_mldsa44_private_key *external) {
+  static_assert(sizeof(struct BCM_mldsa44_private_key) ==
+                    sizeof(struct private_key<4, 4>),
+                "MLDSA44 private key size incorrect");
+  static_assert(alignof(struct BCM_mldsa44_private_key) ==
+                    alignof(struct private_key<4, 4>),
+                "MLDSA44 private key alignment incorrect");
+  return (struct private_key<4, 4> *)external;
+}
+
+struct public_key<4> *public_key_from_external_44(
+    const struct BCM_mldsa44_public_key *external) {
+  static_assert(
+      sizeof(struct BCM_mldsa44_public_key) == sizeof(struct public_key<4>),
+      "MLDSA44 public key size incorrect");
+  static_assert(
+      alignof(struct BCM_mldsa44_public_key) == alignof(struct public_key<4>),
+      "MLDSA44 public key alignment incorrect");
+  return (struct public_key<4> *)external;
+}
+
+struct prehash_context *prehash_context_from_external_44(
+    struct BCM_mldsa44_prehash *external) {
+  static_assert(
+      sizeof(struct BCM_mldsa44_prehash) == sizeof(struct prehash_context),
+      "MLDSA pre-hash context size incorrect");
+  static_assert(
+      alignof(struct BCM_mldsa44_prehash) == alignof(struct prehash_context),
       "MLDSA pre-hash context alignment incorrect");
   return reinterpret_cast<prehash_context *>(external);
 }
@@ -2440,6 +2645,209 @@ bcm_status BCM_mldsa87_marshal_public_key(
     CBB *out, const struct BCM_mldsa87_public_key *public_key) {
   return bcm_as_approved_status(mldsa_marshal_public_key(
       out, mldsa::public_key_from_external_87(public_key)));
+}
+
+
+// ML-DSA-44 specific wrappers.
+
+bcm_status BCM_mldsa44_parse_public_key(
+    struct BCM_mldsa44_public_key *public_key, CBS *in) {
+  return bcm_as_approved_status(mldsa_parse_public_key(
+      mldsa::public_key_from_external_44(public_key), in));
+}
+
+bcm_status BCM_mldsa44_marshal_private_key(
+    CBB *out, const struct BCM_mldsa44_private_key *private_key) {
+  return bcm_as_approved_status(mldsa_marshal_private_key(
+      out, mldsa::private_key_from_external_44(private_key)));
+}
+
+bcm_status BCM_mldsa44_parse_private_key(
+    struct BCM_mldsa44_private_key *private_key, CBS *in) {
+  return bcm_as_approved_status(
+      mldsa_parse_private_key(mldsa::private_key_from_external_44(private_key),
+                              in) &&
+      CBS_len(in) == 0);
+}
+
+bcm_status BCM_mldsa44_check_key_fips(
+    struct BCM_mldsa44_private_key *private_key) {
+  return bcm_as_approved_status(
+      mldsa::fips::check_key(mldsa::private_key_from_external_44(private_key)));
+}
+
+// Calls |MLDSA_generate_key_external_entropy| with random bytes from
+// |BCM_rand_bytes|.
+bcm_status BCM_mldsa44_generate_key(
+    uint8_t out_encoded_public_key[BCM_MLDSA44_PUBLIC_KEY_BYTES],
+    uint8_t out_seed[BCM_MLDSA_SEED_BYTES],
+    struct BCM_mldsa44_private_key *out_private_key) {
+  BCM_rand_bytes(out_seed, BCM_MLDSA_SEED_BYTES);
+  return BCM_mldsa44_generate_key_external_entropy(out_encoded_public_key,
+                                                   out_private_key, out_seed);
+}
+
+bcm_status BCM_mldsa44_private_key_from_seed(
+    struct BCM_mldsa44_private_key *out_private_key,
+    const uint8_t seed[BCM_MLDSA_SEED_BYTES]) {
+  uint8_t public_key[BCM_MLDSA44_PUBLIC_KEY_BYTES];
+  return BCM_mldsa44_generate_key_external_entropy(public_key, out_private_key,
+                                                   seed);
+}
+
+bcm_status BCM_mldsa44_generate_key_external_entropy(
+    uint8_t out_encoded_public_key[BCM_MLDSA44_PUBLIC_KEY_BYTES],
+    struct BCM_mldsa44_private_key *out_private_key,
+    const uint8_t entropy[BCM_MLDSA_SEED_BYTES]) {
+  return bcm_as_not_approved_status(mldsa_generate_key_external_entropy(
+      out_encoded_public_key,
+      mldsa::private_key_from_external_44(out_private_key), entropy));
+}
+
+bcm_status BCM_mldsa44_generate_key_fips(
+    uint8_t out_encoded_public_key[BCM_MLDSA44_PUBLIC_KEY_BYTES],
+    uint8_t out_seed[BCM_MLDSA_SEED_BYTES],
+    struct BCM_mldsa44_private_key *out_private_key) {
+  if (out_encoded_public_key == nullptr || out_private_key == nullptr) {
+    return bcm_status::failure;
+  }
+  if (BCM_mldsa44_generate_key(out_encoded_public_key, out_seed,
+                               out_private_key) == bcm_status::failure) {
+    return bcm_status::failure;
+  }
+  return BCM_mldsa44_check_key_fips(out_private_key);
+}
+
+bcm_status BCM_mldsa44_generate_key_external_entropy_fips(
+    uint8_t out_encoded_public_key[BCM_MLDSA44_PUBLIC_KEY_BYTES],
+    struct BCM_mldsa44_private_key *out_private_key,
+    const uint8_t entropy[BCM_MLDSA_SEED_BYTES]) {
+  if (out_encoded_public_key == nullptr || out_private_key == nullptr) {
+    return bcm_status::failure;
+  }
+  if (BCM_mldsa44_generate_key_external_entropy(out_encoded_public_key,
+                                                out_private_key, entropy) ==
+      bcm_status::failure) {
+    return bcm_status::failure;
+  }
+  return BCM_mldsa44_check_key_fips(out_private_key);
+}
+
+bcm_status BCM_mldsa44_private_key_from_seed_fips(
+    struct BCM_mldsa44_private_key *out_private_key,
+    const uint8_t seed[BCM_MLDSA_SEED_BYTES]) {
+  uint8_t public_key[BCM_MLDSA44_PUBLIC_KEY_BYTES];
+  if (BCM_mldsa44_generate_key_external_entropy(public_key, out_private_key,
+                                                seed) == bcm_status::failure) {
+    return bcm_status::failure;
+  }
+  return BCM_mldsa44_check_key_fips(out_private_key);
+}
+
+bcm_status BCM_mldsa44_public_from_private(
+    struct BCM_mldsa44_public_key *out_public_key,
+    const struct BCM_mldsa44_private_key *private_key) {
+  return bcm_as_approved_status(mldsa_public_from_private(
+      mldsa::public_key_from_external_44(out_public_key),
+      mldsa::private_key_from_external_44(private_key)));
+}
+
+bcm_status BCM_mldsa44_sign_internal(
+    uint8_t out_encoded_signature[BCM_MLDSA44_SIGNATURE_BYTES],
+    const struct BCM_mldsa44_private_key *private_key, const uint8_t *msg,
+    size_t msg_len, const uint8_t *context_prefix, size_t context_prefix_len,
+    const uint8_t *context, size_t context_len,
+    const uint8_t randomizer[BCM_MLDSA_SIGNATURE_RANDOMIZER_BYTES]) {
+  return bcm_as_approved_status(mldsa_sign_internal(
+      out_encoded_signature, mldsa::private_key_from_external_44(private_key),
+      msg, msg_len, context_prefix, context_prefix_len, context, context_len,
+      randomizer));
+}
+
+// ML-DSA signature in randomized mode, filling the random bytes with
+// |BCM_rand_bytes|.
+bcm_status BCM_mldsa44_sign(
+    uint8_t out_encoded_signature[BCM_MLDSA44_SIGNATURE_BYTES],
+    const struct BCM_mldsa44_private_key *private_key, const uint8_t *msg,
+    size_t msg_len, const uint8_t *context, size_t context_len) {
+  BSSL_CHECK(context_len <= 255);
+  uint8_t randomizer[BCM_MLDSA_SIGNATURE_RANDOMIZER_BYTES];
+  BCM_rand_bytes(randomizer, sizeof(randomizer));
+
+  const uint8_t context_prefix[2] = {0, static_cast<uint8_t>(context_len)};
+  return BCM_mldsa44_sign_internal(
+      out_encoded_signature, private_key, msg, msg_len, context_prefix,
+      sizeof(context_prefix), context, context_len, randomizer);
+}
+
+// ML-DSA pre-hashed API: initializing a pre-hashing context.
+void BCM_mldsa44_prehash_init(struct BCM_mldsa44_prehash *out_prehash_ctx,
+                              const struct BCM_mldsa44_public_key *public_key,
+                              const uint8_t *context, size_t context_len) {
+  BSSL_CHECK(context_len <= 255);
+
+  const uint8_t context_prefix[2] = {0, static_cast<uint8_t>(context_len)};
+  mldsa_prehash_init(mldsa::prehash_context_from_external_44(out_prehash_ctx),
+                     mldsa::public_key_from_external_44(public_key),
+                     context_prefix, sizeof(context_prefix), context,
+                     context_len);
+}
+
+// ML-DSA pre-hashed API: updating a pre-hashing context with a message chunk.
+void BCM_mldsa44_prehash_update(struct BCM_mldsa44_prehash *inout_prehash_ctx,
+                                const uint8_t *msg, size_t msg_len) {
+  mldsa_prehash_update(
+      mldsa::prehash_context_from_external_44(inout_prehash_ctx), msg, msg_len);
+}
+
+// ML-DSA pre-hashed API: obtaining a message representative to sign.
+void BCM_mldsa44_prehash_finalize(
+    uint8_t out_msg_rep[BCM_MLDSA_MU_BYTES],
+    struct BCM_mldsa44_prehash *inout_prehash_ctx) {
+  mldsa_prehash_finalize(
+      out_msg_rep, mldsa::prehash_context_from_external_44(inout_prehash_ctx));
+}
+
+// ML-DSA pre-hashed API: signing a message representative.
+bcm_status BCM_mldsa44_sign_message_representative(
+    uint8_t out_encoded_signature[BCM_MLDSA44_SIGNATURE_BYTES],
+    const struct BCM_mldsa44_private_key *private_key,
+    const uint8_t msg_rep[BCM_MLDSA_MU_BYTES]) {
+  uint8_t randomizer[BCM_MLDSA_SIGNATURE_RANDOMIZER_BYTES];
+  BCM_rand_bytes(randomizer, sizeof(randomizer));
+  CONSTTIME_SECRET(randomizer, sizeof(randomizer));
+
+  return bcm_as_approved_status(mldsa_sign_mu(
+      out_encoded_signature, mldsa::private_key_from_external_44(private_key),
+      msg_rep, randomizer));
+}
+
+// FIPS 204, Algorithm 3 (`ML-DSA.Verify`).
+bcm_status BCM_mldsa44_verify(const struct BCM_mldsa44_public_key *public_key,
+                              const uint8_t *signature, const uint8_t *msg,
+                              size_t msg_len, const uint8_t *context,
+                              size_t context_len) {
+  BSSL_CHECK(context_len <= 255);
+  const uint8_t context_prefix[2] = {0, static_cast<uint8_t>(context_len)};
+  return BCM_mldsa44_verify_internal(public_key, signature, msg, msg_len,
+                                     context_prefix, sizeof(context_prefix),
+                                     context, context_len);
+}
+
+bcm_status BCM_mldsa44_verify_internal(
+    const struct BCM_mldsa44_public_key *public_key,
+    const uint8_t encoded_signature[BCM_MLDSA44_SIGNATURE_BYTES],
+    const uint8_t *msg, size_t msg_len, const uint8_t *context_prefix,
+    size_t context_prefix_len, const uint8_t *context, size_t context_len) {
+  return bcm_as_approved_status(mldsa::mldsa_verify_internal<4, 4>(
+      mldsa::public_key_from_external_44(public_key), encoded_signature, msg,
+      msg_len, context_prefix, context_prefix_len, context, context_len));
+}
+
+bcm_status BCM_mldsa44_marshal_public_key(
+    CBB *out, const struct BCM_mldsa44_public_key *public_key) {
+  return bcm_as_approved_status(mldsa_marshal_public_key(
+      out, mldsa::public_key_from_external_44(public_key)));
 }
 
 int boringssl_self_test_mldsa() {

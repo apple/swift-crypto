@@ -46,14 +46,7 @@ int X509_REQ_set_pubkey(X509_REQ *x, EVP_PKEY *pkey) {
 }
 
 int X509_REQ_set1_signature_algo(X509_REQ *req, const X509_ALGOR *algo) {
-  X509_ALGOR *copy = X509_ALGOR_dup(algo);
-  if (copy == NULL) {
-    return 0;
-  }
-
-  X509_ALGOR_free(req->sig_alg);
-  req->sig_alg = copy;
-  return 1;
+  return X509_ALGOR_copy(req->sig_alg, algo);
 }
 
 int X509_REQ_set1_signature_value(X509_REQ *req, const uint8_t *sig,

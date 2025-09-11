@@ -44,24 +44,24 @@
   do {                                    \
     BN_ULLONG t;                          \
     t = (BN_ULLONG)(w) * (a) + (r) + (c); \
-    (r) = Lw(t);                          \
-    (c) = Hw(t);                          \
+    (r) = (BN_ULONG)(t);                  \
+    (c) = (BN_ULONG)((t) >> BN_BITS2);    \
   } while (0)
 
-#define mul(r, a, w, c)             \
-  do {                              \
-    BN_ULLONG t;                    \
-    t = (BN_ULLONG)(w) * (a) + (c); \
-    (r) = Lw(t);                    \
-    (c) = Hw(t);                    \
+#define mul(r, a, w, c)                \
+  do {                                 \
+    BN_ULLONG t;                       \
+    t = (BN_ULLONG)(w) * (a) + (c);    \
+    (r) = (BN_ULONG)(t);               \
+    (c) = (BN_ULONG)((t) >> BN_BITS2); \
   } while (0)
 
-#define sqr(r0, r1, a)        \
-  do {                        \
-    BN_ULLONG t;              \
-    t = (BN_ULLONG)(a) * (a); \
-    (r0) = Lw(t);             \
-    (r1) = Hw(t);             \
+#define sqr(r0, r1, a)                  \
+  do {                                  \
+    BN_ULLONG t;                        \
+    t = (BN_ULLONG)(a) * (a);           \
+    (r0) = (BN_ULONG)(t);               \
+    (r1) = (BN_ULONG)((t) >> BN_BITS2); \
   } while (0)
 
 #else
@@ -198,8 +198,8 @@ void bn_sqr_add_words(BN_ULONG *r, const BN_ULONG *a, size_t n) {
     BN_ULONG hi;                        \
     BN_ULLONG t = (BN_ULLONG)(a) * (b); \
     t += (c0); /* no carry */           \
-    (c0) = (BN_ULONG)Lw(t);             \
-    hi = (BN_ULONG)Hw(t);               \
+    (c0) = (BN_ULONG)(t);               \
+    hi = (BN_ULONG)((t) >> BN_BITS2);   \
     (c1) += (hi);                       \
     (c2) += (c1) < hi;                  \
   } while (0)
@@ -209,13 +209,13 @@ void bn_sqr_add_words(BN_ULONG *r, const BN_ULONG *a, size_t n) {
     BN_ULONG hi;                            \
     BN_ULLONG t = (BN_ULLONG)(a) * (b);     \
     BN_ULLONG tt = t + (c0); /* no carry */ \
-    (c0) = (BN_ULONG)Lw(tt);                \
-    hi = (BN_ULONG)Hw(tt);                  \
+    (c0) = (BN_ULONG)(tt);                  \
+    hi = (BN_ULONG)((tt) >> BN_BITS2);      \
     (c1) += hi;                             \
     (c2) += (c1) < hi;                      \
     t += (c0); /* no carry */               \
-    (c0) = (BN_ULONG)Lw(t);                 \
-    hi = (BN_ULONG)Hw(t);                   \
+    (c0) = (BN_ULONG)(t);                   \
+    hi = (BN_ULONG)((t) >> BN_BITS2);       \
     (c1) += hi;                             \
     (c2) += (c1) < hi;                      \
   } while (0)
@@ -225,8 +225,8 @@ void bn_sqr_add_words(BN_ULONG *r, const BN_ULONG *a, size_t n) {
     BN_ULONG hi;                              \
     BN_ULLONG t = (BN_ULLONG)(a)[i] * (a)[i]; \
     t += (c0); /* no carry */                 \
-    (c0) = (BN_ULONG)Lw(t);                   \
-    hi = (BN_ULONG)Hw(t);                     \
+    (c0) = (BN_ULONG)(t);                     \
+    hi = (BN_ULONG)((t) >> BN_BITS2);         \
     (c1) += hi;                               \
     (c2) += (c1) < hi;                        \
   } while (0)

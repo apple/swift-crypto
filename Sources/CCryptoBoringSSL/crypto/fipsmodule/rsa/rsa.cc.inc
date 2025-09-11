@@ -18,6 +18,8 @@
 #include <limits.h>
 #include <string.h>
 
+#include <iterator>
+
 #include <CCryptoBoringSSL_bn.h>
 #include <CCryptoBoringSSL_digest.h>
 #include <CCryptoBoringSSL_engine.h>
@@ -274,12 +276,6 @@ void RSA_get0_factors(const RSA *rsa, const BIGNUM **out_p,
   if (out_q != NULL) {
     *out_q = rsa->q;
   }
-}
-
-const RSA_PSS_PARAMS *RSA_get0_pss_params(const RSA *rsa) {
-  // We do not support the id-RSASSA-PSS key encoding. If we add support later,
-  // the |maskHash| field should be filled in for OpenSSL compatibility.
-  return NULL;
 }
 
 void RSA_get0_crt_params(const RSA *rsa, const BIGNUM **out_dmp1,
@@ -875,8 +871,8 @@ static const BN_ULONG kSmallFactorsLimbs[] = {TOBN(0xc4309333, 0x3ef4e3e1),
                                               0x000017b1};
 
 DEFINE_LOCAL_DATA(BIGNUM, g_small_factors) {
-  out->d = (BN_ULONG *)kSmallFactorsLimbs;
-  out->width = OPENSSL_ARRAY_SIZE(kSmallFactorsLimbs);
+  out->d = const_cast<BN_ULONG *>(kSmallFactorsLimbs);
+  out->width = std::size(kSmallFactorsLimbs);
   out->dmax = out->width;
   out->neg = 0;
   out->flags = BN_FLG_STATIC_DATA;

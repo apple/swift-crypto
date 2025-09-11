@@ -120,13 +120,15 @@ int EVP_PKEY_set1_DH(EVP_PKEY *pkey, DH *key) {
 }
 
 int EVP_PKEY_assign_DH(EVP_PKEY *pkey, DH *key) {
-  evp_pkey_set_method(pkey, &dh_asn1_meth);
-  pkey->pkey = key;
-  return key != NULL;
+  if (key == nullptr) {
+    return 0;
+  }
+  evp_pkey_set0(pkey, &dh_asn1_meth, key);
+  return 1;
 }
 
 DH *EVP_PKEY_get0_DH(const EVP_PKEY *pkey) {
-  if (pkey->type != EVP_PKEY_DH) {
+  if (EVP_PKEY_id(pkey) != EVP_PKEY_DH) {
     OPENSSL_PUT_ERROR(EVP, EVP_R_EXPECTING_A_DH_KEY);
     return NULL;
   }

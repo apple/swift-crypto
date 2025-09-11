@@ -37,6 +37,22 @@ int asn1_utctime_to_tm(struct tm *tm, const ASN1_UTCTIME *d,
   return 1;
 }
 
+int asn1_parse_utc_time(CBS *cbs, ASN1_UTCTIME *out, CBS_ASN1_TAG tag,
+                        int allow_timezone_offset) {
+  tag = tag == 0 ? CBS_ASN1_UTCTIME : tag;
+  CBS child;
+  if (!CBS_get_asn1(cbs, &child, tag) ||
+      !CBS_parse_utc_time(&child, nullptr, allow_timezone_offset)) {
+    OPENSSL_PUT_ERROR(ASN1, ASN1_R_DECODE_ERROR);
+    return 0;
+  }
+  if (!ASN1_STRING_set(out, CBS_data(&child), CBS_len(&child))) {
+    return 0;
+  }
+  out->type = V_ASN1_UTCTIME;
+  return 1;
+}
+
 int ASN1_UTCTIME_check(const ASN1_UTCTIME *d) {
   return asn1_utctime_to_tm(NULL, d, /*allow_timezone_offset=*/1);
 }

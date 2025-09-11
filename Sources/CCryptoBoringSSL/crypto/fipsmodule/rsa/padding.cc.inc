@@ -178,16 +178,14 @@ int RSA_verify_PKCS1_PSS_mgf1(const RSA *rsa, const uint8_t *mHash,
   size_t emLen, maskedDBLen, salt_start;
   FIPS_service_indicator_lock_state();
 
-  // Negative sLen has special meanings:
-  //   -1      sLen == hLen
-  //   -2      salt length is autorecovered from signature
-  //   -N      reserved
   size_t hLen = EVP_MD_size(Hash);
-  if (sLen == -1) {
+  if (sLen == RSA_PSS_SALTLEN_DIGEST) {
     sLen = (int)hLen;
-  } else if (sLen == -2) {
-    sLen = -2;
-  } else if (sLen < -2) {
+  } else if (sLen == RSA_PSS_SALTLEN_AUTO) {
+    // Leave |sLen| negative, which will trigger the logic below to recover and
+    // allow any salt length.
+  } else if (sLen < 0) {
+    // Other negative values are reserved.
     OPENSSL_PUT_ERROR(RSA, RSA_R_SLEN_CHECK_FAILED);
     goto err;
   }
@@ -202,7 +200,7 @@ int RSA_verify_PKCS1_PSS_mgf1(const RSA *rsa, const uint8_t *mHash,
     EM++;
     emLen--;
   }
-  // |sLen| may be -2 for the non-standard salt length recovery mode.
+  // |sLen| may be negative for the non-standard salt length recovery mode.
   if (emLen < hLen + 2 || (sLen >= 0 && emLen < hLen + (size_t)sLen + 2)) {
     OPENSSL_PUT_ERROR(RSA, RSA_R_DATA_TOO_LARGE);
     goto err;
@@ -299,16 +297,14 @@ int RSA_padding_add_PKCS1_PSS_mgf1(const RSA *rsa, unsigned char *EM,
     goto err;
   }
 
-  // Negative sLenRequested has special meanings:
-  //   -1  sLen == hLen
-  //   -2  salt length is maximized
-  //   -N  reserved
   size_t sLen;
-  if (sLenRequested == -1) {
+  if (sLenRequested == RSA_PSS_SALTLEN_DIGEST) {
     sLen = hLen;
-  } else if (sLenRequested == -2) {
+  } else if (sLenRequested == RSA_PSS_SALTLEN_AUTO) {
+    // Use the maximum possible salt length.
     sLen = emLen - hLen - 2;
   } else if (sLenRequested < 0) {
+    // Other negative values are reserved.
     OPENSSL_PUT_ERROR(RSA, RSA_R_SLEN_CHECK_FAILED);
     goto err;
   } else {

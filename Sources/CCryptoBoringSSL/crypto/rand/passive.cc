@@ -38,7 +38,7 @@ static void passive_get_seed_entropy(uint8_t *out_entropy,
 }
 
 #define ENTROPY_READ_LEN \
-  (/* last_block size */ 16 + CTR_DRBG_ENTROPY_LEN * BORINGSSL_FIPS_OVERREAD)
+  (/* last_block size */ 16 + CTR_DRBG_SEED_LEN * BORINGSSL_FIPS_OVERREAD)
 
 #if defined(OPENSSL_ANDROID)
 

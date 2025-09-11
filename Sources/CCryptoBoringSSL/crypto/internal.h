@@ -23,6 +23,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include <type_traits>
+
 #if defined(BORINGSSL_CONSTANT_TIME_VALIDATION)
 #include <valgrind/memcheck.h>
 #endif
@@ -48,6 +50,10 @@
 
 #if defined(OPENSSL_WINDOWS_THREADS)
 #include <windows.h>
+#endif
+
+#if defined(_M_X64) || defined(_M_IX86)
+#include "intrin.h"
 #endif
 
 #if defined(__cplusplus)
@@ -99,8 +105,6 @@ typedef __uint128_t uint128_t;
 #define BORINGSSL_CAN_DIVIDE_UINT128
 #endif
 #endif
-
-#define OPENSSL_ARRAY_SIZE(array) (sizeof(array) / sizeof((array)[0]))
 
 // GCC-like compilers indicate SSE2 with |__SSE2__|. MSVC leaves the caller to
 // know that x86_64 has SSE2, and uses _M_IX86_FP to indicate SSE2 on x86.
@@ -527,8 +531,6 @@ OPENSSL_EXPORT void CRYPTO_once(CRYPTO_once_t *once, void (*init)(void));
 
 using CRYPTO_atomic_u32 = std::atomic<uint32_t>;
 
-static_assert(sizeof(CRYPTO_atomic_u32) == sizeof(uint32_t));
-
 inline uint32_t CRYPTO_atomic_load_u32(const CRYPTO_atomic_u32 *val) {
   return val->load(std::memory_order_seq_cst);
 }
@@ -566,12 +568,6 @@ inline void CRYPTO_atomic_store_u32(CRYPTO_atomic_u32 *val, uint32_t desired) {
 }
 
 #endif
-
-// See the comment in the |__cplusplus| section above.
-static_assert(sizeof(CRYPTO_atomic_u32) == sizeof(uint32_t),
-              "CRYPTO_atomic_u32 does not match uint32_t size");
-static_assert(alignof(CRYPTO_atomic_u32) == alignof(uint32_t),
-              "CRYPTO_atomic_u32 does not match uint32_t alignment");
 
 
 // Reference counting.
@@ -885,6 +881,16 @@ static inline void *OPENSSL_memset(void *dst, int c, size_t n) {
 // The following functions load and store sized integers with the specified
 // endianness. They use |memcpy|, and so avoid alignment or strict aliasing
 // requirements on the input and output pointers.
+
+static inline uint16_t CRYPTO_load_u16_le(const void *in) {
+  uint16_t v;
+  OPENSSL_memcpy(&v, in, sizeof(v));
+  return v;
+}
+
+static inline void CRYPTO_store_u16_le(void *out, uint16_t v) {
+  OPENSSL_memcpy(out, &v, sizeof(v));
+}
 
 static inline uint16_t CRYPTO_load_u16_be(const void *in) {
   uint16_t v;
@@ -1444,6 +1450,9 @@ inline int CRYPTO_fuzzer_mode_enabled(void) { return 0; }
 
 // CRYPTO_addc_* returns |x + y + carry|, and sets |*out_carry| to the carry
 // bit. |carry| must be zero or one.
+
+// NOTE: Unoptimized GCC builds may compile these builtins to non-constant-time
+// code. For correct constant-time behavior, ensure builds are optimized.
 #if OPENSSL_HAS_BUILTIN(__builtin_addc)
 
 inline unsigned int CRYPTO_addc_impl(unsigned int x, unsigned int y,
@@ -1480,16 +1489,26 @@ inline uint64_t CRYPTO_addc_u64(uint64_t x, uint64_t y, uint64_t carry,
 static inline uint32_t CRYPTO_addc_u32(uint32_t x, uint32_t y, uint32_t carry,
                                        uint32_t *out_carry) {
   declassify_assert(carry <= 1);
+#if defined(_M_IX86)
+  uint32_t sum = 0;
+  *out_carry = _addcarry_u32(carry, x, y, &sum);
+  return sum;
+#else
   uint64_t ret = carry;
   ret += (uint64_t)x + y;
   *out_carry = (uint32_t)(ret >> 32);
   return (uint32_t)ret;
+#endif
 }
 
 static inline uint64_t CRYPTO_addc_u64(uint64_t x, uint64_t y, uint64_t carry,
                                        uint64_t *out_carry) {
   declassify_assert(carry <= 1);
-#if defined(BORINGSSL_HAS_UINT128)
+#if defined(_M_X64)
+  uint64_t sum = 0;
+  *out_carry = _addcarry_u64(carry, x, y, &sum);
+  return sum;
+#elif defined(BORINGSSL_HAS_UINT128)
   uint128_t ret = carry;
   ret += (uint128_t)x + y;
   *out_carry = (uint64_t)(ret >> 64);
@@ -1544,17 +1563,29 @@ inline uint64_t CRYPTO_subc_u64(uint64_t x, uint64_t y, uint64_t borrow,
 static inline uint32_t CRYPTO_subc_u32(uint32_t x, uint32_t y, uint32_t borrow,
                                        uint32_t *out_borrow) {
   declassify_assert(borrow <= 1);
+#if defined(_M_IX86)
+  uint32_t diff = 0;
+  *out_borrow = _subborrow_u32(borrow, x, y, &diff);
+  return diff;
+#else
   uint32_t ret = x - y - borrow;
   *out_borrow = (x < y) | ((x == y) & borrow);
   return ret;
+#endif
 }
 
 static inline uint64_t CRYPTO_subc_u64(uint64_t x, uint64_t y, uint64_t borrow,
                                        uint64_t *out_borrow) {
   declassify_assert(borrow <= 1);
+#if defined(_M_X64)
+  uint64_t diff = 0;
+  *out_borrow = _subborrow_u64(borrow, x, y, &diff);
+  return diff;
+#else
   uint64_t ret = x - y - borrow;
   *out_borrow = (x < y) | ((x == y) & borrow);
   return ret;
+#endif
 }
 #endif
 
@@ -1565,6 +1596,30 @@ static inline uint64_t CRYPTO_subc_u64(uint64_t x, uint64_t y, uint64_t borrow,
 #define CRYPTO_addc_w CRYPTO_addc_u32
 #define CRYPTO_subc_w CRYPTO_subc_u32
 #endif
+
+
+BSSL_NAMESPACE_BEGIN
+// Cleanup implements a custom scope guard, when the cleanup logic does not fit
+// in a destructor. Usage:
+//
+//     bssl::Cleanup cleanup = [&] { SomeCleanupWork(local_var); };
+template <typename F>
+class Cleanup {
+ public:
+  static_assert(std::is_invocable_v<F>);
+  static_assert(std::is_same_v<std::invoke_result_t<F>, void>);
+
+  Cleanup(F func) : func_(func) {}
+  Cleanup(const Cleanup &) = delete;
+  Cleanup &operator=(const Cleanup &) = delete;
+  ~Cleanup() { func_(); }
+
+ private:
+  F func_;
+};
+template <typename F>
+Cleanup(F func) -> Cleanup<F>;
+BSSL_NAMESPACE_END
 
 
 #endif  // OPENSSL_HEADER_CRYPTO_INTERNAL_H

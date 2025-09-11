@@ -14,6 +14,8 @@
 
 #include <CCryptoBoringSSL_bn.h>
 
+#include <iterator>
+
 #include <CCryptoBoringSSL_err.h>
 #include <CCryptoBoringSSL_mem.h>
 
@@ -193,9 +195,9 @@ static int BN_prime_checks_for_size(int bits) {
 // of excluding a candidate with trial division is larger.
 static size_t num_trial_division_primes(const BIGNUM *n) {
   if (n->width * BN_BITS2 > 1024) {
-    return OPENSSL_ARRAY_SIZE(kPrimes);
+    return std::size(kPrimes);
   }
-  return OPENSSL_ARRAY_SIZE(kPrimes) / 2;
+  return std::size(kPrimes) / 2;
 }
 
 // BN_PRIME_CHECKS_BLINDED is the iteration count for blinding the constant-time

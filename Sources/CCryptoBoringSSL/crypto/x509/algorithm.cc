@@ -22,6 +22,12 @@
 
 #include "internal.h"
 
+
+// TODO(crbug.com/42290422): Rewrite this logic to recognize signature
+// algorithms without pulling in the OID table. We can enumerate every supported
+// signature algorithm into a small enum and convert them to/from |EVP_PKEY_CTX|
+// and |X509_ALGOR|.
+
 // Restrict the digests that are allowed in X509 certificates
 static int x509_digest_nid_ok(const int digest_nid) {
   switch (digest_nid) {
@@ -39,7 +45,8 @@ int x509_digest_sign_algorithm(EVP_MD_CTX *ctx, X509_ALGOR *algor) {
     return 0;
   }
 
-  if (EVP_PKEY_id(pkey) == EVP_PKEY_RSA) {
+  if (EVP_PKEY_id(pkey) == EVP_PKEY_RSA ||
+      EVP_PKEY_id(pkey) == EVP_PKEY_RSA_PSS) {
     int pad_mode;
     if (!EVP_PKEY_CTX_get_rsa_padding(ctx->pctx, &pad_mode)) {
       return 0;
@@ -88,7 +95,10 @@ int x509_digest_verify_init(EVP_MD_CTX *ctx, const X509_ALGOR *sigalg,
   }
 
   // Check the public key OID matches the public key type.
-  if (pkey_nid != EVP_PKEY_id(pkey)) {
+  const bool pkey_matches =
+      pkey_nid == EVP_PKEY_id(pkey) ||
+      (sigalg_nid == NID_rsassaPss && EVP_PKEY_id(pkey) == EVP_PKEY_RSA_PSS);
+  if (!pkey_matches) {
     OPENSSL_PUT_ERROR(ASN1, ASN1_R_WRONG_PUBLIC_KEY_TYPE);
     return 0;
   }

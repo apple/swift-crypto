@@ -27,7 +27,8 @@
 #include <CCryptoBoringSSL_hkdf.h>
 #include <CCryptoBoringSSL_mem.h>
 #include <CCryptoBoringSSL_rand.h>
-#include <CCryptoBoringSSL_sha.h>
+#include <CCryptoBoringSSL_sha2.h>
+#include <CCryptoBoringSSL_xwing.h>
 
 #include "../fipsmodule/ec/internal.h"
 #include "../internal.h"
@@ -35,7 +36,7 @@
 
 // This file implements RFC 9180.
 
-#define MAX_SEED_LEN X25519_PRIVATE_KEY_LEN
+#define MAX_SEED_LEN XWING_SEED_LEN
 #define MAX_SHARED_SECRET_LEN SHA256_DIGEST_LENGTH
 
 struct evp_hpke_kem_st {
@@ -597,6 +598,122 @@ const EVP_HPKE_KEM *EVP_hpke_p256_hkdf_sha256(void) {
       p256_decap,
       p256_auth_encap_with_seed,
       p256_auth_decap,
+  };
+  return &kKEM;
+}
+
+#define XWING_PRIVATE_KEY_LEN 32
+#define XWING_PUBLIC_KEY_LEN 1216
+#define XWING_PUBLIC_VALUE_LEN 1120
+#define XWING_SEED_LEN 64
+#define XWING_SHARED_KEY_LEN 32
+
+static int xwing_init_key(EVP_HPKE_KEY *key, const uint8_t *priv_key,
+                          size_t priv_key_len) {
+  CBS cbs;
+  CBS_init(&cbs, priv_key, priv_key_len);
+  XWING_private_key private_key;
+  if (!XWING_parse_private_key(&private_key, &cbs) || CBS_len(&cbs) != 0) {
+    OPENSSL_PUT_ERROR(EVP, EVP_R_DECODE_ERROR);
+    return 0;
+  }
+
+  if (!XWING_public_from_private(key->public_key, &private_key)) {
+    return 0;
+  }
+
+  if (priv_key_len > sizeof(key->private_key)) {
+    OPENSSL_PUT_ERROR(EVP, EVP_R_DECODE_ERROR);
+    return 0;
+  }
+  OPENSSL_memcpy(key->private_key, priv_key, priv_key_len);
+  return 1;
+}
+
+static int xwing_generate_key(EVP_HPKE_KEY *key) {
+  XWING_private_key private_key;
+  if (!XWING_generate_key(key->public_key, &private_key)) {
+    return 0;
+  }
+
+  CBB cbb;
+  CBB_init_fixed(&cbb, key->private_key, XWING_PRIVATE_KEY_LEN);
+  if (!XWING_marshal_private_key(&cbb, &private_key) ||
+      CBB_len(&cbb) != XWING_PRIVATE_KEY_LEN) {
+    return 0;
+  }
+
+  return 1;
+}
+
+static int xwing_encap_with_seed(const EVP_HPKE_KEM *kem,
+                                 uint8_t *out_shared_secret,
+                                 size_t *out_shared_secret_len,
+                                 uint8_t *out_enc, size_t *out_enc_len,
+                                 size_t max_enc, const uint8_t *peer_public_key,
+                                 size_t peer_public_key_len,
+                                 const uint8_t *seed, size_t seed_len) {
+  if (max_enc < XWING_PUBLIC_VALUE_LEN) {
+    OPENSSL_PUT_ERROR(EVP, EVP_R_INVALID_BUFFER_SIZE);
+    return 0;
+  }
+  if (peer_public_key_len != XWING_PUBLIC_KEY_LEN ||
+      seed_len != XWING_SEED_LEN) {
+    OPENSSL_PUT_ERROR(EVP, EVP_R_DECODE_ERROR);
+    return 0;
+  }
+
+  if (!XWING_encap_external_entropy(out_enc, out_shared_secret, peer_public_key,
+                                    seed)) {
+    OPENSSL_PUT_ERROR(EVP, ERR_R_INTERNAL_ERROR);
+    return 0;
+  }
+
+  *out_enc_len = XWING_PUBLIC_VALUE_LEN;
+  *out_shared_secret_len = XWING_SHARED_KEY_LEN;
+  return 1;
+}
+
+static int xwing_decap(const EVP_HPKE_KEY *key, uint8_t *out_shared_secret,
+                       size_t *out_shared_secret_len, const uint8_t *enc,
+                       size_t enc_len) {
+  if (enc_len != XWING_PUBLIC_VALUE_LEN) {
+    OPENSSL_PUT_ERROR(EVP, EVP_R_DECODE_ERROR);
+    return 0;
+  }
+
+  CBS cbs;
+  CBS_init(&cbs, key->private_key, XWING_PRIVATE_KEY_LEN);
+  XWING_private_key private_key;
+  if (!XWING_parse_private_key(&private_key, &cbs)) {
+    OPENSSL_PUT_ERROR(EVP, EVP_R_DECODE_ERROR);
+    return 0;
+  }
+
+  if (!XWING_decap(out_shared_secret, enc, &private_key)) {
+    OPENSSL_PUT_ERROR(EVP, ERR_R_INTERNAL_ERROR);
+    return 0;
+  }
+
+  *out_shared_secret_len = XWING_SHARED_KEY_LEN;
+  return 1;
+}
+
+const EVP_HPKE_KEM *EVP_hpke_xwing(void) {
+  static const EVP_HPKE_KEM kKEM = {
+      /*id=*/EVP_HPKE_XWING,
+      /*public_key_len=*/XWING_PUBLIC_KEY_LEN,
+      /*private_key_len=*/XWING_PRIVATE_KEY_LEN,
+      /*seed_len=*/XWING_SEED_LEN,
+      /*enc_len=*/XWING_PUBLIC_VALUE_LEN,
+      xwing_init_key,
+      xwing_generate_key,
+      xwing_encap_with_seed,
+      xwing_decap,
+      // X-Wing doesn't support authenticated encapsulation/decapsulation:
+      // https://datatracker.ietf.org/doc/html/draft-connolly-cfrg-xwing-kem-08#name-use-in-hpke
+      /* auth_encap_with_seed= */ nullptr,
+      /* auth_decap= */ nullptr,
   };
   return &kKEM;
 }

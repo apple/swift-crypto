@@ -7,13 +7,13 @@
 #if !defined(OPENSSL_NO_ASM) && defined(OPENSSL_AARCH64) && defined(_WIN32)
 .text
 
-.globl	bn_mul_mont
+.globl	bn_mul_mont_words
 
-.def bn_mul_mont
+.def bn_mul_mont_words
    .type 32
 .endef
 .align	5
-bn_mul_mont:
+bn_mul_mont_words:
 	AARCH64_SIGN_LINK_REGISTER
 	tst	x5,#7
 	b.eq	__bn_sqr8x_mont
@@ -221,7 +221,7 @@ Lcond_copy:
 .align	5
 __bn_sqr8x_mont:
 	// Not adding AARCH64_SIGN_LINK_REGISTER here because __bn_sqr8x_mont is jumped to
-	// only from bn_mul_mont which has already signed the return address.
+	// only from bn_mul_mont_words which has already signed the return address.
 	cmp	x1,x2
 	b.ne	__bn_mul4x_mont
 Lsqr8x_mont:
@@ -985,7 +985,7 @@ Lsqr8x_done:
 .align	5
 __bn_mul4x_mont:
 	// Not adding AARCH64_SIGN_LINK_REGISTER here because __bn_mul4x_mont is jumped to
-	// only from bn_mul_mont or __bn_mul8x_mont which have already signed the
+	// only from bn_mul_mont_words or __bn_mul8x_mont which have already signed the
 	// return address.
 	stp	x29,x30,[sp,#-128]!
 	add	x29,sp,#0

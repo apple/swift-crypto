@@ -40,8 +40,8 @@ bcm_infallible BCM_sha384_init(SHA512_CTX *sha) {
   sha->h[6] = UINT64_C(0xdb0c2e0d64f98fa7);
   sha->h[7] = UINT64_C(0x47b5481dbefa4fa4);
 
-  sha->Nl = 0;
-  sha->Nh = 0;
+  sha->bytes_so_far_low = 0;
+  sha->bytes_so_far_high = 0;
   sha->num = 0;
   sha->md_len = BCM_SHA384_DIGEST_LENGTH;
   return bcm_infallible::approved;
@@ -58,8 +58,8 @@ bcm_infallible BCM_sha512_init(SHA512_CTX *sha) {
   sha->h[6] = UINT64_C(0x1f83d9abfb41bd6b);
   sha->h[7] = UINT64_C(0x5be0cd19137e2179);
 
-  sha->Nl = 0;
-  sha->Nh = 0;
+  sha->bytes_so_far_low = 0;
+  sha->bytes_so_far_high = 0;
   sha->num = 0;
   sha->md_len = BCM_SHA512_DIGEST_LENGTH;
   return bcm_infallible::approved;
@@ -75,8 +75,8 @@ bcm_infallible BCM_sha512_256_init(SHA512_CTX *sha) {
   sha->h[6] = UINT64_C(0x2b0199fc2c85b8aa);
   sha->h[7] = UINT64_C(0x0eb72ddc81c52ca2);
 
-  sha->Nl = 0;
-  sha->Nh = 0;
+  sha->bytes_so_far_low = 0;
+  sha->bytes_so_far_high = 0;
   sha->num = 0;
   sha->md_len = BCM_SHA512_256_DIGEST_LENGTH;
   return bcm_infallible::approved;
@@ -124,7 +124,6 @@ bcm_infallible BCM_sha512_transform(SHA512_CTX *c,
 
 bcm_infallible BCM_sha512_update(SHA512_CTX *c, const void *in_data,
                                  size_t len) {
-  uint64_t l;
   uint8_t *p = c->p;
   const uint8_t *data = reinterpret_cast<const uint8_t *>(in_data);
 
@@ -132,14 +131,10 @@ bcm_infallible BCM_sha512_update(SHA512_CTX *c, const void *in_data,
     return bcm_infallible::approved;
   }
 
-  l = (c->Nl + (((uint64_t)len) << 3)) & UINT64_C(0xffffffffffffffff);
-  if (l < c->Nl) {
-    c->Nh++;
+  c->bytes_so_far_low += len;
+  if (c->bytes_so_far_low < len) {
+    c->bytes_so_far_high++;
   }
-  if (sizeof(len) >= 8) {
-    c->Nh += (((uint64_t)len) >> 61);
-  }
-  c->Nl = l;
 
   if (c->num != 0) {
     size_t n = sizeof(c->p) - c->num;
@@ -195,8 +190,11 @@ static void sha512_final_impl(uint8_t *out, size_t md_len, SHA512_CTX *sha) {
   }
 
   OPENSSL_memset(p + n, 0, sizeof(sha->p) - 16 - n);
-  CRYPTO_store_u64_be(p + sizeof(sha->p) - 16, sha->Nh);
-  CRYPTO_store_u64_be(p + sizeof(sha->p) - 8, sha->Nl);
+  const uint64_t Nh = (uint64_t{sha->bytes_so_far_high} << 3) |
+                      (sha->bytes_so_far_low >> (64 - 3));
+  const uint64_t Nl = sha->bytes_so_far_low << 3;
+  CRYPTO_store_u64_be(p + sizeof(sha->p) - 16, Nh);
+  CRYPTO_store_u64_be(p + sizeof(sha->p) - 8, Nl);
 
   sha512_block_data_order(sha->h, p, 1);
 

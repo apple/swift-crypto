@@ -16,6 +16,9 @@
 
 #include <assert.h>
 
+#include <iterator>
+#include <type_traits>
+
 #include "internal.h"
 #include "../bn/internal.h"
 #include "../../internal.h"
@@ -31,7 +34,7 @@ void ec_GFp_mont_mul(const EC_GROUP *group, EC_JACOBIAN *r,
   EC_JACOBIAN precomp[32];
   ec_GFp_simple_point_set_to_infinity(group, &precomp[0]);
   ec_GFp_simple_point_copy(&precomp[1], p);
-  for (size_t j = 2; j < OPENSSL_ARRAY_SIZE(precomp); j++) {
+  for (size_t j = 2; j < std::size(precomp); j++) {
     if (j & 1) {
       ec_GFp_mont_add(group, &precomp[j], &precomp[1], &precomp[j - 1]);
     } else {
@@ -58,7 +61,7 @@ void ec_GFp_mont_mul(const EC_GROUP *group, EC_JACOBIAN *r,
       // Select the entry in constant-time.
       EC_JACOBIAN tmp;
       OPENSSL_memset(&tmp, 0, sizeof(EC_JACOBIAN));
-      for (size_t j = 0; j < OPENSSL_ARRAY_SIZE(precomp); j++) {
+      for (size_t j = 0; j < std::size(precomp); j++) {
         BN_ULONG mask = constant_time_eq_w(j, window);
         ec_point_select(group, &tmp, mask, &precomp[j], &tmp);
       }
@@ -202,10 +205,10 @@ int ec_GFp_mont_init_precomp(const EC_GROUP *group, EC_PRECOMP *out,
 
   // Store the comb in affine coordinates to shrink the table. (This reduces
   // cache pressure and makes the constant-time selects faster.)
-  static_assert(OPENSSL_ARRAY_SIZE(comb) == OPENSSL_ARRAY_SIZE(out->comb),
-                "comb sizes did not match");
-  return ec_jacobian_to_affine_batch(group, out->comb, comb,
-                                     OPENSSL_ARRAY_SIZE(comb));
+  static_assert(
+      std::extent_v<decltype(comb)> == std::extent_v<decltype(out->comb)>,
+      "comb sizes did not match");
+  return ec_jacobian_to_affine_batch(group, out->comb, comb, std::size(comb));
 }
 
 static void ec_GFp_mont_get_comb_window(const EC_GROUP *group,
@@ -224,7 +227,7 @@ static void ec_GFp_mont_get_comb_window(const EC_GROUP *group,
   // Select precomp->comb[window - 1]. If |window| is zero, |match| will always
   // be zero, which will leave |out| at infinity.
   OPENSSL_memset(out, 0, sizeof(EC_JACOBIAN));
-  for (unsigned j = 0; j < OPENSSL_ARRAY_SIZE(precomp->comb); j++) {
+  for (unsigned j = 0; j < std::size(precomp->comb); j++) {
     BN_ULONG match = constant_time_eq_w(window, j + 1);
     ec_felem_select(group, &out->X, match, &precomp->comb[j].X, &out->X);
     ec_felem_select(group, &out->Y, match, &precomp->comb[j].Y, &out->Y);

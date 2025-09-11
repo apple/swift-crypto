@@ -69,9 +69,7 @@ OPENSSL_EXPORT int RSA_up_ref(RSA *rsa);
 // Properties.
 
 // OPENSSL_RSA_MAX_MODULUS_BITS is the maximum supported RSA modulus, in bits.
-//
-// TODO(crbug.com/402677800): Reduce this to 8192.
-#define OPENSSL_RSA_MAX_MODULUS_BITS 16384
+#define OPENSSL_RSA_MAX_MODULUS_BITS 8192
 
 // RSA_bits returns the size of |rsa|, in bits.
 OPENSSL_EXPORT unsigned RSA_bits(const RSA *rsa);
@@ -225,7 +223,11 @@ OPENSSL_EXPORT int RSA_generate_key_fips(RSA *rsa, int bits, BN_GENCB *cb);
 // It returns 1 on success or zero on error.
 //
 // The |padding| argument must be one of the |RSA_*_PADDING| values. If in
-// doubt, use |RSA_PKCS1_OAEP_PADDING| for new protocols.
+// doubt, use |RSA_PKCS1_OAEP_PADDING| for new protocols. When |padding| is
+// |RSA_PKCS1_OAEP_PADDING|, this function has no way to set the OAEP or MGF-1
+// digest, so it is always SHA-1. For other OAEP parameters, wrap |rsa| in an
+// |EVP_PKEY| and use |EVP_PKEY_encrypt| with |EVP_PKEY_CTX_set_rsa_padding| and
+// related functions.
 OPENSSL_EXPORT int RSA_encrypt(RSA *rsa, size_t *out_len, uint8_t *out,
                                size_t max_out, const uint8_t *in, size_t in_len,
                                int padding);
@@ -237,7 +239,11 @@ OPENSSL_EXPORT int RSA_encrypt(RSA *rsa, size_t *out_len, uint8_t *out,
 // It returns 1 on success or zero on error.
 //
 // The |padding| argument must be one of the |RSA_*_PADDING| values. If in
-// doubt, use |RSA_PKCS1_OAEP_PADDING| for new protocols.
+// doubt, use |RSA_PKCS1_OAEP_PADDING| for new protocols. When |padding| is
+// |RSA_PKCS1_OAEP_PADDING|, this function has no way to set the OAEP or MGF-1
+// digest, so it is always SHA-1. For other OAEP parameters, wrap |rsa| in an
+// |EVP_PKEY| and use |EVP_PKEY_decrypt| with |EVP_PKEY_CTX_set_rsa_padding| and
+// related functions.
 //
 // WARNING: Passing |RSA_PKCS1_PADDING| into this function is deprecated and
 // insecure. RSAES-PKCS1-v1_5 is vulnerable to a chosen-ciphertext attack.
@@ -259,6 +265,11 @@ OPENSSL_EXPORT int RSA_decrypt(RSA *rsa, size_t *out_len, uint8_t *out,
 // -1 on error. The |padding| argument must be one of the |RSA_*_PADDING|
 // values. If in doubt, use |RSA_PKCS1_OAEP_PADDING| for new protocols.
 //
+// When |padding| is |RSA_PKCS1_OAEP_PADDING|, this function has no way to set
+// the OAEP or MGF-1 digest, so it is always SHA-1. For other OAEP parameters,
+// wrap |rsa| in an |EVP_PKEY| and use |EVP_PKEY_encrypt| with
+// |EVP_PKEY_CTX_set_rsa_padding| and related functions.
+//
 // WARNING: this function is dangerous because it breaks the usual return value
 // convention. Use |RSA_encrypt| instead.
 OPENSSL_EXPORT int RSA_public_encrypt(size_t flen, const uint8_t *from,
@@ -271,6 +282,11 @@ OPENSSL_EXPORT int RSA_public_encrypt(size_t flen, const uint8_t *from,
 // in doubt, use |RSA_PKCS1_OAEP_PADDING| for new protocols. Passing
 // |RSA_PKCS1_PADDING| into this function is deprecated and insecure. See
 // |RSA_decrypt|.
+//
+// When |padding| is |RSA_PKCS1_OAEP_PADDING|, this function has no way to set
+// the OAEP or MGF-1 digest, so it is always SHA-1. For other OAEP parameters,
+// wrap |rsa| in an |EVP_PKEY| and use |EVP_PKEY_decrypt| with
+// |EVP_PKEY_CTX_set_rsa_padding| and related functions.
 //
 // WARNING: this function is dangerous because it breaks the usual return value
 // convention. Use |RSA_decrypt| instead.
@@ -301,6 +317,15 @@ OPENSSL_EXPORT int RSA_sign(int hash_nid, const uint8_t *digest,
                             size_t digest_len, uint8_t *out, unsigned *out_len,
                             RSA *rsa);
 
+// RSA_PSS_SALTLEN_DIGEST indicates a PSS salt length that matches the digest
+// length. This is recommended.
+#define RSA_PSS_SALTLEN_DIGEST (-1)
+// RSA_PSS_SALTLEN_AUTO indicates a maximum possible PSS salt length when
+// signing, and automatically detecting the salt length when verifying. This is
+// not recommended. Neither the signing nor verifying behaviors are compliant
+// with FIPS 186-5.
+#define RSA_PSS_SALTLEN_AUTO (-2)
+
 // RSA_sign_pss_mgf1 signs |digest_len| bytes from |digest| with the public key
 // from |rsa| using RSASSA-PSS with MGF1 as the mask generation function. It
 // writes, at most, |max_out| bytes of signature data to |out|. The |max_out|
@@ -311,9 +336,10 @@ OPENSSL_EXPORT int RSA_sign(int hash_nid, const uint8_t *digest,
 // and the MGF1 hash, respectively. If |mgf1_md| is NULL, |md| is
 // used.
 //
-// |salt_len| specifies the expected salt length in bytes. If |salt_len| is -1,
-// then the salt length is the same as the hash length. If -2, then the salt
-// length is maximal given the size of |rsa|. If unsure, use -1.
+// |salt_len| specifies the expected salt length in bytes. If |salt_len| is
+// |RSA_PSS_SALTLEN_DIGEST|, then the salt length is the same as the hash
+// length. If |RSA_PSS_SALTLEN_AUTO|, then the salt length is maximal given the
+// size of |rsa|. If unsure, use |RSA_PSS_SALTLEN_DIGEST|.
 //
 // WARNING: |digest| must be the result of hashing the data to be signed with
 // |md|. Passing unhashed inputs will not result in a secure signature scheme.
@@ -373,9 +399,9 @@ OPENSSL_EXPORT int RSA_verify(int hash_nid, const uint8_t *digest,
 // and the MGF1 hash, respectively. If |mgf1_md| is NULL, |md| is
 // used. |salt_len| specifies the expected salt length in bytes.
 //
-// If |salt_len| is -1, then the salt length is the same as the hash length. If
-// -2, then the salt length is recovered and all values accepted. If unsure, use
-// -1.
+// If |salt_len| is |RSA_PSS_SALTLEN_DIGEST|, then the salt length is the same
+// as the hash length. If |RSA_PSS_SALTLEN_AUTO|, then the salt length is
+// recovered and all values accepted. If unsure, use |RSA_PSS_SALTLEN_DIGEST|.
 //
 // WARNING: |digest| must be the result of hashing the data to be verified with
 // |md|. Passing unhashed input will not result in a secure signature scheme.
@@ -737,8 +763,13 @@ OPENSSL_EXPORT int RSA_padding_add_PKCS1_OAEP(uint8_t *to, size_t to_len,
 OPENSSL_EXPORT int RSA_print(BIO *bio, const RSA *rsa, int indent);
 
 // RSA_get0_pss_params returns NULL. In OpenSSL, this function retries RSA-PSS
-// parameters associated with |RSA| objects, but BoringSSL does not support
-// the id-RSASSA-PSS key encoding.
+// parameters associated with |RSA| objects, but BoringSSL does not enable the
+// id-RSASSA-PSS key encoding by default.
+//
+// WARNING: BoringSSL does support id-RSASSA-PSS parameters when callers opt in
+// (see |EVP_pkey_rsa_pss_sha256|). We currently assume such callers do not need
+// this function. Callers that opt into id-RSASSA-PSS support and require this
+// functionality should contact the BoringSSL team.
 OPENSSL_EXPORT const RSA_PSS_PARAMS *RSA_get0_pss_params(const RSA *rsa);
 
 // RSA_new_method_no_e returns a newly-allocated |RSA| object backed by

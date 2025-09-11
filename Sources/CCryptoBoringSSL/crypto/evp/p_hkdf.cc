@@ -183,7 +183,7 @@ static int pkey_hkdf_ctrl(EVP_PKEY_CTX *ctx, int type, int p1, void *p2) {
   }
 }
 
-const EVP_PKEY_METHOD hkdf_pkey_meth = {
+const EVP_PKEY_CTX_METHOD hkdf_pkey_meth = {
     /*pkey_id=*/EVP_PKEY_HKDF,
     pkey_hkdf_init,
     pkey_hkdf_copy,

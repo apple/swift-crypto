@@ -19,7 +19,7 @@
 
 #include <sys/types.h>
 
-#include <CCryptoBoringSSL_sha.h>
+#include <CCryptoBoringSSL_sha2.h>
 #include <CCryptoBoringSSL_span.h>
 
 #include "../fipsmodule/ec/internal.h"

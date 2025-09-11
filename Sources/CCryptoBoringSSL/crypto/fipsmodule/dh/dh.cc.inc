@@ -16,6 +16,8 @@
 
 #include <string.h>
 
+#include <iterator>
+
 #include <CCryptoBoringSSL_bn.h>
 #include <CCryptoBoringSSL_digest.h>
 #include <CCryptoBoringSSL_err.h>
@@ -406,7 +408,7 @@ DH *DH_get_rfc7919_2048(void) {
   }
 
   bn_set_static_words(ffdhe2048_p.get(), kFFDHE2048Data,
-                      OPENSSL_ARRAY_SIZE(kFFDHE2048Data));
+                      std::size(kFFDHE2048Data));
 
   if (!BN_rshift1(ffdhe2048_q.get(), ffdhe2048_p.get()) ||
       !BN_set_word(ffdhe2048_g.get(), 2) ||

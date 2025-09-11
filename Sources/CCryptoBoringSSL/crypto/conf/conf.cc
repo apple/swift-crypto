@@ -623,6 +623,8 @@ int CONF_modules_load_file(const char *filename, const char *appname,
   return 1;
 }
 
+void CONF_modules_unload(int all) {}
+
 void CONF_modules_free(void) {}
 
 void OPENSSL_config(const char *config_name) {}

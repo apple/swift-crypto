@@ -255,7 +255,6 @@ add_library(CCryptoBoringSSL STATIC
   "crypto/x509/x_req.cc"
   "crypto/x509/x_sig.cc"
   "crypto/x509/x_spki.cc"
-  "crypto/x509/x_val.cc"
   "crypto/x509/x_x509.cc"
   "crypto/x509/x_x509a.cc"
   "crypto/xwing/xwing.cc"

@@ -45,9 +45,7 @@ static int ed25519_set_priv_raw(EVP_PKEY *pkey, const uint8_t *in, size_t len) {
   uint8_t pubkey_unused[32];
   ED25519_keypair_from_seed(pubkey_unused, key->key, in);
   key->has_private = 1;
-
-  ed25519_free(pkey);
-  pkey->pkey = key;
+  evp_pkey_set0(pkey, &ed25519_asn1_meth, key);
   return 1;
 }
 
@@ -65,9 +63,7 @@ static int ed25519_set_pub_raw(EVP_PKEY *pkey, const uint8_t *in, size_t len) {
 
   OPENSSL_memcpy(key->key + ED25519_PUBLIC_KEY_OFFSET, in, 32);
   key->has_private = 0;
-
-  ed25519_free(pkey);
-  pkey->pkey = key;
+  evp_pkey_set0(pkey, &ed25519_asn1_meth, key);
   return 1;
 }
 
@@ -113,16 +109,20 @@ static int ed25519_get_pub_raw(const EVP_PKEY *pkey, uint8_t *out,
   return 1;
 }
 
-static int ed25519_pub_decode(EVP_PKEY *out, CBS *params, CBS *key) {
+static evp_decode_result_t ed25519_pub_decode(const EVP_PKEY_ALG *alg,
+                                              EVP_PKEY *out, CBS *params,
+                                              CBS *key) {
   // See RFC 8410, section 4.
 
   // The parameters must be omitted. Public keys have length 32.
   if (CBS_len(params) != 0) {
     OPENSSL_PUT_ERROR(EVP, EVP_R_DECODE_ERROR);
-    return 0;
+    return evp_decode_error;
   }
 
-  return ed25519_set_pub_raw(out, CBS_data(key), CBS_len(key));
+  return ed25519_set_pub_raw(out, CBS_data(key), CBS_len(key))
+             ? evp_decode_ok
+             : evp_decode_error;
 }
 
 static int ed25519_pub_encode(CBB *out, const EVP_PKEY *pkey) {
@@ -153,7 +153,9 @@ static int ed25519_pub_cmp(const EVP_PKEY *a, const EVP_PKEY *b) {
                         b_key->key + ED25519_PUBLIC_KEY_OFFSET, 32) == 0;
 }
 
-static int ed25519_priv_decode(EVP_PKEY *out, CBS *params, CBS *key) {
+static evp_decode_result_t ed25519_priv_decode(const EVP_PKEY_ALG *alg,
+                                               EVP_PKEY *out, CBS *params,
+                                               CBS *key) {
   // See RFC 8410, section 7.
 
   // Parameters must be empty. The key is a 32-byte value wrapped in an extra
@@ -162,10 +164,12 @@ static int ed25519_priv_decode(EVP_PKEY *out, CBS *params, CBS *key) {
   if (CBS_len(params) != 0 ||
       !CBS_get_asn1(key, &inner, CBS_ASN1_OCTETSTRING) || CBS_len(key) != 0) {
     OPENSSL_PUT_ERROR(EVP, EVP_R_DECODE_ERROR);
-    return 0;
+    return evp_decode_error;
   }
 
-  return ed25519_set_priv_raw(out, CBS_data(&inner), CBS_len(&inner));
+  return ed25519_set_priv_raw(out, CBS_data(&inner), CBS_len(&inner))
+             ? evp_decode_ok
+             : evp_decode_error;
 }
 
 static int ed25519_priv_encode(CBB *out, const EVP_PKEY *pkey) {
@@ -223,3 +227,11 @@ const EVP_PKEY_ASN1_METHOD ed25519_asn1_meth = {
     /*param_cmp=*/NULL,
     ed25519_free,
 };
+
+const EVP_PKEY_ALG *EVP_pkey_ed25519(void) {
+  static const EVP_PKEY_ALG kAlg = {
+      /*method=*/&ed25519_asn1_meth,
+      /*ec_group=*/nullptr,
+  };
+  return &kAlg;
+}

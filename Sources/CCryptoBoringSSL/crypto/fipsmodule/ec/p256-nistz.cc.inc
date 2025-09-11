@@ -651,9 +651,9 @@ static void ecp_nistz256_inv0_mod_ord(const EC_GROUP *group, EC_SCALAR *out,
                   {4, i_111},     {5, i_111},    {5, i_101},    {3, i_11},
                   {10, i_101111}, {2, i_11},     {5, i_11},     {5, i_11},
                   {3, i_1},       {7, i_10101},  {6, i_1111}};
-  for (size_t i = 0; i < OPENSSL_ARRAY_SIZE(kChain); i++) {
-    ecp_nistz256_ord_sqr_mont(out->words, out->words, kChain[i].p);
-    ecp_nistz256_ord_mul_mont(out->words, out->words, table[kChain[i].i]);
+  for (const auto &step : kChain) {
+    ecp_nistz256_ord_sqr_mont(out->words, out->words, step.p);
+    ecp_nistz256_ord_mul_mont(out->words, out->words, table[step.i]);
   }
 }
 

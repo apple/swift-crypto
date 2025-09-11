@@ -24,36 +24,32 @@
 #include "internal.h"
 
 
-static int dsa_pub_decode(EVP_PKEY *out, CBS *params, CBS *key) {
+static evp_decode_result_t dsa_pub_decode(const EVP_PKEY_ALG *alg,
+                                          EVP_PKEY *out, CBS *params,
+                                          CBS *key) {
   // See RFC 3279, section 2.3.2.
 
-  // Parameters may or may not be present.
-  bssl::UniquePtr<DSA> dsa;
-  if (CBS_len(params) == 0) {
-    dsa.reset(DSA_new());
-    if (dsa == nullptr) {
-      return 0;
-    }
-  } else {
-    dsa.reset(DSA_parse_parameters(params));
-    if (dsa == nullptr || CBS_len(params) != 0) {
-      OPENSSL_PUT_ERROR(EVP, EVP_R_DECODE_ERROR);
-      return 0;
-    }
+  // Decode parameters. RFC 3279 permits DSA parameters to be omitted, in which
+  // case they are implicitly determined from the issuing certificate, or
+  // somewhere unspecified and out-of-band. We do not support this mode.
+  bssl::UniquePtr<DSA> dsa(DSA_parse_parameters(params));
+  if (dsa == nullptr || CBS_len(params) != 0) {
+    OPENSSL_PUT_ERROR(EVP, EVP_R_DECODE_ERROR);
+    return evp_decode_error;
   }
 
   dsa->pub_key = BN_new();
   if (dsa->pub_key == nullptr) {
-    return 0;
+    return evp_decode_error;
   }
 
   if (!BN_parse_asn1_unsigned(key, dsa->pub_key) || CBS_len(key) != 0) {
     OPENSSL_PUT_ERROR(EVP, EVP_R_DECODE_ERROR);
-    return 0;
+    return evp_decode_error;
   }
 
   EVP_PKEY_assign_DSA(out, dsa.release());
-  return 1;
+  return evp_decode_ok;
 }
 
 static int dsa_pub_encode(CBB *out, const EVP_PKEY *key) {
@@ -78,23 +74,25 @@ static int dsa_pub_encode(CBB *out, const EVP_PKEY *key) {
   return 1;
 }
 
-static int dsa_priv_decode(EVP_PKEY *out, CBS *params, CBS *key) {
+static evp_decode_result_t dsa_priv_decode(const EVP_PKEY_ALG *alg,
+                                           EVP_PKEY *out, CBS *params,
+                                           CBS *key) {
   // See PKCS#11, v2.40, section 2.5.
 
   // Decode parameters.
   bssl::UniquePtr<DSA> dsa(DSA_parse_parameters(params));
   if (dsa == nullptr || CBS_len(params) != 0) {
     OPENSSL_PUT_ERROR(EVP, EVP_R_DECODE_ERROR);
-    return 0;
+    return evp_decode_error;
   }
 
   dsa->priv_key = BN_new();
   if (dsa->priv_key == nullptr) {
-    return 0;
+    return evp_decode_error;
   }
   if (!BN_parse_asn1_unsigned(key, dsa->priv_key) || CBS_len(key) != 0) {
     OPENSSL_PUT_ERROR(EVP, EVP_R_DECODE_ERROR);
-    return 0;
+    return evp_decode_error;
   }
 
   // To avoid DoS attacks when importing private keys, check bounds on |dsa|.
@@ -102,7 +100,7 @@ static int dsa_priv_decode(EVP_PKEY *out, CBS *params, CBS *key) {
   // width.
   if (!dsa_check_key(dsa.get())) {
     OPENSSL_PUT_ERROR(EVP, EVP_R_DECODE_ERROR);
-    return 0;
+    return evp_decode_error;
   }
 
   // Calculate the public key.
@@ -111,11 +109,11 @@ static int dsa_priv_decode(EVP_PKEY *out, CBS *params, CBS *key) {
   if (ctx == nullptr || dsa->pub_key == nullptr ||
       !BN_mod_exp_mont_consttime(dsa->pub_key, dsa->g, dsa->priv_key, dsa->p,
                                  ctx.get(), nullptr)) {
-    return 0;
+    return evp_decode_error;
   }
 
   EVP_PKEY_assign_DSA(out, dsa.release());
-  return 1;
+  return evp_decode_ok;
 }
 
 static int dsa_priv_encode(CBB *out, const EVP_PKEY *key) {
@@ -236,6 +234,14 @@ const EVP_PKEY_ASN1_METHOD dsa_asn1_meth = {
     int_dsa_free,
 };
 
+const EVP_PKEY_ALG *EVP_pkey_dsa(void) {
+  static const EVP_PKEY_ALG kAlg = {
+      /*method=*/&dsa_asn1_meth,
+      /*ec_group=*/nullptr,
+  };
+  return &kAlg;
+}
+
 int EVP_PKEY_CTX_set_dsa_paramgen_bits(EVP_PKEY_CTX *ctx, int nbits) {
   // BoringSSL does not support DSA in |EVP_PKEY_CTX|.
   OPENSSL_PUT_ERROR(EVP, ERR_R_SHOULD_NOT_HAVE_BEEN_CALLED);
@@ -257,13 +263,15 @@ int EVP_PKEY_set1_DSA(EVP_PKEY *pkey, DSA *key) {
 }
 
 int EVP_PKEY_assign_DSA(EVP_PKEY *pkey, DSA *key) {
-  evp_pkey_set_method(pkey, &dsa_asn1_meth);
-  pkey->pkey = key;
-  return key != nullptr;
+  if (key == nullptr) {
+    return 0;
+  }
+  evp_pkey_set0(pkey, &dsa_asn1_meth, key);
+  return 1;
 }
 
 DSA *EVP_PKEY_get0_DSA(const EVP_PKEY *pkey) {
-  if (pkey->type != EVP_PKEY_DSA) {
+  if (EVP_PKEY_id(pkey) != EVP_PKEY_DSA) {
     OPENSSL_PUT_ERROR(EVP, EVP_R_EXPECTING_A_DSA_KEY);
     return nullptr;
   }

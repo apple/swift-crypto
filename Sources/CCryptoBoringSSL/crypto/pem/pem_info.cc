@@ -143,9 +143,7 @@ STACK_OF(X509_INFO) *PEM_X509_INFO_read_bio(BIO *bp, STACK_OF(X509_INFO) *sk,
 
   for (;;) {
     if (!PEM_read_bio(bp, &name, &header, &data, &len)) {
-      uint32_t error = ERR_peek_last_error();
-      if (ERR_GET_LIB(error) == ERR_LIB_PEM &&
-          ERR_GET_REASON(error) == PEM_R_NO_START_LINE) {
+      if (ERR_equals(ERR_peek_last_error(), ERR_LIB_PEM, PEM_R_NO_START_LINE)) {
         ERR_clear_error();
         break;
       }

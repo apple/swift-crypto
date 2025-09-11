@@ -17,11 +17,38 @@
 
 #include <CCryptoBoringSSL_ec.h>
 
+#include <CCryptoBoringSSL_span.h>
+
 #include "../fipsmodule/ec/internal.h"
 
 #if defined(__cplusplus)
 extern "C" {
 #endif
+
+
+// Parsing functions.
+
+// ec_key_parse_curve_name behaves like |EC_KEY_parse_curve_name| but only
+// supports the groups in |allowed_groups|. If no syntax errors were found but
+// the group is unknown, it will fail with an error of |EC_R_UNKNOWN_GROUP|.
+const EC_GROUP *ec_key_parse_curve_name(
+    CBS *cbs, bssl::Span<const EC_GROUP *const> allowed_groups);
+
+// ec_key_parse_parameters behaves like |EC_KEY_parse_parameters| but only
+// supports the groups in |allowed_groups|. If no syntax errors were found but
+// the group is unknown, it will fail with an error of |EC_R_UNKNOWN_GROUP|.
+const EC_GROUP *ec_key_parse_parameters(
+    CBS *cbs, bssl::Span<const EC_GROUP *const> allowed_groups);
+
+// ec_key_parse_private_key behaves like |EC_KEY_parse_private_key| but only
+// supports the groups in |allowed_groups|. If |group| is non-NULL,
+// |allowed_groups| is ignored and instead only |group| is supported.
+//
+// TODO(crbug.com/boringssl/414361735): This should return a bssl::UniquePtr,
+// but cannot until it is made C++ linkage.
+EC_KEY *ec_key_parse_private_key(
+    CBS *cbs, const EC_GROUP *group,
+    bssl::Span<const EC_GROUP *const> allowed_groups);
 
 
 // Hash-to-curve.

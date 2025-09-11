@@ -19,11 +19,14 @@
 
 #include <CCryptoBoringSSL_asn1.h>
 #include <CCryptoBoringSSL_asn1t.h>
+#include <CCryptoBoringSSL_bytestring.h>
 #include <CCryptoBoringSSL_bio.h>
 #include <CCryptoBoringSSL_err.h>
 #include <CCryptoBoringSSL_evp.h>
 #include <CCryptoBoringSSL_obj.h>
+#include <CCryptoBoringSSL_rsa.h>
 
+#include "../rsa/internal.h"
 #include "internal.h"
 
 
@@ -46,111 +49,18 @@ ASN1_SEQUENCE_cb(RSA_PSS_PARAMS, rsa_pss_cb) = {
 IMPLEMENT_ASN1_FUNCTIONS_const(RSA_PSS_PARAMS)
 
 
-// Given an MGF1 Algorithm ID decode to an Algorithm Identifier
-static X509_ALGOR *rsa_mgf1_decode(const X509_ALGOR *alg) {
-  if (OBJ_obj2nid(alg->algorithm) != NID_mgf1 || alg->parameter == NULL ||
-      alg->parameter->type != V_ASN1_SEQUENCE) {
-    return NULL;
-  }
-
-  const uint8_t *p = alg->parameter->value.sequence->data;
-  int plen = alg->parameter->value.sequence->length;
-  return d2i_X509_ALGOR(NULL, &p, plen);
-}
-
-static RSA_PSS_PARAMS *rsa_pss_decode(const X509_ALGOR *alg) {
-  if (alg->parameter == NULL || alg->parameter->type != V_ASN1_SEQUENCE) {
-    return NULL;
-  }
-
-  const uint8_t *p = alg->parameter->value.sequence->data;
-  int plen = alg->parameter->value.sequence->length;
-  return d2i_RSA_PSS_PARAMS(NULL, &p, plen);
-}
-
-static int is_allowed_pss_md(const EVP_MD *md) {
-  int md_type = EVP_MD_type(md);
-  return md_type == NID_sha256 || md_type == NID_sha384 ||
-         md_type == NID_sha512;
-}
-
-// rsa_md_to_algor sets |*palg| to an |X509_ALGOR| describing the digest |md|,
-// which must be an allowed PSS digest.
-static int rsa_md_to_algor(X509_ALGOR **palg, const EVP_MD *md) {
-  // SHA-1 should be omitted (DEFAULT), but we do not allow SHA-1.
-  assert(is_allowed_pss_md(md));
-  *palg = X509_ALGOR_new();
-  if (*palg == NULL) {
+static int rsa_pss_decode(const X509_ALGOR *alg, rsa_pss_params_t *out) {
+  if (alg->parameter == nullptr || alg->parameter->type != V_ASN1_SEQUENCE) {
     return 0;
   }
-  if (!X509_ALGOR_set_md(*palg, md)) {
-    X509_ALGOR_free(*palg);
-    *palg = NULL;
-    return 0;
-  }
-  return 1;
-}
 
-// rsa_md_to_mgf1 sets |*palg| to an |X509_ALGOR| describing MGF-1 with the
-// digest |mgf1md|, which must be an allowed PSS digest.
-static int rsa_md_to_mgf1(X509_ALGOR **palg, const EVP_MD *mgf1md) {
-  // SHA-1 should be omitted (DEFAULT), but we do not allow SHA-1.
-  assert(is_allowed_pss_md(mgf1md));
-  X509_ALGOR *algtmp = NULL;
-  ASN1_STRING *stmp = NULL;
-  // need to embed algorithm ID inside another
-  if (!rsa_md_to_algor(&algtmp, mgf1md) ||
-      !ASN1_item_pack(algtmp, ASN1_ITEM_rptr(X509_ALGOR), &stmp)) {
-    goto err;
-  }
-  *palg = X509_ALGOR_new();
-  if (!*palg) {
-    goto err;
-  }
-  if (!X509_ALGOR_set0(*palg, OBJ_nid2obj(NID_mgf1), V_ASN1_SEQUENCE, stmp)) {
-    goto err;
-  }
-  stmp = NULL;
-
-err:
-  ASN1_STRING_free(stmp);
-  X509_ALGOR_free(algtmp);
-  if (*palg) {
-    return 1;
-  }
-
-  return 0;
-}
-
-static const EVP_MD *rsa_algor_to_md(const X509_ALGOR *alg) {
-  if (!alg) {
-    // If omitted, PSS defaults to SHA-1, which we do not allow.
-    OPENSSL_PUT_ERROR(X509, X509_R_INVALID_PSS_PARAMETERS);
-    return NULL;
-  }
-  const EVP_MD *md = EVP_get_digestbyobj(alg->algorithm);
-  if (md == NULL || !is_allowed_pss_md(md)) {
-    OPENSSL_PUT_ERROR(X509, X509_R_INVALID_PSS_PARAMETERS);
-    return NULL;
-  }
-  return md;
-}
-
-static const EVP_MD *rsa_mgf1_to_md(const X509_ALGOR *alg) {
-  if (!alg) {
-    // If omitted, PSS defaults to MGF-1 with SHA-1, which we do not allow.
-    OPENSSL_PUT_ERROR(X509, X509_R_INVALID_PSS_PARAMETERS);
-    return NULL;
-  }
-  // Check mask and lookup mask hash algorithm.
-  X509_ALGOR *maskHash = rsa_mgf1_decode(alg);
-  if (maskHash == NULL) {
-    OPENSSL_PUT_ERROR(X509, X509_R_INVALID_PSS_PARAMETERS);
-    return NULL;
-  }
-  const EVP_MD *ret = rsa_algor_to_md(maskHash);
-  X509_ALGOR_free(maskHash);
-  return ret;
+  // Although a syntax error in DER, we tolerate an explicitly-encoded trailer.
+  // See the certificates in cl/362617931.
+  CBS cbs;
+  CBS_init(&cbs, alg->parameter->value.sequence->data,
+           alg->parameter->value.sequence->length);
+  return rsa_parse_pss_params(&cbs, out, /*allow_explicit_trailer=*/true) &&
+         CBS_len(&cbs) == 0;
 }
 
 int x509_rsa_ctx_to_pss(EVP_MD_CTX *ctx, X509_ALGOR *algor) {
@@ -162,203 +72,111 @@ int x509_rsa_ctx_to_pss(EVP_MD_CTX *ctx, X509_ALGOR *algor) {
     return 0;
   }
 
-  if (sigmd != mgf1md || !is_allowed_pss_md(sigmd)) {
+  if (sigmd != mgf1md) {
     OPENSSL_PUT_ERROR(X509, X509_R_INVALID_PSS_PARAMETERS);
     return 0;
   }
   int md_len = (int)EVP_MD_size(sigmd);
-  if (saltlen == -1) {
-    saltlen = md_len;
-  } else if (saltlen != md_len) {
+  if (saltlen != RSA_PSS_SALTLEN_DIGEST && saltlen != md_len) {
     OPENSSL_PUT_ERROR(X509, X509_R_INVALID_PSS_PARAMETERS);
     return 0;
   }
 
-  int ret = 0;
-  ASN1_STRING *os = NULL;
-  RSA_PSS_PARAMS *pss = RSA_PSS_PARAMS_new();
-  if (!pss) {
-    goto err;
+  rsa_pss_params_t params;
+  switch (EVP_MD_type(sigmd)) {
+    case NID_sha256:
+      params = rsa_pss_sha256;
+      break;
+    case NID_sha384:
+      params = rsa_pss_sha384;
+      break;
+    case NID_sha512:
+      params = rsa_pss_sha512;
+      break;
+    default:
+      OPENSSL_PUT_ERROR(X509, X509_R_INVALID_PSS_PARAMETERS);
+      return 0;
   }
 
-  // The DEFAULT value is 20, but this does not match any supported digest.
-  assert(saltlen != 20);
-  pss->saltLength = ASN1_INTEGER_new();
-  if (!pss->saltLength ||  //
-      !ASN1_INTEGER_set_int64(pss->saltLength, saltlen)) {
-    goto err;
+  // Encode |params| to an |ASN1_STRING|.
+  uint8_t buf[128];   // The largest param fits comfortably in 128 bytes.
+  CBB cbb;
+  CBB_init_fixed(&cbb, buf, sizeof(buf));
+  if (!rsa_marshal_pss_params(&cbb, params)) {
+    return 0;
   }
-
-  if (!rsa_md_to_algor(&pss->hashAlgorithm, sigmd) ||
-      !rsa_md_to_mgf1(&pss->maskGenAlgorithm, mgf1md)) {
-    goto err;
-  }
-
-  // Finally create string with pss parameter encoding.
-  if (!ASN1_item_pack(pss, ASN1_ITEM_rptr(RSA_PSS_PARAMS), &os)) {
-    goto err;
+  bssl::UniquePtr<ASN1_STRING> params_str(
+      ASN1_STRING_type_new(V_ASN1_SEQUENCE));
+  if (params_str == nullptr ||
+      !ASN1_STRING_set(params_str.get(), CBB_data(&cbb), CBB_len(&cbb))) {
+    return 0;
   }
 
   if (!X509_ALGOR_set0(algor, OBJ_nid2obj(NID_rsassaPss), V_ASN1_SEQUENCE,
-                       os)) {
-    goto err;
+                       params_str.get())) {
+    return 0;
   }
-  os = NULL;
-  ret = 1;
-
-err:
-  RSA_PSS_PARAMS_free(pss);
-  ASN1_STRING_free(os);
-  return ret;
+  params_str.release();  // |X509_ALGOR_set0| took ownership.
+  return 1;
 }
 
 int x509_rsa_pss_to_ctx(EVP_MD_CTX *ctx, const X509_ALGOR *sigalg,
                         EVP_PKEY *pkey) {
   assert(OBJ_obj2nid(sigalg->algorithm) == NID_rsassaPss);
-
-  // Decode PSS parameters
-  int ret = 0;
-  RSA_PSS_PARAMS *pss = rsa_pss_decode(sigalg);
-
-  {
-    if (pss == NULL) {
-      OPENSSL_PUT_ERROR(X509, X509_R_INVALID_PSS_PARAMETERS);
-      goto err;
-    }
-
-    const EVP_MD *mgf1md = rsa_mgf1_to_md(pss->maskGenAlgorithm);
-    const EVP_MD *md = rsa_algor_to_md(pss->hashAlgorithm);
-    if (mgf1md == NULL || md == NULL) {
-      goto err;
-    }
-
-    // We require the MGF-1 and signing hashes to match.
-    if (mgf1md != md) {
-      OPENSSL_PUT_ERROR(X509, X509_R_INVALID_PSS_PARAMETERS);
-      goto err;
-    }
-
-    // We require the salt length be the hash length. The DEFAULT value is 20,
-    // but this does not match any supported salt length.
-    uint64_t salt_len = 0;
-    if (pss->saltLength == NULL ||
-        !ASN1_INTEGER_get_uint64(&salt_len, pss->saltLength) ||
-        salt_len != EVP_MD_size(md)) {
-      OPENSSL_PUT_ERROR(X509, X509_R_INVALID_PSS_PARAMETERS);
-      goto err;
-    }
-    assert(salt_len <= INT_MAX);
-
-    // The trailer field must be 1 (0xbc). This value is DEFAULT, so the
-    // structure is required to omit it in DER. Although a syntax error, we also
-    // tolerate an explicitly-encoded value. See the certificates in
-    // cl/362617931.
-    if (pss->trailerField != NULL && ASN1_INTEGER_get(pss->trailerField) != 1) {
-      OPENSSL_PUT_ERROR(X509, X509_R_INVALID_PSS_PARAMETERS);
-      goto err;
-    }
-
-    EVP_PKEY_CTX *pctx;
-    if (!EVP_DigestVerifyInit(ctx, &pctx, md, NULL, pkey) ||
-        !EVP_PKEY_CTX_set_rsa_padding(pctx, RSA_PKCS1_PSS_PADDING) ||
-        !EVP_PKEY_CTX_set_rsa_pss_saltlen(pctx, (int)salt_len) ||
-        !EVP_PKEY_CTX_set_rsa_mgf1_md(pctx, mgf1md)) {
-      goto err;
-    }
-
-    ret = 1;
+  rsa_pss_params_t params;
+  if (!rsa_pss_decode(sigalg, &params)) {
+    OPENSSL_PUT_ERROR(X509, X509_R_INVALID_PSS_PARAMETERS);
+    return 0;
   }
 
-err:
-  RSA_PSS_PARAMS_free(pss);
-  return ret;
+  const EVP_MD *md = rsa_pss_params_get_md(params);
+  EVP_PKEY_CTX *pctx;
+  if (!EVP_DigestVerifyInit(ctx, &pctx, md, nullptr, pkey) ||
+      !EVP_PKEY_CTX_set_rsa_padding(pctx, RSA_PKCS1_PSS_PADDING) ||
+      !EVP_PKEY_CTX_set_rsa_pss_saltlen(pctx, RSA_PSS_SALTLEN_DIGEST) ||
+      !EVP_PKEY_CTX_set_rsa_mgf1_md(pctx, md)) {
+    return 0;
+  }
+
+  return 1;
 }
 
 int x509_print_rsa_pss_params(BIO *bp, const X509_ALGOR *sigalg, int indent,
                               ASN1_PCTX *pctx) {
   assert(OBJ_obj2nid(sigalg->algorithm) == NID_rsassaPss);
+  rsa_pss_params_t params;
+  if (!rsa_pss_decode(sigalg, &params)) {
+    return BIO_puts(bp, " (INVALID PSS PARAMETERS)\n") <= 0;
+  }
 
-  int rv = 0;
-  X509_ALGOR *maskHash = NULL;
-  RSA_PSS_PARAMS *pss = rsa_pss_decode(sigalg);
-  if (!pss) {
-    if (BIO_puts(bp, " (INVALID PSS PARAMETERS)\n") <= 0) {
-      goto err;
-    }
-    rv = 1;
-    goto err;
+  const char *hash_str = nullptr;
+  uint32_t salt_len = 0;
+  switch (params) {
+    case rsa_pss_sha256:
+      hash_str = "sha256";
+      salt_len = 32;
+      break;
+    case rsa_pss_sha384:
+      hash_str = "sha384";
+      salt_len = 48;
+      break;
+    case rsa_pss_sha512:
+      hash_str = "sha512";
+      salt_len = 64;
+      break;
   }
 
   if (BIO_puts(bp, "\n") <= 0 ||       //
       !BIO_indent(bp, indent, 128) ||  //
-      BIO_puts(bp, "Hash Algorithm: ") <= 0) {
-    goto err;
-  }
-
-  if (pss->hashAlgorithm) {
-    if (i2a_ASN1_OBJECT(bp, pss->hashAlgorithm->algorithm) <= 0) {
-      goto err;
-    }
-  } else if (BIO_puts(bp, "sha1 (default)") <= 0) {
-    goto err;
-  }
-
-  if (BIO_puts(bp, "\n") <= 0 ||       //
+      BIO_printf(bp, "Hash Algorithm: %s\n", hash_str) <= 0 ||
       !BIO_indent(bp, indent, 128) ||  //
-      BIO_puts(bp, "Mask Algorithm: ") <= 0) {
-    goto err;
+      BIO_printf(bp, "Mask Algorithm: mgf1 with %s\n", hash_str) <= 0 ||
+      !BIO_indent(bp, indent, 128) ||  //
+      BIO_printf(bp, "Salt Length: 0x%x\n", salt_len) <= 0 ||
+      !BIO_indent(bp, indent, 128) ||  //
+      BIO_puts(bp, "Trailer Field: 0xBC (default)\n") <= 0) {
+    return 0;
   }
 
-  if (pss->maskGenAlgorithm) {
-    maskHash = rsa_mgf1_decode(pss->maskGenAlgorithm);
-    if (maskHash == NULL) {
-      if (BIO_puts(bp, "INVALID") <= 0) {
-        goto err;
-      }
-    } else {
-      if (i2a_ASN1_OBJECT(bp, pss->maskGenAlgorithm->algorithm) <= 0 ||
-          BIO_puts(bp, " with ") <= 0 ||
-          i2a_ASN1_OBJECT(bp, maskHash->algorithm) <= 0) {
-        goto err;
-      }
-    }
-  } else if (BIO_puts(bp, "mgf1 with sha1 (default)") <= 0) {
-    goto err;
-  }
-  BIO_puts(bp, "\n");
-
-  if (!BIO_indent(bp, indent, 128) ||  //
-      BIO_puts(bp, "Salt Length: 0x") <= 0) {
-    goto err;
-  }
-
-  if (pss->saltLength) {
-    if (i2a_ASN1_INTEGER(bp, pss->saltLength) <= 0) {
-      goto err;
-    }
-  } else if (BIO_puts(bp, "14 (default)") <= 0) {
-    goto err;
-  }
-  BIO_puts(bp, "\n");
-
-  if (!BIO_indent(bp, indent, 128) ||  //
-      BIO_puts(bp, "Trailer Field: 0x") <= 0) {
-    goto err;
-  }
-
-  if (pss->trailerField) {
-    if (i2a_ASN1_INTEGER(bp, pss->trailerField) <= 0) {
-      goto err;
-    }
-  } else if (BIO_puts(bp, "BC (default)") <= 0) {
-    goto err;
-  }
-  BIO_puts(bp, "\n");
-
-  rv = 1;
-
-err:
-  RSA_PSS_PARAMS_free(pss);
-  X509_ALGOR_free(maskHash);
-  return rv;
+  return 1;
 }

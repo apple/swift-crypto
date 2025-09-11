@@ -6,12 +6,12 @@
 
 #if !defined(OPENSSL_NO_ASM) && defined(OPENSSL_X86) && defined(__ELF__)
 .text
-.globl	bn_mul_mont
-.hidden	bn_mul_mont
-.type	bn_mul_mont,@function
+.globl	bn_mul_mont_words
+.hidden	bn_mul_mont_words
+.type	bn_mul_mont_words,@function
 .align	16
-bn_mul_mont:
-.L_bn_mul_mont_begin:
+bn_mul_mont_words:
+.L_bn_mul_mont_words_begin:
 	pushl	%ebp
 	pushl	%ebx
 	pushl	%esi
@@ -210,7 +210,7 @@ bn_mul_mont:
 	popl	%ebx
 	popl	%ebp
 	ret
-.size	bn_mul_mont,.-.L_bn_mul_mont_begin
+.size	bn_mul_mont_words,.-.L_bn_mul_mont_words_begin
 .byte	77,111,110,116,103,111,109,101,114,121,32,77,117,108,116,105
 .byte	112,108,105,99,97,116,105,111,110,32,102,111,114,32,120,56
 .byte	54,44,32,67,82,89,80,84,79,71,65,77,83,32,98,121

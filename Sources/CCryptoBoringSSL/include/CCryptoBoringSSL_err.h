@@ -80,6 +80,13 @@ OPENSSL_INLINE int ERR_GET_REASON(uint32_t packed_error) {
   return (int)(packed_error & 0xfff);
 }
 
+// ERR_equals returns one if |packed_error|'s library and reason code are |lib|
+// and |reason|, respectively, and zero otherwise.
+OPENSSL_INLINE int ERR_equals(uint32_t packed_error, int lib, int reason) {
+  return ERR_GET_LIB(packed_error) == lib &&
+         ERR_GET_REASON(packed_error) == reason;
+}
+
 // ERR_get_error gets the packed error code for the least recent error and
 // removes that error from the queue. If there are no errors in the queue then
 // it returns zero.

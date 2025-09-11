@@ -26,6 +26,7 @@
 #include <CCryptoBoringSSL_evp.h>
 #include <CCryptoBoringSSL_hmac.h>
 #include <CCryptoBoringSSL_mem.h>
+#include <CCryptoBoringSSL_nid.h>
 #include <CCryptoBoringSSL_rand.h>
 #include <CCryptoBoringSSL_x509.h>
 

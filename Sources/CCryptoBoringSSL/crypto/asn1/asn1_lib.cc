@@ -295,11 +295,21 @@ ASN1_STRING *ASN1_STRING_type_new(int type) {
   return ret;
 }
 
+void asn1_string_init(ASN1_STRING *str, int type) {
+  OPENSSL_memset(str, 0, sizeof(ASN1_STRING));
+  str->type = type;
+}
+
+void asn1_string_cleanup(ASN1_STRING *str) {
+  OPENSSL_free(str->data);
+  str->data = nullptr;
+}
+
 void ASN1_STRING_free(ASN1_STRING *str) {
   if (str == NULL) {
     return;
   }
-  OPENSSL_free(str->data);
+  asn1_string_cleanup(str);
   OPENSSL_free(str);
 }
 
@@ -352,4 +362,71 @@ unsigned char *ASN1_STRING_data(ASN1_STRING *str) { return str->data; }
 
 const unsigned char *ASN1_STRING_get0_data(const ASN1_STRING *str) {
   return str->data;
+}
+
+int asn1_parse_octet_string(CBS *cbs, ASN1_STRING *out, CBS_ASN1_TAG tag) {
+  tag = tag == 0 ? CBS_ASN1_OCTETSTRING : tag;
+  CBS child;
+  if (!CBS_get_asn1(cbs, &child, tag)) {
+    OPENSSL_PUT_ERROR(ASN1, ASN1_R_DECODE_ERROR);
+    return 0;
+  }
+  if (!ASN1_STRING_set(out, CBS_data(&child), CBS_len(&child))) {
+    return 0;
+  }
+  out->type = V_ASN1_OCTET_STRING;
+  return 1;
+}
+
+int asn1_marshal_octet_string(CBB *out, const ASN1_STRING *in,
+                              CBS_ASN1_TAG tag) {
+  tag = tag == 0 ? CBS_ASN1_OCTETSTRING : tag;
+  return CBB_add_asn1_element(out, tag, ASN1_STRING_get0_data(in),
+                              ASN1_STRING_length(in));
+}
+
+static int asn1_parse_character_string(CBS *cbs, ASN1_STRING *out,
+                                       CBS_ASN1_TAG tag, int str_type,
+                                       int (*get_char)(CBS *cbs, uint32_t *),
+                                       int bad_char_err) {
+  CBS child;
+  if (!CBS_get_asn1(cbs, &child, tag)) {
+    OPENSSL_PUT_ERROR(ASN1, ASN1_R_DECODE_ERROR);
+    return 0;
+  }
+  CBS copy = child;
+  while (CBS_len(&copy) != 0) {
+    uint32_t c;
+    if (!get_char(&copy, &c)) {
+      OPENSSL_PUT_ERROR(ASN1, bad_char_err);
+      return 0;
+    }
+  }
+  if (!ASN1_STRING_set(out, CBS_data(&child), CBS_len(&child))) {
+    return 0;
+  }
+  out->type = str_type;
+  return 1;
+}
+
+int asn1_parse_bmp_string(CBS *cbs, ASN1_BMPSTRING *out, CBS_ASN1_TAG tag) {
+  tag = tag == 0 ? CBS_ASN1_BMPSTRING : tag;
+  return asn1_parse_character_string(cbs, out, tag, V_ASN1_BMPSTRING,
+                                     &CBS_get_ucs2_be,
+                                     ASN1_R_INVALID_BMPSTRING);
+}
+
+int asn1_parse_universal_string(CBS *cbs, ASN1_UNIVERSALSTRING *out,
+                                CBS_ASN1_TAG tag) {
+  tag = tag == 0 ? CBS_ASN1_UNIVERSALSTRING : tag;
+  return asn1_parse_character_string(cbs, out, tag, V_ASN1_UNIVERSALSTRING,
+                                     &CBS_get_utf32_be,
+                                     ASN1_R_INVALID_UNIVERSALSTRING);
+}
+
+int asn1_parse_utf8_string(CBS *cbs, ASN1_UNIVERSALSTRING *out,
+                           CBS_ASN1_TAG tag) {
+  tag = tag == 0 ? CBS_ASN1_UTF8STRING : tag;
+  return asn1_parse_character_string(cbs, out, tag, V_ASN1_UTF8STRING,
+                                     &CBS_get_utf8, ASN1_R_INVALID_UTF8STRING);
 }

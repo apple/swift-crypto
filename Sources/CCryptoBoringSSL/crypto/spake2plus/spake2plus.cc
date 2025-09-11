@@ -27,7 +27,7 @@
 #include <CCryptoBoringSSL_hmac.h>
 #include <CCryptoBoringSSL_mem.h>
 #include <CCryptoBoringSSL_rand.h>
-#include <CCryptoBoringSSL_sha.h>
+#include <CCryptoBoringSSL_sha2.h>
 
 #include "../fipsmodule/bn/internal.h"
 #include "../fipsmodule/ec/internal.h"

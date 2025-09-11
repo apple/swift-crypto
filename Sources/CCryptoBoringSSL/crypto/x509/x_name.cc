@@ -38,15 +38,6 @@ DEFINE_STACK_OF(STACK_OF_X509_NAME_ENTRY)
 
 #define X509_NAME_MAX (1024 * 1024)
 
-static int x509_name_ex_d2i(ASN1_VALUE **val, const unsigned char **in,
-                            long len, const ASN1_ITEM *it, int opt,
-                            ASN1_TLC *ctx);
-
-static int x509_name_ex_i2d(ASN1_VALUE **val, unsigned char **out,
-                            const ASN1_ITEM *it);
-static int x509_name_ex_new(ASN1_VALUE **val, const ASN1_ITEM *it);
-static void x509_name_ex_free(ASN1_VALUE **val, const ASN1_ITEM *it);
-
 static int x509_name_encode(X509_NAME *a);
 static int x509_name_canon(X509_NAME *a);
 static int asn1_string_canon(ASN1_STRING *out, ASN1_STRING *in);
@@ -77,19 +68,8 @@ ASN1_ITEM_TEMPLATE_END(X509_NAME_INTERNAL)
 // representing the ASN1. Unfortunately X509_NAME uses a completely different
 // form and caches encodings so we have to process the internal form and
 // convert to the external form.
-
-static const ASN1_EXTERN_FUNCS x509_name_ff = {
-    x509_name_ex_new,
-    x509_name_ex_free,
-    x509_name_ex_d2i,
-    x509_name_ex_i2d,
-};
-
-IMPLEMENT_EXTERN_ASN1(X509_NAME, V_ASN1_SEQUENCE, x509_name_ff)
-
-IMPLEMENT_ASN1_FUNCTIONS(X509_NAME)
-
-IMPLEMENT_ASN1_DUP_FUNCTION(X509_NAME)
+//
+// TODO(crbug.com/42290417): Rewrite all this with |CBS| and |CBB|.
 
 static int x509_name_ex_new(ASN1_VALUE **val, const ASN1_ITEM *it) {
   X509_NAME *ret = NULL;
@@ -143,29 +123,37 @@ static void local_sk_X509_NAME_ENTRY_pop_free(STACK_OF(X509_NAME_ENTRY) *ne) {
   sk_X509_NAME_ENTRY_pop_free(ne, X509_NAME_ENTRY_free);
 }
 
-static int x509_name_ex_d2i(ASN1_VALUE **val, const unsigned char **in,
-                            long len, const ASN1_ITEM *it, int opt,
-                            ASN1_TLC *ctx) {
-  const unsigned char *p = *in, *q;
+static int x509_name_ex_parse(ASN1_VALUE **val, CBS *cbs, const ASN1_ITEM *it,
+                              int opt) {
+  if (opt && !CBS_peek_asn1_tag(cbs, CBS_ASN1_SEQUENCE)) {
+    return 1;
+  }
+
+  CBS elem;
+  if (!CBS_get_asn1_element(cbs, &elem, CBS_ASN1_SEQUENCE) ||
+      // Bound the size of an X509_NAME we are willing to parse.
+      CBS_len(&elem) > X509_NAME_MAX) {
+    OPENSSL_PUT_ERROR(ASN1, ASN1_R_DECODE_ERROR);
+    return 0;
+  }
+
+  // TODO(crbug.com/42290417): Rewrite the parser and canonicalization code with
+  // CBS and CBB. For now this calls into the original two-layer d2i code.
+  long len = static_cast<long>(CBS_len(&elem));
+  const unsigned char *p = CBS_data(&elem), *q;
   STACK_OF(STACK_OF_X509_NAME_ENTRY) *intname = NULL;
   X509_NAME *nm = NULL;
   size_t i, j;
-  int ret;
   STACK_OF(X509_NAME_ENTRY) *entries;
   X509_NAME_ENTRY *entry;
-  // Bound the size of an X509_NAME we are willing to parse.
-  if (len > X509_NAME_MAX) {
-    len = X509_NAME_MAX;
-  }
   q = p;
 
   // Get internal representation of Name
   ASN1_VALUE *intname_val = NULL;
-  ret = ASN1_item_ex_d2i(&intname_val, &p, len,
-                         ASN1_ITEM_rptr(X509_NAME_INTERNAL), /*tag=*/-1,
-                         /*aclass=*/0, opt, /*buf=*/NULL);
-  if (ret <= 0) {
-    return ret;
+  if (ASN1_item_ex_d2i(&intname_val, &p, len,
+                       ASN1_ITEM_rptr(X509_NAME_INTERNAL), /*tag=*/-1,
+                       /*aclass=*/0, /*opt=*/0) <= 0) {
+    return 0;
   }
   intname = (STACK_OF(STACK_OF_X509_NAME_ENTRY) *)intname_val;
 
@@ -195,15 +183,13 @@ static int x509_name_ex_d2i(ASN1_VALUE **val, const unsigned char **in,
       (void)sk_X509_NAME_ENTRY_set(entries, j, NULL);
     }
   }
-  ret = x509_name_canon(nm);
-  if (!ret) {
+  if (!x509_name_canon(nm)) {
     goto err;
   }
   sk_STACK_OF_X509_NAME_ENTRY_pop_free(intname, local_sk_X509_NAME_ENTRY_free);
   nm->modified = 0;
   *val = (ASN1_VALUE *)nm;
-  *in = p;
-  return ret;
+  return 1;
 err:
   X509_NAME_free(nm);
   sk_STACK_OF_X509_NAME_ENTRY_pop_free(intname,
@@ -225,6 +211,12 @@ static int x509_name_ex_i2d(ASN1_VALUE **val, unsigned char **out,
   }
   return ret;
 }
+
+static const ASN1_EXTERN_FUNCS x509_name_ff = {
+    x509_name_ex_new, x509_name_ex_free, x509_name_ex_parse, x509_name_ex_i2d};
+IMPLEMENT_EXTERN_ASN1(X509_NAME, x509_name_ff)
+IMPLEMENT_ASN1_FUNCTIONS(X509_NAME)
+IMPLEMENT_ASN1_DUP_FUNCTION(X509_NAME)
 
 static int x509_name_encode(X509_NAME *a) {
   int len;

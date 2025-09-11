@@ -26,7 +26,7 @@
 
 #include <CCryptoBoringSSL_digest.h>
 #include <CCryptoBoringSSL_hmac.h>
-#include <CCryptoBoringSSL_sha.h>
+#include <CCryptoBoringSSL_sha2.h>
 
 #include "../bcm_support.h"
 #include "../internal.h"
@@ -90,6 +90,7 @@
 #include "ec/wnaf.cc.inc"
 #include "ecdh/ecdh.cc.inc"
 #include "ecdsa/ecdsa.cc.inc"
+#include "entropy/jitter.cc.inc"
 #include "hkdf/hkdf.cc.inc"
 #include "hmac/hmac.cc.inc"
 #include "keccak/keccak.cc.inc"
@@ -172,8 +173,8 @@ static void BORINGSSL_maybe_set_module_text_permissions(int permission) {}
 
 #endif  // !ASAN
 
-static void __attribute__((constructor))
-BORINGSSL_bcm_power_on_self_test(void) {
+static void __attribute__((constructor)) BORINGSSL_bcm_power_on_self_test(
+    void) {
 #if !defined(OPENSSL_ASAN)
   // Integrity tests cannot run under ASAN because it involves reading the full
   // .text section, which triggers the global-buffer overflow detection.

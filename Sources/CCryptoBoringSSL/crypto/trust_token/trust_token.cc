@@ -12,12 +12,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include <CCryptoBoringSSL_trust_token.h>
+
+#include <iterator>
+
 #include <CCryptoBoringSSL_bytestring.h>
 #include <CCryptoBoringSSL_err.h>
 #include <CCryptoBoringSSL_evp.h>
 #include <CCryptoBoringSSL_mem.h>
-#include <CCryptoBoringSSL_sha.h>
-#include <CCryptoBoringSSL_trust_token.h>
+#include <CCryptoBoringSSL_sha2.h>
 
 #include "internal.h"
 
@@ -226,7 +229,7 @@ void TRUST_TOKEN_CLIENT_free(TRUST_TOKEN_CLIENT *ctx) {
 
 int TRUST_TOKEN_CLIENT_add_key(TRUST_TOKEN_CLIENT *ctx, size_t *out_key_index,
                                const uint8_t *key, size_t key_len) {
-  if (ctx->num_keys == OPENSSL_ARRAY_SIZE(ctx->keys) ||
+  if (ctx->num_keys == std::size(ctx->keys) ||
       ctx->num_keys >= ctx->method->max_keys) {
     OPENSSL_PUT_ERROR(TRUST_TOKEN, TRUST_TOKEN_R_TOO_MANY_KEYS);
     return 0;
@@ -462,7 +465,7 @@ void TRUST_TOKEN_ISSUER_free(TRUST_TOKEN_ISSUER *ctx) {
 
 int TRUST_TOKEN_ISSUER_add_key(TRUST_TOKEN_ISSUER *ctx, const uint8_t *key,
                                size_t key_len) {
-  if (ctx->num_keys == OPENSSL_ARRAY_SIZE(ctx->keys) ||
+  if (ctx->num_keys == std::size(ctx->keys) ||
       ctx->num_keys >= ctx->method->max_keys) {
     OPENSSL_PUT_ERROR(TRUST_TOKEN, TRUST_TOKEN_R_TOO_MANY_KEYS);
     return 0;

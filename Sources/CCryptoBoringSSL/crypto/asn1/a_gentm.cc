@@ -36,6 +36,23 @@ int asn1_generalizedtime_to_tm(struct tm *tm, const ASN1_GENERALIZEDTIME *d) {
   return 1;
 }
 
+int asn1_parse_generalized_time(CBS *cbs, ASN1_GENERALIZEDTIME *out,
+                                CBS_ASN1_TAG tag) {
+  tag = tag == 0 ? CBS_ASN1_GENERALIZEDTIME : tag;
+  CBS child;
+  if (!CBS_get_asn1(cbs, &child, tag) ||
+      !CBS_parse_generalized_time(&child, nullptr,
+                                  /*allow_timezone_offset=*/0)) {
+    OPENSSL_PUT_ERROR(ASN1, ASN1_R_DECODE_ERROR);
+    return 0;
+  }
+  if (!ASN1_STRING_set(out, CBS_data(&child), CBS_len(&child))) {
+    return 0;
+  }
+  out->type = V_ASN1_GENERALIZEDTIME;
+  return 1;
+}
+
 int ASN1_GENERALIZEDTIME_check(const ASN1_GENERALIZEDTIME *d) {
   return asn1_generalizedtime_to_tm(NULL, d);
 }

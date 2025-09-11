@@ -217,7 +217,8 @@ static void evp_md_ctx_verify_service_indicator(const EVP_MD_CTX *ctx,
       const EVP_MD *mgf1_md;
       if (!EVP_PKEY_CTX_get_rsa_pss_saltlen(pctx, &salt_len) ||
           !EVP_PKEY_CTX_get_rsa_mgf1_md(pctx, &mgf1_md) ||
-          (salt_len != -1 && salt_len != (int)EVP_MD_size(pctx_md)) ||
+          (salt_len != RSA_PSS_SALTLEN_DIGEST &&
+           salt_len != (int)EVP_MD_size(pctx_md)) ||
           EVP_MD_type(mgf1_md) != md_type) {
         // Only PSS where saltLen == hashLen is tested with ACVP. Cases with
         // non-standard padding functions are also excluded.

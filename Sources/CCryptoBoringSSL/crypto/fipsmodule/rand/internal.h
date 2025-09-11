@@ -37,14 +37,19 @@ struct ctr_drbg_state_st {
   ctr128_f ctr;
   uint8_t counter[16];
   uint64_t reseed_counter;
+  int df;
 };
 
-// CTR_DRBG_init initialises |*drbg| given |CTR_DRBG_ENTROPY_LEN| bytes of
-// entropy in |entropy| and, optionally, a personalization string up to
-// |CTR_DRBG_ENTROPY_LEN| bytes in length. It returns one on success and zero
-// on error.
-OPENSSL_EXPORT int CTR_DRBG_init(CTR_DRBG_STATE *drbg,
-                                 const uint8_t entropy[CTR_DRBG_ENTROPY_LEN],
+// CTR_DRBG_init initialises |*drbg| given |entropy_len| bytes of entropy in
+// |entropy| and, optionally, a personalization string up to
+// |CTR_DRBG_SEED_LEN| bytes in length. It returns one on success and zero on
+// error.
+//
+// If `df` is false then `entropy_len` must be |CTR_DRBG_ENTROPY_LEN| and
+// |nonce| must be nullptr.
+OPENSSL_EXPORT int CTR_DRBG_init(CTR_DRBG_STATE *drbg, int df,
+                                 const uint8_t *entropy, size_t entropy_len,
+                                 const uint8_t nonce[CTR_DRBG_NONCE_LEN],
                                  const uint8_t *personalization,
                                  size_t personalization_len);
 

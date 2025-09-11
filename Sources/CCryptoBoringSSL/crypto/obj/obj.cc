@@ -18,6 +18,8 @@
 #include <limits.h>
 #include <string.h>
 
+#include <iterator>
+
 #include <CCryptoBoringSSL_asn1.h>
 #include <CCryptoBoringSSL_bytestring.h>
 #include <CCryptoBoringSSL_err.h>
@@ -173,7 +175,7 @@ int OBJ_obj2nid(const ASN1_OBJECT *obj) {
   CRYPTO_MUTEX_unlock_read(&global_added_lock);
 
   const uint16_t *nid_ptr = reinterpret_cast<const uint16_t *>(
-      bsearch(obj, kNIDsInOIDOrder, OPENSSL_ARRAY_SIZE(kNIDsInOIDOrder),
+      bsearch(obj, kNIDsInOIDOrder, std::size(kNIDsInOIDOrder),
               sizeof(kNIDsInOIDOrder[0]), obj_cmp));
   if (nid_ptr == NULL) {
     return NID_undef;
@@ -219,10 +221,9 @@ int OBJ_sn2nid(const char *short_name) {
   }
   CRYPTO_MUTEX_unlock_read(&global_added_lock);
 
-  const uint16_t *nid_ptr = reinterpret_cast<const uint16_t *>(
-      bsearch(short_name, kNIDsInShortNameOrder,
-              OPENSSL_ARRAY_SIZE(kNIDsInShortNameOrder),
-              sizeof(kNIDsInShortNameOrder[0]), short_name_cmp));
+  const uint16_t *nid_ptr = reinterpret_cast<const uint16_t *>(bsearch(
+      short_name, kNIDsInShortNameOrder, std::size(kNIDsInShortNameOrder),
+      sizeof(kNIDsInShortNameOrder[0]), short_name_cmp));
   if (nid_ptr == NULL) {
     return NID_undef;
   }
@@ -254,9 +255,9 @@ int OBJ_ln2nid(const char *long_name) {
   }
   CRYPTO_MUTEX_unlock_read(&global_added_lock);
 
-  const uint16_t *nid_ptr = reinterpret_cast<const uint16_t *>(bsearch(
-      long_name, kNIDsInLongNameOrder, OPENSSL_ARRAY_SIZE(kNIDsInLongNameOrder),
-      sizeof(kNIDsInLongNameOrder[0]), long_name_cmp));
+  const uint16_t *nid_ptr = reinterpret_cast<const uint16_t *>(
+      bsearch(long_name, kNIDsInLongNameOrder, std::size(kNIDsInLongNameOrder),
+              sizeof(kNIDsInLongNameOrder[0]), long_name_cmp));
   if (nid_ptr == NULL) {
     return NID_undef;
   }

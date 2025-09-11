@@ -55,17 +55,17 @@ static const struct {
 };
 
 const EVP_CIPHER *EVP_get_cipherbynid(int nid) {
-  for (size_t i = 0; i < OPENSSL_ARRAY_SIZE(kCiphers); i++) {
-    if (kCiphers[i].nid == nid) {
-      return kCiphers[i].func();
+  for (const auto &cipher : kCiphers) {
+    if (cipher.nid == nid) {
+      return cipher.func();
     }
   }
-  return NULL;
+  return nullptr;
 }
 
 const EVP_CIPHER *EVP_get_cipherbyname(const char *name) {
-  if (name == NULL) {
-    return NULL;
+  if (name == nullptr) {
+    return nullptr;
   }
 
   // This is not a name used by OpenSSL, but tcpdump registers it with
@@ -75,11 +75,11 @@ const EVP_CIPHER *EVP_get_cipherbyname(const char *name) {
     name = "des-ede3-cbc";
   }
 
-  for (size_t i = 0; i < OPENSSL_ARRAY_SIZE(kCiphers); i++) {
-    if (OPENSSL_strcasecmp(kCiphers[i].name, name) == 0) {
-      return kCiphers[i].func();
+  for (const auto &cipher : kCiphers) {
+    if (OPENSSL_strcasecmp(cipher.name, name) == 0) {
+      return cipher.func();
     }
   }
 
-  return NULL;
+  return nullptr;
 }

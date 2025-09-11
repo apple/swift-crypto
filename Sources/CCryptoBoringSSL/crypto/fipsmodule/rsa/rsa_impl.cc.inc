@@ -18,6 +18,8 @@
 #include <limits.h>
 #include <string.h>
 
+#include <iterator>
+
 #include <CCryptoBoringSSL_bn.h>
 #include <CCryptoBoringSSL_err.h>
 #include <CCryptoBoringSSL_mem.h>
@@ -840,7 +842,7 @@ const BN_ULONG kBoringSSLRSASqrtTwo[] = {
     TOBN(0xed17ac85, 0x83339915), TOBN(0x1d6f60ba, 0x893ba84c),
     TOBN(0x597d89b3, 0x754abe9f), TOBN(0xb504f333, 0xf9de6484),
 };
-const size_t kBoringSSLRSASqrtTwoLen = OPENSSL_ARRAY_SIZE(kBoringSSLRSASqrtTwo);
+const size_t kBoringSSLRSASqrtTwoLen = std::size(kBoringSSLRSASqrtTwo);
 
 // generate_prime sets |out| to a prime with length |bits| such that |out|-1 is
 // relatively prime to |e|. If |p| is non-NULL, |out| will also not be close to
@@ -1183,9 +1185,7 @@ static int RSA_generate_key_ex_maybe_fips(RSA *rsa, int bits,
     return 0;
   }
 
-  RSA *tmp = NULL;
-  uint32_t err;
-  int ret = 0;
+  bssl::UniquePtr<RSA> tmp;
 
   // |rsa_generate_key_impl|'s 2^-20 failure probability is too high at scale,
   // so we run the FIPS algorithm four times, bringing it down to 2^-80. We
@@ -1195,27 +1195,25 @@ static int RSA_generate_key_ex_maybe_fips(RSA *rsa, int bits,
   do {
     ERR_clear_error();
     // Generate into scratch space, to avoid leaving partial work on failure.
-    tmp = RSA_new();
-    if (tmp == NULL) {
-      goto out;
+    tmp.reset(RSA_new());
+    if (tmp == nullptr) {
+      return 0;
     }
 
-    if (rsa_generate_key_impl(tmp, bits, e_value, cb)) {
+    if (rsa_generate_key_impl(tmp.get(), bits, e_value, cb)) {
       break;
     }
 
-    err = ERR_peek_error();
-    RSA_free(tmp);
-    tmp = NULL;
+    tmp = nullptr;
     failures++;
 
     // Only retry on |RSA_R_TOO_MANY_ITERATIONS|. This is so a caller-induced
     // failure in |BN_GENCB_call| is still fatal.
-  } while (failures < 4 && ERR_GET_LIB(err) == ERR_LIB_RSA &&
-           ERR_GET_REASON(err) == RSA_R_TOO_MANY_ITERATIONS);
+  } while (failures < 4 && ERR_equals(ERR_peek_error(), ERR_LIB_RSA,
+                                      RSA_R_TOO_MANY_ITERATIONS));
 
-  if (tmp == NULL || (check_fips && !RSA_check_fips(tmp))) {
-    goto out;
+  if (tmp == nullptr || (check_fips && !RSA_check_fips(tmp.get()))) {
+    return 0;
   }
 
   rsa_invalidate_key(rsa);
@@ -1235,11 +1233,7 @@ static int RSA_generate_key_ex_maybe_fips(RSA *rsa, int bits,
   replace_bignum(&rsa->dmq1_fixed, &tmp->dmq1_fixed);
   replace_bignum(&rsa->iqmp_mont, &tmp->iqmp_mont);
   rsa->private_key_frozen = tmp->private_key_frozen;
-  ret = 1;
-
-out:
-  RSA_free(tmp);
-  return ret;
+  return 1;
 }
 
 int RSA_generate_key_ex(RSA *rsa, int bits, const BIGNUM *e_value,

@@ -67,8 +67,8 @@ int FIPS_query_algorithm_status(const char *algorithm) {
     "SHA2-512",
     "SHA2-512/256",
   };
-  for (size_t i = 0; i < OPENSSL_ARRAY_SIZE(kApprovedAlgorithms); i++) {
-    if (strcmp(algorithm, kApprovedAlgorithms[i]) == 0) {
+  for (const char *approved : kApprovedAlgorithms) {
+    if (strcmp(algorithm, approved) == 0) {
       return 1;
     }
   }

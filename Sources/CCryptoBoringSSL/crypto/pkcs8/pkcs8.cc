@@ -271,15 +271,15 @@ static const struct pbe_suite kBuiltinPBE[] = {
 };
 
 static const struct pbe_suite *get_pkcs12_pbe_suite(int pbe_nid) {
-  for (unsigned i = 0; i < OPENSSL_ARRAY_SIZE(kBuiltinPBE); i++) {
-    if (kBuiltinPBE[i].pbe_nid == pbe_nid &&
+  for (const auto &pbe : kBuiltinPBE) {
+    if (pbe.pbe_nid == pbe_nid &&
         // If |cipher_func| or |md_func| are missing, this is a PBES2 scheme.
-        kBuiltinPBE[i].cipher_func != NULL && kBuiltinPBE[i].md_func != NULL) {
-      return &kBuiltinPBE[i];
+        pbe.cipher_func != nullptr && pbe.md_func != nullptr) {
+      return &pbe;
     }
   }
 
-  return NULL;
+  return nullptr;
 }
 
 int pkcs12_pbe_encrypt_init(CBB *out, EVP_CIPHER_CTX *ctx, int alg_nid,
@@ -333,9 +333,9 @@ int pkcs8_pbe_decrypt(uint8_t **out, size_t *out_len, CBS *algorithm,
     goto err;
   }
 
-  for (unsigned i = 0; i < OPENSSL_ARRAY_SIZE(kBuiltinPBE); i++) {
-    if (CBS_mem_equal(&obj, kBuiltinPBE[i].oid, kBuiltinPBE[i].oid_len)) {
-      suite = &kBuiltinPBE[i];
+  for (const auto &pbe : kBuiltinPBE) {
+    if (CBS_mem_equal(&obj, pbe.oid, pbe.oid_len)) {
+      suite = &pbe;
       break;
     }
   }

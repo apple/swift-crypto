@@ -15,7 +15,7 @@
 #ifndef OPENSSL_HEADER_BCM_PUBLIC_H_
 #define OPENSSL_HEADER_BCM_PUBLIC_H_
 
-#include "CCryptoBoringSSL_base.h"   // IWYU pragma: export
+#include "CCryptoBoringSSL_base.h"  // IWYU pragma: export
 
 #if defined(__cplusplus)
 extern "C" {
@@ -69,9 +69,10 @@ struct sha256_state_st {
 
 struct sha512_state_st {
   uint64_t h[8];
-  uint64_t Nl, Nh;
+  uint16_t num, md_len;
+  uint32_t bytes_so_far_high;
+  uint64_t bytes_so_far_low;
   uint8_t p[BCM_SHA512_CBLOCK];
-  unsigned num, md_len;
 };
 
 
