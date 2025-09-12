@@ -91,6 +91,7 @@ add_library(Crypto
   "Signatures/BoringSSL/ECDSASignature_boring.swift"
   "Signatures/BoringSSL/ECDSA_boring.swift"
   "Signatures/BoringSSL/EdDSA_boring.swift"
+  "Signatures/BoringSSL/MLDSA+externalMu_boring.swift"
   "Signatures/BoringSSL/MLDSA_boring.swift"
   "Signatures/BoringSSL/MLDSA_wrapper.swift"
   "Signatures/ECDSA.swift"
