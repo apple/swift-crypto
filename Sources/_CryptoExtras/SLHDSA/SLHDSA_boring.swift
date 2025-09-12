@@ -14,7 +14,12 @@
 
 @_implementationOnly import CCryptoBoringSSL
 import Crypto
+
+#if canImport(FoundationEssentials)
+import FoundationEssentials
+#else
 import Foundation
+#endif
 
 /// A stateless hash-based digital signature algorithm that provides security against quantum computing attacks.
 @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
@@ -78,15 +83,15 @@ extension SLHDSA.SHA2_128s {
         }
 
         fileprivate final class Backing {
-            private let pointer: UnsafeMutablePointer<UInt8>
+            private let pointer: UnsafeMutableBufferPointer<UInt8>
 
             func withUnsafePointer<T>(_ body: (UnsafePointer<UInt8>) throws -> T) rethrows -> T {
-                try body(self.pointer)
+                try body(self.pointer.baseAddress!)
             }
 
             /// Initialize a SLH-DSA-SHA2-128s private key from a random seed.
             init() {
-                self.pointer = UnsafeMutablePointer<UInt8>.allocate(
+                self.pointer = UnsafeMutableBufferPointer<UInt8>.allocate(
                     capacity: SLHDSA.SHA2_128s.PrivateKey.Backing.byteCount
                 )
 
@@ -94,7 +99,7 @@ extension SLHDSA.SHA2_128s {
                     of: UInt8.self,
                     capacity: SLHDSA.SHA2_128s.PublicKey.Backing.byteCount
                 ) { publicKeyPtr in
-                    CCryptoBoringSSL_SLHDSA_SHA2_128S_generate_key(publicKeyPtr.baseAddress, self.pointer)
+                    CCryptoBoringSSL_SLHDSA_SHA2_128S_generate_key(publicKeyPtr.baseAddress, self.pointer.baseAddress)
                 }
             }
 
@@ -108,18 +113,20 @@ extension SLHDSA.SHA2_128s {
                     throw CryptoKitError.incorrectKeySize
                 }
 
-                self.pointer = UnsafeMutablePointer<UInt8>.allocate(
+                self.pointer = UnsafeMutableBufferPointer<UInt8>.allocate(
                     capacity: SLHDSA.SHA2_128s.PrivateKey.Backing.byteCount
                 )
-                self.pointer.initialize(
-                    from: Array(rawRepresentation),
-                    count: SLHDSA.SHA2_128s.PrivateKey.Backing.byteCount
-                )
+                _ = self.pointer.initialize(fromContentsOf: rawRepresentation)
             }
 
             /// The raw representation of the private key.
             var rawRepresentation: Data {
-                Data(UnsafeBufferPointer(start: self.pointer, count: SLHDSA.SHA2_128s.PrivateKey.Backing.byteCount))
+                Data(
+                    UnsafeBufferPointer(
+                        start: self.pointer.baseAddress,
+                        count: SLHDSA.SHA2_128s.PrivateKey.Backing.byteCount
+                    )
+                )
             }
 
             /// The public key associated with this private key.
@@ -143,7 +150,7 @@ extension SLHDSA.SHA2_128s {
                         context.withUnsafeBytes { contextPtr in
                             CCryptoBoringSSL_SLHDSA_SHA2_128S_sign(
                                 signaturePtr.baseAddress,
-                                self.pointer,
+                                self.pointer.baseAddress,
                                 dataPtr.baseAddress,
                                 dataPtr.count,
                                 contextPtr.baseAddress,
@@ -222,14 +229,14 @@ extension SLHDSA.SHA2_128s {
         }
 
         fileprivate final class Backing {
-            private let pointer: UnsafeMutablePointer<UInt8>
+            private let pointer: UnsafeMutableBufferPointer<UInt8>
 
             init(privateKeyBacking: PrivateKey.Backing) {
-                self.pointer = UnsafeMutablePointer<UInt8>.allocate(
+                self.pointer = UnsafeMutableBufferPointer<UInt8>.allocate(
                     capacity: SLHDSA.SHA2_128s.PublicKey.Backing.byteCount
                 )
                 privateKeyBacking.withUnsafePointer { privateKeyPtr in
-                    CCryptoBoringSSL_SLHDSA_SHA2_128S_public_from_private(self.pointer, privateKeyPtr)
+                    CCryptoBoringSSL_SLHDSA_SHA2_128S_public_from_private(self.pointer.baseAddress, privateKeyPtr)
                 }
             }
 
@@ -243,18 +250,20 @@ extension SLHDSA.SHA2_128s {
                     throw CryptoKitError.incorrectKeySize
                 }
 
-                self.pointer = UnsafeMutablePointer<UInt8>.allocate(
+                self.pointer = UnsafeMutableBufferPointer<UInt8>.allocate(
                     capacity: SLHDSA.SHA2_128s.PublicKey.Backing.byteCount
                 )
-                self.pointer.initialize(
-                    from: Array(rawRepresentation),
-                    count: SLHDSA.SHA2_128s.PublicKey.Backing.byteCount
-                )
+                _ = self.pointer.initialize(fromContentsOf: rawRepresentation)
             }
 
             /// The raw representation of the public key.
             var rawRepresentation: Data {
-                Data(UnsafeBufferPointer(start: self.pointer, count: SLHDSA.SHA2_128s.PublicKey.Backing.byteCount))
+                Data(
+                    UnsafeBufferPointer(
+                        start: self.pointer.baseAddress,
+                        count: SLHDSA.SHA2_128s.PublicKey.Backing.byteCount
+                    )
+                )
             }
 
             /// Verify a signature for the given data.
@@ -279,7 +288,7 @@ extension SLHDSA.SHA2_128s {
                             CCryptoBoringSSL_SLHDSA_SHA2_128S_verify(
                                 signaturePtr.baseAddress,
                                 signaturePtr.count,
-                                self.pointer,
+                                self.pointer.baseAddress,
                                 dataPtr.baseAddress,
                                 dataPtr.count,
                                 contextPtr.baseAddress,
