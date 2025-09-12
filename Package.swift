@@ -90,7 +90,7 @@ let package = Package(
     products: [
         .library(name: "Crypto", targets: ["Crypto"]),
         // Kept for backward compatibility
-        .library(name: "_CryptoExtras", targets: ["CryptoExtras"]),
+        .library(name: "_CryptoExtras", targets: ["_CryptoExtras"]),
         .library(name: "CryptoExtras", targets: ["CryptoExtras"]),
         /* This target is used only for symbol mangling. It's added and removed automatically because it emits build warnings. MANGLE_START
             .library(name: "CCryptoBoringSSL", type: .static, targets: ["CCryptoBoringSSL"]),
@@ -191,6 +191,13 @@ let package = Package(
                 "CMakeLists.txt"
             ],
             resources: privacyManifestResource,
+            swiftSettings: swiftSettings
+        ),
+        .target(
+            name: "_CryptoExtras",
+            dependencies: [
+                "CryptoExtras",
+            ],
             swiftSettings: swiftSettings
         ),
         .target(
