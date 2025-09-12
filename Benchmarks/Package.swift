@@ -14,7 +14,7 @@ let package = Package(
             dependencies: [
                 .product(name: "Benchmark", package: "package-benchmark"),
                 .product(name: "Crypto", package: "swift-crypto"),
-                .product(name: "_CryptoExtras", package: "swift-crypto"),
+                .product(name: "CryptoExtras", package: "swift-crypto"),
             ],
             path: "Benchmarks/",
             plugins: [
