@@ -170,6 +170,7 @@ let package = Package(
                 "Signatures/ECDSA.swift.gyb",
                 "Signatures/MLDSA.swift.gyb",
                 "Signatures/BoringSSL/MLDSA_boring.swift.gyb",
+                "Signatures/BoringSSL/MLDSA+externalMu_boring.swift.gyb",
                 "KEM/MLKEM.swift.gyb",
                 "KEM/BoringSSL/MLKEM_boring.swift.gyb",
             ],

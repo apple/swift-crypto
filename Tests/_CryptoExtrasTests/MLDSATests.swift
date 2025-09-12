@@ -356,7 +356,7 @@ extension MLDSA87.PublicKey {
 
 #endif  // SDK has MLDSA
 
-@available(iOS 19.0, macOS 16.0, watchOS 12.0, tvOS 19.0, visionOS 3.0, *)
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 final class MLDSAExternalMuTests: XCTestCase {
     func testMLDSA65PrehashedSigning() throws {
         let message = "Hello, world!".data(using: .utf8)!

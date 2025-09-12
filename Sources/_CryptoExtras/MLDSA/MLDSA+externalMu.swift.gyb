@@ -27,7 +27,7 @@ import Foundation
 }%
 % for parameter_set in parameter_sets:
 
-@available(iOS 19.0, macOS 16.0, watchOS 12.0, tvOS 19.0, visionOS 3.0, *)
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension MLDSA${parameter_set}.PrivateKey {
     /// Generate a signature for the prehashed message representative (a.k.a. "external mu").
     ///
@@ -41,7 +41,7 @@ extension MLDSA${parameter_set}.PrivateKey {
     }
 }
 
-@available(iOS 19.0, macOS 16.0, watchOS 12.0, tvOS 19.0, visionOS 3.0, *)
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension MLDSA${parameter_set}.PublicKey {
     /// Generate a prehashed message representative (a.k.a. "external mu") for the given message.
     ///
@@ -63,4 +63,4 @@ extension MLDSA${parameter_set}.PublicKey {
         try self.prehash_boring(for: data, context: context)
     }
 }
-%end
+% end

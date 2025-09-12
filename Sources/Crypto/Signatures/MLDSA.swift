@@ -11,6 +11,11 @@
 // SPDX-License-Identifier: Apache-2.0
 //
 //===----------------------------------------------------------------------===//
+
+// MARK: - Generated file, do NOT edit
+// any edits of this file WILL be overwritten and thus discarded
+// see section `gyb` in `README` for details.
+
 #if CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
 @_exported import CryptoKit
 #else
@@ -61,36 +66,6 @@ extension MLDSA65 {
         public var rawRepresentation: Data {
             get {
                 return self.impl.rawRepresentation
-            }
-        }
-
-        /// Generate a prehashed message representative (a.k.a. "external mu") for the given message.
-        ///
-        /// - Parameter data: The message to prehash.
-        ///
-        /// - Returns: The prehashed message representative (a.k.a. "external mu").
-        package func prehash_boring<D: DataProtocol>(for data: D) throws -> Data {
-            try self.boringSSLKey.prehash_boring(for: data)
-        }
-
-        /// Generate a prehashed message representative (a.k.a. "external mu") for the given message.
-        ///
-        /// - Parameters:
-        ///   - data: The message to prehash.
-        ///   - context: The context of the message.
-        ///
-        /// - Returns: The prehashed message representative (a.k.a. "external mu").
-        package func prehash_boring<D: DataProtocol, C: DataProtocol>(for data: D, context: C) throws -> Data {
-            try self.boringSSLKey.prehash_boring(for: data, context: context)
-        }
-
-        private var boringSSLKey: OpenSSLMLDSAPublicKeyImpl<MLDSA65> {
-            get throws {
-                #if (!CRYPTO_IN_SWIFTPM_FORCE_BUILD_API) || CRYPTOKIT_NO_ACCESS_TO_FOUNDATION
-                try OpenSSLMLDSAPublicKeyImpl<MLDSA65>(rawRepresentation: self.rawRepresentation)
-                #else
-                self.impl
-                #endif
             }
         }
 
@@ -174,17 +149,6 @@ extension MLDSA65 {
             return try impl.signature(for: data, context: context)
         }
 
-        /// Generate a signature for the prehashed message representative (a.k.a. "external mu").
-        ///
-        /// > Note: The message representative should be obtained via calls to ``MLDSA87/PublicKey/prehash(for:context:)``.
-        ///
-        /// - Parameter mu: The prehashed message representative (a.k.a. "external mu").
-        ///
-        /// - Returns: The signature of the prehashed message representative.
-        package func signature_boring(forPrehashedMessageRepresentative mu: some DataProtocol) throws -> Data {
-            try self.boringSSLKey.signature_boring(forPrehashedMessageRepresentative: mu)
-        }
-
         /// The associated public key.
         public var publicKey: PublicKey {
             get {
@@ -215,19 +179,6 @@ extension MLDSA65 {
         public var integrityCheckedRepresentation: Data {
             get {
                 return self.impl.integrityCheckedRepresentation
-            }
-        }
-
-        private var boringSSLKey: OpenSSLMLDSAPrivateKeyImpl<MLDSA65> {
-            get throws {
-                #if (!CRYPTO_IN_SWIFTPM_FORCE_BUILD_API) || CRYPTOKIT_NO_ACCESS_TO_FOUNDATION
-                try OpenSSLMLDSAPrivateKeyImpl<MLDSA65>(
-                    seedRepresentation: self.seedRepresentation,
-                    publicKey: nil
-                )
-                #else
-                self.impl
-                #endif
             }
         }
     }
@@ -262,36 +213,6 @@ extension MLDSA87 {
         public var rawRepresentation: Data {
             get {
                 return self.impl.rawRepresentation
-            }
-        }
-
-        /// Generate a prehashed message representative (a.k.a. "external mu") for the given message.
-        ///
-        /// - Parameter data: The message to prehash.
-        ///
-        /// - Returns: The prehashed message representative (a.k.a. "external mu").
-        package func prehash_boring<D: DataProtocol>(for data: D) throws -> Data {
-            try self.boringSSLKey.prehash_boring(for: data)
-        }
-
-        /// Generate a prehashed message representative (a.k.a. "external mu") for the given message.
-        ///
-        /// - Parameters:
-        ///   - data: The message to prehash.
-        ///   - context: The context of the message.
-        ///
-        /// - Returns: The prehashed message representative (a.k.a. "external mu").
-        package func prehash_boring<D: DataProtocol, C: DataProtocol>(for data: D, context: C) throws -> Data {
-            try self.boringSSLKey.prehash_boring(for: data, context: context)
-        }
-
-        private var boringSSLKey: OpenSSLMLDSAPublicKeyImpl<MLDSA87> {
-            get throws {
-                #if (!CRYPTO_IN_SWIFTPM_FORCE_BUILD_API) || CRYPTOKIT_NO_ACCESS_TO_FOUNDATION
-                try OpenSSLMLDSAPublicKeyImpl<MLDSA87>(rawRepresentation: self.rawRepresentation)
-                #else
-                self.impl
-                #endif
             }
         }
 
@@ -375,17 +296,6 @@ extension MLDSA87 {
             return try impl.signature(for: data, context: context)
         }
 
-        /// Generate a signature for the prehashed message representative (a.k.a. "external mu").
-        ///
-        /// > Note: The message representative should be obtained via calls to ``MLDSA87/PublicKey/prehash(for:context:)``.
-        ///
-        /// - Parameter mu: The prehashed message representative (a.k.a. "external mu").
-        ///
-        /// - Returns: The signature of the prehashed message representative.
-        package func signature_boring(forPrehashedMessageRepresentative mu: some DataProtocol) throws -> Data {
-            try self.boringSSLKey.signature_boring(forPrehashedMessageRepresentative: mu)
-        }
-
         /// The associated public key.
         public var publicKey: PublicKey {
             get {
@@ -416,19 +326,6 @@ extension MLDSA87 {
         public var integrityCheckedRepresentation: Data {
             get {
                 return self.impl.integrityCheckedRepresentation
-            }
-        }
-
-        private var boringSSLKey: OpenSSLMLDSAPrivateKeyImpl<MLDSA87> {
-            get throws {
-                #if (!CRYPTO_IN_SWIFTPM_FORCE_BUILD_API) || CRYPTOKIT_NO_ACCESS_TO_FOUNDATION
-                try OpenSSLMLDSAPrivateKeyImpl<MLDSA87>(
-                    seedRepresentation: self.seedRepresentation,
-                    publicKey: nil
-                )
-                #else
-                self.impl
-                #endif
             }
         }
     }
