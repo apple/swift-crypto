@@ -255,113 +255,41 @@ int DSA_marshal_private_key(CBB *cbb, const DSA *dsa) {
 }
 
 DSA_SIG *d2i_DSA_SIG(DSA_SIG **out_sig, const uint8_t **inp, long len) {
-  if (len < 0) {
-    return NULL;
-  }
-  CBS cbs;
-  CBS_init(&cbs, *inp, (size_t)len);
-  DSA_SIG *ret = DSA_SIG_parse(&cbs);
-  if (ret == NULL) {
-    return NULL;
-  }
-  if (out_sig != NULL) {
-    DSA_SIG_free(*out_sig);
-    *out_sig = ret;
-  }
-  *inp = CBS_data(&cbs);
-  return ret;
+  return bssl::D2IFromCBS(out_sig, inp, len, DSA_SIG_parse);
 }
 
 int i2d_DSA_SIG(const DSA_SIG *in, uint8_t **outp) {
-  CBB cbb;
-  if (!CBB_init(&cbb, 0) ||
-      !DSA_SIG_marshal(&cbb, in)) {
-    CBB_cleanup(&cbb);
-    return -1;
-  }
-  return CBB_finish_i2d(&cbb, outp);
+  return bssl::I2DFromCBB(
+      /*initial_capacity=*/256, outp,
+      [&](CBB *cbb) -> bool { return DSA_SIG_marshal(cbb, in); });
 }
 
 DSA *d2i_DSAPublicKey(DSA **out, const uint8_t **inp, long len) {
-  if (len < 0) {
-    return NULL;
-  }
-  CBS cbs;
-  CBS_init(&cbs, *inp, (size_t)len);
-  DSA *ret = DSA_parse_public_key(&cbs);
-  if (ret == NULL) {
-    return NULL;
-  }
-  if (out != NULL) {
-    DSA_free(*out);
-    *out = ret;
-  }
-  *inp = CBS_data(&cbs);
-  return ret;
+  return bssl::D2IFromCBS(out, inp, len, DSA_parse_public_key);
 }
 
 int i2d_DSAPublicKey(const DSA *in, uint8_t **outp) {
-  CBB cbb;
-  if (!CBB_init(&cbb, 0) ||
-      !DSA_marshal_public_key(&cbb, in)) {
-    CBB_cleanup(&cbb);
-    return -1;
-  }
-  return CBB_finish_i2d(&cbb, outp);
+  return bssl::I2DFromCBB(
+      /*initial_capacity=*/256, outp,
+      [&](CBB *cbb) -> bool { return DSA_marshal_public_key(cbb, in); });
 }
 
 DSA *d2i_DSAPrivateKey(DSA **out, const uint8_t **inp, long len) {
-  if (len < 0) {
-    return NULL;
-  }
-  CBS cbs;
-  CBS_init(&cbs, *inp, (size_t)len);
-  DSA *ret = DSA_parse_private_key(&cbs);
-  if (ret == NULL) {
-    return NULL;
-  }
-  if (out != NULL) {
-    DSA_free(*out);
-    *out = ret;
-  }
-  *inp = CBS_data(&cbs);
-  return ret;
+  return bssl::D2IFromCBS(out, inp, len, DSA_parse_private_key);
 }
 
 int i2d_DSAPrivateKey(const DSA *in, uint8_t **outp) {
-  CBB cbb;
-  if (!CBB_init(&cbb, 0) ||
-      !DSA_marshal_private_key(&cbb, in)) {
-    CBB_cleanup(&cbb);
-    return -1;
-  }
-  return CBB_finish_i2d(&cbb, outp);
+  return bssl::I2DFromCBB(
+      /*initial_capacity=*/256, outp,
+      [&](CBB *cbb) -> bool { return DSA_marshal_private_key(cbb, in); });
 }
 
 DSA *d2i_DSAparams(DSA **out, const uint8_t **inp, long len) {
-  if (len < 0) {
-    return NULL;
-  }
-  CBS cbs;
-  CBS_init(&cbs, *inp, (size_t)len);
-  DSA *ret = DSA_parse_parameters(&cbs);
-  if (ret == NULL) {
-    return NULL;
-  }
-  if (out != NULL) {
-    DSA_free(*out);
-    *out = ret;
-  }
-  *inp = CBS_data(&cbs);
-  return ret;
+  return bssl::D2IFromCBS(out, inp, len, DSA_parse_parameters);
 }
 
 int i2d_DSAparams(const DSA *in, uint8_t **outp) {
-  CBB cbb;
-  if (!CBB_init(&cbb, 0) ||
-      !DSA_marshal_parameters(&cbb, in)) {
-    CBB_cleanup(&cbb);
-    return -1;
-  }
-  return CBB_finish_i2d(&cbb, outp);
+  return bssl::I2DFromCBB(
+      /*initial_capacity=*/256, outp,
+      [&](CBB *cbb) -> bool { return DSA_marshal_parameters(cbb, in); });
 }

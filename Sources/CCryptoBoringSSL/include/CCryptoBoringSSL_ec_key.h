@@ -130,12 +130,12 @@ OPENSSL_EXPORT int EC_KEY_set_public_key_affine_coordinates(EC_KEY *key,
 // EC_KEY_oct2key decodes |len| bytes from |in| as an EC public key in X9.62
 // form. |key| must already have a group configured. On success, it sets the
 // public key in |key| to the result and returns one. Otherwise, it returns
-// zero.
+// zero. |ctx| may be NULL.
 OPENSSL_EXPORT int EC_KEY_oct2key(EC_KEY *key, const uint8_t *in, size_t len,
                                   BN_CTX *ctx);
 
 // EC_KEY_key2buf behaves like |EC_POINT_point2buf|, except it encodes the
-// public key in |key|.
+// public key in |key|. |ctx| is ignored and may be NULL.
 OPENSSL_EXPORT size_t EC_KEY_key2buf(const EC_KEY *key,
                                      point_conversion_form_t form,
                                      uint8_t **out_buf, BN_CTX *ctx);

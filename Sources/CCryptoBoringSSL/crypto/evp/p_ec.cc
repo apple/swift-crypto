@@ -148,12 +148,8 @@ static int pkey_ec_ctrl(EVP_PKEY_CTX *ctx, int type, int p1, void *p2) {
       // Default behaviour is OK
       return 1;
 
-    case EVP_PKEY_CTRL_EC_PARAMGEN_CURVE_NID: {
-      const EC_GROUP *group = EC_GROUP_new_by_curve_name(p1);
-      if (group == NULL) {
-        return 0;
-      }
-      dctx->gen_group = group;
+    case EVP_PKEY_CTRL_EC_PARAMGEN_GROUP: {
+      dctx->gen_group = static_cast<const EC_GROUP *>(p2);
       return 1;
     }
 
@@ -197,7 +193,7 @@ static int pkey_ec_paramgen(EVP_PKEY_CTX *ctx, EVP_PKEY *pkey) {
   return 1;
 }
 
-const EVP_PKEY_METHOD ec_pkey_meth = {
+const EVP_PKEY_CTX_METHOD ec_pkey_meth = {
     EVP_PKEY_EC,
     pkey_ec_init,
     pkey_ec_copy,
@@ -216,8 +212,13 @@ const EVP_PKEY_METHOD ec_pkey_meth = {
 };
 
 int EVP_PKEY_CTX_set_ec_paramgen_curve_nid(EVP_PKEY_CTX *ctx, int nid) {
+  const EC_GROUP *group = EC_GROUP_new_by_curve_name(nid);
+  if (group == nullptr) {
+    return 0;
+  }
   return EVP_PKEY_CTX_ctrl(ctx, EVP_PKEY_EC, EVP_PKEY_OP_TYPE_GEN,
-                           EVP_PKEY_CTRL_EC_PARAMGEN_CURVE_NID, nid, NULL);
+                           EVP_PKEY_CTRL_EC_PARAMGEN_GROUP, 0,
+                           const_cast<EC_GROUP *>(group));
 }
 
 int EVP_PKEY_CTX_set_ec_param_enc(EVP_PKEY_CTX *ctx, int encoding) {

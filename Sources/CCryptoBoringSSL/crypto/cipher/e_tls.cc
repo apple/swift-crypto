@@ -31,7 +31,7 @@
 
 typedef struct {
   EVP_CIPHER_CTX cipher_ctx;
-  HMAC_CTX hmac_ctx;
+  HMAC_CTX *hmac_ctx;
   // mac_key is the portion of the key used for the MAC. It is retained
   // separately for the constant-time CBC code.
   uint8_t mac_key[EVP_MAX_MD_SIZE];
@@ -51,15 +51,14 @@ static_assert(alignof(union evp_aead_ctx_st_state) >= alignof(AEAD_TLS_CTX),
 static void aead_tls_cleanup(EVP_AEAD_CTX *ctx) {
   AEAD_TLS_CTX *tls_ctx = (AEAD_TLS_CTX *)&ctx->state;
   EVP_CIPHER_CTX_cleanup(&tls_ctx->cipher_ctx);
-  HMAC_CTX_cleanup(&tls_ctx->hmac_ctx);
+  HMAC_CTX_free(tls_ctx->hmac_ctx);
 }
 
 static int aead_tls_init(EVP_AEAD_CTX *ctx, const uint8_t *key, size_t key_len,
                          size_t tag_len, enum evp_aead_direction_t dir,
                          const EVP_CIPHER *cipher, const EVP_MD *md,
                          char implicit_iv) {
-  if (tag_len != EVP_AEAD_DEFAULT_TAG_LENGTH &&
-      tag_len != EVP_MD_size(md)) {
+  if (tag_len != EVP_AEAD_DEFAULT_TAG_LENGTH && tag_len != EVP_MD_size(md)) {
     OPENSSL_PUT_ERROR(CIPHER, CIPHER_R_UNSUPPORTED_TAG_SIZE);
     return 0;
   }
@@ -72,11 +71,15 @@ static int aead_tls_init(EVP_AEAD_CTX *ctx, const uint8_t *key, size_t key_len,
   size_t mac_key_len = EVP_MD_size(md);
   size_t enc_key_len = EVP_CIPHER_key_length(cipher);
   assert(mac_key_len + enc_key_len +
-         (implicit_iv ? EVP_CIPHER_iv_length(cipher) : 0) == key_len);
+             (implicit_iv ? EVP_CIPHER_iv_length(cipher) : 0) ==
+         key_len);
 
   AEAD_TLS_CTX *tls_ctx = (AEAD_TLS_CTX *)&ctx->state;
+  tls_ctx->hmac_ctx = HMAC_CTX_new();
+  if (!tls_ctx->hmac_ctx) {
+    return 0;
+  }
   EVP_CIPHER_CTX_init(&tls_ctx->cipher_ctx);
-  HMAC_CTX_init(&tls_ctx->hmac_ctx);
   assert(mac_key_len <= EVP_MAX_MD_SIZE);
   OPENSSL_memcpy(tls_ctx->mac_key, key, mac_key_len);
   tls_ctx->mac_key_len = (uint8_t)mac_key_len;
@@ -85,7 +88,7 @@ static int aead_tls_init(EVP_AEAD_CTX *ctx, const uint8_t *key, size_t key_len,
   if (!EVP_CipherInit_ex(&tls_ctx->cipher_ctx, cipher, NULL, &key[mac_key_len],
                          implicit_iv ? &key[mac_key_len + enc_key_len] : NULL,
                          dir == evp_aead_seal) ||
-      !HMAC_Init_ex(&tls_ctx->hmac_ctx, key, mac_key_len, md, NULL)) {
+      !HMAC_Init_ex(tls_ctx->hmac_ctx, key, mac_key_len, md, NULL)) {
     aead_tls_cleanup(ctx);
     return 0;
   }
@@ -99,7 +102,7 @@ static size_t aead_tls_tag_len(const EVP_AEAD_CTX *ctx, const size_t in_len,
   assert(extra_in_len == 0);
   const AEAD_TLS_CTX *tls_ctx = (AEAD_TLS_CTX *)&ctx->state;
 
-  const size_t hmac_len = HMAC_size(&tls_ctx->hmac_ctx);
+  const size_t hmac_len = HMAC_size(tls_ctx->hmac_ctx);
   if (EVP_CIPHER_CTX_mode(&tls_ctx->cipher_ctx) != EVP_CIPH_CBC_MODE) {
     // The NULL cipher.
     return hmac_len;
@@ -160,11 +163,11 @@ static int aead_tls_seal_scatter(const EVP_AEAD_CTX *ctx, uint8_t *out,
   // in-place.
   uint8_t mac[EVP_MAX_MD_SIZE];
   unsigned mac_len;
-  if (!HMAC_Init_ex(&tls_ctx->hmac_ctx, NULL, 0, NULL, NULL) ||
-      !HMAC_Update(&tls_ctx->hmac_ctx, ad, ad_len) ||
-      !HMAC_Update(&tls_ctx->hmac_ctx, ad_extra, sizeof(ad_extra)) ||
-      !HMAC_Update(&tls_ctx->hmac_ctx, in, in_len) ||
-      !HMAC_Final(&tls_ctx->hmac_ctx, mac, &mac_len)) {
+  if (!HMAC_Init_ex(tls_ctx->hmac_ctx, NULL, 0, NULL, NULL) ||
+      !HMAC_Update(tls_ctx->hmac_ctx, ad, ad_len) ||
+      !HMAC_Update(tls_ctx->hmac_ctx, ad_extra, sizeof(ad_extra)) ||
+      !HMAC_Update(tls_ctx->hmac_ctx, in, in_len) ||
+      !HMAC_Final(tls_ctx->hmac_ctx, mac, &mac_len)) {
     return 0;
   }
 
@@ -187,7 +190,8 @@ static int aead_tls_seal_scatter(const EVP_AEAD_CTX *ctx, uint8_t *out,
   // block from encrypting the input and split the result between |out| and
   // |out_tag|. Then feed the rest.
 
-  const size_t early_mac_len = (block_size - (in_len % block_size)) % block_size;
+  const size_t early_mac_len =
+      (block_size - (in_len % block_size)) % block_size;
   if (early_mac_len != 0) {
     assert(len + block_size - early_mac_len == in_len);
     uint8_t buf[EVP_MAX_BLOCK_LENGTH];
@@ -245,7 +249,7 @@ static int aead_tls_open(const EVP_AEAD_CTX *ctx, uint8_t *out, size_t *out_len,
     return 0;
   }
 
-  if (in_len < HMAC_size(&tls_ctx->hmac_ctx)) {
+  if (in_len < HMAC_size(tls_ctx->hmac_ctx)) {
     OPENSSL_PUT_ERROR(CIPHER, CIPHER_R_BAD_DECRYPT);
     return 0;
   }
@@ -303,7 +307,7 @@ static int aead_tls_open(const EVP_AEAD_CTX *ctx, uint8_t *out, size_t *out_len,
     if (!EVP_tls_cbc_remove_padding(
             &padding_ok, &data_plus_mac_len, out, total,
             EVP_CIPHER_CTX_block_size(&tls_ctx->cipher_ctx),
-            HMAC_size(&tls_ctx->hmac_ctx))) {
+            HMAC_size(tls_ctx->hmac_ctx))) {
       // Publicly invalid. This can be rejected in non-constant time.
       OPENSSL_PUT_ERROR(CIPHER, CIPHER_R_BAD_DECRYPT);
       return 0;
@@ -313,9 +317,9 @@ static int aead_tls_open(const EVP_AEAD_CTX *ctx, uint8_t *out, size_t *out_len,
     data_plus_mac_len = total;
     // |data_plus_mac_len| = |total| = |in_len| at this point. |in_len| has
     // already been checked against the MAC size at the top of the function.
-    assert(data_plus_mac_len >= HMAC_size(&tls_ctx->hmac_ctx));
+    assert(data_plus_mac_len >= HMAC_size(tls_ctx->hmac_ctx));
   }
-  size_t data_len = data_plus_mac_len - HMAC_size(&tls_ctx->hmac_ctx);
+  size_t data_len = data_plus_mac_len - HMAC_size(tls_ctx->hmac_ctx);
 
   // At this point, if the padding is valid, the first |data_plus_mac_len| bytes
   // after |out| are the plaintext and MAC. Otherwise, |data_plus_mac_len| is
@@ -335,14 +339,14 @@ static int aead_tls_open(const EVP_AEAD_CTX *ctx, uint8_t *out, size_t *out_len,
   uint8_t record_mac_tmp[EVP_MAX_MD_SIZE];
   uint8_t *record_mac;
   if (EVP_CIPHER_CTX_mode(&tls_ctx->cipher_ctx) == EVP_CIPH_CBC_MODE &&
-      EVP_tls_cbc_record_digest_supported(tls_ctx->hmac_ctx.md)) {
-    if (!EVP_tls_cbc_digest_record(tls_ctx->hmac_ctx.md, mac, &mac_len,
+      EVP_tls_cbc_record_digest_supported(tls_ctx->hmac_ctx->md)) {
+    if (!EVP_tls_cbc_digest_record(tls_ctx->hmac_ctx->md, mac, &mac_len,
                                    ad_fixed, out, data_len, total,
                                    tls_ctx->mac_key, tls_ctx->mac_key_len)) {
       OPENSSL_PUT_ERROR(CIPHER, CIPHER_R_BAD_DECRYPT);
       return 0;
     }
-    assert(mac_len == HMAC_size(&tls_ctx->hmac_ctx));
+    assert(mac_len == HMAC_size(tls_ctx->hmac_ctx));
 
     record_mac = record_mac_tmp;
     EVP_tls_cbc_copy_mac(record_mac, mac_len, out, data_plus_mac_len, total);
@@ -352,15 +356,15 @@ static int aead_tls_open(const EVP_AEAD_CTX *ctx, uint8_t *out, size_t *out_len,
     assert(EVP_CIPHER_CTX_mode(&tls_ctx->cipher_ctx) != EVP_CIPH_CBC_MODE);
 
     unsigned mac_len_u;
-    if (!HMAC_Init_ex(&tls_ctx->hmac_ctx, NULL, 0, NULL, NULL) ||
-        !HMAC_Update(&tls_ctx->hmac_ctx, ad_fixed, ad_len) ||
-        !HMAC_Update(&tls_ctx->hmac_ctx, out, data_len) ||
-        !HMAC_Final(&tls_ctx->hmac_ctx, mac, &mac_len_u)) {
+    if (!HMAC_Init_ex(tls_ctx->hmac_ctx, NULL, 0, NULL, NULL) ||
+        !HMAC_Update(tls_ctx->hmac_ctx, ad_fixed, ad_len) ||
+        !HMAC_Update(tls_ctx->hmac_ctx, out, data_len) ||
+        !HMAC_Final(tls_ctx->hmac_ctx, mac, &mac_len_u)) {
       return 0;
     }
     mac_len = mac_len_u;
 
-    assert(mac_len == HMAC_size(&tls_ctx->hmac_ctx));
+    assert(mac_len == HMAC_size(tls_ctx->hmac_ctx));
     record_mac = &out[data_len];
   }
 

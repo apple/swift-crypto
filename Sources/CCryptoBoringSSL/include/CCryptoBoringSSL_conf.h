@@ -96,6 +96,9 @@ OPENSSL_EXPORT int CONF_modules_load_file(const char *filename,
                                           const char *appname,
                                           unsigned long flags);
 
+// CONF_modules_unload does nothing.
+OPENSSL_EXPORT void CONF_modules_unload(int all);
+
 // CONF_modules_free does nothing.
 OPENSSL_EXPORT void CONF_modules_free(void);
 

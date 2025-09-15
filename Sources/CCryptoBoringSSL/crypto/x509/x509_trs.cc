@@ -43,9 +43,9 @@ static const X509_TRUST trstandard[] = {
     {X509_TRUST_TSA, trust_1oidany, NID_time_stamp}};
 
 static const X509_TRUST *X509_TRUST_get0(int id) {
-  for (size_t i = 0; i < OPENSSL_ARRAY_SIZE(trstandard); i++) {
-    if (trstandard[i].trust == id) {
-      return &trstandard[i];
+  for (const auto &t : trstandard) {
+    if (t.trust == id) {
+      return &t;
     }
   }
   return NULL;

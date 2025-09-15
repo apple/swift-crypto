@@ -299,9 +299,9 @@ static int generate_v3(CBB *cbb, const char *str, const X509V3_CTX *cnf,
       {"SET", CBS_ASN1_SET},
   };
   CBS_ASN1_TAG type = 0;
-  for (size_t i = 0; i < OPENSSL_ARRAY_SIZE(kTypes); i++) {
-    if (cbs_str_equal(&name, kTypes[i].name)) {
-      type = kTypes[i].type;
+  for (const auto &t : kTypes) {
+    if (cbs_str_equal(&name, t.name)) {
+      type = t.type;
       break;
     }
   }

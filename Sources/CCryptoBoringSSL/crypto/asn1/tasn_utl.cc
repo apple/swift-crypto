@@ -94,7 +94,6 @@ void asn1_enc_init(ASN1_VALUE **pval, const ASN1_ITEM *it) {
   if (enc) {
     enc->enc = NULL;
     enc->len = 0;
-    enc->buf = NULL;
   }
 }
 
@@ -106,7 +105,7 @@ void asn1_enc_free(ASN1_VALUE **pval, const ASN1_ITEM *it) {
 }
 
 int asn1_enc_save(ASN1_VALUE **pval, const uint8_t *in, size_t in_len,
-                  const ASN1_ITEM *it, CRYPTO_BUFFER *buf) {
+                  const ASN1_ITEM *it) {
   ASN1_ENCODING *enc;
   enc = asn1_get_enc_ptr(pval, it);
   if (!enc) {
@@ -114,17 +113,9 @@ int asn1_enc_save(ASN1_VALUE **pval, const uint8_t *in, size_t in_len,
   }
 
   asn1_encoding_clear(enc);
-  if (buf != NULL) {
-    assert(CRYPTO_BUFFER_data(buf) <= in &&
-           in + in_len <= CRYPTO_BUFFER_data(buf) + CRYPTO_BUFFER_len(buf));
-    CRYPTO_BUFFER_up_ref(buf);
-    enc->buf = buf;
-    enc->enc = (uint8_t *)in;
-  } else {
-    enc->enc = reinterpret_cast<uint8_t *>(OPENSSL_memdup(in, in_len));
-    if (!enc->enc) {
-      return 0;
-    }
+  enc->enc = reinterpret_cast<uint8_t *>(OPENSSL_memdup(in, in_len));
+  if (!enc->enc) {
+    return 0;
   }
 
   enc->len = in_len;
@@ -132,14 +123,9 @@ int asn1_enc_save(ASN1_VALUE **pval, const uint8_t *in, size_t in_len,
 }
 
 void asn1_encoding_clear(ASN1_ENCODING *enc) {
-  if (enc->buf != NULL) {
-    CRYPTO_BUFFER_free(enc->buf);
-  } else {
-    OPENSSL_free(enc->enc);
-  }
+  OPENSSL_free(enc->enc);
   enc->enc = NULL;
   enc->len = 0;
-  enc->buf = NULL;
 }
 
 int asn1_enc_restore(int *len, unsigned char **out, ASN1_VALUE **pval,

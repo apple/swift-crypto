@@ -17,24 +17,33 @@
 #include <limits.h>
 
 #include <CCryptoBoringSSL_asn1.h>
+#include <CCryptoBoringSSL_bytestring.h>
 #include <CCryptoBoringSSL_digest.h>
 #include <CCryptoBoringSSL_dsa.h>
 #include <CCryptoBoringSSL_evp.h>
 #include <CCryptoBoringSSL_mem.h>
 #include <CCryptoBoringSSL_rsa.h>
+#include <CCryptoBoringSSL_span.h>
 #include <CCryptoBoringSSL_stack.h>
 
 #include "../asn1/internal.h"
+#include "../internal.h"
 #include "internal.h"
 
 
 int X509_verify(X509 *x509, EVP_PKEY *pkey) {
-  if (X509_ALGOR_cmp(x509->sig_alg, x509->cert_info->signature)) {
+  if (X509_ALGOR_cmp(&x509->sig_alg, &x509->tbs_sig_alg)) {
     OPENSSL_PUT_ERROR(X509, X509_R_SIGNATURE_ALGORITHM_MISMATCH);
     return 0;
   }
-  return ASN1_item_verify(ASN1_ITEM_rptr(X509_CINF), x509->sig_alg,
-                          x509->signature, x509->cert_info, pkey);
+  // This uses the cached TBSCertificate encoding, if any.
+  bssl::ScopedCBB cbb;
+  if (!CBB_init(cbb.get(), 128) || !x509_marshal_tbs_cert(cbb.get(), x509)) {
+    return 0;
+  }
+  return x509_verify_signature(
+      &x509->sig_alg, &x509->signature,
+      bssl::Span(CBB_data(cbb.get()), CBB_len(cbb.get())), pkey);
 }
 
 int X509_REQ_verify(X509_REQ *req, EVP_PKEY *pkey) {
@@ -43,21 +52,41 @@ int X509_REQ_verify(X509_REQ *req, EVP_PKEY *pkey) {
 }
 
 int X509_sign(X509 *x, EVP_PKEY *pkey, const EVP_MD *md) {
-  asn1_encoding_clear(&x->cert_info->enc);
-  return (ASN1_item_sign(ASN1_ITEM_rptr(X509_CINF), x->cert_info->signature,
-                         x->sig_alg, x->signature, x->cert_info, pkey, md));
+  bssl::ScopedEVP_MD_CTX ctx;
+  if (!EVP_DigestSignInit(ctx.get(), nullptr, md, nullptr, pkey)) {
+    return 0;
+  }
+  return X509_sign_ctx(x, ctx.get());
 }
 
 int X509_sign_ctx(X509 *x, EVP_MD_CTX *ctx) {
-  asn1_encoding_clear(&x->cert_info->enc);
-  return ASN1_item_sign_ctx(ASN1_ITEM_rptr(X509_CINF), x->cert_info->signature,
-                            x->sig_alg, x->signature, x->cert_info, ctx);
+  // Historically, this function called |EVP_MD_CTX_cleanup| on return. Some
+  // callers rely on this to avoid memory leaks.
+  bssl::Cleanup cleanup = [&] { EVP_MD_CTX_cleanup(ctx); };
+
+  // Fill in the two copies of AlgorithmIdentifier. Note one of these modifies
+  // the TBSCertificate.
+  if (!x509_digest_sign_algorithm(ctx, &x->tbs_sig_alg) ||
+      !x509_digest_sign_algorithm(ctx, &x->sig_alg)) {
+    return 0;
+  }
+
+  // Discard the cached encoding. (We just modified it.)
+  CRYPTO_BUFFER_free(x->buf);
+  x->buf = nullptr;
+
+  bssl::ScopedCBB cbb;
+  if (!CBB_init(cbb.get(), 128) || !x509_marshal_tbs_cert(cbb.get(), x)) {
+    return 0;
+  }
+  return x509_sign_to_bit_string(
+      ctx, &x->signature, bssl::Span(CBB_data(cbb.get()), CBB_len(cbb.get())));
 }
 
 int X509_REQ_sign(X509_REQ *x, EVP_PKEY *pkey, const EVP_MD *md) {
   asn1_encoding_clear(&x->req_info->enc);
-  return (ASN1_item_sign(ASN1_ITEM_rptr(X509_REQ_INFO), x->sig_alg, NULL,
-                         x->signature, x->req_info, pkey, md));
+  return ASN1_item_sign(ASN1_ITEM_rptr(X509_REQ_INFO), x->sig_alg, NULL,
+                        x->signature, x->req_info, pkey, md);
 }
 
 int X509_REQ_sign_ctx(X509_REQ *x, EVP_MD_CTX *ctx) {
@@ -68,8 +97,8 @@ int X509_REQ_sign_ctx(X509_REQ *x, EVP_MD_CTX *ctx) {
 
 int X509_CRL_sign(X509_CRL *x, EVP_PKEY *pkey, const EVP_MD *md) {
   asn1_encoding_clear(&x->crl->enc);
-  return (ASN1_item_sign(ASN1_ITEM_rptr(X509_CRL_INFO), x->crl->sig_alg,
-                         x->sig_alg, x->signature, x->crl, pkey, md));
+  return ASN1_item_sign(ASN1_ITEM_rptr(X509_CRL_INFO), x->crl->sig_alg,
+                        x->sig_alg, x->signature, x->crl, pkey, md);
 }
 
 int X509_CRL_sign_ctx(X509_CRL *x, EVP_MD_CTX *ctx) {
@@ -79,13 +108,13 @@ int X509_CRL_sign_ctx(X509_CRL *x, EVP_MD_CTX *ctx) {
 }
 
 int NETSCAPE_SPKI_sign(NETSCAPE_SPKI *x, EVP_PKEY *pkey, const EVP_MD *md) {
-  return (ASN1_item_sign(ASN1_ITEM_rptr(NETSCAPE_SPKAC), x->sig_algor, NULL,
-                         x->signature, x->spkac, pkey, md));
+  return ASN1_item_sign(ASN1_ITEM_rptr(NETSCAPE_SPKAC), x->sig_algor, NULL,
+                        x->signature, x->spkac, pkey, md);
 }
 
 int NETSCAPE_SPKI_verify(NETSCAPE_SPKI *spki, EVP_PKEY *pkey) {
-  return (ASN1_item_verify(ASN1_ITEM_rptr(NETSCAPE_SPKAC), spki->sig_algor,
-                           spki->signature, spki->spkac, pkey));
+  return ASN1_item_verify(ASN1_ITEM_rptr(NETSCAPE_SPKAC), spki->sig_algor,
+                          spki->signature, spki->spkac, pkey);
 }
 
 X509_CRL *d2i_X509_CRL_fp(FILE *fp, X509_CRL **crl) {

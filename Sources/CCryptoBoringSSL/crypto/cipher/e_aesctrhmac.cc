@@ -19,7 +19,7 @@
 #include <CCryptoBoringSSL_cipher.h>
 #include <CCryptoBoringSSL_crypto.h>
 #include <CCryptoBoringSSL_err.h>
-#include <CCryptoBoringSSL_sha.h>
+#include <CCryptoBoringSSL_sha2.h>
 
 #include "../fipsmodule/aes/internal.h"
 #include "../fipsmodule/cipher/internal.h"
