@@ -1,5 +1,5 @@
 version: 1
 builder:
   configs:
-    - documentation_targets: [Crypto, _CryptoExtras]
+    - documentation_targets: [Crypto, CryptoExtras]
       platform: linux

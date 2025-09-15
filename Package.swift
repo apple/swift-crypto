@@ -89,7 +89,9 @@ let package = Package(
     name: "swift-crypto",
     products: [
         .library(name: "Crypto", targets: ["Crypto"]),
+        // Kept for backward compatibility
         .library(name: "_CryptoExtras", targets: ["_CryptoExtras"]),
+        .library(name: "CryptoExtras", targets: ["CryptoExtras"]),
         /* This target is used only for symbol mangling. It's added and removed automatically because it emits build warnings. MANGLE_START
             .library(name: "CCryptoBoringSSL", type: .static, targets: ["CCryptoBoringSSL"]),
             MANGLE_END */
@@ -178,7 +180,7 @@ let package = Package(
             swiftSettings: swiftSettings
         ),
         .target(
-            name: "_CryptoExtras",
+            name: "CryptoExtras",
             dependencies: [
                 "CCryptoBoringSSL",
                 "CCryptoBoringSSLShims",
@@ -191,6 +193,13 @@ let package = Package(
                 "MLDSA/MLDSA+externalMu.swift.gyb",
             ],
             resources: privacyManifestResource,
+            swiftSettings: swiftSettings
+        ),
+        .target(
+            name: "_CryptoExtras",
+            dependencies: [
+                "CryptoExtras",
+            ],
             swiftSettings: swiftSettings
         ),
         .target(
@@ -221,8 +230,8 @@ let package = Package(
             swiftSettings: swiftSettings
         ),
         .testTarget(
-            name: "_CryptoExtrasTests",
-            dependencies: ["_CryptoExtras"],
+            name: "CryptoExtrasTests",
+            dependencies: ["CryptoExtras"],
             resources: [
                 .copy("ECToolbox/H2CVectors/P256_XMD-SHA-256_SSWU_RO_.json"),
                 .copy("ECToolbox/H2CVectors/P384_XMD-SHA-384_SSWU_RO_.json"),
