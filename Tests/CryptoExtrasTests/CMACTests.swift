@@ -12,9 +12,9 @@
 //
 //===----------------------------------------------------------------------===//
 import Crypto
+import CryptoExtras
 import Foundation
 import XCTest
-import CryptoExtras
 
 final class CMACTests: XCTestCase {
     // Borrowed from CryptoKit
