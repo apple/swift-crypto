@@ -13,7 +13,7 @@
 //===----------------------------------------------------------------------===//
 import Benchmark
 import Crypto
-import _CryptoExtras
+import CryptoExtras
 
 #if canImport(FoundationEssentials)
 import FoundationEssentials
