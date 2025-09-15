@@ -272,7 +272,7 @@ extension FiniteFieldArithmeticContext {
             _ p: UnsafePointer<BIGNUM>?,
             _ m: UnsafePointer<BIGNUM>?,
             _ ctx: OpaquePointer?,
-            _ mont: UnsafePointer<BN_MONT_CTX>?
+            _ mont: OpaquePointer?
         ) -> Int32
     ) throws -> ArbitraryPrecisionInteger {
         var result = ArbitraryPrecisionInteger()
@@ -298,7 +298,7 @@ extension FiniteFieldArithmeticContext {
 
     /// Some functions require a `BN_MONT_CTX` parameter: this obtains one for the field modulus with a scoped lifetime.
     fileprivate func withUnsafeBN_MONT_CTX<T>(
-        _ body: (UnsafePointer<BN_MONT_CTX>) throws -> T
+        _ body: (OpaquePointer) throws -> T
     )
         rethrows -> T
     {

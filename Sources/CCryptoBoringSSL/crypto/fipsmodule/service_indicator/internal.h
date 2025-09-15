@@ -17,6 +17,9 @@
 
 #include <CCryptoBoringSSL_base.h>
 
+#if defined(__cplusplus)
+extern "C" {
+#endif
 
 // FIPS_service_indicator_before_call and |FIPS_service_indicator_after_call|
 // both currently return the same local thread counter which is slowly
@@ -36,6 +39,10 @@
 // appear to be approved. This is intended to simplify testing.
 OPENSSL_EXPORT uint64_t FIPS_service_indicator_before_call(void);
 OPENSSL_EXPORT uint64_t FIPS_service_indicator_after_call(void);
+
+#if defined(__cplusplus)
+}
+#endif
 
 #if defined(BORINGSSL_FIPS)
 

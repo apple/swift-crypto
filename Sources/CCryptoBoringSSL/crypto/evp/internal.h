@@ -15,9 +15,11 @@
 #ifndef OPENSSL_HEADER_CRYPTO_EVP_INTERNAL_H
 #define OPENSSL_HEADER_CRYPTO_EVP_INTERNAL_H
 
-#include <CCryptoBoringSSL_base.h>
+#include <CCryptoBoringSSL_evp.h>
 
-#include <CCryptoBoringSSL_rsa.h>
+#include <array>
+
+#include <CCryptoBoringSSL_span.h>
 
 #include "../internal.h"
 
@@ -27,23 +29,46 @@ extern "C" {
 
 
 typedef struct evp_pkey_asn1_method_st EVP_PKEY_ASN1_METHOD;
-typedef struct evp_pkey_method_st EVP_PKEY_METHOD;
+typedef struct evp_pkey_ctx_method_st EVP_PKEY_CTX_METHOD;
+
+struct evp_pkey_alg_st {
+  // method implements operations for this |EVP_PKEY_ALG|.
+  const EVP_PKEY_ASN1_METHOD *method;
+
+  // ec_group returns the |EC_GROUP| for this algorithm, if |method| is for
+  // |EVP_PKEY_EC|.
+  const EC_GROUP *(*ec_group)();
+};
+
+enum evp_decode_result_t {
+  evp_decode_error = 0,
+  evp_decode_ok = 1,
+  evp_decode_unsupported = 2,
+};
 
 struct evp_pkey_asn1_method_st {
+  // pkey_id contains one of the |EVP_PKEY_*| values and corresponds to the OID
+  // in the key type's AlgorithmIdentifier.
   int pkey_id;
   uint8_t oid[9];
   uint8_t oid_len;
 
-  const EVP_PKEY_METHOD *pkey_method;
+  const EVP_PKEY_CTX_METHOD *pkey_method;
 
   // pub_decode decodes |params| and |key| as a SubjectPublicKeyInfo
-  // and writes the result into |out|. It returns one on success and zero on
-  // error. |params| is the AlgorithmIdentifier after the OBJECT IDENTIFIER
-  // type field, and |key| is the contents of the subjectPublicKey with the
-  // leading padding byte checked and removed. Although X.509 uses BIT STRINGs
-  // to represent SubjectPublicKeyInfo, every key type defined encodes the key
-  // as a byte string with the same conversion to BIT STRING.
-  int (*pub_decode)(EVP_PKEY *out, CBS *params, CBS *key);
+  // and writes the result into |out|. It returns |evp_decode_ok| on success,
+  // and |evp_decode_error| on error, and |evp_decode_unsupported| if the input
+  // was not supported by this |EVP_PKEY_ALG|. In case of
+  // |evp_decode_unsupported|, it does not add an error to the error queue. May
+  // modify |params| and |key|. Callers must make a copy if calling in a loop.
+  //
+  // |params| is the AlgorithmIdentifier after the OBJECT IDENTIFIER type field,
+  // and |key| is the contents of the subjectPublicKey with the leading padding
+  // byte checked and removed. Although X.509 uses BIT STRINGs to represent
+  // SubjectPublicKeyInfo, every key type defined encodes the key as a byte
+  // string with the same conversion to BIT STRING.
+  evp_decode_result_t (*pub_decode)(const EVP_PKEY_ALG *alg, EVP_PKEY *out,
+                                    CBS *params, CBS *key);
 
   // pub_encode encodes |key| as a SubjectPublicKeyInfo and appends the result
   // to |out|. It returns one on success and zero on error.
@@ -52,10 +77,16 @@ struct evp_pkey_asn1_method_st {
   int (*pub_cmp)(const EVP_PKEY *a, const EVP_PKEY *b);
 
   // priv_decode decodes |params| and |key| as a PrivateKeyInfo and writes the
-  // result into |out|. It returns one on success and zero on error. |params| is
-  // the AlgorithmIdentifier after the OBJECT IDENTIFIER type field, and |key|
-  // is the contents of the OCTET STRING privateKey field.
-  int (*priv_decode)(EVP_PKEY *out, CBS *params, CBS *key);
+  // result into |out|.  It returns |evp_decode_ok| on success, and
+  // |evp_decode_error| on error, and |evp_decode_unsupported| if the key type
+  // was not supported by this |EVP_PKEY_ALG|. In case of
+  // |evp_decode_unsupported|, it does not add an error to the error queue. May
+  // modify |params| and |key|. Callers must make a copy if calling in a loop.
+  //
+  // |params| is the AlgorithmIdentifier after the OBJECT IDENTIFIER type field,
+  // and |key| is the contents of the OCTET STRING privateKey field.
+  evp_decode_result_t (*priv_decode)(const EVP_PKEY_ALG *alg, EVP_PKEY *out,
+                                     CBS *params, CBS *key);
 
   // priv_encode encodes |key| as a PrivateKeyInfo and appends the result to
   // |out|. It returns one on success and zero on error.
@@ -94,15 +125,11 @@ struct evp_pkey_asn1_method_st {
 struct evp_pkey_st {
   CRYPTO_refcount_t references;
 
-  // type contains one of the EVP_PKEY_* values or NID_undef and determines
-  // the type of |pkey|.
-  int type;
-
-  // pkey contains a pointer to a structure dependent on |type|.
+  // pkey contains a pointer to a structure dependent on |ameth|.
   void *pkey;
 
-  // ameth contains a pointer to a method table that contains many ASN.1
-  // methods for the key type.
+  // ameth contains a pointer to a method table that determines the key type, or
+  // nullptr if the key is empty.
   const EVP_PKEY_ASN1_METHOD *ameth;
 } /* EVP_PKEY */;
 
@@ -167,7 +194,7 @@ OPENSSL_EXPORT int EVP_PKEY_CTX_ctrl(EVP_PKEY_CTX *ctx, int keytype, int optype,
 #define EVP_PKEY_CTRL_GET_RSA_MGF1_MD (EVP_PKEY_ALG_CTRL + 10)
 #define EVP_PKEY_CTRL_RSA_OAEP_LABEL (EVP_PKEY_ALG_CTRL + 11)
 #define EVP_PKEY_CTRL_GET_RSA_OAEP_LABEL (EVP_PKEY_ALG_CTRL + 12)
-#define EVP_PKEY_CTRL_EC_PARAMGEN_CURVE_NID (EVP_PKEY_ALG_CTRL + 13)
+#define EVP_PKEY_CTRL_EC_PARAMGEN_GROUP (EVP_PKEY_ALG_CTRL + 13)
 #define EVP_PKEY_CTRL_HKDF_MODE (EVP_PKEY_ALG_CTRL + 14)
 #define EVP_PKEY_CTRL_HKDF_MD (EVP_PKEY_ALG_CTRL + 15)
 #define EVP_PKEY_CTRL_HKDF_KEY (EVP_PKEY_ALG_CTRL + 16)
@@ -179,20 +206,21 @@ struct evp_pkey_ctx_st {
   ~evp_pkey_ctx_st();
 
   // Method associated with this operation
-  const EVP_PKEY_METHOD *pmeth = nullptr;
-  // Engine that implements this method or nullptr if builtin
-  ENGINE *engine = nullptr;
+  const EVP_PKEY_CTX_METHOD *pmeth = nullptr;
   // Key: may be nullptr
   bssl::UniquePtr<EVP_PKEY> pkey;
   // Peer key for key agreement, may be nullptr
   bssl::UniquePtr<EVP_PKEY> peerkey;
   // operation contains one of the |EVP_PKEY_OP_*| values.
   int operation = EVP_PKEY_OP_UNDEFINED;
-  // Algorithm specific data
+  // Algorithm specific data.
+  // TODO(davidben): Since a |EVP_PKEY_CTX| never has its type change after
+  // creation, this should instead be a base class, with the algorithm-specific
+  // data on the subclass, coming from the same allocation.
   void *data = nullptr;
 } /* EVP_PKEY_CTX */;
 
-struct evp_pkey_method_st {
+struct evp_pkey_ctx_method_st {
   int pkey_id;
 
   int (*init)(EVP_PKEY_CTX *ctx);
@@ -227,7 +255,7 @@ struct evp_pkey_method_st {
   int (*paramgen)(EVP_PKEY_CTX *ctx, EVP_PKEY *pkey);
 
   int (*ctrl)(EVP_PKEY_CTX *ctx, int type, int p1, void *p2);
-} /* EVP_PKEY_METHOD */;
+} /* EVP_PKEY_CTX_METHOD */;
 
 typedef struct {
   // key is the concatenation of the private seed and public key. It is stored
@@ -249,24 +277,47 @@ typedef struct {
 extern const EVP_PKEY_ASN1_METHOD dsa_asn1_meth;
 extern const EVP_PKEY_ASN1_METHOD ec_asn1_meth;
 extern const EVP_PKEY_ASN1_METHOD rsa_asn1_meth;
+extern const EVP_PKEY_ASN1_METHOD rsa_pss_sha256_asn1_meth;
 extern const EVP_PKEY_ASN1_METHOD ed25519_asn1_meth;
 extern const EVP_PKEY_ASN1_METHOD x25519_asn1_meth;
 extern const EVP_PKEY_ASN1_METHOD dh_asn1_meth;
 
-extern const EVP_PKEY_METHOD rsa_pkey_meth;
-extern const EVP_PKEY_METHOD ec_pkey_meth;
-extern const EVP_PKEY_METHOD ed25519_pkey_meth;
-extern const EVP_PKEY_METHOD x25519_pkey_meth;
-extern const EVP_PKEY_METHOD hkdf_pkey_meth;
-extern const EVP_PKEY_METHOD dh_pkey_meth;
+extern const EVP_PKEY_CTX_METHOD rsa_pkey_meth;
+extern const EVP_PKEY_CTX_METHOD rsa_pss_sha256_pkey_meth;
+extern const EVP_PKEY_CTX_METHOD ec_pkey_meth;
+extern const EVP_PKEY_CTX_METHOD ed25519_pkey_meth;
+extern const EVP_PKEY_CTX_METHOD x25519_pkey_meth;
+extern const EVP_PKEY_CTX_METHOD hkdf_pkey_meth;
+extern const EVP_PKEY_CTX_METHOD dh_pkey_meth;
 
-// evp_pkey_set_method behaves like |EVP_PKEY_set_type|, but takes a pointer to
-// a method table. This avoids depending on every |EVP_PKEY_ASN1_METHOD|.
-void evp_pkey_set_method(EVP_PKEY *pkey, const EVP_PKEY_ASN1_METHOD *method);
+// evp_pkey_set0 sets |pkey|'s method to |method| and data to |pkey_data|,
+// freeing any key that may previously have been configured. This function takes
+// ownership of |pkey_data|, which must be of the type expected by |method|.
+void evp_pkey_set0(EVP_PKEY *pkey, const EVP_PKEY_ASN1_METHOD *method,
+                   void *pkey_data);
 
 
 #if defined(__cplusplus)
 }  // extern C
 #endif
+
+BSSL_NAMESPACE_BEGIN
+inline auto GetDefaultEVPAlgorithms() {
+  // A set of algorithms to use by default in |EVP_parse_public_key| and
+  // |EVP_parse_private_key|.
+  return std::array{
+      EVP_pkey_ec_p224(),
+      EVP_pkey_ec_p256(),
+      EVP_pkey_ec_p384(),
+      EVP_pkey_ec_p521(),
+      EVP_pkey_ed25519(),
+      EVP_pkey_rsa(),
+      EVP_pkey_x25519(),
+      // TODO(crbug.com/438761503): Remove DSA from this set, after callers that
+      // need DSA pass in |EVP_pkey_dsa| explicitly.
+      EVP_pkey_dsa(),
+  };
+}
+BSSL_NAMESPACE_END
 
 #endif  // OPENSSL_HEADER_CRYPTO_EVP_INTERNAL_H

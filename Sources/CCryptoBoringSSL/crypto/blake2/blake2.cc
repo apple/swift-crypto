@@ -16,6 +16,8 @@
 
 #include <assert.h>
 
+#include <iterator>
+
 #include "../internal.h"
 
 // https://tools.ietf.org/html/rfc7693#section-2.6
@@ -99,7 +101,7 @@ static void blake2b_transform(BLAKE2B_CTX *b2b,
                 blake2b_load(block, s[15]));
   }
 
-  for (size_t i = 0; i < OPENSSL_ARRAY_SIZE(b2b->h); i++) {
+  for (size_t i = 0; i < std::size(b2b->h); i++) {
     b2b->h[i] ^= v[i];
     b2b->h[i] ^= v[i + 8];
   }

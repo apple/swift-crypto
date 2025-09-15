@@ -21,6 +21,7 @@
 #include <CCryptoBoringSSL_bytestring.h>
 #include <CCryptoBoringSSL_err.h>
 #include <CCryptoBoringSSL_mem.h>
+#include <CCryptoBoringSSL_span.h>
 
 #include "../internal.h"
 #include "internal.h"
@@ -146,32 +147,13 @@ int i2c_ASN1_INTEGER(const ASN1_INTEGER *in, unsigned char **outp) {
   return len;
 }
 
-ASN1_INTEGER *c2i_ASN1_INTEGER(ASN1_INTEGER **out, const unsigned char **inp,
-                               long len) {
-  // This function can handle lengths up to INT_MAX - 1, but the rest of the
-  // legacy ASN.1 code mixes integer types, so avoid exposing it to
-  // ASN1_INTEGERS with larger lengths.
-  if (len < 0 || len > INT_MAX / 2) {
-    OPENSSL_PUT_ERROR(ASN1, ASN1_R_TOO_LONG);
-    return NULL;
-  }
-
-  CBS cbs;
-  CBS_init(&cbs, *inp, (size_t)len);
+static int asn1_parse_integer_contents(bssl::Span<const uint8_t> in,
+                                       ASN1_INTEGER *out) {
+  CBS cbs = in;
   int is_negative;
   if (!CBS_is_valid_asn1_integer(&cbs, &is_negative)) {
     OPENSSL_PUT_ERROR(ASN1, ASN1_R_INVALID_INTEGER);
-    return NULL;
-  }
-
-  ASN1_INTEGER *ret = NULL;
-  if (out == NULL || *out == NULL) {
-    ret = ASN1_INTEGER_new();
-    if (ret == NULL) {
-      return NULL;
-    }
-  } else {
-    ret = *out;
+    return 0;
   }
 
   // Convert to |ASN1_INTEGER|'s sign-and-magnitude representation. First,
@@ -192,33 +174,75 @@ ASN1_INTEGER *c2i_ASN1_INTEGER(ASN1_INTEGER **out, const unsigned char **inp,
     }
   }
 
-  if (!ASN1_STRING_set(ret, CBS_data(&cbs), CBS_len(&cbs))) {
-    goto err;
+  if (!ASN1_STRING_set(out, CBS_data(&cbs), CBS_len(&cbs))) {
+    return 0;
   }
 
   if (is_negative) {
-    ret->type = V_ASN1_NEG_INTEGER;
-    negate_twos_complement(ret->data, ret->length);
+    out->type = V_ASN1_NEG_INTEGER;
+    negate_twos_complement(out->data, out->length);
   } else {
-    ret->type = V_ASN1_INTEGER;
+    out->type = V_ASN1_INTEGER;
   }
 
   // The value should be minimally-encoded.
-  assert(ret->length == 0 || ret->data[0] != 0);
+  assert(out->length == 0 || out->data[0] != 0);
   // Zero is not negative.
-  assert(!is_negative || ret->length > 0);
+  assert(!is_negative || out->length > 0);
+  return 1;
+}
+
+int asn1_parse_integer(CBS *cbs, ASN1_INTEGER *out, CBS_ASN1_TAG tag) {
+  tag = tag == 0 ? CBS_ASN1_INTEGER : tag;
+  CBS child;
+  if (!CBS_get_asn1(cbs, &child, tag)) {
+    OPENSSL_PUT_ERROR(ASN1, ASN1_R_DECODE_ERROR);
+    return 0;
+  }
+  return asn1_parse_integer_contents(child, out);
+}
+
+int asn1_parse_enumerated(CBS *cbs, ASN1_ENUMERATED *out, CBS_ASN1_TAG tag) {
+  tag = tag == 0 ? CBS_ASN1_ENUMERATED : tag;
+  if (!asn1_parse_integer(cbs, out, tag)) {
+    return 0;
+  }
+  // Fix the type value.
+  out->type =
+      (out->type & V_ASN1_NEG) ? V_ASN1_NEG_ENUMERATED : V_ASN1_ENUMERATED;
+  return 1;
+}
+
+ASN1_INTEGER *c2i_ASN1_INTEGER(ASN1_INTEGER **out, const unsigned char **inp,
+                               long len) {
+  if (len < 0) {
+    OPENSSL_PUT_ERROR(ASN1, ASN1_R_STRING_TOO_SHORT);
+    return nullptr;
+  }
+
+  ASN1_INTEGER *ret = nullptr;
+  if (out == nullptr || *out == nullptr) {
+    ret = ASN1_INTEGER_new();
+    if (ret == nullptr) {
+      return nullptr;
+    }
+  } else {
+    ret = *out;
+  }
+
+  if (!asn1_parse_integer_contents(bssl::Span(*inp, len), ret)) {
+    if (ret != nullptr && (out == nullptr || *out != ret)) {
+      ASN1_INTEGER_free(ret);
+    }
+    return nullptr;
+  }
 
   *inp += len;
-  if (out != NULL) {
+  if (out != nullptr) {
     *out = ret;
   }
   return ret;
 
-err:
-  if (ret != NULL && (out == NULL || *out != ret)) {
-    ASN1_INTEGER_free(ret);
-  }
-  return NULL;
 }
 
 int ASN1_INTEGER_set_int64(ASN1_INTEGER *a, int64_t v) {

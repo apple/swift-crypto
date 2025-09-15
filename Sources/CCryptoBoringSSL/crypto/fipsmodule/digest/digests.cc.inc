@@ -54,6 +54,8 @@ DEFINE_METHOD_FUNCTION(EVP_MD, EVP_sha1) {
   out->ctx_size = sizeof(SHA_CTX);
 }
 
+static_assert(sizeof(SHA_CTX) <= EVP_MAX_MD_DATA_SIZE);
+
 
 static void sha224_init(EVP_MD_CTX *ctx) {
   BCM_sha224_init(reinterpret_cast<SHA256_CTX *>(ctx->md_data));
@@ -78,6 +80,7 @@ DEFINE_METHOD_FUNCTION(EVP_MD, EVP_sha224) {
   out->ctx_size = sizeof(SHA256_CTX);
 }
 
+static_assert(sizeof(SHA256_CTX) <= EVP_MAX_MD_DATA_SIZE);
 
 static void sha256_init(EVP_MD_CTX *ctx) {
   BCM_sha256_init(reinterpret_cast<SHA256_CTX *>(ctx->md_data));
@@ -126,6 +129,7 @@ DEFINE_METHOD_FUNCTION(EVP_MD, EVP_sha384) {
   out->ctx_size = sizeof(SHA512_CTX);
 }
 
+static_assert(sizeof(SHA512_CTX) <= EVP_MAX_MD_DATA_SIZE);
 
 static void sha512_init(EVP_MD_CTX *ctx) {
   BCM_sha512_init(reinterpret_cast<SHA512_CTX *>(ctx->md_data));

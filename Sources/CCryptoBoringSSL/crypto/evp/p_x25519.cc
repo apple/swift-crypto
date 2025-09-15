@@ -31,13 +31,9 @@ static int pkey_x25519_keygen(EVP_PKEY_CTX *ctx, EVP_PKEY *pkey) {
     return 0;
   }
 
-  evp_pkey_set_method(pkey, &x25519_asn1_meth);
-
   X25519_keypair(key->pub, key->priv);
   key->has_private = 1;
-
-  OPENSSL_free(pkey->pkey);
-  pkey->pkey = key;
+  evp_pkey_set0(pkey, &x25519_asn1_meth, key);
   return 1;
 }
 
@@ -90,7 +86,7 @@ static int pkey_x25519_ctrl(EVP_PKEY_CTX *ctx, int type, int p1, void *p2) {
   }
 }
 
-const EVP_PKEY_METHOD x25519_pkey_meth = {
+const EVP_PKEY_CTX_METHOD x25519_pkey_meth = {
     /*pkey_id=*/EVP_PKEY_X25519,
     /*init=*/NULL,
     /*copy=*/pkey_x25519_copy,

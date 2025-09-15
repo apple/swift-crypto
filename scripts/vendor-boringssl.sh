@@ -87,8 +87,8 @@ function mangle_symbols {
 
         # Begin by building for macOS. We build for two target triples, Intel
         # and Apple Silicon.
-        swift build --triple "x86_64-apple-macosx" --product CCryptoBoringSSL --enable-test-discovery
-        swift build --triple "arm64-apple-macosx" --product CCryptoBoringSSL --enable-test-discovery
+        swift build --triple "x86_64-apple-macosx" --product CCryptoBoringSSL
+        swift build --triple "arm64-apple-macosx" --product CCryptoBoringSSL
         (
             cd "${SRCROOT}"
             go mod tidy -modcacherw
@@ -107,9 +107,9 @@ function mangle_symbols {
 
         # Now cross compile for our targets.
         # NOTE: This requires running the `generate-linux-sdks.sh` script first to generate the Swift SDKs.
-        swift build --swift-sdk 5.10-RELEASE_ubuntu_jammy_x86_64 --product CCryptoBoringSSL
-        swift build --swift-sdk 5.10-RELEASE_ubuntu_jammy_aarch64 --product CCryptoBoringSSL
-        swift build --swift-sdk 5.10-RELEASE_ubuntu_jammy_armv7 --product CCryptoBoringSSL
+        swift build --swift-sdk 6.1.2-RELEASE_ubuntu_noble_x86_64 --product CCryptoBoringSSL
+        swift build --swift-sdk 6.1.2-RELEASE_ubuntu_noble_aarch64 --product CCryptoBoringSSL
+        swift build --swift-sdk 6.1.2-RELEASE_ubuntu_noble_armv7 --product CCryptoBoringSSL
 
         # Now we need to generate symbol mangles for Linux. We can do this in
         # one go for all of them.
@@ -147,6 +147,34 @@ function mangle_symbols {
     namespace_inlines "$DSTROOT"
 }
 
+function mangle_cpp_structures {
+    echo "MANGLING C++ structures"
+    (
+        # We need a .a: may as well get SwiftPM to give it to us.
+        # Temporarily enable the product we need.
+        $sed -i -e 's/MANGLE_START/MANGLE_START*\//' -e 's/MANGLE_END/\/*MANGLE_END/' "${HERE}/Package.swift"
+
+        # Build for macOS.
+        swift build --product CCryptoBoringSSL
+
+        # Woah, this is a hell of a command! What does it do?
+        #
+        # The nm command grabs all global defined symbols. We then run the C++ demangler over them and look for methods with '::' in them:
+        # these are C++ methods. We then exclude any that contain CCryptoBoringSSL (as those are already namespaced!) and any that contain swift
+        # (as those were put there by the Swift runtime, not us). This gives us a list of symbols. The following cut command
+        # grabs the type name from each of those (the bit preceding the '::'). Then, we sort and uniqify that list.
+        # Finally, we remove any symbol that ends in std. This gives us all the structures that need to be renamed.
+        structures=$(nm -gUj "$(swift build --show-bin-path)/libCCryptoBoringSSL.a" | c++filt | grep "::" | grep -v -e "CCryptoBoringSSL" -e "swift" | cut -d : -f1 | grep -v "std$" | $sed -E -e 's/([^<>]*)(<[^<>]*>)?/\1/' | sort | uniq)
+
+        for struct in ${structures}; do
+            echo "#define ${struct} BORINGSSL_ADD_PREFIX(BORINGSSL_PREFIX, ${struct})" >> "${DSTROOT}/include/CCryptoBoringSSL_boringssl_prefix_symbols.h"
+        done
+
+        # Remove the product, as we no longer need it.
+        $sed -i -e 's/MANGLE_START\*\//MANGLE_START/' -e 's/\/\*MANGLE_END/MANGLE_END/' "${HERE}/Package.swift"
+    )
+}
+
 case "$(uname -s)" in
     Darwin)
         sed=gsed
@@ -175,10 +203,10 @@ echo "CLONING boringssl"
 mkdir -p "$SRCROOT"
 git clone https://boringssl.googlesource.com/boringssl "$SRCROOT"
 cd "$SRCROOT"
-if [ "$BORINGSSL_REVISION" ]; then
+if [ "${BORINGSSL_REVISION:-}" ]; then
     echo "CHECKING OUT boringssl@${BORINGSSL_REVISION}"
     git checkout "$BORINGSSL_REVISION"
-else 
+else
     BORINGSSL_REVISION=$(git rev-parse HEAD)
     echo "CLONED boringssl@${BORINGSSL_REVISION}"
 fi
@@ -200,7 +228,6 @@ echo "GENERATING assembly helpers"
 
 PATTERNS=(
 'include/openssl/*.h'
-'include/openssl/experimental/*.h'
 'ssl/*.h'
 'ssl/*.cc'
 'crypto/*.h'
@@ -218,7 +245,7 @@ PATTERNS=(
 'gen/bcm/*.S'
 'third_party/fiat/*.h'
 'third_party/fiat/asm/*.S'
-#'third_party/fiat/*.c'
+'third_party/fiat/*.c.inc'
 )
 
 EXCLUDES=(
@@ -262,6 +289,11 @@ echo "DISABLING assembly on x86 Windows"
 
 )
 
+# Unfortunately, this patch for an upstream bug which incorrectly leaves C symbol using C++ mangling must be
+# applied before we mangle symbols, so we can't place it with the others below.
+echo "PATCHING BoringSSL (early)"
+git apply "${HERE}/scripts/patch-3-missing-extern-c.patch"
+
 mangle_symbols
 
 echo "RENAMING header files"
@@ -295,6 +327,10 @@ echo "RENAMING header files"
     popd
 )
 
+echo "PATCHING BoringSSL"
+git apply "${HERE}/scripts/patch-1-inttypes.patch"
+git apply "${HERE}/scripts/patch-2-more-inttypes.patch"
+
 # We need to avoid having the stack be executable. BoringSSL does this in its build system, but we can't.
 echo "PROTECTING against executable stacks"
 (
@@ -303,9 +339,7 @@ echo "PROTECTING against executable stacks"
     find . -name "*.S" | xargs $sed -i '$ a #if defined(__linux__) && defined(__ELF__)\n.section .note.GNU-stack,"",%progbits\n#endif\n'
 )
 
-echo "PATCHING BoringSSL"
-git apply "${HERE}/scripts/patch-1-inttypes.patch"
-git apply "${HERE}/scripts/patch-2-more-inttypes.patch"
+mangle_cpp_structures
 
 # We need BoringSSL to be modularised
 echo "MODULARISING BoringSSL"

@@ -6,11 +6,11 @@
 
 #if !defined(OPENSSL_NO_ASM) && defined(OPENSSL_X86) && defined(__APPLE__)
 .text
-.globl	_bn_mul_mont
-.private_extern	_bn_mul_mont
+.globl	_bn_mul_mont_words
+.private_extern	_bn_mul_mont_words
 .align	4
-_bn_mul_mont:
-L_bn_mul_mont_begin:
+_bn_mul_mont_words:
+L_bn_mul_mont_words_begin:
 	pushl	%ebp
 	pushl	%ebx
 	pushl	%esi

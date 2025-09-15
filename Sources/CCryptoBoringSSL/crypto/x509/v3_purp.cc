@@ -105,18 +105,18 @@ int X509_check_purpose(X509 *x, int id, int ca) {
 }
 
 const X509_PURPOSE *X509_PURPOSE_get0(int id) {
-  for (size_t i = 0; i < OPENSSL_ARRAY_SIZE(xstandard); i++) {
-    if (xstandard[i].purpose == id) {
-      return &xstandard[i];
+  for (const auto &p : xstandard) {
+    if (p.purpose == id) {
+      return &p;
     }
   }
   return NULL;
 }
 
 int X509_PURPOSE_get_by_sname(const char *sname) {
-  for (size_t i = 0; i < OPENSSL_ARRAY_SIZE(xstandard); i++) {
-    if (strcmp(xstandard[i].sname, sname) == 0) {
-      return xstandard[i].purpose;
+  for (const auto &p : xstandard) {
+    if (strcmp(p.sname, sname) == 0) {
+      return p.purpose;
     }
   }
   return -1;
