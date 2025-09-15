@@ -19,7 +19,9 @@ import Foundation
 #endif
 
 extension Optional where Wrapped: DataProtocol {
-    package func withUnsafeBytes<ReturnValue>(_ body: (UnsafeRawBufferPointer) throws -> ReturnValue) rethrows -> ReturnValue {
+    package func withUnsafeBytes<ReturnValue>(
+        _ body: (UnsafeRawBufferPointer) throws -> ReturnValue
+    ) rethrows -> ReturnValue {
         if let self {
             let bytes: ContiguousBytes = self.regions.count == 1 ? self.regions.first! : Array(self)
             return try bytes.withUnsafeBytes { try body($0) }
