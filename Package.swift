@@ -171,7 +171,6 @@ let package = Package(
                 "Key Agreement/ECDH.swift.gyb",
                 "Signatures/ECDSA.swift.gyb",
                 "Signatures/MLDSA.swift.gyb",
-                "Signatures/BoringSSL/MLDSA_boring.swift.gyb",
                 "Signatures/BoringSSL/MLDSA+externalMu_boring.swift.gyb",
                 "KEM/MLKEM.swift.gyb",
                 "KEM/BoringSSL/MLKEM_boring.swift.gyb",
@@ -209,7 +208,8 @@ let package = Package(
                 "CCryptoBoringSSLShims",
             ],
             exclude: privacyManifestExclude + [
-                "CMakeLists.txt"
+                "CMakeLists.txt",
+                "MLDSA/BoringSSLMLDSA.swift.gyb",
             ],
             resources: privacyManifestResource
         ),

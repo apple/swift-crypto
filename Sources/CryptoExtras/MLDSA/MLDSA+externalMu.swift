@@ -17,6 +17,7 @@
 // see section `gyb` in `README` for details.
 
 import Crypto
+import CryptoBoringWrapper
 
 #if canImport(FoundationEssentials)
 import FoundationEssentials
@@ -35,7 +36,7 @@ extension MLDSA65.PrivateKey {
     /// - Returns: The signature of the prehashed message representative.
     public func signature(forPrehashedMessageRepresentative mu: some DataProtocol) throws -> Data {
         #if CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
-        try ExternalMuPrivateKey(seedRepresentation: self.seedRepresentation)
+        try BoringSSLMLDSA65.InternalPrivateKey(seedRepresentation: self.seedRepresentation)
             .signature(forPrehashedMessageRepresentative: mu)
         #else
         try self.signature_boring(forPrehashedMessageRepresentative: mu)
@@ -52,7 +53,7 @@ extension MLDSA65.PublicKey {
     /// - Returns: The prehashed message representative (a.k.a. "external mu").
     public func prehash<D: DataProtocol>(for data: D) throws -> Data {
         #if CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
-        try ExternalMuPublicKey(rawRepresentation: self.rawRepresentation)
+        try BoringSSLMLDSA65.InternalPublicKey(rawRepresentation: self.rawRepresentation)
             .prehash(for: data)
         #else
         try self.prehash_boring(for: data)
@@ -68,7 +69,7 @@ extension MLDSA65.PublicKey {
     /// - Returns: The prehashed message representative (a.k.a. "external mu").
     public func prehash<D: DataProtocol, C: DataProtocol>(for data: D, context: C) throws -> Data {
         #if CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
-        try ExternalMuPublicKey(rawRepresentation: self.rawRepresentation)
+        try BoringSSLMLDSA65.InternalPublicKey(rawRepresentation: self.rawRepresentation)
             .prehash(for: data, context: context)
         #else
         try self.prehash_boring(for: data, context: context)
@@ -87,7 +88,7 @@ extension MLDSA87.PrivateKey {
     /// - Returns: The signature of the prehashed message representative.
     public func signature(forPrehashedMessageRepresentative mu: some DataProtocol) throws -> Data {
         #if CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
-        try ExternalMuPrivateKey(seedRepresentation: self.seedRepresentation)
+        try BoringSSLMLDSA87.InternalPrivateKey(seedRepresentation: self.seedRepresentation)
             .signature(forPrehashedMessageRepresentative: mu)
         #else
         try self.signature_boring(forPrehashedMessageRepresentative: mu)
@@ -104,7 +105,7 @@ extension MLDSA87.PublicKey {
     /// - Returns: The prehashed message representative (a.k.a. "external mu").
     public func prehash<D: DataProtocol>(for data: D) throws -> Data {
         #if CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
-        try ExternalMuPublicKey(rawRepresentation: self.rawRepresentation)
+        try BoringSSLMLDSA87.InternalPublicKey(rawRepresentation: self.rawRepresentation)
             .prehash(for: data)
         #else
         try self.prehash_boring(for: data)
@@ -120,7 +121,7 @@ extension MLDSA87.PublicKey {
     /// - Returns: The prehashed message representative (a.k.a. "external mu").
     public func prehash<D: DataProtocol, C: DataProtocol>(for data: D, context: C) throws -> Data {
         #if CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
-        try ExternalMuPublicKey(rawRepresentation: self.rawRepresentation)
+        try BoringSSLMLDSA87.InternalPublicKey(rawRepresentation: self.rawRepresentation)
             .prehash(for: data, context: context)
         #else
         try self.prehash_boring(for: data, context: context)

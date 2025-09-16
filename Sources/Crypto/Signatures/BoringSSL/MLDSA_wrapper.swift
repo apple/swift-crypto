@@ -16,6 +16,7 @@
 @_exported import CryptoKit
 #else
 @_implementationOnly import CCryptoBoringSSL
+import CryptoBoringWrapper
 #if canImport(FoundationEssentials)
 import FoundationEssentials
 #else
@@ -65,27 +66,27 @@ protocol BoringSSLBackedMLDSAParameters {
 
 @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension MLDSA65: BoringSSLBackedMLDSAParameters {
-    typealias BackingPrivateKey = MLDSA65.InternalPrivateKey
-    typealias BackingPublicKey = MLDSA65.InternalPublicKey
+    typealias BackingPrivateKey = BoringSSLMLDSA65.InternalPrivateKey
+    typealias BackingPublicKey = BoringSSLMLDSA65.InternalPublicKey
 }
 
 @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension MLDSA87: BoringSSLBackedMLDSAParameters {
-    typealias BackingPrivateKey = MLDSA87.InternalPrivateKey
-    typealias BackingPublicKey = MLDSA87.InternalPublicKey
+    typealias BackingPrivateKey = BoringSSLMLDSA87.InternalPrivateKey
+    typealias BackingPublicKey = BoringSSLMLDSA87.InternalPublicKey
 }
 
 @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
-extension MLDSA65.InternalPrivateKey: BoringSSLBackedMLDSAPrivateKey {}
+extension BoringSSLMLDSA65.InternalPrivateKey: BoringSSLBackedMLDSAPrivateKey {}
 
 @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
-extension MLDSA65.InternalPublicKey: BoringSSLBackedMLDSAPublicKey {}
+extension BoringSSLMLDSA65.InternalPublicKey: BoringSSLBackedMLDSAPublicKey {}
 
 @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
-extension MLDSA87.InternalPrivateKey: BoringSSLBackedMLDSAPrivateKey {}
+extension BoringSSLMLDSA87.InternalPrivateKey: BoringSSLBackedMLDSAPrivateKey {}
 
 @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
-extension MLDSA87.InternalPublicKey: BoringSSLBackedMLDSAPublicKey {}
+extension BoringSSLMLDSA87.InternalPublicKey: BoringSSLBackedMLDSAPublicKey {}
 
 @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 struct OpenSSLMLDSAPrivateKeyImpl<Parameters: BoringSSLBackedMLDSAParameters> {
@@ -145,7 +146,7 @@ struct OpenSSLMLDSAPrivateKeyImpl<Parameters: BoringSSLBackedMLDSAParameters> {
     }
 
     static var seedSize: Int {
-        MLDSA.seedByteCount
+        BoringSSLMLDSA.seedByteCount
     }
 }
 
