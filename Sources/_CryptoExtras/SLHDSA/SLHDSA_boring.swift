@@ -14,6 +14,7 @@
 
 @_implementationOnly import CCryptoBoringSSL
 import Crypto
+import CryptoBoringWrapper
 
 #if canImport(FoundationEssentials)
 import FoundationEssentials
