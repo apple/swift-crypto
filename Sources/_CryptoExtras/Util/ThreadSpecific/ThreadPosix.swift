@@ -25,7 +25,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-#if os(Linux) || os(Android) || os(FreeBSD) || canImport(Darwin)
+#if os(Linux) || os(Android) || os(FreeBSD) || os(OpenBSD) || canImport(Darwin)
 #if canImport(Glibc)
 @preconcurrency import Glibc
 #elseif canImport(Bionic)
