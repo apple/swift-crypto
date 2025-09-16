@@ -34,7 +34,12 @@ extension MLDSA65.PrivateKey {
     ///
     /// - Returns: The signature of the prehashed message representative.
     public func signature(forPrehashedMessageRepresentative mu: some DataProtocol) throws -> Data {
+        #if CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
+        try ExternalMuPrivateKey(seedRepresentation: self.seedRepresentation)
+            .signature(forPrehashedMessageRepresentative: mu)
+        #else
         try self.signature_boring(forPrehashedMessageRepresentative: mu)
+        #endif
     }
 }
 
@@ -46,7 +51,12 @@ extension MLDSA65.PublicKey {
     ///
     /// - Returns: The prehashed message representative (a.k.a. "external mu").
     public func prehash<D: DataProtocol>(for data: D) throws -> Data {
+        #if CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
+        try ExternalMuPublicKey(rawRepresentation: self.rawRepresentation)
+            .prehash(for: data)
+        #else
         try self.prehash_boring(for: data)
+        #endif
     }
 
     /// Generate a prehashed message representative (a.k.a. "external mu") for the given message.
@@ -57,7 +67,12 @@ extension MLDSA65.PublicKey {
     ///
     /// - Returns: The prehashed message representative (a.k.a. "external mu").
     public func prehash<D: DataProtocol, C: DataProtocol>(for data: D, context: C) throws -> Data {
+        #if CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
+        try ExternalMuPublicKey(rawRepresentation: self.rawRepresentation)
+            .prehash(for: data, context: context)
+        #else
         try self.prehash_boring(for: data, context: context)
+        #endif
     }
 }
 
@@ -71,7 +86,12 @@ extension MLDSA87.PrivateKey {
     ///
     /// - Returns: The signature of the prehashed message representative.
     public func signature(forPrehashedMessageRepresentative mu: some DataProtocol) throws -> Data {
+        #if CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
+        try ExternalMuPrivateKey(seedRepresentation: self.seedRepresentation)
+            .signature(forPrehashedMessageRepresentative: mu)
+        #else
         try self.signature_boring(forPrehashedMessageRepresentative: mu)
+        #endif
     }
 }
 
@@ -83,7 +103,12 @@ extension MLDSA87.PublicKey {
     ///
     /// - Returns: The prehashed message representative (a.k.a. "external mu").
     public func prehash<D: DataProtocol>(for data: D) throws -> Data {
+        #if CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
+        try ExternalMuPublicKey(rawRepresentation: self.rawRepresentation)
+            .prehash(for: data)
+        #else
         try self.prehash_boring(for: data)
+        #endif
     }
 
     /// Generate a prehashed message representative (a.k.a. "external mu") for the given message.
@@ -94,6 +119,11 @@ extension MLDSA87.PublicKey {
     ///
     /// - Returns: The prehashed message representative (a.k.a. "external mu").
     public func prehash<D: DataProtocol, C: DataProtocol>(for data: D, context: C) throws -> Data {
+        #if CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
+        try ExternalMuPublicKey(rawRepresentation: self.rawRepresentation)
+            .prehash(for: data, context: context)
+        #else
         try self.prehash_boring(for: data, context: context)
+        #endif
     }
 }
