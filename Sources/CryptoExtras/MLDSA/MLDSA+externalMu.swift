@@ -24,7 +24,7 @@ import FoundationEssentials
 import Foundation
 #endif
 
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
+@available(macOS 26.0, iOS 26.0, watchOS 26.0, tvOS 26.0, macCatalyst 26.0, visionOS 26.0, *)
 extension MLDSA65.PrivateKey {
     /// Generate a signature for the prehashed message representative (a.k.a. "external mu").
     ///
@@ -38,7 +38,7 @@ extension MLDSA65.PrivateKey {
     }
 }
 
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
+@available(macOS 26.0, iOS 26.0, watchOS 26.0, tvOS 26.0, macCatalyst 26.0, visionOS 26.0, *)
 extension MLDSA65.PublicKey {
     /// Generate a prehashed message representative (a.k.a. "external mu") for the given message.
     ///
@@ -61,7 +61,7 @@ extension MLDSA65.PublicKey {
     }
 }
 
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
+@available(macOS 26.0, iOS 26.0, watchOS 26.0, tvOS 26.0, macCatalyst 26.0, visionOS 26.0, *)
 extension MLDSA87.PrivateKey {
     /// Generate a signature for the prehashed message representative (a.k.a. "external mu").
     ///
@@ -75,7 +75,7 @@ extension MLDSA87.PrivateKey {
     }
 }
 
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
+@available(macOS 26.0, iOS 26.0, watchOS 26.0, tvOS 26.0, macCatalyst 26.0, visionOS 26.0, *)
 extension MLDSA87.PublicKey {
     /// Generate a prehashed message representative (a.k.a. "external mu") for the given message.
     ///
