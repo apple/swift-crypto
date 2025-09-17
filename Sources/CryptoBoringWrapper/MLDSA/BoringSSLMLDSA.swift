@@ -12,10 +12,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-#if CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
-@_exported import CryptoKit
-#else
 @_implementationOnly import CCryptoBoringSSL
+
 #if canImport(FoundationEssentials)
 import FoundationEssentials
 #else
@@ -841,5 +839,3 @@ package enum BoringSSLMLDSA {
     /// The size of the "mu" value in bytes.
     fileprivate static let muByteCount = 64
 }
-
-#endif  // CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
