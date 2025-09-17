@@ -63,8 +63,8 @@ internal struct BoringSSLRSAPublicKey: Sendable {
         self.backing = backing
     }
 
-    func getKeyPrimitives() throws -> (n: Data, e: Data) {
-        try self.backing.getKeyPrimitives()
+    func getKeyPrimitives() -> (n: Data, e: Data) {
+        self.backing.getKeyPrimitives()
     }
 }
 
