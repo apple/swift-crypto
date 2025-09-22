@@ -12,7 +12,6 @@
 //
 //===----------------------------------------------------------------------===//
 import XCTest
-
 #if CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
 // Skip tests that require @testable imports of CryptoKit.
 #else
@@ -40,28 +39,20 @@ final class MLKEMKeyGenTests: XCTestCase {
         let katTests = try processKeyGenKATFile(filename:"MLKEM768_BSSLKAT")
         for katTest in katTests {
             let publicKey = try MLKEM768.PublicKey(rawRepresentation: katTest.pk)
-            #if false
             let privateKey = try MLKEM768.PrivateKey(seedRepresentation: katTest.dz, publicKey: publicKey)
             let publicKeyHash = Data(SHA3_256.hash(data: privateKey.publicKey.rawRepresentation))
-            #else
-            let privateKey = try MLKEM768.PrivateKey(seedRepresentation: katTest.dz, publicKey: nil)
-            #endif
 
             XCTAssert(privateKey.seedRepresentation == katTest.dz)
-            #if false
             XCTAssert(privateKey.integrityCheckedRepresentation == katTest.dz + publicKeyHash)
-            #endif
             XCTAssert(privateKey.publicKey.rawRepresentation == katTest.pk)
 
             // Try initializing keys with incorrect integrity checks
-            #if false
             let randomPrivateKey = try MLKEM768.PrivateKey.generate()
             let randomPublicKeyHash = Data(SHA3_256.hash(data: randomPrivateKey.publicKey.rawRepresentation))
             XCTAssertThrowsError(try MLKEM768.PrivateKey(seedRepresentation: privateKey.seedRepresentation, publicKey: randomPrivateKey.publicKey), error: KEM.Errors.publicKeyMismatchDuringInitialization)
             XCTAssertThrowsError(try MLKEM768.PrivateKey(seedRepresentation: randomPrivateKey.seedRepresentation, publicKey: publicKey), error: KEM.Errors.publicKeyMismatchDuringInitialization)
             XCTAssertThrowsError(try MLKEM768.PrivateKey(integrityCheckedRepresentation: privateKey.seedRepresentation + randomPublicKeyHash), error: KEM.Errors.publicKeyMismatchDuringInitialization)
             XCTAssertThrowsError(try MLKEM768.PrivateKey(integrityCheckedRepresentation: randomPrivateKey.seedRepresentation + publicKeyHash), error: KEM.Errors.publicKeyMismatchDuringInitialization)
-            #endif
         }
 
     }
@@ -70,28 +61,20 @@ final class MLKEMKeyGenTests: XCTestCase {
         let katTests = try processKeyGenKATFile(filename:"MLKEM1024_BSSLKAT")
         for katTest in katTests {
             let publicKey = try MLKEM1024.PublicKey(rawRepresentation: katTest.pk)
-            #if false
             let privateKey = try MLKEM1024.PrivateKey(seedRepresentation: katTest.dz, publicKey: publicKey)
             let publicKeyHash = Data(SHA3_256.hash(data: privateKey.publicKey.rawRepresentation))
-            #else
-            let privateKey = try MLKEM1024.PrivateKey(seedRepresentation: katTest.dz, publicKey: nil)
-            #endif
 
             XCTAssert(privateKey.seedRepresentation == katTest.dz)
-            #if false
             XCTAssert(privateKey.integrityCheckedRepresentation == katTest.dz + publicKeyHash)
-            #endif
             XCTAssert(privateKey.publicKey.rawRepresentation == katTest.pk)
 
             // Try initializing keys with incorrect integrity checks
-            #if false
             let randomPrivateKey = try MLKEM1024.PrivateKey.generate()
             let randomPublicKeyHash = Data(SHA3_256.hash(data: randomPrivateKey.publicKey.rawRepresentation))
             XCTAssertThrowsError(try MLKEM1024.PrivateKey(seedRepresentation: privateKey.seedRepresentation, publicKey: randomPrivateKey.publicKey), error: KEM.Errors.publicKeyMismatchDuringInitialization)
             XCTAssertThrowsError(try MLKEM1024.PrivateKey(seedRepresentation: randomPrivateKey.seedRepresentation, publicKey: publicKey), error: KEM.Errors.publicKeyMismatchDuringInitialization)
             XCTAssertThrowsError(try MLKEM1024.PrivateKey(integrityCheckedRepresentation: privateKey.seedRepresentation + randomPublicKeyHash), error: KEM.Errors.publicKeyMismatchDuringInitialization)
             XCTAssertThrowsError(try MLKEM1024.PrivateKey(integrityCheckedRepresentation: randomPrivateKey.seedRepresentation + publicKeyHash), error: KEM.Errors.publicKeyMismatchDuringInitialization)
-            #endif
         }
     }
 }

@@ -45,6 +45,11 @@ DSTROOT=Sources/CCryptoBoringSSL
 TMPDIR=$(mktemp -d /tmp/.workingXXXXXX)
 SRCROOT="${TMPDIR}/src/boringssl.googlesource.com/boringssl"
 
+# BoringSSL revision can be passed as the first argument to this script.
+if [ "$#" -gt 0 ]; then
+    BORINGSSL_REVISION="$1"
+fi
+
 # This function namespaces the awkward inline functions declared in OpenSSL
 # and BoringSSL.
 function namespace_inlines {
@@ -101,16 +106,16 @@ function mangle_symbols {
         )
 
         # Now cross compile for our targets.
-        docker run -t -i --rm --privileged -v"$(pwd)":/src -w/src --platform linux/arm64 swift:5.10-jammy \
-            swift build --product CCryptoBoringSSL
-        docker run -t -i --rm --privileged -v"$(pwd)":/src -w/src --platform linux/amd64 swift:5.10-jammy \
-            swift build --product CCryptoBoringSSL
+        # NOTE: This requires running the `generate-linux-sdks.sh` script first to generate the Swift SDKs.
+        swift build --swift-sdk 5.10-RELEASE_ubuntu_jammy_x86_64 --product CCryptoBoringSSL
+        swift build --swift-sdk 5.10-RELEASE_ubuntu_jammy_aarch64 --product CCryptoBoringSSL
+        swift build --swift-sdk 5.10-RELEASE_ubuntu_jammy_armv7 --product CCryptoBoringSSL
 
         # Now we need to generate symbol mangles for Linux. We can do this in
         # one go for all of them.
         (
             cd "${SRCROOT}"
-            go run "util/read_symbols.go" -obj-file-format elf -out "${TMPDIR}/symbols-linux-all.txt" "${HERE}"/.build/*-unknown-linux-gnu/debug/libCCryptoBoringSSL.a
+            go run "util/read_symbols.go" -obj-file-format elf -out "${TMPDIR}/symbols-linux-all.txt" "${HERE}"/.build/*-unknown-linux-*/debug/libCCryptoBoringSSL.a
         )
 
         # Now we concatenate all the symbols together and uniquify it. At this stage remove anything that
@@ -170,9 +175,14 @@ echo "CLONING boringssl"
 mkdir -p "$SRCROOT"
 git clone https://boringssl.googlesource.com/boringssl "$SRCROOT"
 cd "$SRCROOT"
-BORINGSSL_REVISION=$(git rev-parse HEAD)
+if [ "$BORINGSSL_REVISION" ]; then
+    echo "CHECKING OUT boringssl@${BORINGSSL_REVISION}"
+    git checkout "$BORINGSSL_REVISION"
+else 
+    BORINGSSL_REVISION=$(git rev-parse HEAD)
+    echo "CLONED boringssl@${BORINGSSL_REVISION}"
+fi
 cd "$HERE"
-echo "CLONED boringssl@${BORINGSSL_REVISION}"
 
 echo "OBTAINING submodules"
 (
@@ -248,7 +258,7 @@ echo "DISABLING assembly on x86 Windows"
     # x86 Windows builds require nasm for acceleration. SwiftPM can't do that right now,
     # so we disable the assembly.
     cd "$DSTROOT"
-    gsed -i "/#define OPENSSL_HEADER_BASE_H/a#if defined(_WIN32) && (defined(__x86_64) || defined(_M_AMD64) || defined(_M_X64) || defined(__x86) || defined(__i386) || defined(__i386__) || defined(_M_IX86))\n#define OPENSSL_NO_ASM\n#endif" "include/openssl/base.h"
+    $sed -i "/#define OPENSSL_HEADER_BASE_H/a#if defined(_WIN32) && (defined(__x86_64) || defined(_M_AMD64) || defined(_M_X64) || defined(__x86) || defined(__i386) || defined(__i386__) || defined(_M_IX86))\n#define OPENSSL_NO_ASM\n#endif" "include/openssl/base.h"
 
 )
 
@@ -347,8 +357,6 @@ cat << EOF > "$DSTROOT/include/CCryptoBoringSSL.h"
 #include "CCryptoBoringSSL_hrss.h"
 #include "CCryptoBoringSSL_md4.h"
 #include "CCryptoBoringSSL_md5.h"
-#include "CCryptoBoringSSL_mldsa.h"
-#include "CCryptoBoringSSL_mlkem.h"
 #include "CCryptoBoringSSL_obj_mac.h"
 #include "CCryptoBoringSSL_objects.h"
 #include "CCryptoBoringSSL_opensslv.h"
