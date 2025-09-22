@@ -19,6 +19,7 @@
 
 #include <CCryptoBoringSSL_bytestring.h>
 #include <CCryptoBoringSSL_cipher.h>
+#include <CCryptoBoringSSL_digest.h>
 #include <CCryptoBoringSSL_err.h>
 #include <CCryptoBoringSSL_mem.h>
 #include <CCryptoBoringSSL_nid.h>

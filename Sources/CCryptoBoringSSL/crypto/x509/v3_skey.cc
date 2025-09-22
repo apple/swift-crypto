@@ -65,7 +65,7 @@ static char *i2s_ASN1_OCTET_STRING_cb(const X509V3_EXT_METHOD *method,
 static void *s2i_skey_id(const X509V3_EXT_METHOD *method, const X509V3_CTX *ctx,
                          const char *str) {
   ASN1_OCTET_STRING *oct;
-  ASN1_BIT_STRING *pk;
+  const ASN1_BIT_STRING *pk;
   unsigned char pkey_dig[EVP_MAX_MD_SIZE];
   unsigned int diglen;
 
@@ -87,14 +87,9 @@ static void *s2i_skey_id(const X509V3_EXT_METHOD *method, const X509V3_CTX *ctx,
   }
 
   if (ctx->subject_req) {
-    pk = ctx->subject_req->req_info->pubkey->public_key;
+    pk = &ctx->subject_req->req_info->pubkey->public_key;
   } else {
-    pk = ctx->subject_cert->cert_info->key->public_key;
-  }
-
-  if (!pk) {
-    OPENSSL_PUT_ERROR(X509V3, X509V3_R_NO_PUBLIC_KEY);
-    goto err;
+    pk = &ctx->subject_cert->key.public_key;
   }
 
   if (!EVP_Digest(pk->data, pk->length, pkey_dig, &diglen, EVP_sha1(), NULL)) {

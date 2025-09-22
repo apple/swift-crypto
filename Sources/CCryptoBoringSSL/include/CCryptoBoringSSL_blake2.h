@@ -15,7 +15,7 @@
 #ifndef OPENSSL_HEADER_BLAKE2_H
 #define OPENSSL_HEADER_BLAKE2_H
 
-#include "CCryptoBoringSSL_base.h"   // IWYU pragma: export
+#include "CCryptoBoringSSL_base.h"  // IWYU pragma: export
 
 #if defined(__cplusplus)
 extern "C" {
@@ -27,9 +27,10 @@ extern "C" {
 
 struct blake2b_state_st {
   uint64_t h[8];
-  uint64_t t_low, t_high;
+  uint64_t t_low;
+  uint32_t t_high;
+  uint32_t block_used;
   uint8_t block[BLAKE2B_CBLOCK];
-  size_t block_used;
 };
 
 // BLAKE2B256_Init initialises |b2b| to perform a BLAKE2b-256 hash. There are no

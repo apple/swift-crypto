@@ -17,13 +17,13 @@
 #include <CCryptoBoringSSL_bn.h>
 #include <CCryptoBoringSSL_err.h>
 #include <CCryptoBoringSSL_mem.h>
+#include <CCryptoBoringSSL_span.h>
 
 #include "../fipsmodule/bn/internal.h"
 #include "../fipsmodule/dh/internal.h"
 
 
-static BIGNUM *get_params(BIGNUM *ret, const BN_ULONG *words,
-                          size_t num_words) {
+static BIGNUM *get_params(BIGNUM *ret, bssl::Span<const BN_ULONG> words) {
   BIGNUM *alloc = NULL;
   if (ret == NULL) {
     alloc = BN_new();
@@ -33,7 +33,7 @@ static BIGNUM *get_params(BIGNUM *ret, const BN_ULONG *words,
     ret = alloc;
   }
 
-  if (!bn_set_words(ret, words, num_words)) {
+  if (!bn_set_words(ret, words.data(), words.size())) {
     BN_free(alloc);
     return NULL;
   }
@@ -56,7 +56,7 @@ BIGNUM *BN_get_rfc3526_prime_1536(BIGNUM *ret) {
       TOBN(0x29024e08, 0x8a67cc74), TOBN(0xc4c6628b, 0x80dc1cd1),
       TOBN(0xc90fdaa2, 0x2168c234), TOBN(0xffffffff, 0xffffffff),
   };
-  return get_params(ret, kWords, OPENSSL_ARRAY_SIZE(kWords));
+  return get_params(ret, kWords);
 }
 
 BIGNUM *BN_get_rfc3526_prime_2048(BIGNUM *ret) {
@@ -78,7 +78,7 @@ BIGNUM *BN_get_rfc3526_prime_2048(BIGNUM *ret) {
       TOBN(0x29024e08, 0x8a67cc74), TOBN(0xc4c6628b, 0x80dc1cd1),
       TOBN(0xc90fdaa2, 0x2168c234), TOBN(0xffffffff, 0xffffffff),
   };
-  return get_params(ret, kWords, OPENSSL_ARRAY_SIZE(kWords));
+  return get_params(ret, kWords);
 }
 
 BIGNUM *BN_get_rfc3526_prime_3072(BIGNUM *ret) {
@@ -108,7 +108,7 @@ BIGNUM *BN_get_rfc3526_prime_3072(BIGNUM *ret) {
       TOBN(0x29024e08, 0x8a67cc74), TOBN(0xc4c6628b, 0x80dc1cd1),
       TOBN(0xc90fdaa2, 0x2168c234), TOBN(0xffffffff, 0xffffffff),
   };
-  return get_params(ret, kWords, OPENSSL_ARRAY_SIZE(kWords));
+  return get_params(ret, kWords);
 }
 
 BIGNUM *BN_get_rfc3526_prime_4096(BIGNUM *ret) {
@@ -146,7 +146,7 @@ BIGNUM *BN_get_rfc3526_prime_4096(BIGNUM *ret) {
       TOBN(0x29024e08, 0x8a67cc74), TOBN(0xc4c6628b, 0x80dc1cd1),
       TOBN(0xc90fdaa2, 0x2168c234), TOBN(0xffffffff, 0xffffffff),
   };
-  return get_params(ret, kWords, OPENSSL_ARRAY_SIZE(kWords));
+  return get_params(ret, kWords);
 }
 
 BIGNUM *BN_get_rfc3526_prime_6144(BIGNUM *ret) {
@@ -200,7 +200,7 @@ BIGNUM *BN_get_rfc3526_prime_6144(BIGNUM *ret) {
       TOBN(0x29024e08, 0x8a67cc74), TOBN(0xc4c6628b, 0x80dc1cd1),
       TOBN(0xc90fdaa2, 0x2168c234), TOBN(0xffffffff, 0xffffffff),
   };
-  return get_params(ret, kWords, OPENSSL_ARRAY_SIZE(kWords));
+  return get_params(ret, kWords);
 }
 
 BIGNUM *BN_get_rfc3526_prime_8192(BIGNUM *ret) {
@@ -270,7 +270,7 @@ BIGNUM *BN_get_rfc3526_prime_8192(BIGNUM *ret) {
       TOBN(0x29024e08, 0x8a67cc74), TOBN(0xc4c6628b, 0x80dc1cd1),
       TOBN(0xc90fdaa2, 0x2168c234), TOBN(0xffffffff, 0xffffffff),
   };
-  return get_params(ret, kWords, OPENSSL_ARRAY_SIZE(kWords));
+  return get_params(ret, kWords);
 }
 
 int DH_generate_parameters_ex(DH *dh, int prime_bits, int generator,

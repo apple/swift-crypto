@@ -17,6 +17,7 @@
 
 #include <CCryptoBoringSSL_base.h>
 #include <CCryptoBoringSSL_evp.h>
+#include <CCryptoBoringSSL_span.h>
 #include <CCryptoBoringSSL_x509.h>
 
 #include "../asn1/internal.h"
@@ -29,21 +30,24 @@ extern "C" {
 
 // Internal structures.
 
-typedef struct X509_val_st {
-  ASN1_TIME *notBefore;
-  ASN1_TIME *notAfter;
-} X509_VAL;
-
-DECLARE_ASN1_FUNCTIONS_const(X509_VAL)
-
 struct X509_pubkey_st {
-  X509_ALGOR *algor;
-  ASN1_BIT_STRING *public_key;
+  X509_ALGOR algor;
+  ASN1_BIT_STRING public_key;
   EVP_PKEY *pkey;
 } /* X509_PUBKEY */;
 
+void x509_pubkey_init(X509_PUBKEY *key);
+void x509_pubkey_cleanup(X509_PUBKEY *key);
+
+int x509_parse_public_key(CBS *cbs, X509_PUBKEY *out,
+                          bssl::Span<const EVP_PKEY_ALG *const> algs);
+int x509_marshal_public_key(CBB *cbb, const X509_PUBKEY *in);
+int x509_pubkey_set1(X509_PUBKEY *key, EVP_PKEY *pkey);
+
 // X509_PUBKEY is an |ASN1_ITEM| whose ASN.1 type is SubjectPublicKeyInfo and C
 // type is |X509_PUBKEY*|.
+// TODO(crbug.com/42290417): Remove this when |X509| and |X509_REQ| no longer
+// depend on the tables.
 DECLARE_ASN1_ITEM(X509_PUBKEY)
 
 struct X509_name_entry_st {
@@ -97,28 +101,31 @@ DECLARE_ASN1_ITEM(X509_EXTENSION)
 // (RFC 5280) and C type is |STACK_OF(X509_EXTENSION)*|.
 DECLARE_ASN1_ITEM(X509_EXTENSIONS)
 
-typedef struct {
-  ASN1_INTEGER *version;  // [ 0 ] default of v1
-  ASN1_INTEGER *serialNumber;
-  X509_ALGOR *signature;
+struct x509_st {
+  // TBSCertificate fields:
+  uint8_t version;  // One of the |X509_VERSION_*| constants.
+  ASN1_INTEGER serialNumber;
+  X509_ALGOR tbs_sig_alg;
+  // TODO(crbug.com/42290417): When |X509_NAME| no longer uses the macro system,
+  // try to embed this struct.
   X509_NAME *issuer;
-  X509_VAL *validity;
+  ASN1_TIME notBefore;
+  ASN1_TIME notAfter;
+  // TODO(crbug.com/42290417): When |X509_NAME| no longer uses the macro system,
+  // try to embed this struct.
   X509_NAME *subject;
-  X509_PUBKEY *key;
+  X509_PUBKEY key;
   ASN1_BIT_STRING *issuerUID;            // [ 1 ] optional in v2
   ASN1_BIT_STRING *subjectUID;           // [ 2 ] optional in v2
   STACK_OF(X509_EXTENSION) *extensions;  // [ 3 ] optional in v3
-  ASN1_ENCODING enc;
-} X509_CINF;
-
-// TODO(https://crbug.com/boringssl/407): This is not const because it contains
-// an |X509_NAME|.
-DECLARE_ASN1_FUNCTIONS(X509_CINF)
-
-struct x509_st {
-  X509_CINF *cert_info;
-  X509_ALGOR *sig_alg;
-  ASN1_BIT_STRING *signature;
+  // Certificate fields:
+  X509_ALGOR sig_alg;
+  ASN1_BIT_STRING signature;
+  // Other state:
+  // buf, if not nullptr, contains a copy of the serialized Certificate.
+  // TODO(davidben): Now every parsed |X509| has an underlying |CRYPTO_BUFFER|,
+  // but |X509|s created peacemeal do not. Can we make this more uniform?
+  CRYPTO_BUFFER *buf;
   CRYPTO_refcount_t references;
   CRYPTO_EX_DATA ex_data;
   // These contain copies of various extension values
@@ -135,6 +142,8 @@ struct x509_st {
   X509_CERT_AUX *aux;
   CRYPTO_MUTEX lock;
 } /* X509 */;
+
+int x509_marshal_tbs_cert(CBB *cbb, X509 *x509);
 
 // X509 is an |ASN1_ITEM| whose ASN.1 type is X.509 Certificate (RFC 5280) and C
 // type is |X509*|.
@@ -385,6 +394,17 @@ int x509_digest_sign_algorithm(EVP_MD_CTX *ctx, X509_ALGOR *algor);
 int x509_digest_verify_init(EVP_MD_CTX *ctx, const X509_ALGOR *sigalg,
                             EVP_PKEY *pkey);
 
+// x509_verify_signature verifies a |signature| using |sigalg| and |pkey| over
+// |in|. It returns one if the signature is valid and zero on error.
+int x509_verify_signature(const X509_ALGOR *sigalg,
+                          const ASN1_BIT_STRING *signature,
+                          bssl::Span<const uint8_t> in, EVP_PKEY *pkey);
+
+// x509_sign_to_bit_string signs |in| using |ctx| and saves the result in |out|.
+// It returns the length of the signature on success and zero on error.
+int x509_sign_to_bit_string(EVP_MD_CTX *ctx, ASN1_BIT_STRING *out,
+                            bssl::Span<const uint8_t> in);
+
 
 // Path-building functions.
 
@@ -554,6 +574,13 @@ int DIST_POINT_set_dpname(DIST_POINT_NAME *dpn, X509_NAME *iname);
 // thread-safe but is currently neither in some cases, notably if |in| was
 // mutated.
 int x509_marshal_name(CBB *out, X509_NAME *in);
+
+void x509_algor_init(X509_ALGOR *alg);
+void x509_algor_cleanup(X509_ALGOR *alg);
+
+// x509_parse_algorithm parses a DER-encoded, AlgorithmIdentifier from |cbs| and
+// writes the result to |*out|. It returns one on success and zero on error.
+int x509_parse_algorithm(CBS *cbs, X509_ALGOR *out);
 
 // x509_marshal_algorithm marshals |in| as a DER-encoded, AlgorithmIdentifier
 // and writes the result to |out|. It returns one on success and zero on error.

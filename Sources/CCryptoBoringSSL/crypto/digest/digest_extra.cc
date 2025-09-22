@@ -22,6 +22,8 @@
 #include <CCryptoBoringSSL_md5.h>
 #include <CCryptoBoringSSL_nid.h>
 #include <CCryptoBoringSSL_obj.h>
+#include <CCryptoBoringSSL_sha.h>
+#include <CCryptoBoringSSL_span.h>
 
 #include "../asn1/internal.h"
 #include "../fipsmodule/digest/internal.h"
@@ -71,9 +73,9 @@ const EVP_MD *EVP_get_digestbynid(int nid) {
     return NULL;
   }
 
-  for (unsigned i = 0; i < OPENSSL_ARRAY_SIZE(nid_to_digest_mapping); i++) {
-    if (nid_to_digest_mapping[i].nid == nid) {
-      return nid_to_digest_mapping[i].md_func();
+  for (const auto &mapping : nid_to_digest_mapping) {
+    if (mapping.nid == nid) {
+      return mapping.md_func();
     }
   }
 
@@ -101,42 +103,41 @@ static const struct {
     {{0x60, 0x86, 0x48, 0x01, 0x65, 0x03, 0x04, 0x02, 0x04}, 9, NID_sha224},
 };
 
-static const EVP_MD *cbs_to_md(const CBS *cbs) {
-  for (size_t i = 0; i < OPENSSL_ARRAY_SIZE(kMDOIDs); i++) {
-    if (CBS_len(cbs) == kMDOIDs[i].oid_len &&
-        OPENSSL_memcmp(CBS_data(cbs), kMDOIDs[i].oid, kMDOIDs[i].oid_len) ==
-            0) {
-      return EVP_get_digestbynid(kMDOIDs[i].nid);
+static int cbs_to_digest_nid(const CBS *cbs) {
+  for (const auto &md : kMDOIDs) {
+    if (bssl::Span<const uint8_t>(*cbs) ==
+        bssl::Span(md.oid).first(md.oid_len)) {
+      return md.nid;
     }
   }
-
-  return NULL;
+  return NID_undef;
 }
 
 const EVP_MD *EVP_get_digestbyobj(const ASN1_OBJECT *obj) {
-  // Handle objects with no corresponding OID. Note we don't use |OBJ_obj2nid|
-  // here to avoid pulling in the OID table.
-  if (obj->nid != NID_undef) {
-    return EVP_get_digestbynid(obj->nid);
+  int nid = obj->nid;
+  if (nid == NID_undef) {
+    // Handle objects with no saved NID. Note we don't use |OBJ_obj2nid| here to
+    // avoid pulling in the OID table.
+    CBS cbs;
+    CBS_init(&cbs, OBJ_get0_data(obj), OBJ_length(obj));
+    nid = cbs_to_digest_nid(&cbs);
   }
 
-  CBS cbs;
-  CBS_init(&cbs, OBJ_get0_data(obj), OBJ_length(obj));
-  return cbs_to_md(&cbs);
+  return nid == NID_undef ? nullptr : EVP_get_digestbynid(nid);
 }
 
-const EVP_MD *EVP_parse_digest_algorithm(CBS *cbs) {
+int EVP_parse_digest_algorithm_nid(CBS *cbs) {
   CBS algorithm, oid;
   if (!CBS_get_asn1(cbs, &algorithm, CBS_ASN1_SEQUENCE) ||
       !CBS_get_asn1(&algorithm, &oid, CBS_ASN1_OBJECT)) {
     OPENSSL_PUT_ERROR(DIGEST, DIGEST_R_DECODE_ERROR);
-    return NULL;
+    return NID_undef;
   }
 
-  const EVP_MD *ret = cbs_to_md(&oid);
-  if (ret == NULL) {
+  int ret = cbs_to_digest_nid(&oid);
+  if (ret == NID_undef) {
     OPENSSL_PUT_ERROR(DIGEST, DIGEST_R_UNKNOWN_HASH);
-    return NULL;
+    return NID_undef;
   }
 
   // The parameters, if present, must be NULL. Historically, whether the NULL
@@ -149,11 +150,19 @@ const EVP_MD *EVP_parse_digest_algorithm(CBS *cbs) {
         CBS_len(&param) != 0 ||  //
         CBS_len(&algorithm) != 0) {
       OPENSSL_PUT_ERROR(DIGEST, DIGEST_R_DECODE_ERROR);
-      return NULL;
+      return NID_undef;
     }
   }
 
   return ret;
+}
+
+const EVP_MD *EVP_parse_digest_algorithm(CBS *cbs) {
+  int nid = EVP_parse_digest_algorithm_nid(cbs);
+  if (nid == NID_undef) {
+    return nullptr;
+  }
+  return EVP_get_digestbynid(nid);
 }
 
 static int marshal_digest_algorithm(CBB *cbb, const EVP_MD *md,
@@ -198,16 +207,16 @@ int EVP_marshal_digest_algorithm_no_params(CBB *cbb, const EVP_MD *md) {
 }
 
 const EVP_MD *EVP_get_digestbyname(const char *name) {
-  for (unsigned i = 0; i < OPENSSL_ARRAY_SIZE(nid_to_digest_mapping); i++) {
-    const char *short_name = nid_to_digest_mapping[i].short_name;
-    const char *long_name = nid_to_digest_mapping[i].long_name;
+  for (const auto &mapping : nid_to_digest_mapping) {
+    const char *short_name = mapping.short_name;
+    const char *long_name = mapping.long_name;
     if ((short_name && strcmp(short_name, name) == 0) ||
         (long_name && strcmp(long_name, name) == 0)) {
-      return nid_to_digest_mapping[i].md_func();
+      return mapping.md_func();
     }
   }
 
-  return NULL;
+  return nullptr;
 }
 
 static void blake2b256_init(EVP_MD_CTX *ctx) {
@@ -229,6 +238,8 @@ static const EVP_MD evp_md_blake2b256 = {
 };
 
 const EVP_MD *EVP_blake2b256(void) { return &evp_md_blake2b256; }
+
+static_assert(sizeof(BLAKE2B_CTX) <= EVP_MAX_MD_DATA_SIZE);
 
 
 static void md4_init(EVP_MD_CTX *ctx) {
@@ -257,6 +268,9 @@ static const EVP_MD evp_md_md4 = {
 
 const EVP_MD *EVP_md4(void) { return &evp_md_md4; }
 
+static_assert(sizeof(MD4_CTX) <= EVP_MAX_MD_DATA_SIZE);
+
+
 static void md5_init(EVP_MD_CTX *ctx) {
   BSSL_CHECK(MD5_Init(reinterpret_cast<MD5_CTX *>(ctx->md_data)));
 }
@@ -276,6 +290,9 @@ static const EVP_MD evp_md_md5 = {
 };
 
 const EVP_MD *EVP_md5(void) { return &evp_md_md5; }
+
+static_assert(sizeof(MD5_CTX) <= EVP_MAX_MD_DATA_SIZE);
+
 
 typedef struct {
   MD5_CTX md5;
@@ -312,3 +329,5 @@ const EVP_MD evp_md_md5_sha1 = {
 };
 
 const EVP_MD *EVP_md5_sha1(void) { return &evp_md_md5_sha1; }
+
+static_assert(sizeof(MD5_SHA1_CTX) <= EVP_MAX_MD_DATA_SIZE);
