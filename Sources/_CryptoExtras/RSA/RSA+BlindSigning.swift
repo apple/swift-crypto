@@ -131,7 +131,7 @@ extension _RSA.BlindSigning {
             self.parameters = parameters
         }
 
-        public func getKeyPrimitives() -> Primitives {
+        public func getKeyPrimitives() throws -> Primitives {
             let (n, e) = self.backing.getKeyPrimitives()
             return Primitives(modulus: n, publicExponent: e)
         }

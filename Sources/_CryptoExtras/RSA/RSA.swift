@@ -141,7 +141,7 @@ extension _RSA.Signing {
             self.backing = backing
         }
 
-        public func getKeyPrimitives() -> Primitives {
+        public func getKeyPrimitives() throws -> Primitives {
             let (n, e) = self.backing.getKeyPrimitives()
             return Primitives(modulus: n, publicExponent: e)
         }
@@ -538,7 +538,7 @@ extension _RSA.Encryption {
         public var keySizeInBits: Int { self.backing.keySizeInBits }
         fileprivate init(_ backing: BackingPublicKey) { self.backing = backing }
 
-        public func getKeyPrimitives() -> Primitives {
+        public func getKeyPrimitives() throws -> Primitives {
             let (n, e) = self.backing.getKeyPrimitives()
             return Primitives(modulus: n, publicExponent: e)
         }
