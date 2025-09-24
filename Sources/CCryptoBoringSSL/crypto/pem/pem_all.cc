@@ -38,14 +38,17 @@ IMPLEMENT_PEM_rw(PKCS7, PKCS7, PEM_STRING_PKCS7, PKCS7)
 // the relevant private key: this means can handle "traditional" and PKCS#8
 // formats transparently.
 static RSA *pkey_get_rsa(EVP_PKEY *key, RSA **rsa) {
-  RSA *rtmp;
   if (!key) {
-    return NULL;
+    return nullptr;
   }
-  rtmp = EVP_PKEY_get1_RSA(key);
-  EVP_PKEY_free(key);
+  if (EVP_PKEY_id(key) != EVP_PKEY_RSA) {
+    // Don't accept RSA-PSS keys in this function.
+    OPENSSL_PUT_ERROR(EVP, EVP_R_EXPECTING_AN_RSA_KEY);
+    return nullptr;
+  }
+  RSA *rtmp = EVP_PKEY_get1_RSA(key);
   if (!rtmp) {
-    return NULL;
+    return nullptr;
   }
   if (rsa) {
     RSA_free(*rsa);
@@ -56,15 +59,13 @@ static RSA *pkey_get_rsa(EVP_PKEY *key, RSA **rsa) {
 
 RSA *PEM_read_bio_RSAPrivateKey(BIO *bp, RSA **rsa, pem_password_cb *cb,
                                 void *u) {
-  EVP_PKEY *pktmp;
-  pktmp = PEM_read_bio_PrivateKey(bp, NULL, cb, u);
-  return pkey_get_rsa(pktmp, rsa);
+  bssl::UniquePtr<EVP_PKEY> pkey(PEM_read_bio_PrivateKey(bp, nullptr, cb, u));
+  return pkey_get_rsa(pkey.get(), rsa);
 }
 
 RSA *PEM_read_RSAPrivateKey(FILE *fp, RSA **rsa, pem_password_cb *cb, void *u) {
-  EVP_PKEY *pktmp;
-  pktmp = PEM_read_PrivateKey(fp, NULL, cb, u);
-  return pkey_get_rsa(pktmp, rsa);
+  bssl::UniquePtr<EVP_PKEY> pkey(PEM_read_PrivateKey(fp, nullptr, cb, u));
+  return pkey_get_rsa(pkey.get(), rsa);
 }
 
 IMPLEMENT_PEM_write_cb_const(RSAPrivateKey, RSA, PEM_STRING_RSA, RSAPrivateKey)

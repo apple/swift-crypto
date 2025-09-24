@@ -287,7 +287,6 @@ static int x509_object_idx_cnt(STACK_OF(X509_OBJECT) *h, int type,
                                X509_NAME *name, int *pnmatch) {
   X509_OBJECT stmp;
   X509 x509_s;
-  X509_CINF cinf_s;
   X509_CRL crl_s;
   X509_CRL_INFO crl_info_s;
 
@@ -295,8 +294,7 @@ static int x509_object_idx_cnt(STACK_OF(X509_OBJECT) *h, int type,
   switch (type) {
     case X509_LU_X509:
       stmp.data.x509 = &x509_s;
-      x509_s.cert_info = &cinf_s;
-      cinf_s.subject = name;
+      x509_s.subject = name;
       break;
     case X509_LU_CRL:
       stmp.data.crl = &crl_s;

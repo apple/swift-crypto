@@ -17,7 +17,7 @@
 #include <assert.h>
 #include <string.h>
 
-#include <CCryptoBoringSSL_sha.h>
+#include <CCryptoBoringSSL_sha2.h>
 
 #include "../../internal.h"
 #include "./params.h"

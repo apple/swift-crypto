@@ -262,9 +262,7 @@ int EC_POINT_set_compressed_coordinates_GFp(const EC_GROUP *group,
   }
 
   if (!BN_mod_sqrt(y, tmp1, field, ctx)) {
-    uint32_t err = ERR_peek_last_error();
-    if (ERR_GET_LIB(err) == ERR_LIB_BN &&
-        ERR_GET_REASON(err) == BN_R_NOT_A_SQUARE) {
+    if (ERR_equals(ERR_peek_last_error(), ERR_LIB_BN, BN_R_NOT_A_SQUARE)) {
       ERR_clear_error();
       OPENSSL_PUT_ERROR(EC, EC_R_INVALID_COMPRESSED_POINT);
     } else {

@@ -17,10 +17,12 @@
 #include <assert.h>
 #include <string.h>
 
+#include <iterator>
+
 #include <CCryptoBoringSSL_bytestring.h>
 #include <CCryptoBoringSSL_mem.h>
 #include <CCryptoBoringSSL_rand.h>
-#include <CCryptoBoringSSL_sha.h>
+#include <CCryptoBoringSSL_sha2.h>
 
 #include "../fipsmodule/bn/internal.h"
 #include "../internal.h"
@@ -333,18 +335,17 @@ static const scalar kOrder = {
 // scalar_cmov copies |src| to |dest| if |mask| is all ones.
 static void scalar_cmov(scalar *dest, const scalar *src, crypto_word_t mask) {
   bn_select_words(dest->words, mask, src->words, dest->words,
-                  OPENSSL_ARRAY_SIZE(dest->words));
+                  std::size(dest->words));
 }
 
 // scalar_double sets |s| to |2×s|.
 static void scalar_double(scalar *s) {
-  bn_add_words(s->words, s->words, s->words, OPENSSL_ARRAY_SIZE(s->words));
+  bn_add_words(s->words, s->words, s->words, std::size(s->words));
 }
 
 // scalar_add sets |dest| to |dest| plus |src|.
 static void scalar_add(scalar *dest, const scalar *src) {
-  bn_add_words(dest->words, dest->words, src->words,
-               OPENSSL_ARRAY_SIZE(dest->words));
+  bn_add_words(dest->words, dest->words, src->words, std::size(dest->words));
 }
 
 int SPAKE2_generate_msg(SPAKE2_CTX *ctx, uint8_t *out, size_t *out_len,
