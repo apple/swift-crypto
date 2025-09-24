@@ -17,8 +17,10 @@ add_library(CryptoBoringWrapper STATIC
   "CryptoKitErrors_boring.swift"
   "EC/EllipticCurve.swift"
   "EC/EllipticCurvePoint.swift"
+  "MLDSA/BoringSSLMLDSA.swift"
   "Util/ArbitraryPrecisionInteger.swift"
   "Util/FiniteFieldArithmeticContext.swift"
+  "Util/Optional+withUnsafeBytes.swift"
   "Util/RandomBytes.swift"
 )
 
