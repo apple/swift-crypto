@@ -14,7 +14,15 @@
 #if CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
 @_exported import CryptoKit
 #else
+#if CRYPTOKIT_NO_ACCESS_TO_FOUNDATION
+import SwiftSystem
+#else
+#if canImport(FoundationEssentials)
+import FoundationEssentials
+#else
 import Foundation
+#endif
+#endif
 
 @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension ASN1 {
@@ -50,11 +58,11 @@ extension ASN1 {
 
         var privateKey: ASN1.SEC1PrivateKey
 
-        init(asn1Encoded rootNode: ASN1.ASN1Node, withIdentifier identifier: ASN1.ASN1Identifier) throws {
-            self = try ASN1.sequence(rootNode, identifier: identifier) { nodes in
+        init(asn1Encoded rootNode: ASN1.ASN1Node, withIdentifier identifier: ASN1.ASN1Identifier) throws(CryptoKitMetaError) {
+            self = try ASN1.sequence(rootNode, identifier: identifier) { nodes throws(CryptoKitMetaError) in
                 let version = try Int(asn1Encoded: &nodes)
                 guard version == 0 else {
-                    throw CryptoKitASN1Error.invalidASN1Object
+                    throw error(CryptoKitASN1Error.invalidASN1Object)
                 }
 
                 let algorithm = try ASN1.RFC5480AlgorithmIdentifier(asn1Encoded: &nodes)
@@ -66,14 +74,14 @@ extension ASN1 {
                 let sec1PrivateKeyNode = try ASN1.parse(privateKeyBytes.bytes)
                 let sec1PrivateKey = try ASN1.SEC1PrivateKey(asn1Encoded: sec1PrivateKeyNode)
                 if let innerAlgorithm = sec1PrivateKey.algorithm, innerAlgorithm != algorithm {
-                    throw CryptoKitASN1Error.invalidASN1Object
+                    throw error(CryptoKitASN1Error.invalidASN1Object)
                 }
 
                 return try .init(algorithm: algorithm, privateKey: sec1PrivateKey)
             }
         }
 
-        private init(algorithm: ASN1.RFC5480AlgorithmIdentifier, privateKey: ASN1.SEC1PrivateKey) throws {
+        private init(algorithm: ASN1.RFC5480AlgorithmIdentifier, privateKey: ASN1.SEC1PrivateKey) throws(CryptoKitMetaError) {
             self.privateKey = privateKey
             self.algorithm = algorithm
         }
@@ -86,8 +94,8 @@ extension ASN1 {
             self.privateKey = ASN1.SEC1PrivateKey(privateKey: privateKey, algorithm: nil, publicKey: publicKey)
         }
 
-        func serialize(into coder: inout ASN1.Serializer, withIdentifier identifier: ASN1.ASN1Identifier) throws {
-            try coder.appendConstructedNode(identifier: identifier) { coder in
+        func serialize(into coder: inout ASN1.Serializer, withIdentifier identifier: ASN1.ASN1Identifier) throws(CryptoKitMetaError) {
+            try coder.appendConstructedNode(identifier: identifier) { coder throws(CryptoKitMetaError) in
                 try coder.serialize(0)  // version
                 try coder.serialize(self.algorithm)
 

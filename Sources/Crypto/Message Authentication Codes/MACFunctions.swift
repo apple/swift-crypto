@@ -14,12 +14,20 @@
 #if CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
 @_exported import CryptoKit
 #else
+#if CRYPTOKIT_NO_ACCESS_TO_FOUNDATION
+import SwiftSystem
+#else
+#if canImport(FoundationEssentials)
+import FoundationEssentials
+#else
 import Foundation
+#endif
+#endif
 
 @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 protocol MACAlgorithm {
     associatedtype Key
-    #if !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
+    #if (!CRYPTO_IN_SWIFTPM_FORCE_BUILD_API) || CRYPTOKIT_NO_ACCESS_TO_FOUNDATION
     associatedtype MAC: CryptoKit.MessageAuthenticationCode
     #else
     associatedtype MAC: Crypto.MessageAuthenticationCode

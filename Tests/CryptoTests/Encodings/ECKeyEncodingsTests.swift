@@ -80,11 +80,9 @@ class ECKeyEncodingsTests: XCTestCase {
         XCTAssertNoThrow(try P256.KeyAgreement.PublicKey(rawRepresentation: p256KeyKA_raw))
         XCTAssertNoThrow(try P256.KeyAgreement.PublicKey(x963Representation: p256KeyKA_x963))
         XCTAssertNoThrow(try P256.KeyAgreement.PublicKey(compressedRepresentation: p256KeyKA_compressed))
-        XCTAssertThrowsError(try P256.KeyAgreement.PublicKey(compressedRepresentation: p256KeyKA_x963)) { error in
-            XCTAssertTrue(error is CryptoKitError)
-            XCTAssertEqual(error as? CryptoKitError, .incorrectParameterSize)
-        }
-        
+        XCTAssertThrowsError(try P256.KeyAgreement.PublicKey(compressedRepresentation: p256KeyKA_x963),
+                             error: CryptoKitError.incorrectParameterSize)
+
         let p384KeyKA = P384.KeyAgreement.PrivateKey().publicKey
         let p384KeyKA_raw = p384KeyKA.rawRepresentation
         let p384KeyKA_x963 = p384KeyKA.x963Representation
@@ -92,11 +90,9 @@ class ECKeyEncodingsTests: XCTestCase {
         XCTAssertNoThrow(try P384.KeyAgreement.PublicKey(rawRepresentation: p384KeyKA_raw))
         XCTAssertNoThrow(try P384.KeyAgreement.PublicKey(x963Representation: p384KeyKA_x963))
         XCTAssertNoThrow(try P384.KeyAgreement.PublicKey(compressedRepresentation: p384KeyKA_compressed))
-        XCTAssertThrowsError(try P384.KeyAgreement.PublicKey(compressedRepresentation: p384KeyKA_x963)) { error in
-            XCTAssertTrue(error is CryptoKitError)
-            XCTAssertEqual(error as? CryptoKitError, .incorrectParameterSize)
-        }
-        
+        XCTAssertThrowsError(try P384.KeyAgreement.PublicKey(compressedRepresentation: p384KeyKA_x963),
+                             error: CryptoKitError.incorrectParameterSize)
+
         let p521KeyKA = P521.KeyAgreement.PrivateKey().publicKey
         let p521KeyKA_raw = p521KeyKA.rawRepresentation
         let p521KeyKA_x963 = p521KeyKA.x963Representation
@@ -104,11 +100,9 @@ class ECKeyEncodingsTests: XCTestCase {
         XCTAssertNoThrow(try P521.KeyAgreement.PublicKey(rawRepresentation: p521KeyKA_raw))
         XCTAssertNoThrow(try P521.KeyAgreement.PublicKey(x963Representation: p521KeyKA_x963))
         XCTAssertNoThrow(try P521.KeyAgreement.PublicKey(compressedRepresentation: p521KeyKA_compressed))
-        XCTAssertThrowsError(try P521.KeyAgreement.PublicKey(compressedRepresentation: p521KeyKA_x963)) { error in
-            XCTAssertTrue(error is CryptoKitError)
-            XCTAssertEqual(error as? CryptoKitError, .incorrectParameterSize)
-        }
-        
+        XCTAssertThrowsError(try P521.KeyAgreement.PublicKey(compressedRepresentation: p521KeyKA_x963),
+                             error: CryptoKitError.incorrectParameterSize)
+
         // Curve25519 does not have an x963 representation.
         let x25519KeyKA = Curve25519.KeyAgreement.PrivateKey().publicKey
         let x25519KeyKA_raw = x25519KeyKA.rawRepresentation
@@ -124,11 +118,9 @@ class ECKeyEncodingsTests: XCTestCase {
         XCTAssertNoThrow(try P256.Signing.PublicKey(rawRepresentation: p256KeyKA_raw))
         XCTAssertNoThrow(try P256.Signing.PublicKey(x963Representation: p256KeyKA_x963))
         XCTAssertNoThrow(try P256.KeyAgreement.PublicKey(compressedRepresentation: p256KeyKA_compressed))
-        XCTAssertThrowsError(try P256.KeyAgreement.PublicKey(compressedRepresentation: p256KeyKA_x963)) { error in
-            XCTAssertTrue(error is CryptoKitError)
-            XCTAssertEqual(error as? CryptoKitError, .incorrectParameterSize)
-        }
-        
+        XCTAssertThrowsError(try P256.KeyAgreement.PublicKey(compressedRepresentation: p256KeyKA_x963),
+                             error: CryptoKitError.incorrectParameterSize)
+
         let p384KeyKA = P384.Signing.PrivateKey().publicKey
         let p384KeyKA_raw = p384KeyKA.rawRepresentation
         let p384KeyKA_x963 = p384KeyKA.x963Representation
@@ -136,11 +128,9 @@ class ECKeyEncodingsTests: XCTestCase {
         XCTAssertNoThrow(try P384.Signing.PublicKey(rawRepresentation: p384KeyKA_raw))
         XCTAssertNoThrow(try P384.Signing.PublicKey(x963Representation: p384KeyKA_x963))
         XCTAssertNoThrow(try P384.KeyAgreement.PublicKey(compressedRepresentation: p384KeyKA_compressed))
-        XCTAssertThrowsError(try P384.KeyAgreement.PublicKey(compressedRepresentation: p384KeyKA_x963)) { error in
-            XCTAssertTrue(error is CryptoKitError)
-            XCTAssertEqual(error as? CryptoKitError, .incorrectParameterSize)
-        }
-        
+        XCTAssertThrowsError(try P384.KeyAgreement.PublicKey(compressedRepresentation: p384KeyKA_x963),
+                             error: CryptoKitError.incorrectParameterSize)
+
         let p521KeyKA = P521.Signing.PrivateKey().publicKey
         let p521KeyKA_raw = p521KeyKA.rawRepresentation
         let p521KeyKA_x963 = p521KeyKA.x963Representation
@@ -148,11 +138,9 @@ class ECKeyEncodingsTests: XCTestCase {
         XCTAssertNoThrow(try P521.Signing.PublicKey(rawRepresentation: p521KeyKA_raw))
         XCTAssertNoThrow(try P521.Signing.PublicKey(x963Representation: p521KeyKA_x963))
         XCTAssertNoThrow(try P521.KeyAgreement.PublicKey(compressedRepresentation: p521KeyKA_compressed))
-        XCTAssertThrowsError(try P521.KeyAgreement.PublicKey(compressedRepresentation: p521KeyKA_x963)) { error in
-            XCTAssertTrue(error is CryptoKitError)
-            XCTAssertEqual(error as? CryptoKitError, .incorrectParameterSize)
-        }
-        
+        XCTAssertThrowsError(try P521.KeyAgreement.PublicKey(compressedRepresentation: p521KeyKA_x963),
+                             error: CryptoKitError.incorrectParameterSize)
+
         let x25519KeyKA = Curve25519.Signing.PrivateKey().publicKey
         let x25519KeyKA_raw = x25519KeyKA.rawRepresentation
         XCTAssertNoThrow(try Curve25519.Signing.PublicKey(rawRepresentation: x25519KeyKA_raw))
@@ -186,6 +174,23 @@ class ECKeyEncodingsTests: XCTestCase {
         XCTAssertNoThrow(try P521.Signing.PublicKey(compactRepresentation: p521KeyKA_compact))
     }
     
+    func testPEMPrivateKeyImport() throws {
+        let pemKeyString = """
+            -----BEGIN PRIVATE KEY-----
+            MIGHAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBG0wawIBAQQgNjSvGphHdpvWvUNB
+            RR7xtcT7lQwt/VvTNYP+qTeinIqhRANCAAQLlT9xVWd72j6QQOIyXFhgwASrh1G1
+            lyaDq/mR7r2Xasd+X1xm5P364yPecJJeFtDFYrTCeFa+d8/MvWDZQ0q5
+            -----END PRIVATE KEY-----
+            """
+        XCTAssertNotNil(try P256.KeyAgreement.PrivateKey(pemRepresentation: pemKeyString))
+    }
+    
+    func testDERPrivateKeyImport() throws {
+        let derKey = Data(base64urlEncoded: "MIGHAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBG0wawIBAQQgzdwpYwaEoIXKGBU_QHIJBgR4krKcxUgZsXDaarhEGXuhRANCAAT4A-8-QanrFJDb_bQVAEQcWM7HWeZh-hA1a6YvZi0-jq7LqSZOSnwteb4yDqbQ_USNWDlz6793Tr1kKDYjaK6L")!
+        
+        XCTAssertNotNil(try P256.KeyAgreement.PrivateKey(derRepresentation: derKey))
+    }
+    
     func testSimplePEMP256SPKI() throws {
         let pemPublicKey = """
     -----BEGIN PUBLIC KEY-----
@@ -200,51 +205,29 @@ class ECKeyEncodingsTests: XCTestCase {
         XCTAssertEqual(signingKey.rawRepresentation, keyAgreementKey.rawRepresentation)
         
         // Now the non-matching public keys.
-        XCTAssertThrowsError(try P384.Signing.PublicKey(pemRepresentation: pemPublicKey)) { error in
-            guard case .incorrectParameterSize = error as? CryptoKitError else {
-                XCTFail("Unexpected error: \(error)")
-                return
-            }
-        }
-        XCTAssertThrowsError(try P384.KeyAgreement.PublicKey(pemRepresentation: pemPublicKey)) { error in
-            guard case .incorrectParameterSize = error as? CryptoKitError else {
-                XCTFail("Unexpected error: \(error)")
-                return
-            }
-        }
-        XCTAssertThrowsError(try P521.Signing.PublicKey(pemRepresentation: pemPublicKey)) { error in
-            guard case .incorrectParameterSize = error as? CryptoKitError else {
-                XCTFail("Unexpected error: \(error)")
-                return
-            }
-        }
-        XCTAssertThrowsError(try P521.KeyAgreement.PublicKey(pemRepresentation: pemPublicKey)) { error in
-            guard case .incorrectParameterSize = error as? CryptoKitError else {
-                XCTFail("Unexpected error: \(error)")
-                return
-            }
-        }
-        
+        XCTAssertThrowsError(try P384.Signing.PublicKey(pemRepresentation: pemPublicKey),
+                             error: CryptoKitError.incorrectParameterSize)
+        XCTAssertThrowsError(try P384.KeyAgreement.PublicKey(pemRepresentation: pemPublicKey),
+                             error: CryptoKitError.incorrectParameterSize)
+        XCTAssertThrowsError(try P521.Signing.PublicKey(pemRepresentation: pemPublicKey),
+                             error: CryptoKitError.incorrectParameterSize)
+        XCTAssertThrowsError(try P521.KeyAgreement.PublicKey(pemRepresentation: pemPublicKey),
+                             error: CryptoKitError.incorrectParameterSize)
+
         // Now the private keys, which all fail.
-        XCTAssertThrowsError(try P256.Signing.PrivateKey(pemRepresentation: pemPublicKey)) { error in
-            XCTAssertEqual(error as? CryptoKitASN1Error, .invalidPEMDocument)
-        }
-        XCTAssertThrowsError(try P256.KeyAgreement.PrivateKey(pemRepresentation: pemPublicKey)) { error in
-            XCTAssertEqual(error as? CryptoKitASN1Error, .invalidPEMDocument)
-        }
-        XCTAssertThrowsError(try P384.Signing.PrivateKey(pemRepresentation: pemPublicKey)) { error in
-            XCTAssertEqual(error as? CryptoKitASN1Error, .invalidPEMDocument)
-        }
-        XCTAssertThrowsError(try P384.KeyAgreement.PrivateKey(pemRepresentation: pemPublicKey)) { error in
-            XCTAssertEqual(error as? CryptoKitASN1Error, .invalidPEMDocument)
-        }
-        XCTAssertThrowsError(try P521.Signing.PrivateKey(pemRepresentation: pemPublicKey)) { error in
-            XCTAssertEqual(error as? CryptoKitASN1Error, .invalidPEMDocument)
-        }
-        XCTAssertThrowsError(try P521.KeyAgreement.PrivateKey(pemRepresentation: pemPublicKey)) { error in
-            XCTAssertEqual(error as? CryptoKitASN1Error, .invalidPEMDocument)
-        }
-        
+        XCTAssertThrowsError(try P256.Signing.PrivateKey(pemRepresentation: pemPublicKey),
+                             error: CryptoKitASN1Error.invalidPEMDocument)
+        XCTAssertThrowsError(try P256.KeyAgreement.PrivateKey(pemRepresentation: pemPublicKey),
+                             error: CryptoKitASN1Error.invalidPEMDocument)
+        XCTAssertThrowsError(try P384.Signing.PrivateKey(pemRepresentation: pemPublicKey),
+                             error: CryptoKitASN1Error.invalidPEMDocument)
+        XCTAssertThrowsError(try P384.KeyAgreement.PrivateKey(pemRepresentation: pemPublicKey),
+                             error: CryptoKitASN1Error.invalidPEMDocument)
+        XCTAssertThrowsError(try P521.Signing.PrivateKey(pemRepresentation: pemPublicKey),
+                             error: CryptoKitASN1Error.invalidPEMDocument)
+        XCTAssertThrowsError(try P521.KeyAgreement.PrivateKey(pemRepresentation: pemPublicKey),
+                             error: CryptoKitASN1Error.invalidPEMDocument)
+
         // Validate we can reserialize.
         let firstReserialization = signingKey.pemRepresentation
         let secondReserialization = keyAgreementKey.pemRepresentation
@@ -267,51 +250,29 @@ class ECKeyEncodingsTests: XCTestCase {
         XCTAssertEqual(signingKey.rawRepresentation, keyAgreementKey.rawRepresentation)
         
         // Now the non-matching public keys.
-        XCTAssertThrowsError(try P256.Signing.PublicKey(pemRepresentation: pemPublicKey)) { error in
-            guard case .incorrectParameterSize = error as? CryptoKitError else {
-                XCTFail("Unexpected error: \(error)")
-                return
-            }
-        }
-        XCTAssertThrowsError(try P256.KeyAgreement.PublicKey(pemRepresentation: pemPublicKey)) { error in
-            guard case .incorrectParameterSize = error as? CryptoKitError else {
-                XCTFail("Unexpected error: \(error)")
-                return
-            }
-        }
-        XCTAssertThrowsError(try P521.Signing.PublicKey(pemRepresentation: pemPublicKey)) { error in
-            guard case .incorrectParameterSize = error as? CryptoKitError else {
-                XCTFail("Unexpected error: \(error)")
-                return
-            }
-        }
-        XCTAssertThrowsError(try P521.KeyAgreement.PublicKey(pemRepresentation: pemPublicKey)) { error in
-            guard case .incorrectParameterSize = error as? CryptoKitError else {
-                XCTFail("Unexpected error: \(error)")
-                return
-            }
-        }
-        
+        XCTAssertThrowsError(try P256.Signing.PublicKey(pemRepresentation: pemPublicKey),
+                             error: CryptoKitError.incorrectParameterSize)
+        XCTAssertThrowsError(try P256.KeyAgreement.PublicKey(pemRepresentation: pemPublicKey),
+                             error: CryptoKitError.incorrectParameterSize)
+        XCTAssertThrowsError(try P521.Signing.PublicKey(pemRepresentation: pemPublicKey),
+                             error: CryptoKitError.incorrectParameterSize)
+        XCTAssertThrowsError(try P521.KeyAgreement.PublicKey(pemRepresentation: pemPublicKey),
+                             error: CryptoKitError.incorrectParameterSize)
+
         // Now the private keys, which all fail.
-        XCTAssertThrowsError(try P256.Signing.PrivateKey(pemRepresentation: pemPublicKey)) { error in
-            XCTAssertEqual(error as? CryptoKitASN1Error, .invalidPEMDocument)
-        }
-        XCTAssertThrowsError(try P256.KeyAgreement.PrivateKey(pemRepresentation: pemPublicKey)) { error in
-            XCTAssertEqual(error as? CryptoKitASN1Error, .invalidPEMDocument)
-        }
-        XCTAssertThrowsError(try P384.Signing.PrivateKey(pemRepresentation: pemPublicKey)) { error in
-            XCTAssertEqual(error as? CryptoKitASN1Error, .invalidPEMDocument)
-        }
-        XCTAssertThrowsError(try P384.KeyAgreement.PrivateKey(pemRepresentation: pemPublicKey)) { error in
-            XCTAssertEqual(error as? CryptoKitASN1Error, .invalidPEMDocument)
-        }
-        XCTAssertThrowsError(try P521.Signing.PrivateKey(pemRepresentation: pemPublicKey)) { error in
-            XCTAssertEqual(error as? CryptoKitASN1Error, .invalidPEMDocument)
-        }
-        XCTAssertThrowsError(try P521.KeyAgreement.PrivateKey(pemRepresentation: pemPublicKey)) { error in
-            XCTAssertEqual(error as? CryptoKitASN1Error, .invalidPEMDocument)
-        }
-        
+        XCTAssertThrowsError(try P256.Signing.PrivateKey(pemRepresentation: pemPublicKey),
+                             error: CryptoKitASN1Error.invalidPEMDocument)
+        XCTAssertThrowsError(try P256.KeyAgreement.PrivateKey(pemRepresentation: pemPublicKey),
+                             error: CryptoKitASN1Error.invalidPEMDocument)
+        XCTAssertThrowsError(try P384.Signing.PrivateKey(pemRepresentation: pemPublicKey),
+                             error: CryptoKitASN1Error.invalidPEMDocument)
+        XCTAssertThrowsError(try P384.KeyAgreement.PrivateKey(pemRepresentation: pemPublicKey),
+                             error: CryptoKitASN1Error.invalidPEMDocument)
+        XCTAssertThrowsError(try P521.Signing.PrivateKey(pemRepresentation: pemPublicKey),
+                             error: CryptoKitASN1Error.invalidPEMDocument)
+        XCTAssertThrowsError(try P521.KeyAgreement.PrivateKey(pemRepresentation: pemPublicKey),
+                             error: CryptoKitASN1Error.invalidPEMDocument)
+
         // Validate we can reserialize.
         let firstReserialization = signingKey.pemRepresentation
         let secondReserialization = keyAgreementKey.pemRepresentation
@@ -335,51 +296,29 @@ class ECKeyEncodingsTests: XCTestCase {
         XCTAssertEqual(signingKey.rawRepresentation, keyAgreementKey.rawRepresentation)
         
         // Now the non-matching public keys.
-        XCTAssertThrowsError(try P256.Signing.PublicKey(pemRepresentation: pemPublicKey)) { error in
-            guard case .incorrectParameterSize = error as? CryptoKitError else {
-                XCTFail("Unexpected error: \(error)")
-                return
-            }
-        }
-        XCTAssertThrowsError(try P256.KeyAgreement.PublicKey(pemRepresentation: pemPublicKey)) { error in
-            guard case .incorrectParameterSize = error as? CryptoKitError else {
-                XCTFail("Unexpected error: \(error)")
-                return
-            }
-        }
-        XCTAssertThrowsError(try P384.Signing.PublicKey(pemRepresentation: pemPublicKey)) { error in
-            guard case .incorrectParameterSize = error as? CryptoKitError else {
-                XCTFail("Unexpected error: \(error)")
-                return
-            }
-        }
-        XCTAssertThrowsError(try P384.KeyAgreement.PublicKey(pemRepresentation: pemPublicKey)) { error in
-            guard case .incorrectParameterSize = error as? CryptoKitError else {
-                XCTFail("Unexpected error: \(error)")
-                return
-            }
-        }
-        
+        XCTAssertThrowsError(try P256.Signing.PublicKey(pemRepresentation: pemPublicKey),
+                             error: CryptoKitError.incorrectParameterSize)
+        XCTAssertThrowsError(try P256.KeyAgreement.PublicKey(pemRepresentation: pemPublicKey),
+                             error: CryptoKitError.incorrectParameterSize)
+        XCTAssertThrowsError(try P384.Signing.PublicKey(pemRepresentation: pemPublicKey),
+                             error: CryptoKitError.incorrectParameterSize)
+        XCTAssertThrowsError(try P384.KeyAgreement.PublicKey(pemRepresentation: pemPublicKey),
+                             error: CryptoKitError.incorrectParameterSize)
+
         // Now the private keys, which all fail.
-        XCTAssertThrowsError(try P256.Signing.PrivateKey(pemRepresentation: pemPublicKey)) { error in
-            XCTAssertEqual(error as? CryptoKitASN1Error, .invalidPEMDocument)
-        }
-        XCTAssertThrowsError(try P256.KeyAgreement.PrivateKey(pemRepresentation: pemPublicKey)) { error in
-            XCTAssertEqual(error as? CryptoKitASN1Error, .invalidPEMDocument)
-        }
-        XCTAssertThrowsError(try P384.Signing.PrivateKey(pemRepresentation: pemPublicKey)) { error in
-            XCTAssertEqual(error as? CryptoKitASN1Error, .invalidPEMDocument)
-        }
-        XCTAssertThrowsError(try P384.KeyAgreement.PrivateKey(pemRepresentation: pemPublicKey)) { error in
-            XCTAssertEqual(error as? CryptoKitASN1Error, .invalidPEMDocument)
-        }
-        XCTAssertThrowsError(try P521.Signing.PrivateKey(pemRepresentation: pemPublicKey)) { error in
-            XCTAssertEqual(error as? CryptoKitASN1Error, .invalidPEMDocument)
-        }
-        XCTAssertThrowsError(try P521.KeyAgreement.PrivateKey(pemRepresentation: pemPublicKey)) { error in
-            XCTAssertEqual(error as? CryptoKitASN1Error, .invalidPEMDocument)
-        }
-        
+        XCTAssertThrowsError(try P256.Signing.PrivateKey(pemRepresentation: pemPublicKey),
+                             error: CryptoKitASN1Error.invalidPEMDocument)
+        XCTAssertThrowsError(try P256.KeyAgreement.PrivateKey(pemRepresentation: pemPublicKey),
+                             error: CryptoKitASN1Error.invalidPEMDocument)
+        XCTAssertThrowsError(try P384.Signing.PrivateKey(pemRepresentation: pemPublicKey),
+                             error: CryptoKitASN1Error.invalidPEMDocument)
+        XCTAssertThrowsError(try P384.KeyAgreement.PrivateKey(pemRepresentation: pemPublicKey),
+                             error: CryptoKitASN1Error.invalidPEMDocument)
+        XCTAssertThrowsError(try P521.Signing.PrivateKey(pemRepresentation: pemPublicKey),
+                             error: CryptoKitASN1Error.invalidPEMDocument)
+        XCTAssertThrowsError(try P521.KeyAgreement.PrivateKey(pemRepresentation: pemPublicKey),
+                             error: CryptoKitASN1Error.invalidPEMDocument)
+
         // Validate we can reserialize.
         let firstReserialization = signingKey.pemRepresentation
         let secondReserialization = keyAgreementKey.pemRepresentation
@@ -408,25 +347,19 @@ class ECKeyEncodingsTests: XCTestCase {
         XCTAssertThrowsError(try P521.KeyAgreement.PrivateKey(pemRepresentation: pemPrivateKey))
         
         // Now the public keys, which all fail.
-        XCTAssertThrowsError(try P256.Signing.PublicKey(pemRepresentation: pemPrivateKey)) { error in
-            XCTAssertEqual(error as? CryptoKitASN1Error, .invalidPEMDocument)
-        }
-        XCTAssertThrowsError(try P256.KeyAgreement.PublicKey(pemRepresentation: pemPrivateKey)) { error in
-            XCTAssertEqual(error as? CryptoKitASN1Error, .invalidPEMDocument)
-        }
-        XCTAssertThrowsError(try P384.Signing.PublicKey(pemRepresentation: pemPrivateKey)) { error in
-            XCTAssertEqual(error as? CryptoKitASN1Error, .invalidPEMDocument)
-        }
-        XCTAssertThrowsError(try P384.KeyAgreement.PublicKey(pemRepresentation: pemPrivateKey)) { error in
-            XCTAssertEqual(error as? CryptoKitASN1Error, .invalidPEMDocument)
-        }
-        XCTAssertThrowsError(try P521.Signing.PublicKey(pemRepresentation: pemPrivateKey)) { error in
-            XCTAssertEqual(error as? CryptoKitASN1Error, .invalidPEMDocument)
-        }
-        XCTAssertThrowsError(try P521.KeyAgreement.PublicKey(pemRepresentation: pemPrivateKey)) { error in
-            XCTAssertEqual(error as? CryptoKitASN1Error, .invalidPEMDocument)
-        }
-        
+        XCTAssertThrowsError(try P256.Signing.PublicKey(pemRepresentation: pemPrivateKey),
+                             error: CryptoKitASN1Error.invalidPEMDocument)
+        XCTAssertThrowsError(try P256.KeyAgreement.PublicKey(pemRepresentation: pemPrivateKey),
+                             error: CryptoKitASN1Error.invalidPEMDocument)
+        XCTAssertThrowsError(try P384.Signing.PublicKey(pemRepresentation: pemPrivateKey),
+                             error: CryptoKitASN1Error.invalidPEMDocument)
+        XCTAssertThrowsError(try P384.KeyAgreement.PublicKey(pemRepresentation: pemPrivateKey),
+                             error: CryptoKitASN1Error.invalidPEMDocument)
+        XCTAssertThrowsError(try P521.Signing.PublicKey(pemRepresentation: pemPrivateKey),
+                             error: CryptoKitASN1Error.invalidPEMDocument)
+        XCTAssertThrowsError(try P521.KeyAgreement.PublicKey(pemRepresentation: pemPrivateKey),
+                             error: CryptoKitASN1Error.invalidPEMDocument)
+
         // Validate we can reserialize.
         let firstReserialization = signingKey.pemRepresentation
         let secondReserialization = keyAgreementKey.pemRepresentation
@@ -456,25 +389,19 @@ class ECKeyEncodingsTests: XCTestCase {
         XCTAssertThrowsError(try P521.KeyAgreement.PrivateKey(pemRepresentation: pemPrivateKey))
         
         // Now the public keys, which all fail.
-        XCTAssertThrowsError(try P256.Signing.PublicKey(pemRepresentation: pemPrivateKey)) { error in
-            XCTAssertEqual(error as? CryptoKitASN1Error, .invalidPEMDocument)
-        }
-        XCTAssertThrowsError(try P256.KeyAgreement.PublicKey(pemRepresentation: pemPrivateKey)) { error in
-            XCTAssertEqual(error as? CryptoKitASN1Error, .invalidPEMDocument)
-        }
-        XCTAssertThrowsError(try P384.Signing.PublicKey(pemRepresentation: pemPrivateKey)) { error in
-            XCTAssertEqual(error as? CryptoKitASN1Error, .invalidPEMDocument)
-        }
-        XCTAssertThrowsError(try P384.KeyAgreement.PublicKey(pemRepresentation: pemPrivateKey)) { error in
-            XCTAssertEqual(error as? CryptoKitASN1Error, .invalidPEMDocument)
-        }
-        XCTAssertThrowsError(try P521.Signing.PublicKey(pemRepresentation: pemPrivateKey)) { error in
-            XCTAssertEqual(error as? CryptoKitASN1Error, .invalidPEMDocument)
-        }
-        XCTAssertThrowsError(try P521.KeyAgreement.PublicKey(pemRepresentation: pemPrivateKey)) { error in
-            XCTAssertEqual(error as? CryptoKitASN1Error, .invalidPEMDocument)
-        }
-        
+        XCTAssertThrowsError(try P256.Signing.PublicKey(pemRepresentation: pemPrivateKey),
+                             error: CryptoKitASN1Error.invalidPEMDocument)
+        XCTAssertThrowsError(try P256.KeyAgreement.PublicKey(pemRepresentation: pemPrivateKey),
+                             error: CryptoKitASN1Error.invalidPEMDocument)
+        XCTAssertThrowsError(try P384.Signing.PublicKey(pemRepresentation: pemPrivateKey),
+                             error: CryptoKitASN1Error.invalidPEMDocument)
+        XCTAssertThrowsError(try P384.KeyAgreement.PublicKey(pemRepresentation: pemPrivateKey),
+                             error: CryptoKitASN1Error.invalidPEMDocument)
+        XCTAssertThrowsError(try P521.Signing.PublicKey(pemRepresentation: pemPrivateKey),
+                             error: CryptoKitASN1Error.invalidPEMDocument)
+        XCTAssertThrowsError(try P521.KeyAgreement.PublicKey(pemRepresentation: pemPrivateKey),
+                             error: CryptoKitASN1Error.invalidPEMDocument)
+
         // Validate we can reserialize.
         let firstReserialization = signingKey.pemRepresentation
         let secondReserialization = keyAgreementKey.pemRepresentation
@@ -506,25 +433,19 @@ class ECKeyEncodingsTests: XCTestCase {
         XCTAssertThrowsError(try P384.KeyAgreement.PrivateKey(pemRepresentation: pemPrivateKey))
         
         // Now the public keys, which all fail.
-        XCTAssertThrowsError(try P256.Signing.PublicKey(pemRepresentation: pemPrivateKey)) { error in
-            XCTAssertEqual(error as? CryptoKitASN1Error, .invalidPEMDocument)
-        }
-        XCTAssertThrowsError(try P256.KeyAgreement.PublicKey(pemRepresentation: pemPrivateKey)) { error in
-            XCTAssertEqual(error as? CryptoKitASN1Error, .invalidPEMDocument)
-        }
-        XCTAssertThrowsError(try P384.Signing.PublicKey(pemRepresentation: pemPrivateKey)) { error in
-            XCTAssertEqual(error as? CryptoKitASN1Error, .invalidPEMDocument)
-        }
-        XCTAssertThrowsError(try P384.KeyAgreement.PublicKey(pemRepresentation: pemPrivateKey)) { error in
-            XCTAssertEqual(error as? CryptoKitASN1Error, .invalidPEMDocument)
-        }
-        XCTAssertThrowsError(try P521.Signing.PublicKey(pemRepresentation: pemPrivateKey)) { error in
-            XCTAssertEqual(error as? CryptoKitASN1Error, .invalidPEMDocument)
-        }
-        XCTAssertThrowsError(try P521.KeyAgreement.PublicKey(pemRepresentation: pemPrivateKey)) { error in
-            XCTAssertEqual(error as? CryptoKitASN1Error, .invalidPEMDocument)
-        }
-        
+        XCTAssertThrowsError(try P256.Signing.PublicKey(pemRepresentation: pemPrivateKey),
+                             error: CryptoKitASN1Error.invalidPEMDocument)
+        XCTAssertThrowsError(try P256.KeyAgreement.PublicKey(pemRepresentation: pemPrivateKey),
+                             error: CryptoKitASN1Error.invalidPEMDocument)
+        XCTAssertThrowsError(try P384.Signing.PublicKey(pemRepresentation: pemPrivateKey),
+                             error: CryptoKitASN1Error.invalidPEMDocument)
+        XCTAssertThrowsError(try P384.KeyAgreement.PublicKey(pemRepresentation: pemPrivateKey),
+                             error: CryptoKitASN1Error.invalidPEMDocument)
+        XCTAssertThrowsError(try P521.Signing.PublicKey(pemRepresentation: pemPrivateKey),
+                             error: CryptoKitASN1Error.invalidPEMDocument)
+        XCTAssertThrowsError(try P521.KeyAgreement.PublicKey(pemRepresentation: pemPrivateKey),
+                             error: CryptoKitASN1Error.invalidPEMDocument)
+
         // Validate we can reserialize.
         let firstReserialization = signingKey.pemRepresentation
         let secondReserialization = keyAgreementKey.pemRepresentation
@@ -553,25 +474,19 @@ class ECKeyEncodingsTests: XCTestCase {
         XCTAssertThrowsError(try P521.KeyAgreement.PrivateKey(pemRepresentation: pemPrivateKey))
         
         // Now the public keys, which all fail.
-        XCTAssertThrowsError(try P256.Signing.PublicKey(pemRepresentation: pemPrivateKey)) { error in
-            XCTAssertEqual(error as? CryptoKitASN1Error, .invalidPEMDocument)
-        }
-        XCTAssertThrowsError(try P256.KeyAgreement.PublicKey(pemRepresentation: pemPrivateKey)) { error in
-            XCTAssertEqual(error as? CryptoKitASN1Error, .invalidPEMDocument)
-        }
-        XCTAssertThrowsError(try P384.Signing.PublicKey(pemRepresentation: pemPrivateKey)) { error in
-            XCTAssertEqual(error as? CryptoKitASN1Error, .invalidPEMDocument)
-        }
-        XCTAssertThrowsError(try P384.KeyAgreement.PublicKey(pemRepresentation: pemPrivateKey)) { error in
-            XCTAssertEqual(error as? CryptoKitASN1Error, .invalidPEMDocument)
-        }
-        XCTAssertThrowsError(try P521.Signing.PublicKey(pemRepresentation: pemPrivateKey)) { error in
-            XCTAssertEqual(error as? CryptoKitASN1Error, .invalidPEMDocument)
-        }
-        XCTAssertThrowsError(try P521.KeyAgreement.PublicKey(pemRepresentation: pemPrivateKey)) { error in
-            XCTAssertEqual(error as? CryptoKitASN1Error, .invalidPEMDocument)
-        }
-        
+        XCTAssertThrowsError(try P256.Signing.PublicKey(pemRepresentation: pemPrivateKey),
+                             error: CryptoKitASN1Error.invalidPEMDocument)
+        XCTAssertThrowsError(try P256.KeyAgreement.PublicKey(pemRepresentation: pemPrivateKey),
+                             error: CryptoKitASN1Error.invalidPEMDocument)
+        XCTAssertThrowsError(try P384.Signing.PublicKey(pemRepresentation: pemPrivateKey),
+                             error: CryptoKitASN1Error.invalidPEMDocument)
+        XCTAssertThrowsError(try P384.KeyAgreement.PublicKey(pemRepresentation: pemPrivateKey),
+                             error: CryptoKitASN1Error.invalidPEMDocument)
+        XCTAssertThrowsError(try P521.Signing.PublicKey(pemRepresentation: pemPrivateKey),
+                             error: CryptoKitASN1Error.invalidPEMDocument)
+        XCTAssertThrowsError(try P521.KeyAgreement.PublicKey(pemRepresentation: pemPrivateKey),
+                             error: CryptoKitASN1Error.invalidPEMDocument)
+
         // We can't reserialize the SEC1 keys, we don't emit them.
     }
     
@@ -597,25 +512,19 @@ class ECKeyEncodingsTests: XCTestCase {
         XCTAssertThrowsError(try P521.KeyAgreement.PrivateKey(pemRepresentation: pemPrivateKey))
         
         // Now the public keys, which all fail.
-        XCTAssertThrowsError(try P256.Signing.PublicKey(pemRepresentation: pemPrivateKey)) { error in
-            XCTAssertEqual(error as? CryptoKitASN1Error, .invalidPEMDocument)
-        }
-        XCTAssertThrowsError(try P256.KeyAgreement.PublicKey(pemRepresentation: pemPrivateKey)) { error in
-            XCTAssertEqual(error as? CryptoKitASN1Error, .invalidPEMDocument)
-        }
-        XCTAssertThrowsError(try P384.Signing.PublicKey(pemRepresentation: pemPrivateKey)) { error in
-            XCTAssertEqual(error as? CryptoKitASN1Error, .invalidPEMDocument)
-        }
-        XCTAssertThrowsError(try P384.KeyAgreement.PublicKey(pemRepresentation: pemPrivateKey)) { error in
-            XCTAssertEqual(error as? CryptoKitASN1Error, .invalidPEMDocument)
-        }
-        XCTAssertThrowsError(try P521.Signing.PublicKey(pemRepresentation: pemPrivateKey)) { error in
-            XCTAssertEqual(error as? CryptoKitASN1Error, .invalidPEMDocument)
-        }
-        XCTAssertThrowsError(try P521.KeyAgreement.PublicKey(pemRepresentation: pemPrivateKey)) { error in
-            XCTAssertEqual(error as? CryptoKitASN1Error, .invalidPEMDocument)
-        }
-        
+        XCTAssertThrowsError(try P256.Signing.PublicKey(pemRepresentation: pemPrivateKey),
+                             error: CryptoKitASN1Error.invalidPEMDocument)
+        XCTAssertThrowsError(try P256.KeyAgreement.PublicKey(pemRepresentation: pemPrivateKey),
+                             error: CryptoKitASN1Error.invalidPEMDocument)
+        XCTAssertThrowsError(try P384.Signing.PublicKey(pemRepresentation: pemPrivateKey),
+                             error: CryptoKitASN1Error.invalidPEMDocument)
+        XCTAssertThrowsError(try P384.KeyAgreement.PublicKey(pemRepresentation: pemPrivateKey),
+                             error: CryptoKitASN1Error.invalidPEMDocument)
+        XCTAssertThrowsError(try P521.Signing.PublicKey(pemRepresentation: pemPrivateKey),
+                             error: CryptoKitASN1Error.invalidPEMDocument)
+        XCTAssertThrowsError(try P521.KeyAgreement.PublicKey(pemRepresentation: pemPrivateKey),
+                             error: CryptoKitASN1Error.invalidPEMDocument)
+
         // We can't reserialize the SEC1 keys, we don't emit them.
     }
     
@@ -642,25 +551,19 @@ class ECKeyEncodingsTests: XCTestCase {
         XCTAssertThrowsError(try P384.KeyAgreement.PrivateKey(pemRepresentation: pemPrivateKey))
         
         // Now the public keys, which all fail.
-        XCTAssertThrowsError(try P256.Signing.PublicKey(pemRepresentation: pemPrivateKey)) { error in
-            XCTAssertEqual(error as? CryptoKitASN1Error, .invalidPEMDocument)
-        }
-        XCTAssertThrowsError(try P256.KeyAgreement.PublicKey(pemRepresentation: pemPrivateKey)) { error in
-            XCTAssertEqual(error as? CryptoKitASN1Error, .invalidPEMDocument)
-        }
-        XCTAssertThrowsError(try P384.Signing.PublicKey(pemRepresentation: pemPrivateKey)) { error in
-            XCTAssertEqual(error as? CryptoKitASN1Error, .invalidPEMDocument)
-        }
-        XCTAssertThrowsError(try P384.KeyAgreement.PublicKey(pemRepresentation: pemPrivateKey)) { error in
-            XCTAssertEqual(error as? CryptoKitASN1Error, .invalidPEMDocument)
-        }
-        XCTAssertThrowsError(try P521.Signing.PublicKey(pemRepresentation: pemPrivateKey)) { error in
-            XCTAssertEqual(error as? CryptoKitASN1Error, .invalidPEMDocument)
-        }
-        XCTAssertThrowsError(try P521.KeyAgreement.PublicKey(pemRepresentation: pemPrivateKey)) { error in
-            XCTAssertEqual(error as? CryptoKitASN1Error, .invalidPEMDocument)
-        }
-        
+        XCTAssertThrowsError(try P256.Signing.PublicKey(pemRepresentation: pemPrivateKey),
+                             error: CryptoKitASN1Error.invalidPEMDocument)
+        XCTAssertThrowsError(try P256.KeyAgreement.PublicKey(pemRepresentation: pemPrivateKey),
+                             error: CryptoKitASN1Error.invalidPEMDocument)
+        XCTAssertThrowsError(try P384.Signing.PublicKey(pemRepresentation: pemPrivateKey),
+                             error: CryptoKitASN1Error.invalidPEMDocument)
+        XCTAssertThrowsError(try P384.KeyAgreement.PublicKey(pemRepresentation: pemPrivateKey),
+                             error: CryptoKitASN1Error.invalidPEMDocument)
+        XCTAssertThrowsError(try P521.Signing.PublicKey(pemRepresentation: pemPrivateKey),
+                             error: CryptoKitASN1Error.invalidPEMDocument)
+        XCTAssertThrowsError(try P521.KeyAgreement.PublicKey(pemRepresentation: pemPrivateKey),
+                             error: CryptoKitASN1Error.invalidPEMDocument)
+
         // We can't reserialize the SEC1 keys, we don't emit them.
     }
     
@@ -674,51 +577,29 @@ class ECKeyEncodingsTests: XCTestCase {
         XCTAssertEqual(signingKey.rawRepresentation, keyAgreementKey.rawRepresentation)
         
         // Now the non-matching public keys.
-        XCTAssertThrowsError(try P384.Signing.PublicKey(derRepresentation: derPublicKey)) { error in
-            guard case .incorrectParameterSize = error as? CryptoKitError else {
-                XCTFail("Unexpected error: \(error)")
-                return
-            }
-        }
-        XCTAssertThrowsError(try P384.KeyAgreement.PublicKey(derRepresentation: derPublicKey)) { error in
-            guard case .incorrectParameterSize = error as? CryptoKitError else {
-                XCTFail("Unexpected error: \(error)")
-                return
-            }
-        }
-        XCTAssertThrowsError(try P521.Signing.PublicKey(derRepresentation: derPublicKey)) { error in
-            guard case .incorrectParameterSize = error as? CryptoKitError else {
-                XCTFail("Unexpected error: \(error)")
-                return
-            }
-        }
-        XCTAssertThrowsError(try P521.KeyAgreement.PublicKey(derRepresentation: derPublicKey)) { error in
-            guard case .incorrectParameterSize = error as? CryptoKitError else {
-                XCTFail("Unexpected error: \(error)")
-                return
-            }
-        }
-        
+        XCTAssertThrowsError(try P384.Signing.PublicKey(derRepresentation: derPublicKey),
+                             error: CryptoKitError.incorrectParameterSize)
+        XCTAssertThrowsError(try P384.KeyAgreement.PublicKey(derRepresentation: derPublicKey),
+                             error: CryptoKitError.incorrectParameterSize)
+        XCTAssertThrowsError(try P521.Signing.PublicKey(derRepresentation: derPublicKey),
+                             error: CryptoKitError.incorrectParameterSize)
+        XCTAssertThrowsError(try P521.KeyAgreement.PublicKey(derRepresentation: derPublicKey),
+                             error: CryptoKitError.incorrectParameterSize)
+
         // Now the private keys, which all fail.
-        XCTAssertThrowsError(try P256.Signing.PrivateKey(derRepresentation: derPublicKey)) { error in
-            XCTAssertEqual(error as? CryptoKitASN1Error, .unexpectedFieldType)
-        }
-        XCTAssertThrowsError(try P256.KeyAgreement.PrivateKey(derRepresentation: derPublicKey)) { error in
-            XCTAssertEqual(error as? CryptoKitASN1Error, .unexpectedFieldType)
-        }
-        XCTAssertThrowsError(try P384.Signing.PrivateKey(derRepresentation: derPublicKey)) { error in
-            XCTAssertEqual(error as? CryptoKitASN1Error, .unexpectedFieldType)
-        }
-        XCTAssertThrowsError(try P384.KeyAgreement.PrivateKey(derRepresentation: derPublicKey)) { error in
-            XCTAssertEqual(error as? CryptoKitASN1Error, .unexpectedFieldType)
-        }
-        XCTAssertThrowsError(try P521.Signing.PrivateKey(derRepresentation: derPublicKey)) { error in
-            XCTAssertEqual(error as? CryptoKitASN1Error, .unexpectedFieldType)
-        }
-        XCTAssertThrowsError(try P521.KeyAgreement.PrivateKey(derRepresentation: derPublicKey)) { error in
-            XCTAssertEqual(error as? CryptoKitASN1Error, .unexpectedFieldType)
-        }
-        
+        XCTAssertThrowsError(try P256.Signing.PrivateKey(derRepresentation: derPublicKey),
+                             error: CryptoKitASN1Error.unexpectedFieldType)
+        XCTAssertThrowsError(try P256.KeyAgreement.PrivateKey(derRepresentation: derPublicKey),
+                             error: CryptoKitASN1Error.unexpectedFieldType)
+        XCTAssertThrowsError(try P384.Signing.PrivateKey(derRepresentation: derPublicKey),
+                             error: CryptoKitASN1Error.unexpectedFieldType)
+        XCTAssertThrowsError(try P384.KeyAgreement.PrivateKey(derRepresentation: derPublicKey),
+                             error: CryptoKitASN1Error.unexpectedFieldType)
+        XCTAssertThrowsError(try P521.Signing.PrivateKey(derRepresentation: derPublicKey),
+                             error: CryptoKitASN1Error.unexpectedFieldType)
+        XCTAssertThrowsError(try P521.KeyAgreement.PrivateKey(derRepresentation: derPublicKey),
+                             error: CryptoKitASN1Error.unexpectedFieldType)
+
         // Validate we can reserialize.
         let firstReserialization = signingKey.derRepresentation
         let secondReserialization = keyAgreementKey.derRepresentation
@@ -736,51 +617,29 @@ class ECKeyEncodingsTests: XCTestCase {
         XCTAssertEqual(signingKey.rawRepresentation, keyAgreementKey.rawRepresentation)
         
         // Now the non-matching public keys.
-        XCTAssertThrowsError(try P256.Signing.PublicKey(derRepresentation: derPublicKey)) { error in
-            guard case .incorrectParameterSize = error as? CryptoKitError else {
-                XCTFail("Unexpected error: \(error)")
-                return
-            }
-        }
-        XCTAssertThrowsError(try P256.KeyAgreement.PublicKey(derRepresentation: derPublicKey)) { error in
-            guard case .incorrectParameterSize = error as? CryptoKitError else {
-                XCTFail("Unexpected error: \(error)")
-                return
-            }
-        }
-        XCTAssertThrowsError(try P521.Signing.PublicKey(derRepresentation: derPublicKey)) { error in
-            guard case .incorrectParameterSize = error as? CryptoKitError else {
-                XCTFail("Unexpected error: \(error)")
-                return
-            }
-        }
-        XCTAssertThrowsError(try P521.KeyAgreement.PublicKey(derRepresentation: derPublicKey)) { error in
-            guard case .incorrectParameterSize = error as? CryptoKitError else {
-                XCTFail("Unexpected error: \(error)")
-                return
-            }
-        }
-        
+        XCTAssertThrowsError(try P256.Signing.PublicKey(derRepresentation: derPublicKey),
+                             error: CryptoKitError.incorrectParameterSize)
+        XCTAssertThrowsError(try P256.KeyAgreement.PublicKey(derRepresentation: derPublicKey),
+                             error: CryptoKitError.incorrectParameterSize)
+        XCTAssertThrowsError(try P521.Signing.PublicKey(derRepresentation: derPublicKey),
+                             error: CryptoKitError.incorrectParameterSize)
+        XCTAssertThrowsError(try P521.KeyAgreement.PublicKey(derRepresentation: derPublicKey),
+                             error: CryptoKitError.incorrectParameterSize)
+
         // Now the private keys, which all fail.
-        XCTAssertThrowsError(try P256.Signing.PrivateKey(derRepresentation: derPublicKey)) { error in
-            XCTAssertEqual(error as? CryptoKitASN1Error, .unexpectedFieldType)
-        }
-        XCTAssertThrowsError(try P256.KeyAgreement.PrivateKey(derRepresentation: derPublicKey)) { error in
-            XCTAssertEqual(error as? CryptoKitASN1Error, .unexpectedFieldType)
-        }
-        XCTAssertThrowsError(try P384.Signing.PrivateKey(derRepresentation: derPublicKey)) { error in
-            XCTAssertEqual(error as? CryptoKitASN1Error, .unexpectedFieldType)
-        }
-        XCTAssertThrowsError(try P384.KeyAgreement.PrivateKey(derRepresentation: derPublicKey)) { error in
-            XCTAssertEqual(error as? CryptoKitASN1Error, .unexpectedFieldType)
-        }
-        XCTAssertThrowsError(try P521.Signing.PrivateKey(derRepresentation: derPublicKey)) { error in
-            XCTAssertEqual(error as? CryptoKitASN1Error, .unexpectedFieldType)
-        }
-        XCTAssertThrowsError(try P521.KeyAgreement.PrivateKey(derRepresentation: derPublicKey)) { error in
-            XCTAssertEqual(error as? CryptoKitASN1Error, .unexpectedFieldType)
-        }
-        
+        XCTAssertThrowsError(try P256.Signing.PrivateKey(derRepresentation: derPublicKey),
+                             error: CryptoKitASN1Error.unexpectedFieldType)
+        XCTAssertThrowsError(try P256.KeyAgreement.PrivateKey(derRepresentation: derPublicKey),
+                             error: CryptoKitASN1Error.unexpectedFieldType)
+        XCTAssertThrowsError(try P384.Signing.PrivateKey(derRepresentation: derPublicKey),
+                             error: CryptoKitASN1Error.unexpectedFieldType)
+        XCTAssertThrowsError(try P384.KeyAgreement.PrivateKey(derRepresentation: derPublicKey),
+                             error: CryptoKitASN1Error.unexpectedFieldType)
+        XCTAssertThrowsError(try P521.Signing.PrivateKey(derRepresentation: derPublicKey),
+                             error: CryptoKitASN1Error.unexpectedFieldType)
+        XCTAssertThrowsError(try P521.KeyAgreement.PrivateKey(derRepresentation: derPublicKey),
+                             error: CryptoKitASN1Error.unexpectedFieldType)
+
         // Validate we can reserialize.
         let firstReserialization = signingKey.derRepresentation
         let secondReserialization = keyAgreementKey.derRepresentation
@@ -798,51 +657,29 @@ class ECKeyEncodingsTests: XCTestCase {
         XCTAssertEqual(signingKey.rawRepresentation, keyAgreementKey.rawRepresentation)
         
         // Now the non-matching public keys.
-        XCTAssertThrowsError(try P256.Signing.PublicKey(derRepresentation: derPublicKey)) { error in
-            guard case .incorrectParameterSize = error as? CryptoKitError else {
-                XCTFail("Unexpected error: \(error)")
-                return
-            }
-        }
-        XCTAssertThrowsError(try P256.KeyAgreement.PublicKey(derRepresentation: derPublicKey)) { error in
-            guard case .incorrectParameterSize = error as? CryptoKitError else {
-                XCTFail("Unexpected error: \(error)")
-                return
-            }
-        }
-        XCTAssertThrowsError(try P384.Signing.PublicKey(derRepresentation: derPublicKey)) { error in
-            guard case .incorrectParameterSize = error as? CryptoKitError else {
-                XCTFail("Unexpected error: \(error)")
-                return
-            }
-        }
-        XCTAssertThrowsError(try P384.KeyAgreement.PublicKey(derRepresentation: derPublicKey)) { error in
-            guard case .incorrectParameterSize = error as? CryptoKitError else {
-                XCTFail("Unexpected error: \(error)")
-                return
-            }
-        }
-        
+        XCTAssertThrowsError(try P256.Signing.PublicKey(derRepresentation: derPublicKey),
+                             error: CryptoKitError.incorrectParameterSize)
+        XCTAssertThrowsError(try P256.KeyAgreement.PublicKey(derRepresentation: derPublicKey),
+                             error: CryptoKitError.incorrectParameterSize)
+        XCTAssertThrowsError(try P384.Signing.PublicKey(derRepresentation: derPublicKey),
+                             error: CryptoKitError.incorrectParameterSize)
+        XCTAssertThrowsError(try P384.KeyAgreement.PublicKey(derRepresentation: derPublicKey),
+                             error: CryptoKitError.incorrectParameterSize)
+
         // Now the private keys, which all fail.
-        XCTAssertThrowsError(try P256.Signing.PrivateKey(derRepresentation: derPublicKey)) { error in
-            XCTAssertEqual(error as? CryptoKitASN1Error, .unexpectedFieldType)
-        }
-        XCTAssertThrowsError(try P256.KeyAgreement.PrivateKey(derRepresentation: derPublicKey)) { error in
-            XCTAssertEqual(error as? CryptoKitASN1Error, .unexpectedFieldType)
-        }
-        XCTAssertThrowsError(try P384.Signing.PrivateKey(derRepresentation: derPublicKey)) { error in
-            XCTAssertEqual(error as? CryptoKitASN1Error, .unexpectedFieldType)
-        }
-        XCTAssertThrowsError(try P384.KeyAgreement.PrivateKey(derRepresentation: derPublicKey)) { error in
-            XCTAssertEqual(error as? CryptoKitASN1Error, .unexpectedFieldType)
-        }
-        XCTAssertThrowsError(try P521.Signing.PrivateKey(derRepresentation: derPublicKey)) { error in
-            XCTAssertEqual(error as? CryptoKitASN1Error, .unexpectedFieldType)
-        }
-        XCTAssertThrowsError(try P521.KeyAgreement.PrivateKey(derRepresentation: derPublicKey)) { error in
-            XCTAssertEqual(error as? CryptoKitASN1Error, .unexpectedFieldType)
-        }
-        
+        XCTAssertThrowsError(try P256.Signing.PrivateKey(derRepresentation: derPublicKey),
+                             error: CryptoKitASN1Error.unexpectedFieldType)
+        XCTAssertThrowsError(try P256.KeyAgreement.PrivateKey(derRepresentation: derPublicKey),
+                             error: CryptoKitASN1Error.unexpectedFieldType)
+        XCTAssertThrowsError(try P384.Signing.PrivateKey(derRepresentation: derPublicKey),
+                             error: CryptoKitASN1Error.unexpectedFieldType)
+        XCTAssertThrowsError(try P384.KeyAgreement.PrivateKey(derRepresentation: derPublicKey),
+                             error: CryptoKitASN1Error.unexpectedFieldType)
+        XCTAssertThrowsError(try P521.Signing.PrivateKey(derRepresentation: derPublicKey),
+                             error: CryptoKitASN1Error.unexpectedFieldType)
+        XCTAssertThrowsError(try P521.KeyAgreement.PrivateKey(derRepresentation: derPublicKey),
+                             error: CryptoKitASN1Error.unexpectedFieldType)
+
         // Validate we can reserialize.
         let firstReserialization = signingKey.derRepresentation
         let secondReserialization = keyAgreementKey.derRepresentation
@@ -866,25 +703,19 @@ class ECKeyEncodingsTests: XCTestCase {
         XCTAssertThrowsError(try P521.KeyAgreement.PrivateKey(derRepresentation: derPrivateKey))
         
         // Now the public keys, which all fail.
-        XCTAssertThrowsError(try P256.Signing.PublicKey(derRepresentation: derPrivateKey)) { error in
-            XCTAssertEqual(error as? CryptoKitASN1Error, .unexpectedFieldType)
-        }
-        XCTAssertThrowsError(try P256.KeyAgreement.PublicKey(derRepresentation: derPrivateKey)) { error in
-            XCTAssertEqual(error as? CryptoKitASN1Error, .unexpectedFieldType)
-        }
-        XCTAssertThrowsError(try P384.Signing.PublicKey(derRepresentation: derPrivateKey)) { error in
-            XCTAssertEqual(error as? CryptoKitASN1Error, .unexpectedFieldType)
-        }
-        XCTAssertThrowsError(try P384.KeyAgreement.PublicKey(derRepresentation: derPrivateKey)) { error in
-            XCTAssertEqual(error as? CryptoKitASN1Error, .unexpectedFieldType)
-        }
-        XCTAssertThrowsError(try P521.Signing.PublicKey(derRepresentation: derPrivateKey)) { error in
-            XCTAssertEqual(error as? CryptoKitASN1Error, .unexpectedFieldType)
-        }
-        XCTAssertThrowsError(try P521.KeyAgreement.PublicKey(derRepresentation: derPrivateKey)) { error in
-            XCTAssertEqual(error as? CryptoKitASN1Error, .unexpectedFieldType)
-        }
-        
+        XCTAssertThrowsError(try P256.Signing.PublicKey(derRepresentation: derPrivateKey),
+                             error: CryptoKitASN1Error.unexpectedFieldType)
+        XCTAssertThrowsError(try P256.KeyAgreement.PublicKey(derRepresentation: derPrivateKey),
+                             error: CryptoKitASN1Error.unexpectedFieldType)
+        XCTAssertThrowsError(try P384.Signing.PublicKey(derRepresentation: derPrivateKey),
+                             error: CryptoKitASN1Error.unexpectedFieldType)
+        XCTAssertThrowsError(try P384.KeyAgreement.PublicKey(derRepresentation: derPrivateKey),
+                             error: CryptoKitASN1Error.unexpectedFieldType)
+        XCTAssertThrowsError(try P521.Signing.PublicKey(derRepresentation: derPrivateKey),
+                             error: CryptoKitASN1Error.unexpectedFieldType)
+        XCTAssertThrowsError(try P521.KeyAgreement.PublicKey(derRepresentation: derPrivateKey),
+                             error: CryptoKitASN1Error.unexpectedFieldType)
+
         // Validate we can reserialize.
         let firstReserialization = signingKey.derRepresentation
         let secondReserialization = keyAgreementKey.derRepresentation
@@ -908,25 +739,19 @@ class ECKeyEncodingsTests: XCTestCase {
         XCTAssertThrowsError(try P521.KeyAgreement.PrivateKey(derRepresentation: derPrivateKey))
         
         // Now the public keys, which all fail.
-        XCTAssertThrowsError(try P256.Signing.PublicKey(derRepresentation: derPrivateKey)) { error in
-            XCTAssertEqual(error as? CryptoKitASN1Error, .unexpectedFieldType)
-        }
-        XCTAssertThrowsError(try P256.KeyAgreement.PublicKey(derRepresentation: derPrivateKey)) { error in
-            XCTAssertEqual(error as? CryptoKitASN1Error, .unexpectedFieldType)
-        }
-        XCTAssertThrowsError(try P384.Signing.PublicKey(derRepresentation: derPrivateKey)) { error in
-            XCTAssertEqual(error as? CryptoKitASN1Error, .unexpectedFieldType)
-        }
-        XCTAssertThrowsError(try P384.KeyAgreement.PublicKey(derRepresentation: derPrivateKey)) { error in
-            XCTAssertEqual(error as? CryptoKitASN1Error, .unexpectedFieldType)
-        }
-        XCTAssertThrowsError(try P521.Signing.PublicKey(derRepresentation: derPrivateKey)) { error in
-            XCTAssertEqual(error as? CryptoKitASN1Error, .unexpectedFieldType)
-        }
-        XCTAssertThrowsError(try P521.KeyAgreement.PublicKey(derRepresentation: derPrivateKey)) { error in
-            XCTAssertEqual(error as? CryptoKitASN1Error, .unexpectedFieldType)
-        }
-        
+        XCTAssertThrowsError(try P256.Signing.PublicKey(derRepresentation: derPrivateKey),
+                             error: CryptoKitASN1Error.unexpectedFieldType)
+        XCTAssertThrowsError(try P256.KeyAgreement.PublicKey(derRepresentation: derPrivateKey),
+                             error: CryptoKitASN1Error.unexpectedFieldType)
+        XCTAssertThrowsError(try P384.Signing.PublicKey(derRepresentation: derPrivateKey),
+                             error: CryptoKitASN1Error.unexpectedFieldType)
+        XCTAssertThrowsError(try P384.KeyAgreement.PublicKey(derRepresentation: derPrivateKey),
+                             error: CryptoKitASN1Error.unexpectedFieldType)
+        XCTAssertThrowsError(try P521.Signing.PublicKey(derRepresentation: derPrivateKey),
+                             error: CryptoKitASN1Error.unexpectedFieldType)
+        XCTAssertThrowsError(try P521.KeyAgreement.PublicKey(derRepresentation: derPrivateKey),
+                             error: CryptoKitASN1Error.unexpectedFieldType)
+
         // Validate we can reserialize.
         let firstReserialization = signingKey.derRepresentation
         let secondReserialization = keyAgreementKey.derRepresentation
@@ -950,25 +775,19 @@ class ECKeyEncodingsTests: XCTestCase {
         XCTAssertThrowsError(try P384.KeyAgreement.PrivateKey(derRepresentation: derPrivateKey))
         
         // Now the public keys, which all fail.
-        XCTAssertThrowsError(try P256.Signing.PublicKey(derRepresentation: derPrivateKey)) { error in
-            XCTAssertEqual(error as? CryptoKitASN1Error, .unexpectedFieldType)
-        }
-        XCTAssertThrowsError(try P256.KeyAgreement.PublicKey(derRepresentation: derPrivateKey)) { error in
-            XCTAssertEqual(error as? CryptoKitASN1Error, .unexpectedFieldType)
-        }
-        XCTAssertThrowsError(try P384.Signing.PublicKey(derRepresentation: derPrivateKey)) { error in
-            XCTAssertEqual(error as? CryptoKitASN1Error, .unexpectedFieldType)
-        }
-        XCTAssertThrowsError(try P384.KeyAgreement.PublicKey(derRepresentation: derPrivateKey)) { error in
-            XCTAssertEqual(error as? CryptoKitASN1Error, .unexpectedFieldType)
-        }
-        XCTAssertThrowsError(try P521.Signing.PublicKey(derRepresentation: derPrivateKey)) { error in
-            XCTAssertEqual(error as? CryptoKitASN1Error, .unexpectedFieldType)
-        }
-        XCTAssertThrowsError(try P521.KeyAgreement.PublicKey(derRepresentation: derPrivateKey)) { error in
-            XCTAssertEqual(error as? CryptoKitASN1Error, .unexpectedFieldType)
-        }
-        
+        XCTAssertThrowsError(try P256.Signing.PublicKey(derRepresentation: derPrivateKey),
+                             error: CryptoKitASN1Error.unexpectedFieldType)
+        XCTAssertThrowsError(try P256.KeyAgreement.PublicKey(derRepresentation: derPrivateKey),
+                             error: CryptoKitASN1Error.unexpectedFieldType)
+        XCTAssertThrowsError(try P384.Signing.PublicKey(derRepresentation: derPrivateKey),
+                             error: CryptoKitASN1Error.unexpectedFieldType)
+        XCTAssertThrowsError(try P384.KeyAgreement.PublicKey(derRepresentation: derPrivateKey),
+                             error: CryptoKitASN1Error.unexpectedFieldType)
+        XCTAssertThrowsError(try P521.Signing.PublicKey(derRepresentation: derPrivateKey),
+                             error: CryptoKitASN1Error.unexpectedFieldType)
+        XCTAssertThrowsError(try P521.KeyAgreement.PublicKey(derRepresentation: derPrivateKey),
+                             error: CryptoKitASN1Error.unexpectedFieldType)
+
         // Validate we can reserialize.
         let firstReserialization = signingKey.derRepresentation
         let secondReserialization = keyAgreementKey.derRepresentation
@@ -992,25 +811,19 @@ class ECKeyEncodingsTests: XCTestCase {
         XCTAssertThrowsError(try P521.KeyAgreement.PrivateKey(derRepresentation: derPrivateKey))
         
         // Now the public keys, which all fail.
-        XCTAssertThrowsError(try P256.Signing.PublicKey(derRepresentation: derPrivateKey)) { error in
-            XCTAssertEqual(error as? CryptoKitASN1Error, .unexpectedFieldType)
-        }
-        XCTAssertThrowsError(try P256.KeyAgreement.PublicKey(derRepresentation: derPrivateKey)) { error in
-            XCTAssertEqual(error as? CryptoKitASN1Error, .unexpectedFieldType)
-        }
-        XCTAssertThrowsError(try P384.Signing.PublicKey(derRepresentation: derPrivateKey)) { error in
-            XCTAssertEqual(error as? CryptoKitASN1Error, .unexpectedFieldType)
-        }
-        XCTAssertThrowsError(try P384.KeyAgreement.PublicKey(derRepresentation: derPrivateKey)) { error in
-            XCTAssertEqual(error as? CryptoKitASN1Error, .unexpectedFieldType)
-        }
-        XCTAssertThrowsError(try P521.Signing.PublicKey(derRepresentation: derPrivateKey)) { error in
-            XCTAssertEqual(error as? CryptoKitASN1Error, .unexpectedFieldType)
-        }
-        XCTAssertThrowsError(try P521.KeyAgreement.PublicKey(derRepresentation: derPrivateKey)) { error in
-            XCTAssertEqual(error as? CryptoKitASN1Error, .unexpectedFieldType)
-        }
-        
+        XCTAssertThrowsError(try P256.Signing.PublicKey(derRepresentation: derPrivateKey),
+                             error: CryptoKitASN1Error.unexpectedFieldType)
+        XCTAssertThrowsError(try P256.KeyAgreement.PublicKey(derRepresentation: derPrivateKey),
+                             error: CryptoKitASN1Error.unexpectedFieldType)
+        XCTAssertThrowsError(try P384.Signing.PublicKey(derRepresentation: derPrivateKey),
+                             error: CryptoKitASN1Error.unexpectedFieldType)
+        XCTAssertThrowsError(try P384.KeyAgreement.PublicKey(derRepresentation: derPrivateKey),
+                             error: CryptoKitASN1Error.unexpectedFieldType)
+        XCTAssertThrowsError(try P521.Signing.PublicKey(derRepresentation: derPrivateKey),
+                             error: CryptoKitASN1Error.unexpectedFieldType)
+        XCTAssertThrowsError(try P521.KeyAgreement.PublicKey(derRepresentation: derPrivateKey),
+                             error: CryptoKitASN1Error.unexpectedFieldType)
+
         // We can't reserialize the SEC1 keys, we don't emit them.
     }
     
@@ -1030,25 +843,19 @@ class ECKeyEncodingsTests: XCTestCase {
         XCTAssertThrowsError(try P521.KeyAgreement.PrivateKey(derRepresentation: derPrivateKey))
         
         // Now the public keys, which all fail.
-        XCTAssertThrowsError(try P256.Signing.PublicKey(derRepresentation: derPrivateKey)) { error in
-            XCTAssertEqual(error as? CryptoKitASN1Error, .unexpectedFieldType)
-        }
-        XCTAssertThrowsError(try P256.KeyAgreement.PublicKey(derRepresentation: derPrivateKey)) { error in
-            XCTAssertEqual(error as? CryptoKitASN1Error, .unexpectedFieldType)
-        }
-        XCTAssertThrowsError(try P384.Signing.PublicKey(derRepresentation: derPrivateKey)) { error in
-            XCTAssertEqual(error as? CryptoKitASN1Error, .unexpectedFieldType)
-        }
-        XCTAssertThrowsError(try P384.KeyAgreement.PublicKey(derRepresentation: derPrivateKey)) { error in
-            XCTAssertEqual(error as? CryptoKitASN1Error, .unexpectedFieldType)
-        }
-        XCTAssertThrowsError(try P521.Signing.PublicKey(derRepresentation: derPrivateKey)) { error in
-            XCTAssertEqual(error as? CryptoKitASN1Error, .unexpectedFieldType)
-        }
-        XCTAssertThrowsError(try P521.KeyAgreement.PublicKey(derRepresentation: derPrivateKey)) { error in
-            XCTAssertEqual(error as? CryptoKitASN1Error, .unexpectedFieldType)
-        }
-        
+        XCTAssertThrowsError(try P256.Signing.PublicKey(derRepresentation: derPrivateKey),
+                             error: CryptoKitASN1Error.unexpectedFieldType)
+        XCTAssertThrowsError(try P256.KeyAgreement.PublicKey(derRepresentation: derPrivateKey),
+                             error: CryptoKitASN1Error.unexpectedFieldType)
+        XCTAssertThrowsError(try P384.Signing.PublicKey(derRepresentation: derPrivateKey),
+                             error: CryptoKitASN1Error.unexpectedFieldType)
+        XCTAssertThrowsError(try P384.KeyAgreement.PublicKey(derRepresentation: derPrivateKey),
+                             error: CryptoKitASN1Error.unexpectedFieldType)
+        XCTAssertThrowsError(try P521.Signing.PublicKey(derRepresentation: derPrivateKey),
+                             error: CryptoKitASN1Error.unexpectedFieldType)
+        XCTAssertThrowsError(try P521.KeyAgreement.PublicKey(derRepresentation: derPrivateKey),
+                             error: CryptoKitASN1Error.unexpectedFieldType)
+
         // We can't reserialize the SEC1 keys, we don't emit them.
     }
     
@@ -1068,25 +875,19 @@ class ECKeyEncodingsTests: XCTestCase {
         XCTAssertThrowsError(try P384.KeyAgreement.PrivateKey(derRepresentation: derPrivateKey))
         
         // Now the public keys, which all fail.
-        XCTAssertThrowsError(try P256.Signing.PublicKey(derRepresentation: derPrivateKey)) { error in
-            XCTAssertEqual(error as? CryptoKitASN1Error, .unexpectedFieldType)
-        }
-        XCTAssertThrowsError(try P256.KeyAgreement.PublicKey(derRepresentation: derPrivateKey)) { error in
-            XCTAssertEqual(error as? CryptoKitASN1Error, .unexpectedFieldType)
-        }
-        XCTAssertThrowsError(try P384.Signing.PublicKey(derRepresentation: derPrivateKey)) { error in
-            XCTAssertEqual(error as? CryptoKitASN1Error, .unexpectedFieldType)
-        }
-        XCTAssertThrowsError(try P384.KeyAgreement.PublicKey(derRepresentation: derPrivateKey)) { error in
-            XCTAssertEqual(error as? CryptoKitASN1Error, .unexpectedFieldType)
-        }
-        XCTAssertThrowsError(try P521.Signing.PublicKey(derRepresentation: derPrivateKey)) { error in
-            XCTAssertEqual(error as? CryptoKitASN1Error, .unexpectedFieldType)
-        }
-        XCTAssertThrowsError(try P521.KeyAgreement.PublicKey(derRepresentation: derPrivateKey)) { error in
-            XCTAssertEqual(error as? CryptoKitASN1Error, .unexpectedFieldType)
-        }
-        
+        XCTAssertThrowsError(try P256.Signing.PublicKey(derRepresentation: derPrivateKey),
+                             error: CryptoKitASN1Error.unexpectedFieldType)
+        XCTAssertThrowsError(try P256.KeyAgreement.PublicKey(derRepresentation: derPrivateKey),
+                             error: CryptoKitASN1Error.unexpectedFieldType)
+        XCTAssertThrowsError(try P384.Signing.PublicKey(derRepresentation: derPrivateKey),
+                             error: CryptoKitASN1Error.unexpectedFieldType)
+        XCTAssertThrowsError(try P384.KeyAgreement.PublicKey(derRepresentation: derPrivateKey),
+                             error: CryptoKitASN1Error.unexpectedFieldType)
+        XCTAssertThrowsError(try P521.Signing.PublicKey(derRepresentation: derPrivateKey),
+                             error: CryptoKitASN1Error.unexpectedFieldType)
+        XCTAssertThrowsError(try P521.KeyAgreement.PublicKey(derRepresentation: derPrivateKey),
+                             error: CryptoKitASN1Error.unexpectedFieldType)
+
         // We can't reserialize the SEC1 keys, we don't emit them.
     }
     
@@ -1124,10 +925,20 @@ class ECKeyEncodingsTests: XCTestCase {
         let publicKey = privateKey.publicKey
         
         try XCTAssertNoThrow(P256.KeyAgreement.PublicKey(x963Representation: publicKey.x963Representation))
-        try XCTAssertThrowsError(P256.KeyAgreement.PublicKey(x963Representation: publicKey.compressedRepresentation)) { error in
-            XCTAssertTrue(error is CryptoKitError)
-            XCTAssertEqual(error as? CryptoKitError, .incorrectParameterSize)
-        }
+        try XCTAssertThrowsError(P256.KeyAgreement.PublicKey(x963Representation: publicKey.compressedRepresentation),
+                                 error: CryptoKitError.incorrectParameterSize)
     }
 }
+fileprivate extension Data {
+    init?(base64urlEncoded input: String) {
+        var base64 = input
+        base64 = base64.replacingOccurrences(of: "-", with: "+")
+        base64 = base64.replacingOccurrences(of: "_", with: "/")
+        while base64.count % 4 != 0 {
+            base64 = base64.appending("=")
+        }
+        self.init(base64Encoded: base64)
+    }
+}
+
 #endif // CRYPTO_IN_SWIFTPM

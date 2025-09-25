@@ -31,6 +31,7 @@
 #include "CCryptoBoringSSL_cmac.h"
 #include "CCryptoBoringSSL_conf.h"
 #include "CCryptoBoringSSL_cpu.h"
+#include "CCryptoBoringSSL_ctrdrbg.h"
 #include "CCryptoBoringSSL_curve25519.h"
 #include "CCryptoBoringSSL_des.h"
 #include "CCryptoBoringSSL_e_os2.h"
@@ -60,5 +61,6 @@
 #include "CCryptoBoringSSL_siphash.h"
 #include "CCryptoBoringSSL_trust_token.h"
 #include "CCryptoBoringSSL_x509v3.h"
+#include "CCryptoBoringSSL_xwing.h"
 
 #endif  // C_CRYPTO_BORINGSSL_H

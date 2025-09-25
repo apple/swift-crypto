@@ -69,7 +69,7 @@ act --container-architecture linux/amd64 pull_request -j cmake-lists -W ./.githu
 
 You can find the underlying script at https://github.com/apple/swift-nio/blob/main/scripts/update-cmake-lists.sh . Using the script directly is less straightforwards because it requires you to pass the JSON config from the `pull_request.yml` file into the script, such as:
 ```
-curl -s https://raw.githubusercontent.com/apple/swift-nio/main/scripts/update-cmake-lists.sh | CONFIG_JSON='{"targets":[{"name":"CCryptoBoringSSL","type":"source","exceptions":[]},{"name":"CCryptoBoringSSLShims","type":"source","exceptions":[]},{"name":"CryptoBoringWrapper","type":"source","exceptions":[]},{"name":"Crypto","type":"source","exceptions":[]},{"name":"_CryptoExtras","type":"source","exceptions":[]},{"name":"CCryptoBoringSSL","type":"assembly","exceptions":["*/AES/*.swift"]}]}' bash
+curl -s https://raw.githubusercontent.com/apple/swift-nio/main/scripts/update-cmake-lists.sh | CONFIG_JSON='{"targets":[{"name":"CCryptoBoringSSL","type":"source","exceptions":[]},{"name":"CCryptoBoringSSLShims","type":"source","exceptions":[]},{"name":"CryptoBoringWrapper","type":"source","exceptions":[]},{"name":"Crypto","type":"source","exceptions":[]},{"name":"CryptoExtras","type":"source","exceptions":[]},{"name":"CCryptoBoringSSL","type":"assembly","exceptions":["*/AES/*.swift"]}]}' bash
 ```
 
 ## API Evolution

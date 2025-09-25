@@ -1,4 +1,4 @@
-// swift-tools-version:5.10
+// swift-tools-version:6.0
 //===----------------------------------------------------------------------===//
 //
 // This source file is part of the SwiftCrypto open source project
@@ -49,6 +49,8 @@ if development || isFreeBSD {
         "CCryptoBoringSSL",
         "CCryptoBoringSSLShims",
         "CryptoBoringWrapper",
+        "CXKCP",
+        "CXKCPShims",
     ]
 } else {
     let platforms: [Platform] = [
@@ -66,6 +68,8 @@ if development || isFreeBSD {
         .target(name: "CCryptoBoringSSL", condition: .when(platforms: platforms)),
         .target(name: "CCryptoBoringSSLShims", condition: .when(platforms: platforms)),
         .target(name: "CryptoBoringWrapper", condition: .when(platforms: platforms)),
+        .target(name: "CXKCP", condition: .when(platforms: platforms)),
+        .target(name: "CXKCPShims", condition: .when(platforms: platforms)),
     ]
 }
 
@@ -85,7 +89,9 @@ let package = Package(
     name: "swift-crypto",
     products: [
         .library(name: "Crypto", targets: ["Crypto"]),
+        // Kept for backward compatibility
         .library(name: "_CryptoExtras", targets: ["_CryptoExtras"]),
+        .library(name: "CryptoExtras", targets: ["CryptoExtras"]),
         /* This target is used only for symbol mangling. It's added and removed automatically because it emits build warnings. MANGLE_START
             .library(name: "CCryptoBoringSSL", type: .static, targets: ["CCryptoBoringSSL"]),
             MANGLE_END */
@@ -125,8 +131,31 @@ let package = Package(
             ]
         ),
         .target(
+            name: "CXKCP",
+            exclude: [
+                "CMakeLists.txt"
+            ],
+            cSettings: [
+                .define("XKCP_has_KeccakP1600"),
+                .headerSearchPath("include"),
+                .headerSearchPath("high"),
+                .headerSearchPath("low"),
+                .headerSearchPath("low/KeccakP-1600"),
+                .headerSearchPath("low/common"),
+                .headerSearchPath("common"),
+            ]
+        ),
+        .target(
             name: "CCryptoBoringSSLShims",
             dependencies: ["CCryptoBoringSSL"],
+            exclude: privacyManifestExclude + [
+                "CMakeLists.txt"
+            ],
+            resources: privacyManifestResource
+        ),
+        .target(
+            name: "CXKCPShims",
+            dependencies: ["CXKCP"],
             exclude: privacyManifestExclude + [
                 "CMakeLists.txt"
             ],
@@ -141,12 +170,16 @@ let package = Package(
                 "Digests/Digests.swift.gyb",
                 "Key Agreement/ECDH.swift.gyb",
                 "Signatures/ECDSA.swift.gyb",
+                "Signatures/MLDSA.swift.gyb",
+                "Signatures/BoringSSL/MLDSA_boring.swift.gyb",
+                "KEM/MLKEM.swift.gyb",
+                "KEM/BoringSSL/MLKEM_boring.swift.gyb",
             ],
             resources: privacyManifestResource,
             swiftSettings: swiftSettings
         ),
         .target(
-            name: "_CryptoExtras",
+            name: "CryptoExtras",
             dependencies: [
                 "CCryptoBoringSSL",
                 "CCryptoBoringSSLShims",
@@ -158,6 +191,13 @@ let package = Package(
                 "CMakeLists.txt"
             ],
             resources: privacyManifestResource,
+            swiftSettings: swiftSettings
+        ),
+        .target(
+            name: "_CryptoExtras",
+            dependencies: [
+                "CryptoExtras",
+            ],
             swiftSettings: swiftSettings
         ),
         .target(
@@ -176,13 +216,20 @@ let package = Package(
             name: "CryptoTests",
             dependencies: ["Crypto"],
             resources: [
-                .copy("HPKE/hpke-test-vectors.json")
+                .copy("HPKE/hpke-test-vectors.json"),
+                .copy("KEM/MLKEM768_BSSLKAT.json"),
+                .copy("KEM/MLKEM768KAT.json"),
+                .copy("KEM/MLKEM1024_BSSLKAT.json"),
+                .copy("KEM/MLKEM1024KAT.json"),
+                .copy("KEM/test-vectors.json"),
+                .copy("Signatures/MLDSA/MLDSA65_KeyGen_KAT.json"),
+                .copy("Signatures/MLDSA/MLDSA87_KeyGen_KAT.json"),
             ],
             swiftSettings: swiftSettings
         ),
         .testTarget(
-            name: "_CryptoExtrasTests",
-            dependencies: ["_CryptoExtras"],
+            name: "CryptoExtrasTests",
+            dependencies: ["CryptoExtras"],
             resources: [
                 .copy("ECToolbox/H2CVectors/P256_XMD-SHA-256_SSWU_RO_.json"),
                 .copy("ECToolbox/H2CVectors/P384_XMD-SHA-384_SSWU_RO_.json"),
@@ -193,6 +240,7 @@ let package = Package(
             swiftSettings: swiftSettings
         ),
         .testTarget(name: "CryptoBoringWrapperTests", dependencies: ["CryptoBoringWrapper"]),
+        .testTarget(name: "CXKCPTests", dependencies: ["CXKCP"]),
     ],
     cxxLanguageStandard: .cxx17
 )

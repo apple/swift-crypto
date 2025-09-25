@@ -2,7 +2,7 @@
 //
 // This source file is part of the SwiftCrypto open source project
 //
-// Copyright (c) 2019-2021 Apple Inc. and the SwiftCrypto project authors
+// Copyright (c) 2019-2020 Apple Inc. and the SwiftCrypto project authors
 // Licensed under Apache License v2.0
 //
 // See LICENSE.txt for license information
@@ -14,9 +14,18 @@
 #if CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
 @_exported import CryptoKit
 #else
-import Foundation
 
-#if !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
+#if CRYPTOKIT_NO_ACCESS_TO_FOUNDATION
+public import SwiftSystem
+#else
+#if canImport(FoundationEssentials)
+public import FoundationEssentials
+#else
+public import Foundation
+#endif
+#endif
+
+#if (!CRYPTO_IN_SWIFTPM_FORCE_BUILD_API) || CRYPTOKIT_NO_ACCESS_TO_FOUNDATION
 @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 typealias AESWRAPImpl = CoreCryptoAESWRAPImpl
 #else
@@ -29,7 +38,7 @@ extension AES {
     /// An implementation of AES Key Wrapping in accordance with the IETF RFC
     /// 3394 specification.
     @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
-    public enum KeyWrap {
+    public enum KeyWrap: Sendable {
         /// Wraps a key using the AES wrap algorithm.
         ///
         /// Wrap is an implementation of the AES key wrap algorithm as specified

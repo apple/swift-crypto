@@ -14,15 +14,27 @@
 #if CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
 @_exported import CryptoKit
 #else
-#if !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
+#if (!CRYPTO_IN_SWIFTPM_FORCE_BUILD_API) || CRYPTOKIT_NO_ACCESS_TO_FOUNDATION
 @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 typealias DigestImpl = CoreCryptoDigestImpl
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
+typealias DigestImplSHA3 = CoreCryptoDigestImpl
 #else
 @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 typealias DigestImpl = OpenSSLDigestImpl
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
+typealias DigestImplSHA3 = XKCPDigestImpl
 #endif
 
-import Foundation
+#if CRYPTOKIT_NO_ACCESS_TO_FOUNDATION
+public import SwiftSystem
+#else
+#if canImport(FoundationEssentials)
+public import FoundationEssentials
+#else
+public import Foundation
+#endif
+#endif
 
 /// A type that performs cryptographically secure hashing.
 ///
@@ -42,11 +54,12 @@ import Foundation
 /// authentication code (MAC) like ``HMAC`` instead. MACs rely on hashing, but
 /// incorporate a secret cryptographic key into the digest computation. Only a
 /// user that has the key can generate a valid MAC.
+@preconcurrency
 @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
-public protocol HashFunction {
+public protocol HashFunction: Sendable {
     /// The number of bytes that represents the hash function’s internal state.
     static var blockByteCount: Int { get }
-    #if !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
+    #if (!CRYPTO_IN_SWIFTPM_FORCE_BUILD_API) || CRYPTOKIT_NO_ACCESS_TO_FOUNDATION
     /// The type of the digest returned by the hash function.
     associatedtype Digest: CryptoKit.Digest
     #else
@@ -111,7 +124,7 @@ extension HashFunction {
         return hasher.finalize()
     }
     
-    /// Computes the SHA1 digest of the bytes in the given data instance and
+    /// Computes the digest of the bytes in the given data instance and
     /// returns the computed digest.
     ///
     /// Use this method if all your data fits into a single data instance. If

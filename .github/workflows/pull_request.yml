@@ -57,8 +57,10 @@ jobs:
             { "name": "CCryptoBoringSSL", "type": "source", "exceptions": [] },
             { "name": "CCryptoBoringSSLShims", "type": "source", "exceptions": [] },
             { "name": "CryptoBoringWrapper", "type": "source", "exceptions": [] },
+            { "name": "CXKCP", "type": "source", "exceptions": [] },
+            { "name": "CXKCPShims", "type": "source", "exceptions": [] },
             { "name": "Crypto", "type": "source", "exceptions": [] },
-            { "name": "_CryptoExtras", "type": "source", "exceptions": [] },
+            { "name": "CryptoExtras", "type": "source", "exceptions": [] },
             { "name": "CCryptoBoringSSL", "type": "assembly", "exceptions": [ "*/AES/*.swift" ] }
           ]
         }

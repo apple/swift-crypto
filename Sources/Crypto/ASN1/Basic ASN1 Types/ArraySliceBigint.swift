@@ -15,11 +15,24 @@
 @_exported import CryptoKit
 #else
 
+#if CRYPTOKIT_NO_ACCESS_TO_FOUNDATION
+import SwiftSystem
+#else
+#if canImport(FoundationEssentials)
+import FoundationEssentials
+#else
+import Foundation
+#endif
+#endif
+
 // For temporary purposes we pretend that ArraySlice is our "bigint" type. We don't really need anything else.
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension ArraySlice: ASN1Serializable where Element == UInt8 { }
 
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension ArraySlice: ASN1Parseable where Element == UInt8 { }
 
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension ArraySlice: ASN1ImplicitlyTaggable where Element == UInt8 { }
 
 @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
@@ -29,11 +42,11 @@ extension ArraySlice: ASN1IntegerRepresentable where Element == UInt8 {
         return false
     }
 
-    init(asn1IntegerBytes: ArraySlice<UInt8>) throws {
+    init(asn1IntegerBytes: ArraySlice<UInt8>) throws(CryptoKitMetaError) {
         self = asn1IntegerBytes
     }
 
-    func withBigEndianIntegerBytes<ReturnType>(_ body: (ArraySlice<UInt8>) throws -> ReturnType) rethrows -> ReturnType {
+    func withBigEndianIntegerBytes<ReturnType>(_ body: (ArraySlice<UInt8>) throws(CryptoKitMetaError) -> ReturnType) throws(CryptoKitMetaError) -> ReturnType {
         return try body(self)
     }
 }
