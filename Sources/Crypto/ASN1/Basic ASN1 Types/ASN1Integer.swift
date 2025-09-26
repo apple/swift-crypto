@@ -14,10 +14,19 @@
 #if CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
 @_exported import CryptoKit
 #else
-import Foundation
 
-/// A protocol that represents any internal object that can present itself as an INTEGER, or be parsed from
-/// an INTEGER.
+#if CRYPTOKIT_NO_ACCESS_TO_FOUNDATION
+import SwiftSystem
+#else
+#if canImport(FoundationEssentials)
+import FoundationEssentials
+#else
+import Foundation
+#endif
+#endif
+
+/// A protocol that represents any internal object that can present itself as a INTEGER, or be parsed from
+/// a INTEGER.
 ///
 /// This is not a very good solution for a fully-fledged ASN.1 library: we'd rather have a better numerics
 /// protocol that could both initialize from and serialize to either bytes or words. However, no such
@@ -30,9 +39,9 @@ protocol ASN1IntegerRepresentable: ASN1ImplicitlyTaggable {
     /// parser will automatically handle padding with leading zero bytes as needed.
     static var isSigned: Bool { get }
 
-    init(asn1IntegerBytes: ArraySlice<UInt8>) throws
+    init(asn1IntegerBytes: ArraySlice<UInt8>) throws(CryptoKitMetaError)
 
-    func withBigEndianIntegerBytes<ReturnType>(_ body: (IntegerBytes) throws -> ReturnType) rethrows -> ReturnType
+    func withBigEndianIntegerBytes<ReturnType>(_ body: (IntegerBytes) throws(CryptoKitMetaError) -> ReturnType) throws(CryptoKitMetaError) -> ReturnType
 }
 
 @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
@@ -41,9 +50,9 @@ extension ASN1IntegerRepresentable {
         .integer
     }
 
-    internal init(asn1Encoded node: ASN1.ASN1Node, withIdentifier identifier: ASN1.ASN1Identifier) throws {
+    internal init(asn1Encoded node: ASN1.ASN1Node, withIdentifier identifier: ASN1.ASN1Identifier) throws(CryptoKitMetaError) {
         guard node.identifier == identifier else {
-            throw CryptoKitASN1Error.unexpectedFieldType
+            throw error(CryptoKitASN1Error.unexpectedFieldType)
         }
 
         guard case .primitive(var dataBytes) = node.content else {
@@ -52,7 +61,7 @@ extension ASN1IntegerRepresentable {
 
         // Zero bytes of integer is not an acceptable encoding.
         guard dataBytes.count > 0 else {
-            throw CryptoKitASN1Error.invalidASN1IntegerEncoding
+            throw error(CryptoKitASN1Error.invalidASN1IntegerEncoding)
         }
 
         // 8.3.2 If the contents octets of an integer value encoding consist of more than one octet, then the bits of the first octet and bit 8 of the second octet:
@@ -64,7 +73,7 @@ extension ASN1IntegerRepresentable {
         if let first = dataBytes.first, let second = dataBytes.dropFirst().first {
             if (first == 0xFF) && second.topBitSet ||
                 (first == 0x00) && !second.topBitSet {
-                throw CryptoKitASN1Error.invalidASN1IntegerEncoding
+                throw error(CryptoKitASN1Error.invalidASN1IntegerEncoding)
             }
         }
 
@@ -74,16 +83,16 @@ extension ASN1IntegerRepresentable {
             if first == 0x00 {
                 dataBytes = dataBytes.dropFirst()
             } else if first & 0x80 == 0x80 {
-                throw CryptoKitASN1Error.invalidASN1IntegerEncoding
+                throw error(CryptoKitASN1Error.invalidASN1IntegerEncoding)
             }
         }
 
         self = try Self(asn1IntegerBytes: dataBytes)
     }
 
-    internal func serialize(into coder: inout ASN1.Serializer, withIdentifier identifier: ASN1.ASN1Identifier) throws {
-        coder.appendPrimitiveNode(identifier: identifier) { bytes in
-            self.withBigEndianIntegerBytes { integerBytes in
+    internal func serialize(into coder: inout ASN1.Serializer, withIdentifier identifier: ASN1.ASN1Identifier) throws(CryptoKitMetaError) {
+        try coder.appendPrimitiveNode(identifier: identifier) { bytes throws(CryptoKitMetaError) in
+            try self.withBigEndianIntegerBytes { integerBytes throws(CryptoKitMetaError) in
                 // If the number of bytes is 0, we're encoding a zero. That actually _does_ require one byte.
                 if integerBytes.count == 0 {
                     bytes.append(0)
@@ -106,7 +115,7 @@ extension ASN1IntegerRepresentable {
 // MARK: - Auto-conformance for FixedWidthInteger with fixed width magnitude.
 @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension ASN1IntegerRepresentable where Self: FixedWidthInteger {
-    init(asn1IntegerBytes bytes: ArraySlice<UInt8>) throws {
+    init(asn1IntegerBytes bytes: ArraySlice<UInt8>) throws(CryptoKitMetaError) {
         // Defer to the FixedWidthInteger constructor.
         // There's a wrinkle here: if this is a signed integer, and the top bit of the data bytes was set,
         // then we need to 1-extend the bytes. This is because ASN.1 tries to delete redundant bytes that
@@ -120,7 +129,7 @@ extension ASN1IntegerRepresentable where Self: FixedWidthInteger {
         }
     }
 
-    func withBigEndianIntegerBytes<ReturnType>(_ body: (IntegerBytesCollection<Self>) throws -> ReturnType) rethrows -> ReturnType {
+    func withBigEndianIntegerBytes<ReturnType>(_ body: (IntegerBytesCollection<Self>) throws(CryptoKitMetaError) -> ReturnType) throws(CryptoKitMetaError) -> ReturnType {
         return try body(IntegerBytesCollection(self))
     }
 }
@@ -205,24 +214,34 @@ extension IntegerBytesCollection.Index: Strideable {
     }
 }
 
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension Int8: ASN1IntegerRepresentable { }
 
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension UInt8: ASN1IntegerRepresentable { }
 
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension Int16: ASN1IntegerRepresentable { }
 
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension UInt16: ASN1IntegerRepresentable { }
 
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension Int32: ASN1IntegerRepresentable { }
 
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension UInt32: ASN1IntegerRepresentable { }
 
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension Int64: ASN1IntegerRepresentable { }
 
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension UInt64: ASN1IntegerRepresentable { }
 
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension Int: ASN1IntegerRepresentable { }
 
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension UInt: ASN1IntegerRepresentable { }
 
 @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)

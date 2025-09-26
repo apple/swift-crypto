@@ -43,6 +43,7 @@ dev/update-benchmark-thresholds
 **/*.der
 .swiftformat
 Sources/CCryptoBoringSSL/*
+Sources/CXKCP/*
 **/*.swift.gyb
 scripts/*.patch
 scripts/gyb

@@ -13,8 +13,13 @@
 //===----------------------------------------------------------------------===//
 import Benchmark
 import Crypto
+import CryptoExtras
+
+#if canImport(FoundationEssentials)
+import FoundationEssentials
+#else
 import Foundation
-import _CryptoExtras
+#endif
 
 let benchmarks = {
     let defaultMetrics: [BenchmarkMetric] = [.mallocCountTotal, .cpuTotal]

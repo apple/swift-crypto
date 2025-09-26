@@ -14,23 +14,30 @@
 #if CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
 @_exported import CryptoKit
 #else
-#if !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
+#if (!CRYPTO_IN_SWIFTPM_FORCE_BUILD_API) || CRYPTOKIT_NO_ACCESS_TO_FOUNDATION
 @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 typealias AESGCMImpl = CoreCryptoGCMImpl
-import Security
 #else
 @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 typealias AESGCMImpl = OpenSSLAESGCMImpl
 #endif
 
-import Foundation
+#if CRYPTOKIT_NO_ACCESS_TO_FOUNDATION
+public import SwiftSystem
+#else
+#if canImport(FoundationEssentials)
+public import FoundationEssentials
+#else
+public import Foundation
+#endif
+#endif
 
 @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension AES {
     /// The Advanced Encryption Standard (AES) Galois Counter Mode (GCM) cipher
     /// suite.
     @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
-    public enum GCM: Cipher {
+    public enum GCM: Cipher, Sendable {
         static let tagByteCount = 16
         static let defaultNonceByteCount = 12
         
@@ -41,12 +48,12 @@ extension AES {
         /// - Parameters:
         ///   - message: The plaintext data to seal.
         ///   - key: A cryptographic key used to seal the message.
-        ///   - nonce: The nonce the sealing process requires. If you don't provide a nonce, the method generates a random one by invoking ``AES.GCM.Nonce()``.
+        ///   - nonce: The nonce the sealing process requires. If you don't provide a nonce, the method generates a random one by invoking ``AES/GCM/Nonce/init()``.
         ///   - authenticatedData: Additional data to be authenticated.
         ///
         /// - Returns: The sealed message.
         public static func seal<Plaintext: DataProtocol, AuthenticatedData: DataProtocol>
-            (_ message: Plaintext, using key: SymmetricKey, nonce: Nonce? = nil, authenticating authenticatedData: AuthenticatedData) throws -> SealedBox {
+            (_ message: Plaintext, using key: SymmetricKey, nonce: Nonce? = nil, authenticating authenticatedData: AuthenticatedData) throws(CryptoKitMetaError) -> SealedBox {
             return try AESGCMImpl.seal(key: key, message: message, nonce: nonce, authenticatedData: authenticatedData)
         }
 
@@ -56,11 +63,11 @@ extension AES {
         /// - Parameters:
         ///   - message: The plaintext data to seal.
         ///   - key: A cryptographic key used to seal the message.
-        ///   - nonce: The nonce the sealing process requires. If you don't provide a nonce, the method generates a random one by invoking ``AES.GCM.Nonce()``.
+        ///   - nonce: The nonce the sealing process requires. If you don't provide a nonce, the method generates a random one by invoking ``AES/GCM/Nonce/init()``.
         ///
         /// - Returns: The sealed message.
         public static func seal<Plaintext: DataProtocol>
-            (_ message: Plaintext, using key: SymmetricKey, nonce: Nonce? = nil) throws -> SealedBox {
+            (_ message: Plaintext, using key: SymmetricKey, nonce: Nonce? = nil) throws(CryptoKitMetaError) -> SealedBox {
             return try AESGCMImpl.seal(key: key, message: message, nonce: nonce, authenticatedData: Data?.none)
         }
 
@@ -76,7 +83,7 @@ extension AES {
         /// box, as long as the correct key is used and authentication succeeds.
         /// The call throws an error if decryption or authentication fail.
         public static func open<AuthenticatedData: DataProtocol>
-            (_ sealedBox: SealedBox, using key: SymmetricKey, authenticating authenticatedData: AuthenticatedData) throws -> Data {
+            (_ sealedBox: SealedBox, using key: SymmetricKey, authenticating authenticatedData: AuthenticatedData) throws(CryptoKitMetaError) -> Data {
             return try AESGCMImpl.open(key: key, sealedBox: sealedBox, authenticatedData: authenticatedData)
         }
 
@@ -89,7 +96,7 @@ extension AES {
         /// - Returns: The original plaintext message that was sealed in the
         /// box, as long as the correct key is used and authentication succeeds.
         /// The call throws an error if decryption or authentication fail.
-        public static func open(_ sealedBox: SealedBox, using key: SymmetricKey) throws -> Data {
+        public static func open(_ sealedBox: SealedBox, using key: SymmetricKey) throws(CryptoKitMetaError) -> Data {
             return try AESGCMImpl.open(key: key, sealedBox: sealedBox, authenticatedData: Data?.none)
         }
     }
@@ -112,7 +119,7 @@ extension AES.GCM {
     /// The receiver uses another instance of the same cipher, like the
     /// ``open(_:using:)`` method, to open the box.
     @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
-    public struct SealedBox: AEADSealedBox {
+    public struct SealedBox: AEADSealedBox, Sendable {
         private let combinedRepresentation: Data
         private let nonceByteCount: Int
         
@@ -167,13 +174,17 @@ extension AES.GCM {
         ///   - combined: The combined bytes of the nonce, encrypted data, and
         /// authentication tag.
         @inlinable
-        public init<D: DataProtocol>(combined: D) throws {
+        public init<D: DataProtocol>(combined: D) throws(CryptoKitMetaError) {
             // AES minimum nonce (12 bytes) + AES tag (16 bytes)
             // While we have these values in the internal APIs, we can't use it in inlinable code.
             let aesGCMOverhead = 12 + 16
             
             if combined.count < aesGCMOverhead {
+                #if hasFeature(Embedded)
+                throw CryptoKitMetaError.cryptoKitError(underlyingError: CryptoKitError.incorrectParameterSize)
+                #else
                 throw CryptoKitError.incorrectParameterSize
+                #endif
             }
             
             self.init(combined: Data(combined))
@@ -185,9 +196,9 @@ extension AES.GCM {
         ///   - nonce: The nonce.
         ///   - ciphertext: The encrypted data.
         ///   - tag: The authentication tag.
-        public init<C: DataProtocol, T: DataProtocol>(nonce: AES.GCM.Nonce, ciphertext: C, tag: T) throws {
+        public init<C: DataProtocol, T: DataProtocol>(nonce: AES.GCM.Nonce, ciphertext: C, tag: T) throws(CryptoKitMetaError) {
             guard tag.count == AES.GCM.tagByteCount else {
-                throw CryptoKitError.incorrectParameterSize
+                throw error(CryptoKitError.incorrectParameterSize)
             }
 
             let nonceByteCount = nonce.bytes.count

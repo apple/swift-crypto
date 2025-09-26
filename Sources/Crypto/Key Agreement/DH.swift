@@ -14,13 +14,23 @@
 #if CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
 @_exported import CryptoKit
 #else
-import Foundation
+
+#if CRYPTOKIT_NO_ACCESS_TO_FOUNDATION
+public import SwiftSystem
+#else
+#if canImport(FoundationEssentials)
+public import FoundationEssentials
+#else
+public import Foundation
+#endif
+#endif
 
 /// A Diffie-Hellman Key Agreement Key
+@preconcurrency
 @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
-public protocol DiffieHellmanKeyAgreement {
+public protocol DiffieHellmanKeyAgreement: Sendable {
     /// The public key share type to perform the DH Key Agreement
-    associatedtype PublicKey
+    associatedtype PublicKey: Sendable
     var publicKey: PublicKey { get }
 
     /// Performs a Diffie-Hellman Key Agreement.
@@ -28,7 +38,7 @@ public protocol DiffieHellmanKeyAgreement {
     /// - Parameters:
     ///   - publicKeyShare: The public key share.
     /// - Returns: The resulting key agreement result.
-    func sharedSecretFromKeyAgreement(with publicKeyShare: PublicKey) throws -> SharedSecret
+    func sharedSecretFromKeyAgreement(with publicKeyShare: PublicKey) throws(CryptoKitMetaError) -> SharedSecret
 }
 
 /// A key agreement result from which you can derive a symmetric cryptographic
@@ -37,7 +47,7 @@ public protocol DiffieHellmanKeyAgreement {
 /// Generate a shared secret by calling your private key’s
 /// `sharedSecretFromKeyAgreement(publicKeyShare:)` method with the public key
 /// from another party. The other party computes the same secret by passing your
-/// public key to the equivalent method on their own private key.
+/// public key to the the equivalent method on their own private key.
 ///
 /// The shared secret isn’t suitable as a symmetric cryptographic key
 /// (``SymmetricKey``) by itself. However, you use it to generate a key by
@@ -49,9 +59,13 @@ public protocol DiffieHellmanKeyAgreement {
 /// ``HMAC``, or for opening and closing a sealed box with a cipher like
 /// ``ChaChaPoly`` or ``AES``.
 @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
-public struct SharedSecret: ContiguousBytes {
+public struct SharedSecret: ContiguousBytes, Sendable {
     var ss: SecureBytes
-
+    
+    internal init(ss: SecureBytes){
+        self.ss = ss
+    }
+    
     /// Invokes the given closure with a buffer pointer covering the raw bytes
     /// of the shared secret.
     ///
@@ -60,9 +74,15 @@ public struct SharedSecret: ContiguousBytes {
     /// shared secret and returns the shared secret.
     ///
     /// - Returns: The shared secret, as returned from the body closure.
+    #if hasFeature(Embedded)
+    public func withUnsafeBytes<R, E: Error>(_ body: (UnsafeRawBufferPointer) throws(E) -> R) throws(E) -> R {
+        return try ss.withUnsafeBytes(body)
+    }
+    #else
     public func withUnsafeBytes<R>(_ body: (UnsafeRawBufferPointer) throws -> R) rethrows -> R {
         return try ss.withUnsafeBytes(body)
     }
+    #endif
 
     /// Derives a symmetric encryption key from the secret using x9.63 key
     /// derivation.
@@ -74,57 +94,10 @@ public struct SharedSecret: ContiguousBytes {
     ///
     /// - Returns: The derived symmetric key.
     public func x963DerivedSymmetricKey<H: HashFunction, SI: DataProtocol>(using hashFunction: H.Type, sharedInfo: SI, outputByteCount: Int) -> SymmetricKey {
-        // SEC1 defines 3 inputs to the KDF:
-        //
-        // 1. An octet string Z which is the shared secret value. That's `self` here.
-        // 2. An integer `keydatalen` which is the length in octets of the keying data to be generated. Here that's `outputByteCount`.
-        // 3. An optional octet string `SharedInfo` which consists of other shared data. Here, that's `sharedInfo`.
-        //
-        // We then need to perform the following steps:
-        //
-        // 1. Check that keydatalen < hashlen × (2³² − 1). If keydatalen ≥ hashlen × (2³² − 1), fail.
-        // 2. Initiate a 4 octet, big-endian octet string Counter as 0x00000001.
-        // 3. For i = 1 to ⌈keydatalen/hashlen⌉, do the following:
-        //     1. Compute: Ki = Hash(Z || Counter || [SharedInfo]).
-        //     2. Increment Counter.
-        //     3. Increment i.
-        // 4. Set K to be the leftmost keydatalen octets of: K1 || K2 || . . . || K⌈keydatalen/hashlen⌉.
-        // 5. Output K.
-        //
-        // The loop in step 3 is not very Swifty, so instead we generate the counter directly.
-        // Step 1: Check that keydatalen < hashlen × (2³² − 1).
-        // We do this math in UInt64-space, because we'll overflow 32-bit integers.
-        guard UInt64(outputByteCount) < (UInt64(H.Digest.byteCount) * UInt64(UInt32.max)) else {
-            fatalError("Invalid parameter size")
+        
+        return self.ss.withUnsafeBytes { ssBytes in
+            return ANSIKDFx963<H>.deriveKey(inputKeyMaterial: SymmetricKey(data: ssBytes), info: sharedInfo, outputByteCount: outputByteCount)
         }
-        
-        var key = SecureBytes()
-        key.reserveCapacity(outputByteCount)
-        
-        var remainingBytes = outputByteCount
-        var counter = UInt32(1)
-        
-        while remainingBytes > 0 {
-            // 1. Compute: Ki = Hash(Z || Counter || [SharedInfo]).
-            var hasher = H()
-            hasher.update(self)
-            hasher.update(counter.bigEndian)
-            hasher.update(data: sharedInfo)
-            let digest = hasher.finalize()
-            
-            // 2. Increment Counter.
-            counter += 1
-            
-            // Append the bytes of the digest. We don't want to append more than the remaining number of bytes.
-            let bytesToAppend = min(remainingBytes, H.Digest.byteCount)
-            digest.withUnsafeBytes { digestPtr in
-                key.append(digestPtr.prefix(bytesToAppend))
-            }
-            remainingBytes -= bytesToAppend
-        }
-        
-        precondition(key.count == outputByteCount)
-        return SymmetricKey(data: key)
     }
 
     /// Derives a symmetric encryption key from the secret using HKDF key
@@ -155,7 +128,7 @@ extension SharedSecret: Hashable {
 
 // We want to implement constant-time comparison for digests.
 @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
-extension SharedSecret: CustomStringConvertible, Equatable {
+extension SharedSecret: Equatable {
     public static func == (lhs: Self, rhs: Self) -> Bool {
         return safeCompare(lhs, rhs)
     }
@@ -177,11 +150,16 @@ extension SharedSecret: CustomStringConvertible, Equatable {
             return safeCompare(lhs, rhs.regions.first!)
         }
     }
+}
 
+#if !hasFeature(Embedded)
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
+extension SharedSecret: CustomStringConvertible {
     public var description: String {
         return "\(Self.self): \(ss.hexString)"
     }
 }
+#endif
 
 @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension HashFunction {

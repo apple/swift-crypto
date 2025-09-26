@@ -14,10 +14,20 @@
 #if CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
 @_exported import CryptoKit
 #else
+
+#if CRYPTOKIT_NO_ACCESS_TO_FOUNDATION
+import SwiftSystem
+#else
+#if canImport(FoundationEssentials)
+import FoundationEssentials
+#else
 import Foundation
+#endif
+#endif
+
 
 @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
-protocol AEADSealedBox {
+protocol AEADSealedBox: Sendable {
     associatedtype Nonce: Sequence
     /// The authentication tag
     var tag: Data { get }
@@ -52,7 +62,7 @@ protocol Cipher {
     /// - Returns: The sealed box containing the ciphertext and authentication tag
     /// - Throws: An error occurred while encrypting or authenticating.
     static func seal<Plaintext: DataProtocol, AuthenticatedData: DataProtocol>
-        (_ message: Plaintext, using key: SymmetricKey, nonce: Nonce?, authenticating: AuthenticatedData) throws -> SealedBox
+        (_ message: Plaintext, using key: SymmetricKey, nonce: Nonce?, authenticating: AuthenticatedData) throws(CryptoKitMetaError) -> SealedBox
 
     /// Opens the sealed box. This decrypts and verifies the authenticity of the message,
     /// and optionally verifies the authenticity of the authenticated data.
@@ -65,6 +75,6 @@ protocol Cipher {
     /// - Returns: Returns the data, if the correct key is used and the authenticated data matches the one from the seal operation.
     /// - Throws: An error occurred while decrypting or authenticating.
     static func open<AuthenticatedData: DataProtocol>
-        (_ sealedBox: SealedBox, using key: Key, authenticating: AuthenticatedData) throws -> Data
+        (_ sealedBox: SealedBox, using key: Key, authenticating: AuthenticatedData) throws(CryptoKitMetaError) -> Data
 }
 #endif

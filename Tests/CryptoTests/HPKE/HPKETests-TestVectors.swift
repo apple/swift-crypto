@@ -11,20 +11,24 @@
 // SPDX-License-Identifier: Apache-2.0
 //
 //===----------------------------------------------------------------------===//
+#if canImport(FoundationEssentials)
+import FoundationEssentials
+#else
 import Foundation
+#endif
 import XCTest
 
 #if CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
 // Skip tests that require @testable imports of CryptoKit.
 #else
 #if !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
-@testable import CryptoKit
+@testable @_spi(HPKEAlgID) import CryptoKit
 #else
-@testable import Crypto
+@testable @_spi(HPKEAlgID) import Crypto
 #endif
 
 // Curve448 is not supported on our platforms
-var unsupportedKEMs: [UInt16] = [0x0021]
+let unsupportedKEMs: [UInt16] = [0x0021]
 
 struct HPKETestEncryption: Codable {
     let aad: String
@@ -97,6 +101,9 @@ class HPKETestVectors: XCTestCase {
             XCTAssertNoThrow(try testWithKEM(tv, ciphersuite: ciphersuite, skR: P521.KeyAgreement.PrivateKey(rawRepresentation: skRBytes)))
         case .Curve25519_HKDF_SHA256:
             XCTAssertNoThrow(try testWithKEM(tv, ciphersuite: ciphersuite, skR: Curve25519.KeyAgreement.PrivateKey(rawRepresentation: skRBytes)))
+        case .XWingMLKEM768X25519:
+            // There are no test vectors for this implementation
+            break
         }
     }
     

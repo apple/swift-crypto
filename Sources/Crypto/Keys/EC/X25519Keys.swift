@@ -14,7 +14,15 @@
 #if CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
 @_exported import CryptoKit
 #else
-import Foundation
+#if CRYPTOKIT_NO_ACCESS_TO_FOUNDATION
+public import SwiftSystem
+#else
+#if canImport(FoundationEssentials)
+public import FoundationEssentials
+#else
+public import Foundation
+#endif
+#endif
 
 @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension Curve25519.KeyAgreement {
@@ -28,8 +36,8 @@ extension Curve25519 {
     /// A mechanism used to create a shared secret between two users by
     /// performing X25519 key agreement.
     @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
-    public enum KeyAgreement {
-        #if !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
+    public enum KeyAgreement: Sendable {
+        #if (!CRYPTO_IN_SWIFTPM_FORCE_BUILD_API) || CRYPTOKIT_NO_ACCESS_TO_FOUNDATION
         typealias Curve25519PrivateKeyImpl = Curve25519.KeyAgreement.CoreCryptoCurve25519PrivateKeyImpl
         typealias Curve25519PublicKeyImpl = Curve25519.KeyAgreement.CoreCryptoCurve25519PublicKeyImpl
         #else
@@ -39,7 +47,7 @@ extension Curve25519 {
 
         /// A Curve25519 public key used for key agreement.
         @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
-        public struct PublicKey: ECPublicKey {
+        public struct PublicKey: ECPublicKey, Sendable {
             fileprivate var baseKey: Curve25519PublicKeyImpl
 
             /// Creates a Curve25519 public key for key agreement from a
@@ -48,7 +56,7 @@ extension Curve25519 {
             /// - Parameters:
             /// - rawRepresentation: A raw representation of the key as a
             /// collection of contiguous bytes.
-            public init<D: ContiguousBytes>(rawRepresentation: D) throws {
+            public init<D: ContiguousBytes>(rawRepresentation: D) throws(CryptoKitMetaError) {
                 self.baseKey = try Curve25519PublicKeyImpl(rawRepresentation: rawRepresentation)
             }
 
@@ -66,14 +74,20 @@ extension Curve25519 {
                 return self.baseKey.keyBytes
             }
 
+            #if hasFeature(Embedded)
+            private func withUnsafeBytes<R, E: Error>(_ body: (UnsafeRawBufferPointer) throws(E) -> R) throws(E) -> R {
+                return try self.baseKey.keyBytes.withUnsafeBytes(body)
+            }
+            #else
             private func withUnsafeBytes<R>(_ body: (UnsafeRawBufferPointer) throws -> R) rethrows -> R {
                 return try self.baseKey.keyBytes.withUnsafeBytes(body)
             }
+            #endif
         }
 
         /// A Curve25519 private key used for key agreement.
         @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
-        public struct PrivateKey: DiffieHellmanKeyAgreement {
+        public struct PrivateKey: DiffieHellmanKeyAgreement, Sendable {
             fileprivate var baseKey: Curve25519PrivateKeyImpl
 
             /// Creates a random Curve25519 private key for key agreement.
@@ -92,7 +106,7 @@ extension Curve25519 {
             /// - Parameters:
             ///   - rawRepresentation: A raw representation of the key as a
             /// collection of contiguous bytes.
-            public init<D: ContiguousBytes>(rawRepresentation: D) throws {
+            public init<D: ContiguousBytes>(rawRepresentation: D) throws(CryptoKitMetaError) {
                 self.baseKey = try Curve25519PrivateKeyImpl(rawRepresentation: rawRepresentation)
             }
 
@@ -105,7 +119,7 @@ extension Curve25519 {
             /// shared secret.
             ///
             /// - Returns: The computed shared secret.
-            public func sharedSecretFromKeyAgreement(with publicKeyShare: Curve25519.KeyAgreement.PublicKey) throws -> SharedSecret {
+            public func sharedSecretFromKeyAgreement(with publicKeyShare: Curve25519.KeyAgreement.PublicKey) throws(CryptoKitMetaError) -> SharedSecret {
                 return try self.baseKey.sharedSecretFromKeyAgreement(with: publicKeyShare.baseKey)
             }
             

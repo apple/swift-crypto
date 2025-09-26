@@ -11,7 +11,11 @@
 // SPDX-License-Identifier: Apache-2.0
 //
 //===----------------------------------------------------------------------===//
+#if canImport(FoundationEssentials)
+import FoundationEssentials
+#else
 import Foundation
+#endif
 import XCTest
 
 #if CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
@@ -40,6 +44,7 @@ struct AESGCMTestVector: Codable {
     let result: String
 }
 
+@available(iOS 17.4, macOS 14.4, watchOS 10.4, tvOS 17.4, macCatalyst 17.4, *)
 class AESGCMTests: XCTestCase {
     func testPropertiesStayTheSameAfterFailedOpening() throws {
         let message = Data("this is a message".utf8)
@@ -103,12 +108,7 @@ class AESGCMTests: XCTestCase {
         XCTAssertEqual(Array(nonceFromContiguous), testNonceBytes)
         XCTAssertEqual(Array(nonceFromDiscontiguous), testNonceBytes)
 
-        XCTAssertThrowsError(try AES.GCM.Nonce(data: DispatchData.empty)) { error in
-            guard case .some(.incorrectParameterSize) = error as? CryptoKitError else {
-                XCTFail("Unexpected error")
-                return
-            }
-        }
+        XCTAssertThrowsError(try AES.GCM.Nonce(data: DispatchData.empty), error: CryptoKitError.incorrectParameterSize)
     }
 
     func testUserConstructedSealedBoxesCombined() throws {
@@ -123,12 +123,8 @@ class AESGCMTests: XCTestCase {
         XCTAssertEqual(contiguousSB.tag, discontiguousSB.tag)
 
         // Empty dispatchdatas don't work, they are too small.
-        XCTAssertThrowsError(try AES.GCM.SealedBox(combined: DispatchData.empty)) { error in
-            guard case .some(.incorrectParameterSize) = error as? CryptoKitError else {
-                XCTFail("Unexpected error: \(error)")
-                return
-            }
-        }
+        XCTAssertThrowsError(try AES.GCM.SealedBox(combined: DispatchData.empty),
+                             error: CryptoKitError.incorrectParameterSize);
     }
 
     func testUserConstructedSealedBoxesSplit() throws {
@@ -152,12 +148,8 @@ class AESGCMTests: XCTestCase {
         XCTAssertEqual(contiguousDiscontiguous.combined, discontiguousDiscontiguous.combined)
 
         // Empty dispatchdatas for the tag don't work, they are too small.
-        XCTAssertThrowsError(try AES.GCM.SealedBox(nonce: nonce, ciphertext: ciphertext, tag: DispatchData.empty)) { error in
-            guard case .some(.incorrectParameterSize) = error as? CryptoKitError else {
-                XCTFail("Unexpected error: \(error)")
-                return
-            }
-        }
+        XCTAssertThrowsError(try AES.GCM.SealedBox(nonce: nonce, ciphertext: ciphertext, tag: DispatchData.empty),
+                             error: CryptoKitError.incorrectParameterSize)
 
         // They work fine for the ciphertext though.
         let weirdBox = try orFail { try AES.GCM.SealedBox(nonce: nonce, ciphertext: DispatchData.empty, tag: tag) }
@@ -165,7 +157,7 @@ class AESGCMTests: XCTestCase {
     }
 
     func testRoundTripDataProtocols() throws {
-        func roundTrip<Message: DataProtocol, AAD: DataProtocol>(message: Message, aad: AAD, file: StaticString = (#file), line: UInt = #line) throws {
+        func roundTrip<Message: DataProtocol, AAD: DataProtocol>(message: Message, aad: AAD, file: StaticString = (#filePath), line: UInt = #line) throws {
             let key = SymmetricKey(size: .bits256)
             let nonce = AES.GCM.Nonce()
             let ciphertext = try orFail(file: file, line: line) { try AES.GCM.seal(message, using: key, nonce: nonce, authenticating: aad) }

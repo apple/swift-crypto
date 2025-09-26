@@ -11,12 +11,20 @@
 // SPDX-License-Identifier: Apache-2.0
 //
 //===----------------------------------------------------------------------===//
+#if CRYPTOKIT_NO_ACCESS_TO_FOUNDATION
+import SwiftSystem
+#else
+#if canImport(FoundationEssentials)
+import FoundationEssentials
+#else
 import Foundation
+#endif
+#endif
 
 #if CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
 @_exported import CryptoKit
 #else
-#if !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
+#if (!CRYPTO_IN_SWIFTPM_FORCE_BUILD_API) || CRYPTOKIT_NO_ACCESS_TO_FOUNDATION
 @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 typealias SupportedCurveDetailsImpl = CorecryptoSupportedNISTCurve
 #else
@@ -54,13 +62,13 @@ protocol NISTECPrivateKey: ECPrivateKey where PK: NISTECPublicKey {
 
 /// An elliptic curve that enables NIST P-256 signatures and key agreement.
 @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
-public enum P256 { }
+public enum P256: Sendable { }
 
 /// An elliptic curve that enables NIST P-384 signatures and key agreement.
 @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
-public enum P384 { }
+public enum P384: Sendable { }
 
 /// An elliptic curve that enables NIST P-521 signatures and key agreement.
 @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
-public enum P521 { }
+public enum P521: Sendable { }
 #endif // Linux or !SwiftPM

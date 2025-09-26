@@ -14,19 +14,28 @@
 #if CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
 @_exported import CryptoKit
 #else
+
+#if CRYPTOKIT_NO_ACCESS_TO_FOUNDATION
+import SwiftSystem
+#else
+#if canImport(FoundationEssentials)
+import FoundationEssentials
+#else
 import Foundation
+#endif
+#endif
 
 
 @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension HPKE {
-	/// Cipher suites to use in hybrid public key encryption.
+	/// Cipher suites to use in hybrid public key encryption (HPKE).
     ///
     /// HPKE cipher suites identify the authenticated encryption with additional data (AEAD) algorithm for encrypting
     /// and decrypting messages, the key derivation function (KDF) for deriving the shared key, and the key encapsulation
     /// mechanism (KEM) for sharing the symmetric key. The sender and recipient of encrypted messages need to use the
     /// same cipher suite.
     @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
-    public struct Ciphersuite {
+    public struct Ciphersuite: Sendable {
 		/// A cipher suite for HPKE that uses NIST P-256 elliptic curve key agreement, SHA-2 key derivation
         /// with a 256-bit digest, and the Advanced Encryption Standard cipher in Galois/Counter Mode with a key length of 256 bits.
         public static let P256_SHA256_AES_GCM_256 = Ciphersuite(kem: .P256_HKDF_SHA256, kdf: .HKDF_SHA256, aead: .AES_GCM_256)
@@ -39,7 +48,10 @@ extension HPKE {
         /// A cipher suite for HPKE that uses X25519 elliptic curve key agreement, SHA-2 key derivation
         /// with a 256-bit digest, and the ChaCha20 stream cipher with the Poly1305 message authentication code.
         public static let Curve25519_SHA256_ChachaPoly = Ciphersuite(kem: .Curve25519_HKDF_SHA256, kdf: .HKDF_SHA256, aead: .chaChaPoly)
-        
+        /// A cipher suite for HPKE that uses the X-Wing KEM (ML-KEM-768 with X25519), SHA-2 key derivation
+        /// with a 256-bit digest, and the Advanced Encryption Standard cipher in Galois/Counter Mode with a key length of 256 bits.
+        public static let XWingMLKEM768X25519_SHA256_AES_GCM_256 = Ciphersuite(kem: .XWingMLKEM768X25519, kdf: .HKDF_SHA256, aead: .AES_GCM_256)
+
         fileprivate static let ciphersuiteLabel = Data("HPKE".utf8)
         
 		/// The key encapsulation mechanism (KEM) for encapsulating the symmetric key.
