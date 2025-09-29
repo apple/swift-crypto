@@ -18,6 +18,8 @@
 #include <assert.h>
 #include <string.h>
 
+#include <iterator>
+
 #include <CCryptoBoringSSL_bn.h>
 #include <CCryptoBoringSSL_err.h>
 #include <CCryptoBoringSSL_mem.h>
@@ -64,10 +66,10 @@ DEFINE_METHOD_FUNCTION(EC_GROUP, EC_group_p224) {
   OPENSSL_memcpy(out->oid, kOIDP224, sizeof(kOIDP224));
   out->oid_len = sizeof(kOIDP224);
 
-  ec_group_init_static_mont(&out->field, OPENSSL_ARRAY_SIZE(kP224Field),
-                            kP224Field, kP224FieldRR, kP224FieldN0);
-  ec_group_init_static_mont(&out->order, OPENSSL_ARRAY_SIZE(kP224Order),
-                            kP224Order, kP224OrderRR, kP224OrderN0);
+  ec_group_init_static_mont(&out->field, std::size(kP224Field), kP224Field,
+                            kP224FieldRR, kP224FieldN0);
+  ec_group_init_static_mont(&out->order, std::size(kP224Order), kP224Order,
+                            kP224OrderRR, kP224OrderN0);
 
 #if defined(BORINGSSL_HAS_UINT128) && !defined(OPENSSL_SMALL)
   out->meth = EC_GFp_nistp224_method();
@@ -98,10 +100,10 @@ DEFINE_METHOD_FUNCTION(EC_GROUP, EC_group_p256) {
   OPENSSL_memcpy(out->oid, kOIDP256, sizeof(kOIDP256));
   out->oid_len = sizeof(kOIDP256);
 
-  ec_group_init_static_mont(&out->field, OPENSSL_ARRAY_SIZE(kP256Field),
-                            kP256Field, kP256FieldRR, kP256FieldN0);
-  ec_group_init_static_mont(&out->order, OPENSSL_ARRAY_SIZE(kP256Order),
-                            kP256Order, kP256OrderRR, kP256OrderN0);
+  ec_group_init_static_mont(&out->field, std::size(kP256Field), kP256Field,
+                            kP256FieldRR, kP256FieldN0);
+  ec_group_init_static_mont(&out->order, std::size(kP256Order), kP256Order,
+                            kP256OrderRR, kP256OrderN0);
 
 #if !defined(OPENSSL_NO_ASM) &&                              \
     (defined(OPENSSL_X86_64) || defined(OPENSSL_AARCH64)) && \
@@ -129,10 +131,10 @@ DEFINE_METHOD_FUNCTION(EC_GROUP, EC_group_p384) {
   OPENSSL_memcpy(out->oid, kOIDP384, sizeof(kOIDP384));
   out->oid_len = sizeof(kOIDP384);
 
-  ec_group_init_static_mont(&out->field, OPENSSL_ARRAY_SIZE(kP384Field),
-                            kP384Field, kP384FieldRR, kP384FieldN0);
-  ec_group_init_static_mont(&out->order, OPENSSL_ARRAY_SIZE(kP384Order),
-                            kP384Order, kP384OrderRR, kP384OrderN0);
+  ec_group_init_static_mont(&out->field, std::size(kP384Field), kP384Field,
+                            kP384FieldRR, kP384FieldN0);
+  ec_group_init_static_mont(&out->order, std::size(kP384Order), kP384Order,
+                            kP384OrderRR, kP384OrderN0);
 
   out->meth = EC_GFp_mont_method();
   out->generator.group = out;
@@ -154,10 +156,10 @@ DEFINE_METHOD_FUNCTION(EC_GROUP, EC_group_p521) {
   OPENSSL_memcpy(out->oid, kOIDP521, sizeof(kOIDP521));
   out->oid_len = sizeof(kOIDP521);
 
-  ec_group_init_static_mont(&out->field, OPENSSL_ARRAY_SIZE(kP521Field),
-                            kP521Field, kP521FieldRR, kP521FieldN0);
-  ec_group_init_static_mont(&out->order, OPENSSL_ARRAY_SIZE(kP521Order),
-                            kP521Order, kP521OrderRR, kP521OrderN0);
+  ec_group_init_static_mont(&out->field, std::size(kP521Field), kP521Field,
+                            kP521FieldRR, kP521FieldN0);
+  ec_group_init_static_mont(&out->order, std::size(kP521Order), kP521Order,
+                            kP521OrderRR, kP521OrderN0);
 
   out->meth = EC_GFp_mont_method();
   out->generator.group = out;
@@ -870,7 +872,7 @@ void ec_precomp_select(const EC_GROUP *group, EC_PRECOMP *out, BN_ULONG mask,
                        const EC_PRECOMP *a, const EC_PRECOMP *b) {
   static_assert(sizeof(out->comb) == sizeof(*out),
                 "out->comb does not span the entire structure");
-  for (size_t i = 0; i < OPENSSL_ARRAY_SIZE(out->comb); i++) {
+  for (size_t i = 0; i < std::size(out->comb); i++) {
     ec_affine_select(group, &out->comb[i], mask, &a->comb[i], &b->comb[i]);
   }
 }

@@ -1,0 +1,25 @@
+diff --git a/Sources/CCryptoBoringSSL/crypto/fipsmodule/service_indicator/internal.h b/Sources/CCryptoBoringSSL/crypto/fipsmodule/service_indicator/internal.h
+index c5a8113..27f8060 100644
+--- a/Sources/CCryptoBoringSSL/crypto/fipsmodule/service_indicator/internal.h
++++ b/Sources/CCryptoBoringSSL/crypto/fipsmodule/service_indicator/internal.h
+@@ -17,6 +17,9 @@
+ 
+ #include <openssl/base.h>
+ 
++#if defined(__cplusplus)
++extern "C" {
++#endif
+ 
+ // FIPS_service_indicator_before_call and |FIPS_service_indicator_after_call|
+ // both currently return the same local thread counter which is slowly
+@@ -37,6 +40,10 @@
+ OPENSSL_EXPORT uint64_t FIPS_service_indicator_before_call(void);
+ OPENSSL_EXPORT uint64_t FIPS_service_indicator_after_call(void);
+ 
++#if defined(__cplusplus)
++}
++#endif
++
+ #if defined(BORINGSSL_FIPS)
+ 
+ // FIPS_service_indicator_update_state records that an approved service has been

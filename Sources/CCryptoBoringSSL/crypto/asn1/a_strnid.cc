@@ -18,6 +18,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include <iterator>
+
 #include <CCryptoBoringSSL_err.h>
 #include <CCryptoBoringSSL_mem.h>
 #include <CCryptoBoringSSL_obj.h>
@@ -129,7 +131,7 @@ static const ASN1_STRING_TABLE *asn1_string_table_get(int nid) {
   ASN1_STRING_TABLE key;
   key.nid = nid;
   const ASN1_STRING_TABLE *tbl = reinterpret_cast<ASN1_STRING_TABLE *>(
-      bsearch(&key, tbl_standard, OPENSSL_ARRAY_SIZE(tbl_standard),
+      bsearch(&key, tbl_standard, std::size(tbl_standard),
               sizeof(ASN1_STRING_TABLE), table_cmp_void));
   if (tbl != NULL) {
     return tbl;
@@ -202,5 +204,5 @@ void ASN1_STRING_TABLE_cleanup(void) {}
 void asn1_get_string_table_for_testing(const ASN1_STRING_TABLE **out_ptr,
                                        size_t *out_len) {
   *out_ptr = tbl_standard;
-  *out_len = OPENSSL_ARRAY_SIZE(tbl_standard);
+  *out_len = std::size(tbl_standard);
 }

@@ -529,6 +529,140 @@ OPENSSL_EXPORT bcm_status BCM_mldsa87_verify_internal(
 OPENSSL_EXPORT bcm_status BCM_mldsa87_marshal_private_key(
     CBB *out, const struct BCM_mldsa87_private_key *private_key);
 
+// BCM_MLDSA44_PRIVATE_KEY_BYTES is the number of bytes in an encoded ML-DSA-44
+// private key.
+#define BCM_MLDSA44_PRIVATE_KEY_BYTES 2560
+
+// BCM_MLDSA44_PUBLIC_KEY_BYTES is the number of bytes in an encoded ML-DSA-44
+// public key.
+#define BCM_MLDSA44_PUBLIC_KEY_BYTES 1312
+
+// BCM_MLDSA44_SIGNATURE_BYTES is the number of bytes in an encoded ML-DSA-44
+// signature.
+#define BCM_MLDSA44_SIGNATURE_BYTES 2420
+
+struct BCM_mldsa44_private_key {
+  union {
+    uint8_t bytes[32 + 32 + 64 + 256 * 4 * (4 + 4 + 4)];
+    uint32_t alignment;
+  } opaque;
+};
+
+struct BCM_mldsa44_public_key {
+  union {
+    uint8_t bytes[32 + 64 + 256 * 4 * 4];
+    uint32_t alignment;
+  } opaque;
+};
+
+struct BCM_mldsa44_prehash {
+  union {
+    uint8_t bytes[200 + 4 + 4 + 4 * sizeof(size_t)];
+    uint64_t alignment;
+  } opaque;
+};
+
+OPENSSL_EXPORT bcm_status BCM_mldsa44_generate_key(
+    uint8_t out_encoded_public_key[BCM_MLDSA44_PUBLIC_KEY_BYTES],
+    uint8_t out_seed[BCM_MLDSA_SEED_BYTES],
+    struct BCM_mldsa44_private_key *out_private_key);
+
+OPENSSL_EXPORT bcm_status BCM_mldsa44_private_key_from_seed(
+    struct BCM_mldsa44_private_key *out_private_key,
+    const uint8_t seed[BCM_MLDSA_SEED_BYTES]);
+
+OPENSSL_EXPORT bcm_status BCM_mldsa44_public_from_private(
+    struct BCM_mldsa44_public_key *out_public_key,
+    const struct BCM_mldsa44_private_key *private_key);
+
+OPENSSL_EXPORT bcm_status
+BCM_mldsa44_check_key_fips(struct BCM_mldsa44_private_key *private_key);
+
+OPENSSL_EXPORT bcm_status BCM_mldsa44_generate_key_fips(
+    uint8_t out_encoded_public_key[BCM_MLDSA44_PUBLIC_KEY_BYTES],
+    uint8_t out_seed[BCM_MLDSA_SEED_BYTES],
+    struct BCM_mldsa44_private_key *out_private_key);
+
+OPENSSL_EXPORT bcm_status BCM_mldsa44_private_key_from_seed_fips(
+    struct BCM_mldsa44_private_key *out_private_key,
+    const uint8_t seed[BCM_MLDSA_SEED_BYTES]);
+
+OPENSSL_EXPORT bcm_status BCM_mldsa44_sign(
+    uint8_t out_encoded_signature[BCM_MLDSA44_SIGNATURE_BYTES],
+    const struct BCM_mldsa44_private_key *private_key, const uint8_t *msg,
+    size_t msg_len, const uint8_t *context, size_t context_len);
+
+OPENSSL_EXPORT bcm_status
+BCM_mldsa44_verify(const struct BCM_mldsa44_public_key *public_key,
+                   const uint8_t *signature, const uint8_t *msg, size_t msg_len,
+                   const uint8_t *context, size_t context_len);
+
+OPENSSL_EXPORT void BCM_mldsa44_prehash_init(
+    struct BCM_mldsa44_prehash *out_prehash_ctx,
+    const struct BCM_mldsa44_public_key *public_key, const uint8_t *context,
+    size_t context_len);
+
+OPENSSL_EXPORT void BCM_mldsa44_prehash_update(
+    struct BCM_mldsa44_prehash *inout_prehash_ctx, const uint8_t *msg,
+    size_t msg_len);
+
+OPENSSL_EXPORT void BCM_mldsa44_prehash_finalize(
+    uint8_t out_msg_rep[BCM_MLDSA_MU_BYTES],
+    struct BCM_mldsa44_prehash *inout_prehash_ctx);
+
+OPENSSL_EXPORT bcm_status BCM_mldsa44_sign_message_representative(
+    uint8_t out_encoded_signature[BCM_MLDSA44_SIGNATURE_BYTES],
+    const struct BCM_mldsa44_private_key *private_key,
+    const uint8_t msg_rep[BCM_MLDSA_MU_BYTES]);
+
+OPENSSL_EXPORT bcm_status BCM_mldsa44_marshal_public_key(
+    CBB *out, const struct BCM_mldsa44_public_key *public_key);
+
+OPENSSL_EXPORT bcm_status BCM_mldsa44_parse_public_key(
+    struct BCM_mldsa44_public_key *public_key, CBS *in);
+
+OPENSSL_EXPORT bcm_status BCM_mldsa44_parse_private_key(
+    struct BCM_mldsa44_private_key *private_key, CBS *in);
+
+// BCM_mldsa44_generate_key_external_entropy generates a public/private key pair
+// using the given seed, writes the encoded public key to
+// |out_encoded_public_key| and sets |out_private_key| to the private key.
+OPENSSL_EXPORT bcm_status BCM_mldsa44_generate_key_external_entropy(
+    uint8_t out_encoded_public_key[BCM_MLDSA44_PUBLIC_KEY_BYTES],
+    struct BCM_mldsa44_private_key *out_private_key,
+    const uint8_t entropy[BCM_MLDSA_SEED_BYTES]);
+
+OPENSSL_EXPORT bcm_status BCM_mldsa44_generate_key_external_entropy_fips(
+    uint8_t out_encoded_public_key[BCM_MLDSA44_PUBLIC_KEY_BYTES],
+    struct BCM_mldsa44_private_key *out_private_key,
+    const uint8_t entropy[BCM_MLDSA_SEED_BYTES]);
+
+// BCM_mldsa44_sign_internal signs |msg| using |private_key| and writes the
+// signature to |out_encoded_signature|. The |context_prefix| and |context| are
+// prefixed to the message, in that order, before signing. The |randomizer|
+// value can be set to zero bytes in order to make a deterministic signature, or
+// else filled with entropy for the usual |MLDSA_sign| behavior.
+OPENSSL_EXPORT bcm_status BCM_mldsa44_sign_internal(
+    uint8_t out_encoded_signature[BCM_MLDSA44_SIGNATURE_BYTES],
+    const struct BCM_mldsa44_private_key *private_key, const uint8_t *msg,
+    size_t msg_len, const uint8_t *context_prefix, size_t context_prefix_len,
+    const uint8_t *context, size_t context_len,
+    const uint8_t randomizer[BCM_MLDSA_SIGNATURE_RANDOMIZER_BYTES]);
+
+// BCM_mldsa44_verify_internal verifies that |encoded_signature| is a valid
+// signature of |msg| by |public_key|. The |context_prefix| and |context| are
+// prefixed to the message before verification, in that order.
+OPENSSL_EXPORT bcm_status BCM_mldsa44_verify_internal(
+    const struct BCM_mldsa44_public_key *public_key,
+    const uint8_t encoded_signature[BCM_MLDSA44_SIGNATURE_BYTES],
+    const uint8_t *msg, size_t msg_len, const uint8_t *context_prefix,
+    size_t context_prefix_len, const uint8_t *context, size_t context_len);
+
+// BCM_mldsa44_marshal_private_key serializes |private_key| to |out| in the
+// NIST format for ML-DSA-44 private keys.
+OPENSSL_EXPORT bcm_status BCM_mldsa44_marshal_private_key(
+    CBB *out, const struct BCM_mldsa44_private_key *private_key);
+
 
 // ML-KEM
 //

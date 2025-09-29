@@ -29,15 +29,15 @@
 
 
 int X509_issuer_name_cmp(const X509 *a, const X509 *b) {
-  return (X509_NAME_cmp(a->cert_info->issuer, b->cert_info->issuer));
+  return X509_NAME_cmp(a->issuer, b->issuer);
 }
 
 int X509_subject_name_cmp(const X509 *a, const X509 *b) {
-  return (X509_NAME_cmp(a->cert_info->subject, b->cert_info->subject));
+  return X509_NAME_cmp(a->subject, b->subject);
 }
 
 int X509_CRL_cmp(const X509_CRL *a, const X509_CRL *b) {
-  return (X509_NAME_cmp(a->crl->issuer, b->crl->issuer));
+  return X509_NAME_cmp(a->crl->issuer, b->crl->issuer);
 }
 
 int X509_CRL_match(const X509_CRL *a, const X509_CRL *b) {
@@ -45,35 +45,31 @@ int X509_CRL_match(const X509_CRL *a, const X509_CRL *b) {
 }
 
 X509_NAME *X509_get_issuer_name(const X509 *a) {
-  return a->cert_info->issuer;
+  // This function is not const-correct for OpenSSL compatibility.
+  return a->issuer;
 }
 
-uint32_t X509_issuer_name_hash(X509 *x) {
-  return X509_NAME_hash(x->cert_info->issuer);
-}
+uint32_t X509_issuer_name_hash(X509 *x) { return X509_NAME_hash(x->issuer); }
 
 uint32_t X509_issuer_name_hash_old(X509 *x) {
-  return (X509_NAME_hash_old(x->cert_info->issuer));
+  return X509_NAME_hash_old(x->issuer);
 }
 
 X509_NAME *X509_get_subject_name(const X509 *a) {
-  return a->cert_info->subject;
+  // This function is not const-correct for OpenSSL compatibility.
+  return a->subject;
 }
 
-ASN1_INTEGER *X509_get_serialNumber(X509 *a) {
-  return a->cert_info->serialNumber;
-}
+ASN1_INTEGER *X509_get_serialNumber(X509 *a) { return &a->serialNumber; }
 
 const ASN1_INTEGER *X509_get0_serialNumber(const X509 *x509) {
-  return x509->cert_info->serialNumber;
+  return &x509->serialNumber;
 }
 
-uint32_t X509_subject_name_hash(X509 *x) {
-  return X509_NAME_hash(x->cert_info->subject);
-}
+uint32_t X509_subject_name_hash(X509 *x) { return X509_NAME_hash(x->subject); }
 
 uint32_t X509_subject_name_hash_old(X509 *x) {
-  return X509_NAME_hash_old(x->cert_info->subject);
+  return X509_NAME_hash_old(x->subject);
 }
 
 // Compare two certificates: they must be identical for this to work. NB:
@@ -180,21 +176,22 @@ EVP_PKEY *X509_get0_pubkey(const X509 *x) {
   if (x == NULL) {
     return NULL;
   }
-  return X509_PUBKEY_get0(x->cert_info->key);
+  return X509_PUBKEY_get0(&x->key);
 }
 
 EVP_PKEY *X509_get_pubkey(const X509 *x) {
   if (x == NULL) {
     return NULL;
   }
-  return X509_PUBKEY_get(x->cert_info->key);
+  return X509_PUBKEY_get(&x->key);
 }
 
 ASN1_BIT_STRING *X509_get0_pubkey_bitstr(const X509 *x) {
   if (!x) {
     return NULL;
   }
-  return x->cert_info->key->public_key;
+  // This function is not const-correct for OpenSSL compatibility.
+  return const_cast<ASN1_BIT_STRING*>(&x->key.public_key);
 }
 
 int X509_check_private_key(const X509 *x, const EVP_PKEY *k) {

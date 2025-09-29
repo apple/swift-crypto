@@ -187,8 +187,7 @@ bcm_status BCM_rand_bytes_hwrng(uint8_t *buf, const size_t len) {
 
 struct entropy_buffer {
   // bytes contains entropy suitable for seeding a DRBG.
-  uint8_t
-      bytes[CRNGT_BLOCK_SIZE + CTR_DRBG_ENTROPY_LEN * BORINGSSL_FIPS_OVERREAD];
+  uint8_t bytes[CRNGT_BLOCK_SIZE + CTR_DRBG_SEED_LEN * BORINGSSL_FIPS_OVERREAD];
   // bytes_valid indicates the number of bytes of |bytes| that contain valid
   // data.
   size_t bytes_valid;
@@ -250,11 +249,11 @@ static void get_seed_entropy(uint8_t *out_entropy, size_t out_entropy_len,
 // fill |additional_input| with entropy to supplement |seed|. It sets
 // |*out_additional_input_len| to the number of extra bytes.
 static void rand_get_seed(struct rand_thread_state *state,
-                          uint8_t seed[CTR_DRBG_ENTROPY_LEN],
-                          uint8_t additional_input[CTR_DRBG_ENTROPY_LEN],
+                          uint8_t seed[CTR_DRBG_SEED_LEN],
+                          uint8_t additional_input[CTR_DRBG_SEED_LEN],
                           size_t *out_additional_input_len) {
   uint8_t entropy_bytes[sizeof(state->last_block) +
-                        CTR_DRBG_ENTROPY_LEN * BORINGSSL_FIPS_OVERREAD];
+                        CTR_DRBG_SEED_LEN * BORINGSSL_FIPS_OVERREAD];
   uint8_t *entropy = entropy_bytes;
   size_t entropy_len = sizeof(entropy_bytes);
 
@@ -293,12 +292,12 @@ static void rand_get_seed(struct rand_thread_state *state,
   OPENSSL_memcpy(state->last_block, entropy + entropy_len - CRNGT_BLOCK_SIZE,
                  CRNGT_BLOCK_SIZE);
 
-  assert(entropy_len == BORINGSSL_FIPS_OVERREAD * CTR_DRBG_ENTROPY_LEN);
-  OPENSSL_memcpy(seed, entropy, CTR_DRBG_ENTROPY_LEN);
+  assert(entropy_len == BORINGSSL_FIPS_OVERREAD * CTR_DRBG_SEED_LEN);
+  OPENSSL_memcpy(seed, entropy, CTR_DRBG_SEED_LEN);
 
   for (size_t i = 1; i < BORINGSSL_FIPS_OVERREAD; i++) {
-    for (size_t j = 0; j < CTR_DRBG_ENTROPY_LEN; j++) {
-      seed[j] ^= entropy[CTR_DRBG_ENTROPY_LEN * i + j];
+    for (size_t j = 0; j < CTR_DRBG_SEED_LEN; j++) {
+      seed[j] ^= entropy[CTR_DRBG_SEED_LEN * i + j];
     }
   }
 
@@ -307,8 +306,8 @@ static void rand_get_seed(struct rand_thread_state *state,
   // hardware once the entropy pool has been initialized.
   *out_additional_input_len = 0;
   if (want_additional_input &&
-      CRYPTO_sysrand_if_available(additional_input, CTR_DRBG_ENTROPY_LEN)) {
-    *out_additional_input_len = CTR_DRBG_ENTROPY_LEN;
+      CRYPTO_sysrand_if_available(additional_input, CTR_DRBG_SEED_LEN)) {
+    *out_additional_input_len = CTR_DRBG_SEED_LEN;
   }
 }
 
@@ -318,12 +317,12 @@ static void rand_get_seed(struct rand_thread_state *state,
 // fill |additional_input| with entropy to supplement |seed|. It sets
 // |*out_additional_input_len| to the number of extra bytes.
 static void rand_get_seed(struct rand_thread_state *state,
-                          uint8_t seed[CTR_DRBG_ENTROPY_LEN],
-                          uint8_t additional_input[CTR_DRBG_ENTROPY_LEN],
+                          uint8_t seed[CTR_DRBG_SEED_LEN],
+                          uint8_t additional_input[CTR_DRBG_SEED_LEN],
                           size_t *out_additional_input_len) {
   // If not in FIPS mode, we don't overread from the system entropy source and
   // we don't depend only on the hardware RDRAND.
-  CRYPTO_sysrand_for_seed(seed, CTR_DRBG_ENTROPY_LEN);
+  CRYPTO_sysrand_for_seed(seed, CTR_DRBG_SEED_LEN);
   *out_additional_input_len = 0;
 }
 
@@ -384,13 +383,13 @@ bcm_infallible BCM_rand_bytes_with_additional_data(
     }
 
     state->last_block_valid = 0;
-    uint8_t seed[CTR_DRBG_ENTROPY_LEN];
-    uint8_t personalization[CTR_DRBG_ENTROPY_LEN] = {0};
+    uint8_t seed[CTR_DRBG_SEED_LEN];
+    uint8_t personalization[CTR_DRBG_SEED_LEN] = {0};
     size_t personalization_len = 0;
     rand_get_seed(state, seed, personalization, &personalization_len);
 
-    if (!CTR_DRBG_init(&state->drbg, seed, personalization,
-                       personalization_len)) {
+    if (!CTR_DRBG_init(&state->drbg, /*df=*/true, seed, 32u, seed + 32,
+                       personalization, personalization_len)) {
       abort();
     }
     state->calls = 0;
@@ -422,8 +421,8 @@ bcm_infallible BCM_rand_bytes_with_additional_data(
       // safety. The children must reseed to avoid working from the same PRNG
       // state.
       state->fork_unsafe_buffering != fork_unsafe_buffering) {
-    uint8_t seed[CTR_DRBG_ENTROPY_LEN];
-    uint8_t reseed_additional_data[CTR_DRBG_ENTROPY_LEN] = {0};
+    uint8_t seed[CTR_DRBG_SEED_LEN];
+    uint8_t reseed_additional_data[CTR_DRBG_SEED_LEN] = {0};
     size_t reseed_additional_data_len = 0;
     rand_get_seed(state, seed, reseed_additional_data,
                   &reseed_additional_data_len);
@@ -433,8 +432,9 @@ bcm_infallible BCM_rand_bytes_with_additional_data(
     // |rand_thread_state_clear_all|.
     CRYPTO_MUTEX_lock_read(&state->clear_drbg_lock);
 #endif
-    if (!CTR_DRBG_reseed(&state->drbg, seed, reseed_additional_data,
-                         reseed_additional_data_len)) {
+    if (!CTR_DRBG_reseed_ex(&state->drbg, seed, sizeof(seed),
+                            reseed_additional_data,
+                            reseed_additional_data_len)) {
       abort();
     }
     state->calls = 0;

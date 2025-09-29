@@ -18,6 +18,8 @@
 #include <assert.h>
 #include <string.h>
 
+#include <iterator>
+
 #include <CCryptoBoringSSL_bn.h>
 #include <CCryptoBoringSSL_err.h>
 #include <CCryptoBoringSSL_mem.h>
@@ -167,7 +169,7 @@ int ec_GFp_mont_mul_public_batch(const EC_GROUP *group, EC_JACOBIAN *r,
 
   int8_t g_wNAF[EC_MAX_BYTES * 8 + 1];
   EC_JACOBIAN g_precomp[EC_WNAF_TABLE_SIZE];
-  assert(wNAF_len <= OPENSSL_ARRAY_SIZE(g_wNAF));
+  assert(wNAF_len <= std::size(g_wNAF));
   const EC_JACOBIAN *g = &group->generator.raw;
   if (g_scalar != NULL) {
     ec_compute_wNAF(group, g_wNAF, g_scalar, bits, EC_WNAF_WINDOW_BITS);
@@ -175,7 +177,7 @@ int ec_GFp_mont_mul_public_batch(const EC_GROUP *group, EC_JACOBIAN *r,
   }
 
   for (size_t i = 0; i < num; i++) {
-    assert(wNAF_len <= OPENSSL_ARRAY_SIZE(wNAF[i]));
+    assert(wNAF_len <= std::size(wNAF[i]));
     ec_compute_wNAF(group, wNAF[i], &scalars[i], bits, EC_WNAF_WINDOW_BITS);
     compute_precomp(group, precomp[i], &points[i], EC_WNAF_TABLE_SIZE);
   }

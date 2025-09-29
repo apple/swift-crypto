@@ -129,7 +129,7 @@ static int pkey_dh_ctrl(EVP_PKEY_CTX *ctx, int type, int p1, void *p2) {
   }
 }
 
-const EVP_PKEY_METHOD dh_pkey_meth = {
+const EVP_PKEY_CTX_METHOD dh_pkey_meth = {
     /*pkey_id=*/EVP_PKEY_DH,
     /*init=*/pkey_dh_init,
     /*copy=*/pkey_dh_copy,

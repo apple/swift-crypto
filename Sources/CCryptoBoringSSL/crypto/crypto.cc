@@ -137,6 +137,8 @@ void ENGINE_load_builtin_engines(void) {}
 
 int ENGINE_register_all_complete(void) { return 1; }
 
+void ENGINE_cleanup(void) {}
+
 void OPENSSL_load_builtin_modules(void) {}
 
 int OPENSSL_init_crypto(uint64_t opts, const OPENSSL_INIT_SETTINGS *settings) {

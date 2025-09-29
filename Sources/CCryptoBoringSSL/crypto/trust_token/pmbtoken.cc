@@ -21,7 +21,7 @@
 #include <CCryptoBoringSSL_mem.h>
 #include <CCryptoBoringSSL_nid.h>
 #include <CCryptoBoringSSL_rand.h>
-#include <CCryptoBoringSSL_sha.h>
+#include <CCryptoBoringSSL_sha2.h>
 
 #include "../ec/internal.h"
 #include "../fipsmodule/bn/internal.h"
@@ -196,13 +196,13 @@ static int pmbtoken_compute_keys(const PMBTOKEN_METHOD *method,
 
   const EC_SCALAR *scalars[] = {x0, y0, x1, y1, xs, ys};
   size_t scalar_len = BN_num_bytes(EC_GROUP_get0_order(group));
-  for (size_t i = 0; i < OPENSSL_ARRAY_SIZE(scalars); i++) {
+  for (const EC_SCALAR *scalar : scalars) {
     uint8_t *buf;
     if (!CBB_add_space(out_private, &buf, scalar_len)) {
       OPENSSL_PUT_ERROR(TRUST_TOKEN, TRUST_TOKEN_R_BUFFER_TOO_SMALL);
       return 0;
     }
-    ec_scalar_to_bytes(group, buf, &scalar_len, scalars[i]);
+    ec_scalar_to_bytes(group, buf, &scalar_len, scalar);
   }
 
   EC_AFFINE pub_affine[3];
@@ -287,10 +287,9 @@ static int pmbtoken_issuer_key_from_bytes(const PMBTOKEN_METHOD *method,
   size_t scalar_len = BN_num_bytes(EC_GROUP_get0_order(group));
   EC_SCALAR *scalars[] = {&key->x0, &key->y0, &key->x1,
                           &key->y1, &key->xs, &key->ys};
-  for (size_t i = 0; i < OPENSSL_ARRAY_SIZE(scalars); i++) {
+  for (EC_SCALAR *scalar : scalars) {
     if (!CBS_get_bytes(&cbs, &tmp, scalar_len) ||
-        !ec_scalar_from_bytes(group, scalars[i], CBS_data(&tmp),
-                              CBS_len(&tmp))) {
+        !ec_scalar_from_bytes(group, scalar, CBS_data(&tmp), CBS_len(&tmp))) {
       OPENSSL_PUT_ERROR(TRUST_TOKEN, TRUST_TOKEN_R_DECODE_FAILURE);
       return 0;
     }

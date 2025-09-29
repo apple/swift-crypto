@@ -17,13 +17,15 @@
 #include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
+
+#include <iterator>
 #include <type_traits>
 
 #include <CCryptoBoringSSL_bn.h>
 #include <CCryptoBoringSSL_hmac.h>
 #include <CCryptoBoringSSL_mem.h>
 #include <CCryptoBoringSSL_rand.h>
-#include <CCryptoBoringSSL_sha.h>
+#include <CCryptoBoringSSL_sha2.h>
 
 #include "../internal.h"
 #include "internal.h"
@@ -309,7 +311,7 @@ static crypto_word_t word_reverse(crypto_word_t in) {
   };
 #endif
 
-  for (size_t i = 0; i < OPENSSL_ARRAY_SIZE(kMasks); i++) {
+  for (size_t i = 0; i < std::size(kMasks); i++) {
     in = ((in >> (1 << i)) & kMasks[i]) | ((in & kMasks[i]) << (1 << i));
   }
 
