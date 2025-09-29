@@ -98,6 +98,7 @@ add_library(Crypto
   "Signatures/MLDSA.swift"
   "Signatures/Signature.swift"
   "Util/BoringSSL/CryptoKitErrors_boring.swift"
+  "Util/BoringSSL/Optional+withUnsafeBytes_boring.swift"
   "Util/BoringSSL/RNG_boring.swift"
   "Util/BoringSSL/SafeCompare_boring.swift"
   "Util/BoringSSL/Zeroization_boring.swift"
