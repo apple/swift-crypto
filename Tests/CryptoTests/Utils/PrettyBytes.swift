@@ -11,15 +11,23 @@
 // SPDX-License-Identifier: Apache-2.0
 //
 //===----------------------------------------------------------------------===//
+#if CRYPTOKIT_NO_ACCESS_TO_FOUNDATION
+import SwiftSystem
+#else
+#if canImport(FoundationEssentials)
+import FoundationEssentials
+#else
 import Foundation
+#endif
+#endif
 
 enum ByteHexEncodingErrors: Error {
     case incorrectHexValue
     case incorrectString
 }
 
-let charA = UInt8(UnicodeScalar("a").value)
-let char0 = UInt8(UnicodeScalar("0").value)
+let charA = UInt8(97 /* "a" */)
+let char0 = UInt8(48 /* "0" */)
 
 private func itoh(_ value: UInt8) -> UInt8 {
     return (value > 9) ? (charA + value - 10) : (char0 + value)
@@ -36,6 +44,7 @@ private func htoi(_ value: UInt8) throws -> UInt8 {
     }
 }
 
+#if !hasFeature(Embedded)
 extension DataProtocol {
     var hexString: String {
         let hexLen = self.count * 2
@@ -50,16 +59,18 @@ extension DataProtocol {
             }
         }
         
-        return String(bytes: hexChars, encoding: .utf8)!
+        return String(decoding: hexChars, as: UTF8.self)
     }
 }
+#endif // !hasFeature(Embedded)
 
-extension MutableDataProtocol {
+extension RangeReplaceableCollection where Element == UInt8 {
     mutating func appendByte(_ byte: UInt64) {
-        withUnsafePointer(to: byte.littleEndian, { self.append(contentsOf: UnsafeRawBufferPointer(start: $0, count: 8)) })
+        withUnsafeBytes(of: byte.littleEndian, { self.append(contentsOf: $0) })
     }
 }
 
+#if !CRYPTOKIT_NO_ACCESS_TO_FOUNDATION
 extension Data {
     init(hexString: String) throws {
         self.init()
@@ -98,3 +109,4 @@ extension Array where Element == UInt8 {
     }
 
 }
+#endif

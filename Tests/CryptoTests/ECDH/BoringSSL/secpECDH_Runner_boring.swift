@@ -11,8 +11,13 @@
 // SPDX-License-Identifier: Apache-2.0
 //
 //===----------------------------------------------------------------------===//
-import Foundation
 import XCTest
+
+#if canImport(FoundationEssentials)
+import FoundationEssentials
+#else
+import Foundation
+#endif
 
 #if CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
 // Skip tests that require @testable imports of CryptoKit.
@@ -32,7 +37,7 @@ extension NISTECDHTests {
         group: ECDHTestGroup,
         privateKeys: PrivKey.Type,
         onCurve curve: Curve.Type,
-        file: StaticString = #file,
+        file: StaticString = #filePath,
         line: UInt = #line
     ) {
         for testVector in group.tests {
@@ -84,7 +89,7 @@ extension NISTECDHTests {
         group: ECDHTestGroup,
         privateKeys: PrivKey.Type,
         onCurve curve: Curve.Type,
-        file: StaticString = #file,
+        file: StaticString = #filePath,
         line: UInt = #line
     ) {
         for testVector in group.tests {
@@ -121,7 +126,7 @@ extension NISTECDHTests {
     private func padKeyIfNecessary<Curve: OpenSSLSupportedNISTCurve>(
         curve: Curve.Type,
         vector: String,
-        file: StaticString = #file,
+        file: StaticString = #filePath,
         line: UInt = #line
     ) throws -> [UInt8] {
         // There are a few edge cases here.

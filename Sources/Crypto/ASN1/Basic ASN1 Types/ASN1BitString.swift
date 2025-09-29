@@ -14,7 +14,16 @@
 #if CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
 @_exported import CryptoKit
 #else
+
+#if CRYPTOKIT_NO_ACCESS_TO_FOUNDATION
+import SwiftSystem
+#else
+#if canImport(FoundationEssentials)
+import FoundationEssentials
+#else
 import Foundation
+#endif
+#endif
 
 @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension ASN1 {
@@ -27,9 +36,9 @@ extension ASN1 {
 
         var bytes: ArraySlice<UInt8>
 
-        init(asn1Encoded node: ASN1.ASN1Node, withIdentifier identifier: ASN1.ASN1Identifier) throws {
+        init(asn1Encoded node: ASN1.ASN1Node, withIdentifier identifier: ASN1.ASN1Identifier) throws(CryptoKitMetaError) {
             guard node.identifier == identifier else {
-                throw CryptoKitASN1Error.unexpectedFieldType
+                throw error(CryptoKitASN1Error.unexpectedFieldType)
             }
 
             guard case .primitive(let content) = node.content else {
@@ -39,7 +48,7 @@ extension ASN1 {
             // The initial octet explains how many of the bits in the _final_ octet are not part of the bitstring.
             // The only value we support here is 0.
             guard content.first == 0 else {
-                throw CryptoKitASN1Error.invalidASN1Object
+                throw error(CryptoKitASN1Error.invalidASN1Object)
             }
 
             self.bytes = content.dropFirst()
@@ -49,8 +58,8 @@ extension ASN1 {
             self.bytes = bytes
         }
 
-        func serialize(into coder: inout ASN1.Serializer, withIdentifier identifier: ASN1.ASN1Identifier) throws {
-            coder.appendPrimitiveNode(identifier: identifier) { bytes in
+        func serialize(into coder: inout ASN1.Serializer, withIdentifier identifier: ASN1.ASN1Identifier) throws(CryptoKitMetaError) {
+            try coder.appendPrimitiveNode(identifier: identifier) { bytes in
                 bytes.append(0)
                 bytes.append(contentsOf: self.bytes)
             }
@@ -63,9 +72,15 @@ extension ASN1.ASN1BitString: Hashable { }
 
 @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension ASN1.ASN1BitString: ContiguousBytes {
+    #if hasFeature(Embedded)
+    func withUnsafeBytes<R, E: Error>(_ body: (UnsafeRawBufferPointer) throws(E) -> R) throws(E) -> R {
+        return try self.bytes.withUnsafeBytes(body)
+    }
+    #else
     func withUnsafeBytes<R>(_ body: (UnsafeRawBufferPointer) throws -> R) rethrows -> R {
         return try self.bytes.withUnsafeBytes(body)
     }
+    #endif
 }
 
 #endif // Linux or !SwiftPM

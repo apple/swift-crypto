@@ -105,7 +105,7 @@ class HMACTests: XCTestCase {
         }
     }
     
-    func testHMAC<H: HashFunction>(key: SymmetricKey, data: Data, vectors: (H.Type) throws -> String, for: H.Type, file: StaticString = #file, line: UInt = #line) throws -> Bool {
+    func testHMAC<H: HashFunction>(key: SymmetricKey, data: Data, vectors: (H.Type) throws -> String, for: H.Type, file: StaticString = #filePath, line: UInt = #line) throws -> Bool {
         let code = try orFail(file: file, line: line) { try Data(hexString: vectors(H.self)) }
         return HMAC<H>.isValidAuthenticationCode(code, authenticating: data, using: key)
     }

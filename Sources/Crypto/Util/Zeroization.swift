@@ -14,7 +14,15 @@
 #if CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
 @_exported import CryptoKit
 #else
+#if CRYPTOKIT_NO_ACCESS_TO_FOUNDATION
+import SwiftSystem
+#else
+#if canImport(FoundationEssentials)
+import FoundationEssentials
+#else
 import Foundation
+#endif
+#endif
 
 @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 protocol Zeroization {
@@ -33,7 +41,7 @@ extension UnsafeMutablePointer: Zeroization {
 @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension UnsafeMutableRawBufferPointer: Zeroization {
     func zeroize() {
-        memset_s(self.baseAddress, self.count, 0, self.count)
+        memset_s(self.baseAddress!, self.count, 0, self.count)
     }
 }
 

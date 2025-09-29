@@ -33,21 +33,13 @@ extension Insecure {
     /// that require it. For new services, prefer one of the secure hashes, like
     /// ``SHA512``.
     @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
-    public struct SHA1: HashFunctionImplementationDetails {
+    public struct SHA1: HashFunctionImplementationDetails, Sendable {
         /// The number of bytes that represents the hash function’s internal
         /// state.
-        public static var blockByteCount: Int {
-            get { 64 }
-            
-            set { fatalError("Cannot set SHA1.blockByteCount") }
-        }
+        public static let blockByteCount: Int = 64
         
         /// The number of bytes in a SHA1 digest.
-        public static var byteCount: Int {
-            get { 20 }
-            
-            set { fatalError("Cannot set SHA1.byteCount") }
-        }
+        public static let byteCount: Int = 20
         
         /// The digest type for a SHA1 hash function.
         public typealias Digest = Insecure.SHA1Digest
@@ -122,20 +114,12 @@ extension Insecure {
     /// that require it. For new services, prefer one of the secure hashes, like
     /// ``SHA512``.
     @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
-    public struct MD5: HashFunctionImplementationDetails {
+    public struct MD5: HashFunctionImplementationDetails, Sendable {
         /// The number of bytes that represents the hash function’s internal
         /// state.
-        public static var blockByteCount: Int {
-            get { 64 }
-            
-            set { fatalError("Cannot set MD5.blockByteCount") }
-        }
+        public static let blockByteCount: Int = 64
         /// The number of bytes in an MD5 digest.
-        public static var byteCount: Int {
-            get { 16 }
-            
-            set { fatalError("Cannot set MD5.byteCount") }
-        }
+        public static let byteCount: Int = 16
         
         /// The digest type for a MD5 hash function.
         public typealias Digest = Insecure.MD5Digest

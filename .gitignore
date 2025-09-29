@@ -1,5 +1,5 @@
 .DS_Store
-/.build
+.build
 /out
 /Packages
 /*.xcodeproj
@@ -12,6 +12,7 @@ Package.resolved
 DerivedData
 .swiftpm
 **/gyb.pyc
+scripts/__pycache__/
 
 .*.sw[nop]
 

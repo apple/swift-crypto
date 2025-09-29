@@ -14,7 +14,16 @@
 #if CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
 @_exported import CryptoKit
 #else
+
+#if CRYPTOKIT_NO_ACCESS_TO_FOUNDATION
+import SwiftSystem
+#else
+#if canImport(FoundationEssentials)
+import FoundationEssentials
+#else
 import Foundation
+#endif
+#endif
 
 @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension ASN1 {
@@ -59,10 +68,10 @@ extension ASN1 {
             }
         }
 
-        init(rawIdentifier: UInt8) throws {
+        init(rawIdentifier: UInt8) throws(CryptoKitMetaError) {
             // We don't support multibyte identifiers, which are signalled when the bottom 5 bits are all 1.
             guard rawIdentifier & 0x1F != 0x1F else {
-                throw CryptoKitASN1Error.invalidFieldIdentifier
+                throw error(CryptoKitASN1Error.invalidFieldIdentifier)
             }
 
             self.baseTag = rawIdentifier
@@ -141,11 +150,13 @@ extension ASN1.ASN1Identifier {
 @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension ASN1.ASN1Identifier: Hashable { }
 
+#if !hasFeature(Embedded)
 @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension ASN1.ASN1Identifier: CustomStringConvertible {
     var description: String {
         return "ASN1Identifier(\(self.baseTag))"
     }
 }
+#endif
 
 #endif // Linux or !SwiftPM
