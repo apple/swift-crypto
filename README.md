@@ -134,7 +134,7 @@ Swift Crypto 2.0.0 was released in September 2021. The only breaking change betw
 
 Swift Crypto 3.0.0 was released in September 2023. Again the only breaking change was the addition of new cases in the `CryptoError` enumeration, so most users can safely depend on the 1.0.0, 2.0.0, or 3.0.0 series of releases.
 
-Swift Crypto 4.0.0 was released in September 2025. Again the only breaking change was the addition of new cases in the `CryptoError` enumeration, so most users can safely depend on the 1.0.0, 2.0.0, 3.0.0, or 4.0.0 series of releases.
+Swift Crypto 4.0.0 was released in September 2025. Again the only breaking change was the addition of new cases in the `CryptoError` enumeration, so most users can safely depend on the 1.0.0, 2.0.0, 3.0.0, or 4.0.0 series of releases. Note that in this release `_CryptoExtras` was renamed to `CryptoExtras`. The old products and targets have been kept around for compatibility reasons, but users depending only on new code should use `CryptoExtras` not `_CryptoExtras`.
 
 To do so, please use the following dependency in your `Package.swift`:
 
