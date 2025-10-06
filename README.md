@@ -7,9 +7,9 @@ Swift Crypto is an open-source implementation of a substantial portion of the AP
 Swift Crypto is available as a Swift Package Manager package. To use it, add the following dependency in your `Package.swift`:
 
 ```swift
-// swift-crypto 1.x, 2.x and 3.x are almost API compatible, so most clients
+// swift-crypto 1.x, 2.x, 3.x, and 4.x are almost API compatible, so most clients
 // should allow any of them
-.package(url: "https://github.com/apple/swift-crypto.git", "1.0.0" ..< "4.0.0"),
+.package(url: "https://github.com/apple/swift-crypto.git", "1.0.0" ..< "5.0.0"),
 ```
 
 and to your target, add `Crypto` to your dependencies. You can then `import Crypto` to get access to Swift Crypto's functionality.
@@ -108,7 +108,7 @@ If you believe you have identified a vulnerability in Swift Crypto, please [repo
 
 ### Swift versions
 
-The most recent versions of Swift Crypto support Swift 5.7 and newer. The minimum Swift version supported by Swift Crypto releases are detailed below:
+The most recent versions of Swift Crypto support Swift 6 and newer. The minimum Swift version supported by Swift Crypto releases are detailed below:
 
 Swift Crypto        | Minimum Swift Version
 --------------------|----------------------
@@ -119,7 +119,8 @@ Swift Crypto        | Minimum Swift Version
 `3.1.0  ..< 3.3.0`  | 5.7
 `3.3.0  ..< 3.8.0`  | 5.8
 `3.9.0  ..< 3.13.0` | 5.9
-`3.13.0 ...`        | 5.10
+`3.13.0 ..< 4.0.0`  | 5.10
+`4.0.0 ...`         | 6.0 
 
 ### Compatibility
 
@@ -131,10 +132,14 @@ SemVer and Swift Crypto's Public API guarantees should result in a working progr
 
 Swift Crypto 2.0.0 was released in September 2021. The only breaking change between Swift Crypto 2.0.0 and 1.0.0 was the addition of new cases in the `CryptoError` enumeration. For most users, then, it's safe to depend on either the 1.0.0 _or_ 2.0.0 series of releases.
 
+Swift Crypto 3.0.0 was released in September 2023. Again the only breaking change was the addition of new cases in the `CryptoError` enumeration, so most users can safely depend on the 1.0.0, 2.0.0, or 3.0.0 series of releases.
+
+Swift Crypto 4.0.0 was released in September 2025. Again the only breaking change was the addition of new cases in the `CryptoError` enumeration, so most users can safely depend on the 1.0.0, 2.0.0, 3.0.0, or 4.0.0 series of releases.
+
 To do so, please use the following dependency in your `Package.swift`:
 
 ```swift
-.package(url: "https://github.com/apple/swift-crypto.git", "1.0.0" ..< "3.0.0"),
+.package(url: "https://github.com/apple/swift-crypto.git", "1.0.0" ..< "5.0.0"),
 ```
 
 ### Developing Swift Crypto on macOS
