@@ -13,13 +13,25 @@
 //===----------------------------------------------------------------------===//
 
 import Crypto
+import Foundation
 import SwiftASN1
 
 @available(iOS 14.0, macOS 11.0, watchOS 7.0, tvOS 14.0, *)
 extension Curve25519.Signing.PrivateKey {
+    /// A Distinguished Encoding Rules (DER) encoded representation of the private key.
+    public var derRepresentation: Data {
+        let pkey = ASN1.PKCS8PrivateKey(algorithm: .ed25519, privateKey: Array(self.rawRepresentation))
+        var serializer = DER.Serializer()
+
+        // Serializing this key can't throw
+        try! serializer.serialize(pkey)
+        return Data(serializer.serializedBytes)
+    }
+
     /// A Privacy-Enhanced Mail (PEM) representation of the private key.
     public var pemRepresentation: String {
-        ASN1.PEMDocument(type: "PRIVATE KEY", derBytes: self.pkcs8DERRepresentation).pemString
+        let pemDocument = ASN1.PEMDocument(type: "PRIVATE KEY", derBytes: self.derRepresentation)
+        return pemDocument.pemString
     }
 
     /// Creates a Curve25519 private key for signing from a Privacy-Enhanced Mail
@@ -29,24 +41,39 @@ extension Curve25519.Signing.PrivateKey {
     ///   - pemRepresentation: A PEM representation of the key.
     public init(pemRepresentation: String) throws {
         let document = try PEMDocument(pemString: pemRepresentation)
-        let pkcs8Key = try ASN1.PKCS8PrivateKey(derEncoded: document.derBytes)
-        self = try .init(rawRepresentation: pkcs8Key.privateKey.bytes)
+        self = try .init(derRepresentation: document.derBytes)
+    }
+
+    /// Creates a Curve25519 private key for signing from a Distinguished Encoding
+    /// Rules (DER) encoded representation.
+    ///
+    /// - Parameters:
+    ///   - derRepresentation: A DER-encoded representation of the key.
+    public init<Bytes: RandomAccessCollection>(derRepresentation: Bytes) throws where Bytes.Element == UInt8 {
+        let bytes = Array(derRepresentation)
+        let key = try ASN1.PKCS8PrivateKey(derEncoded: bytes)
+        self = try .init(rawRepresentation: key.privateKey.bytes)
     }
 }
 
 @available(iOS 14.0, macOS 11.0, watchOS 7.0, tvOS 14.0, *)
 extension Curve25519.Signing.PublicKey {
-    /// A Privacy-Enhanced Mail (PEM) representation of the public key.
-    public var pemRepresentation: String {
+    /// A Distinguished Encoding Rules (DER) encoded representation of the public key.
+    public var derRepresentation: Data {
         let spki = SubjectPublicKeyInfo(
             algorithmIdentifier: .init(algorithm: .AlgorithmIdentifier.idEd25519, parameters: nil),
             key: Array(self.rawRepresentation)
         )
-
         var serializer = DER.Serializer()
-        try! serializer.serialize(spki)
 
-        return PEMDocument(type: "PUBLIC KEY", derBytes: serializer.serializedBytes).pemString
+        try! serializer.serialize(spki)
+        return Data(serializer.serializedBytes)
+    }
+
+    /// A Privacy-Enhanced Mail (PEM) representation of the public key.
+    public var pemRepresentation: String {
+        let pemDocument = ASN1.PEMDocument(type: "PUBLIC KEY", derBytes: self.derRepresentation)
+        return pemDocument.pemString
     }
 
     /// Creates a Curve25519 public key for signing from a Privacy-Enhanced Mail
@@ -56,7 +83,17 @@ extension Curve25519.Signing.PublicKey {
     ///   - pemRepresentation: A PEM representation of the key.
     public init(pemRepresentation: String) throws {
         let document = try PEMDocument(pemString: pemRepresentation)
-        let spki = try SubjectPublicKeyInfo(derEncoded: document.derBytes)
+        self = try .init(derRepresentation: document.derBytes)
+    }
+
+    /// Creates a Curve25519 public key for signing from a Distinguished Encoding
+    /// Rules (DER) encoded representation.
+    ///
+    /// - Parameters:
+    ///   - derRepresentation: A DER-encoded representation of the key.
+    public init<Bytes: RandomAccessCollection>(derRepresentation: Bytes) throws where Bytes.Element == UInt8 {
+        let bytes = Array(derRepresentation)
+        let spki = try SubjectPublicKeyInfo(derEncoded: bytes)
         guard spki.algorithmIdentifier.algorithm == .AlgorithmIdentifier.idEd25519 else {
             throw CryptoKitASN1Error.invalidPEMDocument
         }
@@ -66,6 +103,16 @@ extension Curve25519.Signing.PublicKey {
 
 @available(iOS 14.0, macOS 11.0, watchOS 7.0, tvOS 14.0, *)
 extension Curve25519.KeyAgreement.PrivateKey {
+    /// A Distinguished Encoding Rules (DER) encoded representation of the private key.
+    public var derRepresentation: Data {
+        let pkey = ASN1.PKCS8PrivateKey(algorithm: .x25519, privateKey: Array(self.rawRepresentation))
+        var serializer = DER.Serializer()
+
+        // Serializing this key can't throw
+        try! serializer.serialize(pkey)
+        return Data(serializer.serializedBytes)
+    }
+
     /// A Privacy-Enhanced Mail (PEM) representation of the private key.
     public var pemRepresentation: String {
         ASN1.PEMDocument(type: "PRIVATE KEY", derBytes: self.pkcs8DERRepresentation).pemString
@@ -78,13 +125,36 @@ extension Curve25519.KeyAgreement.PrivateKey {
     ///   - pemRepresentation: A PEM representation of the key.
     public init(pemRepresentation: String) throws {
         let document = try PEMDocument(pemString: pemRepresentation)
-        let pkcs8Key = try ASN1.PKCS8PrivateKey(derEncoded: document.derBytes)
-        self = try .init(rawRepresentation: pkcs8Key.privateKey.bytes)
+        self = try .init(derRepresentation: document.derBytes)
+    }
+
+    /// Creates a Curve25519 private key for key agreement from a Distinguished Encoding
+    /// Rules (DER) encoded representation.
+    ///
+    /// - Parameters:
+    ///   - derRepresentation: A DER-encoded representation of the key.
+    public init<Bytes: RandomAccessCollection>(derRepresentation: Bytes) throws where Bytes.Element == UInt8 {
+        let bytes = Array(derRepresentation)
+        let key = try ASN1.PKCS8PrivateKey(derEncoded: bytes)
+        self = try .init(rawRepresentation: key.privateKey.bytes)
     }
 }
 
 @available(iOS 14.0, macOS 11.0, watchOS 7.0, tvOS 14.0, *)
 extension Curve25519.KeyAgreement.PublicKey {
+    /// A Distinguished Encoding Rules (DER) encoded representation of the public key.
+    public var derRepresentation: Data {
+        // KeyAgreement public keys use the X25519 OID.
+        let spki = SubjectPublicKeyInfo(
+            algorithmIdentifier: .init(algorithm: .AlgorithmIdentifier.idX25519, parameters: nil),
+            key: Array(self.rawRepresentation)
+        )
+        var serializer = DER.Serializer()
+
+        try! serializer.serialize(spki)
+        return Data(serializer.serializedBytes)
+    }
+
     /// A Privacy-Enhanced Mail (PEM) representation of the public key.
     public var pemRepresentation: String {
         let spki = SubjectPublicKeyInfo(
@@ -105,7 +175,17 @@ extension Curve25519.KeyAgreement.PublicKey {
     ///   - pemRepresentation: A PEM representation of the key.
     public init(pemRepresentation: String) throws {
         let document = try PEMDocument(pemString: pemRepresentation)
-        let spki = try SubjectPublicKeyInfo(derEncoded: document.derBytes)
+        self = try .init(derRepresentation: document.derBytes)
+    }
+
+    /// Creates a Curve25519 public key for key agreement from a Distinguished Encoding
+    /// Rules (DER) encoded representation.
+    ///
+    /// - Parameters:
+    ///   - derRepresentation: A DER-encoded representation of the key.
+    public init<Bytes: RandomAccessCollection>(derRepresentation: Bytes) throws where Bytes.Element == UInt8 {
+        let bytes = Array(derRepresentation)
+        let spki = try SubjectPublicKeyInfo(derEncoded: bytes)
         guard spki.algorithmIdentifier.algorithm == .AlgorithmIdentifier.idX25519 else {
             throw CryptoKitASN1Error.invalidPEMDocument
         }
