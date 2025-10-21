@@ -23,7 +23,6 @@ extension Curve25519.Signing.PrivateKey {
         let pkey = ASN1.PKCS8PrivateKey(algorithm: .ed25519, privateKey: Array(self.rawRepresentation))
         var serializer = DER.Serializer()
 
-        // Serializing this key can't throw
         try! serializer.serialize(pkey)
         return Data(serializer.serializedBytes)
     }
@@ -40,7 +39,7 @@ extension Curve25519.Signing.PrivateKey {
     /// - Parameters:
     ///   - pemRepresentation: A PEM representation of the key.
     public init(pemRepresentation: String) throws {
-        let document = try PEMDocument(pemString: pemRepresentation)
+        let document = try ASN1.PEMDocument(pemString: pemRepresentation)
         self = try .init(derRepresentation: document.derBytes)
     }
 
@@ -60,10 +59,7 @@ extension Curve25519.Signing.PrivateKey {
 extension Curve25519.Signing.PublicKey {
     /// A Distinguished Encoding Rules (DER) encoded representation of the public key.
     public var derRepresentation: Data {
-        let spki = SubjectPublicKeyInfo(
-            algorithmIdentifier: .init(algorithm: .AlgorithmIdentifier.idEd25519, parameters: nil),
-            key: Array(self.rawRepresentation)
-        )
+        let spki = SubjectPublicKeyInfo(algorithmIdentifier: .ed25519, key: Array(self.rawRepresentation))
         var serializer = DER.Serializer()
 
         try! serializer.serialize(spki)
@@ -82,7 +78,7 @@ extension Curve25519.Signing.PublicKey {
     /// - Parameters:
     ///   - pemRepresentation: A PEM representation of the key.
     public init(pemRepresentation: String) throws {
-        let document = try PEMDocument(pemString: pemRepresentation)
+        let document = try ASN1.PEMDocument(pemString: pemRepresentation)
         self = try .init(derRepresentation: document.derBytes)
     }
 
@@ -94,8 +90,8 @@ extension Curve25519.Signing.PublicKey {
     public init<Bytes: RandomAccessCollection>(derRepresentation: Bytes) throws where Bytes.Element == UInt8 {
         let bytes = Array(derRepresentation)
         let spki = try SubjectPublicKeyInfo(derEncoded: bytes)
-        guard spki.algorithmIdentifier.algorithm == .AlgorithmIdentifier.idEd25519 else {
-            throw CryptoKitASN1Error.invalidPEMDocument
+        guard spki.algorithmIdentifier == .ed25519 else {
+            throw CryptoKitASN1Error.invalidASN1Object
         }
         self = try .init(rawRepresentation: spki.key.bytes)
     }
@@ -115,7 +111,8 @@ extension Curve25519.KeyAgreement.PrivateKey {
 
     /// A Privacy-Enhanced Mail (PEM) representation of the private key.
     public var pemRepresentation: String {
-        ASN1.PEMDocument(type: "PRIVATE KEY", derBytes: self.derRepresentation).pemString
+        let pemDocument = ASN1.PEMDocument(type: "PRIVATE KEY", derBytes: self.derRepresentation)
+        return pemDocument.pemString
     }
 
     /// Creates a Curve25519 private key for key agreement from a Privacy-Enhanced Mail
@@ -124,7 +121,7 @@ extension Curve25519.KeyAgreement.PrivateKey {
     /// - Parameters:
     ///   - pemRepresentation: A PEM representation of the key.
     public init(pemRepresentation: String) throws {
-        let document = try PEMDocument(pemString: pemRepresentation)
+        let document = try ASN1.PEMDocument(pemString: pemRepresentation)
         self = try .init(derRepresentation: document.derBytes)
     }
 
@@ -144,11 +141,7 @@ extension Curve25519.KeyAgreement.PrivateKey {
 extension Curve25519.KeyAgreement.PublicKey {
     /// A Distinguished Encoding Rules (DER) encoded representation of the public key.
     public var derRepresentation: Data {
-        // KeyAgreement public keys use the X25519 OID.
-        let spki = SubjectPublicKeyInfo(
-            algorithmIdentifier: .init(algorithm: .AlgorithmIdentifier.idX25519, parameters: nil),
-            key: Array(self.rawRepresentation)
-        )
+        let spki = SubjectPublicKeyInfo(algorithmIdentifier: .x25519, key: Array(self.rawRepresentation))
         var serializer = DER.Serializer()
 
         try! serializer.serialize(spki)
@@ -157,15 +150,8 @@ extension Curve25519.KeyAgreement.PublicKey {
 
     /// A Privacy-Enhanced Mail (PEM) representation of the public key.
     public var pemRepresentation: String {
-        let spki = SubjectPublicKeyInfo(
-            algorithmIdentifier: .init(algorithm: .AlgorithmIdentifier.idX25519, parameters: nil),
-            key: Array(self.rawRepresentation)
-        )
-
-        var serializer = DER.Serializer()
-        try! serializer.serialize(spki)
-
-        return PEMDocument(type: "PUBLIC KEY", derBytes: serializer.serializedBytes).pemString
+        let pemDocument = ASN1.PEMDocument(type: "PUBLIC KEY", derBytes: self.derRepresentation)
+        return pemDocument.pemString
     }
 
     /// Creates a Curve25519 public key for key agreement from a Privacy-Enhanced Mail
@@ -174,7 +160,7 @@ extension Curve25519.KeyAgreement.PublicKey {
     /// - Parameters:
     ///   - pemRepresentation: A PEM representation of the key.
     public init(pemRepresentation: String) throws {
-        let document = try PEMDocument(pemString: pemRepresentation)
+        let document = try ASN1.PEMDocument(pemString: pemRepresentation)
         self = try .init(derRepresentation: document.derBytes)
     }
 
@@ -186,8 +172,8 @@ extension Curve25519.KeyAgreement.PublicKey {
     public init<Bytes: RandomAccessCollection>(derRepresentation: Bytes) throws where Bytes.Element == UInt8 {
         let bytes = Array(derRepresentation)
         let spki = try SubjectPublicKeyInfo(derEncoded: bytes)
-        guard spki.algorithmIdentifier.algorithm == .AlgorithmIdentifier.idX25519 else {
-            throw CryptoKitASN1Error.invalidPEMDocument
+        guard spki.algorithmIdentifier == .x25519 else {
+            throw CryptoKitASN1Error.invalidASN1Object
         }
         self = try .init(rawRepresentation: spki.key.bytes)
     }
