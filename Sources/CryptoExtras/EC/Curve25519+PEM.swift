@@ -115,7 +115,7 @@ extension Curve25519.KeyAgreement.PrivateKey {
 
     /// A Privacy-Enhanced Mail (PEM) representation of the private key.
     public var pemRepresentation: String {
-        ASN1.PEMDocument(type: "PRIVATE KEY", derBytes: self.pkcs8DERRepresentation).pemString
+        ASN1.PEMDocument(type: "PRIVATE KEY", derBytes: self.derRepresentation).pemString
     }
 
     /// Creates a Curve25519 private key for key agreement from a Privacy-Enhanced Mail
