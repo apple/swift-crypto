@@ -125,3 +125,10 @@ extension SubjectPublicKeyInfo {
         return serializer.serializedBytes
     }
 }
+
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
+extension RFC5480AlgorithmIdentifier {
+    static let ed25519 = RFC5480AlgorithmIdentifier(algorithm: .AlgorithmIdentifier.idEd25519, parameters: nil)
+
+    static let x25519 = RFC5480AlgorithmIdentifier(algorithm: .AlgorithmIdentifier.idX25519, parameters: nil)
+}
