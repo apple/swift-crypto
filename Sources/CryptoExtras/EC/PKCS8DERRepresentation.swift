@@ -20,12 +20,7 @@ import SwiftASN1
 extension Curve25519.Signing.PrivateKey {
     /// A Distinguished Encoding Rules (DER) encoded representation of the private key in PKCS#8 format.
     public var pkcs8DERRepresentation: Data {
-        let pkey = ASN1.PKCS8PrivateKey(algorithm: .ed25519, privateKey: Array(self.rawRepresentation))
-        var serializer = DER.Serializer()
-
-        // Serializing this key can't throw
-        try! serializer.serialize(pkey)
-        return Data(serializer.serializedBytes)
+        self.derRepresentation
     }
 }
 
@@ -33,12 +28,7 @@ extension Curve25519.Signing.PrivateKey {
 extension Curve25519.KeyAgreement.PrivateKey {
     /// A Distinguished Encoding Rules (DER) encoded representation of the private key in PKCS#8 format.
     public var pkcs8DERRepresentation: Data {
-        let pkey = ASN1.PKCS8PrivateKey(algorithm: .x25519, privateKey: Array(self.rawRepresentation))
-        var serializer = DER.Serializer()
-
-        // Serializing this key can't throw
-        try! serializer.serialize(pkey)
-        return Data(serializer.serializedBytes)
+        self.derRepresentation
     }
 }
 
