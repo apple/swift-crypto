@@ -383,4 +383,49 @@ final class MLDSAExternalMuTests: XCTestCase {
         let muSignature = try key.signature(forPrehashedMessageRepresentative: mu)
         XCTAssertTrue(publicKey.isValidSignature(muSignature, for: message, context: context))
     }
+
+    func testMLDSA44PrehashedSigning() throws {
+        let message = "Hello, world!".data(using: .utf8)!
+        let context = "ctx".data(using: .utf8)!
+
+        let key = try MLDSA44.PrivateKey()
+        let publicKey = key.publicKey
+
+        let mu = try publicKey.prehash(for: message, context: context)
+
+        let muSignature = try key.signature(forPrehashedMessageRepresentative: mu)
+        XCTAssertTrue(publicKey.isValidSignature(muSignature, for: message, context: context))
+    }
+}
+
+@available(macOS 26.0, iOS 26.0, watchOS 26.0, tvOS 26.0, macCatalyst 26.0, visionOS 26.0, *)
+final class MLDSA44Tests: XCTestCase {
+    func testMLDSA44() throws {
+        let privateKey = try MLDSA44.PrivateKey()
+        let publicKey = privateKey.publicKey
+
+        // Test Public Key Serialization
+        try XCTAssert(publicKey.rawRepresentation == MLDSA44.PublicKey(rawRepresentation: publicKey.rawRepresentation).rawRepresentation)
+
+        // Test Private Key serialization
+        try XCTAssert(privateKey.seedRepresentation == MLDSA44.PrivateKey(seedRepresentation: privateKey.seedRepresentation, publicKey: publicKey).seedRepresentation)
+        try XCTAssert(privateKey.integrityCheckedRepresentation == MLDSA44.PrivateKey(integrityCheckedRepresentation: privateKey.integrityCheckedRepresentation).integrityCheckedRepresentation)
+
+        // Test signing without a context
+        let message = Data("ML-DSA test message".utf8)
+        let signature = try privateKey.signature(for: message)
+        XCTAssertNotNil(signature)
+        let isValid = publicKey.isValidSignature(signature, for: message)
+        XCTAssertTrue(isValid)
+
+        // Test signing with a context
+        let context = Data("ML-DSA test context".utf8)
+        let signatureWithContext = try privateKey.signature(for: message, context: context)
+        let isValidWithContext = publicKey.isValidSignature(signatureWithContext, for: message, context: context)
+        XCTAssertTrue(isValidWithContext)
+
+        // Check that invalid signatures (mismatching contexts) fail
+        XCTAssertFalse(publicKey.isValidSignature(signature, for: message, context: context))
+        XCTAssertFalse(publicKey.isValidSignature(signatureWithContext, for: message))
+    }
 }

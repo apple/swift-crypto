@@ -47,6 +47,7 @@ add_library(CryptoExtras
   "Key Derivation/Scrypt/BoringSSL/Scrypt_boring.swift"
   "Key Derivation/Scrypt/Scrypt.swift"
   "MLDSA/MLDSA+externalMu.swift"
+  "MLDSA/MLDSA44.swift"
   "OPRFs/OPRF.swift"
   "OPRFs/OPRFClient.swift"
   "OPRFs/OPRFServer.swift"

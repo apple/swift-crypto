@@ -24,7 +24,7 @@ import Foundation
 // any edits of this file WILL be overwritten and thus discarded
 // see section `gyb` in `README` for details.
 %{
-    parameter_sets = ["65", "87"]
+    parameter_sets = ["65", "87", "44"]
 }%
 % for parameter_set in parameter_sets:
 
