@@ -210,39 +210,6 @@ final class MLDSATests: XCTestCase {
         }
     }
 
-    private struct NISTKeyGenTestVector: Decodable {
-        let seed: String
-        let pub: String
-        let priv: String
-    }
-
-    private struct NISTTestFile<Vector: Decodable>: Decodable {
-        let testVectors: [Vector]
-    }
-
-    @available(iOS 19.0, macOS 16.0, watchOS 12.0, tvOS 19.0, visionOS 3.0, *)
-    private func nistTest<Vector: Decodable>(
-        jsonName: String,
-        file: StaticString = #filePath,
-        line: UInt = #line,
-        testFunction: (Vector) throws -> Void
-    ) throws {
-        var fileURL = URL(fileURLWithPath: "\(#filePath)")
-        for _ in 0..<2 {
-            fileURL.deleteLastPathComponent()
-        }
-        fileURL = fileURL.appendingPathComponent("CryptoExtrasVectors", isDirectory: true)
-        fileURL = fileURL.appendingPathComponent("\(jsonName).json", isDirectory: false)
-
-        let data = try Data(contentsOf: fileURL)
-
-        let testFile = try JSONDecoder().decode(NISTTestFile<Vector>.self, from: data)
-
-        for vector in testFile.testVectors {
-            try testFunction(vector)
-        }
-    }
-
     func testMLDSA65WycheproofVerifyFile() throws {
         guard #available(iOS 19.0, macOS 16.0, watchOS 12.0, tvOS 19.0, visionOS 3.0, *) else {
             throw XCTSkip("MLDSA is only available on iOS 19.0+, macOS 16.0+, watchOS 12.0+, tvOS 19.0+, visionOS 3.0+")
@@ -405,11 +372,22 @@ final class MLDSA44Tests: XCTestCase {
         let publicKey = privateKey.publicKey
 
         // Test Public Key Serialization
-        try XCTAssert(publicKey.rawRepresentation == MLDSA44.PublicKey(rawRepresentation: publicKey.rawRepresentation).rawRepresentation)
+        try XCTAssert(
+            publicKey.rawRepresentation
+                == MLDSA44.PublicKey(rawRepresentation: publicKey.rawRepresentation).rawRepresentation
+        )
 
         // Test Private Key serialization
-        try XCTAssert(privateKey.seedRepresentation == MLDSA44.PrivateKey(seedRepresentation: privateKey.seedRepresentation, publicKey: publicKey).seedRepresentation)
-        try XCTAssert(privateKey.integrityCheckedRepresentation == MLDSA44.PrivateKey(integrityCheckedRepresentation: privateKey.integrityCheckedRepresentation).integrityCheckedRepresentation)
+        try XCTAssert(
+            privateKey.seedRepresentation
+                == MLDSA44.PrivateKey(seedRepresentation: privateKey.seedRepresentation, publicKey: publicKey)
+                .seedRepresentation
+        )
+        try XCTAssert(
+            privateKey.integrityCheckedRepresentation
+                == MLDSA44.PrivateKey(integrityCheckedRepresentation: privateKey.integrityCheckedRepresentation)
+                .integrityCheckedRepresentation
+        )
 
         // Test signing without a context
         let message = Data("ML-DSA test message".utf8)
@@ -427,5 +405,48 @@ final class MLDSA44Tests: XCTestCase {
         // Check that invalid signatures (mismatching contexts) fail
         XCTAssertFalse(publicKey.isValidSignature(signature, for: message, context: context))
         XCTAssertFalse(publicKey.isValidSignature(signatureWithContext, for: message))
+    }
+
+    func testMLDSA44NISTKeyGenFile() throws {
+        try nistTest(jsonName: "mldsa_nist_keygen_44_tests") { (testVector: NISTKeyGenTestVector) in
+            let seed = try Data(hexString: testVector.seed)
+            let publicKey = try MLDSA44.PublicKey(rawRepresentation: Data(hexString: testVector.pub))
+
+            let expectedkey = try MLDSA44.PrivateKey(seedRepresentation: seed, publicKey: nil).publicKey
+            XCTAssertEqual(publicKey.rawRepresentation, expectedkey.rawRepresentation)
+        }
+    }
+}
+
+private struct NISTKeyGenTestVector: Decodable {
+    let seed: String
+    let pub: String
+    let priv: String
+}
+
+private struct NISTTestFile<Vector: Decodable>: Decodable {
+    let testVectors: [Vector]
+}
+
+@available(iOS 19.0, macOS 16.0, watchOS 12.0, tvOS 19.0, visionOS 3.0, *)
+private func nistTest<Vector: Decodable>(
+    jsonName: String,
+    file: StaticString = #filePath,
+    line: UInt = #line,
+    testFunction: (Vector) throws -> Void
+) throws {
+    var fileURL = URL(fileURLWithPath: "\(#filePath)")
+    for _ in 0..<2 {
+        fileURL.deleteLastPathComponent()
+    }
+    fileURL = fileURL.appendingPathComponent("CryptoExtrasVectors", isDirectory: true)
+    fileURL = fileURL.appendingPathComponent("\(jsonName).json", isDirectory: false)
+
+    let data = try Data(contentsOf: fileURL)
+
+    let testFile = try JSONDecoder().decode(NISTTestFile<Vector>.self, from: data)
+
+    for vector in testFile.testVectors {
+        try testFunction(vector)
     }
 }
