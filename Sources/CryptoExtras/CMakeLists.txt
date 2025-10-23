@@ -33,6 +33,7 @@ add_library(CryptoExtras
   "ARC/ARCServer.swift"
   "ChaCha20CTR/BoringSSL/ChaCha20CTR_boring.swift"
   "ChaCha20CTR/ChaCha20CTR.swift"
+  "EC/Curve25519+PEM.swift"
   "EC/ObjectIdentifier.swift"
   "EC/PKCS8DERRepresentation.swift"
   "EC/PKCS8PrivateKey.swift"
