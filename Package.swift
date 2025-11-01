@@ -1,4 +1,4 @@
-// swift-tools-version:6.0
+// swift-tools-version:6.1
 //===----------------------------------------------------------------------===//
 //
 // This source file is part of the SwiftCrypto open source project
@@ -62,14 +62,14 @@ if development || isFreeBSD {
     ]
     swiftSettings = [
         .define("CRYPTO_IN_SWIFTPM"),
-        .define("CRYPTO_IN_SWIFTPM_FORCE_BUILD_API", .when(platforms: platforms)),
+        .define("CRYPTO_IN_SWIFTPM_FORCE_BUILD_API", .when(platforms: platforms, traits: ["FORCE_BUILD_SWIFT_CRYPTO_API"])),
     ]
     dependencies = [
-        .target(name: "CCryptoBoringSSL", condition: .when(platforms: platforms)),
-        .target(name: "CCryptoBoringSSLShims", condition: .when(platforms: platforms)),
-        .target(name: "CryptoBoringWrapper", condition: .when(platforms: platforms)),
-        .target(name: "CXKCP", condition: .when(platforms: platforms)),
-        .target(name: "CXKCPShims", condition: .when(platforms: platforms)),
+        .target(name: "CCryptoBoringSSL", condition: .when(platforms: platforms, traits: ["FORCE_BUILD_SWIFT_CRYPTO_API"])),
+        .target(name: "CCryptoBoringSSLShims", condition: .when(platforms: platforms, traits: ["FORCE_BUILD_SWIFT_CRYPTO_API"])),
+        .target(name: "CryptoBoringWrapper", condition: .when(platforms: platforms, traits: ["FORCE_BUILD_SWIFT_CRYPTO_API"])),
+        .target(name: "CXKCP", condition: .when(platforms: platforms, traits: ["FORCE_BUILD_SWIFT_CRYPTO_API"])),
+        .target(name: "CXKCPShims", condition: .when(platforms: platforms, traits: ["FORCE_BUILD_SWIFT_CRYPTO_API"])),
     ]
 }
 
@@ -96,6 +96,7 @@ let package = Package(
             .library(name: "CCryptoBoringSSL", type: .static, targets: ["CCryptoBoringSSL"]),
             MANGLE_END */
     ],
+    traits: [.trait(name: "FORCE_BUILD_SWIFT_CRYPTO_API")],
     dependencies: [
         // Dependencies are added below so that they can be switched between local and absolute URLs
     ],
