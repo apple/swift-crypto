@@ -53,6 +53,7 @@ if development || isFreeBSD {
         "CXKCPShims",
     ]
 } else {
+#if !canImport(Darwin)
     let platforms: [Platform] = [
         Platform.linux,
         Platform.android,
@@ -62,15 +63,28 @@ if development || isFreeBSD {
     ]
     swiftSettings = [
         .define("CRYPTO_IN_SWIFTPM"),
-        .define("CRYPTO_IN_SWIFTPM_FORCE_BUILD_API", .when(platforms: platforms, traits: ["FORCE_BUILD_SWIFT_CRYPTO_API"])),
+        .define("CRYPTO_IN_SWIFTPM_FORCE_BUILD_API", .when(platforms: platforms)),
     ]
     dependencies = [
-        .target(name: "CCryptoBoringSSL", condition: .when(platforms: platforms, traits: ["FORCE_BUILD_SWIFT_CRYPTO_API"])),
-        .target(name: "CCryptoBoringSSLShims", condition: .when(platforms: platforms, traits: ["FORCE_BUILD_SWIFT_CRYPTO_API"])),
-        .target(name: "CryptoBoringWrapper", condition: .when(platforms: platforms, traits: ["FORCE_BUILD_SWIFT_CRYPTO_API"])),
-        .target(name: "CXKCP", condition: .when(platforms: platforms, traits: ["FORCE_BUILD_SWIFT_CRYPTO_API"])),
-        .target(name: "CXKCPShims", condition: .when(platforms: platforms, traits: ["FORCE_BUILD_SWIFT_CRYPTO_API"])),
+        .target(name: "CCryptoBoringSSL", condition: .when(platforms: platforms)),
+        .target(name: "CCryptoBoringSSLShims", condition: .when(platforms: platforms)),
+        .target(name: "CryptoBoringWrapper", condition: .when(platforms: platforms)),
+        .target(name: "CXKCP", condition: .when(platforms: platforms)),
+        .target(name: "CXKCPShims", condition: .when(platforms: platforms)),
     ]
+#else
+    swiftSettings = [
+        .define("CRYPTO_IN_SWIFTPM"),
+        .define("CRYPTO_IN_SWIFTPM_FORCE_BUILD_API", .when(traits: ["FORCE_BUILD_SWIFT_CRYPTO_API"])),
+    ]
+    dependencies = [
+        .target(name: "CCryptoBoringSSL", condition: .when(traits: ["FORCE_BUILD_SWIFT_CRYPTO_API"])),
+        .target(name: "CCryptoBoringSSLShims", condition: .when(traits: ["FORCE_BUILD_SWIFT_CRYPTO_API"])),
+        .target(name: "CryptoBoringWrapper", condition: .when(traits: ["FORCE_BUILD_SWIFT_CRYPTO_API"])),
+        .target(name: "CXKCP", condition: .when(traits: ["FORCE_BUILD_SWIFT_CRYPTO_API"])),
+        .target(name: "CXKCPShims", condition: .when(traits: ["FORCE_BUILD_SWIFT_CRYPTO_API"])),
+    ]
+#endif
 }
 
 // This doesn't work when cross-compiling: the privacy manifest will be included in the Bundle and
