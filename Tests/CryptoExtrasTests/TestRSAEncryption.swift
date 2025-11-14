@@ -140,6 +140,35 @@ final class TestRSAEncryption: XCTestCase {
             XCTAssertEqual(primitives.publicExponent, e)
         }
     }
+
+    func testMaximumEncryptSize() throws {
+        let pemRepresentation1024 = """
+            -----BEGIN PUBLIC KEY-----
+            MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQCTLbu1QZhtXWKCHOjavP5NUCwJ
+            5DwjoMKGlEM/PQOMiY+wup8R1kCOHV6g+FvJ86laHJc0gqwFf1U51YxtQFy7cGV4
+            W2zJeTkqadO2fvTCjbZU+Oa78iVtTynq5h4yRWrTmveyzInhdVpi075Ql2hpGuET
+            H1qYVxqaDIJEHyETDQIDAQAB
+            -----END PUBLIC KEY-----
+            """
+        let pubKey1024 = try _RSA.Encryption.PublicKey(unsafePEMRepresentation: pemRepresentation1024)
+        XCTAssertEqual(86, pubKey1024.maximumEncryptSize(with: .PKCS1_OAEP))
+        XCTAssertEqual(62, pubKey1024.maximumEncryptSize(with: .PKCS1_OAEP_SHA256))
+
+        let pemRepresentation2048 = """
+            -----BEGIN PUBLIC KEY-----
+            MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAx8IRKcs5FrHlWye2lfwc
+            Hr0Pi8g5iZhGMOOwmyIVsNULAvUIGZlIw38NNqebH3eF6ZxPiSRpwPwIs6QRcH5/
+            IwbHkUc0KdBbUwXDrLs0w00I7Flu5RP7IEfkOZdDGEWFY1pA3H1HaogxKFc5k3mM
+            s7pW6oty1eP4O7aVa/Pp363Vba7EZ2nru9lz4Ta+JU8UIHbpoddMGikGEKHrQ/Ge
+            n9RMNzSIy/e7TgTwC39GKn8fwN6VfcdNjvIhJrFNha/ORNArpzup7FUUauGLKt3a
+            jgsIjrAPBp63+Sy7+aFVoGTvI7DCkZ/Wv3JCFRuTAdYOa0A1xiqhTb1pcypvrd2T
+            ZQIDAQAB
+            -----END PUBLIC KEY-----
+            """
+        let pubKey2048 = try _RSA.Encryption.PublicKey(pemRepresentation: pemRepresentation2048)
+        XCTAssertEqual(214, pubKey2048.maximumEncryptSize(with: .PKCS1_OAEP))
+        XCTAssertEqual(190, pubKey2048.maximumEncryptSize(with: .PKCS1_OAEP_SHA256))
+    }
 }
 
 struct RSAEncryptionOAEPTestGroup: Codable {
