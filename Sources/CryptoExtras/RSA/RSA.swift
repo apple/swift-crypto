@@ -508,7 +508,7 @@ extension _RSA.Encryption {
         /// - Warning: Key sizes less than 2048 are not recommended and should only be used for compatibility reasons.
         public init(unsafePEMRepresentation pemRepresentation: String) throws {
             self.backing = try BackingPublicKey(pemRepresentation: pemRepresentation)
-            guard self.keySizeInBits >= 2048, self.keySizeInBits % 8 == 0 else { throw CryptoKitError.incorrectParameterSize }
+            guard self.keySizeInBits >= 1024, self.keySizeInBits % 8 == 0 else { throw CryptoKitError.incorrectParameterSize }
         }
 
         /// Construct an RSA public key from a DER representation.
@@ -675,6 +675,14 @@ extension _RSA.Encryption {
     internal enum Digest {
         case sha1
         case sha256
+
+        /// Returns the number of bits in the resulting hash
+        var hashBitLength: Int {
+            switch self {
+            case .sha1: return 160
+            case .sha256: return 256
+            }
+        }
     }
 }
 
@@ -694,7 +702,7 @@ extension _RSA.Encryption.PublicKey {
     /// Return the maximum amount of data in bytes this key can encrypt in a single operation when using
     /// the specified padding mode.
     ///
-    /// ## Common values:
+    /// ## Common values (for PKCS1 OAEP SHA1):
     ///
     /// Key size|Padding|Max length
     /// -|-|-
@@ -703,8 +711,9 @@ extension _RSA.Encryption.PublicKey {
     /// 4096|PKCS-OAEP|470 bytes
     public func maximumEncryptSize(with padding: _RSA.Encryption.Padding) -> Int {
         switch padding.backing {
-        case .pkcs1_oaep:
-            return (self.keySizeInBits / 8) - 42
+        case let .pkcs1_oaep(Digest):
+            // https://datatracker.ietf.org/doc/html/rfc8017#section-7.1.1
+            return (self.keySizeInBits / 8) - (2 * Digest.hashBitLength / 8) - 2
         }
     }
     
