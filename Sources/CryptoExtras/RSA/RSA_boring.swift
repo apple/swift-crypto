@@ -418,6 +418,8 @@ extension BoringSSLRSAPublicKey {
                     CCryptoBoringSSL_EVP_PKEY_encrypt_init(ctx)
 
                     switch padding.backing {
+                    case ._weakAndInsecure_pkcs1v1_5:
+                        CCryptoBoringSSL_EVP_PKEY_CTX_set_rsa_padding(ctx, RSA_PKCS1_PADDING)
                     case let .pkcs1_oaep(digest):
                         CCryptoBoringSSL_EVP_PKEY_CTX_set_rsa_padding(ctx, RSA_PKCS1_OAEP_PADDING)
                         switch digest {
@@ -883,6 +885,8 @@ extension BoringSSLRSAPrivateKey {
 
                     CCryptoBoringSSL_EVP_PKEY_decrypt_init(ctx)
                     switch padding.backing {
+                    case ._weakAndInsecure_pkcs1v1_5:
+                        CCryptoBoringSSL_EVP_PKEY_CTX_set_rsa_padding(ctx, RSA_PKCS1_PADDING)
                     case let .pkcs1_oaep(digest):
                         CCryptoBoringSSL_EVP_PKEY_CTX_set_rsa_padding(ctx, RSA_PKCS1_OAEP_PADDING)
                         switch digest {
