@@ -183,6 +183,17 @@ extension _RSA.Signing {
             }
         }
 
+        /// Construct an RSA private key from an encrypted PEM representation.
+        ///
+        /// - Parameters:
+        ///   - encryptedPEMRepresentation: The encrypted PEM representation of the private key.
+        ///   - encryptionPassword: The password used to decrypt the PEM representation.
+        ///
+        /// - Throws: An error if the key could not be initialized.
+        public init(encryptedPEMRepresentation: String, encryptionPassword: String) throws {
+            self.backing = try BackingPrivateKey(encryptedPEMRepresentation: encryptedPEMRepresentation, encryptionPassword: encryptionPassword)
+        }
+
         /// Construct an RSA private key from a DER representation.
         ///
         /// This constructor supports key sizes of 2048 bits or more. Users should validate that key sizes are appropriate
