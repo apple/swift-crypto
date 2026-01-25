@@ -655,6 +655,7 @@ extension _RSA.Encryption {
     @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
     public struct Padding: Sendable {
         internal enum Backing {
+            case _weakAndInsecure_pkcs1v1_5
             case pkcs1_oaep(Digest)
         }
 
@@ -663,7 +664,18 @@ extension _RSA.Encryption {
         private init(_ backing: Backing) {
             self.backing = backing
         }
-        
+
+        /// PKCS#1 v1.5 padding
+        ///
+        /// As defined by [RFC 8017 § 7.2](https://datatracker.ietf.org/doc/html/rfc8017#section-7.2).
+        ///
+        /// This padding exists only for legacy compatibility and is known to be
+        /// weak and insecure. This algorithm is vulnerable to chosen-ciphertext
+        /// attacks outlined in http://archiv.infsec.ethz.ch/education/fs08/secsem/bleichenbacher98.pdf.
+        ///
+        /// When you have a choice, you should always favor OAEP over this.
+        public static let _WEAK_AND_INSECURE_PKCS_V1_5 = Self(._weakAndInsecure_pkcs1v1_5)
+
         /// PKCS#1 OAEP padding
         ///
         /// As defined by [RFC 8017 § 7.1](https://datatracker.ietf.org/doc/html/rfc8017#section-7.1).
@@ -711,6 +723,9 @@ extension _RSA.Encryption.PublicKey {
     /// 4096|PKCS-OAEP|470 bytes
     public func maximumEncryptSize(with padding: _RSA.Encryption.Padding) -> Int {
         switch padding.backing {
+        case ._weakAndInsecure_pkcs1v1_5:
+            // https://www.rfc-editor.org/rfc/rfc8017#section-7.2
+            return (self.keySizeInBits / 8) - 11
         case let .pkcs1_oaep(Digest):
             // https://datatracker.ietf.org/doc/html/rfc8017#section-7.1.1
             return (self.keySizeInBits / 8) - (2 * Digest.hashBitLength / 8) - 2
