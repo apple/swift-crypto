@@ -617,25 +617,19 @@ extension BoringSSLRSAPrivateKey {
 
             let rsaPrivateKey = try encryptedPEMRepresentation.withUTF8 { utf8Ptr in
                 try BIOHelper.withReadOnlyMemoryBIO(wrapping: utf8Ptr) { bio in
-                    let evpKey = encryptionPassword.withCString { passwordPtr in
-                        CCryptoBoringSSL_PEM_read_bio_PrivateKey(
+                    let key = encryptionPassword.withCString { passwordPtr in
+                        CCryptoBoringSSL_PEM_read_bio_RSAPrivateKey(
                             bio,
                             nil,
                             nil,
                             UnsafeMutableRawPointer(mutating: passwordPtr)
                         )
                     }
-
-                    guard let evpKey else {
-                        throw CryptoKitError.internalBoringSSLError()
-                    }
-                    defer { CCryptoBoringSSL_EVP_PKEY_free(evpKey) }
-
-                    guard let rsaKey = CCryptoBoringSSL_EVP_PKEY_get1_RSA(evpKey) else {
+                    guard let key else {
                         throw CryptoKitError.internalBoringSSLError()
                     }
 
-                    return rsaKey
+                    return key
                 }
             }
             CCryptoBoringSSL_EVP_PKEY_assign_RSA(self.pointer, rsaPrivateKey)
