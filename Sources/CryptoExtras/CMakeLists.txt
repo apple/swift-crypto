@@ -53,6 +53,7 @@ add_library(CryptoExtras
   "OPRFs/VOPRF+API.swift"
   "OPRFs/VOPRFClient.swift"
   "OPRFs/VOPRFServer.swift"
+  "RSA/BoringSSLPassphraseCallbackManager.swift"
   "RSA/RSA+BlindSigning.swift"
   "RSA/RSA.swift"
   "RSA/RSA_boring.swift"
