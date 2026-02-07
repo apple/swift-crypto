@@ -94,10 +94,14 @@ internal struct BoringSSLRSAPrivateKey: Sendable {
         self.backing = try Backing(pemRepresentation: pemRepresentation)
     }
 
-    init(encryptedPEMRepresentation: String, encryptionPassword: String) throws {
+    init<T: Collection>(
+        encryptedPEMRepresentation: String,
+        passphraseCallback: @escaping _RSA.Signing.PrivateKey.PassphraseCallback<T>
+    ) throws where T.Element == UInt8 {
+        let manager = BoringSSLPassphraseCallbackManager(userCallback: passphraseCallback)
         self.backing = try Backing(
             encryptedPEMRepresentation: encryptedPEMRepresentation,
-            encryptionPassword: encryptionPassword
+            callbackManager: manager
         )
     }
 
@@ -611,18 +615,21 @@ extension BoringSSLRSAPrivateKey {
             CCryptoBoringSSL_EVP_PKEY_assign_RSA(self.pointer, rsaPrivateKey)
         }
 
-        fileprivate init(encryptedPEMRepresentation: String, encryptionPassword: String) throws {
+        fileprivate init(
+            encryptedPEMRepresentation: String,
+            callbackManager: CallbackManagerProtocol
+        ) throws {
             var encryptedPEMRepresentation = encryptedPEMRepresentation
             self.pointer = CCryptoBoringSSL_EVP_PKEY_new()
 
             let rsaPrivateKey = try encryptedPEMRepresentation.withUTF8 { utf8Ptr in
                 try BIOHelper.withReadOnlyMemoryBIO(wrapping: utf8Ptr) { bio in
-                    let key = encryptionPassword.withCString { passwordPtr in
+                    let key = withExtendedLifetime(callbackManager) { callbackManager -> OpaquePointer? in
                         CCryptoBoringSSL_PEM_read_bio_RSAPrivateKey(
                             bio,
                             nil,
-                            nil,
-                            UnsafeMutableRawPointer(mutating: passwordPtr)
+                            { globalBoringSSLPassphraseCallback(buf: $0, size: $1, rwflag: $2, u: $3) },
+                            Unmanaged.passUnretained(callbackManager as AnyObject).toOpaque()
                         )
                     }
                     guard let key else {

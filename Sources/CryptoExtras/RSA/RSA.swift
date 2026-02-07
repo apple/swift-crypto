@@ -183,15 +183,43 @@ extension _RSA.Signing {
             }
         }
 
+        /// A ``_RSA/Signing/PrivateKey/PassphraseCallback`` is a callback that will be invoked by Swift Crypto when it needs to
+        /// get access to a private key that is stored in encrypted form.
+        ///
+        /// This callback will be invoked with one argument, a non-escaping closure that must be called with the
+        /// passphrase. Failing to call the closure will cause decryption to fail.
+        ///
+        /// The reason this design has been used is to allow you to secure any memory storing the passphrase after
+        /// use. We guarantee that after the ``_RSA/Signing/PrivateKey/PassphraseSetter`` closure has been invoked the `Collection`
+        /// you have passed in will no longer be needed by BoringSSL, and so you can safely destroy any memory it
+        /// may be using if you need to.
+        public typealias PassphraseCallback<Bytes: Collection> = (PassphraseSetter<Bytes>) throws -> Void where Bytes.Element == UInt8
+
+        /// An ``_RSA/Signing/PrivateKey/PassphraseSetter`` is a closure that you must invoke to provide a passphrase to BoringSSL.
+        /// It will be provided to you when your ``_RSA/Signing/PrivateKey/PassphraseCallback`` is invoked.
+        public typealias PassphraseSetter<Bytes: Collection> = (Bytes) -> Void where Bytes.Element == UInt8
+
         /// Construct an RSA private key from an encrypted PEM representation.
+        ///
+        /// This initializer accepts a callback that will be invoked with a closure that must be called
+        /// with the passphrase. This design allows you to securely manage passphrase memory after use.
+        /// After the ``_RSA/Signing/PrivateKey/PassphraseSetter`` closure has been invoked, the passphrase bytes you passed in
+        /// will no longer be needed, and you can safely destroy any memory it may be using.
         ///
         /// - Parameters:
         ///   - encryptedPEMRepresentation: The encrypted PEM representation of the private key.
-        ///   - encryptionPassword: The password used to decrypt the PEM representation.
+        ///   - passphraseCallback: A callback that will be invoked with a ``_RSA/Signing/PrivateKey/PassphraseSetter`` closure.
+        ///     You must call the provided closure with the passphrase bytes.
         ///
-        /// - Throws: An error if the key could not be initialized.
-        public init(encryptedPEMRepresentation: String, encryptionPassword: String) throws {
-            self.backing = try BackingPrivateKey(encryptedPEMRepresentation: encryptedPEMRepresentation, encryptionPassword: encryptionPassword)
+        /// - Throws: An error if the key could not be initialized or the passphrase is incorrect.
+        public init<T: Collection>(
+            encryptedPEMRepresentation: String,
+            passphraseCallback: @escaping PassphraseCallback<T>
+        ) throws where T.Element == UInt8 {
+            self.backing = try BackingPrivateKey(
+                encryptedPEMRepresentation: encryptedPEMRepresentation,
+                passphraseCallback: passphraseCallback
+            )
         }
 
         /// Construct an RSA private key from a DER representation.

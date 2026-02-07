@@ -64,15 +64,17 @@ final class EncryptedPEMTests: XCTestCase {
 
         XCTAssertNoThrow(
             try _RSA.Signing.PrivateKey(
-                encryptedPEMRepresentation: pbes2WithAES128EncryptedPrivateKey,
-                encryptionPassword: "foobar"
-            )
+                encryptedPEMRepresentation: pbes2WithAES128EncryptedPrivateKey
+            ) { passphraseSetter in
+                passphraseSetter("foobar".utf8)
+            }
         )
         XCTAssertThrowsError(
             try _RSA.Signing.PrivateKey(
-                encryptedPEMRepresentation: pbes2WithAES128EncryptedPrivateKey,
-                encryptionPassword: "wrong"
-            )
+                encryptedPEMRepresentation: pbes2WithAES128EncryptedPrivateKey
+            ) { passphraseSetter in
+                passphraseSetter("wrong".utf8)
+            }
         )
     }
     
@@ -112,15 +114,17 @@ final class EncryptedPEMTests: XCTestCase {
         
         XCTAssertNoThrow(
             try _RSA.Signing.PrivateKey(
-                encryptedPEMRepresentation: pbes2WithTripleDESEncryptedPrivateKey,
-                encryptionPassword: "foobar"
-            )
+                encryptedPEMRepresentation: pbes2WithTripleDESEncryptedPrivateKey
+            ) { passphraseSetter in
+                passphraseSetter("foobar".utf8)
+            }
         )
         XCTAssertThrowsError(
             try _RSA.Signing.PrivateKey(
-                encryptedPEMRepresentation: pbes2WithTripleDESEncryptedPrivateKey,
-                encryptionPassword: "wrong"
-            )
+                encryptedPEMRepresentation: pbes2WithTripleDESEncryptedPrivateKey
+            ) { passphraseSetter in
+                passphraseSetter("wrong".utf8)
+            }
         )
     }
 }
