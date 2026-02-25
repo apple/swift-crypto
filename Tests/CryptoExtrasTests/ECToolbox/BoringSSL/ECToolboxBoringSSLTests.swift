@@ -12,7 +12,11 @@
 //
 //===----------------------------------------------------------------------===//
 import Crypto
+#if canImport(FoundationEssentials)
+import FoundationEssentials
+#else
 import Foundation
+#endif
 import XCTest
 
 #if !canImport(Darwin) || canImport(CryptoKit, _version: 241.100.42)
