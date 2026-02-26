@@ -12,12 +12,11 @@
 //
 //===----------------------------------------------------------------------===//
 
-#if !canImport(Darwin) || canImport(CryptoKit, _version: 324.0.4)
-
 import XCTest
 
 @testable import CryptoExtras
 
+#if !canImport(Darwin) || canImport(CryptoKit, _version: 324.0.4)
 final class MLDSATests: XCTestCase {
     func testMLDSA65Signing() throws {
         guard #available(iOS 19.0, macOS 16.0, watchOS 12.0, tvOS 19.0, visionOS 3.0, *) else {
@@ -356,3 +355,32 @@ extension MLDSA87.PublicKey {
 }
 
 #endif  // SDK has MLDSA
+
+@available(macOS 26.0, iOS 26.0, watchOS 26.0, tvOS 26.0, macCatalyst 26.0, visionOS 26.0, *)
+final class MLDSAExternalMuTests: XCTestCase {
+    func testMLDSA65PrehashedSigning() throws {
+        let message = "Hello, world!".data(using: .utf8)!
+        let context = "ctx".data(using: .utf8)!
+
+        let key = try MLDSA65.PrivateKey()
+        let publicKey = key.publicKey
+
+        let mu = try publicKey.prehash(for: message, context: context)
+
+        let muSignature = try key.signature(forPrehashedMessageRepresentative: mu)
+        XCTAssertTrue(publicKey.isValidSignature(muSignature, for: message, context: context))
+    }
+
+    func testMLDSA87PrehashedSigning() throws {
+        let message = "Hello, world!".data(using: .utf8)!
+        let context = "ctx".data(using: .utf8)!
+
+        let key = try MLDSA87.PrivateKey()
+        let publicKey = key.publicKey
+
+        let mu = try publicKey.prehash(for: message, context: context)
+
+        let muSignature = try key.signature(forPrehashedMessageRepresentative: mu)
+        XCTAssertTrue(publicKey.isValidSignature(muSignature, for: message, context: context))
+    }
+}

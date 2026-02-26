@@ -12,10 +12,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-#if CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
-@_exported import CryptoKit
-#else
 @_implementationOnly import CCryptoBoringSSL
+
 #if canImport(FoundationEssentials)
 import FoundationEssentials
 #else
@@ -26,21 +24,17 @@ import Foundation
 // any edits of this file WILL be overwritten and thus discarded
 // see section `gyb` in `README` for details.
 
-@_implementationOnly import CCryptoBoringSSL
-#if canImport(FoundationEssentials)
-import FoundationEssentials
-#else
-import Foundation
-#endif
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
+package enum BoringSSLMLDSA65: Sendable {}
 
 @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
-extension MLDSA65 {
+extension BoringSSLMLDSA65 {
     /// A ML-DSA-65 private key.
-    struct InternalPrivateKey: @unchecked Sendable {
+    package struct InternalPrivateKey: @unchecked Sendable {
         private var backing: Backing
 
         /// Initialize a ML-DSA-65 private key from a random seed.
-        init() throws {
+        package init() throws {
             self.backing = try Backing()
         }
 
@@ -48,18 +42,18 @@ extension MLDSA65 {
         ///
         /// - Parameter seedRepresentation: The seed to use to generate the private key.
         ///
-        /// - Throws: `CryptoKitError.incorrectKeySize` if the seed is not 32 bytes long.
-        init(seedRepresentation: some DataProtocol) throws {
+        /// - Throws: `CryptoBoringWrapperError.incorrectKeySize` if the seed is not 32 bytes long.
+        package init(seedRepresentation: some DataProtocol) throws {
             self.backing = try Backing(seedRepresentation: seedRepresentation)
         }
 
         /// The seed from which this private key was generated.
-        var seedRepresentation: Data {
+        package var seedRepresentation: Data {
             self.backing.seed
         }
 
         /// The public key associated with this private key.
-        var publicKey: InternalPublicKey {
+        package var publicKey: InternalPublicKey {
             self.backing.publicKey
         }
 
@@ -68,7 +62,7 @@ extension MLDSA65 {
         /// - Parameter data: The message to sign.
         ///
         /// - Returns: The signature of the message.
-        func signature<D: DataProtocol>(for data: D) throws -> Data {
+        package func signature<D: DataProtocol>(for data: D) throws -> Data {
             let context: Data? = nil
             return try self.backing.signature(for: data, context: context)
         }
@@ -80,8 +74,19 @@ extension MLDSA65 {
         ///   - context: The context to use for the signature.
         ///
         /// - Returns: The signature of the message.
-        func signature<D: DataProtocol, C: DataProtocol>(for data: D, context: C) throws -> Data {
+        package func signature<D: DataProtocol, C: DataProtocol>(for data: D, context: C) throws -> Data {
             try self.backing.signature(for: data, context: context)
+        }
+
+        /// Generate a signature for the prehashed message representative (a.k.a. "external mu").
+        ///
+        /// > Note: The message representative should be obtained via calls to ``BoringSSLMLDSA65/PublicKey/prehash(for:context:)``.
+        ///
+        /// - Parameter mu: The prehashed message representative (a.k.a. "external mu").
+        ///
+        /// - Returns: The signature of the prehashed message representative.
+        package func signature(forPrehashedMessageRepresentative mu: some DataProtocol) throws -> Data {
+            try self.backing.signature(forPrehashedMessageRepresentative: mu)
         }
 
         /// The size of the private key in bytes.
@@ -99,11 +104,11 @@ extension MLDSA65 {
 
                 self.seed = try withUnsafeTemporaryAllocation(
                     of: UInt8.self,
-                    capacity: MLDSA.seedByteCount
+                    capacity: BoringSSLMLDSA.seedByteCount
                 ) { seedPtr in
                     try withUnsafeTemporaryAllocation(
                         of: UInt8.self,
-                        capacity: MLDSA65.InternalPublicKey.Backing.byteCount
+                        capacity: BoringSSLMLDSA65.InternalPublicKey.Backing.byteCount
                     ) { publicKeyPtr in
                         guard
                             CCryptoBoringSSL_MLDSA65_generate_key(
@@ -112,10 +117,10 @@ extension MLDSA65 {
                                 &self.key
                             ) == 1
                         else {
-                            throw CryptoKitError.internalBoringSSLError()
+                            throw CryptoBoringWrapperError.internalBoringSSLError()
                         }
 
-                        return Data(bytes: seedPtr.baseAddress!, count: MLDSA.seedByteCount)
+                        return Data(bytes: seedPtr.baseAddress!, count: BoringSSLMLDSA.seedByteCount)
                     }
                 }
             }
@@ -124,10 +129,10 @@ extension MLDSA65 {
             ///
             /// - Parameter seedRepresentation: The seed to use to generate the private key.
             ///
-            /// - Throws: `CryptoKitError.incorrectKeySize` if the seed is not 32 bytes long.
+            /// - Throws: `CryptoBoringWrapperError.incorrectKeySize` if the seed is not 32 bytes long.
             init(seedRepresentation: some DataProtocol) throws {
-                guard seedRepresentation.count == MLDSA.seedByteCount else {
-                    throw CryptoKitError.incorrectKeySize
+                guard seedRepresentation.count == BoringSSLMLDSA.seedByteCount else {
+                    throw CryptoBoringWrapperError.incorrectKeySize
                 }
 
                 self.key = .init()
@@ -138,11 +143,11 @@ extension MLDSA65 {
                         CCryptoBoringSSL_MLDSA65_private_key_from_seed(
                             &self.key,
                             seedPtr.baseAddress,
-                            MLDSA.seedByteCount
+                            BoringSSLMLDSA.seedByteCount
                         )
                     }) == 1
                 else {
-                    throw CryptoKitError.internalBoringSSLError()
+                    throw CryptoBoringWrapperError.internalBoringSSLError()
                 }
             }
 
@@ -159,7 +164,7 @@ extension MLDSA65 {
             ///
             /// - Returns: The signature of the message.
             func signature<D: DataProtocol, C: DataProtocol>(for data: D, context: C?) throws -> Data {
-                var signature = Data(repeating: 0, count: MLDSA65.signatureByteCount)
+                var signature = Data(repeating: 0, count: BoringSSLMLDSA65.signatureByteCount)
 
                 let rc: CInt = signature.withUnsafeMutableBytes { signaturePtr in
                     let bytes: ContiguousBytes = data.regions.count == 1 ? data.regions.first! : Array(data)
@@ -178,7 +183,39 @@ extension MLDSA65 {
                 }
 
                 guard rc == 1 else {
-                    throw CryptoKitError.internalBoringSSLError()
+                    throw CryptoBoringWrapperError.internalBoringSSLError()
+                }
+
+                return signature
+            }
+
+            /// Generate a signature for the prehashed message representative (a.k.a. "external mu").
+            ///
+            /// > Note: The message representative should be obtained via calls to ``BoringSSLMLDSA65/PublicKey/prehash(for:context:)``.
+            ///
+            /// - Parameter mu: The prehashed message representative (a.k.a. "external mu").
+            ///
+            /// - Returns: The signature of the prehashed message representative.
+            func signature(forPrehashedMessageRepresentative mu: some DataProtocol) throws -> Data {
+                guard mu.count == BoringSSLMLDSA.muByteCount else {
+                    throw CryptoBoringWrapperError.incorrectParameterSize
+                }
+
+                var signature = Data(repeating: 0, count: BoringSSLMLDSA65.signatureByteCount)
+
+                let rc: CInt = signature.withUnsafeMutableBytes { signaturePtr in
+                    let muBytes: ContiguousBytes = mu.regions.count == 1 ? mu.regions.first! : Array(mu)
+                    return muBytes.withUnsafeBytes { muPtr in
+                        CCryptoBoringSSL_MLDSA65_sign_message_representative(
+                            signaturePtr.baseAddress,
+                            &self.key,
+                            muPtr.baseAddress
+                        )
+                    }
+                }
+
+                guard rc == 1 else {
+                    throw CryptoBoringWrapperError.internalBoringSSLError()
                 }
 
                 return signature
@@ -191,9 +228,9 @@ extension MLDSA65 {
 }
 
 @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
-extension MLDSA65 {
+extension BoringSSLMLDSA65 {
     /// A ML-DSA-65 public key.
-    struct InternalPublicKey: @unchecked Sendable {
+    package struct InternalPublicKey: @unchecked Sendable {
         private var backing: Backing
 
         fileprivate init(privateKeyBacking: InternalPrivateKey.Backing) {
@@ -204,13 +241,13 @@ extension MLDSA65 {
         ///
         /// - Parameter rawRepresentation: The public key bytes.
         ///
-        /// - Throws: `CryptoKitError.incorrectKeySize` if the raw representation is not the correct size.
-        init(rawRepresentation: some DataProtocol) throws {
+        /// - Throws: `CryptoBoringWrapperError.incorrectKeySize` if the raw representation is not the correct size.
+        package init(rawRepresentation: some DataProtocol) throws {
             self.backing = try Backing(rawRepresentation: rawRepresentation)
         }
 
         /// The raw binary representation of the public key.
-        var rawRepresentation: Data {
+        package var rawRepresentation: Data {
             self.backing.rawRepresentation
         }
 
@@ -221,7 +258,7 @@ extension MLDSA65 {
         ///   - data: The message to verify the signature against.
         ///
         /// - Returns: `true` if the signature is valid, `false` otherwise.
-        func isValidSignature<S: DataProtocol, D: DataProtocol>(_ signature: S, for data: D) -> Bool {
+        package func isValidSignature<S: DataProtocol, D: DataProtocol>(_ signature: S, for data: D) -> Bool {
             let context: Data? = nil
             return self.backing.isValidSignature(signature, for: data, context: context)
         }
@@ -234,12 +271,33 @@ extension MLDSA65 {
         ///   - context: The context to use for the signature verification.
         ///
         /// - Returns: `true` if the signature is valid, `false` otherwise.
-        func isValidSignature<S: DataProtocol, D: DataProtocol, C: DataProtocol>(
+        package func isValidSignature<S: DataProtocol, D: DataProtocol, C: DataProtocol>(
             _ signature: S,
             for data: D,
             context: C
         ) -> Bool {
             self.backing.isValidSignature(signature, for: data, context: context)
+        }
+
+        /// Generate a prehashed message representative (a.k.a. "external mu") for the given message.
+        ///
+        /// - Parameter data: The message to prehash.
+        ///
+        /// - Returns: The prehashed message representative (a.k.a. "external mu").
+        package func prehash<D: DataProtocol>(for data: D) throws -> Data {
+            let context: Data? = nil
+            return try self.backing.prehash(for: data, context: context)
+        }
+
+        /// Generate a prehashed message representative (a.k.a. "external mu") for the given message.
+        ///
+        /// - Parameters:
+        ///   - data: The message to prehash.
+        ///   - context: The context of the message.
+        ///
+        /// - Returns: The prehashed message representative (a.k.a. "external mu").
+        package func prehash<D: DataProtocol, C: DataProtocol>(for data: D, context: C) throws -> Data {
+            try self.backing.prehash(for: data, context: context)
         }
 
         /// The size of the public key in bytes.
@@ -257,10 +315,10 @@ extension MLDSA65 {
             ///
             /// - Parameter rawRepresentation: The public key bytes.
             ///
-            /// - Throws: `CryptoKitError.incorrectKeySize` if the raw representation is not the correct size.
+            /// - Throws: `CryptoBoringWrapperError.incorrectKeySize` if the raw representation is not the correct size.
             init(rawRepresentation: some DataProtocol) throws {
-                guard rawRepresentation.count == MLDSA65.InternalPublicKey.Backing.byteCount else {
-                    throw CryptoKitError.incorrectKeySize
+                guard rawRepresentation.count == BoringSSLMLDSA65.InternalPublicKey.Backing.byteCount else {
+                    throw CryptoBoringWrapperError.incorrectKeySize
                 }
 
                 self.key = .init()
@@ -273,7 +331,7 @@ extension MLDSA65 {
                     try rawBuffer.withMemoryRebound(to: UInt8.self) { buffer in
                         var cbs = CBS(data: buffer.baseAddress, len: buffer.count)
                         guard CCryptoBoringSSL_MLDSA65_parse_public_key(&self.key, &cbs) == 1 else {
-                            throw CryptoKitError.internalBoringSSLError()
+                            throw CryptoBoringWrapperError.internalBoringSSLError()
                         }
                     }
                 }
@@ -283,7 +341,7 @@ extension MLDSA65 {
             var rawRepresentation: Data {
                 var cbb = CBB()
                 // The following BoringSSL functions can only fail on allocation failure, which we define as impossible.
-                CCryptoBoringSSL_CBB_init(&cbb, MLDSA65.InternalPublicKey.Backing.byteCount)
+                CCryptoBoringSSL_CBB_init(&cbb, BoringSSLMLDSA65.InternalPublicKey.Backing.byteCount)
                 defer { CCryptoBoringSSL_CBB_cleanup(&cbb) }
                 CCryptoBoringSSL_MLDSA65_marshal_public_key(&cbb, &self.key)
                 return Data(bytes: CCryptoBoringSSL_CBB_data(&cbb), count: CCryptoBoringSSL_CBB_len(&cbb))
@@ -323,6 +381,41 @@ extension MLDSA65 {
                 }
             }
 
+            /// Generate a prehashed message representative (a.k.a. "external mu") for the given message.
+            ///
+            /// - Parameters:
+            ///   - data: The message to prehash.
+            ///   - context: The context of the message.
+            ///
+            /// - Returns: The prehashed message representative (a.k.a. "external mu").
+            func prehash<D: DataProtocol, C: DataProtocol>(for data: D, context: C?) throws -> Data {
+                var mu = Data(repeating: 0, count: BoringSSLMLDSA.muByteCount)
+
+                let dataBytes: ContiguousBytes = data.regions.count == 1 ? data.regions.first! : Array(data)
+                let rc: CInt = mu.withUnsafeMutableBytes { muPtr in
+                    dataBytes.withUnsafeBytes { dataPtr in
+                        context.withUnsafeBytes { contextPtr in
+                            var prehash = MLDSA65_prehash()
+                            let rc = CCryptoBoringSSL_MLDSA65_prehash_init(
+                                &prehash,
+                                &key,
+                                contextPtr.baseAddress,
+                                contextPtr.count
+                            )
+                            CCryptoBoringSSL_MLDSA65_prehash_update(&prehash, dataPtr.baseAddress, dataPtr.count)
+                            CCryptoBoringSSL_MLDSA65_prehash_finalize(muPtr.baseAddress, &prehash)
+                            return rc
+                        }
+                    }
+                }
+
+                guard rc == 1 else {
+                    throw CryptoBoringWrapperError.internalBoringSSLError()
+                }
+
+                return mu
+            }
+
             /// The size of the public key in bytes.
             static let byteCount = Int(MLDSA65_PUBLIC_KEY_BYTES)
         }
@@ -330,19 +423,22 @@ extension MLDSA65 {
 }
 
 @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
-extension MLDSA65 {
+extension BoringSSLMLDSA65 {
     /// The size of the signature in bytes.
     private static let signatureByteCount = Int(MLDSA65_SIGNATURE_BYTES)
 }
 
 @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
-extension MLDSA87 {
+package enum BoringSSLMLDSA87: Sendable {}
+
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
+extension BoringSSLMLDSA87 {
     /// A ML-DSA-87 private key.
-    struct InternalPrivateKey: @unchecked Sendable {
+    package struct InternalPrivateKey: @unchecked Sendable {
         private var backing: Backing
 
         /// Initialize a ML-DSA-87 private key from a random seed.
-        init() throws {
+        package init() throws {
             self.backing = try Backing()
         }
 
@@ -350,18 +446,18 @@ extension MLDSA87 {
         ///
         /// - Parameter seedRepresentation: The seed to use to generate the private key.
         ///
-        /// - Throws: `CryptoKitError.incorrectKeySize` if the seed is not 32 bytes long.
-        init(seedRepresentation: some DataProtocol) throws {
+        /// - Throws: `CryptoBoringWrapperError.incorrectKeySize` if the seed is not 32 bytes long.
+        package init(seedRepresentation: some DataProtocol) throws {
             self.backing = try Backing(seedRepresentation: seedRepresentation)
         }
 
         /// The seed from which this private key was generated.
-        var seedRepresentation: Data {
+        package var seedRepresentation: Data {
             self.backing.seed
         }
 
         /// The public key associated with this private key.
-        var publicKey: InternalPublicKey {
+        package var publicKey: InternalPublicKey {
             self.backing.publicKey
         }
 
@@ -370,7 +466,7 @@ extension MLDSA87 {
         /// - Parameter data: The message to sign.
         ///
         /// - Returns: The signature of the message.
-        func signature<D: DataProtocol>(for data: D) throws -> Data {
+        package func signature<D: DataProtocol>(for data: D) throws -> Data {
             let context: Data? = nil
             return try self.backing.signature(for: data, context: context)
         }
@@ -382,8 +478,19 @@ extension MLDSA87 {
         ///   - context: The context to use for the signature.
         ///
         /// - Returns: The signature of the message.
-        func signature<D: DataProtocol, C: DataProtocol>(for data: D, context: C) throws -> Data {
+        package func signature<D: DataProtocol, C: DataProtocol>(for data: D, context: C) throws -> Data {
             try self.backing.signature(for: data, context: context)
+        }
+
+        /// Generate a signature for the prehashed message representative (a.k.a. "external mu").
+        ///
+        /// > Note: The message representative should be obtained via calls to ``BoringSSLMLDSA87/PublicKey/prehash(for:context:)``.
+        ///
+        /// - Parameter mu: The prehashed message representative (a.k.a. "external mu").
+        ///
+        /// - Returns: The signature of the prehashed message representative.
+        package func signature(forPrehashedMessageRepresentative mu: some DataProtocol) throws -> Data {
+            try self.backing.signature(forPrehashedMessageRepresentative: mu)
         }
 
         /// The size of the private key in bytes.
@@ -401,11 +508,11 @@ extension MLDSA87 {
 
                 self.seed = try withUnsafeTemporaryAllocation(
                     of: UInt8.self,
-                    capacity: MLDSA.seedByteCount
+                    capacity: BoringSSLMLDSA.seedByteCount
                 ) { seedPtr in
                     try withUnsafeTemporaryAllocation(
                         of: UInt8.self,
-                        capacity: MLDSA87.InternalPublicKey.Backing.byteCount
+                        capacity: BoringSSLMLDSA87.InternalPublicKey.Backing.byteCount
                     ) { publicKeyPtr in
                         guard
                             CCryptoBoringSSL_MLDSA87_generate_key(
@@ -414,10 +521,10 @@ extension MLDSA87 {
                                 &self.key
                             ) == 1
                         else {
-                            throw CryptoKitError.internalBoringSSLError()
+                            throw CryptoBoringWrapperError.internalBoringSSLError()
                         }
 
-                        return Data(bytes: seedPtr.baseAddress!, count: MLDSA.seedByteCount)
+                        return Data(bytes: seedPtr.baseAddress!, count: BoringSSLMLDSA.seedByteCount)
                     }
                 }
             }
@@ -426,10 +533,10 @@ extension MLDSA87 {
             ///
             /// - Parameter seedRepresentation: The seed to use to generate the private key.
             ///
-            /// - Throws: `CryptoKitError.incorrectKeySize` if the seed is not 32 bytes long.
+            /// - Throws: `CryptoBoringWrapperError.incorrectKeySize` if the seed is not 32 bytes long.
             init(seedRepresentation: some DataProtocol) throws {
-                guard seedRepresentation.count == MLDSA.seedByteCount else {
-                    throw CryptoKitError.incorrectKeySize
+                guard seedRepresentation.count == BoringSSLMLDSA.seedByteCount else {
+                    throw CryptoBoringWrapperError.incorrectKeySize
                 }
 
                 self.key = .init()
@@ -440,11 +547,11 @@ extension MLDSA87 {
                         CCryptoBoringSSL_MLDSA87_private_key_from_seed(
                             &self.key,
                             seedPtr.baseAddress,
-                            MLDSA.seedByteCount
+                            BoringSSLMLDSA.seedByteCount
                         )
                     }) == 1
                 else {
-                    throw CryptoKitError.internalBoringSSLError()
+                    throw CryptoBoringWrapperError.internalBoringSSLError()
                 }
             }
 
@@ -461,7 +568,7 @@ extension MLDSA87 {
             ///
             /// - Returns: The signature of the message.
             func signature<D: DataProtocol, C: DataProtocol>(for data: D, context: C?) throws -> Data {
-                var signature = Data(repeating: 0, count: MLDSA87.signatureByteCount)
+                var signature = Data(repeating: 0, count: BoringSSLMLDSA87.signatureByteCount)
 
                 let rc: CInt = signature.withUnsafeMutableBytes { signaturePtr in
                     let bytes: ContiguousBytes = data.regions.count == 1 ? data.regions.first! : Array(data)
@@ -480,7 +587,39 @@ extension MLDSA87 {
                 }
 
                 guard rc == 1 else {
-                    throw CryptoKitError.internalBoringSSLError()
+                    throw CryptoBoringWrapperError.internalBoringSSLError()
+                }
+
+                return signature
+            }
+
+            /// Generate a signature for the prehashed message representative (a.k.a. "external mu").
+            ///
+            /// > Note: The message representative should be obtained via calls to ``BoringSSLMLDSA87/PublicKey/prehash(for:context:)``.
+            ///
+            /// - Parameter mu: The prehashed message representative (a.k.a. "external mu").
+            ///
+            /// - Returns: The signature of the prehashed message representative.
+            func signature(forPrehashedMessageRepresentative mu: some DataProtocol) throws -> Data {
+                guard mu.count == BoringSSLMLDSA.muByteCount else {
+                    throw CryptoBoringWrapperError.incorrectParameterSize
+                }
+
+                var signature = Data(repeating: 0, count: BoringSSLMLDSA87.signatureByteCount)
+
+                let rc: CInt = signature.withUnsafeMutableBytes { signaturePtr in
+                    let muBytes: ContiguousBytes = mu.regions.count == 1 ? mu.regions.first! : Array(mu)
+                    return muBytes.withUnsafeBytes { muPtr in
+                        CCryptoBoringSSL_MLDSA87_sign_message_representative(
+                            signaturePtr.baseAddress,
+                            &self.key,
+                            muPtr.baseAddress
+                        )
+                    }
+                }
+
+                guard rc == 1 else {
+                    throw CryptoBoringWrapperError.internalBoringSSLError()
                 }
 
                 return signature
@@ -493,9 +632,9 @@ extension MLDSA87 {
 }
 
 @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
-extension MLDSA87 {
+extension BoringSSLMLDSA87 {
     /// A ML-DSA-87 public key.
-    struct InternalPublicKey: @unchecked Sendable {
+    package struct InternalPublicKey: @unchecked Sendable {
         private var backing: Backing
 
         fileprivate init(privateKeyBacking: InternalPrivateKey.Backing) {
@@ -506,13 +645,13 @@ extension MLDSA87 {
         ///
         /// - Parameter rawRepresentation: The public key bytes.
         ///
-        /// - Throws: `CryptoKitError.incorrectKeySize` if the raw representation is not the correct size.
-        init(rawRepresentation: some DataProtocol) throws {
+        /// - Throws: `CryptoBoringWrapperError.incorrectKeySize` if the raw representation is not the correct size.
+        package init(rawRepresentation: some DataProtocol) throws {
             self.backing = try Backing(rawRepresentation: rawRepresentation)
         }
 
         /// The raw binary representation of the public key.
-        var rawRepresentation: Data {
+        package var rawRepresentation: Data {
             self.backing.rawRepresentation
         }
 
@@ -523,7 +662,7 @@ extension MLDSA87 {
         ///   - data: The message to verify the signature against.
         ///
         /// - Returns: `true` if the signature is valid, `false` otherwise.
-        func isValidSignature<S: DataProtocol, D: DataProtocol>(_ signature: S, for data: D) -> Bool {
+        package func isValidSignature<S: DataProtocol, D: DataProtocol>(_ signature: S, for data: D) -> Bool {
             let context: Data? = nil
             return self.backing.isValidSignature(signature, for: data, context: context)
         }
@@ -536,12 +675,33 @@ extension MLDSA87 {
         ///   - context: The context to use for the signature verification.
         ///
         /// - Returns: `true` if the signature is valid, `false` otherwise.
-        func isValidSignature<S: DataProtocol, D: DataProtocol, C: DataProtocol>(
+        package func isValidSignature<S: DataProtocol, D: DataProtocol, C: DataProtocol>(
             _ signature: S,
             for data: D,
             context: C
         ) -> Bool {
             self.backing.isValidSignature(signature, for: data, context: context)
+        }
+
+        /// Generate a prehashed message representative (a.k.a. "external mu") for the given message.
+        ///
+        /// - Parameter data: The message to prehash.
+        ///
+        /// - Returns: The prehashed message representative (a.k.a. "external mu").
+        package func prehash<D: DataProtocol>(for data: D) throws -> Data {
+            let context: Data? = nil
+            return try self.backing.prehash(for: data, context: context)
+        }
+
+        /// Generate a prehashed message representative (a.k.a. "external mu") for the given message.
+        ///
+        /// - Parameters:
+        ///   - data: The message to prehash.
+        ///   - context: The context of the message.
+        ///
+        /// - Returns: The prehashed message representative (a.k.a. "external mu").
+        package func prehash<D: DataProtocol, C: DataProtocol>(for data: D, context: C) throws -> Data {
+            try self.backing.prehash(for: data, context: context)
         }
 
         /// The size of the public key in bytes.
@@ -559,10 +719,10 @@ extension MLDSA87 {
             ///
             /// - Parameter rawRepresentation: The public key bytes.
             ///
-            /// - Throws: `CryptoKitError.incorrectKeySize` if the raw representation is not the correct size.
+            /// - Throws: `CryptoBoringWrapperError.incorrectKeySize` if the raw representation is not the correct size.
             init(rawRepresentation: some DataProtocol) throws {
-                guard rawRepresentation.count == MLDSA87.InternalPublicKey.Backing.byteCount else {
-                    throw CryptoKitError.incorrectKeySize
+                guard rawRepresentation.count == BoringSSLMLDSA87.InternalPublicKey.Backing.byteCount else {
+                    throw CryptoBoringWrapperError.incorrectKeySize
                 }
 
                 self.key = .init()
@@ -575,7 +735,7 @@ extension MLDSA87 {
                     try rawBuffer.withMemoryRebound(to: UInt8.self) { buffer in
                         var cbs = CBS(data: buffer.baseAddress, len: buffer.count)
                         guard CCryptoBoringSSL_MLDSA87_parse_public_key(&self.key, &cbs) == 1 else {
-                            throw CryptoKitError.internalBoringSSLError()
+                            throw CryptoBoringWrapperError.internalBoringSSLError()
                         }
                     }
                 }
@@ -585,7 +745,7 @@ extension MLDSA87 {
             var rawRepresentation: Data {
                 var cbb = CBB()
                 // The following BoringSSL functions can only fail on allocation failure, which we define as impossible.
-                CCryptoBoringSSL_CBB_init(&cbb, MLDSA87.InternalPublicKey.Backing.byteCount)
+                CCryptoBoringSSL_CBB_init(&cbb, BoringSSLMLDSA87.InternalPublicKey.Backing.byteCount)
                 defer { CCryptoBoringSSL_CBB_cleanup(&cbb) }
                 CCryptoBoringSSL_MLDSA87_marshal_public_key(&cbb, &self.key)
                 return Data(bytes: CCryptoBoringSSL_CBB_data(&cbb), count: CCryptoBoringSSL_CBB_len(&cbb))
@@ -625,6 +785,41 @@ extension MLDSA87 {
                 }
             }
 
+            /// Generate a prehashed message representative (a.k.a. "external mu") for the given message.
+            ///
+            /// - Parameters:
+            ///   - data: The message to prehash.
+            ///   - context: The context of the message.
+            ///
+            /// - Returns: The prehashed message representative (a.k.a. "external mu").
+            func prehash<D: DataProtocol, C: DataProtocol>(for data: D, context: C?) throws -> Data {
+                var mu = Data(repeating: 0, count: BoringSSLMLDSA.muByteCount)
+
+                let dataBytes: ContiguousBytes = data.regions.count == 1 ? data.regions.first! : Array(data)
+                let rc: CInt = mu.withUnsafeMutableBytes { muPtr in
+                    dataBytes.withUnsafeBytes { dataPtr in
+                        context.withUnsafeBytes { contextPtr in
+                            var prehash = MLDSA87_prehash()
+                            let rc = CCryptoBoringSSL_MLDSA87_prehash_init(
+                                &prehash,
+                                &key,
+                                contextPtr.baseAddress,
+                                contextPtr.count
+                            )
+                            CCryptoBoringSSL_MLDSA87_prehash_update(&prehash, dataPtr.baseAddress, dataPtr.count)
+                            CCryptoBoringSSL_MLDSA87_prehash_finalize(muPtr.baseAddress, &prehash)
+                            return rc
+                        }
+                    }
+                }
+
+                guard rc == 1 else {
+                    throw CryptoBoringWrapperError.internalBoringSSLError()
+                }
+
+                return mu
+            }
+
             /// The size of the public key in bytes.
             static let byteCount = Int(MLDSA87_PUBLIC_KEY_BYTES)
         }
@@ -632,14 +827,15 @@ extension MLDSA87 {
 }
 
 @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
-extension MLDSA87 {
+extension BoringSSLMLDSA87 {
     /// The size of the signature in bytes.
     private static let signatureByteCount = Int(MLDSA87_SIGNATURE_BYTES)
 }
 
-enum MLDSA {
+package enum BoringSSLMLDSA {
     /// The size of the seed in bytes.
-    static let seedByteCount = 32
-}
+    package static let seedByteCount = 32
 
-#endif  // CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
+    /// The size of the "mu" value in bytes.
+    fileprivate static let muByteCount = 64
+}

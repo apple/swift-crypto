@@ -11,6 +11,11 @@
 // SPDX-License-Identifier: Apache-2.0
 //
 //===----------------------------------------------------------------------===//
+
+// MARK: - Generated file, do NOT edit
+// any edits of this file WILL be overwritten and thus discarded
+// see section `gyb` in `README` for details.
+
 #if CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
 @_exported import CryptoKit
 #else
@@ -32,7 +37,6 @@ typealias MLDSAPublicKeyImpl = OpenSSLMLDSAPublicKeyImpl
 typealias MLDSAPrivateKeyImpl = OpenSSLMLDSAPrivateKeyImpl
 #endif
 
-
 /// The MLDSA65 Digital Signature Algorithm
 @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 public enum MLDSA65: Sendable {}
@@ -47,7 +51,7 @@ extension MLDSA65 {
         internal init(_ impl: MLDSAPublicKeyImpl<MLDSA65>) {
             self.impl = impl
         }
-        
+
         /// Parses a public key from a serialized representation.
         ///
         /// - Parameter rawRepresentation: The public key, in the FIPS 204 standard serialization format.
@@ -144,7 +148,7 @@ extension MLDSA65 {
         public func signature<D: DataProtocol, C: DataProtocol>(for data: D, context: C) throws -> Data {
             return try impl.signature(for: data, context: context)
         }
-        
+
         /// The associated public key.
         public var publicKey: PublicKey {
             get {
@@ -180,7 +184,6 @@ extension MLDSA65 {
     }
 }
 
-
 /// The MLDSA87 Digital Signature Algorithm
 @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 public enum MLDSA87: Sendable {}
@@ -195,7 +198,7 @@ extension MLDSA87 {
         internal init(_ impl: MLDSAPublicKeyImpl<MLDSA87>) {
             self.impl = impl
         }
-        
+
         /// Parses a public key from a serialized representation.
         ///
         /// - Parameter rawRepresentation: The public key, in the FIPS 204 standard serialization format.
@@ -292,7 +295,7 @@ extension MLDSA87 {
         public func signature<D: DataProtocol, C: DataProtocol>(for data: D, context: C) throws -> Data {
             return try impl.signature(for: data, context: context)
         }
-        
+
         /// The associated public key.
         public var publicKey: PublicKey {
             get {
@@ -328,5 +331,4 @@ extension MLDSA87 {
     }
 }
 
-
-#endif // Linux or !SwiftPM
+#endif  // Linux or !SwiftPM
