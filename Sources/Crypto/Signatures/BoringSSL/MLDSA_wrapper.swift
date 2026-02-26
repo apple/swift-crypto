@@ -16,6 +16,7 @@
 @_exported import CryptoKit
 #else
 @_implementationOnly import CCryptoBoringSSL
+import CryptoBoringWrapper
 #if canImport(FoundationEssentials)
 import FoundationEssentials
 #else
@@ -34,6 +35,8 @@ protocol BoringSSLBackedMLDSAPrivateKey: Sendable {
 
     func signature<D: DataProtocol, C: DataProtocol>(for data: D, context: C) throws -> Data
 
+    func signature(forPrehashedMessageRepresentative mu: some DataProtocol) throws -> Data
+
     var publicKey: AssociatedPublicKey { get }
 
     var seedRepresentation: Data { get }
@@ -48,6 +51,10 @@ protocol BoringSSLBackedMLDSAPublicKey: Sendable {
     func isValidSignature<S: DataProtocol, D: DataProtocol, C: DataProtocol>(_: S, for data: D, context: C) -> Bool
 
     var rawRepresentation: Data { get }
+
+    func prehash<D: DataProtocol>(for data: D) throws -> Data
+
+    func prehash<D: DataProtocol, C: DataProtocol>(for data: D, context: C) throws -> Data
 }
 
 @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
@@ -59,27 +66,27 @@ protocol BoringSSLBackedMLDSAParameters {
 
 @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension MLDSA65: BoringSSLBackedMLDSAParameters {
-    typealias BackingPrivateKey = MLDSA65.InternalPrivateKey
-    typealias BackingPublicKey = MLDSA65.InternalPublicKey
+    typealias BackingPrivateKey = BoringSSLMLDSA65.InternalPrivateKey
+    typealias BackingPublicKey = BoringSSLMLDSA65.InternalPublicKey
 }
 
 @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension MLDSA87: BoringSSLBackedMLDSAParameters {
-    typealias BackingPrivateKey = MLDSA87.InternalPrivateKey
-    typealias BackingPublicKey = MLDSA87.InternalPublicKey
+    typealias BackingPrivateKey = BoringSSLMLDSA87.InternalPrivateKey
+    typealias BackingPublicKey = BoringSSLMLDSA87.InternalPublicKey
 }
 
 @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
-extension MLDSA65.InternalPrivateKey: BoringSSLBackedMLDSAPrivateKey {}
+extension BoringSSLMLDSA65.InternalPrivateKey: BoringSSLBackedMLDSAPrivateKey {}
 
 @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
-extension MLDSA65.InternalPublicKey: BoringSSLBackedMLDSAPublicKey {}
+extension BoringSSLMLDSA65.InternalPublicKey: BoringSSLBackedMLDSAPublicKey {}
 
 @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
-extension MLDSA87.InternalPrivateKey: BoringSSLBackedMLDSAPrivateKey {}
+extension BoringSSLMLDSA87.InternalPrivateKey: BoringSSLBackedMLDSAPrivateKey {}
 
 @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
-extension MLDSA87.InternalPublicKey: BoringSSLBackedMLDSAPublicKey {}
+extension BoringSSLMLDSA87.InternalPublicKey: BoringSSLBackedMLDSAPublicKey {}
 
 @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 struct OpenSSLMLDSAPrivateKeyImpl<Parameters: BoringSSLBackedMLDSAParameters> {
@@ -117,6 +124,10 @@ struct OpenSSLMLDSAPrivateKeyImpl<Parameters: BoringSSLBackedMLDSAParameters> {
         try self.backing.signature(for: data, context: context)
     }
 
+    func signature_boring(forPrehashedMessageRepresentative mu: some DataProtocol) throws -> Data {
+        try self.backing.signature(forPrehashedMessageRepresentative: mu)
+    }
+
     var publicKey: OpenSSLMLDSAPublicKeyImpl<Parameters> {
         .init(backing: self.backing.publicKey)
     }
@@ -135,7 +146,7 @@ struct OpenSSLMLDSAPrivateKeyImpl<Parameters: BoringSSLBackedMLDSAParameters> {
     }
 
     static var seedSize: Int {
-        MLDSA.seedByteCount
+        BoringSSLMLDSA.seedByteCount
     }
 }
 
@@ -168,6 +179,14 @@ struct OpenSSLMLDSAPublicKeyImpl<Parameters: BoringSSLBackedMLDSAParameters> {
 
     var rawRepresentation: Data {
         self.backing.rawRepresentation
+    }
+
+    func prehash_boring<D: DataProtocol>(for data: D) throws -> Data {
+        try self.backing.prehash(for: data)
+    }
+
+    func prehash_boring<D: DataProtocol, C: DataProtocol>(for data: D, context: C) throws -> Data {
+        try self.backing.prehash(for: data, context: context)
     }
 }
 

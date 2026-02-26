@@ -2,7 +2,7 @@
 //
 // This source file is part of the SwiftCrypto open source project
 //
-// Copyright (c) 2019-2020 Apple Inc. and the SwiftCrypto project authors
+// Copyright (c) 2025 Apple Inc. and the SwiftCrypto project authors
 // Licensed under Apache License v2.0
 //
 // See LICENSE.txt for license information
@@ -12,50 +12,27 @@
 //
 //===----------------------------------------------------------------------===//
 
-// MARK: - Generated file, do NOT edit
-// any edits of this file WILL be overwritten and thus discarded
-// see section `gyb` in `README` for details.
+import Crypto
+import CryptoBoringWrapper
 
-#if CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
-@_exported import CryptoKit
-#else
 #if canImport(FoundationEssentials)
-public import FoundationEssentials
+import FoundationEssentials
 #else
-public import Foundation
-#endif
-%{
-    MLDSA_VARIANTS = [{"name": "MLDSA65"}, {"name": "MLDSA87"}]
-}%
-
-#if (!CRYPTO_IN_SWIFTPM_FORCE_BUILD_API) || CRYPTOKIT_NO_ACCESS_TO_FOUNDATION
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
-typealias MLDSAPublicKeyImpl = CorecryptoMLDSAPublicKeyImpl
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
-typealias MLDSAPrivateKeyImpl = CorecryptoMLDSAPrivateKeyImpl
-#else
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
-typealias MLDSAPublicKeyImpl = OpenSSLMLDSAPublicKeyImpl
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
-typealias MLDSAPrivateKeyImpl = OpenSSLMLDSAPrivateKeyImpl
+import Foundation
 #endif
 
-% for MLDSA_VARIANT in MLDSA_VARIANTS:
-%{
-    NAME           = MLDSA_VARIANT["name"]
-}%
-/// The ${NAME} Digital Signature Algorithm
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
-public enum ${NAME}: Sendable {}
+/// The MLDSA44 Digital Signature Algorithm
+@available(macOS 26.0, iOS 26.0, watchOS 26.0, tvOS 26.0, macCatalyst 26.0, visionOS 26.0, *)
+public enum MLDSA44: Sendable {}
 
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
-extension ${NAME} {
-    /// The public key for ${NAME}.
-    @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
+@available(macOS 26.0, iOS 26.0, watchOS 26.0, tvOS 26.0, macCatalyst 26.0, visionOS 26.0, *)
+extension MLDSA44 {
+    /// The public key for MLDSA44.
+    @available(macOS 26.0, iOS 26.0, watchOS 26.0, tvOS 26.0, macCatalyst 26.0, visionOS 26.0, *)
     public struct PublicKey: Sendable {
-        var impl: MLDSAPublicKeyImpl<${NAME}>
+        private let impl: BoringSSLMLDSA44.InternalPublicKey
 
-        internal init(_ impl: MLDSAPublicKeyImpl<${NAME}>) {
+        fileprivate init(_ impl: BoringSSLMLDSA44.InternalPublicKey) {
             self.impl = impl
         }
 
@@ -64,7 +41,7 @@ extension ${NAME} {
         /// - Parameter rawRepresentation: The public key, in the FIPS 204 standard serialization format.
         /// - Returns: The deserialized public key.
         public init<D: DataProtocol>(rawRepresentation: D) throws {
-            self.impl = try MLDSAPublicKeyImpl(rawRepresentation: rawRepresentation)
+            self.impl = try BoringSSLMLDSA44.InternalPublicKey(rawRepresentation: rawRepresentation)
         }
         
         /// A serialized representation of the public key.
@@ -76,18 +53,18 @@ extension ${NAME} {
             }
         }
 
-        /// Verifies a ${NAME} signature.
+        /// Verifies a MLDSA44 signature.
         /// - Parameters:
-        ///   - signature: The ${NAME} signature to verify.
+        ///   - signature: The MLDSA44 signature to verify.
         ///   - data: The signed data.
         /// - Returns: `true` if the signature is valid, `false` otherwise.
         public func isValidSignature<S: DataProtocol, D: DataProtocol>(_ signature: S, for data: D) -> Bool {
             return self.impl.isValidSignature(signature, for: data)
         }
 
-        /// Verifies a ${NAME} signature, in a specific context.
+        /// Verifies a MLDSA44 signature, in a specific context.
         /// - Parameters:
-        ///   - signature: The ${NAME} signature to verify.
+        ///   - signature: The MLDSA44 signature to verify.
         ///   - data: The signed data.
         ///   - context: Context for the signature.
         /// - Returns: `true` if the signature is valid in the specified context, `false` otherwise.
@@ -96,19 +73,16 @@ extension ${NAME} {
         }
     }
 
-    /// The private key for ${NAME}.
-    @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
-    public struct PrivateKey: Signer, Sendable {
-        internal let impl: MLDSAPrivateKeyImpl<${NAME}>
-        
-        internal init(_ impl: MLDSAPrivateKeyImpl<${NAME}>) {
-            self.impl = impl
-        }
+    /// The private key for MLDSA44.
+    @available(macOS 26.0, iOS 26.0, watchOS 26.0, tvOS 26.0, macCatalyst 26.0, visionOS 26.0, *)
+    public struct PrivateKey: Sendable {
+        private let impl: BoringSSLMLDSA44.InternalPrivateKey
+        private let publicKeyHash: SHA3_256Digest
         
         /// Initializes a new random private key.
         public init() throws {
-            let impl = try MLDSAPrivateKeyImpl<${NAME}>()
-            self = PrivateKey(impl)
+            self.impl = try BoringSSLMLDSA44.InternalPrivateKey()
+            self.publicKeyHash = SHA3_256.hash(data: self.impl.publicKey.rawRepresentation)
         }
 
         /// Initializes a private key from the seed representation.
@@ -119,12 +93,14 @@ extension ${NAME} {
         /// This initializer implements the `ML-DSA.KeyGen_internal` algorithm (Algorithm 16) of FIPS 204.
         ///
         /// If a public key is provided, a consistency check is performed between it and the derived public key.
-        public init<D: DataProtocol>(seedRepresentation: D, publicKey: ${NAME}.PublicKey?) throws {
-            var publicKeyRawRepresentation: Data? = nil
-            if publicKey != nil {
-                publicKeyRawRepresentation = publicKey!.rawRepresentation
+        public init<D: DataProtocol>(seedRepresentation: D, publicKey: MLDSA44.PublicKey?) throws {
+            self.impl = try BoringSSLMLDSA44.InternalPrivateKey(seedRepresentation: seedRepresentation)
+            if let publicKey {
+                guard self.impl.publicKey.rawRepresentation == publicKey.rawRepresentation else {
+                    throw CryptoError.authenticationFailure
+                }
             }
-            self.impl = try MLDSAPrivateKeyImpl<${NAME}>(seedRepresentation: seedRepresentation, publicKeyRawRepresentation: publicKeyRawRepresentation)
+            self.publicKeyHash = SHA3_256.hash(data: self.impl.publicKey.rawRepresentation)
         }
         
         /// The seed representation of the private key.
@@ -132,35 +108,31 @@ extension ${NAME} {
         /// The seed representation is 32 bytes long, and is the parameter
         /// for the `ML-DSA.KeyGen_internal` algorithm (Algorithm 16) of FIPS 204.
         public var seedRepresentation: Data {
-            get {
-                return self.impl.seedRepresentation
-            }
+            self.impl.seedRepresentation
         }
 
-        /// Generates a ${NAME} signature.
+        /// Generates a MLDSA65 signature.
         /// - Parameters:
         ///   - data: The data to sign.
-        /// - Returns: The ${NAME} signature.
+        /// - Returns: The MLDSA65 signature.
         /// This method throws if CryptoKit encounters an error producing the signature.
         public func signature<D: DataProtocol>(for data: D) throws -> Data {
-            return try impl.signature(for: data)
+            try impl.signature(for: data)
         }
 
-        /// Generates a ${NAME} signature, with context.
+        /// Generates a MLDSA65 signature, with context.
         /// - Parameters:
         ///   - data: The data to sign.
         ///   - context: Context for the signature.
-        /// - Returns: The ${NAME} signature.
+        /// - Returns: The MLDSA65 signature.
         /// This method throws if CryptoKit encounters an error producing the signature.
         public func signature<D: DataProtocol, C: DataProtocol>(for data: D, context: C) throws -> Data {
-            return try impl.signature(for: data, context: context)
+            try impl.signature(for: data, context: context)
         }
 
         /// The associated public key.
         public var publicKey: PublicKey {
-            get {
-                PublicKey(impl.publicKey)
-            }
+            PublicKey(self.impl.publicKey)
         }
 
         /// Initializes a private key from an integrity-checked data representation.
@@ -168,28 +140,32 @@ extension ${NAME} {
         /// - Parameter integrityCheckedRepresentation: The integrity-checked data representation of the private key.
         ///   The parameter needs to be 64 bytes long, and contain the seed and a hash of the public key.
         public init<D: DataProtocol>(integrityCheckedRepresentation: D) throws {
-            let seedSize = MLDSAPrivateKeyImpl<${NAME}>.seedSize
+            let seedSize = BoringSSLMLDSA.seedByteCount
             guard integrityCheckedRepresentation.count == seedSize + 32 else {
-                throw CryptoKitError.incorrectParameterSize
+                throw CryptoError.incorrectParameterSize
             }
 
             let seed = Data(integrityCheckedRepresentation).subdata(in: 0..<seedSize)
             let publicKeyHashData = Data(integrityCheckedRepresentation).subdata(in: seedSize..<integrityCheckedRepresentation.count)
-            let publicKeyHash = SHA3_256Digest(bytes: [UInt8](publicKeyHashData))
 
-            self.impl = try MLDSAPrivateKeyImpl<${NAME}>(seedRepresentation: seed, publicKeyHash: publicKeyHash)
+            self.impl = try BoringSSLMLDSA44.InternalPrivateKey(seedRepresentation: seed)
+            let generatedHash = SHA3_256.hash(data: self.impl.publicKey.rawRepresentation)
+            guard generatedHash == publicKeyHashData else {
+                throw CryptoError.authenticationFailure
+            }
+            self.publicKeyHash = generatedHash
         }
 
         /// The integrity-checked data representation of the private key.
         ///
         /// This representation is 64 bytes long, and contains the seed and a hash of the public key.
         public var integrityCheckedRepresentation: Data {
-            get {
-                return self.impl.integrityCheckedRepresentation
+            var representation = self.seedRepresentation
+            representation.reserveCapacity(SHA3_256Digest.byteCount)
+            self.publicKeyHash.withUnsafeBytes {
+                representation.append(contentsOf: $0)
             }
+            return representation
         }
     }
 }
-
-% end
-#endif  // Linux or !SwiftPM
