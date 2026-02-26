@@ -13,7 +13,11 @@
 //===----------------------------------------------------------------------===//
 
 @_implementationOnly import CCryptoBoringSSL
+#if CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
+@_exported import CryptoKit
+#else
 import Crypto
+#endif
 
 @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension CryptoKitError {

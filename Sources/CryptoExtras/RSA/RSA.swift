@@ -16,7 +16,11 @@ import FoundationEssentials
 #else
 import Foundation
 #endif
+#if CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
+@_exported import CryptoKit
+#else
 import Crypto
+#endif
 import CryptoBoringWrapper
 import SwiftASN1
 
