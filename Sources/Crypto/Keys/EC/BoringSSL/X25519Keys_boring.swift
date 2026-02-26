@@ -33,7 +33,6 @@ extension Curve25519.KeyAgreement {
         @usableFromInline
         var keyBytes: [UInt8]
 
-        @inlinable
         init<D: ContiguousBytes>(rawRepresentation: D) throws {
             self.keyBytes = try rawRepresentation.withUnsafeBytes { dataPtr in
                 guard dataPtr.count == Curve25519.KeyAgreement.keySizeBytes else {
