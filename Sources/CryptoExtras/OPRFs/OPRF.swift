@@ -16,7 +16,11 @@ import FoundationEssentials
 #else
 import Foundation
 #endif
+#if CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
+@_exported import CryptoKit
+#else
 import Crypto
+#endif
 
 /// (Verifiable Partly-)Oblivious Pseudorandom Functions
 /// https://cfrg.github.io/draft-irtf-cfrg-voprf/draft-irtf-cfrg-voprf.html

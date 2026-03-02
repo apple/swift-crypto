@@ -13,7 +13,11 @@
 //===----------------------------------------------------------------------===//
 
 @_implementationOnly import CCryptoBoringSSL
+#if CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
+@_exported import CryptoKit
+#else
 import Crypto
+#endif
 
 #if canImport(FoundationEssentials)
 import FoundationEssentials

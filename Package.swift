@@ -1,4 +1,4 @@
-// swift-tools-version:6.0
+// swift-tools-version:6.1
 //===----------------------------------------------------------------------===//
 //
 // This source file is part of the SwiftCrypto open source project
@@ -53,6 +53,7 @@ if development || isFreeBSD {
         "CXKCPShims",
     ]
 } else {
+#if !canImport(Darwin)
     let platforms: [Platform] = [
         Platform.linux,
         Platform.android,
@@ -71,6 +72,19 @@ if development || isFreeBSD {
         .target(name: "CXKCP", condition: .when(platforms: platforms)),
         .target(name: "CXKCPShims", condition: .when(platforms: platforms)),
     ]
+#else
+    swiftSettings = [
+        .define("CRYPTO_IN_SWIFTPM"),
+        .define("CRYPTO_IN_SWIFTPM_FORCE_BUILD_API", .when(traits: ["FORCE_BUILD_SWIFT_CRYPTO_API"])),
+    ]
+    dependencies = [
+        .target(name: "CCryptoBoringSSL", condition: .when(traits: ["FORCE_BUILD_SWIFT_CRYPTO_API"])),
+        .target(name: "CCryptoBoringSSLShims", condition: .when(traits: ["FORCE_BUILD_SWIFT_CRYPTO_API"])),
+        .target(name: "CryptoBoringWrapper", condition: .when(traits: ["FORCE_BUILD_SWIFT_CRYPTO_API"])),
+        .target(name: "CXKCP", condition: .when(traits: ["FORCE_BUILD_SWIFT_CRYPTO_API"])),
+        .target(name: "CXKCPShims", condition: .when(traits: ["FORCE_BUILD_SWIFT_CRYPTO_API"])),
+    ]
+#endif
 }
 
 // This doesn't work when cross-compiling: the privacy manifest will be included in the Bundle and
@@ -96,6 +110,7 @@ let package = Package(
             .library(name: "CCryptoBoringSSL", type: .static, targets: ["CCryptoBoringSSL"]),
             MANGLE_END */
     ],
+    traits: [.trait(name: "FORCE_BUILD_SWIFT_CRYPTO_API")],
     dependencies: [
         // Dependencies are added below so that they can be switched between local and absolute URLs
     ],
