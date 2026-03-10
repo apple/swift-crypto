@@ -13,7 +13,11 @@
 //===----------------------------------------------------------------------===//
 import Crypto
 import CryptoExtras
+#if canImport(FoundationEssentials)
+import FoundationEssentials
+#else
 import Foundation
+#endif
 import XCTest
 
 final class CMACTests: XCTestCase {
