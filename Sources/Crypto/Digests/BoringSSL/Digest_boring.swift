@@ -173,10 +173,10 @@ private final class DigestContext<H: BoringSSLBackedHashFunction> {
     private var context: H.Context
 
     init() {
-        guard let contex = H.initialize() else {
+        guard let context = H.initialize() else {
             preconditionFailure("Unable to initialize digest state")
         }
-        self.context = contex
+        self.context = context
     }
 
     init(copying original: DigestContext) {
