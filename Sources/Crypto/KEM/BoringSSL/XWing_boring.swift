@@ -240,7 +240,9 @@ extension OpenSSLXWingPrivateKeyImpl {
                 throw CryptoKitError.incorrectParameterSize
             }
 
-            return try SymmetricKey(unsafeUninitializedCapacity: Int(XWING_SHARED_SECRET_BYTES)) { sharedSecretBytes, count in
+            return try SymmetricKey(unsafeUninitializedCapacity: Int(XWING_SHARED_SECRET_BYTES)) {
+                sharedSecretBytes,
+                count in
                 try encapsulated.withUnsafeBytes { encapsulatedSecretBytes in
                     let rc = CCryptoBoringSSL_XWING_decap(
                         sharedSecretBytes.baseAddress,
