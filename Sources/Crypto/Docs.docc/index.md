@@ -39,10 +39,24 @@ Swift Crypto is built on top of [BoringSSL](https://boringssl.googlesource.com/b
 - ``P256``
 - ``SharedSecret``
 - ``HPKE``
+- ``MLDSA65``
+- ``MLDSA87``
 
 ### Key derivation functions
 
 - ``HKDF``
+
+### Key encapsulation mechanisms (KEM)
+
+- ``KEM``
+- ``MLKEM768``
+- ``MLKEM1024``
+- ``XWingMLKEM768X25519``
+
+### KEM keys
+
+- ``KEMPrivateKey``
+- ``KEMPublicKey``
 
 ### Errors
 

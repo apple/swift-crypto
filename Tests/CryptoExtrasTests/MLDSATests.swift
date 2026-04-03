@@ -12,12 +12,11 @@
 //
 //===----------------------------------------------------------------------===//
 
-#if !canImport(Darwin) || canImport(CryptoKit, _version: 324.0.4)
-
 import XCTest
 
 @testable import CryptoExtras
 
+#if !canImport(Darwin) || canImport(CryptoKit, _version: 324.0.4)
 final class MLDSATests: XCTestCase {
     func testMLDSA65Signing() throws {
         guard #available(iOS 19.0, macOS 16.0, watchOS 12.0, tvOS 19.0, visionOS 3.0, *) else {
@@ -211,39 +210,6 @@ final class MLDSATests: XCTestCase {
         }
     }
 
-    private struct NISTKeyGenTestVector: Decodable {
-        let seed: String
-        let pub: String
-        let priv: String
-    }
-
-    private struct NISTTestFile<Vector: Decodable>: Decodable {
-        let testVectors: [Vector]
-    }
-
-    @available(iOS 19.0, macOS 16.0, watchOS 12.0, tvOS 19.0, visionOS 3.0, *)
-    private func nistTest<Vector: Decodable>(
-        jsonName: String,
-        file: StaticString = #filePath,
-        line: UInt = #line,
-        testFunction: (Vector) throws -> Void
-    ) throws {
-        var fileURL = URL(fileURLWithPath: "\(#filePath)")
-        for _ in 0..<2 {
-            fileURL.deleteLastPathComponent()
-        }
-        fileURL = fileURL.appendingPathComponent("CryptoExtrasVectors", isDirectory: true)
-        fileURL = fileURL.appendingPathComponent("\(jsonName).json", isDirectory: false)
-
-        let data = try Data(contentsOf: fileURL)
-
-        let testFile = try JSONDecoder().decode(NISTTestFile<Vector>.self, from: data)
-
-        for vector in testFile.testVectors {
-            try testFunction(vector)
-        }
-    }
-
     func testMLDSA65WycheproofVerifyFile() throws {
         guard #available(iOS 19.0, macOS 16.0, watchOS 12.0, tvOS 19.0, visionOS 3.0, *) else {
             throw XCTSkip("MLDSA is only available on iOS 19.0+, macOS 16.0+, watchOS 12.0+, tvOS 19.0+, visionOS 3.0+")
@@ -356,3 +322,131 @@ extension MLDSA87.PublicKey {
 }
 
 #endif  // SDK has MLDSA
+
+@available(macOS 26.0, iOS 26.0, watchOS 26.0, tvOS 26.0, macCatalyst 26.0, visionOS 26.0, *)
+final class MLDSAExternalMuTests: XCTestCase {
+    func testMLDSA65PrehashedSigning() throws {
+        let message = "Hello, world!".data(using: .utf8)!
+        let context = "ctx".data(using: .utf8)!
+
+        let key = try MLDSA65.PrivateKey()
+        let publicKey = key.publicKey
+
+        let mu = try publicKey.prehash(for: message, context: context)
+
+        let muSignature = try key.signature(forPrehashedMessageRepresentative: mu)
+        XCTAssertTrue(publicKey.isValidSignature(muSignature, for: message, context: context))
+    }
+
+    func testMLDSA87PrehashedSigning() throws {
+        let message = "Hello, world!".data(using: .utf8)!
+        let context = "ctx".data(using: .utf8)!
+
+        let key = try MLDSA87.PrivateKey()
+        let publicKey = key.publicKey
+
+        let mu = try publicKey.prehash(for: message, context: context)
+
+        let muSignature = try key.signature(forPrehashedMessageRepresentative: mu)
+        XCTAssertTrue(publicKey.isValidSignature(muSignature, for: message, context: context))
+    }
+
+    func testMLDSA44PrehashedSigning() throws {
+        let message = "Hello, world!".data(using: .utf8)!
+        let context = "ctx".data(using: .utf8)!
+
+        let key = try MLDSA44.PrivateKey()
+        let publicKey = key.publicKey
+
+        let mu = try publicKey.prehash(for: message, context: context)
+
+        let muSignature = try key.signature(forPrehashedMessageRepresentative: mu)
+        XCTAssertTrue(publicKey.isValidSignature(muSignature, for: message, context: context))
+    }
+}
+
+@available(macOS 26.0, iOS 26.0, watchOS 26.0, tvOS 26.0, macCatalyst 26.0, visionOS 26.0, *)
+final class MLDSA44Tests: XCTestCase {
+    func testMLDSA44() throws {
+        let privateKey = try MLDSA44.PrivateKey()
+        let publicKey = privateKey.publicKey
+
+        // Test Public Key Serialization
+        try XCTAssert(
+            publicKey.rawRepresentation
+                == MLDSA44.PublicKey(rawRepresentation: publicKey.rawRepresentation).rawRepresentation
+        )
+
+        // Test Private Key serialization
+        try XCTAssert(
+            privateKey.seedRepresentation
+                == MLDSA44.PrivateKey(seedRepresentation: privateKey.seedRepresentation, publicKey: publicKey)
+                .seedRepresentation
+        )
+        try XCTAssert(
+            privateKey.integrityCheckedRepresentation
+                == MLDSA44.PrivateKey(integrityCheckedRepresentation: privateKey.integrityCheckedRepresentation)
+                .integrityCheckedRepresentation
+        )
+
+        // Test signing without a context
+        let message = Data("ML-DSA test message".utf8)
+        let signature = try privateKey.signature(for: message)
+        XCTAssertNotNil(signature)
+        let isValid = publicKey.isValidSignature(signature, for: message)
+        XCTAssertTrue(isValid)
+
+        // Test signing with a context
+        let context = Data("ML-DSA test context".utf8)
+        let signatureWithContext = try privateKey.signature(for: message, context: context)
+        let isValidWithContext = publicKey.isValidSignature(signatureWithContext, for: message, context: context)
+        XCTAssertTrue(isValidWithContext)
+
+        // Check that invalid signatures (mismatching contexts) fail
+        XCTAssertFalse(publicKey.isValidSignature(signature, for: message, context: context))
+        XCTAssertFalse(publicKey.isValidSignature(signatureWithContext, for: message))
+    }
+
+    func testMLDSA44NISTKeyGenFile() throws {
+        try nistTest(jsonName: "mldsa_nist_keygen_44_tests") { (testVector: NISTKeyGenTestVector) in
+            let seed = try Data(hexString: testVector.seed)
+            let publicKey = try MLDSA44.PublicKey(rawRepresentation: Data(hexString: testVector.pub))
+
+            let expectedkey = try MLDSA44.PrivateKey(seedRepresentation: seed, publicKey: nil).publicKey
+            XCTAssertEqual(publicKey.rawRepresentation, expectedkey.rawRepresentation)
+        }
+    }
+}
+
+private struct NISTKeyGenTestVector: Decodable {
+    let seed: String
+    let pub: String
+    let priv: String
+}
+
+private struct NISTTestFile<Vector: Decodable>: Decodable {
+    let testVectors: [Vector]
+}
+
+@available(iOS 19.0, macOS 16.0, watchOS 12.0, tvOS 19.0, visionOS 3.0, *)
+private func nistTest<Vector: Decodable>(
+    jsonName: String,
+    file: StaticString = #filePath,
+    line: UInt = #line,
+    testFunction: (Vector) throws -> Void
+) throws {
+    var fileURL = URL(fileURLWithPath: "\(#filePath)")
+    for _ in 0..<2 {
+        fileURL.deleteLastPathComponent()
+    }
+    fileURL = fileURL.appendingPathComponent("CryptoExtrasVectors", isDirectory: true)
+    fileURL = fileURL.appendingPathComponent("\(jsonName).json", isDirectory: false)
+
+    let data = try Data(contentsOf: fileURL)
+
+    let testFile = try JSONDecoder().decode(NISTTestFile<Vector>.self, from: data)
+
+    for vector in testFile.testVectors {
+        try testFunction(vector)
+    }
+}
