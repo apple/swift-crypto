@@ -94,6 +94,17 @@ internal struct BoringSSLRSAPrivateKey: Sendable {
         self.backing = try Backing(pemRepresentation: pemRepresentation)
     }
 
+    init<T: Collection>(
+        encryptedPEMRepresentation: String,
+        passphraseCallback: @escaping _RSA.Signing.PrivateKey.PassphraseCallback<T>
+    ) throws where T.Element == UInt8 {
+        let manager = BoringSSLPassphraseCallbackManager(userCallback: passphraseCallback)
+        self.backing = try Backing(
+            encryptedPEMRepresentation: encryptedPEMRepresentation,
+            callbackManager: manager
+        )
+    }
+
     init<Bytes: DataProtocol>(derRepresentation: Bytes) throws {
         self.backing = try Backing(derRepresentation: derRepresentation)
     }
@@ -595,6 +606,33 @@ extension BoringSSLRSAPrivateKey {
             let rsaPrivateKey = try pemRepresentation.withUTF8 { utf8Ptr in
                 try BIOHelper.withReadOnlyMemoryBIO(wrapping: utf8Ptr) { bio in
                     guard let key = CCryptoBoringSSL_PEM_read_bio_RSAPrivateKey(bio, nil, nil, nil) else {
+                        throw CryptoKitError.internalBoringSSLError()
+                    }
+
+                    return key
+                }
+            }
+            CCryptoBoringSSL_EVP_PKEY_assign_RSA(self.pointer, rsaPrivateKey)
+        }
+
+        fileprivate init(
+            encryptedPEMRepresentation: String,
+            callbackManager: CallbackManagerProtocol
+        ) throws {
+            var encryptedPEMRepresentation = encryptedPEMRepresentation
+            self.pointer = CCryptoBoringSSL_EVP_PKEY_new()
+
+            let rsaPrivateKey = try encryptedPEMRepresentation.withUTF8 { utf8Ptr in
+                try BIOHelper.withReadOnlyMemoryBIO(wrapping: utf8Ptr) { bio in
+                    let key = withExtendedLifetime(callbackManager) { callbackManager -> OpaquePointer? in
+                        CCryptoBoringSSL_PEM_read_bio_RSAPrivateKey(
+                            bio,
+                            nil,
+                            { globalBoringSSLPassphraseCallback(buf: $0, size: $1, rwflag: $2, u: $3) },
+                            Unmanaged.passUnretained(callbackManager as AnyObject).toOpaque()
+                        )
+                    }
+                    guard let key else {
                         throw CryptoKitError.internalBoringSSLError()
                     }
 
