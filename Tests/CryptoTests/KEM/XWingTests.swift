@@ -84,6 +84,39 @@ final class XWingTests: XCTestCase {
         let importedKey = try XWingMLKEM768X25519.PrivateKey.init(integrityCheckedRepresentation: exportedFormat)
         XCTAssertEqual(importedKey.seedRepresentation, privateKey.seedRepresentation)
     }
+
+    func testDecapsulateInputValidation() throws {
+        let ciphersuite = HPKE.Ciphersuite.XWingMLKEM768X25519_SHA256_AES_GCM_256
+        let skR = try XWingMLKEM768X25519.PrivateKey.generate()
+
+        // Dummy key with the correct size fails with an error from the underlying implementation.
+        let corretlySizedKey = Data(repeating: 0x00, count: 1120)
+        XCTAssertThrowsError(
+            try HPKE.Recipient(
+                privateKey: skR,
+                ciphersuite: ciphersuite,
+                info: Data(),
+                encapsulatedKey: corretlySizedKey
+            ),
+            error: CryptoKitError.underlyingCoreCryptoError(error: 0)
+        )
+
+        // Keys with the wrong size fail input validation.
+        let keySizesToTest = [0, 1, 1119, 1221, 2000]
+        for keySize in keySizesToTest {
+            let wronglySizedKey = Data(repeating: 0x00, count: keySize)
+            XCTAssertThrowsError(
+                try HPKE.Recipient(
+                    privateKey: skR,
+                    ciphersuite: ciphersuite,
+                    info: Data(),
+                    encapsulatedKey: wronglySizedKey
+                ),
+                error: CryptoKitError.incorrectParameterSize,
+                "Unexpectedly returned from malformed decapsulation path for keySize \(keySize)"
+            )
+        }
+    }
 }
 
 // Struct to parse KAT file
