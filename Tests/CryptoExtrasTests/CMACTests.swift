@@ -13,12 +13,13 @@
 //===----------------------------------------------------------------------===//
 import Crypto
 import CryptoExtras
+import XCTest
+
 #if canImport(FoundationEssentials)
 import FoundationEssentials
 #else
 import Foundation
 #endif
-import XCTest
 
 final class CMACTests: XCTestCase {
     // Borrowed from CryptoKit

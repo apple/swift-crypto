@@ -12,12 +12,13 @@
 //
 //===----------------------------------------------------------------------===//
 import Crypto
+import XCTest
+
 #if canImport(FoundationEssentials)
 import FoundationEssentials
 #else
 import Foundation
 #endif
-import XCTest
 
 #if !canImport(Darwin) || canImport(CryptoKit, _version: 241.100.42)
 // Corresponds to the CryptoKit in XCode 16.3, which has Sendable annotations

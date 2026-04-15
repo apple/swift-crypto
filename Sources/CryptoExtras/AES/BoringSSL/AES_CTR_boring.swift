@@ -12,8 +12,9 @@
 //
 //===----------------------------------------------------------------------===//
 
-@_implementationOnly import CCryptoBoringSSL
 import Crypto
+
+@_implementationOnly import CCryptoBoringSSL
 
 #if canImport(FoundationEssentials)
 import FoundationEssentials
