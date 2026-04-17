@@ -1,3 +1,4 @@
+@_implementationOnly import CCryptoBoringSSL
 //===----------------------------------------------------------------------===//
 //
 // This source file is part of the SwiftCrypto open source project
@@ -12,8 +13,6 @@
 //
 //===----------------------------------------------------------------------===//
 import Crypto
-
-@_implementationOnly import CCryptoBoringSSL
 
 #if canImport(FoundationEssentials)
 import FoundationEssentials

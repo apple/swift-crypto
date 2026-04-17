@@ -12,10 +12,9 @@
 //
 //===----------------------------------------------------------------------===//
 
-import Crypto
-
 @_implementationOnly import CCryptoBoringSSL
 @_implementationOnly import CCryptoBoringSSLShims
+import Crypto
 
 #if canImport(FoundationEssentials)
 #if os(Windows)
