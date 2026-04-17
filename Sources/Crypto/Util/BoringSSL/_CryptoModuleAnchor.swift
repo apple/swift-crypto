@@ -17,12 +17,9 @@
 // frameworks (e.g. for test-target dependencies), an empty module generates a
 // framework directory with no Mach-O binary, causing a linker error.
 //
-// This public enum ensures at least one exported symbol is always present,
-// regardless of how the package is linked.
+// This symbol ensures at least one exported entry is always present in the
+// binary, regardless of how the package is linked.
 // See: https://github.com/apple/swift-crypto/issues/435
 
-/// An anchor type that guarantees the Crypto module always contains at least
-/// one exported symbol. Do not use this type directly.
-public enum _CryptoModuleAnchor {
-    static let _anchor: Bool = true
-}
+@usableFromInline
+internal func _cryptoModuleAnchor() {}
