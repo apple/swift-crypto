@@ -1,5 +1,3 @@
-import Crypto
-
 //===----------------------------------------------------------------------===//
 //
 // This source file is part of the SwiftCrypto open source project
@@ -13,6 +11,8 @@ import Crypto
 // SPDX-License-Identifier: Apache-2.0
 //
 //===----------------------------------------------------------------------===//
+import Crypto
+
 @_implementationOnly import CCryptoBoringSSL
 
 #if canImport(FoundationEssentials)
