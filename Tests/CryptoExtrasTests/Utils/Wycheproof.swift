@@ -25,7 +25,6 @@ extension XCTestCase {
         for _ in 0..<3 {
             fileURL.deleteLastPathComponent()
         }
-        #if compiler(>=6.0)
         if #available(macOS 13, iOS 16, watchOS 9, tvOS 16, visionOS 1, macCatalyst 16, *) {
             fileURL.append(path: "CryptoExtrasVectors", directoryHint: .isDirectory)
             fileURL.append(path: "\(jsonName).json", directoryHint: .notDirectory)
@@ -33,10 +32,6 @@ extension XCTestCase {
             fileURL = fileURL.appendingPathComponent("CryptoExtrasVectors", isDirectory: true)
             fileURL = fileURL.appendingPathComponent("\(jsonName).json", isDirectory: false)
         }
-        #else
-        fileURL = fileURL.appendingPathComponent("CryptoExtrasVectors", isDirectory: true)
-        fileURL = fileURL.appendingPathComponent("\(jsonName).json", isDirectory: false)
-        #endif
 
         let data = try Data(contentsOf: fileURL)
 
