@@ -102,6 +102,7 @@ add_library(Crypto
   "Util/BoringSSL/RNG_boring.swift"
   "Util/BoringSSL/SafeCompare_boring.swift"
   "Util/BoringSSL/Zeroization_boring.swift"
+  "Util/BoringSSL/_CryptoModuleAnchor.swift"
   "Util/PrettyBytes.swift"
   "Util/SafeCompare.swift"
   "Util/SecureBytes.swift"
