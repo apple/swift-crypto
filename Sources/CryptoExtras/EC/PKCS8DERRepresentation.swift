@@ -13,8 +13,13 @@
 //===----------------------------------------------------------------------===//
 
 import Crypto
-import Foundation
 import SwiftASN1
+
+#if canImport(FoundationEssentials)
+import FoundationEssentials
+#else
+import Foundation
+#endif
 
 @available(iOS 14.0, macOS 11.0, watchOS 7.0, tvOS 14.0, *)
 extension Curve25519.Signing.PrivateKey {

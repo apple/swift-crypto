@@ -13,10 +13,15 @@
 //===----------------------------------------------------------------------===//
 
 import Crypto
-import Foundation
 import XCTest
 
 @testable import CryptoExtras
+
+#if canImport(FoundationEssentials)
+import FoundationEssentials
+#else
+import Foundation
+#endif
 
 final class PKCS8DERRepresentationTests: XCTestCase {
     func test_RSA() {
