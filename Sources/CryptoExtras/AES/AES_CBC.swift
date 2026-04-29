@@ -124,6 +124,10 @@ extension AES {
                 throw CryptoKitError.incorrectKeySize
             }
 
+            guard ciphertext.count % AES._CBC.blockSize == 0 else {
+                throw CryptoKitError.incorrectParameterSize
+            }
+
             var plaintext = Data()
             plaintext.reserveCapacity(ciphertext.count)
 

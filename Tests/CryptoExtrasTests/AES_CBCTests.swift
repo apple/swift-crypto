@@ -163,6 +163,23 @@ final class CBCTests: XCTestCase {
         }
     }
 
+    func testDecryptRejectsNonBlockAlignedCiphertext() throws {
+        let key = SymmetricKey(data: try Data(hexString: "b6fc08df9b778d11850356b8bfc9561a"))
+        let iv = try AES._CBC.IV(ivBytes: Array(hexString: "00000000000000000000000000000000"))
+
+        // 17 bytes — not a multiple of the 16-byte block size.
+        let nonAligned = try Data(hexString: "00112233445566778899aabbccddeeff00")
+
+        for noPadding in [false, true] {
+            XCTAssertThrowsError(try AES._CBC.decrypt(nonAligned, using: key, iv: iv, noPadding: noPadding)) { error in
+                guard let error = error as? CryptoKitError, case .incorrectParameterSize = error else {
+                    XCTFail("Unexpected error for noPadding=\(noPadding): \(error)")
+                    return
+                }
+            }
+        }
+    }
+
     func testToDataConversion() throws {
         let randomBytes = (0..<16).map { _ in UInt8.random(in: UInt8.min...UInt8.max) }
         let dataIn = Data(randomBytes)
