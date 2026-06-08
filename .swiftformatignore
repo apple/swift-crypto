@@ -172,4 +172,3 @@ Tests/CryptoExtrasTests/Utils/SplitData.swift
 Tests/CryptoExtrasTests/Utils/Wycheproof.swift
 Tests/CryptoExtrasTests/Utils/XCTestUtils.swift
 Tests/CryptoExtrasTests/ZKPs/ZKPToolbox.swift
-
