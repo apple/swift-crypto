@@ -84,9 +84,7 @@ extension BoringSSLAEAD.AEADContext {
         message: Plaintext,
         nonce: Nonce,
         authenticatedData: AuthenticatedData
-    ) throws -> (
-        ciphertext: Data, tag: Data
-    ) {
+    ) throws -> Data {
         // Seal is a somewhat awkward function. As it returns a Data, we are going to need to initialize a Data large enough to write into. Data does not provide us an
         // initializer that gives us access to its uninitialized memory, so the cost of creating this Data is the cost of allocating the data + the cost of initializing
         // it. For smaller plaintexts this isn't too big a deal, but for larger ones the initialization cost can really get hairy.
@@ -136,72 +134,107 @@ extension BoringSSLAEAD.AEADContext {
         message: Plaintext,
         nonce: Nonce,
         authenticatedData: AuthenticatedData
-    ) throws -> (
-        ciphertext: Data, tag: Data
-    ) {
+    ) throws -> Data {
         try message.withUnsafeBytes { messagePointer in
             try nonce.withUnsafeBytes { noncePointer in
                 try authenticatedData.withUnsafeBytes { authenticatedDataPointer in
                     try self._sealContiguous(
-                        plaintext: messagePointer,
-                        noncePointer: noncePointer,
-                        authenticatedData: authenticatedDataPointer
+                        plaintext: messagePointer.bytes,
+                        nonce: noncePointer.bytes,
+                        authenticatedData: authenticatedDataPointer.bytes
                     )
                 }
             }
         }
     }
 
-    /// The unsafe base call: not inlinable so that it can touch private variables.
-    @usableFromInline
-    func _sealContiguous(
-        plaintext: UnsafeRawBufferPointer,
-        noncePointer: UnsafeRawBufferPointer,
-        authenticatedData: UnsafeRawBufferPointer
-    ) throws -> (ciphertext: Data, tag: Data) {
+    /// Lowest level seal operation that calls into BoringSSL directly and
+    /// operates on already-allocated memory.
+    #if swift(<6.3)
+    @_lifetime(tag: copy tag)
+    #endif
+    public func seal(
+        message: inout MutableRawSpan,
+        nonce: RawSpan,
+        authenticatedData: RawSpan,
+        tag: inout OutputRawSpan
+    ) throws {
         let tagByteCount = CCryptoBoringSSL_EVP_AEAD_max_overhead(self.context.aead)
-
-        // We use malloc here because we are going to call free later. We force unwrap to trigger crashes if the allocation
-        // fails.
-        let outputBuffer = UnsafeMutableRawBufferPointer(
-            start: malloc(plaintext.count)!,
-            count: plaintext.count
-        )
-        let tagBuffer = UnsafeMutableRawBufferPointer(start: malloc(tagByteCount)!, count: tagByteCount)
-        var actualTagSize = tagBuffer.count
+        precondition(tag.freeCapacity >= tagByteCount)
+        var actualTagSize = tagByteCount
 
         let rc = withUnsafeMutablePointer(to: &self.context) { contextPointer in
-            CCryptoBoringSSLShims_EVP_AEAD_CTX_seal_scatter(
-                contextPointer,
-                outputBuffer.baseAddress,
-                tagBuffer.baseAddress,
-                &actualTagSize,
-                tagBuffer.count,
-                noncePointer.baseAddress,
-                noncePointer.count,
-                plaintext.baseAddress,
-                plaintext.count,
-                nil,
-                0,
-                authenticatedData.baseAddress,
-                authenticatedData.count
-            )
+            message.withUnsafeMutableBytes { messageBuffer in
+                tag.withUnsafeMutableBytes { tagBuffer, tagInitializedCount in
+                    defer {
+                        tagInitializedCount += actualTagSize
+                    }
+
+                    return authenticatedData.withUnsafeBytes { authenticatedDataBuffer in
+                        nonce.withUnsafeBytes { nonceBuffer in
+                            CCryptoBoringSSLShims_EVP_AEAD_CTX_seal_scatter(
+                                contextPointer,
+                                messageBuffer.baseAddress,
+                                tagBuffer.baseAddress! + tagInitializedCount,
+                                &actualTagSize,
+                                tagBuffer.count - tagInitializedCount,
+                                nonceBuffer.baseAddress,
+                                nonceBuffer.count,
+                                messageBuffer.baseAddress,
+                                messageBuffer.count,
+                                nil,
+                                0,
+                                authenticatedDataBuffer.baseAddress,
+                                authenticatedDataBuffer.count
+                            )
+                        }
+
+                    }
+                }
+            }
         }
 
         guard rc == 1 else {
-            // Ooops, error. Free the memory we allocated before we throw.
-            free(outputBuffer.baseAddress)
-            free(tagBuffer.baseAddress)
             throw CryptoBoringWrapperError.internalBoringSSLError()
         }
+    }
 
-        let output = Data(
-            bytesNoCopy: outputBuffer.baseAddress!,
-            count: outputBuffer.count,
-            deallocator: .free
-        )
-        let tag = Data(bytesNoCopy: tagBuffer.baseAddress!, count: actualTagSize, deallocator: .free)
-        return (ciphertext: output, tag: tag)
+    /// The unsafe base call: not inlinable so that it can touch private variables.
+    @usableFromInline
+    func _sealContiguous(
+        plaintext: RawSpan,
+        nonce: RawSpan,
+        authenticatedData: RawSpan
+    ) throws -> Data {
+        let tagByteCount = CCryptoBoringSSL_EVP_AEAD_max_overhead(self.context.aead)
+
+        // Form the combined represention of a sealed box with nonce + plaintext + tag.
+        var combined = Data()
+        combined.reserveCapacity(nonce.byteCount + plaintext.byteCount + tagByteCount)
+        combined.append(contentsOf: nonce)
+        combined.append(contentsOf: plaintext)
+        combined.append(Data(count: tagByteCount))
+
+        try combined.withUnsafeMutableBytes { (combinedBuffer: UnsafeMutableRawBufferPointer) in
+            let messageRange = nonce.byteCount..<(nonce.byteCount + plaintext.byteCount)
+            let messageBuffer = UnsafeMutableRawBufferPointer(rebasing: combinedBuffer[messageRange])
+            var messageSpan = messageBuffer.mutableBytes
+
+            let tagBuffer = UnsafeMutableRawBufferPointer(
+                rebasing: combinedBuffer[(nonce.byteCount + plaintext.byteCount)...]
+            )
+            var tagSpan = OutputRawSpan(buffer: tagBuffer, initializedCount: 0)
+            try seal(
+                message: &messageSpan,
+                nonce: nonce,
+                authenticatedData: authenticatedData,
+                tag: &tagSpan
+            )
+            let tagBytesWritten = tagSpan.finalize(for: tagBuffer)
+            assert(tagBytesWritten == tagByteCount)
+        }
+
+        return combined
     }
 }
 
@@ -255,10 +288,10 @@ extension BoringSSLAEAD.AEADContext {
                 try tag.withUnsafeBytes { tagBytes in
                     try authenticatedData.withUnsafeBytes { authenticatedDataBytes in
                         try self._openContiguous(
-                            ciphertext: ciphertextPointer,
-                            nonceBytes: nonceBytes,
-                            tagBytes: tagBytes,
-                            authenticatedData: authenticatedDataBytes
+                            ciphertext: ciphertextPointer.bytes,
+                            nonceBytes: nonceBytes.bytes,
+                            tagBytes: tagBytes.bytes,
+                            authenticatedData: authenticatedDataBytes.bytes
                         )
                     }
                 }
@@ -266,47 +299,55 @@ extension BoringSSLAEAD.AEADContext {
         }
     }
 
-    /// The unsafe base call: not inlinable so that it can touch private variables.
-    @usableFromInline
-    func _openContiguous(
-        ciphertext: UnsafeRawBufferPointer,
-        nonceBytes: UnsafeRawBufferPointer,
-        tagBytes: UnsafeRawBufferPointer,
-        authenticatedData: UnsafeRawBufferPointer
-    ) throws -> Data {
-        // We use malloc here because we are going to call free later. We force unwrap to trigger crashes if the allocation
-        // fails.
-        let outputBuffer = UnsafeMutableRawBufferPointer(
-            start: malloc(ciphertext.count)!,
-            count: ciphertext.count
-        )
-
+    /// Lowest level call into BoringSSL that decrypts in place.
+    #if swift(<6.3)
+    @_lifetime(message: copy message)
+    #endif
+    public func open(
+        message: inout MutableRawSpan,
+        nonce: RawSpan,
+        tag: RawSpan,
+        authenticatedData: RawSpan
+    ) throws {
         let rc = withUnsafePointer(to: &self.context) { contextPointer in
-            CCryptoBoringSSLShims_EVP_AEAD_CTX_open_gather(
-                contextPointer,
-                outputBuffer.baseAddress,
-                nonceBytes.baseAddress,
-                nonceBytes.count,
-                ciphertext.baseAddress,
-                ciphertext.count,
-                tagBytes.baseAddress,
-                tagBytes.count,
-                authenticatedData.baseAddress,
-                authenticatedData.count
-            )
+            message.withUnsafeMutableBytes { messageBuffer in
+                nonce.withUnsafeBytes { nonceBuffer in
+                    tag.withUnsafeBytes { tagBuffer in
+                        authenticatedData.withUnsafeBytes { adBuffer in
+                            CCryptoBoringSSLShims_EVP_AEAD_CTX_open_gather(
+                                contextPointer,
+                                messageBuffer.baseAddress,
+                                nonceBuffer.baseAddress,
+                                nonceBuffer.count,
+                                messageBuffer.baseAddress,
+                                messageBuffer.count,
+                                tagBuffer.baseAddress,
+                                tagBuffer.count,
+                                adBuffer.baseAddress,
+                                adBuffer.count
+                            )
+                        }
+                    }
+                }
+            }
         }
 
         guard rc == 1 else {
-            // Ooops, error. Free the memory we allocated before we throw.
-            free(outputBuffer.baseAddress)
             throw CryptoBoringWrapperError.internalBoringSSLError()
         }
+    }
 
-        let output = Data(
-            bytesNoCopy: outputBuffer.baseAddress!,
-            count: outputBuffer.count,
-            deallocator: .free
-        )
+    /// The unsafe base call: not inlinable so that it can touch private variables.
+    @usableFromInline
+    func _openContiguous(
+        ciphertext: RawSpan,
+        nonceBytes: RawSpan,
+        tagBytes: RawSpan,
+        authenticatedData: RawSpan
+    ) throws -> Data {
+        var output = Data(copying: ciphertext)
+        var outputSpan = output.mutableBytes
+        try open(message: &outputSpan, nonce: nonceBytes, tag: tagBytes, authenticatedData: authenticatedData)
         return output
     }
 

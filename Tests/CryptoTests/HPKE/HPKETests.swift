@@ -18,14 +18,16 @@ import Foundation
 #endif
 import XCTest
 
+
 #if CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
 // Skip tests that require @testable imports of CryptoKit.
 #else
 #if !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
-@testable @_spi(HPKEAlgID) import CryptoKit
+@testable import CryptoKit
+@testable import CryptoKit
 @testable import CryptoKit
 #else
-@testable @_spi(HPKEAlgID) import Crypto
+@testable import Crypto
 #endif
 
 class HPKETests: XCTestCase {
@@ -43,7 +45,7 @@ class HPKETests: XCTestCase {
             try testCiphersuite(ciphersuite)
         }
     }
-
+    
     func testMismatchedKEM() {
         let skR = P256.KeyAgreement.PrivateKey()
         XCTAssertThrowsError(try HPKE.Sender(recipientKey: skR.publicKey, ciphersuite: .P384_SHA384_AES_GCM_256, info: Data()))
@@ -68,6 +70,7 @@ class HPKETests: XCTestCase {
         }
     }
 
+    @available(iOS 26.0, macOS 26.0, watchOS 26.0, tvOS 26.0, macCatalyst 26.0, visionOS 26.0, *)
     func testHPKECiphersuite<SK: HPKEKEMPrivateKey>(_ c: HPKE.Ciphersuite, withKeys: SK.Type) throws {
         let skR = try SK.PublicKey.EphemeralPrivateKey()
         let info = Data("Some Test Data".utf8)
@@ -162,17 +165,6 @@ class HPKETests: XCTestCase {
         XCTAssertEqual(cc25519.aead.keyByteCount, 32)
         XCTAssertEqual(cc25519.aead.nonceByteCount, 12)
         XCTAssertEqual(cc25519.aead.tagByteCount, 16)
-    }
-
-    func testHPKEKEMInterface() throws {
-        if #available(iOS 19.0, macOS 16.0, watchOS 12.0, tvOS 19.0, macCatalyst 19.0, *) {
-            let c = HPKE.Ciphersuite.XWingMLKEM768X25519_SHA256_AES_GCM_256
-            let skR = try XWingMLKEM768X25519.PrivateKey.generate()
-            let info = Data("Some Test Data".utf8)
-            var sender = try HPKE.Sender(recipientKey: skR.publicKey, ciphersuite: c, info: info)
-            var recipient = try HPKE.Recipient(privateKey: skR, ciphersuite: c, info: info, encapsulatedKey: sender.encapsulatedKey)
-            XCTAssertNoThrow(try testSenderRecipient(sender: &sender, recipient: &recipient))
-        }
     }
 }
 

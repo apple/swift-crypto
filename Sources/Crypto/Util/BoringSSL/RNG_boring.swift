@@ -43,4 +43,28 @@ extension UnsafeMutableRawBufferPointer {
     }
 }
 
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
+extension MutableRawSpan {
+    #if swift(<6.3)
+    @_lifetime(self: copy self)
+    #endif
+    mutating func initializeWithRandomBytes(count: Int) {
+        self.withUnsafeMutableBytes { $0.initializeWithRandomBytes(count: count) }
+    }
+}
+
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
+extension OutputRawSpan {
+    #if swift(<6.3)
+    @_lifetime(self: copy self)
+    #endif
+    mutating func appendingRandomBytes(count: Int) {
+        self.withUnsafeMutableBytes { buffer, initializedCount in
+            UnsafeMutableRawBufferPointer(rebasing: buffer[initializedCount..<initializedCount + count])
+                .initializeWithRandomBytes(count: count)
+            initializedCount += count
+        }
+    }
+}
+
 #endif  // CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API

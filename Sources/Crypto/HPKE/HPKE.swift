@@ -12,7 +12,11 @@
 //
 //===----------------------------------------------------------------------===//
 #if CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
+#if CRYPTOKIT_STATIC_LIBRARY
+@_exported import CryptoKit_Static
+#else
 @_exported import CryptoKit
+#endif
 #else
 #if CRYPTOKIT_NO_ACCESS_TO_FOUNDATION
 import SwiftSystem
@@ -53,10 +57,18 @@ public import Foundation
 ///
 /// ### Handling errors
 ///  - ``Errors``
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
+#if !CRYPTOKIT_STATIC_LIBRARY
+@available(iOS 17.0, macOS 14.0, watchOS 10.0, tvOS 17.0, macCatalyst 17.0, *)
+#else // CRYPTOKIT_STATIC_LIBRARY
+@available(iOS 16.0, macOS 10.13, watchOS 9.0, tvOS 16.0, macCatalyst 16.0, visionOS 1.0, *)
+#endif
 public enum HPKE: Sendable {}
 
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
+#if !CRYPTOKIT_STATIC_LIBRARY
+@available(iOS 17.0, macOS 14.0, watchOS 10.0, tvOS 17.0, macCatalyst 17.0, *)
+#else // CRYPTOKIT_STATIC_LIBRARY
+@available(iOS 16.0, macOS 10.13, watchOS 9.0, tvOS 16.0, macCatalyst 16.0, visionOS 1.0, *)
+#endif
 extension HPKE {
     /// Static constant used to store the fixed-string label for the HPKE export API
     /// See: https://datatracker.ietf.org/doc/html/rfc9180#name-secret-export
@@ -70,7 +82,11 @@ extension HPKE {
     /// in turn to retrieve its ciphertext. The recipient of the messages needs to process them in the
     /// same order as the `Sender`, using the same encryption mode, cipher suite, and key schedule information
     ///  (`info`), as well as the `Sender`'s ``encapsulatedKey``.
-    @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
+    #if !CRYPTOKIT_STATIC_LIBRARY
+    @available(iOS 17.0, macOS 14.0, watchOS 10.0, tvOS 17.0, macCatalyst 17.0, *)
+    #else // CRYPTOKIT_STATIC_LIBRARY
+    @available(iOS 16.0, macOS 10.13, watchOS 9.0, tvOS 16.0, macCatalyst 16.0, visionOS 1.0, *)
+    #endif
     public struct Sender: Sendable {
         private var context: Context
         /// The encapsulated symmetric key that the recipient uses to decrypt messages.
@@ -125,6 +141,7 @@ extension HPKE {
         ///   - ciphersuite: The cipher suite that defines the cryptographic algorithms to use.
         ///   - info: Data that the key derivation function uses to compute the symmetric key material. The sender and the recipient need to use the same `info` data.
         /// - Note: The system throws errors from ``CryptoKit/HPKE/Errors`` when it encounters them.
+        @available(iOS 26.0, macOS 26.0, watchOS 26.0, tvOS 26.0, macCatalyst 26.0, visionOS 26.0, *)
         public init<PK: HPKEKEMPublicKey>(recipientKey: PK, ciphersuite: Ciphersuite, info: Data) throws {
             self.context = try Context(senderRoleWithCiphersuite: ciphersuite, mode: .base, psk: nil, pskID: nil, pkR: recipientKey, info: info)
             self.encapsulatedKey = context.encapsulated
@@ -225,7 +242,11 @@ extension HPKE {
     /// same order as the `Sender`, using the same cipher suite, encryption mode, and key schedule information
     /// (`info` data).
     /// Use a separate `Recipient` instance for each stream of messages.
-    @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
+#if !CRYPTOKIT_STATIC_LIBRARY
+@available(iOS 17.0, macOS 14.0, watchOS 10.0, tvOS 17.0, macCatalyst 17.0, *)
+#else // CRYPTOKIT_STATIC_LIBRARY
+@available(iOS 16.0, macOS 10.13, watchOS 9.0, tvOS 16.0, macCatalyst 16.0, visionOS 1.0, *)
+#endif
     public struct Recipient: Sendable {
         
         private var context: Context
@@ -274,6 +295,7 @@ extension HPKE {
         ///   - info: Data that the key derivation function uses to compute the symmetric key material. The sender and the recipient need to use the same `info` data.
         ///   - encapsulatedKey: The encapsulated symmetric key that the sender provides.
         /// - Note: The system throws errors from ``CryptoKit/HPKE/Errors`` when it encounters them.
+        @available(iOS 26.0, macOS 26.0, watchOS 26.0, tvOS 26.0, macCatalyst 26.0, visionOS 26.0, *)
         public init<SK: HPKEKEMPrivateKey>(privateKey: SK, ciphersuite: Ciphersuite, info: Data, encapsulatedKey: Data) throws {
             self.context = try Context(recipientRoleWithCiphersuite: ciphersuite, mode: .base, enc: encapsulatedKey, psk: nil, pskID: nil, skR: privateKey, info: info, pkS: nil)
         }

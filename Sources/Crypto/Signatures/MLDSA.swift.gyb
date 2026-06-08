@@ -24,6 +24,7 @@ public import Foundation
 }%
 
 #if (!CRYPTO_IN_SWIFTPM_FORCE_BUILD_API) || CRYPTOKIT_NO_ACCESS_TO_FOUNDATION
+@available(iOS 26.0, macOS 26.0, watchOS 26.0, tvOS 26.0, macCatalyst 26.0, visionOS 26.0, *)
 typealias MLDSAPublicKeyImpl = CorecryptoMLDSAPublicKeyImpl
 typealias MLDSAPrivateKeyImpl = CorecryptoMLDSAPrivateKeyImpl
 #else
@@ -37,13 +38,19 @@ typealias MLDSAPrivateKeyImpl = OpenSSLMLDSAPrivateKeyImpl
 }%
 
 /// The ${NAME} Digital Signature Algorithm
+@available(iOS 26.0, macOS 26.0, watchOS 26.0, tvOS 26.0, macCatalyst 26.0, visionOS 26.0, *)
 public enum ${NAME}: Sendable {}
 
+@available(iOS 26.0, macOS 26.0, watchOS 26.0, tvOS 26.0, macCatalyst 26.0, visionOS 26.0, *)
 extension ${NAME} {
     /// The public key for ${NAME}.
     public struct PublicKey: Sendable {
         var impl: MLDSAPublicKeyImpl<${NAME}>
-        
+
+        internal init(_ impl: MLDSAPublicKeyImpl<${NAME}>) {
+            self.impl = impl
+        }
+
         /// Parses a public key from a serialized representation.
         ///
         /// - Parameter rawRepresentation: The public key, in the FIPS 204 standard serialization format.
@@ -51,7 +58,7 @@ extension ${NAME} {
         public init<D: DataProtocol>(rawRepresentation: D) throws {
             self.impl = try MLDSAPublicKeyImpl(rawRepresentation: rawRepresentation)
         }
-        
+
         /// A serialized representation of the public key.
         ///
         /// This property provides a representation of the public key in the FIPS 204 standard serialization format.
@@ -84,12 +91,22 @@ extension ${NAME} {
     /// The private key for ${NAME}.
     public struct PrivateKey: Signer, Sendable {
         internal let impl: MLDSAPrivateKeyImpl<${NAME}>
-        
+
         internal init(_ impl: MLDSAPrivateKeyImpl<${NAME}>) {
             self.impl = impl
         }
-        
-        /// Initializes a new random private key.
+
+        /// Creates a random ${NAME} private key.
+        ///
+        /// This initializer is marked `throws` to support use in generic contexts,
+        /// but key generation itself doesn't produce errors.
+        ///
+        /// When you call this initializer directly on a concrete type, rather than
+        /// through a generic type parameter, you can safely call `try!` to create the key:
+        ///
+        /// ```swift
+        /// let privateKey = try! ${NAME}.PrivateKey()
+        /// ```
         public init() throws {
             let impl = try MLDSAPrivateKeyImpl<${NAME}>()
             self = PrivateKey(impl)
@@ -110,7 +127,7 @@ extension ${NAME} {
             }
             self.impl = try MLDSAPrivateKeyImpl<${NAME}>(seedRepresentation: seedRepresentation, publicKeyRawRepresentation: publicKeyRawRepresentation)
         }
-        
+
         /// The seed representation of the private key.
         ///
         /// The seed representation is 32 bytes long, and is the parameter
@@ -139,11 +156,11 @@ extension ${NAME} {
         public func signature<D: DataProtocol, C: DataProtocol>(for data: D, context: C) throws -> Data {
             return try impl.signature(for: data, context: context)
         }
-        
+
         /// The associated public key.
         public var publicKey: PublicKey {
             get {
-                PublicKey(impl.publicKey)
+                return PublicKey(self.impl.publicKey)
             }
         }
 
@@ -159,7 +176,7 @@ extension ${NAME} {
 
             let seed = Data(integrityCheckedRepresentation).subdata(in: 0..<seedSize)
             let publicKeyHashData = Data(integrityCheckedRepresentation).subdata(in: seedSize..<integrityCheckedRepresentation.count)
-            let publicKeyHash = SHA3_256Digest(bytes: [UInt8](publicKeyHashData))
+            let publicKeyHash = SHA3_256Digest(copying: publicKeyHashData.bytes)
 
             self.impl = try MLDSAPrivateKeyImpl<${NAME}>(seedRepresentation: seed, publicKeyHash: publicKeyHash)
         }

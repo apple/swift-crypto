@@ -24,17 +24,27 @@ import Foundation
 #endif
 #endif
 
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
+#if !CRYPTOKIT_STATIC_LIBRARY
+@available(iOS 17.0, macOS 14.0, watchOS 10.0, tvOS 17.0, macCatalyst 17.0, *)
+#else // CRYPTOKIT_STATIC_LIBRARY
+@available(iOS 16.0, macOS 10.13, watchOS 9.0, tvOS 16.0, macCatalyst 16.0, visionOS 1.0, *)
+#endif
 extension HPKE {
 	/// The key encapsulation mechanisms to use in HPKE.
     ///
     /// The module-lattice key encapsulation mechanism (ML-KEM) is designed to offer increased security in situations
     /// where an adversary uses a quantum computer.
-    @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
+    #if !CRYPTOKIT_STATIC_LIBRARY
+    @available(iOS 17.0, macOS 14.0, watchOS 10.0, tvOS 17.0, macCatalyst 17.0, *)
+    #else // CRYPTOKIT_STATIC_LIBRARY
+    @available(iOS 16.0, macOS 10.13, watchOS 9.0, tvOS 16.0, macCatalyst 16.0, visionOS 1.0, *)
+    #endif
     public enum KEM: CaseIterable, Hashable, Sendable {
         public static var allCases: [HPKE.KEM] {
             var cases = [KEM.P256_HKDF_SHA256, KEM.P384_HKDF_SHA384, KEM.P521_HKDF_SHA512, KEM.Curve25519_HKDF_SHA256]
-            cases.append(KEM.XWingMLKEM768X25519)
+            if #available(iOS 19.0, macOS 16.0, watchOS 12.0, tvOS 19.0, macCatalyst 19.0, *) {
+                cases.append(KEM.XWingMLKEM768X25519)
+            }
             return cases
         }
 
@@ -52,11 +62,11 @@ extension HPKE {
         case Curve25519_HKDF_SHA256
         /// A key encapsulation mechanism using the X-Wing (ML-KEM-768 with X25519) key encapsulation mechanism
         /// and SHA-2 hashing with a 256-bit digest.
+        @available(iOS 26.0, macOS 26.0, watchOS 26.0, tvOS 26.0, macCatalyst 26.0, visionOS 26.0, *)
         case XWingMLKEM768X25519
 
         /// Return the KEM algorithm identifier as defined in section 7.1 of [RFC 9180](https://www.ietf.org/rfc/rfc9180.pdf).
-        @_spi(HPKEAlgID)
-        public var value: UInt16 {
+        internal var value: UInt16 {
             switch self {
             case .P256_HKDF_SHA256:          return 0x0010
             case .P384_HKDF_SHA384:          return 0x0011
@@ -91,8 +101,7 @@ extension HPKE {
         }
         
         /// Return the size of the encapsulation in bytes
-        @_spi(HPKEAlgID)
-        public var nEnc: UInt16 {
+        internal var nEnc: UInt16 {
             switch self {
             case .P256_HKDF_SHA256:          return 65
             case .P384_HKDF_SHA384:          return 97

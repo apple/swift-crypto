@@ -35,17 +35,16 @@ enum OpenSSLAESGCMImpl {
 
         let aead = try Self._backingAEAD(key: key)
 
-        let ciphertext: Data
-        let tag: Data
+        let combined: Data
         if let ad = authenticatedData {
-            (ciphertext, tag) = try aead.seal(
+            combined = try aead.seal(
                 message: message,
                 key: key,
                 nonce: nonce,
                 authenticatedData: ad
             )
         } else {
-            (ciphertext, tag) = try aead.seal(
+            combined = try aead.seal(
                 message: message,
                 key: key,
                 nonce: nonce,
@@ -53,7 +52,39 @@ enum OpenSSLAESGCMImpl {
             )
         }
 
-        return try AES.GCM.SealedBox(nonce: nonce, ciphertext: ciphertext, tag: tag)
+        return AES.GCM.SealedBox(combined: combined, nonceByteCount: nonce.count)
+    }
+
+    #if swift(<6.3)
+    @_lifetime(message: copy message)
+    #endif
+    @inlinable
+    static func seal(
+        key: SymmetricKey,
+        message: inout MutableRawSpan,
+        nonce: RawSpan,
+        authenticatedData: RawSpan?,
+        tag: inout OutputRawSpan
+    ) throws {
+        let aead = try Self._backingAEAD(key: key)
+
+        if let ad = authenticatedData {
+            try aead.seal(
+                message: &message,
+                key: key,
+                nonce: nonce,
+                authenticatedData: ad,
+                tag: &tag
+            )
+        } else {
+            try aead.seal(
+                message: &message,
+                key: key,
+                nonce: nonce,
+                authenticatedData: RawSpan(),
+                tag: &tag
+            )
+        }
     }
 
     @inlinable
@@ -79,6 +110,38 @@ enum OpenSSLAESGCMImpl {
                 nonce: sealedBox.nonce,
                 tag: sealedBox.tag,
                 authenticatedData: []
+            )
+        }
+    }
+
+    /// Open a given message in place.
+    #if swift(<6.3)
+    @_lifetime(message: copy message)
+    #endif
+    @inlinable
+    static func open(
+        key: SymmetricKey,
+        message: inout MutableRawSpan,
+        nonce: RawSpan,
+        authenticatedData: RawSpan?,
+        tag: RawSpan
+    ) throws {
+        let aead = try Self._backingAEAD(key: key)
+        if let authenticatedData {
+            return try aead.open(
+                message: &message,
+                key: key,
+                nonce: nonce,
+                tag: tag,
+                authenticatedData: authenticatedData
+            )
+        } else {
+            return try aead.open(
+                message: &message,
+                key: key,
+                nonce: nonce,
+                tag: tag,
+                authenticatedData: RawSpan()
             )
         }
     }

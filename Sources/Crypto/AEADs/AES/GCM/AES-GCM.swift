@@ -14,16 +14,20 @@
 #if CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
 @_exported import CryptoKit
 #else
-#if (!CRYPTO_IN_SWIFTPM_FORCE_BUILD_API) || CRYPTOKIT_NO_ACCESS_TO_FOUNDATION
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
+#if (!CRYPTO_IN_SWIFTPM_FORCE_BUILD_API) || CRYPTOKIT_NO_ACCESS_TO_FOUNDATION || CRYPTOKIT_NO_IMPORT_FOUNDATION
+#if !CRYPTOKIT_STATIC_LIBRARY
+@available(iOS 13.0, macOS 10.15, watchOS 6.0, tvOS 13.0, macCatalyst 13.0, *)
+#else // CRYPTOKIT_STATIC_LIBRARY
+@available(iOS 13.0, macOS 10.13, watchOS 6.0, tvOS 13.0, macCatalyst 13.0, visionOS 1.0, *)
+#endif
 typealias AESGCMImpl = CoreCryptoGCMImpl
 #else
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 typealias AESGCMImpl = OpenSSLAESGCMImpl
 #endif
 
 #if CRYPTOKIT_NO_ACCESS_TO_FOUNDATION
 public import SwiftSystem
+#elseif CRYPTOKIT_NO_IMPORT_FOUNDATION
 #else
 #if canImport(FoundationEssentials)
 public import FoundationEssentials
@@ -32,15 +36,23 @@ public import Foundation
 #endif
 #endif
 
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
+#if !CRYPTOKIT_STATIC_LIBRARY
+@available(iOS 13.0, macOS 10.15, watchOS 6.0, tvOS 13.0, macCatalyst 13.0, *)
+#else // CRYPTOKIT_STATIC_LIBRARY
+@available(iOS 13.0, macOS 10.13, watchOS 6.0, tvOS 13.0, macCatalyst 13.0, visionOS 1.0, *)
+#endif
 extension AES {
     /// The Advanced Encryption Standard (AES) Galois Counter Mode (GCM) cipher
     /// suite.
-    @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
     public enum GCM: Cipher, Sendable {
         static let tagByteCount = 16
         static let defaultNonceByteCount = 12
-        
+
+        #if !CRYPTOKIT_STATIC_LIBRARY
+        /// Fixed-length array of tagByteCount bytes.
+        typealias TagStorage = [16 of UInt8]
+        #endif
+
         /// Secures the given plaintext message with encryption and an
         /// authentication tag that covers both the encrypted data and
         /// additional data.
@@ -71,6 +83,46 @@ extension AES {
             return try AESGCMImpl.seal(key: key, message: message, nonce: nonce, authenticatedData: Data?.none)
         }
 
+        /// Secures the given plaintext message with encryption and an optional authentication tag.
+        ///
+        /// - Parameters:
+        ///   - message: The plaintext data to seal, which will be updated in place.
+        ///   - key: A cryptographic key used to seal the message.
+        ///   - nonce: The nonce the sealing process requires.
+        ///   - authenticatedData: Additional data to be authenticated, if provided.
+        ///   - tag: receives the 16-byte authentication tag
+        @available(iOS 27.0, macOS 27.0, watchOS 27.0, tvOS 27.0, macCatalyst 27.0, visionOS 27.0, *)
+        #if swift(<6.3)
+        @_lifetime(message: copy message)
+        #endif
+        public static func seal(
+            inPlace message: inout MutableRawSpan,
+            using key: SymmetricKey,
+            nonce: Nonce,
+            authenticating authenticatedData: RawSpan? = nil,
+            tag: inout OutputRawSpan
+        ) throws(CryptoKitMetaError) {
+            return try AESGCMImpl.seal(
+                key: key, message: &message, nonce: nonce.bytes,
+                authenticatedData: authenticatedData, tag: &tag
+            )
+        }
+
+        // Note: historical version of the above, which should be removed once
+        // the above is API and clients move over to it.
+        #if swift(<6.3)
+        @_lifetime(message: copy message)
+        #endif
+        internal static func seal(
+            inplace message: inout MutableRawSpan,
+            using key: SymmetricKey,
+            nonce: RawSpan,
+            authenticating authenticatedData: RawSpan? = nil,
+            tag: inout OutputRawSpan
+        ) throws(CryptoKitMetaError) {
+            return try AESGCMImpl.seal(key: key, message: &message, nonce: nonce, authenticatedData: authenticatedData, tag: &tag)
+        }
+
         /// Decrypts the message and verifies the authenticity of both the
         /// encrypted message and additional data.
         ///
@@ -99,10 +151,67 @@ extension AES {
         public static func open(_ sealedBox: SealedBox, using key: SymmetricKey) throws(CryptoKitMetaError) -> Data {
             return try AESGCMImpl.open(key: key, sealedBox: sealedBox, authenticatedData: Data?.none)
         }
+
+        /// Decrypts the message and verifies its authenticity.
+        ///
+        /// - Parameters:
+        ///   - message: The message, which will be decrypted in place.
+        ///   - key: The cryptographic key that was used to seal the message.
+        ///   - nonce: The nonce used to encrypt the message.
+        ///   - tag : The 16-byte authentication tag.
+        ///   - authenticatedData: Additional data that was authenticated.
+        ///
+        /// The call throws an error if decryption or authentication fail.
+        @available(iOS 27.0, macOS 27.0, watchOS 27.0, tvOS 27.0, macCatalyst 27.0, visionOS 27.0, *)
+        #if swift(<6.3)
+        @_lifetime(message: copy message)
+        #endif
+        public static func open(
+            inPlace message: inout MutableRawSpan,
+            using key: SymmetricKey,
+            nonce: Nonce,
+            authenticating authenticatedData: RawSpan? = nil,
+            tag: RawSpan
+        ) throws(CryptoKitMetaError) {
+            try AESGCMImpl
+                .open(
+                    key: key,
+                    message: &message,
+                    nonce: nonce.bytes,
+                    authenticatedData: authenticatedData,
+                    tag: tag
+                )
+        }
+
+        // Note: historical version of the above, which should be removed once
+        // the above is API and clients move over to it.
+        #if swift(<6.3)
+        @_lifetime(message: copy message)
+        #endif
+        internal static func open(
+            inplace message: inout MutableRawSpan,
+            using key: SymmetricKey,
+            nonce: RawSpan,
+            tag: RawSpan,
+            authenticating authenticatedData: RawSpan? = nil
+        ) throws(CryptoKitMetaError) {
+            try AESGCMImpl
+                .open(
+                    key: key,
+                    message: &message,
+                    nonce: nonce,
+                    authenticatedData: authenticatedData,
+                    tag: tag
+                )
+        }
     }
 }
 
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
+#if !CRYPTOKIT_STATIC_LIBRARY
+@available(iOS 13.0, macOS 10.15, watchOS 6.0, tvOS 13.0, macCatalyst 13.0, *)
+#else // CRYPTOKIT_STATIC_LIBRARY
+@available(iOS 13.0, macOS 10.13, watchOS 6.0, tvOS 13.0, macCatalyst 13.0, visionOS 1.0, *)
+#endif
 extension AES.GCM {
     /// A secure container for your data that you can access using a cipher.
     ///
@@ -118,7 +227,11 @@ extension AES.GCM {
     ///
     /// The receiver uses another instance of the same cipher, like the
     /// ``open(_:using:)`` method, to open the box.
-    @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
+    #if !CRYPTOKIT_STATIC_LIBRARY
+    @available(iOS 13.0, macOS 10.15, watchOS 6.0, tvOS 13.0, macCatalyst 13.0, *)
+    #else // CRYPTOKIT_STATIC_LIBRARY
+    @available(iOS 13.0, macOS 10.13, watchOS 6.0, tvOS 13.0, macCatalyst 13.0, visionOS 1.0, *)
+    #endif
     public struct SealedBox: AEADSealedBox, Sendable {
         private let combinedRepresentation: Data
         private let nonceByteCount: Int
@@ -201,10 +314,10 @@ extension AES.GCM {
                 throw error(CryptoKitError.incorrectParameterSize)
             }
 
-            let nonceByteCount = nonce.bytes.count
+            let nonceByteCount = nonce.storage.count
             var combinedRepresentation = Data()
             combinedRepresentation.reserveCapacity(nonceByteCount + ciphertext.count + tag.count)
-            combinedRepresentation.append(contentsOf: nonce.bytes)
+            combinedRepresentation.append(contentsOf: nonce.storage)
             combinedRepresentation.append(contentsOf: ciphertext)
             combinedRepresentation.append(contentsOf: tag)
 

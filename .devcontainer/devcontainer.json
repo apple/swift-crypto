@@ -1,0 +1,28 @@
+{
+    "name": "swift-crypto",
+    "image": "swift:latest",
+    "features": {
+        "ghcr.io/devcontainers/features/common-utils:2": {
+            "installZsh": "false",
+            "username": "vscode",
+            "upgradePackages": "false"
+        },
+        "ghcr.io/devcontainers/features/git:1": {
+            "version": "latest"
+        }
+    },
+    "capAdd": ["CAP_SYS_PTRACE"],
+    "securityOpt": ["seccomp=unconfined"],
+    "customizations": {
+        "vscode": {
+            "settings": {
+                "swift.path": "/usr/bin",
+                "lldb.library": "/usr/lib/liblldb.so"
+            },
+            "extensions": [
+                "swiftlang.swift-vscode"
+            ]
+        }
+    },
+    "remoteUser": "vscode"
+}

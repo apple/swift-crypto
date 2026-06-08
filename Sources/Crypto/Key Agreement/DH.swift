@@ -17,6 +17,7 @@
 
 #if CRYPTOKIT_NO_ACCESS_TO_FOUNDATION
 public import SwiftSystem
+#elseif CRYPTOKIT_NO_IMPORT_FOUNDATION
 #else
 #if canImport(FoundationEssentials)
 public import FoundationEssentials
@@ -26,8 +27,12 @@ public import Foundation
 #endif
 
 /// A Diffie-Hellman Key Agreement Key
+#if !CRYPTOKIT_STATIC_LIBRARY
+@available(iOS 17.0, macOS 14.0, watchOS 10.0, tvOS 17.0, macCatalyst 17.0, *)
+#else // CRYPTOKIT_STATIC_LIBRARY
+@available(iOS 16.0, macOS 10.13, watchOS 9.0, tvOS 16.0, macCatalyst 16.0, visionOS 1.0, *)
+#endif
 @preconcurrency
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 public protocol DiffieHellmanKeyAgreement: Sendable {
     /// The public key share type to perform the DH Key Agreement
     associatedtype PublicKey: Sendable
@@ -58,9 +63,17 @@ public protocol DiffieHellmanKeyAgreement: Sendable {
 /// symmetric key suitable for creating a message authentication code like
 /// ``HMAC``, or for opening and closing a sealed box with a cipher like
 /// ``ChaChaPoly`` or ``AES``.
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
+#if !CRYPTOKIT_STATIC_LIBRARY
+@available(iOS 13.0, macOS 10.15, watchOS 6.0, tvOS 13.0, macCatalyst 13.0, *)
+#else // CRYPTOKIT_STATIC_LIBRARY
+@available(iOS 13.0, macOS 10.13, watchOS 6.0, tvOS 13.0, macCatalyst 13.0, visionOS 1.0, *)
+#endif
 public struct SharedSecret: ContiguousBytes, Sendable {
     var ss: SecureBytes
+    
+    internal init<SS:ContiguousBytes>(withExternalSS ss: SS) {
+        self.ss = SecureBytes(bytes: ss)
+    }
     
     internal init(ss: SecureBytes){
         self.ss = ss
@@ -119,7 +132,11 @@ public struct SharedSecret: ContiguousBytes, Sendable {
     }
 }
 
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
+#if !CRYPTOKIT_STATIC_LIBRARY
+@available(iOS 13.0, macOS 10.15, watchOS 6.0, tvOS 13.0, macCatalyst 13.0, *)
+#else // CRYPTOKIT_STATIC_LIBRARY
+@available(iOS 13.0, macOS 10.13, watchOS 6.0, tvOS 13.0, macCatalyst 13.0, visionOS 1.0, *)
+#endif
 extension SharedSecret: Hashable {
     public func hash(into hasher: inout Hasher) {
         ss.withUnsafeBytes { hasher.combine(bytes: $0) }
@@ -127,7 +144,11 @@ extension SharedSecret: Hashable {
 }
 
 // We want to implement constant-time comparison for digests.
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
+#if !CRYPTOKIT_STATIC_LIBRARY
+@available(iOS 13.0, macOS 10.15, watchOS 6.0, tvOS 13.0, macCatalyst 13.0, *)
+#else // CRYPTOKIT_STATIC_LIBRARY
+@available(iOS 13.0, macOS 10.13, watchOS 6.0, tvOS 13.0, macCatalyst 13.0, visionOS 1.0, *)
+#endif
 extension SharedSecret: Equatable {
     public static func == (lhs: Self, rhs: Self) -> Bool {
         return safeCompare(lhs, rhs)
@@ -153,7 +174,11 @@ extension SharedSecret: Equatable {
 }
 
 #if !hasFeature(Embedded)
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
+#if !CRYPTOKIT_STATIC_LIBRARY
+@available(iOS 13.0, macOS 10.15, watchOS 6.0, tvOS 13.0, macCatalyst 13.0, *)
+#else // CRYPTOKIT_STATIC_LIBRARY
+@available(iOS 13.0, macOS 10.13, watchOS 6.0, tvOS 13.0, macCatalyst 13.0, visionOS 1.0, *)
+#endif
 extension SharedSecret: CustomStringConvertible {
     public var description: String {
         return "\(Self.self): \(ss.hexString)"
@@ -161,7 +186,11 @@ extension SharedSecret: CustomStringConvertible {
 }
 #endif
 
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
+#if !CRYPTOKIT_STATIC_LIBRARY
+@available(iOS 13.0, macOS 10.15, watchOS 6.0, tvOS 13.0, macCatalyst 13.0, *)
+#else // CRYPTOKIT_STATIC_LIBRARY
+@available(iOS 13.0, macOS 10.13, watchOS 6.0, tvOS 13.0, macCatalyst 13.0, visionOS 1.0, *)
+#endif
 extension HashFunction {
     // A wrapper function to keep the unsafe code in one place.
     mutating func update(_ secret: SharedSecret) {

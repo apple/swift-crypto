@@ -67,6 +67,7 @@ jobs:
             { "name": "CCryptoBoringSSL", "type": "assembly", "exceptions": [ "*/AES/*.swift" ] }
           ]
         }
+      image: swift:6.2
 
   macos-tests:
     name: macOS tests
@@ -74,6 +75,7 @@ jobs:
     with:
       runner_pool: general
       build_scheme: swift-crypto-Package
+      swift_6_1_enabled: false
 
   static-sdk:
     name: Static SDK

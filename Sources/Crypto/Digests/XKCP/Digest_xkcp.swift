@@ -149,7 +149,7 @@ private final class XKCPDigestContext<H: XKCPBackedHashFunction> {
                 preconditionFailure("Unable to finalize digest state")
             }
             // We force unwrap here because if the digest size is wrong it's an internal error.
-            return H.Digest(bufferPointer: UnsafeRawBufferPointer(digestPointer))!
+            return H.Digest(copying: digestPointer.bytes)!
         }
     }
 

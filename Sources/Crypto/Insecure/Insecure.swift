@@ -12,13 +12,21 @@
 //
 //===----------------------------------------------------------------------===//
 #if CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
+#if CRYPTOKIT_STATIC_LIBRARY
+@_exported import CryptoKit_Static
+#else
 @_exported import CryptoKit
+#endif
 #else
 /// A container for older, cryptographically insecure algorithms.
 ///
 /// - Important: These algorithms aren’t considered cryptographically secure,
 /// but the framework provides them for backward compatibility with older
 /// services that require them. For new services, avoid these algorithms.
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
+#if !CRYPTOKIT_STATIC_LIBRARY
+@available(iOS 13.0, macOS 10.15, watchOS 6.0, tvOS 13.0, macCatalyst 13.0, *)
+#else // CRYPTOKIT_STATIC_LIBRARY
+@available(iOS 13.0, macOS 10.13, watchOS 6.0, tvOS 13.0, macCatalyst 13.0, visionOS 1.0, *)
+#endif
 public enum Insecure: Sendable {}
 #endif // Linux or !SwiftPM

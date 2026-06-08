@@ -17,6 +17,7 @@
 
 #if CRYPTOKIT_NO_ACCESS_TO_FOUNDATION
 import SwiftSystem
+#elseif CRYPTOKIT_NO_IMPORT_FOUNDATION
 #else
 #if canImport(FoundationEssentials)
 import FoundationEssentials
@@ -26,16 +27,12 @@ import Foundation
 #endif
 
 // For temporary purposes we pretend that ArraySlice is our "bigint" type. We don't really need anything else.
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension ArraySlice: ASN1Serializable where Element == UInt8 { }
 
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension ArraySlice: ASN1Parseable where Element == UInt8 { }
 
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension ArraySlice: ASN1ImplicitlyTaggable where Element == UInt8 { }
 
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension ArraySlice: ASN1IntegerRepresentable where Element == UInt8 {
     // We only use unsigned "bigint"s
     static var isSigned: Bool {

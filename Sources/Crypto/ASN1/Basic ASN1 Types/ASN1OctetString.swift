@@ -17,6 +17,7 @@
 
 #if CRYPTOKIT_NO_ACCESS_TO_FOUNDATION
 import SwiftSystem
+#elseif CRYPTOKIT_NO_IMPORT_FOUNDATION
 #else
 #if canImport(FoundationEssentials)
 import FoundationEssentials
@@ -25,10 +26,8 @@ import Foundation
 #endif
 #endif
 
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension ASN1 {
     /// An octet string is a representation of a string of octets.
-    @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
     struct ASN1OctetString: ASN1ImplicitlyTaggable {
         static var defaultIdentifier: ASN1.ASN1Identifier {
             .primitiveOctetString
@@ -60,10 +59,8 @@ extension ASN1 {
     }
 }
 
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension ASN1.ASN1OctetString: Hashable { }
 
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension ASN1.ASN1OctetString: ContiguousBytes {
 #if hasFeature(Embedded)
     func withUnsafeBytes<R, E: Error>(_ body: (UnsafeRawBufferPointer) throws(E) -> R) throws(E) -> R {

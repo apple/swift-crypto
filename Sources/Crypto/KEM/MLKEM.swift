@@ -21,26 +21,22 @@ public import Foundation
 #endif
 
 #if (!CRYPTO_IN_SWIFTPM_FORCE_BUILD_API) || CRYPTOKIT_NO_ACCESS_TO_FOUNDATION
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
+@available(iOS 26.0, macOS 26.0, watchOS 26.0, tvOS 26.0, macCatalyst 26.0, visionOS 26.0, *)
 typealias MLKEMPublicKeyImpl = CoreCryptoMLKEMPublicKeyImpl
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 typealias MLKEMPrivateKeyImpl = CoreCryptoMLKEMPrivateKeyImpl
 #else
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 typealias MLKEMPublicKeyImpl = OpenSSLMLKEMPublicKeyImpl
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 typealias MLKEMPrivateKeyImpl = OpenSSLMLKEMPrivateKeyImpl
 #endif
 
 
 /// The Module-Lattice key encapsulation mechanism (KEM).
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
+@available(iOS 26.0, macOS 26.0, watchOS 26.0, tvOS 26.0, macCatalyst 26.0, visionOS 26.0, *)
 public enum MLKEM768: Sendable {}
 
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
+@available(iOS 26.0, macOS 26.0, watchOS 26.0, tvOS 26.0, macCatalyst 26.0, visionOS 26.0, *)
 extension MLKEM768 {
     /// A public key you use to encapsulate shared secrets with the Module-Lattice key encapsulation mechanism.
-    @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
     public struct PublicKey: KEMPublicKey, Sendable {
         var impl: MLKEMPublicKeyImpl<MLKEM768>
 
@@ -70,7 +66,6 @@ extension MLKEM768 {
     }
 
     /// A private key you use to decapsulate shared secrets with the Module-Lattice key encapsulation mechanism.
-    @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
     public struct PrivateKey: KEMPrivateKey {
         internal let impl: MLKEMPrivateKeyImpl<MLKEM768>
 
@@ -116,7 +111,7 @@ extension MLKEM768 {
             }
         }
 
-        /// Decapsulated a shared secret.
+        /// Decapsulate a shared secret.
         ///
         /// - Parameters:
         ///   - encapsulated: An encapsulated shared secret, that you get by calling ``MLKEM768/PublicKey/encapsulate()`` on the corresponding public key.
@@ -128,7 +123,7 @@ extension MLKEM768 {
         /// The corresponding public key.
         public var publicKey: MLKEM768.PublicKey {
             get {
-                try self.impl.publicKey
+                self.impl.publicKey
             }
         }
 
@@ -141,7 +136,7 @@ extension MLKEM768 {
             }
             let seed = Data(integrityCheckedRepresentation).subdata(in: 0..<MLKEMPrivateKeyImpl<MLKEM768>.seedSize)
             let publicKeyHashData = Data(integrityCheckedRepresentation).subdata(in: MLKEMPrivateKeyImpl<MLKEM768>.seedSize..<integrityCheckedRepresentation.count)
-            let publicKeyHash = SHA3_256Digest(bytes: [UInt8](publicKeyHashData))
+            let publicKeyHash = SHA3_256Digest(copying: publicKeyHashData.bytes)
 
             self.impl = try MLKEMPrivateKeyImpl<MLKEM768>(seedRepresentation: seed, publicKeyHash: publicKeyHash)
         }
@@ -155,17 +150,56 @@ extension MLKEM768 {
             }
         }
     }
+
+    @available(iOS 27.0, macOS 27.0, watchOS 27.0, tvOS 27.0, macCatalyst 27.0, visionOS 27.0, *)
+    /// A one-time-use private key to decapsulate a shared secret with the Module-Lattice key encapsulation mechanism.
+    ///
+    /// The associated decapsulation function can be multiple times faster than the one implemented for PrivateKey,
+    /// but this private key can only be used to decapsulate a shared secret once.
+    public struct OneTimePrivateKey: KEMOneTimePrivateKey, ~Copyable {
+        internal let impl: MLKEMPrivateKeyImpl<MLKEM768>
+
+        internal init(_ impl: MLKEMPrivateKeyImpl<MLKEM768>) {
+            self.impl = impl
+        }
+
+        /// Generates a new, random one-time-use private key.
+        public static func generate() throws -> MLKEM768.OneTimePrivateKey {
+            let impl = try MLKEMPrivateKeyImpl<MLKEM768>.generatePrivateKey()
+            return OneTimePrivateKey(impl)
+        }
+
+        /// Initializes a random one-time-use private key.
+        public init() throws {
+            self = try OneTimePrivateKey.generate()
+        }
+
+        /// Decapsulate a shared secret.
+        ///
+        /// - Parameters:
+        ///   - encapsulated: An encapsulated shared secret, that you get by calling ``MLKEM768/PublicKey/encapsulate()`` on the corresponding public key.
+        /// - Returns: The shared secret.
+        public consuming func decapsulate<D: DataProtocol>(_ encapsulated: D) throws -> SymmetricKey {
+            return try impl.decapsulate(encapsulated: encapsulated)
+        }
+
+        /// The corresponding public key.
+        public var publicKey: MLKEM768.PublicKey {
+            get {
+                self.impl.publicKey
+            }
+        }
+    }
 }
 
 
 /// The Module-Lattice key encapsulation mechanism (KEM).
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
+@available(iOS 26.0, macOS 26.0, watchOS 26.0, tvOS 26.0, macCatalyst 26.0, visionOS 26.0, *)
 public enum MLKEM1024: Sendable {}
 
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
+@available(iOS 26.0, macOS 26.0, watchOS 26.0, tvOS 26.0, macCatalyst 26.0, visionOS 26.0, *)
 extension MLKEM1024 {
     /// A public key you use to encapsulate shared secrets with the Module-Lattice key encapsulation mechanism.
-    @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
     public struct PublicKey: KEMPublicKey, Sendable {
         var impl: MLKEMPublicKeyImpl<MLKEM1024>
 
@@ -195,7 +229,6 @@ extension MLKEM1024 {
     }
 
     /// A private key you use to decapsulate shared secrets with the Module-Lattice key encapsulation mechanism.
-    @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
     public struct PrivateKey: KEMPrivateKey {
         internal let impl: MLKEMPrivateKeyImpl<MLKEM1024>
 
@@ -241,7 +274,7 @@ extension MLKEM1024 {
             }
         }
 
-        /// Decapsulated a shared secret.
+        /// Decapsulate a shared secret.
         ///
         /// - Parameters:
         ///   - encapsulated: An encapsulated shared secret, that you get by calling ``MLKEM1024/PublicKey/encapsulate()`` on the corresponding public key.
@@ -253,7 +286,7 @@ extension MLKEM1024 {
         /// The corresponding public key.
         public var publicKey: MLKEM1024.PublicKey {
             get {
-                try self.impl.publicKey
+                self.impl.publicKey
             }
         }
 
@@ -266,7 +299,7 @@ extension MLKEM1024 {
             }
             let seed = Data(integrityCheckedRepresentation).subdata(in: 0..<MLKEMPrivateKeyImpl<MLKEM1024>.seedSize)
             let publicKeyHashData = Data(integrityCheckedRepresentation).subdata(in: MLKEMPrivateKeyImpl<MLKEM1024>.seedSize..<integrityCheckedRepresentation.count)
-            let publicKeyHash = SHA3_256Digest(bytes: [UInt8](publicKeyHashData))
+            let publicKeyHash = SHA3_256Digest(copying: publicKeyHashData.bytes)
 
             self.impl = try MLKEMPrivateKeyImpl<MLKEM1024>(seedRepresentation: seed, publicKeyHash: publicKeyHash)
         }
@@ -277,6 +310,46 @@ extension MLKEM1024 {
         public var integrityCheckedRepresentation: Data {
             get {
                 return self.impl.integrityCheckedRepresentation
+            }
+        }
+    }
+
+    @available(iOS 27.0, macOS 27.0, watchOS 27.0, tvOS 27.0, macCatalyst 27.0, visionOS 27.0, *)
+    /// A one-time-use private key to decapsulate a shared secret with the Module-Lattice key encapsulation mechanism.
+    ///
+    /// The associated decapsulation function can be multiple times faster than the one implemented for PrivateKey,
+    /// but this private key can only be used to decapsulate a shared secret once.
+    public struct OneTimePrivateKey: KEMOneTimePrivateKey, ~Copyable {
+        internal let impl: MLKEMPrivateKeyImpl<MLKEM1024>
+
+        internal init(_ impl: MLKEMPrivateKeyImpl<MLKEM1024>) {
+            self.impl = impl
+        }
+
+        /// Generates a new, random one-time-use private key.
+        public static func generate() throws -> MLKEM1024.OneTimePrivateKey {
+            let impl = try MLKEMPrivateKeyImpl<MLKEM1024>.generatePrivateKey()
+            return OneTimePrivateKey(impl)
+        }
+
+        /// Initializes a random one-time-use private key.
+        public init() throws {
+            self = try OneTimePrivateKey.generate()
+        }
+
+        /// Decapsulate a shared secret.
+        ///
+        /// - Parameters:
+        ///   - encapsulated: An encapsulated shared secret, that you get by calling ``MLKEM1024/PublicKey/encapsulate()`` on the corresponding public key.
+        /// - Returns: The shared secret.
+        public consuming func decapsulate<D: DataProtocol>(_ encapsulated: D) throws -> SymmetricKey {
+            return try impl.decapsulate(encapsulated: encapsulated)
+        }
+
+        /// The corresponding public key.
+        public var publicKey: MLKEM1024.PublicKey {
+            get {
+                self.impl.publicKey
             }
         }
     }

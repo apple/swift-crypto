@@ -74,6 +74,10 @@ struct OpenSSLNISTCurvePrivateKeyImpl<Curve: OpenSSLSupportedNISTCurve>: Sendabl
         self.key = try BoringSSLECPrivateKeyWrapper(rawRepresentation: data)
     }
 
+    init(seed: Data, compactRepresentable: Bool) throws {
+        fatalError("unimplemented on this platform")
+    }
+
     func publicKey() -> OpenSSLNISTCurvePublicKeyImpl<Curve> {
         OpenSSLNISTCurvePublicKeyImpl(wrapping: self.key.publicKey)
     }

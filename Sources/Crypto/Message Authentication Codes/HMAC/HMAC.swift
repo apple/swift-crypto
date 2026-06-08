@@ -12,30 +12,23 @@
 //
 //===----------------------------------------------------------------------===//
 #if CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
+#if CRYPTOKIT_STATIC_LIBRARY
+@_exported import CryptoKit_Static
+#else
 @_exported import CryptoKit
+#endif
 #else
 #if CRYPTOKIT_NO_ACCESS_TO_FOUNDATION
 public import SwiftSystem
+#elseif CRYPTOKIT_NO_IMPORT_FOUNDATION
 #else
 #if canImport(FoundationEssentials)
-#if os(Windows)
-import ucrt
-#elseif canImport(Darwin)
-import Darwin
-#elseif canImport(Glibc)
-import Glibc
-#elseif canImport(Musl)
-import Musl
-#elseif canImport(Android)
-import Android
-#elseif canImport(WASILibc)
-import WASILibc
-#endif
 public import FoundationEssentials
 #else
 public import Foundation
 #endif
 #endif
+
 
 /// A hash-based message authentication algorithm.
 ///
@@ -50,7 +43,11 @@ public import Foundation
 /// need to encrypt the data as well as authenticate it, use a cipher like
 /// ``AES`` or ``ChaChaPoly`` to put the data into a sealed box (an instance of
 /// ``AES/GCM/SealedBox`` or ``ChaChaPoly/SealedBox``).
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
+#if !CRYPTOKIT_STATIC_LIBRARY
+@available(iOS 13.0, macOS 10.15, watchOS 6.0, tvOS 13.0, macCatalyst 13.0, *)
+#else //CRYPTOKIT_STATIC_LIBRARY
+@available(iOS 13.0, macOS 10.13, watchOS 6.0, tvOS 13.0, macCatalyst 13.0, visionOS 1.0, *)
+#endif
 public struct HMAC<H: HashFunction>: MACAlgorithm, Sendable {
     /// An alias for the symmetric key type used to compute or verify a message
     /// authentication code.
@@ -82,39 +79,32 @@ public struct HMAC<H: HashFunction>: MACAlgorithm, Sendable {
         #if os(iOS) && (arch(arm) || arch(i386))
         fatalError("Unsupported architecture")
         #else
-        var K: SymmetricKey
-        if key.byteCount == H.blockByteCount {
-            K = key
-        } else if key.byteCount > H.blockByteCount {
-            var array = Array(repeating: UInt8(0), count: H.blockByteCount)
-            
-            K = key.withUnsafeBytes { (keyBytes)  in
-                let hash = H.hash(bufferPointer: keyBytes)
-                
-                return SymmetricKey(data: hash.withUnsafeBytes({ (hashBytes) in
-                    memcpy(&array, hashBytes.baseAddress!, hashBytes.count)
-                    return array
-                }))
+        var innerKey = SecureBytes(capacity: H.blockByteCount) { keyOutput in
+            if key.byteCount <= keyOutput.freeCapacity {
+                keyOutput.append(contentsOf: key.bytes)
+            } else if key.byteCount > H.blockByteCount {
+                let hash = H.hash(bytes: key.bytes)
+                hash.withUnsafeBytes {
+                    keyOutput.append(contentsOf: $0.bytes)
+                }
             }
-        } else {
-            var keyArray = Array(repeating: UInt8(0), count: H.blockByteCount)
-            key.withUnsafeBytes { keyArray.replaceSubrange(0..<$0.count, with: $0) }
-            K = SymmetricKey(data: keyArray)
+            keyOutput.append(repeating: 0, count: keyOutput.freeCapacity, as: UInt8.self)
         }
+        var outerKey = innerKey
         
         self.innerHasher = H()
-        let innerKey = K.withUnsafeBytes {
-            return $0.map({ (keyByte) in
-                keyByte ^ 0x36
-            })
+        innerKey.withUnsafeMutableBytes {
+            for i in 0 ..< $0.count {
+                $0[i] ^= 0x36
+            }
         }
-        innerHasher.update(data: innerKey)
+        innerHasher.update(bytes: innerKey.bytes)
         
         self.outerHasher = H()
-        let outerKey = K.withUnsafeBytes {
-            return $0.map({ (keyByte) in
-                keyByte ^ 0x5c
-            })
+        outerKey.withUnsafeMutableBytes {
+            for i in 0 ..< $0.count {
+                $0[i] ^= 0x5c
+            }
         }
         outerHasher.update(data: outerKey)
         #endif
@@ -130,6 +120,24 @@ public struct HMAC<H: HashFunction>: MACAlgorithm, Sendable {
     public static func authenticationCode<D: DataProtocol>(for data: D, using key: SymmetricKey) -> MAC {
         var authenticator = Self(key: key)
         authenticator.update(data: data)
+        return authenticator.finalize()
+    }
+    
+    /// Computes a message authentication code for the given data.
+    ///
+    /// - Parameters:
+    ///   - data: The data for which to compute the authentication code.
+    ///   - key: The symmetric key used to secure the computation.
+    ///
+    /// - Returns: The message authentication code.
+#if !CRYPTOKIT_STATIC_LIBRARY
+    @available(iOS 27.0, macOS 27.0, watchOS 27.0, tvOS 27.0, macCatalyst 27.0, visionOS 27.0, *)
+#else // CRYPTOKIT_STATIC_LIBRARY
+    @available(iOS 14.0, macOS 10.13, watchOS 7.0, tvOS 14.0, macCatalyst 14.0, visionOS 1.0, *)
+#endif
+    public static func authenticationCode(for data: RawSpan, using key: SymmetricKey) -> MAC {
+        var authenticator = Self(key: key)
+        authenticator.update(bytes: data)
         return authenticator.finalize()
     }
     
@@ -158,6 +166,11 @@ public struct HMAC<H: HashFunction>: MACAlgorithm, Sendable {
     ///
     /// - Returns: A Boolean value that’s `true` if the message authentication
     /// code is valid for the specified block of data.
+    #if !CRYPTOKIT_STATIC_LIBRARY
+    @available(iOS 13.2, macOS 10.15, watchOS 6.1, tvOS 13.2, macCatalyst 13.2, *)
+    #else // CRYPTOKIT_STATIC_LIBRARY
+    @available(iOS 13.2, macOS 10.13, watchOS 6.1, tvOS 13.2, macCatalyst 13.2, visionOS 1.0, *)
+    #endif
     public static func isValidAuthenticationCode<C: ContiguousBytes, D: DataProtocol>(_ authenticationCode: C,
                                                                                       authenticating authenticatedData: D,
                                                                                       using key: SymmetricKey) -> Bool {
@@ -175,6 +188,15 @@ public struct HMAC<H: HashFunction>: MACAlgorithm, Sendable {
                 self.update(bufferPointer: bp)
             })
         }
+    }
+    
+#if !CRYPTOKIT_STATIC_LIBRARY
+    @available(iOS 27.0, macOS 27.0, watchOS 27.0, tvOS 27.0, macCatalyst 27.0, visionOS 27.0, *)
+#else // CRYPTOKIT_STATIC_LIBRARY
+    @available(iOS 14.0, macOS 10.13, watchOS 7.0, tvOS 14.0, macCatalyst 14.0, visionOS 1.0, *)
+#endif
+    public mutating func update(bytes: RawSpan) {
+        innerHasher.update(bytes: bytes)
     }
     
     /// Finalizes the message authentication computation and returns the
@@ -211,10 +233,23 @@ public struct HMAC<H: HashFunction>: MACAlgorithm, Sendable {
         let computedMac = authenticator.finalize()
         return safeCompare(authenticationCodeBytes, computedMac)
     }
+    
+    private static func isValidAuthenticationCode<C: ContiguousBytes>(authenticationCodeBytes: C,
+                                                                      authenticatedData: UnsafeRawBufferPointer,
+                                                                      key: SymmetricKey) -> Bool {
+        var authenticator = Self(key: key)
+        authenticator.update(bufferPointer: authenticatedData)
+        let computedMac = authenticator.finalize()
+        return safeCompare(authenticationCodeBytes, computedMac)
+    }
 }
 
 /// A hash-based message authentication code.
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
+#if !CRYPTOKIT_STATIC_LIBRARY
+@available(iOS 13.0, macOS 10.15, watchOS 6.0, tvOS 13.0, macCatalyst 13.0, *)
+#else // CRYPTOKIT_STATIC_LIBRARY
+@available(iOS 13.0, macOS 10.13, watchOS 6.0, tvOS 13.0, macCatalyst 13.0, visionOS 1.0, *)
+#endif
 public struct HashedAuthenticationCode<H: HashFunction>: MessageAuthenticationCode, Sendable {
     let digest: H.Digest
     

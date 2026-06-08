@@ -25,8 +25,12 @@ import Foundation
 #endif
 #endif
 
+#if !CRYPTOKIT_STATIC_LIBRARY
+@available(iOS 17.0, macOS 14.0, watchOS 10.0, tvOS 17.0, macCatalyst 17.0, *)
+#else // CRYPTOKIT_STATIC_LIBRARY
+@available(iOS 16.0, macOS 10.13, watchOS 9.0, tvOS 16.0, macCatalyst 16.0, visionOS 1.0, *)
+#endif
 
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension HPKE {
 	/// Cipher suites to use in hybrid public key encryption (HPKE).
     ///
@@ -34,7 +38,6 @@ extension HPKE {
     /// and decrypting messages, the key derivation function (KDF) for deriving the shared key, and the key encapsulation
     /// mechanism (KEM) for sharing the symmetric key. The sender and recipient of encrypted messages need to use the
     /// same cipher suite.
-    @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
     public struct Ciphersuite: Sendable {
 		/// A cipher suite for HPKE that uses NIST P-256 elliptic curve key agreement, SHA-2 key derivation
         /// with a 256-bit digest, and the Advanced Encryption Standard cipher in Galois/Counter Mode with a key length of 256 bits.
@@ -50,6 +53,7 @@ extension HPKE {
         public static let Curve25519_SHA256_ChachaPoly = Ciphersuite(kem: .Curve25519_HKDF_SHA256, kdf: .HKDF_SHA256, aead: .chaChaPoly)
         /// A cipher suite for HPKE that uses the X-Wing KEM (ML-KEM-768 with X25519), SHA-2 key derivation
         /// with a 256-bit digest, and the Advanced Encryption Standard cipher in Galois/Counter Mode with a key length of 256 bits.
+        @available(iOS 26.0, macOS 26.0, watchOS 26.0, tvOS 26.0, macCatalyst 26.0, visionOS 26.0, *)
         public static let XWingMLKEM768X25519_SHA256_AES_GCM_256 = Ciphersuite(kem: .XWingMLKEM768X25519, kdf: .HKDF_SHA256, aead: .AES_GCM_256)
 
         fileprivate static let ciphersuiteLabel = Data("HPKE".utf8)

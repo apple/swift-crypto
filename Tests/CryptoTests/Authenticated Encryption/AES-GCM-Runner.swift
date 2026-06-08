@@ -19,6 +19,9 @@ import Foundation
 import XCTest
 
 #if CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
+// Skip tests that use @available annotations on tests unless running on Linux.
+#else
+#if CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
 import Crypto
 #elseif !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
 import CryptoKit
@@ -94,6 +97,52 @@ class AESGCMTests: XCTestCase {
 
         XCTAssertEqual(recoveredPlaintext, plaintext)
         XCTAssertEqual(recoveredPlaintextWithoutAAD, plaintext)
+        XCTAssertEqual(recoveredPlaintext.startIndex, 0)
+        XCTAssertEqual(recoveredPlaintextWithoutAAD.startIndex, 0)
+    }
+
+    @available(macOS 27, iOS 27, tvOS 27, watchOS 27, visionOS 27, *)
+    func testEncryptDecryptSpan() throws {
+        let plaintext: [UInt8] = Array("Some Super Secret Message".utf8)
+
+        let key = SymmetricKey(size: .bits256)
+        let nonce = AES.GCM.Nonce()
+
+        var ciphertext = plaintext
+        var ciphertextTag: [16 of UInt8] = .init(repeating: 0)
+
+        try orFail {
+            var ciphertextSpan = ciphertext.mutableSpan
+            var ciphertextRawSpan = ciphertextSpan.mutableBytes
+            var tagSpan = ciphertextTag.mutableSpan
+
+            try tagSpan.withUnsafeMutableBytes { (tagBytesBuffer) throws(CryptoKitMetaError) in
+                var outputTagBytes = OutputRawSpan(buffer: tagBytesBuffer, initializedCount: 0)
+                try AES.GCM
+                    .seal(inPlace: &ciphertextRawSpan, using: key, nonce: nonce, authenticating: [UInt8]().span.bytes, tag: &outputTagBytes)
+                _ = outputTagBytes.finalize(for: tagBytesBuffer)
+            }
+
+        }
+
+        // Make sure we actually ended up with different contents.
+        XCTAssertNotEqual(ciphertext, plaintext)
+
+        do {
+            var ciphertextSpan = ciphertext.mutableSpan
+            var ciphertextRawSpan = ciphertextSpan.mutableBytes
+            try orFail {
+                try AES.GCM
+                    .open(
+                        inPlace: &ciphertextRawSpan,
+                        using: key,
+                        nonce: nonce,
+                        tag: ciphertextTag.span.bytes
+                    )
+            }
+        }
+
+        XCTAssertEqual(ciphertext, plaintext)
     }
 
     func testExtractingBytesFromNonce() throws {
@@ -247,3 +296,4 @@ class AESGCMTests: XCTestCase {
         }
     }
 }
+#endif  // CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API

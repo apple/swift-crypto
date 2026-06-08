@@ -12,11 +12,16 @@
 //
 //===----------------------------------------------------------------------===//
 #if CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
+#if CRYPTOKIT_STATIC_LIBRARY
+@_exported import CryptoKit_Static
+#else
 @_exported import CryptoKit
+#endif
 #else
 
 #if CRYPTOKIT_NO_ACCESS_TO_FOUNDATION
 import SwiftSystem
+#elseif CRYPTOKIT_NO_IMPORT_FOUNDATION
 #else
 #if canImport(FoundationEssentials)
 import FoundationEssentials
@@ -25,7 +30,6 @@ import Foundation
 #endif
 #endif
 
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension ASN1 {
     /// An ECDSA signature is laid out as follows:
     ///
@@ -35,7 +39,6 @@ extension ASN1 {
     /// }
     ///
     /// This type is generic because our different backends want to use different bignum representations.
-    @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
     struct ECDSASignature<IntegerType: ASN1IntegerRepresentable>: ASN1ImplicitlyTaggable {
         static var defaultIdentifier: ASN1.ASN1Identifier {
             .sequence

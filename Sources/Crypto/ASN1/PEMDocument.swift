@@ -12,11 +12,16 @@
 //
 //===----------------------------------------------------------------------===//
 #if CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
+#if CRYPTOKIT_STATIC_LIBRARY
+@_exported import CryptoKit_Static
+#else
 @_exported import CryptoKit
+#endif
 #else
 
 #if CRYPTOKIT_NO_ACCESS_TO_FOUNDATION
 import SwiftSystem
+#elseif CRYPTOKIT_NO_IMPORT_FOUNDATION
 #else
 #if canImport(FoundationEssentials)
 import FoundationEssentials
@@ -25,10 +30,8 @@ import Foundation
 #endif
 #endif
 
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension ASN1 {
     /// A PEM document is some data, and a discriminator type that is used to advertise the content.
-    @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
     struct PEMDocument {
         private static let lineLength = 64
 
@@ -97,7 +100,6 @@ extension ASN1 {
     }
 }
 
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension Substring {
     fileprivate var pemStartDiscriminator: String? {
         return self.pemDiscriminator(expectedPrefix: "-----BEGIN ", expectedSuffix: "-----")

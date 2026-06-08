@@ -33,6 +33,7 @@ struct RFCVectorDecoder {
         for _ in 0..<3 {
             fileURL!.deleteLastPathComponent()
         }
+        #if compiler(>=6.0)
         if #available(macOS 13, iOS 16, watchOS 9, tvOS 16, visionOS 1, macCatalyst 16, *) {
             fileURL!.append(path: "Test Vectors", directoryHint: .isDirectory)
             fileURL!.append(path: "\(fileName).txt", directoryHint: .notDirectory)
@@ -40,6 +41,10 @@ struct RFCVectorDecoder {
             fileURL! = fileURL!.appendingPathComponent("Test Vectors", isDirectory: true)
             fileURL! = fileURL!.appendingPathComponent("\(fileName).txt", isDirectory: false)
         }
+        #else
+        fileURL! = fileURL!.appendingPathComponent("Test Vectors", isDirectory: true)
+        fileURL! = fileURL!.appendingPathComponent("\(fileName).txt", isDirectory: false)
+        #endif
         #endif
 
         let rfcVectorData = try Data(contentsOf: fileURL!)

@@ -12,7 +12,11 @@
 //
 //===----------------------------------------------------------------------===//
 #if CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
+#if CRYPTOKIT_STATIC_LIBRARY
+@_exported import CryptoKit_Static
+#else
 @_exported import CryptoKit
+#endif
 #else
 
 #if CRYPTOKIT_NO_ACCESS_TO_FOUNDATION
@@ -26,8 +30,12 @@ public import Foundation
 #endif
 
 /// A type that ``HPKE`` uses to encode the public key.
+#if !CRYPTOKIT_STATIC_LIBRARY
+@available(iOS 17.0, macOS 14.0, watchOS 10.0, tvOS 17.0, macCatalyst 17.0, *)
+#else // CRYPTOKIT_STATIC_LIBRARY
+@available(iOS 16.0, macOS 10.13, watchOS 9.0, tvOS 16.0, macCatalyst 16.0, visionOS 1.0, *)
+#endif
 @preconcurrency
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 public protocol HPKEPublicKeySerialization: Sendable {
 	/// Creates a public key from an encoded representation.
 	///
@@ -45,59 +53,94 @@ public protocol HPKEPublicKeySerialization: Sendable {
 }
 
 /// A type that represents the public key in a Diffie-Hellman key exchange.
+#if !CRYPTOKIT_STATIC_LIBRARY
+@available(iOS 17.0, macOS 14.0, watchOS 10.0, tvOS 17.0, macCatalyst 17.0, *)
+#else // CRYPTOKIT_STATIC_LIBRARY
+@available(iOS 16.0, macOS 10.13, watchOS 9.0, tvOS 16.0, macCatalyst 16.0, visionOS 1.0, *)
+#endif
 @preconcurrency
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 public protocol HPKEDiffieHellmanPublicKey: HPKEPublicKeySerialization, Sendable where EphemeralPrivateKey.PublicKey == Self {
 	/// The type of the ephemeral private key.
     associatedtype EphemeralPrivateKey: HPKEDiffieHellmanPrivateKeyGeneration
 }
 
 /// A type that represents the public key in HPKE
+#if !CRYPTOKIT_STATIC_LIBRARY
+@available(iOS 26.0, macOS 26.0, watchOS 26.0, tvOS 26.0, macCatalyst 26.0, visionOS 26.0, *)
+#else // CRYPTOKIT_STATIC_LIBRARY
+@available(iOS 16.0, macOS 10.13, watchOS 9.0, tvOS 16.0, macCatalyst 16.0, visionOS 1.0, *)
+#endif
 @preconcurrency
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 public protocol HPKEKEMPublicKey: KEMPublicKey, HPKEPublicKeySerialization where EphemeralPrivateKey.PublicKey == Self {
     /// The type of the ephemeral private key.
     associatedtype EphemeralPrivateKey: HPKEKEMPrivateKeyGeneration
 }
 
 /// A type that represents the private key in a Diffie-Hellman key exchange.
+#if !CRYPTOKIT_STATIC_LIBRARY
+@available(iOS 17.0, macOS 14.0, watchOS 10.0, tvOS 17.0, macCatalyst 17.0, *)
+#else // CRYPTOKIT_STATIC_LIBRARY
+@available(iOS 16.0, macOS 10.13, watchOS 9.0, tvOS 16.0, macCatalyst 16.0, visionOS 1.0, *)
+#endif
 @preconcurrency
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 public protocol HPKEDiffieHellmanPrivateKey: Sendable, DiffieHellmanKeyAgreement where PublicKey: HPKEDiffieHellmanPublicKey {}
 
 /// A type that represents the private key in HPKE.
+#if !CRYPTOKIT_STATIC_LIBRARY
+@available(iOS 26.0, macOS 26.0, watchOS 26.0, tvOS 26.0, macCatalyst 26.0, visionOS 26.0, *)
+#else // CRYPTOKIT_STATIC_LIBRARY
+@available(iOS 16.0, macOS 10.13, watchOS 9.0, tvOS 16.0, macCatalyst 16.0, visionOS 1.0, *)
+#endif
 @preconcurrency
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 public protocol HPKEKEMPrivateKey: Sendable, KEMPrivateKey where PublicKey: HPKEKEMPublicKey {}
 
 /// A type that represents the generation of private keys in a Diffie-Hellman key exchange.
+#if !CRYPTOKIT_STATIC_LIBRARY
+@available(iOS 17.0, macOS 14.0, watchOS 10.0, tvOS 17.0, macCatalyst 17.0, *)
+#else // CRYPTOKIT_STATIC_LIBRARY
+@available(iOS 16.0, macOS 10.13, watchOS 9.0, tvOS 16.0, macCatalyst 16.0, visionOS 1.0, *)
+#endif
 @preconcurrency
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 public protocol HPKEDiffieHellmanPrivateKeyGeneration: HPKEDiffieHellmanPrivateKey, Sendable {
 	/// Creates a private key generator.
     init()
 }
 
 /// A type that represents the generation of private keys in HPKE
+#if !CRYPTOKIT_STATIC_LIBRARY
+@available(iOS 26.0, macOS 26.0, watchOS 26.0, tvOS 26.0, macCatalyst 26.0, visionOS 26.0, *)
+#else // CRYPTOKIT_STATIC_LIBRARY
+@available(iOS 16.0, macOS 10.13, watchOS 9.0, tvOS 16.0, macCatalyst 16.0, visionOS 1.0, *)
+#endif
 @preconcurrency
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 public protocol HPKEKEMPrivateKeyGeneration: HPKEKEMPrivateKey, Sendable {
     /// Creates a private key generator.
     init() throws
 }
 
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension HPKE {
 	/// A container for Diffie-Hellman key encapsulation mechanisms (KEMs).
-    @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
+    #if !CRYPTOKIT_STATIC_LIBRARY
+    @available(iOS 17.0, macOS 14.0, watchOS 10.0, tvOS 17.0, macCatalyst 17.0, *)
+    #else // CRYPTOKIT_STATIC_LIBRARY
+    @available(iOS 16.0, macOS 10.13, watchOS 9.0, tvOS 16.0, macCatalyst 16.0, visionOS 1.0, *)
+    #endif
     public enum DHKEM: Sendable {
-        @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
+        #if !CRYPTOKIT_STATIC_LIBRARY
+        @available(iOS 17.0, macOS 14.0, watchOS 10.0, tvOS 17.0, macCatalyst 17.0, *)
+        #else // CRYPTOKIT_STATIC_LIBRARY
+        @available(iOS 16.0, macOS 10.13, watchOS 9.0, tvOS 16.0, macCatalyst 16.0, visionOS 1.0, *)
+        #endif
         struct PublicKey<DHPK: HPKEDiffieHellmanPublicKey>: KEMPublicKey where DHPK == DHPK.EphemeralPrivateKey.PublicKey {
             let kem: HPKE.KEM
             let key: DHPK
 
             #if  !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
+            #if CRYPTOKIT_STATIC_LIBRARY
+            typealias EncapsulationResult = CryptoKit_Static.KEM.EncapsulationResult
+            #else
             typealias EncapsulationResult = CryptoKit.KEM.EncapsulationResult
+            #endif
             #else
             typealias EncapsulationResult = Crypto.KEM.EncapsulationResult
             #endif
@@ -124,7 +167,11 @@ extension HPKE {
             }
         }
         
-        @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
+        #if !CRYPTOKIT_STATIC_LIBRARY
+        @available(iOS 17.0, macOS 14.0, watchOS 10.0, tvOS 17.0, macCatalyst 17.0, *)
+        #else // CRYPTOKIT_STATIC_LIBRARY
+        @available(iOS 16.0, macOS 10.13, watchOS 9.0, tvOS 16.0, macCatalyst 16.0, *)
+        #endif
         struct PrivateKey<DHSK: HPKEDiffieHellmanPrivateKey>: KEMPrivateKey {
             let kem: HPKE.KEM
             let key: DHSK

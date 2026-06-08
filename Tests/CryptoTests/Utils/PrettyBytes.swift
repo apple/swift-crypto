@@ -13,6 +13,7 @@
 //===----------------------------------------------------------------------===//
 #if CRYPTOKIT_NO_ACCESS_TO_FOUNDATION
 import SwiftSystem
+#elseif CRYPTOKIT_NO_IMPORT_FOUNDATION
 #else
 #if canImport(FoundationEssentials)
 import FoundationEssentials
@@ -45,6 +46,11 @@ private func htoi(_ value: UInt8) throws -> UInt8 {
 }
 
 #if !hasFeature(Embedded)
+#if !CRYPTOKIT_STATIC_LIBRARY
+@available(iOS 13.0, macOS 10.15, watchOS 6.0, tvOS 13.0, macCatalyst 13.0, *)
+#else // CRYPTOKIT_STATIC_LIBRARY
+@available(iOS 13.0, macOS 10.13, watchOS 6.0, tvOS 13.0, macCatalyst 13.0, visionOS 1.0, *)
+#endif
 extension DataProtocol {
     var hexString: String {
         let hexLen = self.count * 2
@@ -64,13 +70,18 @@ extension DataProtocol {
 }
 #endif // !hasFeature(Embedded)
 
+#if !CRYPTOKIT_STATIC_LIBRARY
+@available(iOS 13.0, macOS 10.15, watchOS 6.0, tvOS 13.0, macCatalyst 13.0, *)
+#else // CRYPTOKIT_STATIC_LIBRARY
+@available(iOS 13.0, macOS 10.13, watchOS 6.0, tvOS 13.0, macCatalyst 13.0, visionOS 1.0, *)
+#endif
 extension RangeReplaceableCollection where Element == UInt8 {
     mutating func appendByte(_ byte: UInt64) {
         withUnsafeBytes(of: byte.littleEndian, { self.append(contentsOf: $0) })
     }
 }
 
-#if !CRYPTOKIT_NO_ACCESS_TO_FOUNDATION
+#if !CRYPTOKIT_NO_ACCESS_TO_FOUNDATION && !CRYPTOKIT_NO_IMPORT_FOUNDATION
 extension Data {
     init(hexString: String) throws {
         self.init()

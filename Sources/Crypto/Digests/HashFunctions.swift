@@ -14,20 +14,27 @@
 #if CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
 @_exported import CryptoKit
 #else
-#if (!CRYPTO_IN_SWIFTPM_FORCE_BUILD_API) || CRYPTOKIT_NO_ACCESS_TO_FOUNDATION
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
+#if (!CRYPTO_IN_SWIFTPM_FORCE_BUILD_API) || CRYPTOKIT_NO_ACCESS_TO_FOUNDATION || CRYPTOKIT_NO_IMPORT_FOUNDATION
+#if !CRYPTOKIT_STATIC_LIBRARY
+@available(iOS 13.0, macOS 10.15, watchOS 6.0, tvOS 13.0, macCatalyst 13.0, *)
+#else // CRYPTOKIT_STATIC_LIBRARY
+@available(iOS 13.0, macOS 10.13, watchOS 6.0, tvOS 13.0, macCatalyst 13.0, visionOS 1.0, *)
+#endif
 typealias DigestImpl = CoreCryptoDigestImpl
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
+#if !CRYPTOKIT_STATIC_LIBRARY
+@available(iOS 13.0, macOS 10.15, watchOS 6.0, tvOS 13.0, macCatalyst 13.0, *)
+#else // CRYPTOKIT_STATIC_LIBRARY
+@available(iOS 13.0, macOS 10.13, watchOS 6.0, tvOS 13.0, macCatalyst 13.0, visionOS 1.0, *)
+#endif
 typealias DigestImplSHA3 = CoreCryptoDigestImpl
 #else
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 typealias DigestImpl = OpenSSLDigestImpl
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 typealias DigestImplSHA3 = XKCPDigestImpl
 #endif
 
 #if CRYPTOKIT_NO_ACCESS_TO_FOUNDATION
 public import SwiftSystem
+#elseif CRYPTOKIT_NO_IMPORT_FOUNDATION
 #else
 #if canImport(FoundationEssentials)
 public import FoundationEssentials
@@ -54,14 +61,27 @@ public import Foundation
 /// authentication code (MAC) like ``HMAC`` instead. MACs rely on hashing, but
 /// incorporate a secret cryptographic key into the digest computation. Only a
 /// user that has the key can generate a valid MAC.
+#if !CRYPTOKIT_STATIC_LIBRARY
+@available(iOS 13.0, macOS 10.15, watchOS 6.0, tvOS 13.0, macCatalyst 13.0, *)
+#else // CRYPTOKIT_STATIC_LIBRARY
+@available(iOS 13.0, macOS 10.13, watchOS 6.0, tvOS 13.0, macCatalyst 13.0, visionOS 1.0, *)
+#endif
 @preconcurrency
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 public protocol HashFunction: Sendable {
     /// The number of bytes that represents the hash function’s internal state.
+    #if !CRYPTOKIT_STATIC_LIBRARY
+    @available(iOS 13.2, macOS 10.15, watchOS 6.1, tvOS 13.2, macCatalyst 13.2, *)
+    #else // CRYPTOKIT_STATIC_LIBRARY
+    @available(iOS 13.2, macOS 10.13, watchOS 6.1, tvOS 13.2, macCatalyst 13.2, visionOS 1.0, *)
+    #endif
     static var blockByteCount: Int { get }
-    #if (!CRYPTO_IN_SWIFTPM_FORCE_BUILD_API) || CRYPTOKIT_NO_ACCESS_TO_FOUNDATION
+    #if (!CRYPTO_IN_SWIFTPM_FORCE_BUILD_API) || CRYPTOKIT_NO_ACCESS_TO_FOUNDATION || CRYPTOKIT_NO_IMPORT_FOUNDATION
     /// The type of the digest returned by the hash function.
+    #if CRYPTOKIT_STATIC_LIBRARY
+    associatedtype Digest: CryptoKit_Static.Digest
+    #else
     associatedtype Digest: CryptoKit.Digest
+    #endif
     #else
     associatedtype Digest: Crypto.Digest
     #endif
@@ -110,7 +130,20 @@ public protocol HashFunction: Sendable {
     func finalize() -> Digest
 }
 
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
+extension HashFunction {
+    @inlinable
+    public mutating func update(bytes: RawSpan) {
+        bytes.withUnsafeBytes {
+            self.update(bufferPointer: $0)
+        }
+    }
+}
+
+#if !CRYPTOKIT_STATIC_LIBRARY
+@available(iOS 13.0, macOS 10.15, watchOS 6.0, tvOS 13.0, macCatalyst 13.0, *)
+#else // CRYPTOKIT_STATIC_LIBRARY
+@available(iOS 13.0, macOS 10.13, watchOS 6.0, tvOS 13.0, macCatalyst 13.0, visionOS 1.0, *)
+#endif
 extension HashFunction {
     /// Computes a digest of the buffer.
     ///
@@ -121,6 +154,18 @@ extension HashFunction {
     static func hash(bufferPointer: UnsafeRawBufferPointer) -> Digest {
         var hasher = Self()
         hasher.update(bufferPointer: bufferPointer)
+        return hasher.finalize()
+    }
+
+    /// Computes a digest of a span of bytes.
+    ///
+    /// - Parameters:
+    ///   - bytes: The bytes to be hashed.
+    /// - Returns: The computed digest.
+    @inlinable
+    public static func hash(bytes: RawSpan) -> Digest {
+        var hasher = Self()
+        hasher.update(bytes: bytes)
         return hasher.finalize()
     }
     

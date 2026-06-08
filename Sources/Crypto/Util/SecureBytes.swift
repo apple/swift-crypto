@@ -12,10 +12,15 @@
 //
 //===----------------------------------------------------------------------===//
 #if CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
+#if CRYPTOKIT_STATIC_LIBRARY
+@_exported import CryptoKit_Static
+#else
 @_exported import CryptoKit
+#endif
 #else
 #if CRYPTOKIT_NO_ACCESS_TO_FOUNDATION
 import SwiftSystem
+#elseif CRYPTOKIT_NO_IMPORT_FOUNDATION
 #else
 #if canImport(FoundationEssentials)
 import FoundationEssentials
@@ -24,10 +29,14 @@ import Foundation
 #endif
 #endif
 
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
+
 nonisolated(unsafe) private let emptyStorage:SecureBytes.Backing = SecureBytes.Backing.createEmpty()
 
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
+#if !CRYPTOKIT_STATIC_LIBRARY
+@available(iOS 13.0, macOS 10.15, watchOS 6.0, tvOS 13.0, macCatalyst 13.0, *)
+#else // CRYPTOKIT_STATIC_LIBRARY
+@available(iOS 13.0, macOS 10.13, watchOS 6.0, tvOS 13.0, macCatalyst 13.0, visionOS 1.0, *)
+#endif
 struct SecureBytes: @unchecked Sendable {
     var backing: Backing
 
@@ -43,11 +52,24 @@ struct SecureBytes: @unchecked Sendable {
         }
     }
 
-    init<D: ContiguousBytes>(bytes: D) {
+    init(bytes: RawSpan) {
         self.backing = Backing.create(bytes: bytes)
     }
 
+    init<D: ContiguousBytes>(bytes: D) {
+        self = bytes.withUnsafeBytes{ buffer in
+            SecureBytes(bytes: buffer.bytes)
+        }
+    }
+
+    /// Create a SecureBytes object with a closure that will initialize the memory.
+    init<E: Error>(capacity: Int, initializingWith callback: (inout OutputRawSpan) throws(E) -> Void) throws(E) {
+        self.backing = try Backing.create(capacity: capacity, initializingWith: callback)
+    }
+
     /// Allows initializing a SecureBytes object with a closure that will initialize the memory.
+    ///
+    /// Note: Please use the safe counterpart, `init(capacity:initializingWith:)`.
     #if hasFeature(Embedded)
     init<E: Error>(unsafeUninitializedCapacity: Int, initializingWith callback: (inout UnsafeMutableRawBufferPointer, inout Int) throws(E) -> Void) throws(E) {
         self.backing = Backing.create(capacity: unsafeUninitializedCapacity)
@@ -75,17 +97,27 @@ struct SecureBytes: @unchecked Sendable {
     #endif
 }
 
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
+#if !CRYPTOKIT_STATIC_LIBRARY
+@available(iOS 13.0, macOS 10.15, watchOS 6.0, tvOS 13.0, macCatalyst 13.0, *)
+#else // CRYPTOKIT_STATIC_LIBRARY
+@available(iOS 13.0, macOS 10.13, watchOS 6.0, tvOS 13.0, macCatalyst 13.0, visionOS 1.0, *)
+#endif
 extension SecureBytes {
-    mutating func append<C: Collection>(_ data: C) where C.Element == UInt8 {
-        let requiredCapacity = self.count + data.count
+    mutating func append(_ bytes: RawSpan) {
+        let requiredCapacity = self.count + bytes.byteCount
         let backingCapacity = self.backing.allocatedCapacity
         if !isKnownUniquelyReferenced(&self.backing) || requiredCapacity > backingCapacity {
             let newBacking = Backing.create(capacity: requiredCapacity)
             newBacking._appendBytes(self.backing, inRange: 0..<self.count)
             self.backing = newBacking
         }
-        self.backing._appendBytes(data)
+        self.backing._appendBytes(bytes)
+    }
+
+    mutating func append<D: ContiguousBytes>(_ bytes: D) {
+        bytes.withUnsafeBytes { bytesBuffer in
+            self.append(bytesBuffer.bytes)
+        }
     }
 
     mutating func reserveCapacity(_ n: Int) {
@@ -101,7 +133,11 @@ extension SecureBytes {
 }
 
 // MARK: - Equatable conformance, constant-time
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
+#if !CRYPTOKIT_STATIC_LIBRARY
+@available(iOS 13.0, macOS 10.15, watchOS 6.0, tvOS 13.0, macCatalyst 13.0, *)
+#else // CRYPTOKIT_STATIC_LIBRARY
+@available(iOS 13.0, macOS 10.13, watchOS 6.0, tvOS 13.0, macCatalyst 13.0, visionOS 1.0, *)
+#endif
 extension SecureBytes: Equatable {
     public static func == (lhs: SecureBytes, rhs: SecureBytes) -> Bool {
         return safeCompare(lhs, rhs)
@@ -109,9 +145,12 @@ extension SecureBytes: Equatable {
 }
 
 // MARK: - Collection conformance
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
+#if !CRYPTOKIT_STATIC_LIBRARY
+@available(iOS 13.0, macOS 10.15, watchOS 6.0, tvOS 13.0, macCatalyst 13.0, *)
+#else // CRYPTOKIT_STATIC_LIBRARY
+@available(iOS 13.0, macOS 10.13, watchOS 6.0, tvOS 13.0, macCatalyst 13.0, visionOS 1.0, *)
+#endif
 extension SecureBytes: Collection {
-    @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
     struct Index {
         fileprivate var offset: Int
 
@@ -147,7 +186,11 @@ extension SecureBytes: Collection {
 }
 
 // MARK: - BidirectionalCollection conformance
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
+#if !CRYPTOKIT_STATIC_LIBRARY
+@available(iOS 13.0, macOS 10.15, watchOS 6.0, tvOS 13.0, macCatalyst 13.0, *)
+#else // CRYPTOKIT_STATIC_LIBRARY
+@available(iOS 13.0, macOS 10.13, watchOS 6.0, tvOS 13.0, macCatalyst 13.0, visionOS 1.0, *)
+#endif
 extension SecureBytes: BidirectionalCollection {
     func index(before index: Index) -> Index {
         return index.advanced(by: -1)
@@ -155,15 +198,27 @@ extension SecureBytes: BidirectionalCollection {
 }
 
 // MARK: - RandomAccessCollection conformance
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
+#if !CRYPTOKIT_STATIC_LIBRARY
+@available(iOS 13.0, macOS 10.15, watchOS 6.0, tvOS 13.0, macCatalyst 13.0, *)
+#else // CRYPTOKIT_STATIC_LIBRARY
+@available(iOS 13.0, macOS 10.13, watchOS 6.0, tvOS 13.0, macCatalyst 13.0, visionOS 1.0, *)
+#endif
 extension SecureBytes: RandomAccessCollection { }
 
 // MARK: - MutableCollection conformance
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
+#if !CRYPTOKIT_STATIC_LIBRARY
+@available(iOS 13.0, macOS 10.15, watchOS 6.0, tvOS 13.0, macCatalyst 13.0, *)
+#else // CRYPTOKIT_STATIC_LIBRARY
+@available(iOS 13.0, macOS 10.13, watchOS 6.0, tvOS 13.0, macCatalyst 13.0, visionOS 1.0, *)
+#endif
 extension SecureBytes: MutableCollection { }
 
 // MARK: - RangeReplaceableCollection conformance
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
+#if !CRYPTOKIT_STATIC_LIBRARY
+@available(iOS 13.0, macOS 10.15, watchOS 6.0, tvOS 13.0, macCatalyst 13.0, *)
+#else // CRYPTOKIT_STATIC_LIBRARY
+@available(iOS 13.0, macOS 10.13, watchOS 6.0, tvOS 13.0, macCatalyst 13.0, visionOS 1.0, *)
+#endif
 extension SecureBytes: RangeReplaceableCollection {
     mutating func replaceSubrange<C: Collection>(_ subrange: Range<Index>, with newElements: C) where C.Element == UInt8 {
         let requiredCapacity = self.backing.count - subrange.count + newElements.count
@@ -192,7 +247,7 @@ extension SecureBytes: RangeReplaceableCollection {
     // The default implementation of this from RangeReplaceableCollection can't take advantage of `ContiguousBytes`, so we override it here
     mutating func append(contentsOf newElements: some Sequence<UInt8>) {
         let done:Void? = newElements.withContiguousStorageIfAvailable {
-            replaceSubrange(endIndex..<endIndex, with: $0)
+            self.append($0.span.bytes)
         }
         
         if done == nil {
@@ -204,17 +259,34 @@ extension SecureBytes: RangeReplaceableCollection {
 }
 
 // MARK: - ContiguousBytes conformance
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
+#if !CRYPTOKIT_STATIC_LIBRARY
+@available(iOS 13.0, macOS 10.15, watchOS 6.0, tvOS 13.0, macCatalyst 13.0, *)
+#else // CRYPTOKIT_STATIC_LIBRARY
+@available(iOS 13.0, macOS 10.13, watchOS 6.0, tvOS 13.0, macCatalyst 13.0, visionOS 1.0, *)
+#endif
 extension SecureBytes: ContiguousBytes {
-    #if hasFeature(Embedded)
+    /// Access the stored bytes.
+    var bytes: RawSpan {
+        get {
+            _overrideLifetime(self.backing.bytes, borrowing: self)
+        }
+    }
+
+    /// Provide mutating access to the stored bytes.
+    var mutableBytes: MutableRawSpan {
+        @_lifetime(&self)
+        mutating _read {
+            if !isKnownUniquelyReferenced(&self.backing) {
+                self.backing = Backing.create(copying: self.backing)
+            }
+
+            yield backing.mutableBytes
+        }
+    }
+
     func withUnsafeBytes<T, E: Error>(_ body: (UnsafeRawBufferPointer) throws(E) -> T) throws(E) -> T {
         return try self.backing.withUnsafeBytes(body)
     }
-    #else
-    func withUnsafeBytes<T>(_ body: (UnsafeRawBufferPointer) throws -> T) rethrows -> T {
-        return try self.backing.withUnsafeBytes(body)
-    }
-    #endif
 
     #if hasFeature(Embedded)
     mutating func withUnsafeMutableBytes<T, E: Error>(_ body: (UnsafeMutableRawBufferPointer) throws(E) -> T) throws(E) -> T {
@@ -246,7 +318,11 @@ extension SecureBytes: ContiguousBytes {
 }
 
 // MARK: - DataProtocol conformance
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
+#if !CRYPTOKIT_STATIC_LIBRARY
+@available(iOS 13.0, macOS 10.15, watchOS 6.0, tvOS 13.0, macCatalyst 13.0, *)
+#else // CRYPTOKIT_STATIC_LIBRARY
+@available(iOS 13.0, macOS 10.13, watchOS 6.0, tvOS 13.0, macCatalyst 13.0, visionOS 1.0, *)
+#endif
 extension SecureBytes: DataProtocol {
     var regions: CollectionOfOne<SecureBytes> {
         return CollectionOfOne(self)
@@ -254,21 +330,37 @@ extension SecureBytes: DataProtocol {
 }
 
 // MARK: - MutableDataProtocol conformance
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
+#if !CRYPTOKIT_STATIC_LIBRARY
+@available(iOS 13.0, macOS 10.15, watchOS 6.0, tvOS 13.0, macCatalyst 13.0, *)
+#else // CRYPTOKIT_STATIC_LIBRARY
+@available(iOS 13.0, macOS 10.13, watchOS 6.0, tvOS 13.0, macCatalyst 13.0, visionOS 1.0, *)
+#endif
 extension SecureBytes: MutableDataProtocol { }
 
 // MARK: - Index conformances
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
+#if !CRYPTOKIT_STATIC_LIBRARY
+@available(iOS 13.0, macOS 10.15, watchOS 6.0, tvOS 13.0, macCatalyst 13.0, *)
+#else // CRYPTOKIT_STATIC_LIBRARY
+@available(iOS 13.0, macOS 10.13, watchOS 6.0, tvOS 13.0, macCatalyst 13.0, visionOS 1.0, *)
+#endif
 extension SecureBytes.Index: Hashable { }
 
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
+#if !CRYPTOKIT_STATIC_LIBRARY
+@available(iOS 13.0, macOS 10.15, watchOS 6.0, tvOS 13.0, macCatalyst 13.0, *)
+#else // CRYPTOKIT_STATIC_LIBRARY
+@available(iOS 13.0, macOS 10.13, watchOS 6.0, tvOS 13.0, macCatalyst 13.0, visionOS 1.0, *)
+#endif
 extension SecureBytes.Index: Comparable {
     static func <(lhs: SecureBytes.Index, rhs: SecureBytes.Index) -> Bool {
         return lhs.offset < rhs.offset
     }
 }
 
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
+#if !CRYPTOKIT_STATIC_LIBRARY
+@available(iOS 13.0, macOS 10.15, watchOS 6.0, tvOS 13.0, macCatalyst 13.0, *)
+#else // CRYPTOKIT_STATIC_LIBRARY
+@available(iOS 13.0, macOS 10.13, watchOS 6.0, tvOS 13.0, macCatalyst 13.0, visionOS 1.0, *)
+#endif
 extension SecureBytes.Index: Strideable {
     func advanced(by n: Int) -> SecureBytes.Index {
         return SecureBytes.Index(offset: self.offset + n)
@@ -280,17 +372,19 @@ extension SecureBytes.Index: Strideable {
 }
 
 // MARK: - Heap allocated backing storage.
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
+#if !CRYPTOKIT_STATIC_LIBRARY
+@available(iOS 13.0, macOS 10.15, watchOS 6.0, tvOS 13.0, macCatalyst 13.0, *)
+#else // CRYPTOKIT_STATIC_LIBRARY
+@available(iOS 13.0, macOS 10.13, watchOS 6.0, tvOS 13.0, macCatalyst 13.0, visionOS 1.0, *)
+#endif
 extension SecureBytes {
 #if !hasFeature(Embedded)
-    @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
     internal struct BackingHeader {
         internal var count: Int
 
         internal var capacity: Int
     }
 
-    @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
     internal class Backing: ManagedBuffer<BackingHeader, UInt8> {
 
         class func createEmpty() -> Backing {
@@ -302,29 +396,46 @@ extension SecureBytes {
             return Backing.create(minimumCapacity: capacity, makingHeaderWith: { _ in BackingHeader(count: 0, capacity: capacity) }) as! Backing
         }
 
+        /// Create a new backing buffer with the given capacity, initializing its contents by calling the `body` closure
+        /// with an output span. Clients should initialize the contents of the buffer via that output span.
+        class func create<E>(capacity: Int, initializingWith body: (inout OutputRawSpan) throws(E) -> Void) throws(E) -> Backing {
+            let backing = create(capacity: capacity)
+            try backing._withVeryUnsafeMutableBytes { (overallocatedTargetPtr) throws(E) in
+                // As Array does, we only produce an output span that covers the requested capacity,
+                // not the over-allocated capacity.
+                let targetPtr = overallocatedTargetPtr[0..<capacity]
+
+                var output = OutputRawSpan(
+                    buffer: targetPtr,
+                    initializedCount: 0
+                )
+
+                try body(&output)
+                backing.count = output.finalize(for: targetPtr)
+            }
+            return backing
+        }
+
         class func create(copying original: Backing) -> Backing {
             return Backing.create(bytes: original)
         }
 
-        final class func create<D: ContiguousBytes>(bytes: D) -> Backing {
-            return bytes.withUnsafeBytes { bytesPtr in
-                let backing = Backing.create(capacity: bytesPtr.count)
-                backing._withVeryUnsafeMutableBytes { targetPtr in
-                    targetPtr.copyMemory(from: bytesPtr)
-                }
-                backing.count = bytesPtr.count
-                precondition(backing.count <= backing.allocatedCapacity)
-                return backing
+        final class func create(bytes: RawSpan) -> Backing {
+            let backing = create(capacity: bytes.byteCount) { output in
+                output.append(contentsOf: bytes)
             }
+            precondition(backing.count <= backing.allocatedCapacity)
+            return backing
+        }
+
+        final class func create<D: ContiguousBytes>(bytes: D) -> Backing {
+            return bytes.withUnsafeBytes { create(bytes: $0.bytes) }
         }
 
         class func create(randomBytes: Int) -> Backing {
-            let backing = Backing.create(capacity: randomBytes)
-            backing._withVeryUnsafeMutableBytes { targetPtr in
-                assert(targetPtr.count >= randomBytes)
-                targetPtr.initializeWithRandomBytes(count: randomBytes)
+            let backing = Backing.create(capacity: randomBytes) { output in
+                output.appendingRandomBytes(count: randomBytes)
             }
-            backing.count = randomBytes
             return backing
         }
 
@@ -356,15 +467,74 @@ extension SecureBytes {
                 return self.withUnsafeMutablePointerToElements { ($0 + offset).pointee = newValue }
             }
         }
+
+        /// Access the bytes in the buffer. Note that this is only safe to use
+        /// when you can ensure that no other code has mutating access to the
+        /// buffer.
+        @unsafe
+        var bytes: RawSpan {
+            _read {
+                let buffer = self.withUnsafeMutablePointerToElements { pointer in
+                    UnsafeMutableBufferPointer(start: pointer, count: self.count)
+                }
+
+                yield buffer.span.bytes
+            }
+        }
+
+        /// Provide mutating access to the bytes in the buffer. Note that this
+        /// is only safe to use when you can ensure that no other code has
+        /// access to the buffer.
+        @unsafe
+        var mutableBytes: MutableRawSpan {
+            _read {
+                let buffer = self.withUnsafeMutablePointerToElements { pointer in
+                    UnsafeMutableBufferPointer(start: pointer, count: self.count)
+                }
+
+                var span = buffer.mutableSpan
+                yield span.mutableBytes
+            }
+
+            _modify {
+                let buffer = self.withUnsafeMutablePointerToElements { pointer in
+                    UnsafeMutableBufferPointer(start: pointer, count: self.count)
+                }
+
+                var span = buffer.mutableSpan
+                var rawSpan = span.mutableBytes
+                yield &rawSpan
+            }
+        }
     }
 #else
-    @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
     internal class Backing {
         private var storage: UnsafeMutableRawBufferPointer
 
         var count: Int
         var capacity: Int {
             storage.count
+        }
+
+        var bytes: RawSpan {
+            @_lifetime(self)
+            _read {
+                yield storage.bytes.extracting(first: count)
+            }
+        }
+
+        var mutableBytes: MutableRawSpan {
+            _read {
+                var mutableStorage = storage.mutableBytes
+                let mutableBytes = mutableStorage._mutatingExtracting(first: count)
+                yield mutableBytes
+            }
+
+            _modify {
+                var mutableStorage = storage.mutableBytes
+                var mutableBytes = mutableStorage._mutatingExtracting(first: count)
+                yield &mutableBytes
+            }
         }
 
         private init(storage: UnsafeMutableRawBufferPointer, count: Int) {
@@ -382,21 +552,43 @@ extension SecureBytes {
             return Backing.init(storage: buffer, count: 0)
         }
 
+        /// Create a new backing buffer with the given capacity, initializing its contents by calling the `body` closure
+        /// with an output span. Clients should initialize the contents of the buffer via that output span.
+        final class func create<E>(capacity: Int, initializingWith body: (inout OutputRawSpan) throws(E) -> Void) throws(E) -> Backing {
+            let backing = create(capacity: capacity)
+            try backing._withVeryUnsafeMutableBytes { (overallocatedTargetPtr) throws(E) in
+                // As Array does, we only produce an output span that covers the requested capacity,
+                // not the over-allocated capacity.
+                let targetPtr = overallocatedTargetPtr[0..<capacity]
+
+                var output = OutputRawSpan(
+                    buffer: targetPtr,
+                    initializedCount: 0
+                )
+
+                try body(&output)
+                backing.count = output.finalize(for: targetPtr)
+            }
+            return backing
+        }
+
         class func create(copying original: Backing) -> Backing {
             let buffer = UnsafeMutableRawBufferPointer.allocate(byteCount: original.capacity, alignment: Int(CC_MAX_ALIGNMENT))
             buffer.copyBytes(from: original.storage)
             return Backing.init(storage: buffer, count: original.count)
         }
 
+        final class func create(bytes: RawSpan) -> Backing {
+            let backing = create(capacity: bytes.byteCount) { output in
+                output.append(contentsOf: bytes)
+            }
+            precondition(backing.count <= backing.allocatedCapacity)
+            return backing
+        }
+
         final class func create<D: ContiguousBytes>(bytes: D) -> Backing {
             return bytes.withUnsafeBytes { bytesPtr in
-                let backing = Backing.create(capacity: bytesPtr.count)
-                backing._withVeryUnsafeMutableBytes { targetPtr in
-                    targetPtr.copyMemory(from: bytesPtr)
-                }
-                backing.count = bytesPtr.count
-                precondition(backing.count <= backing.capacity)
-                return backing
+                create(bytes: bytesPtr.bytes)
             }
         }
 
@@ -412,7 +604,8 @@ extension SecureBytes {
 
         deinit {
             // We always clear the whole capacity, even if we don't think we used it all.
-            memset_s(storage.baseAddress, storage.count, 0, storage.count)
+            memset_s(storage.baseAddress!, storage.count, 0, storage.count)
+            storage.deallocate()
         }
 
         subscript(offset offset: Int) -> UInt8 {
@@ -429,7 +622,11 @@ extension SecureBytes {
 #endif
 }
 
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
+#if !CRYPTOKIT_STATIC_LIBRARY
+@available(iOS 13.0, macOS 10.15, watchOS 6.0, tvOS 13.0, macCatalyst 13.0, *)
+#else // CRYPTOKIT_STATIC_LIBRARY
+@available(iOS 13.0, macOS 10.13, watchOS 6.0, tvOS 13.0, macCatalyst 13.0, visionOS 1.0, *)
+#endif
 extension SecureBytes.Backing {
     var allocatedCapacity: Int {
 #if os(OpenBSD)
@@ -481,23 +678,24 @@ extension SecureBytes.Backing {
         self.count += byteCount
     }
 
+    /// Appends the bytes of a collection to this storage, crashing if there is not enough room.
+    fileprivate func _appendBytes(_ bytes: RawSpan) {
+        let byteCount = bytes.byteCount
+
+        precondition(self.allocatedCapacity - self.count - byteCount >= 0, "Insufficient space for byte copying, must have reallocated!")
+
+        let lowerOffset = self.count
+        self._withVeryUnsafeMutableBytes { bytesPtr in
+            let innerPtrSlice = UnsafeMutableRawBufferPointer(rebasing: bytesPtr[lowerOffset...])
+            innerPtrSlice.copyBytes(from: bytes)
+        }
+        self.count += byteCount
+    }
+
     /// Appends the bytes of a slice of another backing buffer to this storage, crashing if there
     /// is not enough room.
     fileprivate func _appendBytes(_ backing: SecureBytes.Backing, inRange range: Range<Int>) {
-        precondition(range.lowerBound >= 0)
-        precondition(range.upperBound <= backing.allocatedCapacity)
-        precondition(self.allocatedCapacity - self.count - range.count >= 0, "Insufficient space for byte copying, must have reallocated!")
-
-        backing.withUnsafeBytes { backingPtr in
-            let ptrSlice = UnsafeRawBufferPointer(rebasing: backingPtr[range])
-
-            let lowerOffset = self.count
-            self._withVeryUnsafeMutableBytes { bytesPtr in
-                let innerPtrSlice = UnsafeMutableRawBufferPointer(rebasing: bytesPtr[lowerOffset...])
-                innerPtrSlice.copyMemory(from: ptrSlice)
-            }
-            self.count += ptrSlice.count
-        }
+        self._appendBytes(backing.bytes.extracting(range))
     }
 
     /// Moves the range of bytes identified by the slice by the delta, crashing if the move would
@@ -533,50 +731,55 @@ extension SecureBytes.Backing {
     }
 }
 
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
+#if !CRYPTOKIT_STATIC_LIBRARY
+@available(iOS 13.0, macOS 10.15, watchOS 6.0, tvOS 13.0, macCatalyst 13.0, *)
+#else // CRYPTOKIT_STATIC_LIBRARY
+@available(iOS 13.0, macOS 10.13, watchOS 6.0, tvOS 13.0, macCatalyst 13.0, visionOS 1.0, *)
+#endif
 extension SecureBytes.Backing: ContiguousBytes {
-#if hasFeature(Embedded)
     func withUnsafeBytes<T, E: Error>(_ body: (UnsafeRawBufferPointer) throws(E) -> T) throws(E) -> T {
         let count = self.count
+
+#if hasFeature(Embedded)
         return try storage.withUnsafeBytes { elementsPtr throws(E) in
             return try body(UnsafeRawBufferPointer(start: elementsPtr.baseAddress, count: count))
         }
-    }
 #else
-    func withUnsafeBytes<T>(_ body: (UnsafeRawBufferPointer) throws -> T) rethrows -> T {
-        let count = self.count
-        return try self.withUnsafeMutablePointerToElements { elementsPtr in
+        return try self.withUnsafeMutablePointerToElements { elementsPtr throws(E) in
             return try body(UnsafeRawBufferPointer(start: elementsPtr, count: count))
         }
-    }
 #endif
-
-    #if hasFeature(Embedded)
+    }
 
     func withUnsafeMutableBytes<T, E: Error>(_ body: (UnsafeMutableRawBufferPointer) throws(E) -> T) throws(E) -> T {
-        return try body(storage)
-    }
-    #else
-    func withUnsafeMutableBytes<T>(_ body: (UnsafeMutableRawBufferPointer) throws -> T) rethrows -> T {
+#if hasFeature(Embedded)
+        return try body(UnsafeMutableRawBufferPointer(rebasing: storage[..<count]))
+#else
         let count = self.count
 
-        return try self.withUnsafeMutablePointerToElements { elementsPtr in
+        return try self.withUnsafeMutablePointerToElements { elementsPtr throws(E) in
             return try body(UnsafeMutableRawBufferPointer(start: elementsPtr, count: count))
         }
+#endif
     }
-    #endif
 
 #if hasFeature(Embedded)
     /// Very unsafe in the sense that this points to uninitialized memory. Used only for implementations within this file.
+    @available(iOS 13.0, macOS 10.15, watchOS 6.0, tvOS 13.0, macCatalyst 13.0, *)
     func _withVeryUnsafeMutableBytes<T, E: Error>(_ body: (UnsafeMutableRawBufferPointer) throws(E) -> T) throws(E) -> T {
         return try body(storage)
     }
 #else
     /// Very unsafe in the sense that this points to uninitialized memory. Used only for implementations within this file.
-    func _withVeryUnsafeMutableBytes<T>(_ body: (UnsafeMutableRawBufferPointer) throws -> T) rethrows -> T {
+    #if !CRYPTOKIT_STATIC_LIBRARY
+    @available(iOS 13.0, macOS 10.15, watchOS 6.0, tvOS 13.0, macCatalyst 13.0, *)
+    #else // CRYPTOKIT_STATIC_LIBRARY
+    @available(iOS 13.0, macOS 10.13, watchOS 6.0, tvOS 13.0, macCatalyst 13.0, visionOS 1.0, *)
+    #endif
+    func _withVeryUnsafeMutableBytes<T, E: Error>(_ body: (UnsafeMutableRawBufferPointer) throws(E) -> T) throws(E) -> T {
         let capacity = self.allocatedCapacity
 
-        return try self.withUnsafeMutablePointerToElements { elementsPtr in
+        return try self.withUnsafeMutablePointerToElements { (elementsPtr) throws(E) in
             return try body(UnsafeMutableRawBufferPointer(start: elementsPtr, count: capacity))
         }
     }
@@ -600,7 +803,11 @@ extension SecureBytes.Backing: ContiguousBytes {
 #endif
 }
 
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
+#if !CRYPTOKIT_STATIC_LIBRARY
+@available(iOS 13.0, macOS 10.15, watchOS 6.0, tvOS 13.0, macCatalyst 13.0, *)
+#else // CRYPTOKIT_STATIC_LIBRARY
+@available(iOS 13.0, macOS 10.13, watchOS 6.0, tvOS 13.0, macCatalyst 13.0, visionOS 1.0, *)
+#endif
 extension UInt32 {
     /// Returns the next power of two unless that would overflow, in which case UInt32.max (on 64-bit systems) or
     /// Int32.max (on 32-bit systems) is returned. The returned value is always safe to be cast to Int and passed
@@ -634,13 +841,17 @@ extension UInt32 {
     }
 }
 
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
+#if !CRYPTOKIT_STATIC_LIBRARY
+@available(iOS 13.0, macOS 10.15, watchOS 6.0, tvOS 13.0, macCatalyst 13.0, *)
+#else // CRYPTOKIT_STATIC_LIBRARY
+@available(iOS 13.0, macOS 10.13, watchOS 6.0, tvOS 13.0, macCatalyst 13.0, visionOS 1.0, *)
+#endif
 extension Data {
     /// A custom initializer for Data that attempts to share the same storage as the current SecureBytes instance.
     /// This is our best-effort attempt to expose the data in an auto-zeroing fashion. Any mutating function called on
     /// the constructed `Data` object will cause the bytes to be copied out: we can't avoid that.
     init(_ secureBytes: SecureBytes) {
-        #if CRYPTOKIT_NO_ACCESS_TO_FOUNDATION
+        #if CRYPTOKIT_NO_ACCESS_TO_FOUNDATION || CRYPTOKIT_NO_IMPORT_FOUNDATION
         self = secureBytes.withUnsafeBytes {
             // We make a mutable copy of this pointer here because we know Data won't write through it.
             return Data($0)
@@ -668,7 +879,7 @@ extension Data {
         let baseOffset = secureByteSlice.startIndex.offset
         let endOffset = secureByteSlice.endIndex.offset
         
-        #if CRYPTOKIT_NO_ACCESS_TO_FOUNDATION
+        #if CRYPTOKIT_NO_ACCESS_TO_FOUNDATION || CRYPTOKIT_NO_IMPORT_FOUNDATION
         self = base.withUnsafeBytes {
             // Slice the base pointer down to just the range we want.
             let slicedPointer = UnsafeRawBufferPointer(rebasing: $0[baseOffset..<endOffset])

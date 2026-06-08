@@ -33,7 +33,7 @@ extension BoringSSLAEAD {
         key: SymmetricKey,
         nonce: Nonce,
         authenticatedData: AuthenticatedData
-    ) throws -> (ciphertext: Data, tag: Data) {
+    ) throws -> Data {
         do {
             let context = try AEADContext(cipher: self, key: key)
             return try context.seal(message: message, nonce: nonce, authenticatedData: authenticatedData)
@@ -75,17 +75,16 @@ enum OpenSSLAESGCMSIVImpl {
 
         let aead = try Self._backingAEAD(key: key)
 
-        let ciphertext: Data
-        let tag: Data
+        let combined: Data
         if let ad = authenticatedData {
-            (ciphertext, tag) = try aead.seal(
+            combined = try aead.seal(
                 message: message,
                 key: key,
                 nonce: nonce,
                 authenticatedData: ad
             )
         } else {
-            (ciphertext, tag) = try aead.seal(
+            combined = try aead.seal(
                 message: message,
                 key: key,
                 nonce: nonce,
@@ -93,7 +92,7 @@ enum OpenSSLAESGCMSIVImpl {
             )
         }
 
-        return try AES.GCM._SIV.SealedBox(nonce: nonce, ciphertext: ciphertext, tag: tag)
+        return try AES.GCM._SIV.SealedBox(combined: combined, nonceByteCount: nonce.bytes.count)
     }
 
     @inlinable

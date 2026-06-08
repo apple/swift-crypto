@@ -17,6 +17,7 @@
 
 #if CRYPTOKIT_NO_ACCESS_TO_FOUNDATION
 public import SwiftSystem
+#elseif CRYPTOKIT_NO_IMPORT_FOUNDATION
 #else
 #if canImport(FoundationEssentials)
 public import FoundationEssentials
@@ -25,9 +26,7 @@ public import Foundation
 #endif
 #endif
 
-@_spi(ANSIKDF)
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
-public struct ANSIKDFx963<H: HashFunction>: Sendable {
+internal struct ANSIKDFx963<H: HashFunction>: Sendable {
     public static func deriveKey<Info: DataProtocol>(inputKeyMaterial: SymmetricKey, info: Info, outputByteCount: Int) -> SymmetricKey {
         
         guard UInt64(outputByteCount) < (UInt64(H.Digest.byteCount) * UInt64(UInt32.max)) else {
@@ -44,7 +43,11 @@ public struct ANSIKDFx963<H: HashFunction>: Sendable {
             // 1. Compute: Ki = Hash(Z || Counter || [SharedInfo]).
             var hasher = H()
             inputKeyMaterial.withUnsafeBytes { ikmBytes in
+                #if CRYPTOKIT_URBP_LACKS_CONFORMANCE
+                hasher.update(bufferPointer: ikmBytes)
+                #else
                 hasher.update(data: ikmBytes)
+                #endif
             }
             hasher.update(counter.bigEndian)
             hasher.update(data: info)
@@ -56,7 +59,7 @@ public struct ANSIKDFx963<H: HashFunction>: Sendable {
             // Append the bytes of the digest. We don't want to append more than the remaining number of bytes.
             let bytesToAppend = min(remainingBytes, H.Digest.byteCount)
             digest.withUnsafeBytes { digestPtr in
-                key.append(digestPtr.prefix(bytesToAppend))
+                key.append(digestPtr.bytes.extracting(first: bytesToAppend))
             }
             remainingBytes -= bytesToAppend
         }

@@ -15,10 +15,18 @@
 @_exported import CryptoKit
 #else
 
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
+#if !CRYPTOKIT_STATIC_LIBRARY
+@available(iOS 17.0, macOS 10.15, watchOS 10.0, tvOS 17.0, macCatalyst 17.0, *)
+#else // CRYPTOKIT_STATIC_LIBRARY
+@available(iOS 16.0, macOS 10.13, watchOS 9.0, tvOS 16.0, macCatalyst 16.0, visionOS 1.0, *)
+#endif
 extension HPKE {
+    #if !CRYPTOKIT_STATIC_LIBRARY
+    @available(iOS 17.0, macOS 10.15, watchOS 10.0, tvOS 17.0, macCatalyst 17.0, *)
+    #else // CRYPTOKIT_STATIC_LIBRARY
+    @available(iOS 16.0, macOS 10.13, watchOS 9.0, tvOS 16.0, macCatalyst 16.0, visionOS 1.0, *)
+    #endif
 
-    @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
     internal enum Mode: CaseIterable {
         case base
         case psk

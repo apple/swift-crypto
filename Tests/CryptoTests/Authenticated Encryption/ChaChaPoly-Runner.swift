@@ -19,6 +19,9 @@ import Foundation
 import XCTest
 
 #if CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
+// Skip tests that use @available annotations on tests unless running on Linux.
+#else
+#if CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
 import Crypto
 #elseif !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
 import CryptoKit
@@ -67,6 +70,52 @@ class ChaChaPolyTests: XCTestCase {
         let recoveredPlaintext = try orFail { try ChaChaPoly.open(ciphertext, using: key, authenticating: Data()) }
 
         XCTAssertEqual(recoveredPlaintext, plaintext)
+
+        // Some applications assume that the startIndex of the returned plaintext is zero.
+        // While that is an incorrect assumption, it was true of prior implementations, so
+        XCTAssertEqual(recoveredPlaintext.startIndex, 0)
+    }
+
+    @available(macOS 27, iOS 27, tvOS 27, watchOS 27, visionOS 27, *)
+    func testEncryptDecryptSpans() throws {
+        let plaintext: [UInt8] = Array("Some Super Secret Message".utf8)
+
+        let key = SymmetricKey(size: .bits256)
+        let nonce = ChaChaPoly.Nonce()
+
+        var ciphertext = plaintext
+        var ciphertextTag: [16 of UInt8] = .init(repeating: 0)
+
+        try orFail {
+            var ciphertextSpan = ciphertext.mutableSpan
+            var ciphertextRawSpan = ciphertextSpan.mutableBytes
+            var tagSpan = ciphertextTag.mutableSpan
+            try tagSpan.withUnsafeMutableBytes { (tagBytes) throws(CryptoKitMetaError) in
+                var tagOutputSpan = OutputRawSpan(buffer: tagBytes, initializedCount: 0)
+                try ChaChaPoly
+                    .seal(inPlace: &ciphertextRawSpan, using: key, nonce: nonce, authenticating: [UInt8]().span.bytes, tag: &tagOutputSpan)
+                _ = tagOutputSpan.finalize(for: tagBytes)
+            }
+        }
+
+        // Make sure we actually ended up with different contents.
+        XCTAssertNotEqual(ciphertext, plaintext)
+
+        do {
+            var ciphertextSpan = ciphertext.mutableSpan
+            var ciphertextRawSpan = ciphertextSpan.mutableBytes
+            try orFail {
+                try ChaChaPoly
+                    .open(
+                        inPlace: &ciphertextRawSpan,
+                        using: key,
+                        nonce: nonce,
+                        tag: ciphertextTag.span.bytes
+                    )
+            }
+        }
+
+        XCTAssertEqual(ciphertext, plaintext)
     }
 
     func testUserConstructedSealedBoxesCombined() throws {
@@ -210,3 +259,4 @@ class ChaChaPolyTests: XCTestCase {
         }
     }
 }
+#endif // CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API

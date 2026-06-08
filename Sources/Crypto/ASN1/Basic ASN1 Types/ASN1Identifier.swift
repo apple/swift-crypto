@@ -17,6 +17,7 @@
 
 #if CRYPTOKIT_NO_ACCESS_TO_FOUNDATION
 import SwiftSystem
+#elseif CRYPTOKIT_NO_IMPORT_FOUNDATION
 #else
 #if canImport(FoundationEssentials)
 import FoundationEssentials
@@ -25,11 +26,9 @@ import Foundation
 #endif
 #endif
 
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension ASN1 {
     /// An `ASN1Identifier` is a representation of the abstract notion of an ASN.1 identifier. Identifiers have a number of properties that relate to both the specific
     /// tag number as well as the properties of the identifier in the stream.
-    @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
     internal struct ASN1Identifier {
         /// The base tag. In a general ASN.1 implementation we'd need an arbitrary precision integer here as the tag number can be arbitrarily large, but
         /// we don't need the full generality here.
@@ -122,7 +121,6 @@ extension ASN1 {
     }
 }
 
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension ASN1.ASN1Identifier {
     internal static let objectIdentifier = try! ASN1.ASN1Identifier(rawIdentifier: 0x06)
     internal static let primitiveBitString = try! ASN1.ASN1Identifier(rawIdentifier: 0x03)
@@ -147,11 +145,9 @@ extension ASN1.ASN1Identifier {
     internal static let generalizedTime = try! ASN1.ASN1Identifier(rawIdentifier: 0x18)
 }
 
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension ASN1.ASN1Identifier: Hashable { }
 
 #if !hasFeature(Embedded)
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension ASN1.ASN1Identifier: CustomStringConvertible {
     var description: String {
         return "ASN1Identifier(\(self.baseTag))"

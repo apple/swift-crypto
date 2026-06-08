@@ -14,16 +14,20 @@
 #if CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
 @_exported import CryptoKit
 #else
-#if (!CRYPTO_IN_SWIFTPM_FORCE_BUILD_API) || CRYPTOKIT_NO_ACCESS_TO_FOUNDATION
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
+#if (!CRYPTO_IN_SWIFTPM_FORCE_BUILD_API) || CRYPTOKIT_NO_ACCESS_TO_FOUNDATION || CRYPTOKIT_NO_IMPORT_FOUNDATION
+#if !CRYPTOKIT_STATIC_LIBRARY
+@available(iOS 13.0, macOS 10.15, watchOS 6.0, tvOS 13.0, macCatalyst 13.0, *)
+#else // CRYPTOKIT_STATIC_LIBRARY
+@available(iOS 13.0, macOS 10.13, watchOS 6.0, tvOS 13.0, macCatalyst 13.0, visionOS 1.0, *)
+#endif
 typealias ChaChaPolyImpl = CoreCryptoChaChaPolyImpl
 #else
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 typealias ChaChaPolyImpl = OpenSSLChaChaPolyImpl
 #endif
 
 #if CRYPTOKIT_NO_ACCESS_TO_FOUNDATION
 public import SwiftSystem
+#elseif CRYPTOKIT_NO_IMPORT_FOUNDATION
 #else
 #if canImport(FoundationEssentials)
 public import FoundationEssentials
@@ -34,7 +38,11 @@ public import Foundation
 
 
 /// An implementation of the ChaCha20-Poly1305 cipher.
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
+#if !CRYPTOKIT_STATIC_LIBRARY
+@available(iOS 13.0, macOS 10.15, watchOS 6.0, tvOS 13.0, macCatalyst 13.0, *)
+#else // CRYPTOKIT_STATIC_LIBRARY
+@available(iOS 13.0, macOS 10.13, watchOS 6.0, tvOS 13.0, macCatalyst 13.0, visionOS 1.0, *)
+#endif
 public enum ChaChaPoly: Cipher, Sendable {
     static let tagByteCount = 16
     static let keyBitsCount = 256
@@ -70,6 +78,44 @@ public enum ChaChaPoly: Cipher, Sendable {
         return try ChaChaPolyImpl.encrypt(key: key, message: message, nonce: nonce, authenticatedData: Data?.none)
     }
 
+    /// Secures the given plaintext message in place with encryption and an
+    /// authentication tag.
+    ///
+    /// - Parameters:
+    ///   - message: The plaintext data to seal.
+    ///   - key: A cryptographic key used to seal the message.
+    ///   - nonce: The nonce the sealing process requires.
+    ///   - authenticatedData: Additional data to be authenticated.
+    ///   - tag: Will be updated with the 16-byte authentication tag.
+    @available(iOS 27.0, macOS 27.0, watchOS 27.0, tvOS 27.0, macCatalyst 27.0, visionOS 27.0, *)
+    #if swift(<6.3)
+    @_lifetime(message: copy message)
+    #endif
+    public static func seal(
+        inPlace message: inout MutableRawSpan,
+        using key: SymmetricKey,
+        nonce: Nonce,
+        authenticating authenticatedData: RawSpan? = nil,
+        tag: inout OutputRawSpan
+    ) throws(CryptoKitMetaError) {
+        try ChaChaPolyImpl.encrypt(key: key, inPlace: &message, nonce: nonce.bytes, authenticatedData: authenticatedData, tag: &tag)
+    }
+
+    // Note: historical version of the above, which should be removed once
+    // the above is API and clients move over to it.
+    #if swift(<6.3)
+    @_lifetime(message: copy message)
+    #endif
+    internal static func seal(
+        inplace message: inout MutableRawSpan,
+        using key: SymmetricKey,
+        nonce: RawSpan,
+        authenticating authenticatedData: RawSpan? = nil,
+        tag: inout OutputRawSpan
+    ) throws(CryptoKitMetaError) {
+        try ChaChaPolyImpl.encrypt(key: key, inPlace: &message, nonce: nonce, authenticatedData: authenticatedData, tag: &tag)
+    }
+
     /// Decrypts the message and verifies the authenticity of both the encrypted
     /// message and additional data.
     ///
@@ -99,9 +145,53 @@ public enum ChaChaPoly: Cipher, Sendable {
         (_ sealedBox: SealedBox, using key: SymmetricKey) throws -> Data {
         return try ChaChaPolyImpl.decrypt(key: key, ciphertext: sealedBox, authenticatedData: Data?.none)
     }
+
+    /// Decrypts the message and verifies the authenticity of both the encrypted
+    /// message and additional data.
+    ///
+    /// - Parameters:
+    ///   - message: The message, which will be decrypted in place.
+    ///   - key: The cryptographic key that was used to seal the message.
+    ///   - nonce: The nonce used to encrypt the message.
+    ///   - tag : The 16-byte authentication tag.
+    ///   - authenticatedData: Additional data that was authenticated.
+    ///
+    /// The call throws an error if decryption or authentication fail.
+    @available(iOS 27.0, macOS 27.0, watchOS 27.0, tvOS 27.0, macCatalyst 27.0, visionOS 27.0, *)
+    #if swift(<6.3)
+    @_lifetime(message: copy message)
+    #endif
+    public static func open(
+        inPlace message: inout MutableRawSpan,
+        using key: SymmetricKey,
+        nonce: Nonce,
+        authenticating authenticatedData: RawSpan? = nil,
+        tag: RawSpan
+    ) throws(CryptoKitMetaError) {
+        try ChaChaPolyImpl.decrypt(key: key, inPlace: &message, nonce: nonce.bytes, tag: tag, authenticatedData: authenticatedData)
+    }
+
+    // Note: historical version of the above, which should be removed once
+    // the above is API and clients move over to it.
+    #if swift(<6.3)
+    @_lifetime(message: copy message)
+    #endif
+    public static func open(
+        inplace message: inout MutableRawSpan,
+        using key: SymmetricKey,
+        nonce: RawSpan,
+        tag: RawSpan,
+        authenticating authenticatedData: RawSpan? = nil
+    ) throws(CryptoKitMetaError) {
+        try ChaChaPolyImpl.decrypt(key: key, inPlace: &message, nonce: nonce, tag: tag, authenticatedData: authenticatedData)
+    }
 }
 
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
+#if !CRYPTOKIT_STATIC_LIBRARY
+@available(iOS 13.0, macOS 10.15, watchOS 6.0, tvOS 13.0, macCatalyst 13.0, *)
+#else // CRYPTOKIT_STATIC_LIBRARY
+@available(iOS 13.0, macOS 10.13, watchOS 6.0, tvOS 13.0, macCatalyst 13.0, visionOS 1.0, *)
+#endif
 extension ChaChaPoly {
     /// A secure container for your data that you access using a cipher.
     ///
@@ -118,7 +208,11 @@ extension ChaChaPoly {
     /// The receiver uses another instance of the same cipher, like the
     /// ``open(_:using:)`` method, to open the box.
     @frozen
-    @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
+    #if !CRYPTOKIT_STATIC_LIBRARY
+    @available(iOS 13.0, macOS 10.15, watchOS 6.0, tvOS 13.0, macCatalyst 13.0, *)
+    #else // CRYPTOKIT_STATIC_LIBRARY
+    @available(iOS 13.0, macOS 10.13, watchOS 6.0, tvOS 13.0, macCatalyst 13.0, visionOS 1.0, *)
+    #endif
     public struct SealedBox: AEADSealedBox, Sendable {
         /// A combined element composed of the tag, the nonce, and the
         /// ciphertext.

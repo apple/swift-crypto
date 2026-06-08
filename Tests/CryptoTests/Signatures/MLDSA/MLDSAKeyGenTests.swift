@@ -21,6 +21,7 @@ import XCTest
 @testable import Crypto
 #endif
 
+@available(iOS 26.0, macOS 26.0, watchOS 26.0, tvOS 26.0, macCatalyst 26.0, visionOS 26.0, *)
 final class MLDSAKeyGenTests: XCTestCase {
     func processKeyGenKATFile(filename: String) throws -> [MLDSAKeyGenKAT] {
         #if CRYPTO_IN_SWIFTPM

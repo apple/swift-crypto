@@ -12,7 +12,6 @@
 //
 //===----------------------------------------------------------------------===//
 import XCTest
-import Crypto
 
 // Xcode 11.4 catches errors thrown during tests and reports them on the
 // correct line. But Linux and older Xcodes do not, so we need to use this

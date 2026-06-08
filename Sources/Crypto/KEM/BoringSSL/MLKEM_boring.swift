@@ -29,6 +29,7 @@ import Foundation
 @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension MLKEM768 {
     /// A ML-KEM-768 private key.
+    @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
     struct InternalPrivateKey: @unchecked Sendable, KEMPrivateKey {
         private var backing: Backing
 
@@ -175,6 +176,7 @@ extension MLKEM768 {
 @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension MLKEM768 {
     /// A ML-KEM-768 public key.
+    @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
     struct InternalPublicKey: @unchecked Sendable, KEMPublicKey {
         private var backing: Backing
 
@@ -296,6 +298,7 @@ extension MLKEM768 {
 @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension MLKEM1024 {
     /// A ML-KEM-1024 private key.
+    @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
     struct InternalPrivateKey: @unchecked Sendable, KEMPrivateKey {
         private var backing: Backing
 
@@ -442,6 +445,7 @@ extension MLKEM1024 {
 @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension MLKEM1024 {
     /// A ML-KEM-1024 public key.
+    @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
     struct InternalPublicKey: @unchecked Sendable, KEMPublicKey {
         private var backing: Backing
 
@@ -560,6 +564,7 @@ extension MLKEM1024 {
     private static let ciphertextByteCount = Int(MLKEM1024_CIPHERTEXT_BYTES)
 }
 
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 enum MLKEM {
     /// The size of the seed in bytes.
     static let seedByteCount = 64

@@ -14,7 +14,11 @@
 #if CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
 @_exported import CryptoKit
 #else
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
+#if !CRYPTOKIT_STATIC_LIBRARY
+@available(iOS 13.0, macOS 10.15, watchOS 6.0, tvOS 13.0, macCatalyst 13.0, *)
+#else // CRYPTOKIT_STATIC_LIBRARY
+@available(iOS 13.0, macOS 10.13, watchOS 6.0, tvOS 13.0, macCatalyst 13.0, visionOS 1.0, *)
+#endif
 extension Insecure {
     /// An implementation of SHA1 hashing.
     ///
@@ -32,10 +36,14 @@ extension Insecure {
     /// secure, but is provided for backward compatibility with older services
     /// that require it. For new services, prefer one of the secure hashes, like
     /// ``SHA512``.
-    @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
     public struct SHA1: HashFunctionImplementationDetails, Sendable {
         /// The number of bytes that represents the hash function’s internal
         /// state.
+        #if !CRYPTOKIT_STATIC_LIBRARY
+        @available(iOS 13.2, macOS 10.15, watchOS 6.1, tvOS 13.2, macCatalyst 13.2, *)
+        #else // CRYPTOKIT_STATIC_LIBRARY
+        @available(iOS 13.2, macOS 10.13, watchOS 6.1, tvOS 13.2, macCatalyst 13.2, visionOS 1.0, *)
+        #endif
         public static let blockByteCount: Int = 64
         
         /// The number of bytes in a SHA1 digest.
@@ -113,10 +121,14 @@ extension Insecure {
     /// secure, but is provided for backward compatibility with older services
     /// that require it. For new services, prefer one of the secure hashes, like
     /// ``SHA512``.
-    @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
     public struct MD5: HashFunctionImplementationDetails, Sendable {
         /// The number of bytes that represents the hash function’s internal
         /// state.
+        #if !CRYPTOKIT_STATIC_LIBRARY
+        @available(iOS 13.2, macOS 10.15, watchOS 6.1, tvOS 13.2, macCatalyst 13.2, *)
+        #else // CRYPTOKIT_STATIC_LIBRARY
+        @available(iOS 13.2, macOS 10.13, watchOS 6.1, tvOS 13.2, macCatalyst 13.2, visionOS 1.0, *)
+        #endif
         public static let blockByteCount: Int = 64
         /// The number of bytes in an MD5 digest.
         public static let byteCount: Int = 16

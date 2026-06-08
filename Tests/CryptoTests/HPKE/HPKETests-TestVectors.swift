@@ -17,17 +17,16 @@ import FoundationEssentials
 import Foundation
 #endif
 import XCTest
-
 #if CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
 // Skip tests that require @testable imports of CryptoKit.
 #else
 #if !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
-@testable @_spi(HPKEAlgID) import CryptoKit
+@testable import CryptoKit
 #else
-@testable @_spi(HPKEAlgID) import Crypto
+@testable import Crypto
 #endif
 
-// Curve448 is not supported on our platforms
+// Curve448 is not supported on our platforms yet
 let unsupportedKEMs: [UInt16] = [0x0021]
 
 struct HPKETestEncryption: Codable {

@@ -17,6 +17,7 @@
 
 #if CRYPTOKIT_NO_ACCESS_TO_FOUNDATION
 import SwiftSystem
+#elseif CRYPTOKIT_NO_IMPORT_FOUNDATION
 #else
 #if canImport(FoundationEssentials)
 import FoundationEssentials
@@ -25,7 +26,6 @@ import Foundation
 #endif
 #endif
 
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 private func contents(of string: StaticString) -> ArraySlice<UInt8> {
     if string.hasPointerRepresentation {
         return ArraySlice(
@@ -41,11 +41,9 @@ private func contents(of string: StaticString) -> ArraySlice<UInt8> {
     }
 }
 
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension ASN1 {
     /// A UTF8String is roughly what it sounds like. We note that all the string types are encoded as implicitly tagged
     /// octet strings, and so for now we just piggyback on the decoder and encoder for that type.
-    @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
     struct ASN1UTF8String: ASN1ImplicitlyTaggable, Hashable, ContiguousBytes {
         static var defaultIdentifier: ASN1.ASN1Identifier {
             .primitiveUTF8String
@@ -89,7 +87,6 @@ extension ASN1 {
 
     /// We note that all the string types are encoded as implicitly tagged
     /// octet strings, and so for now we just piggyback on the decoder and encoder for that type.
-    @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
     struct ASN1TeletexString: ASN1ImplicitlyTaggable, Hashable, ContiguousBytes {
         static var defaultIdentifier: ASN1.ASN1Identifier {
             .primitiveTeletexString
@@ -133,7 +130,6 @@ extension ASN1 {
 
     /// We note that all the string types are encoded as implicitly tagged
     /// octet strings, and so for now we just piggyback on the decoder and encoder for that type.
-    @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
     struct ASN1PrintableString: ASN1ImplicitlyTaggable, Hashable, ContiguousBytes {
         static var defaultIdentifier: ASN1.ASN1Identifier {
             .primitivePrintableString
@@ -177,7 +173,6 @@ extension ASN1 {
 
     /// We note that all the string types are encoded as implicitly tagged
     /// octet strings, and so for now we just piggyback on the decoder and encoder for that type.
-    @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
     struct ASN1UniversalString: ASN1ImplicitlyTaggable, Hashable, ContiguousBytes {
         static var defaultIdentifier: ASN1.ASN1Identifier {
             .primitiveUniversalString
@@ -221,7 +216,6 @@ extension ASN1 {
 
     /// We note that all the string types are encoded as implicitly tagged
     /// octet strings, and so for now we just piggyback on the decoder and encoder for that type.
-    @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
     struct ASN1BMPString: ASN1ImplicitlyTaggable, Hashable, ContiguousBytes {
         static var defaultIdentifier: ASN1.ASN1Identifier {
             .primitiveBMPString
@@ -265,35 +259,30 @@ extension ASN1 {
 }
 
 #if !hasFeature(Embedded)
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension ASN1.ASN1TeletexString: ExpressibleByStringLiteral {
     public init(stringLiteral value: StringLiteralType) {
         self.bytes = ArraySlice(value.utf8)
     }
 }
 
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension ASN1.ASN1UTF8String: ExpressibleByStringLiteral {
     public init(stringLiteral value: StringLiteralType) {
         self.bytes = ArraySlice(value.utf8)
     }
 }
 
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension ASN1.ASN1PrintableString: ExpressibleByStringLiteral {
     public init(stringLiteral value: StringLiteralType) {
         self.bytes = ArraySlice(value.utf8)
     }
 }
 
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension ASN1.ASN1UniversalString: ExpressibleByStringLiteral {
     public init(stringLiteral value: StringLiteralType) {
         self.bytes = ArraySlice(value.utf8)
     }
 }
 
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension ASN1.ASN1BMPString: ExpressibleByStringLiteral {
     public init(stringLiteral value: StringLiteralType) {
         self.bytes = ArraySlice(value.utf8)

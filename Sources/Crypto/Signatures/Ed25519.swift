@@ -16,6 +16,7 @@
 #else
 #if CRYPTOKIT_NO_ACCESS_TO_FOUNDATION
 public import SwiftSystem
+#elseif CRYPTOKIT_NO_IMPORT_FOUNDATION
 #else
 #if canImport(FoundationEssentials)
 public import FoundationEssentials
@@ -24,26 +25,26 @@ public import Foundation
 #endif
 #endif
 
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
+@available(iOS 13.0, macOS 10.15, watchOS 6.0, tvOS 13.0, macCatalyst 13.0, *)
 protocol DigestValidator {
     associatedtype Signature
     func isValidSignature<D: Digest>(_ signature: Signature, for digest: D) -> Bool
 }
 
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
+@available(iOS 13.0, macOS 10.15, watchOS 6.0, tvOS 13.0, macCatalyst 13.0, *)
 protocol DataValidator {
     associatedtype Signature
     func isValidSignature<D: DataProtocol>(_ signature: Signature, for signedData: D) -> Bool
 }
 
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
+@available(iOS 13.0, macOS 10.15, watchOS 6.0, tvOS 13.0, macCatalyst 13.0, *)
 extension Curve25519.Signing {
     static var signatureByteCount: Int {
         return 64
     }
 }
 
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
+@available(iOS 13.0, macOS 10.15, watchOS 6.0, tvOS 13.0, macCatalyst 13.0, *)
 extension Curve25519.Signing.PublicKey: DataValidator {
     typealias Signature = Data
     
@@ -56,7 +57,7 @@ extension Curve25519.Signing.PublicKey: DataValidator {
     /// - Returns: A Boolean value that’s `true` when the signature is valid for
     /// the given data.
     public func isValidSignature<S: DataProtocol, D: DataProtocol>(_ signature: S, for data: D) -> Bool {
-        #if (!CRYPTO_IN_SWIFTPM_FORCE_BUILD_API) || CRYPTOKIT_NO_ACCESS_TO_FOUNDATION
+        #if (!CRYPTO_IN_SWIFTPM_FORCE_BUILD_API) || CRYPTOKIT_NO_ACCESS_TO_FOUNDATION || CRYPTOKIT_NO_IMPORT_FOUNDATION
         return self.coreCryptoIsValidSignature(signature, for: data)
         #else
         return self.openSSLIsValidSignature(signature, for: data)
@@ -64,7 +65,7 @@ extension Curve25519.Signing.PublicKey: DataValidator {
     }
 }
 
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
+@available(iOS 13.0, macOS 10.15, watchOS 6.0, tvOS 13.0, macCatalyst 13.0, *)
 extension Curve25519.Signing.PrivateKey: Signer {
     /// Generates an EdDSA signature over Curve25519.
     ///
@@ -78,7 +79,7 @@ extension Curve25519.Signing.PrivateKey: Signer {
     /// different signature on every call, even for the same data and key, to
     /// guard against side-channel attacks.
     public func signature<D: DataProtocol>(for data: D) throws(CryptoKitMetaError) -> Data {
-        #if (!CRYPTO_IN_SWIFTPM_FORCE_BUILD_API) || CRYPTOKIT_NO_ACCESS_TO_FOUNDATION
+        #if (!CRYPTO_IN_SWIFTPM_FORCE_BUILD_API) || CRYPTOKIT_NO_ACCESS_TO_FOUNDATION || CRYPTOKIT_NO_IMPORT_FOUNDATION
         return try self.coreCryptoSignature(for: data)
         #else
         return try self.openSSLSignature(for: data)

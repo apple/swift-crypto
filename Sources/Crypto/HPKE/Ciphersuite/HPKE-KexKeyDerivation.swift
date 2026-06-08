@@ -26,20 +26,27 @@ import Foundation
 #endif
 
 
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 private let suiteIDLabel = Data("KEM".utf8)
 
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
+#if !CRYPTOKIT_STATIC_LIBRARY
+@available(iOS 17.0, macOS 10.15, watchOS 10.0, tvOS 17.0, macCatalyst 17.0, *)
+#else // CRYPTOKIT_STATIC_LIBRARY
+@available(iOS 16.0, macOS 10.13, watchOS 9.0, tvOS 16.0, macCatalyst 16.0, visionOS 1.0, *)
+#endif
 extension HPKE {
-    @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
     struct KexUtils {
         static func ExtractAndExpand(dh: ContiguousBytes, enc: Data,
                                      pkRm: Data, pkSm: Data? = nil, kem: HPKE.KEM, kdf: HPKE.KDF) -> SymmetricKey {
             var suiteID = suiteIDLabel
             suiteID.append(kem.identifier)
             #if  !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
+            #if CRYPTOKIT_STATIC_LIBRARY
+            return CryptoKit_Static.ExtractAndExpand(zz: dh, kemContext: kemContext(enc: enc, pkRm: pkRm, pkSm: pkSm),
+                                                     suiteID: suiteID, kem: kem, kdf: kdf)
+            #else
             return CryptoKit.ExtractAndExpand(zz: dh, kemContext: kemContext(enc: enc, pkRm: pkRm, pkSm: pkSm),
                                                      suiteID: suiteID, kem: kem, kdf: kdf)
+            #endif
             #else
             return Crypto.ExtractAndExpand(zz: dh, kemContext: kemContext(enc: enc, pkRm: pkRm, pkSm: pkSm),
                                                      suiteID: suiteID, kem: kem, kdf: kdf)

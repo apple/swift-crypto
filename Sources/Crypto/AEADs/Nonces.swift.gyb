@@ -16,6 +16,7 @@
 #else
 #if CRYPTOKIT_NO_ACCESS_TO_FOUNDATION
 public import SwiftSystem
+#elseif CRYPTOKIT_NO_IMPORT_FOUNDATION
 #else
 #if canImport(FoundationEssentials)
 public import FoundationEssentials
@@ -28,12 +29,12 @@ public import Foundation
 // see section `gyb` in `README` for details.
 
 %{
-ciphers = [{"name": "AES.GCM", "recommendedNonceSize": "AES.GCM.defaultNonceByteCount", "nonceValidation": "< AES.GCM.defaultNonceByteCount", "dataDescription": "///   - data: A data representation of the nonce.\n///     The initializer throws an error if the data has a length smaller than 12 bytes."}]
+ciphers = [{"name": "AES.GCM", "recommendedNonceSize": "AES.GCM.defaultNonceByteCount", "nonceValidation": "< AES.GCM.defaultNonceByteCount", "dataDescription": "///   - data: A data representation of the nonce.\n///     The initializer throws an error if the data has a length smaller than 12 bytes.", "bytesDescription": "///   - bytes: The bytes that represent the nonce.\n///     The initializer throws an error if the data has a length smaller than 12 bytes.", "fixedLength": None}]
 
 if "NO_CHACHAPOLY" in globals():
     pass
 else:
-    ciphers.append({"name": "ChaChaPoly", "recommendedNonceSize": "ChaChaPoly.nonceByteCount", "nonceValidation": "!= ChaChaPoly.nonceByteCount", "dataDescription": "///   - data: A 12-byte data representation of the nonce.\n///     The initializer throws an error if the data isn't 12 bytes long."})
+    ciphers.append({"name": "ChaChaPoly", "recommendedNonceSize": "ChaChaPoly.nonceByteCount", "nonceValidation": "!= ChaChaPoly.nonceByteCount", "dataDescription": "///   - data: A 12-byte data representation of the nonce.\n///     The initializer throws an error if the data isn't 12 bytes long.", "bytesDescription": "///   - bytes: The bytes that represent the nonce.\n///     The initializer throws an error if the data isn't 12 bytes long.", "fixedLength" : 12})
 }%
 
 
@@ -43,30 +44,78 @@ name = cipher["name"]
 nonceSize = cipher["recommendedNonceSize"]
 nonceValidation = cipher["nonceValidation"]
 dataDescription = cipher["dataDescription"]
+bytesDescription = cipher["bytesDescription"]
+
+if "NO_INLINEARRAY" in globals():
+    fixedLength = None
+else:
+    fixedLength = cipher["fixedLength"]
 }%
 
 // MARK: - ${name} + Nonce
+#if !CRYPTOKIT_STATIC_LIBRARY
+@available(iOS 13.0, macOS 10.15, watchOS 6.0, tvOS 13.0, macCatalyst 13.0, *)
+#else // CRYPTOKIT_STATIC_LIBRARY
+@available(iOS 13.0, macOS 10.13, watchOS 6.0, tvOS 13.0, macCatalyst 13.0, visionOS 1.0, *)
+#endif
 extension ${name} {
     /// A value used once during a cryptographic operation and then discarded.
     ///
     /// Don’t reuse the same nonce for multiple calls to encryption APIs. It’s critical
     /// that nonces are unique per call to encryption APIs in order to protect the
     /// integrity of the encryption.
+    #if !CRYPTOKIT_STATIC_LIBRARY
+    @available(iOS 13.0, macOS 10.15, watchOS 6.0, tvOS 13.0, macCatalyst 13.0, *)
+    #else // CRYPTOKIT_STATIC_LIBRARY
+    @available(iOS 13.0, macOS 10.13, watchOS 6.0, tvOS 13.0, macCatalyst 13.0, visionOS 1.0, *)
+    #endif
     public struct Nonce: ContiguousBytes, Sequence, Sendable {
-        let bytes: Data
+%     if fixedLength is None:
+        typealias Storage = ContiguousArray<UInt8>
+%     else:
+        typealias Storage = [${fixedLength} of UInt8]
+%     end
+
+        let storage: Storage
 
         /// Creates a new random nonce.
         ///
         /// The default nonce is a 12-byte random nonce.
         public init() {
-            var data = Data(repeating: 0, count: ${nonceSize})
-            data.withUnsafeMutableBytes {
-                assert($0.count == ${nonceSize})
-                $0.initializeWithRandomBytes(count: ${nonceSize})
-            }
-            self.bytes = data
+            self.storage = Self.randomNonceStorage
         }
-        
+
+        /// Creates a nonce from the given data.
+        ///
+        /// Unless your use case calls for a nonce with a specific value, use the
+        /// ``init()`` method to instead create a random nonce.
+        ///
+        /// - Parameters:
+${dataDescription}
+        internal init(data: RawSpan) throws(CryptoKitMetaError) {
+            if data.byteCount ${nonceValidation} {
+                throw error(CryptoKitError.incorrectParameterSize)
+            }
+
+            self.storage = Storage(copying: data)
+        }
+
+        /// Creates a nonce from the given data.
+        ///
+        /// Unless your use case calls for a nonce with a specific value, use the
+        /// ``init()`` method to instead create a random nonce.
+        ///
+        /// - Parameters:
+${bytesDescription}
+        @available(iOS 27.0, macOS 27.0, watchOS 27.0, tvOS 27.0, macCatalyst 27.0, visionOS 27.0, *)
+        public init(copying bytes: RawSpan) throws(CryptoKitMetaError) {
+            if bytes.byteCount ${nonceValidation} {
+                throw error(CryptoKitError.incorrectParameterSize)
+            }
+
+            self.storage = Storage(copying: bytes)
+        }
+
         /// Creates a nonce from the given data.
         ///
         /// Unless your use case calls for a nonce with a specific value, use the
@@ -79,9 +128,13 @@ ${dataDescription}
                 throw error(CryptoKitError.incorrectParameterSize)
             }
 
-            self.bytes = Data(data)
+%         if fixedLength is None:
+            self.storage = Storage(data)
+%         else:
+            self.storage = Storage(copying: data)
+%         end
         }
-        
+
         /// Calls the given closure with a pointer to the underlying bytes of the array’s
         /// contiguous storage.
         ///
@@ -103,11 +156,42 @@ ${dataDescription}
         }
 #endif
 
+        /// The bytes stored in the nonce.
+        public var bytes: RawSpan {
+            get {
+                storage.span.bytes
+            }
+        }
+
+        /// The number of bytes stored in the nonce.
+        public var count: Int { storage.count }
+
         /// Returns an iterator over the elements of the nonce.
         public func makeIterator() -> Array<UInt8>.Iterator {
             self.withUnsafeBytes({ (buffPtr) in
                 return Array(buffPtr).makeIterator()
             })
+        }
+
+        /// Storage for a new, random nonce.
+        static var randomNonceStorage: Storage {
+%         if fixedLength is None:
+            var data = Storage(repeating: 0, count: ${nonceSize})
+            assert(data.count == ${nonceSize})
+%         else:
+            var data = Storage(repeating: 0)
+%         end
+
+            var mutableSpan = data.mutableSpan
+            var mutableBytes = mutableSpan.mutableBytes
+            initializeRandomNonce(into: &mutableBytes)
+
+            return data
+        }
+
+        /// Initialize the given mutable span with random bytes.
+        static func initializeRandomNonce(into data: inout MutableRawSpan) {
+            data.initializeWithRandomBytes(count: data.byteCount)
         }
     }
 }

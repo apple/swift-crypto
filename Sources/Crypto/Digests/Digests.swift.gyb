@@ -35,6 +35,11 @@ else:
 %{
     if "prefix" in HF.keys():
         protocol_prefix = ""
+        protocol_prefix = protocol_prefix + "#if !CRYPTOKIT_STATIC_LIBRARY\n"
+        protocol_prefix = protocol_prefix + "@available(iOS 13.0, macOS 10.15, watchOS 6.0, tvOS 13.0, macCatalyst 13.0, *)\n"
+        protocol_prefix = protocol_prefix + "#else // CRYPTOKIT_STATIC_LIBRARY\n"
+        protocol_prefix = protocol_prefix + "@available(iOS 13.0, macOS 10.13, watchOS 6.0, tvOS 13.0, macCatalyst 13.0, visionOS 1.0, *)\n"
+        protocol_prefix = protocol_prefix + "#endif\n"
         protocol_prefix = protocol_prefix + "extension " + HF["prefix"] + "{"
         protocol_suffix = "}"
         parent = HF["prefix"].strip() + "/" + name
@@ -51,17 +56,23 @@ else:
 ${protocol_prefix}
 // MARK: - ${name}Digest + DigestPrivate
 /// ${abstract}
+#if !CRYPTOKIT_STATIC_LIBRARY
+@available(iOS 13.0, macOS 10.15, watchOS 6.0, tvOS 13.0, macCatalyst 13.0, *)
+#else // CRYPTOKIT_STATIC_LIBRARY
+@available(iOS 13.0, macOS 10.13, watchOS 6.0, tvOS 13.0, macCatalyst 13.0, visionOS 1.0, *)
+#endif
 public struct ${name}Digest: DigestPrivate {
     let bytes: (${(wordsCount-1)*"UInt64, "+"UInt64"})
     
-    init?(bufferPointer: UnsafeRawBufferPointer) {
-        guard bufferPointer.count == ${byteCount} else {
-            return nil
-        }
-
+    init?(initializingWith body: (inout OutputRawSpan) -> ()) {
         var bytes = (${(wordsCount-1)*"UInt64(0), "+"UInt64(0)"})
-        withUnsafeMutableBytes(of: &bytes) { targetPtr in
-            targetPtr.copyMemory(from: bufferPointer)
+        let initialized = withUnsafeMutableBytes(of: &bytes) { targetPtr in
+            var output = OutputRawSpan(buffer: targetPtr, initializedCount: 0)
+            body(&output)
+            return output.finalize(for: targetPtr)
+        }
+        guard initialized == ${byteCount} else {
+            return nil
         }
         self.bytes = bytes
     }
@@ -154,17 +165,19 @@ digests_and_length = [
 }%
 // MARK: - ${name}Digest + DigestPrivate
 /// ${abstract}
+@available(iOS 26.0, macOS 26.0, watchOS 26.0, tvOS 26.0, macCatalyst 26.0, visionOS 26.0, *)
 public struct ${name}Digest: DigestPrivate {
     let bytes: (${(wordsCount-1)*"UInt64, "+"UInt64"})
 
-    init?(bufferPointer: UnsafeRawBufferPointer) {
-        guard bufferPointer.count == ${byteCount} else {
-            return nil
-        }
-
+    init?(initializingWith body: (inout OutputRawSpan) -> ()) {
         var bytes = (${(wordsCount-1)*"UInt64(0), "+"UInt64(0)"})
-        withUnsafeMutableBytes(of: &bytes) { targetPtr in
-            targetPtr.copyMemory(from: bufferPointer)
+        let initialized = withUnsafeMutableBytes(of: &bytes) { targetPtr in
+            var output = OutputRawSpan(buffer: targetPtr, initializedCount: 0)
+            body(&output)
+            return output.finalize(for: targetPtr)
+        }
+        guard initialized == ${byteCount} else {
+            return nil
         }
         self.bytes = bytes
     }

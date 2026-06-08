@@ -26,18 +26,17 @@ public import Foundation
 #endif
 
 #if (!CRYPTO_IN_SWIFTPM_FORCE_BUILD_API) || CRYPTOKIT_NO_ACCESS_TO_FOUNDATION
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
+@available(iOS 15.0, macOS 12.0, watchOS 8.0, tvOS 15.0, macCatalyst 15.0, *)
 typealias AESWRAPImpl = CoreCryptoAESWRAPImpl
 #else
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 typealias AESWRAPImpl = BoringSSLAESWRAPImpl
 #endif
 
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
+@available(iOS 15.0, macOS 12.0, watchOS 8.0, tvOS 15.0, macCatalyst 15.0, *)
 extension AES {
     /// An implementation of AES Key Wrapping in accordance with the IETF RFC
     /// 3394 specification.
-    @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
+    @available(iOS 15.0, macOS 12.0, watchOS 8.0, tvOS 15.0, macCatalyst 15.0, *)
     public enum KeyWrap: Sendable {
         /// Wraps a key using the AES wrap algorithm.
         ///
@@ -49,6 +48,7 @@ extension AES {
         ///   - kek: The key encryption key.
         ///
         /// - Returns: The wrapped key.
+        @available(iOS 15.0, macOS 12.0, watchOS 8.0, tvOS 15.0, macCatalyst 15.0, *)
         public static func wrap(_ keyToWrap: SymmetricKey, using kek: SymmetricKey) throws -> Data {
             return try AESWRAPImpl.wrap(key: kek, keyToWrap: keyToWrap)
         }
@@ -64,6 +64,7 @@ extension AES {
         ///   - kek: The key encryption key.
         ///
         /// - Returns: The unwrapped key.
+        @available(iOS 15.0, macOS 12.0, watchOS 8.0, tvOS 15.0, macCatalyst 15.0, *)
         public static func unwrap<WrappedKey: DataProtocol>(_ wrappedKey: WrappedKey, using kek: SymmetricKey) throws -> SymmetricKey {
             return try AESWRAPImpl.unwrap(key: kek, wrappedKey: wrappedKey)
         }

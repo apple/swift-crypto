@@ -1,4 +1,4 @@
-// swift-tools-version:6.1
+// swift-tools-version:6.2
 //===----------------------------------------------------------------------===//
 //
 // This source file is part of the SwiftCrypto open source project
@@ -44,6 +44,7 @@ if development || isFreeBSD {
     swiftSettings = [
         .define("CRYPTO_IN_SWIFTPM"),
         .define("CRYPTO_IN_SWIFTPM_FORCE_BUILD_API"),
+        .enableExperimentalFeature("Lifetimes"),
     ]
     dependencies = [
         "CCryptoBoringSSL",
@@ -63,6 +64,7 @@ if development || isFreeBSD {
     swiftSettings = [
         .define("CRYPTO_IN_SWIFTPM"),
         .define("CRYPTO_IN_SWIFTPM_FORCE_BUILD_API", .when(platforms: platforms)),
+        .enableExperimentalFeature("Lifetimes"),
     ]
     dependencies = [
         .target(name: "CCryptoBoringSSL", condition: .when(platforms: platforms)),
@@ -209,7 +211,8 @@ let package = Package(
             exclude: privacyManifestExclude + [
                 "CMakeLists.txt"
             ],
-            resources: privacyManifestResource
+            resources: privacyManifestResource,
+            swiftSettings: swiftSettings
         ),
         .executableTarget(name: "crypto-shasum", dependencies: ["Crypto"]),
         .testTarget(

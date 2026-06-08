@@ -16,6 +16,7 @@
 #else
 #if CRYPTOKIT_NO_ACCESS_TO_FOUNDATION
 public import SwiftSystem
+#elseif CRYPTOKIT_NO_IMPORT_FOUNDATION
 #else
 #if canImport(FoundationEssentials)
 public import FoundationEssentials
@@ -31,29 +32,67 @@ public import Foundation
 
 
 // MARK: - AES.GCM + Nonce
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
+#if !CRYPTOKIT_STATIC_LIBRARY
+@available(iOS 13.0, macOS 10.15, watchOS 6.0, tvOS 13.0, macCatalyst 13.0, *)
+#else // CRYPTOKIT_STATIC_LIBRARY
+@available(iOS 13.0, macOS 10.13, watchOS 6.0, tvOS 13.0, macCatalyst 13.0, visionOS 1.0, *)
+#endif
 extension AES.GCM {
     /// A value used once during a cryptographic operation and then discarded.
     ///
     /// Don’t reuse the same nonce for multiple calls to encryption APIs. It’s critical
     /// that nonces are unique per call to encryption APIs in order to protect the
     /// integrity of the encryption.
-    @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
+    #if !CRYPTOKIT_STATIC_LIBRARY
+    @available(iOS 13.0, macOS 10.15, watchOS 6.0, tvOS 13.0, macCatalyst 13.0, *)
+    #else // CRYPTOKIT_STATIC_LIBRARY
+    @available(iOS 13.0, macOS 10.13, watchOS 6.0, tvOS 13.0, macCatalyst 13.0, visionOS 1.0, *)
+    #endif
     public struct Nonce: ContiguousBytes, Sequence, Sendable {
-        let bytes: Data
+        typealias Storage = ContiguousArray<UInt8>
+
+        let storage: Storage
 
         /// Creates a new random nonce.
         ///
         /// The default nonce is a 12-byte random nonce.
         public init() {
-            var data = Data(repeating: 0, count: AES.GCM.defaultNonceByteCount)
-            data.withUnsafeMutableBytes {
-                assert($0.count == AES.GCM.defaultNonceByteCount)
-                $0.initializeWithRandomBytes(count: AES.GCM.defaultNonceByteCount)
-            }
-            self.bytes = data
+            self.storage = Self.randomNonceStorage
         }
-        
+
+        /// Creates a nonce from the given data.
+        ///
+        /// Unless your use case calls for a nonce with a specific value, use the
+        /// ``init()`` method to instead create a random nonce.
+        ///
+        /// - Parameters:
+///   - data: A data representation of the nonce.
+///     The initializer throws an error if the data has a length smaller than 12 bytes.
+        internal init(data: RawSpan) throws(CryptoKitMetaError) {
+            if data.byteCount < AES.GCM.defaultNonceByteCount {
+                throw error(CryptoKitError.incorrectParameterSize)
+            }
+
+            self.storage = Storage(copying: data)
+        }
+
+        /// Creates a nonce from the given data.
+        ///
+        /// Unless your use case calls for a nonce with a specific value, use the
+        /// ``init()`` method to instead create a random nonce.
+        ///
+        /// - Parameters:
+///   - bytes: The bytes that represent the nonce.
+///     The initializer throws an error if the data has a length smaller than 12 bytes.
+        @available(iOS 27.0, macOS 27.0, watchOS 27.0, tvOS 27.0, macCatalyst 27.0, visionOS 27.0, *)
+        public init(copying bytes: RawSpan) throws(CryptoKitMetaError) {
+            if bytes.byteCount < AES.GCM.defaultNonceByteCount {
+                throw error(CryptoKitError.incorrectParameterSize)
+            }
+
+            self.storage = Storage(copying: bytes)
+        }
+
         /// Creates a nonce from the given data.
         ///
         /// Unless your use case calls for a nonce with a specific value, use the
@@ -67,9 +106,9 @@ extension AES.GCM {
                 throw error(CryptoKitError.incorrectParameterSize)
             }
 
-            self.bytes = Data(data)
+            self.storage = Storage(data)
         }
-        
+
         /// Calls the given closure with a pointer to the underlying bytes of the array’s
         /// contiguous storage.
         ///
@@ -91,39 +130,104 @@ extension AES.GCM {
         }
 #endif
 
+        /// The bytes stored in the nonce.
+        public var bytes: RawSpan {
+            get {
+                storage.span.bytes
+            }
+        }
+
+        /// The number of bytes stored in the nonce.
+        public var count: Int { storage.count }
+
         /// Returns an iterator over the elements of the nonce.
         public func makeIterator() -> Array<UInt8>.Iterator {
             self.withUnsafeBytes({ (buffPtr) in
                 return Array(buffPtr).makeIterator()
             })
         }
+
+        /// Storage for a new, random nonce.
+        static var randomNonceStorage: Storage {
+            var data = Storage(repeating: 0, count: AES.GCM.defaultNonceByteCount)
+            assert(data.count == AES.GCM.defaultNonceByteCount)
+
+            var mutableSpan = data.mutableSpan
+            var mutableBytes = mutableSpan.mutableBytes
+            initializeRandomNonce(into: &mutableBytes)
+
+            return data
+        }
+
+        /// Initialize the given mutable span with random bytes.
+        static func initializeRandomNonce(into data: inout MutableRawSpan) {
+            data.initializeWithRandomBytes(count: data.byteCount)
+        }
     }
 }
 
 // MARK: - ChaChaPoly + Nonce
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
+#if !CRYPTOKIT_STATIC_LIBRARY
+@available(iOS 13.0, macOS 10.15, watchOS 6.0, tvOS 13.0, macCatalyst 13.0, *)
+#else // CRYPTOKIT_STATIC_LIBRARY
+@available(iOS 13.0, macOS 10.13, watchOS 6.0, tvOS 13.0, macCatalyst 13.0, visionOS 1.0, *)
+#endif
 extension ChaChaPoly {
     /// A value used once during a cryptographic operation and then discarded.
     ///
     /// Don’t reuse the same nonce for multiple calls to encryption APIs. It’s critical
     /// that nonces are unique per call to encryption APIs in order to protect the
     /// integrity of the encryption.
-    @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
+    #if !CRYPTOKIT_STATIC_LIBRARY
+    @available(iOS 13.0, macOS 10.15, watchOS 6.0, tvOS 13.0, macCatalyst 13.0, *)
+    #else // CRYPTOKIT_STATIC_LIBRARY
+    @available(iOS 13.0, macOS 10.13, watchOS 6.0, tvOS 13.0, macCatalyst 13.0, visionOS 1.0, *)
+    #endif
     public struct Nonce: ContiguousBytes, Sequence, Sendable {
-        let bytes: Data
+        typealias Storage = [12 of UInt8]
+
+        let storage: Storage
 
         /// Creates a new random nonce.
         ///
         /// The default nonce is a 12-byte random nonce.
         public init() {
-            var data = Data(repeating: 0, count: ChaChaPoly.nonceByteCount)
-            data.withUnsafeMutableBytes {
-                assert($0.count == ChaChaPoly.nonceByteCount)
-                $0.initializeWithRandomBytes(count: ChaChaPoly.nonceByteCount)
-            }
-            self.bytes = data
+            self.storage = Self.randomNonceStorage
         }
-        
+
+        /// Creates a nonce from the given data.
+        ///
+        /// Unless your use case calls for a nonce with a specific value, use the
+        /// ``init()`` method to instead create a random nonce.
+        ///
+        /// - Parameters:
+///   - data: A 12-byte data representation of the nonce.
+///     The initializer throws an error if the data isn't 12 bytes long.
+        internal init(data: RawSpan) throws(CryptoKitMetaError) {
+            if data.byteCount != ChaChaPoly.nonceByteCount {
+                throw error(CryptoKitError.incorrectParameterSize)
+            }
+
+            self.storage = Storage(copying: data)
+        }
+
+        /// Creates a nonce from the given data.
+        ///
+        /// Unless your use case calls for a nonce with a specific value, use the
+        /// ``init()`` method to instead create a random nonce.
+        ///
+        /// - Parameters:
+///   - bytes: The bytes that represent the nonce.
+///     The initializer throws an error if the data isn't 12 bytes long.
+        @available(iOS 27.0, macOS 27.0, watchOS 27.0, tvOS 27.0, macCatalyst 27.0, visionOS 27.0, *)
+        public init(copying bytes: RawSpan) throws(CryptoKitMetaError) {
+            if bytes.byteCount != ChaChaPoly.nonceByteCount {
+                throw error(CryptoKitError.incorrectParameterSize)
+            }
+
+            self.storage = Storage(copying: bytes)
+        }
+
         /// Creates a nonce from the given data.
         ///
         /// Unless your use case calls for a nonce with a specific value, use the
@@ -137,9 +241,9 @@ extension ChaChaPoly {
                 throw error(CryptoKitError.incorrectParameterSize)
             }
 
-            self.bytes = Data(data)
+            self.storage = Storage(copying: data)
         }
-        
+
         /// Calls the given closure with a pointer to the underlying bytes of the array’s
         /// contiguous storage.
         ///
@@ -161,11 +265,37 @@ extension ChaChaPoly {
         }
 #endif
 
+        /// The bytes stored in the nonce.
+        public var bytes: RawSpan {
+            get {
+                storage.span.bytes
+            }
+        }
+
+        /// The number of bytes stored in the nonce.
+        public var count: Int { storage.count }
+
         /// Returns an iterator over the elements of the nonce.
         public func makeIterator() -> Array<UInt8>.Iterator {
             self.withUnsafeBytes({ (buffPtr) in
                 return Array(buffPtr).makeIterator()
             })
+        }
+
+        /// Storage for a new, random nonce.
+        static var randomNonceStorage: Storage {
+            var data = Storage(repeating: 0)
+
+            var mutableSpan = data.mutableSpan
+            var mutableBytes = mutableSpan.mutableBytes
+            initializeRandomNonce(into: &mutableBytes)
+
+            return data
+        }
+
+        /// Initialize the given mutable span with random bytes.
+        static func initializeRandomNonce(into data: inout MutableRawSpan) {
+            data.initializeWithRandomBytes(count: data.byteCount)
         }
     }
 }

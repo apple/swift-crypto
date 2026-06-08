@@ -14,15 +14,18 @@
 #if CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
 @_exported import CryptoKit
 #else
-#if !CRYPTOKIT_NO_ACCESS_TO_FOUNDATION
+
+#if CRYPTOKIT_NO_ACCESS_TO_FOUNDATION
+public import SwiftSystem
+#elseif CRYPTOKIT_NO_IMPORT_FOUNDATION
+#else
 #if canImport(FoundationEssentials)
 public import FoundationEssentials
 #else
 public import Foundation
 #endif
-#else
-public import SwiftSystem
 #endif
+
 // MARK: - Generated file, do NOT edit
 // any edits of this file WILL be overwritten and thus discarded
 // see section `gyb` in `README` for details.
@@ -37,6 +40,7 @@ protocol NISTECDSASignature {
     var rawRepresentation: Data { get }
 }
 
+@available(iOS 13.0, macOS 10.15, watchOS 6.0, tvOS 13.0, macCatalyst 13.0, *)
 protocol NISTSigning {
     associatedtype PublicKey: NISTECPublicKey & DataValidator & DigestValidator
     associatedtype PrivateKey: NISTECPrivateKey & Signer
@@ -51,6 +55,7 @@ protocol NISTSigning {
     DISPLAY_HF      = HF[:3] + "-" + HF[3:]
 }%
 // MARK: - ${CURVE} + Signing
+@available(iOS 13.0, macOS 10.15, watchOS 6.0, tvOS 13.0, macCatalyst 13.0, *)
 extension ${CURVE}.Signing {
 
     /// A ${DISPLAY_CURVE} elliptic curve digital signature algorithm (ECDSA) signature.
@@ -151,9 +156,11 @@ extension ${CURVE}.Signing {
     }
 }
 
+@available(iOS 13.0, macOS 10.15, watchOS 6.0, tvOS 13.0, macCatalyst 13.0, *)
 extension ${CURVE}.Signing: NISTSigning {}
 
 // MARK: - ${CURVE} + PrivateKey
+@available(iOS 13.0, macOS 10.15, watchOS 6.0, tvOS 13.0, macCatalyst 13.0, *)
 extension ${CURVE}.Signing.PrivateKey: DigestSigner {
     /// Generates an Elliptic Curve Digital Signature Algorithm (ECDSA)
     /// signature of the digest you provide over the ${DISPLAY_CURVE} elliptic curve.
@@ -164,7 +171,7 @@ extension ${CURVE}.Signing.PrivateKey: DigestSigner {
     /// algorithm employs randomization to generate a different signature on
     /// every call, even for the same data and key.
     public func signature<D: Digest>(for digest: D) throws(CryptoKitMetaError) -> ${CURVE}.Signing.ECDSASignature {
-        #if (!CRYPTO_IN_SWIFTPM_FORCE_BUILD_API) || CRYPTOKIT_NO_ACCESS_TO_FOUNDATION
+        #if (!CRYPTO_IN_SWIFTPM_FORCE_BUILD_API) || CRYPTOKIT_NO_ACCESS_TO_FOUNDATION || CRYPTOKIT_NO_IMPORT_FOUNDATION
         return try self.coreCryptoSignature(for: digest)
         #else
         return try self.openSSLSignature(for: digest)
@@ -172,6 +179,7 @@ extension ${CURVE}.Signing.PrivateKey: DigestSigner {
     }
  }
 
+@available(iOS 13.0, macOS 10.15, watchOS 6.0, tvOS 13.0, macCatalyst 13.0, *)
 extension ${CURVE}.Signing.PrivateKey: Signer {
     /// Generates an Elliptic Curve Digital Signature Algorithm (ECDSA)
     /// signature of the data you provide over the ${DISPLAY_CURVE} elliptic curve,
@@ -187,6 +195,7 @@ extension ${CURVE}.Signing.PrivateKey: Signer {
     }
 }
 
+@available(iOS 13.0, macOS 10.15, watchOS 6.0, tvOS 13.0, macCatalyst 13.0, *)
 extension ${CURVE}.Signing.PublicKey: DigestValidator {
     /// Verifies an elliptic curve digital signature algorithm (ECDSA)
     /// signature on a digest over the ${DISPLAY_CURVE} elliptic curve.
@@ -197,7 +206,7 @@ extension ${CURVE}.Signing.PublicKey: DigestValidator {
     /// - Returns: A Boolean value that’s `true` if the signature is valid for
     /// the given digest; otherwise, `false`.
     public func isValidSignature<D: Digest>(_ signature: ${CURVE}.Signing.ECDSASignature, for digest: D) -> Bool {
-        #if (!CRYPTO_IN_SWIFTPM_FORCE_BUILD_API) || CRYPTOKIT_NO_ACCESS_TO_FOUNDATION
+        #if (!CRYPTO_IN_SWIFTPM_FORCE_BUILD_API) || CRYPTOKIT_NO_ACCESS_TO_FOUNDATION || CRYPTOKIT_NO_IMPORT_FOUNDATION
         return self.coreCryptoIsValidSignature(signature, for: digest)
         #else
         return self.openSSLIsValidSignature(signature, for: digest)
@@ -205,6 +214,7 @@ extension ${CURVE}.Signing.PublicKey: DigestValidator {
     }
 }
 
+@available(iOS 13.0, macOS 10.15, watchOS 6.0, tvOS 13.0, macCatalyst 13.0, *)
 extension ${CURVE}.Signing.PublicKey: DataValidator {
     /// Verifies an elliptic curve digital signature algorithm (ECDSA)
     /// signature on a block of data over the ${DISPLAY_CURVE} elliptic curve.

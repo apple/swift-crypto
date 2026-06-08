@@ -12,10 +12,18 @@
 //
 //===----------------------------------------------------------------------===//
 #if CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
+#if CRYPTOKIT_STATIC_LIBRARY
+@_exported import CryptoKit_Static
+#else
 @_exported import CryptoKit
+#endif
 #else
 /// General cryptography errors used by CryptoKit.
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
+#if !CRYPTOKIT_STATIC_LIBRARY
+@available(iOS 13.0, macOS 10.15, watchOS 6.0, tvOS 13.0, macCatalyst 13.0, *)
+#else // CRYPTOKIT_STATIC_LIBRARY
+@available(iOS 13.0, macOS 10.13, watchOS 6.0, tvOS 13.0, macCatalyst 13.0, visionOS 1.0, *)
+#endif
 public enum CryptoKitError: Error {
     /// The key size is incorrect.
     case incorrectKeySize
@@ -27,18 +35,29 @@ public enum CryptoKitError: Error {
     /// action.
     case underlyingCoreCryptoError(error: Int32)
     /// The framework can't wrap the specified key.
+    @available(iOS 15.0, macOS 12.0, watchOS 8.0, tvOS 15.0, macCatalyst 15.0, *)
     case wrapFailure
     /// The framework can't unwrap the specified key.
+    @available(iOS 15.0, macOS 12.0, watchOS 8.0, tvOS 15.0, macCatalyst 15.0, *)
     case unwrapFailure
     /// The parameter is invalid.
+    #if !CRYPTOKIT_STATIC_LIBRARY
+    @available(iOS 16.0, macOS 13.0, watchOS 9.0, tvOS 16.0, macCatalyst 16.0, *)
+    #else // CRYPTOKIT_STATIC_LIBRARY
+    @available(iOS 16.0, macOS 10.13, watchOS 9.0, tvOS 16.0, macCatalyst 16.0, visionOS 1.0, *)
+    #endif
     case invalidParameter
 }
 
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
+@available(iOS 17.4, macOS 14.4, watchOS 10.4, tvOS 17.4, macCatalyst 17.4, *)
 extension CryptoKitError: Equatable, Hashable {}
 
 /// Errors from decoding ASN.1 content.
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
+#if !CRYPTOKIT_STATIC_LIBRARY
+@available(iOS 14.0, macOS 11.0, watchOS 7.0, tvOS 14.0, macCatalyst 14.0, *)
+#else // CRYPTOKIT_STATIC_LIBRARY
+@available(iOS 14.0, macOS 10.13, watchOS 7.0, tvOS 14.0, macCatalyst 14.0, visionOS 1.0, *)
+#endif
 public enum CryptoKitASN1Error: Equatable, Error, Hashable {
     /// The ASN.1 tag for this field is invalid or unsupported.
     case invalidFieldIdentifier
@@ -67,7 +86,6 @@ public enum CryptoKitASN1Error: Equatable, Error, Hashable {
     case invalidPEMDocument
 }
 
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 enum RSAPSSSPKIErrors: Error {
     case invalidPSSOID
     case missingParameters
@@ -79,45 +97,35 @@ enum RSAPSSSPKIErrors: Error {
 }
 
 #if hasFeature(Embedded)
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 public struct RSAPSSSPKIError: Error {
     internal var error: RSAPSSSPKIErrors
 }
 #else
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 struct RSAPSSSPKIError: Error {
     internal var error: RSAPSSSPKIErrors
 }
 #endif
 
 #if hasFeature(Embedded)
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 public enum CryptoKitMetaError: Error {
     case cryptoKitError(underlyingError: CryptoKitError)
     case asn1Error(underlyingError: CryptoKitASN1Error)
     case rsapssspkiError(underlyingError: RSAPSSSPKIError)
 }
 
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 internal func error(_ error: CryptoKitError) -> CryptoKitMetaError {
     .cryptoKitError(underlyingError: error)
 }
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 internal func error(_ error: CryptoKitASN1Error) -> CryptoKitMetaError {
     .asn1Error(underlyingError: error)
 }
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 internal func error(_ error: RSAPSSSPKIErrors) -> CryptoKitMetaError {
     .rsapssspkiError(underlyingError: RSAPSSSPKIError(error: error))
 }
 #else /* !hasFeature(Embedded) */
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 public typealias CryptoKitMetaError = any Error
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 internal func error(_ error: CryptoKitError) -> CryptoKitError { error }
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 internal func error(_ error: CryptoKitASN1Error) -> CryptoKitASN1Error { error }
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 internal func error(_ error: RSAPSSSPKIErrors) -> RSAPSSSPKIErrors { error }
 #endif
 

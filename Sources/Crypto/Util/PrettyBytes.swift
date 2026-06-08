@@ -13,6 +13,7 @@
 //===----------------------------------------------------------------------===//
 #if CRYPTOKIT_NO_ACCESS_TO_FOUNDATION
 import SwiftSystem
+#elseif CRYPTOKIT_NO_IMPORT_FOUNDATION
 #else
 #if canImport(FoundationEssentials)
 import FoundationEssentials
@@ -21,23 +22,18 @@ import Foundation
 #endif
 #endif
 
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 enum ByteHexEncodingErrors: Error {
     case incorrectHexValue
     case incorrectString
 }
 
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 let charA = UInt8(97 /* "a" */)
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 let char0 = UInt8(48 /* "0" */)
 
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 private func itoh(_ value: UInt8) -> UInt8 {
     return (value > 9) ? (charA + value - 10) : (char0 + value)
 }
 
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 private func htoi(_ value: UInt8) throws -> UInt8 {
     switch value {
     case char0...char0 + 9:
@@ -50,7 +46,11 @@ private func htoi(_ value: UInt8) throws -> UInt8 {
 }
 
 #if !hasFeature(Embedded)
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
+#if !CRYPTOKIT_STATIC_LIBRARY
+@available(iOS 13.0, macOS 10.15, watchOS 6.0, tvOS 13.0, macCatalyst 13.0, *)
+#else // CRYPTOKIT_STATIC_LIBRARY
+@available(iOS 13.0, macOS 10.13, watchOS 6.0, tvOS 13.0, macCatalyst 13.0, visionOS 1.0, *)
+#endif
 extension DataProtocol {
     var hexString: String {
         let hexLen = self.count * 2
@@ -70,15 +70,18 @@ extension DataProtocol {
 }
 #endif // !hasFeature(Embedded)
 
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
+#if !CRYPTOKIT_STATIC_LIBRARY
+@available(iOS 13.0, macOS 10.15, watchOS 6.0, tvOS 13.0, macCatalyst 13.0, *)
+#else // CRYPTOKIT_STATIC_LIBRARY
+@available(iOS 13.0, macOS 10.13, watchOS 6.0, tvOS 13.0, macCatalyst 13.0, visionOS 1.0, *)
+#endif
 extension RangeReplaceableCollection where Element == UInt8 {
     mutating func appendByte(_ byte: UInt64) {
         withUnsafeBytes(of: byte.littleEndian, { self.append(contentsOf: $0) })
     }
 }
 
-#if !CRYPTOKIT_NO_ACCESS_TO_FOUNDATION
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
+#if !CRYPTOKIT_NO_ACCESS_TO_FOUNDATION && !CRYPTOKIT_NO_IMPORT_FOUNDATION
 extension Data {
     init(hexString: String) throws {
         self.init()
@@ -98,7 +101,6 @@ extension Data {
     }
 }
 
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension Array where Element == UInt8 {
     init(hexString: String) throws {
         self.init()

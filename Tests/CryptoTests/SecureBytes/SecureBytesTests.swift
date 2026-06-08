@@ -148,6 +148,8 @@ final class SecureBytesTests: XCTestCase {
         base.withUnsafeBytes { XCTAssertEqual($0.count, 10) }
         base.withUnsafeMutableBytes { XCTAssertEqual($0.count, 10) }
         base.backing._withVeryUnsafeMutableBytes { XCTAssertGreaterThanOrEqual($0.count, 16) }
+        XCTAssertEqual(base.bytes.byteCount, 10)
+        XCTAssertEqual(base.mutableBytes.byteCount, 10)
     }
 
     func testTheresOnlyOneRegion() {
@@ -175,11 +177,12 @@ final class SecureBytesTests: XCTestCase {
         XCTAssertThrowsError(try testThrowingInitialization(), error: CryptoKitError.incorrectKeySize)
     }
 
+    @available(macOS 26, iOS 26, tvOS 26, watchOS 26, visionOS 26, *)
     func testAppendingDataPerformsACoW() {
         var base = SecureBytes(repeating: 0, count: 10)
         let copy = base
 
-        base.append("Hello, world".utf8)
+        base.append(Array("Hello, world".utf8).span.bytes)
 
         XCTAssertEqual(base.count, 22)
         XCTAssertEqual(copy.count, 10)
@@ -197,23 +200,25 @@ final class SecureBytesTests: XCTestCase {
         XCTAssertEqual(Array(copy), [0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
     }
 
+    @available(macOS 26, iOS 26, tvOS 26, watchOS 26, visionOS 26, *)
     func testDataCausesCoWs() {
         var base = SecureBytes(repeating: 0, count: 10)
         let copy = Data(base)
         XCTAssertEqual(base.count, copy.count)
 
-        base.append("Hello, world".utf8)
+        base.append(Array("Hello, world".utf8).span.bytes)
 
         XCTAssertEqual(base.count, 22)
         XCTAssertEqual(copy.count, 10)
     }
 
+    @available(macOS 26, iOS 26, tvOS 26, watchOS 26, visionOS 26, *)
     func testDataFromSlice() {
         var base = SecureBytes(0..<10)
         let copy = Data(base.prefix(5))
         XCTAssertEqual(Array(copy), [0, 1, 2, 3, 4])
 
-        base.append("Hello, world".utf8)
+        base.append(Array("Hello, world".utf8).span.bytes)
 
         XCTAssertEqual(base.count, 22)
         XCTAssertEqual(Array(copy), [0, 1, 2, 3, 4])

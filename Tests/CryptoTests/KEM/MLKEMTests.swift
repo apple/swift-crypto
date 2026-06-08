@@ -21,6 +21,7 @@ import XCTest
 @testable import Crypto
 #endif
 
+@available(iOS 26.0, macOS 26.0, watchOS 26.0, tvOS 26.0, macCatalyst 26.0, visionOS 26.0, *)
 final class MLKEMTests: XCTestCase {
     func testMLKEM768() throws {
         let privateKey = try MLKEM768.PrivateKey.generate()
@@ -54,6 +55,22 @@ final class MLKEMTests: XCTestCase {
         let ss = try privateKey.decapsulate(er.encapsulated)
 
         XCTAssert(er.sharedSecret == ss)
+    }
+
+    @available(iOS 27.0, macOS 27.0, watchOS 27.0, tvOS 27.0, macCatalyst 27.0, visionOS 27.0, *)
+    func testOneTimeKeys() throws {
+        let privateKey = try MLKEM1024.OneTimePrivateKey.generate()
+        let publicKey = privateKey.publicKey
+
+        // Test encapsulation and decapsulation
+        let er = try publicKey.encapsulate()
+        let ss = try privateKey.decapsulate(er.encapsulated)
+        XCTAssert(er.sharedSecret == ss)
+
+        // The following would (and should) produce a compile-time error
+        // let er2 = try publicKey.encapsulate()
+        // let ss2 = try privateKey.decapsulate(er.encapsulated)
+        // XCTAssert(er2.sharedSecret == ss2)
     }
 
     func processKATFile(filename: String) throws -> [MLKEMKAT] {

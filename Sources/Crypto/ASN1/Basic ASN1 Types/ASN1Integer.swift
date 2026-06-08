@@ -17,6 +17,7 @@
 
 #if CRYPTOKIT_NO_ACCESS_TO_FOUNDATION
 import SwiftSystem
+#elseif CRYPTOKIT_NO_IMPORT_FOUNDATION
 #else
 #if canImport(FoundationEssentials)
 import FoundationEssentials
@@ -31,7 +32,6 @@ import Foundation
 /// This is not a very good solution for a fully-fledged ASN.1 library: we'd rather have a better numerics
 /// protocol that could both initialize from and serialize to either bytes or words. However, no such
 /// protocol exists today.
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 protocol ASN1IntegerRepresentable: ASN1ImplicitlyTaggable {
     associatedtype IntegerBytes: RandomAccessCollection where IntegerBytes.Element == UInt8
 
@@ -44,7 +44,6 @@ protocol ASN1IntegerRepresentable: ASN1ImplicitlyTaggable {
     func withBigEndianIntegerBytes<ReturnType>(_ body: (IntegerBytes) throws(CryptoKitMetaError) -> ReturnType) throws(CryptoKitMetaError) -> ReturnType
 }
 
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension ASN1IntegerRepresentable {
     static var defaultIdentifier: ASN1.ASN1Identifier {
         .integer
@@ -113,7 +112,6 @@ extension ASN1IntegerRepresentable {
 }
 
 // MARK: - Auto-conformance for FixedWidthInteger with fixed width magnitude.
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension ASN1IntegerRepresentable where Self: FixedWidthInteger {
     init(asn1IntegerBytes bytes: ArraySlice<UInt8>) throws(CryptoKitMetaError) {
         // Defer to the FixedWidthInteger constructor.
@@ -134,7 +132,6 @@ extension ASN1IntegerRepresentable where Self: FixedWidthInteger {
     }
 }
 
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 struct IntegerBytesCollection<Integer: FixedWidthInteger> {
     private var integer: Integer
 
@@ -143,9 +140,7 @@ struct IntegerBytesCollection<Integer: FixedWidthInteger> {
     }
 }
 
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension IntegerBytesCollection: RandomAccessCollection {
-    @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
     struct Index {
         fileprivate var byteNumber: Int
 
@@ -179,10 +174,8 @@ extension IntegerBytesCollection: RandomAccessCollection {
     }
 }
 
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension IntegerBytesCollection.Index: Equatable { }
 
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension IntegerBytesCollection.Index: Comparable {
     // Comparable here is backwards to the original ordering.
     static func <(lhs: Self, rhs: Self) -> Bool {
@@ -202,7 +195,6 @@ extension IntegerBytesCollection.Index: Comparable {
     }
 }
 
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension IntegerBytesCollection.Index: Strideable {
     func advanced(by n: Int) -> IntegerBytesCollection<Integer>.Index {
         return IntegerBytesCollection.Index(byteNumber: self.byteNumber - n)
@@ -214,37 +206,26 @@ extension IntegerBytesCollection.Index: Strideable {
     }
 }
 
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension Int8: ASN1IntegerRepresentable { }
 
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension UInt8: ASN1IntegerRepresentable { }
 
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension Int16: ASN1IntegerRepresentable { }
 
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension UInt16: ASN1IntegerRepresentable { }
 
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension Int32: ASN1IntegerRepresentable { }
 
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension UInt32: ASN1IntegerRepresentable { }
 
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension Int64: ASN1IntegerRepresentable { }
 
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension UInt64: ASN1IntegerRepresentable { }
 
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension Int: ASN1IntegerRepresentable { }
 
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension UInt: ASN1IntegerRepresentable { }
 
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension RandomAccessCollection where Element == UInt8 {
     fileprivate func trimLeadingExcessBytes() -> SubSequence {
         var slice = self[...]
@@ -292,7 +273,6 @@ extension RandomAccessCollection where Element == UInt8 {
     }
 }
 
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension UInt8 {
     fileprivate var topBitSet: Bool {
         return (self & 0x80) != 0

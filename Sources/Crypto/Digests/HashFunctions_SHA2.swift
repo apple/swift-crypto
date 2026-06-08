@@ -26,7 +26,11 @@
 /// in memory, you can compute the digest iteratively by creating a new hash
 /// instance, calling the ``update(data:)`` method repeatedly with blocks of
 /// data, and then calling the ``finalize()`` method to get the result.
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
+#if !CRYPTOKIT_STATIC_LIBRARY
+@available(iOS 26.0, macOS 26.0, watchOS 26.0, tvOS 26.0, macCatalyst 26.0, visionOS 26.0, *)
+#else // CRYPTOKIT_STATIC_LIBRARY
+@available(iOS 13.0, macOS 10.13, watchOS 6.0, tvOS 13.0, macCatalyst 13.0, visionOS 1.0, *)
+#endif
 public typealias SHA2_256 = SHA256
 
 /// An implementation of Secure Hashing Algorithm 2 (SHA-2) hashing with a
@@ -41,9 +45,18 @@ public typealias SHA2_256 = SHA256
 /// in memory, you can compute the digest iteratively by creating a new hash
 /// instance, calling the ``update(data:)`` method repeatedly with blocks of
 /// data, and then calling the ``finalize()`` method to get the result.
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
+#if !CRYPTOKIT_STATIC_LIBRARY
+@available(iOS 13.0, macOS 10.15, watchOS 6.0, tvOS 13.0, macCatalyst 13.0, *)
+#else // CRYPTOKIT_STATIC_LIBRARY
+@available(iOS 13.0, macOS 10.13, watchOS 6.0, tvOS 13.0, macCatalyst 13.0, visionOS 1.0, *)
+#endif
 public struct SHA256: HashFunctionImplementationDetails, Sendable {
     /// The number of bytes that represents the hash function’s internal state.
+    #if !CRYPTOKIT_STATIC_LIBRARY
+    @available(iOS 13.2, macOS 10.15, watchOS 6.1, tvOS 13.2, macCatalyst 13.2, *)
+    #else // CRYPTOKIT_STATIC_LIBRARY
+    @available(iOS 13.2, macOS 10.13, watchOS 6.1, tvOS 13.2, macCatalyst 13.2, visionOS 1.0, *)
+    #endif
     public static let blockByteCount: Int = 64
     /// The number of bytes in a SHA256 digest.
     public static let byteCount: Int = 32
@@ -113,7 +126,11 @@ public struct SHA256: HashFunctionImplementationDetails, Sendable {
 /// in memory, you can compute the digest iteratively by creating a new hash
 /// instance, calling the ``update(data:)`` method repeatedly with blocks of
 /// data, and then calling the ``finalize()`` method to get the result.
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
+#if !CRYPTOKIT_STATIC_LIBRARY
+@available(iOS 26.0, macOS 26.0, watchOS 26.0, tvOS 26.0, macCatalyst 26.0, visionOS 26.0, *)
+#else // CRYPTOKIT_STATIC_LIBRARY
+@available(iOS 13.0, macOS 10.13, watchOS 6.0, tvOS 13.0, macCatalyst 13.0, visionOS 1.0, *)
+#endif
 public typealias SHA2_384 = SHA384
 
 /// An implementation of Secure Hashing Algorithm 2 (SHA-2) hashing with a
@@ -128,9 +145,18 @@ public typealias SHA2_384 = SHA384
 /// in memory, you can compute the digest iteratively by creating a new hash
 /// instance, calling the ``update(data:)`` method repeatedly with blocks of
 /// data, and then calling the ``finalize()`` method to get the result.
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
+#if !CRYPTOKIT_STATIC_LIBRARY
+@available(iOS 13.0, macOS 10.15, watchOS 6.0, tvOS 13.0, macCatalyst 13.0, *)
+#else // CRYPTOKIT_STATIC_LIBRARY
+@available(iOS 13.0, macOS 10.13, watchOS 6.0, tvOS 13.0, macCatalyst 13.0, visionOS 1.0, *)
+#endif
 public struct SHA384: HashFunctionImplementationDetails, Sendable {
     /// The number of bytes that represents the hash function’s internal state.
+    #if !CRYPTOKIT_STATIC_LIBRARY
+    @available(iOS 13.2, macOS 10.15, watchOS 6.1, tvOS 13.2, macCatalyst 13.2, *)
+    #else // CRYPTOKIT_STATIC_LIBRARY
+    @available(iOS 13.2, macOS 10.13, watchOS 6.1, tvOS 13.2, macCatalyst 13.2, visionOS 1.0, *)
+    #endif
     public static let blockByteCount: Int = 128
     /// The number of bytes in a SHA384 digest.
     public static let byteCount: Int = 48
@@ -201,7 +227,11 @@ public struct SHA384: HashFunctionImplementationDetails, Sendable {
 /// in memory, you can compute the digest iteratively by creating a new hash
 /// instance, calling the ``update(data:)`` method repeatedly with blocks of
 /// data, and then calling the ``finalize()`` method to get the result.
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
+#if !CRYPTOKIT_STATIC_LIBRARY
+@available(iOS 26.0, macOS 26.0, watchOS 26.0, tvOS 26.0, macCatalyst 26.0, visionOS 26.0, *)
+#else // CRYPTOKIT_STATIC_LIBRARY
+@available(iOS 13.0, macOS 10.13, watchOS 6.0, tvOS 13.0, macCatalyst 13.0, visionOS 1.0, *)
+#endif
 public typealias SHA2_512 = SHA512
 
 /// An implementation of Secure Hashing Algorithm 2 (SHA-2) hashing with a
@@ -216,9 +246,18 @@ public typealias SHA2_512 = SHA512
 /// in memory, you can compute the digest iteratively by creating a new hash
 /// instance, calling the ``update(data:)`` method repeatedly with blocks of
 /// data, and then calling the ``finalize()`` method to get the result.
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
+#if !CRYPTOKIT_STATIC_LIBRARY
+@available(iOS 13.0, macOS 10.15, watchOS 6.0, tvOS 13.0, macCatalyst 13.0, *)
+#else // CRYPTOKIT_STATIC_LIBRARY
+@available(iOS 13.0, macOS 10.13, watchOS 6.0, tvOS 13.0, macCatalyst 13.0, visionOS 1.0, *)
+#endif
 public struct SHA512: HashFunctionImplementationDetails, Sendable {
     /// The number of bytes that represents the hash function’s internal state.
+    #if !CRYPTOKIT_STATIC_LIBRARY
+    @available(iOS 13.2, macOS 10.15, watchOS 6.1, tvOS 13.2, macCatalyst 13.2, *)
+    #else // CRYPTOKIT_STATIC_LIBRARY
+    @available(iOS 13.2, macOS 10.13, watchOS 6.1, tvOS 13.2, macCatalyst 13.2, visionOS 1.0, *)
+    #endif
     public static let blockByteCount: Int = 128
     /// The number of bytes in a SHA512 digest.
     public static let byteCount: Int = 64

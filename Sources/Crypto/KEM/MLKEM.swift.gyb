@@ -24,6 +24,7 @@ public import Foundation
 }%
 
 #if (!CRYPTO_IN_SWIFTPM_FORCE_BUILD_API) || CRYPTOKIT_NO_ACCESS_TO_FOUNDATION
+@available(iOS 26.0, macOS 26.0, watchOS 26.0, tvOS 26.0, macCatalyst 26.0, visionOS 26.0, *)
 typealias MLKEMPublicKeyImpl = CoreCryptoMLKEMPublicKeyImpl
 typealias MLKEMPrivateKeyImpl = CoreCryptoMLKEMPrivateKeyImpl
 #else
@@ -38,8 +39,10 @@ typealias MLKEMPrivateKeyImpl = OpenSSLMLKEMPrivateKeyImpl
 }%
 
 /// The Module-Lattice key encapsulation mechanism (KEM).
+@available(iOS 26.0, macOS 26.0, watchOS 26.0, tvOS 26.0, macCatalyst 26.0, visionOS 26.0, *)
 public enum ${NAME}: Sendable {}
 
+@available(iOS 26.0, macOS 26.0, watchOS 26.0, tvOS 26.0, macCatalyst 26.0, visionOS 26.0, *)
 extension ${NAME} {
     /// A public key you use to encapsulate shared secrets with the Module-Lattice key encapsulation mechanism.
     public struct PublicKey: KEMPublicKey, Sendable {
@@ -116,7 +119,7 @@ extension ${NAME} {
             }
         }
 
-        /// Decapsulated a shared secret.
+        /// Decapsulate a shared secret.
         ///
         /// - Parameters:
         ///   - encapsulated: An encapsulated shared secret, that you get by calling ``${NAME}/PublicKey/encapsulate()`` on the corresponding public key.
@@ -128,7 +131,7 @@ extension ${NAME} {
         /// The corresponding public key.
         public var publicKey: ${NAME}.PublicKey {
             get {
-                try self.impl.publicKey
+                self.impl.publicKey
             }
         }
 
@@ -141,7 +144,7 @@ extension ${NAME} {
             }
             let seed = Data(integrityCheckedRepresentation).subdata(in: 0..<MLKEMPrivateKeyImpl<${NAME}>.seedSize)
             let publicKeyHashData = Data(integrityCheckedRepresentation).subdata(in: MLKEMPrivateKeyImpl<${NAME}>.seedSize..<integrityCheckedRepresentation.count)
-            let publicKeyHash = SHA3_256Digest(bytes: [UInt8](publicKeyHashData))
+            let publicKeyHash = SHA3_256Digest(copying: publicKeyHashData.bytes)
 
             self.impl = try MLKEMPrivateKeyImpl<${NAME}>(seedRepresentation: seed, publicKeyHash: publicKeyHash)
         }
@@ -152,6 +155,46 @@ extension ${NAME} {
         public var integrityCheckedRepresentation: Data {
             get {
                 return self.impl.integrityCheckedRepresentation
+            }
+        }
+    }
+
+    @available(iOS 27.0, macOS 27.0, watchOS 27.0, tvOS 27.0, macCatalyst 27.0, visionOS 27.0, *)
+    /// A one-time-use private key to decapsulate a shared secret with the Module-Lattice key encapsulation mechanism.
+    ///
+    /// The associated decapsulation function can be multiple times faster than the one implemented for PrivateKey,
+    /// but this private key can only be used to decapsulate a shared secret once.
+    public struct OneTimePrivateKey: KEMOneTimePrivateKey, ~Copyable {
+        internal let impl: MLKEMPrivateKeyImpl<${NAME}>
+
+        internal init(_ impl: MLKEMPrivateKeyImpl<${NAME}>) {
+            self.impl = impl
+        }
+
+        /// Generates a new, random one-time-use private key.
+        public static func generate() throws -> ${NAME}.OneTimePrivateKey {
+            let impl = try MLKEMPrivateKeyImpl<${NAME}>.generatePrivateKey()
+            return OneTimePrivateKey(impl)
+        }
+
+        /// Initializes a random one-time-use private key.
+        public init() throws {
+            self = try OneTimePrivateKey.generate()
+        }
+
+        /// Decapsulate a shared secret.
+        ///
+        /// - Parameters:
+        ///   - encapsulated: An encapsulated shared secret, that you get by calling ``${NAME}/PublicKey/encapsulate()`` on the corresponding public key.
+        /// - Returns: The shared secret.
+        public consuming func decapsulate<D: DataProtocol>(_ encapsulated: D) throws -> SymmetricKey {
+            return try impl.decapsulate(encapsulated: encapsulated)
+        }
+
+        /// The corresponding public key.
+        public var publicKey: ${NAME}.PublicKey {
+            get {
+                self.impl.publicKey
             }
         }
     }

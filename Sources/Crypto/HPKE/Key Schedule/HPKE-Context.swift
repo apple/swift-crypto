@@ -25,9 +25,12 @@ import Foundation
 #endif
 #endif
 
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
+#if !CRYPTOKIT_STATIC_LIBRARY
+@available(iOS 17.0, macOS 10.15, watchOS 10.0, tvOS 17.0, macCatalyst 17.0, *)
+#else // CRYPTOKIT_STATIC_LIBRARY
+@available(iOS 16.0, macOS 10.13, watchOS 9.0, tvOS 16.0, macCatalyst 16.0, visionOS 1.0, *)
+#endif
 extension HPKE {
-    @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
     struct Context: Sendable {
         var keySchedule: KeySchedule
         var encapsulated: Data
@@ -41,6 +44,7 @@ extension HPKE {
                                                sharedSecret: encapsulationResult.sharedSecret, info: info, psk: psk, pskID: pskID, ciphersuite: ciphersuite)
         }
 
+        @available(iOS 26.0, macOS 26.0, watchOS 26.0, tvOS 26.0, macCatalyst 26.0, visionOS 26.0, *)
         init<PublicKey: HPKEKEMPublicKey>(senderRoleWithCiphersuite ciphersuite: Ciphersuite, mode: Mode, psk: SymmetricKey?, pskID: Data?, pkR: PublicKey, info: Data) throws {
             let encapsulationResult = try pkR.encapsulate()
             encapsulated = encapsulationResult.encapsulated
@@ -73,6 +77,7 @@ extension HPKE {
             self.keySchedule = try KeySchedule(mode: mode, sharedSecret: sharedSecret, info: info, psk: psk, pskID: pskID, ciphersuite: ciphersuite)
         }
         
+        @available(iOS 26.0, macOS 26.0, watchOS 26.0, tvOS 26.0, macCatalyst 26.0, visionOS 26.0, *)
         init<PrivateKey: HPKEKEMPrivateKey>(recipientRoleWithCiphersuite ciphersuite: Ciphersuite, mode: Mode, enc: Data, psk: SymmetricKey?, pskID: Data?, skR: PrivateKey, info: Data, pkS: PrivateKey.PublicKey?) throws {
             let sharedSecret = try skR.decapsulate(enc)
             self.encapsulated = enc
