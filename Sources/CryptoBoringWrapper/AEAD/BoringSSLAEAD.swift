@@ -346,8 +346,16 @@ extension BoringSSLAEAD.AEADContext {
         authenticatedData: RawSpan
     ) throws -> Data {
         var output = Data(copying: ciphertext)
-        var outputSpan = output.mutableBytes
-        try open(message: &outputSpan, nonce: nonceBytes, tag: tagBytes, authenticatedData: authenticatedData)
+        if #available(visionOS 1.1, *) {
+            var outputSpan = output.mutableBytes
+            try open(message: &outputSpan, nonce: nonceBytes, tag: tagBytes, authenticatedData: authenticatedData)
+        } else {
+            // For some reason `Data.mutableBytes` is not available on visionOS 1.0 so we'll bounce through wUSMB.
+            try output.withUnsafeMutableBytes { bytes in
+                var outputSpan = bytes.mutableBytes
+                try open(message: &outputSpan, nonce: nonceBytes, tag: tagBytes, authenticatedData: authenticatedData)
+            }
+        }
         return output
     }
 
