@@ -160,12 +160,14 @@ class DigestsTests: XCTestCase {
     }
     
     func testBlockSizes() {
-        XCTAssertEqual(Insecure.MD5.blockByteCount, 64)
-        XCTAssertEqual(Insecure.SHA1.blockByteCount, 64)
-        XCTAssertEqual(SHA256.blockByteCount, 64)
-        
-        XCTAssertEqual(SHA384.blockByteCount, 128)
-        XCTAssertEqual(SHA512.blockByteCount, 128)
+        if #available(iOS 13.2, macOS 10.15, watchOS 6.1, tvOS 13.2, macCatalyst 13.2, *) {
+            XCTAssertEqual(Insecure.MD5.blockByteCount, 64)
+            XCTAssertEqual(Insecure.SHA1.blockByteCount, 64)
+            XCTAssertEqual(SHA256.blockByteCount, 64)
+
+            XCTAssertEqual(SHA384.blockByteCount, 128)
+            XCTAssertEqual(SHA512.blockByteCount, 128)
+        }
 
 #if !CRYPTOKIT_IN_SEP
 #if !CRYPTO_IN_SWIFTPM || canImport(CryptoKit, _version: 324.0.4)

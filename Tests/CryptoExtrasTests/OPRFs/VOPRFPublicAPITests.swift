@@ -15,7 +15,7 @@ import Crypto
 import CryptoExtras  // NOTE: No @testable import, because we want to test the public API.
 import XCTest
 
-@available(macOS 13.0, iOS 16.0, tvOS 16.0, watchOS 9.0, *)
+@available(macOS 13.0, iOS 16.0, tvOS 16.0, watchOS 9.0, visionOS 2.0, *)
 final class VOPRFPublicAPITests: XCTestCase {
 
     func testEndToEndVOPRF() throws {
