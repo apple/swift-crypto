@@ -119,8 +119,8 @@ extension XWingMLKEM768X25519.PrivateKey: HPKEKEMPrivateKeyGeneration {
     }
 
     public init<D: DataProtocol>(integrityCheckedRepresentation: D) throws {
-        // X-Wing private seed size is 64 bytes, plus a 32-byte SHA3-256 hash suffix = 96 bytes total.
-        guard integrityCheckedRepresentation.count == 96 else {
+        // X-Wing structure expects a 32-byte seed and a 32-byte SHA3-256 hash suffix = 64 bytes total.
+        guard integrityCheckedRepresentation.count == 64 else {
             throw CryptoKitError.incorrectParameterSize
         }
 
