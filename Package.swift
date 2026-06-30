@@ -98,6 +98,10 @@ let package = Package(
                     .when(platforms: [Platform.wasi])
                 ),
                 .define("OPENSSL_NO_ASM", .when(platforms: [Platform.wasi])),
+                // BoringSSL is vendored verbatim; we don't fix its warnings. Xcode enables
+                // -Wshorten-64-to-32 by default (SwiftPM does not), which produces dozens
+                // of warnings. Silence that group here.
+                .disableWarning("shorten-64-to-32"),
             ]
         ),
         .target(
