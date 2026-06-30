@@ -92,7 +92,7 @@ enum OpenSSLAESGCMSIVImpl {
             )
         }
 
-        return try AES.GCM._SIV.SealedBox(combined: combined, nonceByteCount: nonce.bytes.count)
+        return AES.GCM._SIV.SealedBox(combined: combined, nonceByteCount: nonce.bytes.count)
     }
 
     @inlinable
