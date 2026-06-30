@@ -146,6 +146,7 @@ let package = Package(
                 .target(name: "CXKCPShims", condition: .when(platforms: nonDarwinPlatforms)),
             ],
             exclude: privacyManifestExclude + [
+                "vendored-sources.txt",
                 "CMakeLists.txt",
                 "Signatures/BoringSSL/MLDSA_boring.swift.gyb",
                 "KEM/BoringSSL/MLKEM_boring.swift.gyb",
