@@ -151,7 +151,7 @@ class AESGCMTests: XCTestCase {
         let ciphertext = Array("This pretty clearly isn't ciphertext, but sure why not".utf8)
         let (contiguousCiphertext, discontiguousCiphertext) = ciphertext.asDataProtocols()
 
-        let contiguousSB = try orFail { try AES.GCM.SealedBox(combined: contiguousCiphertext) }
+        let contiguousSB = try orFail { AES.GCM.SealedBox(combined: contiguousCiphertext) }
         let discontiguousSB = try orFail { try AES.GCM.SealedBox(combined: discontiguousCiphertext) }
         XCTAssertEqual(contiguousSB.combined, discontiguousSB.combined)
         XCTAssertEqual(Array(contiguousSB.nonce), Array(discontiguousSB.nonce))
