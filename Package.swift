@@ -38,10 +38,15 @@ let nonDarwinPlatforms: [Platform] = [
     .custom("freebsd"),
 ]
 
-let swiftSettings: [SwiftSetting] = [
+var swiftSettings: [SwiftSetting] = [
     .define("CRYPTO_IN_SWIFTPM"),
     .enableExperimentalFeature("Lifetimes"),
 ]
+
+// Only enable CheckImplementationOnly on 6.4 -- 6.3 has the feature, but produces many false positives.
+#if compiler(>=6.4)
+swiftSettings.append(.enableExperimentalFeature("CheckImplementationOnly"))
+#endif
 
 // This doesn't work when cross-compiling: the privacy manifest will be included in the Bundle and
 // Foundation will be linked. This is, however, strictly better than unconditionally adding the
