@@ -39,34 +39,33 @@ extension BoringSSLAEAD {
     // rather than rely on defer statements for our cleanup.
     @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
     public class AEADContext {
-        private var context: EVP_AEAD_CTX
+        // @_implementationOnly import => must use OpaquePointer for stored property.
+        private let _storage: OpaquePointer
+        private var context: UnsafeMutablePointer<EVP_AEAD_CTX> { UnsafeMutablePointer(self._storage) }
 
-        public init<Key: ContiguousBytes>(cipher: BoringSSLAEAD, key: Key) throws {
-            self.context = EVP_AEAD_CTX()
+        private init(takingOwnershipOf pointer: UnsafeMutablePointer<EVP_AEAD_CTX>) {
+            self._storage = OpaquePointer(pointer)
+        }
 
-            let rc: CInt = key.withUnsafeBytes { keyPointer in
-                withUnsafeMutablePointer(to: &self.context) { contextPointer in
-                    // Create the AEAD context with a default tag length using the given key.
-                    CCryptoBoringSSLShims_EVP_AEAD_CTX_init(
-                        contextPointer,
+        public convenience init<Key: ContiguousBytes>(cipher: BoringSSLAEAD, key: Key) throws {
+            // Create the AEAD context with a default tag length using the given key.
+            guard
+                let context = key.withUnsafeBytes({ keyPointer in
+                    CCryptoBoringSSL_EVP_AEAD_CTX_new(
                         cipher.boringSSLCipher,
                         keyPointer.baseAddress,
                         keyPointer.count,
-                        0,
-                        nil
+                        0
                     )
-                }
-            }
-
-            guard rc == 1 else {
+                })
+            else {
                 throw CryptoBoringWrapperError.internalBoringSSLError()
             }
+            self.init(takingOwnershipOf: context)
         }
 
         deinit {
-            withUnsafeMutablePointer(to: &self.context) { contextPointer in
-                CCryptoBoringSSL_EVP_AEAD_CTX_cleanup(contextPointer)
-            }
+            CCryptoBoringSSL_EVP_AEAD_CTX_free(context)
         }
     }
 }
@@ -159,11 +158,11 @@ extension BoringSSLAEAD.AEADContext {
         authenticatedData: RawSpan,
         tag: inout OutputRawSpan
     ) throws {
-        let tagByteCount = CCryptoBoringSSL_EVP_AEAD_max_overhead(self.context.aead)
+        let tagByteCount = CCryptoBoringSSL_EVP_AEAD_max_overhead(self.context.pointee.aead)
         precondition(tag.freeCapacity >= tagByteCount)
         var actualTagSize = tagByteCount
 
-        let rc = withUnsafeMutablePointer(to: &self.context) { contextPointer in
+        let rc =
             message.withUnsafeMutableBytes { messageBuffer in
                 tag.withUnsafeMutableBytes { tagBuffer, tagInitializedCount in
                     defer {
@@ -173,7 +172,7 @@ extension BoringSSLAEAD.AEADContext {
                     return authenticatedData.withUnsafeBytes { authenticatedDataBuffer in
                         nonce.withUnsafeBytes { nonceBuffer in
                             CCryptoBoringSSLShims_EVP_AEAD_CTX_seal_scatter(
-                                contextPointer,
+                                self.context,
                                 messageBuffer.baseAddress,
                                 tagBuffer.baseAddress! + tagInitializedCount,
                                 &actualTagSize,
@@ -192,7 +191,6 @@ extension BoringSSLAEAD.AEADContext {
                     }
                 }
             }
-        }
 
         guard rc == 1 else {
             throw CryptoBoringWrapperError.internalBoringSSLError()
@@ -206,7 +204,7 @@ extension BoringSSLAEAD.AEADContext {
         nonce: RawSpan,
         authenticatedData: RawSpan
     ) throws -> Data {
-        let tagByteCount = CCryptoBoringSSL_EVP_AEAD_max_overhead(self.context.aead)
+        let tagByteCount = CCryptoBoringSSL_EVP_AEAD_max_overhead(self.context.pointee.aead)
 
         // Form the combined represention of a sealed box with nonce + plaintext + tag.
         var combined = Data()
@@ -309,24 +307,22 @@ extension BoringSSLAEAD.AEADContext {
         tag: RawSpan,
         authenticatedData: RawSpan
     ) throws {
-        let rc = withUnsafePointer(to: &self.context) { contextPointer in
-            message.withUnsafeMutableBytes { messageBuffer in
-                nonce.withUnsafeBytes { nonceBuffer in
-                    tag.withUnsafeBytes { tagBuffer in
-                        authenticatedData.withUnsafeBytes { adBuffer in
-                            CCryptoBoringSSLShims_EVP_AEAD_CTX_open_gather(
-                                contextPointer,
-                                messageBuffer.baseAddress,
-                                nonceBuffer.baseAddress,
-                                nonceBuffer.count,
-                                messageBuffer.baseAddress,
-                                messageBuffer.count,
-                                tagBuffer.baseAddress,
-                                tagBuffer.count,
-                                adBuffer.baseAddress,
-                                adBuffer.count
-                            )
-                        }
+        let rc = message.withUnsafeMutableBytes { messageBuffer in
+            nonce.withUnsafeBytes { nonceBuffer in
+                tag.withUnsafeBytes { tagBuffer in
+                    authenticatedData.withUnsafeBytes { adBuffer in
+                        CCryptoBoringSSLShims_EVP_AEAD_CTX_open_gather(
+                            self.context,
+                            messageBuffer.baseAddress,
+                            nonceBuffer.baseAddress,
+                            nonceBuffer.count,
+                            messageBuffer.baseAddress,
+                            messageBuffer.count,
+                            tagBuffer.baseAddress,
+                            tagBuffer.count,
+                            adBuffer.baseAddress,
+                            adBuffer.count
+                        )
                     }
                 }
             }
@@ -424,9 +420,9 @@ extension BoringSSLAEAD.AEADContext {
         )
 
         var writtenBytes = 0
-        let rc = withUnsafePointer(to: &self.context) { contextPointer in
+        let rc =
             CCryptoBoringSSLShims_EVP_AEAD_CTX_open(
-                contextPointer,
+                self.context,
                 outputBuffer.baseAddress,
                 &writtenBytes,
                 outputBuffer.count,
@@ -437,7 +433,6 @@ extension BoringSSLAEAD.AEADContext {
                 authenticatedData.baseAddress,
                 authenticatedData.count
             )
-        }
 
         guard rc == 1 else {
             // Ooops, error. Free the memory we allocated before we throw.
