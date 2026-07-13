@@ -29,7 +29,6 @@ import Foundation
 @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension MLKEM768 {
     /// A ML-KEM-768 private key.
-    @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
     struct InternalPrivateKey: @unchecked Sendable, KEMPrivateKey {
         private var backing: Backing
 
@@ -76,29 +75,36 @@ extension MLKEM768 {
         }
 
         fileprivate final class Backing {
-            var key: MLKEM768_private_key
+            // @_implementationOnly import => must use OpaquePointer for stored property.
+            private let _storage: OpaquePointer
+            var key: UnsafeMutablePointer<MLKEM768_private_key> {
+                UnsafeMutablePointer(self._storage)
+            }
             var seed: Data
 
-            /// Initialize a ML-KEM-768 private key from a random seed.
-            init() {
-                self.key = .init()
-                self.seed = Data()
+            /// This is the only designated initializer, responsible for the allocation. Deallocation happens in deinit.
+            /// To reduce mistakes (e.g. double-free), all other initializers should be convenience initializers.
+            private init(takingOwnershipOf pointer: UnsafeMutablePointer<MLKEM768_private_key>, seed: Data) {
+                self._storage = OpaquePointer(pointer)
+                self.seed = seed
+            }
 
-                self.seed = withUnsafeTemporaryAllocation(
-                    of: UInt8.self,
-                    capacity: MLKEM.seedByteCount
-                ) { seedPtr in
+            deinit {
+                self.key.deinitialize(count: 1)
+                self.key.deallocate()
+            }
+            /// Initialize a ML-KEM-768 private key from a random seed.
+            convenience init() {
+                let keyPtr = UnsafeMutablePointer<MLKEM768_private_key>.allocate(capacity: 1)
+                keyPtr.initialize(to: MLKEM768_private_key())
+                self.init(takingOwnershipOf: keyPtr, seed: Data(repeating: 0, count: MLKEM.seedByteCount))
+
+                seed.withUnsafeMutableBytes { seedPtr in
                     withUnsafeTemporaryAllocation(
                         of: UInt8.self,
                         capacity: MLKEM768.InternalPublicKey.byteCount
                     ) { publicKeyPtr in
-                        CCryptoBoringSSL_MLKEM768_generate_key(
-                            publicKeyPtr.baseAddress,
-                            seedPtr.baseAddress,
-                            &self.key
-                        )
-
-                        return Data(bytes: seedPtr.baseAddress!, count: MLKEM.seedByteCount)
+                        CCryptoBoringSSL_MLKEM768_generate_key(publicKeyPtr.baseAddress, seedPtr.baseAddress, keyPtr)
                     }
                 }
             }
@@ -108,21 +114,19 @@ extension MLKEM768 {
             /// - Parameter seedRepresentation: The seed to use to generate the private key.
             ///
             /// - Throws: `CryptoKitError.incorrectKeySize` if the seed is not 64 bytes long.
-            init(seedRepresentation: some DataProtocol) throws {
+            convenience init(seedRepresentation: some DataProtocol) throws {
                 guard seedRepresentation.count == MLKEM.seedByteCount else {
                     throw CryptoKitError.incorrectKeySize
                 }
 
-                self.key = .init()
-                self.seed = Data(seedRepresentation)
+                let keyPtr = UnsafeMutablePointer<MLKEM768_private_key>.allocate(capacity: 1)
+                keyPtr.initialize(to: MLKEM768_private_key())
+
+                self.init(takingOwnershipOf: keyPtr, seed: Data(seedRepresentation))
 
                 guard
                     self.seed.withUnsafeBytes({ seedPtr in
-                        CCryptoBoringSSL_MLKEM768_private_key_from_seed(
-                            &self.key,
-                            seedPtr.baseAddress,
-                            seedPtr.count
-                        )
+                        CCryptoBoringSSL_MLKEM768_private_key_from_seed(keyPtr, seedPtr.baseAddress, seedPtr.count)
                     }) == 1
                 else {
                     throw CryptoKitError.internalBoringSSLError()
@@ -158,7 +162,7 @@ extension MLKEM768 {
                             symmetricKeyDataPtr.baseAddress,
                             encapsulatedPtr.baseAddress,
                             encapsulatedPtr.count,
-                            &self.key
+                            self.key
                         )
                     }
                 }
@@ -176,7 +180,6 @@ extension MLKEM768 {
 @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension MLKEM768 {
     /// A ML-KEM-768 public key.
-    @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
     struct InternalPublicKey: @unchecked Sendable, KEMPublicKey {
         private var backing: Backing
 
@@ -209,11 +212,26 @@ extension MLKEM768 {
         static let byteCount = Backing.byteCount
 
         fileprivate final class Backing {
-            var key: MLKEM768_public_key
+            // @_implementationOnly import => must use OpaquePointer for stored property.
+            private let _storage: OpaquePointer
+            var key: UnsafeMutablePointer<MLKEM768_public_key> { UnsafeMutablePointer(self._storage) }
 
-            init(privateKeyBacking: InternalPrivateKey.Backing) {
-                self.key = .init()
-                CCryptoBoringSSL_MLKEM768_public_from_private(&self.key, &privateKeyBacking.key)
+            /// This is the only designated initializer, responsible for the allocation. Deallocation happens in deinit.
+            /// To reduce mistakes (e.g. double-free), all other initializers should be convenience initializers.
+            private init(takingOwnershipOf pointer: UnsafeMutablePointer<MLKEM768_public_key>) {
+                self._storage = OpaquePointer(pointer)
+            }
+
+            deinit {
+                self.key.deinitialize(count: 1)
+                self.key.deallocate()
+            }
+
+            convenience init(privateKeyBacking: InternalPrivateKey.Backing) {
+                let keyPtr = UnsafeMutablePointer<MLKEM768_public_key>.allocate(capacity: 1)
+                keyPtr.initialize(to: MLKEM768_public_key())
+                CCryptoBoringSSL_MLKEM768_public_from_private(keyPtr, privateKeyBacking.key)
+                self.init(takingOwnershipOf: keyPtr)
             }
 
             /// Initialize a ML-KEM-768 public key from a raw representation.
@@ -221,12 +239,13 @@ extension MLKEM768 {
             /// - Parameter rawRepresentation: The public key bytes.
             ///
             /// - Throws: `CryptoKitError.incorrectKeySize` if the raw representation is not the correct size.
-            init(rawRepresentation: some DataProtocol) throws {
+            convenience init(rawRepresentation: some DataProtocol) throws {
                 guard rawRepresentation.count == MLKEM768.InternalPublicKey.byteCount else {
                     throw CryptoKitError.incorrectKeySize
                 }
-
-                self.key = .init()
+                let keyPtr = UnsafeMutablePointer<MLKEM768_public_key>.allocate(capacity: 1)
+                keyPtr.initialize(to: MLKEM768_public_key())
+                self.init(takingOwnershipOf: keyPtr)
 
                 let bytes: ContiguousBytes =
                     rawRepresentation.regions.count == 1
@@ -235,7 +254,7 @@ extension MLKEM768 {
                 try bytes.withUnsafeBytes { rawBuffer in
                     try rawBuffer.withMemoryRebound(to: UInt8.self) { buffer in
                         var cbs = CBS(data: buffer.baseAddress, len: buffer.count)
-                        guard CCryptoBoringSSL_MLKEM768_parse_public_key(&self.key, &cbs) == 1 else {
+                        guard CCryptoBoringSSL_MLKEM768_parse_public_key(self.key, &cbs) == 1 else {
                             throw CryptoKitError.internalBoringSSLError()
                         }
                     }
@@ -248,7 +267,7 @@ extension MLKEM768 {
                 // The following BoringSSL functions can only fail on allocation failure, which we define as impossible.
                 CCryptoBoringSSL_CBB_init(&cbb, MLKEM768.InternalPublicKey.Backing.byteCount)
                 defer { CCryptoBoringSSL_CBB_cleanup(&cbb) }
-                CCryptoBoringSSL_MLKEM768_marshal_public_key(&cbb, &self.key)
+                CCryptoBoringSSL_MLKEM768_marshal_public_key(&cbb, self.key)
                 return Data(bytes: CCryptoBoringSSL_CBB_data(&cbb), count: CCryptoBoringSSL_CBB_len(&cbb))
             }
 
@@ -267,7 +286,7 @@ extension MLKEM768 {
                         CCryptoBoringSSL_MLKEM768_encap(
                             encapsulatedPtr.baseAddress,
                             secretPtr.baseAddress,
-                            &self.key
+                            self.key
                         )
 
                         return KEM.EncapsulationResult(
@@ -298,7 +317,6 @@ extension MLKEM768 {
 @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension MLKEM1024 {
     /// A ML-KEM-1024 private key.
-    @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
     struct InternalPrivateKey: @unchecked Sendable, KEMPrivateKey {
         private var backing: Backing
 
@@ -345,29 +363,36 @@ extension MLKEM1024 {
         }
 
         fileprivate final class Backing {
-            var key: MLKEM1024_private_key
+            // @_implementationOnly import => must use OpaquePointer for stored property.
+            private let _storage: OpaquePointer
+            var key: UnsafeMutablePointer<MLKEM1024_private_key> {
+                UnsafeMutablePointer(self._storage)
+            }
             var seed: Data
 
-            /// Initialize a ML-KEM-1024 private key from a random seed.
-            init() {
-                self.key = .init()
-                self.seed = Data()
+            /// This is the only designated initializer, responsible for the allocation. Deallocation happens in deinit.
+            /// To reduce mistakes (e.g. double-free), all other initializers should be convenience initializers.
+            private init(takingOwnershipOf pointer: UnsafeMutablePointer<MLKEM1024_private_key>, seed: Data) {
+                self._storage = OpaquePointer(pointer)
+                self.seed = seed
+            }
 
-                self.seed = withUnsafeTemporaryAllocation(
-                    of: UInt8.self,
-                    capacity: MLKEM.seedByteCount
-                ) { seedPtr in
+            deinit {
+                self.key.deinitialize(count: 1)
+                self.key.deallocate()
+            }
+            /// Initialize a ML-KEM-1024 private key from a random seed.
+            convenience init() {
+                let keyPtr = UnsafeMutablePointer<MLKEM1024_private_key>.allocate(capacity: 1)
+                keyPtr.initialize(to: MLKEM1024_private_key())
+                self.init(takingOwnershipOf: keyPtr, seed: Data(repeating: 0, count: MLKEM.seedByteCount))
+
+                seed.withUnsafeMutableBytes { seedPtr in
                     withUnsafeTemporaryAllocation(
                         of: UInt8.self,
                         capacity: MLKEM1024.InternalPublicKey.byteCount
                     ) { publicKeyPtr in
-                        CCryptoBoringSSL_MLKEM1024_generate_key(
-                            publicKeyPtr.baseAddress,
-                            seedPtr.baseAddress,
-                            &self.key
-                        )
-
-                        return Data(bytes: seedPtr.baseAddress!, count: MLKEM.seedByteCount)
+                        CCryptoBoringSSL_MLKEM1024_generate_key(publicKeyPtr.baseAddress, seedPtr.baseAddress, keyPtr)
                     }
                 }
             }
@@ -377,21 +402,19 @@ extension MLKEM1024 {
             /// - Parameter seedRepresentation: The seed to use to generate the private key.
             ///
             /// - Throws: `CryptoKitError.incorrectKeySize` if the seed is not 64 bytes long.
-            init(seedRepresentation: some DataProtocol) throws {
+            convenience init(seedRepresentation: some DataProtocol) throws {
                 guard seedRepresentation.count == MLKEM.seedByteCount else {
                     throw CryptoKitError.incorrectKeySize
                 }
 
-                self.key = .init()
-                self.seed = Data(seedRepresentation)
+                let keyPtr = UnsafeMutablePointer<MLKEM1024_private_key>.allocate(capacity: 1)
+                keyPtr.initialize(to: MLKEM1024_private_key())
+
+                self.init(takingOwnershipOf: keyPtr, seed: Data(seedRepresentation))
 
                 guard
                     self.seed.withUnsafeBytes({ seedPtr in
-                        CCryptoBoringSSL_MLKEM1024_private_key_from_seed(
-                            &self.key,
-                            seedPtr.baseAddress,
-                            seedPtr.count
-                        )
+                        CCryptoBoringSSL_MLKEM1024_private_key_from_seed(keyPtr, seedPtr.baseAddress, seedPtr.count)
                     }) == 1
                 else {
                     throw CryptoKitError.internalBoringSSLError()
@@ -427,7 +450,7 @@ extension MLKEM1024 {
                             symmetricKeyDataPtr.baseAddress,
                             encapsulatedPtr.baseAddress,
                             encapsulatedPtr.count,
-                            &self.key
+                            self.key
                         )
                     }
                 }
@@ -445,7 +468,6 @@ extension MLKEM1024 {
 @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension MLKEM1024 {
     /// A ML-KEM-1024 public key.
-    @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
     struct InternalPublicKey: @unchecked Sendable, KEMPublicKey {
         private var backing: Backing
 
@@ -478,11 +500,26 @@ extension MLKEM1024 {
         static let byteCount = Backing.byteCount
 
         fileprivate final class Backing {
-            var key: MLKEM1024_public_key
+            // @_implementationOnly import => must use OpaquePointer for stored property.
+            private let _storage: OpaquePointer
+            var key: UnsafeMutablePointer<MLKEM1024_public_key> { UnsafeMutablePointer(self._storage) }
 
-            init(privateKeyBacking: InternalPrivateKey.Backing) {
-                self.key = .init()
-                CCryptoBoringSSL_MLKEM1024_public_from_private(&self.key, &privateKeyBacking.key)
+            /// This is the only designated initializer, responsible for the allocation. Deallocation happens in deinit.
+            /// To reduce mistakes (e.g. double-free), all other initializers should be convenience initializers.
+            private init(takingOwnershipOf pointer: UnsafeMutablePointer<MLKEM1024_public_key>) {
+                self._storage = OpaquePointer(pointer)
+            }
+
+            deinit {
+                self.key.deinitialize(count: 1)
+                self.key.deallocate()
+            }
+
+            convenience init(privateKeyBacking: InternalPrivateKey.Backing) {
+                let keyPtr = UnsafeMutablePointer<MLKEM1024_public_key>.allocate(capacity: 1)
+                keyPtr.initialize(to: MLKEM1024_public_key())
+                CCryptoBoringSSL_MLKEM1024_public_from_private(keyPtr, privateKeyBacking.key)
+                self.init(takingOwnershipOf: keyPtr)
             }
 
             /// Initialize a ML-KEM-1024 public key from a raw representation.
@@ -490,12 +527,13 @@ extension MLKEM1024 {
             /// - Parameter rawRepresentation: The public key bytes.
             ///
             /// - Throws: `CryptoKitError.incorrectKeySize` if the raw representation is not the correct size.
-            init(rawRepresentation: some DataProtocol) throws {
+            convenience init(rawRepresentation: some DataProtocol) throws {
                 guard rawRepresentation.count == MLKEM1024.InternalPublicKey.byteCount else {
                     throw CryptoKitError.incorrectKeySize
                 }
-
-                self.key = .init()
+                let keyPtr = UnsafeMutablePointer<MLKEM1024_public_key>.allocate(capacity: 1)
+                keyPtr.initialize(to: MLKEM1024_public_key())
+                self.init(takingOwnershipOf: keyPtr)
 
                 let bytes: ContiguousBytes =
                     rawRepresentation.regions.count == 1
@@ -504,7 +542,7 @@ extension MLKEM1024 {
                 try bytes.withUnsafeBytes { rawBuffer in
                     try rawBuffer.withMemoryRebound(to: UInt8.self) { buffer in
                         var cbs = CBS(data: buffer.baseAddress, len: buffer.count)
-                        guard CCryptoBoringSSL_MLKEM1024_parse_public_key(&self.key, &cbs) == 1 else {
+                        guard CCryptoBoringSSL_MLKEM1024_parse_public_key(self.key, &cbs) == 1 else {
                             throw CryptoKitError.internalBoringSSLError()
                         }
                     }
@@ -517,7 +555,7 @@ extension MLKEM1024 {
                 // The following BoringSSL functions can only fail on allocation failure, which we define as impossible.
                 CCryptoBoringSSL_CBB_init(&cbb, MLKEM1024.InternalPublicKey.Backing.byteCount)
                 defer { CCryptoBoringSSL_CBB_cleanup(&cbb) }
-                CCryptoBoringSSL_MLKEM1024_marshal_public_key(&cbb, &self.key)
+                CCryptoBoringSSL_MLKEM1024_marshal_public_key(&cbb, self.key)
                 return Data(bytes: CCryptoBoringSSL_CBB_data(&cbb), count: CCryptoBoringSSL_CBB_len(&cbb))
             }
 
@@ -536,7 +574,7 @@ extension MLKEM1024 {
                         CCryptoBoringSSL_MLKEM1024_encap(
                             encapsulatedPtr.baseAddress,
                             secretPtr.baseAddress,
-                            &self.key
+                            self.key
                         )
 
                         return KEM.EncapsulationResult(
@@ -564,7 +602,6 @@ extension MLKEM1024 {
     private static let ciphertextByteCount = Int(MLKEM1024_CIPHERTEXT_BYTES)
 }
 
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 enum MLKEM {
     /// The size of the seed in bytes.
     static let seedByteCount = 64
