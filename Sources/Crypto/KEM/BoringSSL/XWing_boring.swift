@@ -129,24 +129,41 @@ struct OpenSSLXWingPrivateKeyImpl: Sendable {
 extension OpenSSLXWingPrivateKeyImpl {
     @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
     final class Backing: @unchecked Sendable {
-        private var privateKey: XWING_private_key
-
-        init(privateKey: XWING_private_key) {
-            self.privateKey = privateKey
+        // @_implementationOnly import => must use OpaquePointer for stored property.
+        private let _storage: OpaquePointer
+        var privateKey: UnsafeMutablePointer<XWING_private_key> {
+            UnsafeMutablePointer(self._storage)
         }
 
-        init() throws {
-            self.privateKey = .init()
+        /// This is the only designated initializer, responsible for the allocation. Deallocation happens in deinit.
+        /// To reduce mistakes (e.g. double-free), all other initializers should be convenience initializers.
+        private init(takingOwnershipOf pointer: UnsafeMutablePointer<XWING_private_key>) {
+            self._storage = OpaquePointer(pointer)
+        }
+
+        deinit {
+            self.privateKey.deinitialize(count: 1)
+            self.privateKey.deallocate()
+        }
+
+        convenience init(privateKey: XWING_private_key) {
+            let pk = UnsafeMutablePointer<XWING_private_key>.allocate(capacity: 1)
+            pk.initialize(to: privateKey)
+            self.init(takingOwnershipOf: pk)
+        }
+
+        convenience init() throws {
+            self.init(privateKey: XWING_private_key())
             try withUnsafeTemporaryAllocation(byteCount: Int(XWING_PUBLIC_KEY_BYTES), alignment: 1) {
-                let rc = CCryptoBoringSSL_XWING_generate_key($0.baseAddress, &self.privateKey)
+                let rc = CCryptoBoringSSL_XWING_generate_key($0.baseAddress, self.privateKey)
                 if rc != 1 {
                     throw CryptoKitError.internalBoringSSLError()
                 }
             }
         }
 
-        init<D: ContiguousBytes>(bytes: D) throws {
-            self.privateKey = .init()
+        convenience init<D: ContiguousBytes>(bytes: D) throws {
+            self.init(privateKey: XWING_private_key())
 
             // The first bytes are the private key (in "seed representation"), the latter bytes are the public key.
             try bytes.withUnsafeBytes { ptr in
@@ -159,7 +176,7 @@ extension OpenSSLXWingPrivateKeyImpl {
                 var cbs = CBS()
                 CCryptoBoringSSL_CBS_init(&cbs, privateKeyBytes.baseAddress, privateKeyBytes.count)
 
-                let rc = CCryptoBoringSSL_XWING_parse_private_key(&self.privateKey, &cbs)
+                let rc = CCryptoBoringSSL_XWING_parse_private_key(self.privateKey, &cbs)
                 guard rc == 1 else {
                     throw CryptoKitError.internalBoringSSLError()
                 }
@@ -169,8 +186,8 @@ extension OpenSSLXWingPrivateKeyImpl {
             }
         }
 
-        init<D: DataProtocol>(seedRepresentation: D, publicKeyHash: SHA3_256Digest?) throws {
-            self.privateKey = .init()
+        convenience init<D: DataProtocol>(seedRepresentation: D, publicKeyHash: SHA3_256Digest?) throws {
+            self.init(privateKey: XWING_private_key())
 
             let seedRepresentation: ContiguousBytes =
                 seedRepresentation.regions.count == 1 ? seedRepresentation.regions.first! : Array(seedRepresentation)
@@ -183,7 +200,7 @@ extension OpenSSLXWingPrivateKeyImpl {
                 var cbs = CBS()
                 CCryptoBoringSSL_CBS_init(&cbs, privateKeyBytes.baseAddress, privateKeyBytes.count)
 
-                let rc = CCryptoBoringSSL_XWING_parse_private_key(&self.privateKey, &cbs)
+                let rc = CCryptoBoringSSL_XWING_parse_private_key(self.privateKey, &cbs)
                 guard rc == 1 else {
                     throw CryptoKitError.internalBoringSSLError()
                 }
@@ -198,7 +215,7 @@ extension OpenSSLXWingPrivateKeyImpl {
             withUnsafeTemporaryAllocation(byteCount: Int(XWING_PRIVATE_KEY_BYTES), alignment: 1) {
                 var cbb = CBB()
                 CCryptoBoringSSL_CBB_init_fixed(&cbb, $0.baseAddress, $0.count)
-                let rc = CCryptoBoringSSL_XWING_marshal_private_key(&cbb, &self.privateKey)
+                let rc = CCryptoBoringSSL_XWING_marshal_private_key(&cbb, self.privateKey)
                 precondition(rc == 1)
                 return Data($0.prefix(CCryptoBoringSSL_CBB_len(&cbb)))
             }
@@ -218,7 +235,7 @@ extension OpenSSLXWingPrivateKeyImpl {
 
         var publicKey: Data {
             withUnsafeTemporaryAllocation(byteCount: Int(XWING_PUBLIC_KEY_BYTES), alignment: 1) {
-                let rc = CCryptoBoringSSL_XWING_public_from_private($0.baseAddress, &self.privateKey)
+                let rc = CCryptoBoringSSL_XWING_public_from_private($0.baseAddress, self.privateKey)
                 precondition(rc == 1)
                 return Data($0)
             }
@@ -226,7 +243,7 @@ extension OpenSSLXWingPrivateKeyImpl {
 
         private var publicKeyDigest: SHA3_256Digest {
             withUnsafeTemporaryAllocation(byteCount: Int(XWING_PUBLIC_KEY_BYTES), alignment: 1) {
-                let rc = CCryptoBoringSSL_XWING_public_from_private($0.baseAddress, &self.privateKey)
+                let rc = CCryptoBoringSSL_XWING_public_from_private($0.baseAddress, self.privateKey)
                 precondition(rc == 1)
                 return SHA3_256.hash(bufferPointer: UnsafeRawBufferPointer($0))
             }
@@ -248,7 +265,7 @@ extension OpenSSLXWingPrivateKeyImpl {
                     let rc = CCryptoBoringSSL_XWING_decap(
                         sharedSecretBytes.baseAddress,
                         encapsulatedSecretBytes.baseAddress,
-                        &self.privateKey
+                        self.privateKey
                     )
                     guard rc == 1 else {
                         throw CryptoKitError.internalBoringSSLError()
