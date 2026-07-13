@@ -41,6 +41,7 @@ let nonDarwinPlatforms: [Platform] = [
 let swiftSettings: [SwiftSetting] = [
     .define("CRYPTO_IN_SWIFTPM"),
     .enableExperimentalFeature("Lifetimes"),
+    .enableExperimentalFeature("CheckImplementationOnly"),
 ]
 
 // This doesn't work when cross-compiling: the privacy manifest will be included in the Bundle and
