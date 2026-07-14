@@ -12,7 +12,11 @@
 //
 //===----------------------------------------------------------------------===//
 
+#if hasFeature(SourceWarningControl)
+@diagnose(ImplementationOnlyDeprecated, as: ignored) @_implementationOnly import CCryptoBoringSSL
+#else
 @_implementationOnly import CCryptoBoringSSL
+#endif
 
 #if canImport(FoundationEssentials)
 import FoundationEssentials
