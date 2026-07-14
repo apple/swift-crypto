@@ -12,11 +12,17 @@
 //
 //===----------------------------------------------------------------------===//
 
-// NOTE: This file is unconditionally compiled because RSABSSA is implemented using BoringSSL on all platforms.
-@_implementationOnly import CCryptoBoringSSL
-@_implementationOnly import CCryptoBoringSSLShims
 import Crypto
 import CryptoBoringWrapper
+
+// NOTE: This file is unconditionally compiled because RSABSSA is implemented using BoringSSL on all platforms.
+#if hasFeature(SourceWarningControl)
+@diagnose(ImplementationOnlyDeprecated, as: ignored) @_implementationOnly import CCryptoBoringSSL
+@diagnose(ImplementationOnlyDeprecated, as: ignored) @_implementationOnly import CCryptoBoringSSLShims
+#else
+@_implementationOnly import CCryptoBoringSSL
+@_implementationOnly import CCryptoBoringSSLShims
+#endif
 
 #if canImport(FoundationEssentials)
 #if os(Windows)

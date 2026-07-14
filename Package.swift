@@ -41,6 +41,7 @@ let nonDarwinPlatforms: [Platform] = [
 var swiftSettings: [SwiftSetting] = [
     .define("CRYPTO_IN_SWIFTPM"),
     .enableExperimentalFeature("Lifetimes"),
+    .enableExperimentalFeature("SourceWarningControl"),
 ]
 
 // Only enable CheckImplementationOnly on 6.4 -- 6.3 has the feature, but produces many false positives.
