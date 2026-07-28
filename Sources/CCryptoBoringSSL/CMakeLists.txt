@@ -361,7 +361,10 @@ elseif(CMAKE_SYSTEM_NAME MATCHES "Windows" AND CMAKE_SYSTEM_PROCESSOR MATCHES "A
     gen/crypto/chacha-armv8-win.S
     gen/crypto/chacha20_poly1305_armv8-win.S)
 else()
-   message(FATAL_ERROR "platform sources are not defined here for ${CMAKE_SYSTEM_NAME} on ${CMAKE_SYSTEM_PROCESSOR}")
+  # No assembly is vendored for this platform. Fall back to the portable
+  # pure-C implementation; the assembly is only an optimization guarded by
+  # !defined(OPENSSL_NO_ASM).
+  target_compile_definitions(CCryptoBoringSSL PRIVATE OPENSSL_NO_ASM)
 endif()
 
 target_include_directories(CCryptoBoringSSL PUBLIC
