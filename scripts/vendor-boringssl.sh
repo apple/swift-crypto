@@ -330,6 +330,7 @@ echo "RENAMING header files"
 echo "PATCHING BoringSSL"
 git apply "${HERE}/scripts/patch-1-inttypes.patch"
 git apply "${HERE}/scripts/patch-2-more-inttypes.patch"
+git apply "${HERE}/scripts/patch-4-powerpc64le-target.patch"
 
 # We need to avoid having the stack be executable. BoringSSL does this in its build system, but we can't.
 echo "PROTECTING against executable stacks"

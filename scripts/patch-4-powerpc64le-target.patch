@@ -1,0 +1,16 @@
+diff --git a/Sources/CCryptoBoringSSL/include/CCryptoBoringSSL_target.h b/Sources/CCryptoBoringSSL/include/CCryptoBoringSSL_target.h
+index 8d4763d..b559151 100644
+--- a/Sources/CCryptoBoringSSL/include/CCryptoBoringSSL_target.h
++++ b/Sources/CCryptoBoringSSL/include/CCryptoBoringSSL_target.h
+@@ -54,6 +54,11 @@
+ #define OPENSSL_32_BIT
+ #elif defined(__myriad2__)
+ #define OPENSSL_32_BIT
++#elif defined(__powerpc64__) && defined(__BYTE_ORDER__) && \
++    __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
++// powerpc64le is a standard 64-bit two's-complement little-endian
++// architecture, supported by the portable C code (used with OPENSSL_NO_ASM).
++#define OPENSSL_64_BIT
+ #else
+ // The list above enumerates the platforms that BoringSSL supports. For these
+ // platforms we keep a reasonable bar of not breaking them: automated test
