@@ -117,6 +117,7 @@ let package = Package(
                 .headerSearchPath("low/KeccakP-1600"),
                 .headerSearchPath("low/common"),
                 .headerSearchPath("common"),
+                .disableWarning("macro-redefined"),
             ]
         ),
         .target(
