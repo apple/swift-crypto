@@ -17,9 +17,9 @@
 #else
 
 #if canImport(FoundationEssentials)
-public import FoundationEssentials
+import FoundationEssentials
 #else
-public import Foundation
+import Foundation
 #endif
 
 internal struct ANSIKDFx963<H: HashFunction>: Sendable {
