@@ -83,29 +83,36 @@ extension MLKEM${parameter_set} {
         }
 
         fileprivate final class Backing {
-            var key: MLKEM${parameter_set}_private_key
+            // @_implementationOnly import => must use OpaquePointer for stored property.
+            private let _storage: OpaquePointer
+            var key: UnsafeMutablePointer<MLKEM${parameter_set}_private_key> {
+                UnsafeMutablePointer(self._storage)
+            }
             var seed: Data
 
-            /// Initialize a ML-KEM-${parameter_set} private key from a random seed.
-            init() {
-                self.key = .init()
-                self.seed = Data()
+            /// This is the only designated initializer, responsible for the allocation. Deallocation happens in deinit.
+            /// To reduce mistakes (e.g. double-free), all other initializers should be convenience initializers.
+            private init(takingOwnershipOf pointer: UnsafeMutablePointer<MLKEM${parameter_set}_private_key>, seed: Data) {
+                self._storage = OpaquePointer(pointer)
+                self.seed = seed
+            }
 
-                self.seed = withUnsafeTemporaryAllocation(
-                    of: UInt8.self,
-                    capacity: MLKEM.seedByteCount
-                ) { seedPtr in
+            deinit {
+                self.key.deinitialize(count: 1)
+                self.key.deallocate()
+            }
+            /// Initialize a ML-KEM-${parameter_set} private key from a random seed.
+            convenience init() {
+                let keyPtr = UnsafeMutablePointer<MLKEM${parameter_set}_private_key>.allocate(capacity: 1)
+                keyPtr.initialize(to: MLKEM${parameter_set}_private_key())
+                self.init(takingOwnershipOf: keyPtr, seed: Data(repeating:0, count: MLKEM.seedByteCount))
+
+                seed.withUnsafeMutableBytes { seedPtr in
                     withUnsafeTemporaryAllocation(
                         of: UInt8.self,
                         capacity: MLKEM${parameter_set}.InternalPublicKey.byteCount
                     ) { publicKeyPtr in
-                        CCryptoBoringSSL_MLKEM${parameter_set}_generate_key(
-                            publicKeyPtr.baseAddress,
-                            seedPtr.baseAddress,
-                            &self.key
-                        )
-
-                        return Data(bytes: seedPtr.baseAddress!, count: MLKEM.seedByteCount)
+                        CCryptoBoringSSL_MLKEM${parameter_set}_generate_key(publicKeyPtr.baseAddress, seedPtr.baseAddress, keyPtr)
                     }
                 }
             }
@@ -115,23 +122,19 @@ extension MLKEM${parameter_set} {
             /// - Parameter seedRepresentation: The seed to use to generate the private key.
             ///
             /// - Throws: `CryptoKitError.incorrectKeySize` if the seed is not 64 bytes long.
-            init(seedRepresentation: some DataProtocol) throws {
+            convenience init(seedRepresentation: some DataProtocol) throws {
                 guard seedRepresentation.count == MLKEM.seedByteCount else {
                     throw CryptoKitError.incorrectKeySize
                 }
 
-                self.key = .init()
-                self.seed = Data(seedRepresentation)
+                let keyPtr = UnsafeMutablePointer<MLKEM${parameter_set}_private_key>.allocate(capacity: 1)
+                keyPtr.initialize(to: MLKEM${parameter_set}_private_key())
 
-                guard
-                    self.seed.withUnsafeBytes({ seedPtr in
-                        CCryptoBoringSSL_MLKEM${parameter_set}_private_key_from_seed(
-                            &self.key,
-                            seedPtr.baseAddress,
-                            seedPtr.count
-                        )
-                    }) == 1
-                else {
+                self.init(takingOwnershipOf: keyPtr, seed: Data(seedRepresentation))
+
+                guard self.seed.withUnsafeBytes({ seedPtr in
+                    CCryptoBoringSSL_MLKEM${parameter_set}_private_key_from_seed(keyPtr, seedPtr.baseAddress, seedPtr.count)
+                }) == 1 else {
                     throw CryptoKitError.internalBoringSSLError()
                 }
             }
@@ -165,7 +168,7 @@ extension MLKEM${parameter_set} {
                             symmetricKeyDataPtr.baseAddress,
                             encapsulatedPtr.baseAddress,
                             encapsulatedPtr.count,
-                            &self.key
+                            self.key
                         )
                     }
                 }
@@ -215,11 +218,26 @@ extension MLKEM${parameter_set} {
         static let byteCount = Backing.byteCount
 
         fileprivate final class Backing {
-            var key: MLKEM${parameter_set}_public_key
+            // @_implementationOnly import => must use OpaquePointer for stored property.
+            private let _storage: OpaquePointer
+            var key: UnsafeMutablePointer<MLKEM${parameter_set}_public_key> { UnsafeMutablePointer(self._storage) }
 
-            init(privateKeyBacking: InternalPrivateKey.Backing) {
-                self.key = .init()
-                CCryptoBoringSSL_MLKEM${parameter_set}_public_from_private(&self.key, &privateKeyBacking.key)
+            /// This is the only designated initializer, responsible for the allocation. Deallocation happens in deinit.
+            /// To reduce mistakes (e.g. double-free), all other initializers should be convenience initializers.
+            private init(takingOwnershipOf pointer: UnsafeMutablePointer<MLKEM${parameter_set}_public_key>) {
+                self._storage = OpaquePointer(pointer)
+            }
+
+            deinit {
+                self.key.deinitialize(count: 1)
+                self.key.deallocate()
+            }
+
+            convenience init(privateKeyBacking: InternalPrivateKey.Backing) {
+                let keyPtr = UnsafeMutablePointer<MLKEM${parameter_set}_public_key>.allocate(capacity: 1)
+                keyPtr.initialize(to: MLKEM${parameter_set}_public_key())
+                CCryptoBoringSSL_MLKEM${parameter_set}_public_from_private(keyPtr, privateKeyBacking.key)
+                self.init(takingOwnershipOf: keyPtr)
             }
 
             /// Initialize a ML-KEM-${parameter_set} public key from a raw representation.
@@ -227,12 +245,13 @@ extension MLKEM${parameter_set} {
             /// - Parameter rawRepresentation: The public key bytes.
             ///
             /// - Throws: `CryptoKitError.incorrectKeySize` if the raw representation is not the correct size.
-            init(rawRepresentation: some DataProtocol) throws {
+            convenience init(rawRepresentation: some DataProtocol) throws {
                 guard rawRepresentation.count == MLKEM${parameter_set}.InternalPublicKey.byteCount else {
                     throw CryptoKitError.incorrectKeySize
                 }
-
-                self.key = .init()
+                let keyPtr = UnsafeMutablePointer<MLKEM${parameter_set}_public_key>.allocate(capacity: 1)
+                keyPtr.initialize(to: MLKEM${parameter_set}_public_key())
+                self.init(takingOwnershipOf: keyPtr)
 
                 let bytes: ContiguousBytes =
                     rawRepresentation.regions.count == 1
@@ -241,7 +260,7 @@ extension MLKEM${parameter_set} {
                 try bytes.withUnsafeBytes { rawBuffer in
                     try rawBuffer.withMemoryRebound(to: UInt8.self) { buffer in
                         var cbs = CBS(data: buffer.baseAddress, len: buffer.count)
-                        guard CCryptoBoringSSL_MLKEM${parameter_set}_parse_public_key(&self.key, &cbs) == 1 else {
+                        guard CCryptoBoringSSL_MLKEM${parameter_set}_parse_public_key(self.key, &cbs) == 1 else {
                             throw CryptoKitError.internalBoringSSLError()
                         }
                     }
@@ -254,7 +273,7 @@ extension MLKEM${parameter_set} {
                 // The following BoringSSL functions can only fail on allocation failure, which we define as impossible.
                 CCryptoBoringSSL_CBB_init(&cbb, MLKEM${parameter_set}.InternalPublicKey.Backing.byteCount)
                 defer { CCryptoBoringSSL_CBB_cleanup(&cbb) }
-                CCryptoBoringSSL_MLKEM${parameter_set}_marshal_public_key(&cbb, &self.key)
+                CCryptoBoringSSL_MLKEM${parameter_set}_marshal_public_key(&cbb, self.key)
                 return Data(bytes: CCryptoBoringSSL_CBB_data(&cbb), count: CCryptoBoringSSL_CBB_len(&cbb))
             }
 
@@ -273,7 +292,7 @@ extension MLKEM${parameter_set} {
                         CCryptoBoringSSL_MLKEM${parameter_set}_encap(
                             encapsulatedPtr.baseAddress,
                             secretPtr.baseAddress,
-                            &self.key
+                            self.key
                         )
 
                         return KEM.EncapsulationResult(
