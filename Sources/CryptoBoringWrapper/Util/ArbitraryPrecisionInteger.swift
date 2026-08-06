@@ -59,46 +59,42 @@ package struct ArbitraryPrecisionInteger: @unchecked Sendable {
 extension ArbitraryPrecisionInteger {
     @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
     fileprivate final class BackingStorage {
-        // @_implementationOnly import => must use OpaquePointer for stored property.
-        private let _storage: OpaquePointer
-        private var _backing: UnsafeMutablePointer<BIGNUM> { UnsafeMutablePointer(self._storage) }
+        private var _backing: BIGNUM
 
-        /// This is the only designated initializer, responsible for the allocation. Deallocation happens in deinit.
-        /// To reduce mistakes (e.g. double-free), all other initializers should be convenience initializers.
-        private init(takingOwnershipOf pointer: UnsafeMutablePointer<BIGNUM>) {
-            self._storage = OpaquePointer(pointer)
+        init() {
+            self._backing = BIGNUM()
+            CCryptoBoringSSL_BN_init(&self._backing)
         }
 
-        convenience init() {
-            guard let backing = CCryptoBoringSSL_BN_new() else {
-                preconditionFailure("Unable to allocate memory for new ArbitraryPrecisionIntegers")
-            }
-            self.init(takingOwnershipOf: backing)
-        }
-
-        convenience init(copying original: UnsafePointer<BIGNUM>) throws {
-            self.init()
-            guard CCryptoBoringSSL_BN_copy(self._backing, original) != nil else {
+        init(copying original: UnsafePointer<BIGNUM>) throws {
+            self._backing = BIGNUM()
+            guard CCryptoBoringSSL_BN_copy(&self._backing, original) != nil else {
                 throw CryptoBoringWrapperError.internalBoringSSLError()
             }
         }
 
-        convenience init(copying original: BackingStorage) throws {
-            try self.init(copying: original._backing)
+        init(copying original: BackingStorage) throws {
+            self._backing = BIGNUM()
+
+            try original.withUnsafeMutableBignumPointer { bnPtr in
+                guard CCryptoBoringSSL_BN_copy(&self._backing, bnPtr) != nil else {
+                    throw CryptoBoringWrapperError.internalBoringSSLError()
+                }
+            }
         }
 
-        convenience init(_ value: Int64) {
-            self.init()
-            let rc = CCryptoBoringSSL_BN_set_u64(self._backing, value.magnitude)
+        init(_ value: Int64) {
+            self._backing = BIGNUM()
+            let rc = CCryptoBoringSSL_BN_set_u64(&self._backing, value.magnitude)
             precondition(rc == 1, "Unable to allocate memory for new ArbitraryPrecisionInteger")
 
             if value < 0 {
-                CCryptoBoringSSL_BN_set_negative(self._backing, 1)
+                CCryptoBoringSSL_BN_set_negative(&self._backing, 1)
             }
         }
 
         deinit {
-            CCryptoBoringSSL_BN_clear_free(self._backing)
+            CCryptoBoringSSL_BN_clear_free(&self._backing)
         }
     }
 }
@@ -130,7 +126,7 @@ extension ArbitraryPrecisionInteger.BackingStorage {
             CCryptoBoringSSLShims_BN_bin2bn(
                 bytesPointer.baseAddress,
                 bytesPointer.count,
-                self._backing
+                &self._backing
             )
         }
         guard rc != nil else {
@@ -143,10 +139,13 @@ extension ArbitraryPrecisionInteger.BackingStorage {
         self.init()
         try hexString.withCString { hexStringPtr in
             /// `BN_hex2bin` takes a `BIGNUM **` so we need a double WUMP dance.
-            var backingPtr: UnsafeMutablePointer<BIGNUM>? = self._backing
-            try withUnsafeMutablePointer(to: &backingPtr) { backingPtrPtr in
-                guard CCryptoBoringSSL_BN_hex2bn(backingPtrPtr, hexStringPtr) == hexString.count else {
-                    throw CryptoBoringWrapperError.incorrectParameterSize
+            try withUnsafeMutablePointer(to: &self._backing) { backingPtr in
+                var backingPtr: UnsafeMutablePointer<BIGNUM>? = backingPtr
+                try withUnsafeMutablePointer(to: &backingPtr) { backingPtrPtr in
+                    /// `BN_hex2bin` returns the number of bytes of `in` processed or zero on error.
+                    guard CCryptoBoringSSL_BN_hex2bn(backingPtrPtr, hexStringPtr) == hexString.count else {
+                        throw CryptoBoringWrapperError.incorrectParameterSize
+                    }
                 }
             }
         }
@@ -180,7 +179,7 @@ extension ArbitraryPrecisionInteger {
 @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension ArbitraryPrecisionInteger.BackingStorage {
     func withUnsafeBignumPointer<T>(_ body: (UnsafePointer<BIGNUM>) throws -> T) rethrows -> T {
-        try body(self._backing)
+        try body(&self._backing)
     }
 
     func withUnsafeMutableBignumPointer<T>(
@@ -188,7 +187,7 @@ extension ArbitraryPrecisionInteger.BackingStorage {
     )
         rethrows -> T
     {
-        try body(self._backing)
+        try body(&self._backing)
     }
 }
 
