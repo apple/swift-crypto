@@ -31,22 +31,10 @@ import Foundation
 /// A wrapper around BoringSSL's ECDSA_SIG with some lifetime management.
 @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 class ECDSASignature {
-    // @_implementationOnly import => must use OpaquePointer for stored property.
-    private let _storage: OpaquePointer
-    private var _baseSig: UnsafeMutablePointer<ECDSA_SIG> { UnsafeMutablePointer(self._storage) }
+    private var _baseSig: UnsafeMutablePointer<ECDSA_SIG>
 
-    /// This is the only designated initializer, responsible for the allocation. Deallocation happens in deinit.
-    /// To reduce mistakes (e.g. double-free), all other initializers should be convenience initializers.
-    init(takingOwnershipOf pointer: UnsafeMutablePointer<ECDSA_SIG>) {
-        self._storage = OpaquePointer(pointer)
-    }
-
-    deinit {
-        CCryptoBoringSSL_ECDSA_SIG_free(self._baseSig)
-    }
-
-    convenience init<ContiguousBuffer: ContiguousBytes>(contiguousDERBytes derBytes: ContiguousBuffer) throws {
-        let sig = try derBytes.withUnsafeBytes { bytesPtr in
+    init<ContiguousBuffer: ContiguousBytes>(contiguousDERBytes derBytes: ContiguousBuffer) throws {
+        self._baseSig = try derBytes.withUnsafeBytes { bytesPtr in
             guard
                 let sig = CCryptoBoringSSLShims_ECDSA_SIG_from_bytes(bytesPtr.baseAddress, bytesPtr.count)
             else {
@@ -54,11 +42,10 @@ class ECDSASignature {
             }
             return sig
         }
-        self.init(takingOwnershipOf: sig)
     }
 
     @usableFromInline
-    convenience init(rawRepresentation: Data) throws {
+    init(rawRepresentation: Data) throws {
         let half = rawRepresentation.count / 2
         let r = try ArbitraryPrecisionInteger(bytes: rawRepresentation.prefix(half))
         let s = try ArbitraryPrecisionInteger(bytes: rawRepresentation.suffix(half))
@@ -66,7 +53,7 @@ class ECDSASignature {
             throw CryptoKitError.internalBoringSSLError()
         }
 
-        self.init(takingOwnershipOf: sig)
+        self._baseSig = sig
 
         try r.withUnsafeBignumPointer { rPtr in
             try s.withUnsafeBignumPointer { sPtr in
@@ -91,6 +78,14 @@ class ECDSASignature {
                 // Success. We don't own the bignums anymore and mustn't free them.
             }
         }
+    }
+
+    init(takingOwnershipOf pointer: UnsafeMutablePointer<ECDSA_SIG>) {
+        self._baseSig = pointer
+    }
+
+    deinit {
+        CCryptoBoringSSL_ECDSA_SIG_free(self._baseSig)
     }
 
     @usableFromInline
