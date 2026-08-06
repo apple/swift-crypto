@@ -26,51 +26,45 @@ import Darwin
 
 @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 final class BoringSSLSHA512256Context {
-    // @_implementationOnly import => must use OpaquePointer for stored property.
-    private let _storage: OpaquePointer
-    private var context: UnsafeMutablePointer<SHA512_CTX> {
-        UnsafeMutablePointer(self._storage)
-    }
+    private var context: SHA512_CTX
 
-    /// This is the only designated initializer, responsible for the allocation. Deallocation happens in deinit.
-    /// To reduce mistakes (e.g. double-free), all other initializers should be convenience initializers.
-    private init(takingOwnershipOf pointer: UnsafeMutablePointer<SHA512_CTX>) {
-        self._storage = OpaquePointer(pointer)
+    init() {
+        guard let context = BoringSSLSHA512256HashFunction.initialize() else {
+            preconditionFailure("Unable to initialize digest state")
+        }
+        self.context = context
     }
 
     deinit {
-        self.context.zeroize()
-        self.context.deinitialize(count: 1)
-        self.context.deallocate()
-    }
-
-    convenience init() {
-        let ptr = UnsafeMutablePointer<SHA512_CTX>.allocate(capacity: 1)
-        ptr.initialize(to: SHA512_CTX())
-        self.init(takingOwnershipOf: ptr)
-
-        guard CCryptoBoringSSL_SHA512_256_Init(self.context) == 1 else {
-            preconditionFailure("Unable to initialize digest state")
+        withUnsafeMutablePointer(to: &self.context) {
+            $0.zeroize()
         }
     }
 
-    convenience init(copying original: BoringSSLSHA512256Context) {
-        let ptr = UnsafeMutablePointer<SHA512_CTX>.allocate(capacity: 1)
-        ptr.initialize(to: original.context.pointee)
-        self.init(takingOwnershipOf: ptr)
+    init(copying original: BoringSSLSHA512256Context) {
+        self.context = original.context
     }
 
     func update(bufferPointer data: UnsafeRawBufferPointer) {
-        guard CCryptoBoringSSL_SHA512_256_Update(self.context, data.baseAddress, data.count) == 1 else {
+        guard BoringSSLSHA512256HashFunction.update(&self.context, data: data) else {
             preconditionFailure("Unable to update digest state")
         }
     }
 
     func finalize() -> SHA512256Digest {
-        var contextCopy = self.context.pointee
-        defer { withUnsafeMutablePointer(to: &contextCopy) { $0.zeroize() } }
-        return withUnsafeTemporaryAllocation(byteCount: SHA512256Digest.byteCount, alignment: 1) { digestPointer in
-            guard CCryptoBoringSSL_SHA512_256_Final(digestPointer.baseAddress, &contextCopy) == 1 else {
+        var copyContext = self.context
+        defer {
+            withUnsafeMutablePointer(to: &copyContext) {
+                $0.zeroize()
+            }
+        }
+        return withUnsafeTemporaryAllocation(byteCount: BoringSSLSHA512256HashFunction.digestSize, alignment: 1) {
+            digestPointer in
+            defer {
+                digestPointer.zeroize()
+            }
+
+            guard BoringSSLSHA512256HashFunction.finalize(&copyContext, digest: digestPointer) else {
                 preconditionFailure("Unable to finalize digest state")
             }
             // We force unwrap here because if the digest size is wrong it's an internal error.

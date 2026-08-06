@@ -34,6 +34,7 @@ add_library(CryptoExtras
   "ChaCha20CTR/BoringSSL/ChaCha20CTR_boring.swift"
   "ChaCha20CTR/ChaCha20CTR.swift"
   "Digests/BoringSSL/BoringSSLSHA512256Context.swift"
+  "Digests/BoringSSL/BoringSSLSHA512256HashFunction.swift"
   "Digests/SHA512256.swift"
   "Digests/SHA512256Digest.swift"
   "EC/Curve25519+PEM.swift"
