@@ -96,32 +96,19 @@ extension MLDSA65 {
         static let byteCount = Backing.byteCount
 
         fileprivate final class Backing {
-            // @_implementationOnly import => must use OpaquePointer for stored property.
-            private let _storage: OpaquePointer
-            fileprivate var key: UnsafeMutablePointer<MLDSA65_private_key> {
-                UnsafeMutablePointer(self._storage)
-            }
+            fileprivate var key: MLDSA65_private_key
             var seed: Data
 
-            /// This is the only designated initializer, responsible for the allocation. Deallocation happens in deinit.
-            /// To reduce mistakes (e.g. double-free), all other initializers should be convenience initializers.
-            private init(takingOwnershipOf pointer: UnsafeMutablePointer<MLDSA65_private_key>, seed: Data) {
-                self._storage = OpaquePointer(pointer)
-                self.seed = seed
-            }
-
-            deinit {
-                self.key.deinitialize(count: 1)
-                self.key.deallocate()
-            }
-
             /// Initialize a ML-DSA-65 private key from a random seed.
-            convenience init() throws {
-                let keyPtr = UnsafeMutablePointer<MLDSA65_private_key>.allocate(capacity: 1)
-                keyPtr.initialize(to: MLDSA65_private_key())
-                self.init(takingOwnershipOf: keyPtr, seed: Data(repeating: 0, count: MLDSA.seedByteCount))
+            init() throws {
+                // We have to initialize all members before `self` is captured by the closure
+                self.key = .init()
+                self.seed = Data()
 
-                try self.seed.withUnsafeMutableBytes { seedPtr in
+                self.seed = try withUnsafeTemporaryAllocation(
+                    of: UInt8.self,
+                    capacity: MLDSA.seedByteCount
+                ) { seedPtr in
                     try withUnsafeTemporaryAllocation(
                         of: UInt8.self,
                         capacity: MLDSA65.InternalPublicKey.Backing.byteCount
@@ -130,11 +117,13 @@ extension MLDSA65 {
                             CCryptoBoringSSL_MLDSA65_generate_key(
                                 publicKeyPtr.baseAddress,
                                 seedPtr.baseAddress,
-                                self.key
+                                &self.key
                             ) == 1
                         else {
                             throw CryptoKitError.internalBoringSSLError()
                         }
+
+                        return Data(bytes: seedPtr.baseAddress!, count: MLDSA.seedByteCount)
                     }
                 }
             }
@@ -144,20 +133,18 @@ extension MLDSA65 {
             /// - Parameter seedRepresentation: The seed to use to generate the private key.
             ///
             /// - Throws: `CryptoKitError.incorrectKeySize` if the seed is not 32 bytes long.
-            convenience init(seedRepresentation: some DataProtocol) throws {
+            init(seedRepresentation: some DataProtocol) throws {
                 guard seedRepresentation.count == MLDSA.seedByteCount else {
                     throw CryptoKitError.incorrectKeySize
                 }
 
-                let keyPtr = UnsafeMutablePointer<MLDSA65_private_key>.allocate(capacity: 1)
-                keyPtr.initialize(to: MLDSA65_private_key())
-
-                self.init(takingOwnershipOf: keyPtr, seed: Data(seedRepresentation))
+                self.key = .init()
+                self.seed = Data(seedRepresentation)
 
                 guard
                     self.seed.withUnsafeBytes({ seedPtr in
                         CCryptoBoringSSL_MLDSA65_private_key_from_seed(
-                            self.key,
+                            &self.key,
                             seedPtr.baseAddress,
                             MLDSA.seedByteCount
                         )
@@ -188,7 +175,7 @@ extension MLDSA65 {
                         context.withUnsafeBytes { contextPtr in
                             CCryptoBoringSSL_MLDSA65_sign(
                                 signaturePtr.baseAddress,
-                                self.key,
+                                &self.key,
                                 dataPtr.baseAddress,
                                 dataPtr.count,
                                 contextPtr.baseAddress,
@@ -267,28 +254,11 @@ extension MLDSA65 {
         static let byteCount = Backing.byteCount
 
         fileprivate final class Backing {
-            // @_implementationOnly import => must use OpaquePointer for stored property.
-            private let _storage: OpaquePointer
-            var key: UnsafeMutablePointer<MLDSA65_public_key> {
-                UnsafeMutablePointer(self._storage)
-            }
+            private var key: MLDSA65_public_key
 
-            /// This is the only designated initializer, responsible for the allocation. Deallocation happens in deinit.
-            /// To reduce mistakes (e.g. double-free), all other initializers should be convenience initializers.
-            private init(takingOwnershipOf pointer: UnsafeMutablePointer<MLDSA65_public_key>) {
-                self._storage = OpaquePointer(pointer)
-            }
-
-            deinit {
-                self.key.deinitialize(count: 1)
-                self.key.deallocate()
-            }
-
-            convenience init(privateKeyBacking: InternalPrivateKey.Backing) {
-                let keyPtr = UnsafeMutablePointer<MLDSA65_public_key>.allocate(capacity: 1)
-                keyPtr.initialize(to: MLDSA65_public_key())
-                self.init(takingOwnershipOf: keyPtr)
-                CCryptoBoringSSL_MLDSA65_public_from_private(self.key, privateKeyBacking.key)
+            init(privateKeyBacking: InternalPrivateKey.Backing) {
+                self.key = .init()
+                CCryptoBoringSSL_MLDSA65_public_from_private(&self.key, &privateKeyBacking.key)
             }
 
             /// Initialize a ML-DSA-65 public key from a raw representation.
@@ -296,14 +266,12 @@ extension MLDSA65 {
             /// - Parameter rawRepresentation: The public key bytes.
             ///
             /// - Throws: `CryptoKitError.incorrectKeySize` if the raw representation is not the correct size.
-            convenience init(rawRepresentation: some DataProtocol) throws {
+            init(rawRepresentation: some DataProtocol) throws {
                 guard rawRepresentation.count == MLDSA65.InternalPublicKey.Backing.byteCount else {
                     throw CryptoKitError.incorrectKeySize
                 }
 
-                let keyPtr = UnsafeMutablePointer<MLDSA65_public_key>.allocate(capacity: 1)
-                keyPtr.initialize(to: MLDSA65_public_key())
-                self.init(takingOwnershipOf: keyPtr)
+                self.key = .init()
 
                 let bytes: ContiguousBytes =
                     rawRepresentation.regions.count == 1
@@ -312,7 +280,7 @@ extension MLDSA65 {
                 try bytes.withUnsafeBytes { rawBuffer in
                     try rawBuffer.withMemoryRebound(to: UInt8.self) { buffer in
                         var cbs = CBS(data: buffer.baseAddress, len: buffer.count)
-                        guard CCryptoBoringSSL_MLDSA65_parse_public_key(self.key, &cbs) == 1 else {
+                        guard CCryptoBoringSSL_MLDSA65_parse_public_key(&self.key, &cbs) == 1 else {
                             throw CryptoKitError.internalBoringSSLError()
                         }
                     }
@@ -325,7 +293,7 @@ extension MLDSA65 {
                 // The following BoringSSL functions can only fail on allocation failure, which we define as impossible.
                 CCryptoBoringSSL_CBB_init(&cbb, MLDSA65.InternalPublicKey.Backing.byteCount)
                 defer { CCryptoBoringSSL_CBB_cleanup(&cbb) }
-                CCryptoBoringSSL_MLDSA65_marshal_public_key(&cbb, self.key)
+                CCryptoBoringSSL_MLDSA65_marshal_public_key(&cbb, &self.key)
                 return Data(bytes: CCryptoBoringSSL_CBB_data(&cbb), count: CCryptoBoringSSL_CBB_len(&cbb))
             }
 
@@ -349,7 +317,7 @@ extension MLDSA65 {
                     let rc: CInt = dataBytes.withUnsafeBytes { dataPtr in
                         context.withUnsafeBytes { contextPtr in
                             CCryptoBoringSSL_MLDSA65_verify(
-                                self.key,
+                                &self.key,
                                 signaturePtr.baseAddress,
                                 signaturePtr.count,
                                 dataPtr.baseAddress,
@@ -430,32 +398,19 @@ extension MLDSA87 {
         static let byteCount = Backing.byteCount
 
         fileprivate final class Backing {
-            // @_implementationOnly import => must use OpaquePointer for stored property.
-            private let _storage: OpaquePointer
-            fileprivate var key: UnsafeMutablePointer<MLDSA87_private_key> {
-                UnsafeMutablePointer(self._storage)
-            }
+            fileprivate var key: MLDSA87_private_key
             var seed: Data
 
-            /// This is the only designated initializer, responsible for the allocation. Deallocation happens in deinit.
-            /// To reduce mistakes (e.g. double-free), all other initializers should be convenience initializers.
-            private init(takingOwnershipOf pointer: UnsafeMutablePointer<MLDSA87_private_key>, seed: Data) {
-                self._storage = OpaquePointer(pointer)
-                self.seed = seed
-            }
-
-            deinit {
-                self.key.deinitialize(count: 1)
-                self.key.deallocate()
-            }
-
             /// Initialize a ML-DSA-87 private key from a random seed.
-            convenience init() throws {
-                let keyPtr = UnsafeMutablePointer<MLDSA87_private_key>.allocate(capacity: 1)
-                keyPtr.initialize(to: MLDSA87_private_key())
-                self.init(takingOwnershipOf: keyPtr, seed: Data(repeating: 0, count: MLDSA.seedByteCount))
+            init() throws {
+                // We have to initialize all members before `self` is captured by the closure
+                self.key = .init()
+                self.seed = Data()
 
-                try self.seed.withUnsafeMutableBytes { seedPtr in
+                self.seed = try withUnsafeTemporaryAllocation(
+                    of: UInt8.self,
+                    capacity: MLDSA.seedByteCount
+                ) { seedPtr in
                     try withUnsafeTemporaryAllocation(
                         of: UInt8.self,
                         capacity: MLDSA87.InternalPublicKey.Backing.byteCount
@@ -464,11 +419,13 @@ extension MLDSA87 {
                             CCryptoBoringSSL_MLDSA87_generate_key(
                                 publicKeyPtr.baseAddress,
                                 seedPtr.baseAddress,
-                                self.key
+                                &self.key
                             ) == 1
                         else {
                             throw CryptoKitError.internalBoringSSLError()
                         }
+
+                        return Data(bytes: seedPtr.baseAddress!, count: MLDSA.seedByteCount)
                     }
                 }
             }
@@ -478,20 +435,18 @@ extension MLDSA87 {
             /// - Parameter seedRepresentation: The seed to use to generate the private key.
             ///
             /// - Throws: `CryptoKitError.incorrectKeySize` if the seed is not 32 bytes long.
-            convenience init(seedRepresentation: some DataProtocol) throws {
+            init(seedRepresentation: some DataProtocol) throws {
                 guard seedRepresentation.count == MLDSA.seedByteCount else {
                     throw CryptoKitError.incorrectKeySize
                 }
 
-                let keyPtr = UnsafeMutablePointer<MLDSA87_private_key>.allocate(capacity: 1)
-                keyPtr.initialize(to: MLDSA87_private_key())
-
-                self.init(takingOwnershipOf: keyPtr, seed: Data(seedRepresentation))
+                self.key = .init()
+                self.seed = Data(seedRepresentation)
 
                 guard
                     self.seed.withUnsafeBytes({ seedPtr in
                         CCryptoBoringSSL_MLDSA87_private_key_from_seed(
-                            self.key,
+                            &self.key,
                             seedPtr.baseAddress,
                             MLDSA.seedByteCount
                         )
@@ -522,7 +477,7 @@ extension MLDSA87 {
                         context.withUnsafeBytes { contextPtr in
                             CCryptoBoringSSL_MLDSA87_sign(
                                 signaturePtr.baseAddress,
-                                self.key,
+                                &self.key,
                                 dataPtr.baseAddress,
                                 dataPtr.count,
                                 contextPtr.baseAddress,
@@ -601,28 +556,11 @@ extension MLDSA87 {
         static let byteCount = Backing.byteCount
 
         fileprivate final class Backing {
-            // @_implementationOnly import => must use OpaquePointer for stored property.
-            private let _storage: OpaquePointer
-            var key: UnsafeMutablePointer<MLDSA87_public_key> {
-                UnsafeMutablePointer(self._storage)
-            }
+            private var key: MLDSA87_public_key
 
-            /// This is the only designated initializer, responsible for the allocation. Deallocation happens in deinit.
-            /// To reduce mistakes (e.g. double-free), all other initializers should be convenience initializers.
-            private init(takingOwnershipOf pointer: UnsafeMutablePointer<MLDSA87_public_key>) {
-                self._storage = OpaquePointer(pointer)
-            }
-
-            deinit {
-                self.key.deinitialize(count: 1)
-                self.key.deallocate()
-            }
-
-            convenience init(privateKeyBacking: InternalPrivateKey.Backing) {
-                let keyPtr = UnsafeMutablePointer<MLDSA87_public_key>.allocate(capacity: 1)
-                keyPtr.initialize(to: MLDSA87_public_key())
-                self.init(takingOwnershipOf: keyPtr)
-                CCryptoBoringSSL_MLDSA87_public_from_private(self.key, privateKeyBacking.key)
+            init(privateKeyBacking: InternalPrivateKey.Backing) {
+                self.key = .init()
+                CCryptoBoringSSL_MLDSA87_public_from_private(&self.key, &privateKeyBacking.key)
             }
 
             /// Initialize a ML-DSA-87 public key from a raw representation.
@@ -630,14 +568,12 @@ extension MLDSA87 {
             /// - Parameter rawRepresentation: The public key bytes.
             ///
             /// - Throws: `CryptoKitError.incorrectKeySize` if the raw representation is not the correct size.
-            convenience init(rawRepresentation: some DataProtocol) throws {
+            init(rawRepresentation: some DataProtocol) throws {
                 guard rawRepresentation.count == MLDSA87.InternalPublicKey.Backing.byteCount else {
                     throw CryptoKitError.incorrectKeySize
                 }
 
-                let keyPtr = UnsafeMutablePointer<MLDSA87_public_key>.allocate(capacity: 1)
-                keyPtr.initialize(to: MLDSA87_public_key())
-                self.init(takingOwnershipOf: keyPtr)
+                self.key = .init()
 
                 let bytes: ContiguousBytes =
                     rawRepresentation.regions.count == 1
@@ -646,7 +582,7 @@ extension MLDSA87 {
                 try bytes.withUnsafeBytes { rawBuffer in
                     try rawBuffer.withMemoryRebound(to: UInt8.self) { buffer in
                         var cbs = CBS(data: buffer.baseAddress, len: buffer.count)
-                        guard CCryptoBoringSSL_MLDSA87_parse_public_key(self.key, &cbs) == 1 else {
+                        guard CCryptoBoringSSL_MLDSA87_parse_public_key(&self.key, &cbs) == 1 else {
                             throw CryptoKitError.internalBoringSSLError()
                         }
                     }
@@ -659,7 +595,7 @@ extension MLDSA87 {
                 // The following BoringSSL functions can only fail on allocation failure, which we define as impossible.
                 CCryptoBoringSSL_CBB_init(&cbb, MLDSA87.InternalPublicKey.Backing.byteCount)
                 defer { CCryptoBoringSSL_CBB_cleanup(&cbb) }
-                CCryptoBoringSSL_MLDSA87_marshal_public_key(&cbb, self.key)
+                CCryptoBoringSSL_MLDSA87_marshal_public_key(&cbb, &self.key)
                 return Data(bytes: CCryptoBoringSSL_CBB_data(&cbb), count: CCryptoBoringSSL_CBB_len(&cbb))
             }
 
@@ -683,7 +619,7 @@ extension MLDSA87 {
                     let rc: CInt = dataBytes.withUnsafeBytes { dataPtr in
                         context.withUnsafeBytes { contextPtr in
                             CCryptoBoringSSL_MLDSA87_verify(
-                                self.key,
+                                &self.key,
                                 signaturePtr.baseAddress,
                                 signaturePtr.count,
                                 dataPtr.baseAddress,
