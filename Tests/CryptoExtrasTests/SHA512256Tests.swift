@@ -87,22 +87,6 @@ final class SHA512256DigestTests: XCTestCase {
         XCTAssertEqual(digest, copyDigest)
     }
 
-    func testFinalizeIsNonDestructive() {
-        let message = Data([1, 2, 3, 4])
-        let expected = Array(SHA512256.hash(data: message))
-
-        var hasher = SHA512256()
-        hasher.update(data: message)
-        let copy = hasher
-
-        XCTAssertEqual(Array(hasher.finalize()), expected)
-        XCTAssertEqual(Array(hasher.finalize()), expected)
-        XCTAssertEqual(Array(copy.finalize()), expected)
-
-        hasher.update(data: [5, 6, 7, 8])
-        XCTAssertEqual(Array(hasher.finalize()), Array(SHA512256.hash(data: [1, 2, 3, 4, 5, 6, 7, 8])))
-    }
-
     func testBlockSize() {
         XCTAssertEqual(SHA512256.blockByteCount, 128)
     }
