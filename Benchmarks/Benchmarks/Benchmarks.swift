@@ -21,7 +21,7 @@ import FoundationEssentials
 import Foundation
 #endif
 
-let benchmarks: @Sendable () -> Void = {
+let benchmarks = {
     let defaultMetrics: [BenchmarkMetric] = [.mallocCountTotal, .cpuTotal]
 
     Benchmark(
@@ -206,100 +206,6 @@ let benchmarks: @Sendable () -> Void = {
         for _ in benchmark.scaledIterations {
             let (key1, key2) = (P521.KeyAgreement.PrivateKey(), P521.KeyAgreement.PrivateKey())
             blackHole(try key1.sharedSecretFromKeyAgreement(with: key2.publicKey))
-        }
-    }
-
-    for (label, size) in [("1kb", 1024), ("64kb", 64 * 1024)] {
-        Benchmark(
-            "aes-gcm-seal-open-\(label)",
-            configuration: Benchmark.Configuration(
-                metrics: [.wallClock, .cpuTotal],
-                scalingFactor: .kilo,
-                maxDuration: .seconds(10_000_000),
-                maxIterations: 10
-            )
-        ) { benchmark in
-            let key = SymmetricKey(size: .bits256)
-            let plaintext = Data(repeating: 0xAB, count: size)
-            benchmark.startMeasurement()
-            for _ in benchmark.scaledIterations {
-                let box = try AES.GCM.seal(plaintext, using: key)
-                blackHole(try AES.GCM.open(box, using: key))
-            }
-        }
-
-        Benchmark(
-            "chachapoly-seal-open-\(label)",
-            configuration: Benchmark.Configuration(
-                metrics: [.wallClock, .cpuTotal],
-                scalingFactor: .kilo,
-                maxDuration: .seconds(10_000_000),
-                maxIterations: 10
-            )
-        ) { benchmark in
-            let key = SymmetricKey(size: .bits256)
-            let plaintext = Data(repeating: 0xAB, count: size)
-            benchmark.startMeasurement()
-            for _ in benchmark.scaledIterations {
-                let box = try ChaChaPoly.seal(plaintext, using: key)
-                blackHole(try ChaChaPoly.open(box, using: key))
-            }
-        }
-    }
-
-    Benchmark(
-        "rsa-blind-2048",
-        configuration: Benchmark.Configuration(
-            metrics: [.wallClock, .cpuTotal],
-            scalingFactor: .kilo,
-            maxDuration: .seconds(10_000_000),
-            maxIterations: 5
-        )
-    ) { benchmark in
-        let privateKey = try _RSA.BlindSigning.PrivateKey<SHA384>(keySize: .bits2048)
-        let publicKey = privateKey.publicKey
-        let prepared = publicKey.prepare(Data("This is some input data".utf8))
-        benchmark.startMeasurement()
-        for _ in benchmark.scaledIterations {
-            blackHole(try publicKey.blind(prepared))
-        }
-    }
-
-    Benchmark(
-        "rsa-blind-signing-roundtrip-2048",
-        configuration: Benchmark.Configuration(
-            metrics: [.wallClock, .cpuTotal],
-            scalingFactor: .kilo,
-            maxDuration: .seconds(10_000_000),
-            maxIterations: 3
-        )
-    ) { benchmark in
-        let privateKey = try _RSA.BlindSigning.PrivateKey<SHA384>(keySize: .bits2048)
-        let publicKey = privateKey.publicKey
-        let message = Data("This is some input data".utf8)
-        benchmark.startMeasurement()
-        for _ in benchmark.scaledIterations {
-            let prepared = publicKey.prepare(message)
-            let blinded = try publicKey.blind(prepared)
-            let blindSig = try privateKey.blindSignature(for: blinded.blindedMessage)
-            let signature = try publicKey.finalize(blindSig, for: prepared, blindingInverse: blinded.inverse)
-            blackHole(publicKey.isValidSignature(signature, for: prepared))
-        }
-    }
-
-    Benchmark(
-        "sha512-256-64b",
-        configuration: Benchmark.Configuration(
-            metrics: [.mallocCountTotal, .wallClock, .cpuTotal],
-            scalingFactor: .kilo,
-            maxDuration: .seconds(10_000_000),
-            maxIterations: 100
-        )
-    ) { benchmark in
-        let message = Data(repeating: 0xAB, count: 64)
-        benchmark.startMeasurement()
-        for _ in benchmark.scaledIterations {
-            blackHole(SHA512256.hash(data: message))
         }
     }
 }
