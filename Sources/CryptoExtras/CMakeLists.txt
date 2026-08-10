@@ -86,15 +86,13 @@ add_library(CryptoExtras
 target_compile_options(CryptoExtras PRIVATE -DCRYPTO_IN_SWIFTPM)
 
 target_include_directories(CryptoExtras PRIVATE
-  $<TARGET_PROPERTY:CCryptoBoringSSL,INCLUDE_DIRECTORIES>
-  $<TARGET_PROPERTY:CCryptoBoringSSLShims,INCLUDE_DIRECTORIES>)
+  $<TARGET_PROPERTY:CCryptoBoringSSL,INCLUDE_DIRECTORIES>)
 
 target_link_libraries(CryptoExtras PUBLIC
   $<$<NOT:$<PLATFORM_ID:Darwin>>:Foundation>
   Crypto
   CryptoBoringWrapper
-  CCryptoBoringSSL
-  CCryptoBoringSSLShims)
+  CCryptoBoringSSL)
 
 target_compile_options(CryptoExtras PRIVATE ${SWIFT_CRYPTO_COMPILE_OPTIONS})
 

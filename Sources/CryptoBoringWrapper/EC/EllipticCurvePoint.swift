@@ -13,10 +13,8 @@
 //===----------------------------------------------------------------------===//
 #if hasFeature(SourceWarningControl)
 @diagnose(ImplementationOnlyDeprecated, as: ignored) @_implementationOnly import CCryptoBoringSSL
-@diagnose(ImplementationOnlyDeprecated, as: ignored) @_implementationOnly import CCryptoBoringSSLShims
 #else
 @_implementationOnly import CCryptoBoringSSL
-@_implementationOnly import CCryptoBoringSSLShims
 #endif
 
 #if canImport(FoundationEssentials)
@@ -494,29 +492,35 @@ extension EllipticCurvePoint {
             to group: BoringSSLEllipticCurveGroup,
             domainSeparationTag: DSTBytes
         ) throws {
-            let hashToCurveFunction =
-                switch group.curveName {
-                case .p256: CCryptoBoringSSLShims_EC_hash_to_curve_p256_xmd_sha256_sswu
-                case .p384: CCryptoBoringSSLShims_EC_hash_to_curve_p384_xmd_sha384_sswu
-                // BoringSSL has no P521 hash_to_curve API.
-                case .p521: throw CryptoBoringWrapperError.invalidParameter
-                case .none: throw CryptoBoringWrapperError.internalBoringSSLError()
-                }
-
             try self.init(_pointAtInfinityOn: group)
             try msg.withUnsafeBytes { msgPtr in
                 try group.withUnsafeGroupPointer { groupPtr in
                     try domainSeparationTag.withUnsafeBytes { dstPtr in
-                        guard
-                            hashToCurveFunction(
+                        let rc: CInt
+                        switch group.curveName {
+                        case .p256:
+                            rc = CCryptoBoringSSL_EC_hash_to_curve_p256_xmd_sha256_sswu(
                                 groupPtr,
                                 self._basePoint,
                                 dstPtr.baseAddress,
                                 dstPtr.count,
                                 msgPtr.baseAddress,
                                 msgPtr.count
-                            ) == 1
-                        else { throw CryptoBoringWrapperError.internalBoringSSLError() }
+                            )
+                        case .p384:
+                            rc = CCryptoBoringSSL_EC_hash_to_curve_p384_xmd_sha384_sswu(
+                                groupPtr,
+                                self._basePoint,
+                                dstPtr.baseAddress,
+                                dstPtr.count,
+                                msgPtr.baseAddress,
+                                msgPtr.count
+                            )
+                        // BoringSSL has no P521 hash_to_curve API.
+                        case .p521: throw CryptoBoringWrapperError.invalidParameter
+                        case .none: throw CryptoBoringWrapperError.internalBoringSSLError()
+                        }
+                        guard rc == 1 else { throw CryptoBoringWrapperError.internalBoringSSLError() }
                     }
                 }
             }
@@ -603,7 +607,7 @@ extension EllipticCurvePoint {
 
             let numBytesWritten = group.withUnsafeGroupPointer { groupPtr in
                 buf.withUnsafeMutableBytes { bufPtr in
-                    CCryptoBoringSSLShims_EC_POINT_point2oct(
+                    CCryptoBoringSSL_EC_POINT_point2oct(
                         groupPtr,
                         self._basePoint,
                         compressed ? POINT_CONVERSION_COMPRESSED : POINT_CONVERSION_UNCOMPRESSED,

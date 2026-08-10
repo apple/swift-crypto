@@ -71,7 +71,7 @@ extension MessageAuthenticationCode {
     
     public func makeIterator() -> Array<UInt8>.Iterator {
         self.withUnsafeBytes({ (buffPtr) in
-            return Array(buffPtr.bindMemory(to: UInt8.self)).makeIterator()
+            return Array(buffPtr).makeIterator()
         })
     }
     

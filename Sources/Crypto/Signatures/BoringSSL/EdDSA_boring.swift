@@ -16,10 +16,8 @@
 #else
 #if hasFeature(SourceWarningControl)
 @diagnose(ImplementationOnlyDeprecated, as: ignored) @_implementationOnly import CCryptoBoringSSL
-@diagnose(ImplementationOnlyDeprecated, as: ignored) @_implementationOnly import CCryptoBoringSSLShims
 #else
 @_implementationOnly import CCryptoBoringSSL
-@_implementationOnly import CCryptoBoringSSLShims
 #endif
 #if canImport(FoundationEssentials)
 import FoundationEssentials
@@ -94,7 +92,7 @@ extension Curve25519.Signing.PublicKey {
         precondition(signaturePointer.count == Curve25519.Signing.PublicKey.signatureByteCount)
         precondition(self.keyBytes.count == 32)
         let rc: CInt = self.keyBytes.withUnsafeBytes { keyBytesPtr in
-            CCryptoBoringSSLShims_ED25519_verify(
+            CCryptoBoringSSL_ED25519_verify(
                 dataPointer.baseAddress,
                 dataPointer.count,
                 signaturePointer.baseAddress,
@@ -133,7 +131,7 @@ extension Curve25519.Signing.PrivateKey {
                 precondition(signaturePointer.count == Curve25519.Signing.PublicKey.signatureByteCount)
                 precondition(keyPointer.count == ED25519_PRIVATE_KEY_LEN)
 
-                return CCryptoBoringSSLShims_ED25519_sign(
+                return CCryptoBoringSSL_ED25519_sign(
                     signaturePointer.baseAddress,
                     dataPointer.baseAddress,
                     dataPointer.count,

@@ -14,10 +14,8 @@
 
 #if hasFeature(SourceWarningControl)
 @diagnose(ImplementationOnlyDeprecated, as: ignored) @_implementationOnly import CCryptoBoringSSL
-@diagnose(ImplementationOnlyDeprecated, as: ignored) @_implementationOnly import CCryptoBoringSSLShims
 #else
 @_implementationOnly import CCryptoBoringSSL
-@_implementationOnly import CCryptoBoringSSLShims
 #endif
 
 #if canImport(FoundationEssentials)
@@ -52,7 +50,7 @@ extension BoringSSLAEAD {
             let rc: CInt = key.withUnsafeBytes { keyPointer in
                 withUnsafeMutablePointer(to: &self.context) { contextPointer in
                     // Create the AEAD context with a default tag length using the given key.
-                    CCryptoBoringSSLShims_EVP_AEAD_CTX_init(
+                    CCryptoBoringSSL_EVP_AEAD_CTX_init(
                         contextPointer,
                         cipher.boringSSLCipher,
                         keyPointer.baseAddress,
@@ -177,7 +175,7 @@ extension BoringSSLAEAD.AEADContext {
 
                     return authenticatedData.withUnsafeBytes { authenticatedDataBuffer in
                         nonce.withUnsafeBytes { nonceBuffer in
-                            CCryptoBoringSSLShims_EVP_AEAD_CTX_seal_scatter(
+                            CCryptoBoringSSL_EVP_AEAD_CTX_seal_scatter(
                                 contextPointer,
                                 messageBuffer.baseAddress,
                                 tagBuffer.baseAddress! + tagInitializedCount,
@@ -319,7 +317,7 @@ extension BoringSSLAEAD.AEADContext {
                 nonce.withUnsafeBytes { nonceBuffer in
                     tag.withUnsafeBytes { tagBuffer in
                         authenticatedData.withUnsafeBytes { adBuffer in
-                            CCryptoBoringSSLShims_EVP_AEAD_CTX_open_gather(
+                            CCryptoBoringSSL_EVP_AEAD_CTX_open_gather(
                                 contextPointer,
                                 messageBuffer.baseAddress,
                                 nonceBuffer.baseAddress,
@@ -430,7 +428,7 @@ extension BoringSSLAEAD.AEADContext {
 
         var writtenBytes = 0
         let rc = withUnsafePointer(to: &self.context) { contextPointer in
-            CCryptoBoringSSLShims_EVP_AEAD_CTX_open(
+            CCryptoBoringSSL_EVP_AEAD_CTX_open(
                 contextPointer,
                 outputBuffer.baseAddress,
                 &writtenBytes,

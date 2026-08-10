@@ -24,7 +24,7 @@ final class CXKCPTests: XCTestCase {
         var output = [UInt8](repeating: 0, count: 32)
 
         let result = input.withUnsafeBytes { inputBytes in
-            SHA3_256(&output, inputBytes.bindMemory(to: UInt8.self).baseAddress, inputBytes.count)
+            SHA3_256(&output, inputBytes.baseAddress, inputBytes.count)
         }
 
         // Should return 0 on success
@@ -43,7 +43,7 @@ final class CXKCPTests: XCTestCase {
         var output = [UInt8](repeating: 0, count: 28)
 
         let result = input.withUnsafeBytes { inputBytes in
-            SHA3_224(&output, inputBytes.bindMemory(to: UInt8.self).baseAddress, inputBytes.count)
+            SHA3_224(&output, inputBytes.baseAddress, inputBytes.count)
         }
 
         // Should return 0 on success
@@ -62,7 +62,7 @@ final class CXKCPTests: XCTestCase {
         var output = [UInt8](repeating: 0, count: 48)
 
         let result = input.withUnsafeBytes { inputBytes in
-            SHA3_384(&output, inputBytes.bindMemory(to: UInt8.self).baseAddress, inputBytes.count)
+            SHA3_384(&output, inputBytes.baseAddress, inputBytes.count)
         }
 
         // Should return 0 on success
@@ -82,7 +82,7 @@ final class CXKCPTests: XCTestCase {
         var output = [UInt8](repeating: 0, count: 64)
 
         let result = input.withUnsafeBytes { inputBytes in
-            SHA3_512(&output, inputBytes.bindMemory(to: UInt8.self).baseAddress, inputBytes.count)
+            SHA3_512(&output, inputBytes.baseAddress, inputBytes.count)
         }
 
         // Should return 0 on success
@@ -102,7 +102,7 @@ final class CXKCPTests: XCTestCase {
         var output = [UInt8](repeating: 0, count: 32)  // 256 bits output
 
         let result = input.withUnsafeBytes { inputBytes in
-            SHAKE128(&output, output.count, inputBytes.bindMemory(to: UInt8.self).baseAddress, inputBytes.count)
+            SHAKE128(&output, output.count, inputBytes.baseAddress, inputBytes.count)
         }
 
         // Should return 0 on success
@@ -121,7 +121,7 @@ final class CXKCPTests: XCTestCase {
         var output = [UInt8](repeating: 0, count: 32)  // 256 bits output
 
         let result = input.withUnsafeBytes { inputBytes in
-            SHAKE256(&output, output.count, inputBytes.bindMemory(to: UInt8.self).baseAddress, inputBytes.count)
+            SHAKE256(&output, output.count, inputBytes.baseAddress, inputBytes.count)
         }
 
         // Should return 0 on success

@@ -16,10 +16,8 @@
 #else
 #if hasFeature(SourceWarningControl)
 @diagnose(ImplementationOnlyDeprecated, as: ignored) @_implementationOnly import CCryptoBoringSSL
-@diagnose(ImplementationOnlyDeprecated, as: ignored) @_implementationOnly import CCryptoBoringSSLShims
 #else
 @_implementationOnly import CCryptoBoringSSL
-@_implementationOnly import CCryptoBoringSSLShims
 #endif
 import CryptoBoringWrapper
 #if canImport(FoundationEssentials)

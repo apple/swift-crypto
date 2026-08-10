@@ -127,14 +127,6 @@ let package = Package(
             ]
         ),
         .target(
-            name: "CCryptoBoringSSLShims",
-            dependencies: ["CCryptoBoringSSL"],
-            exclude: privacyManifestExclude + [
-                "CMakeLists.txt"
-            ],
-            resources: privacyManifestResource
-        ),
-        .target(
             name: "CXKCPShims",
             dependencies: ["CXKCP"],
             exclude: privacyManifestExclude + [
@@ -146,7 +138,6 @@ let package = Package(
             name: "Crypto",
             dependencies: [
                 .target(name: "CCryptoBoringSSL", condition: .when(platforms: nonDarwinPlatforms)),
-                .target(name: "CCryptoBoringSSLShims", condition: .when(platforms: nonDarwinPlatforms)),
                 .target(name: "CryptoBoringWrapper", condition: .when(platforms: nonDarwinPlatforms)),
                 .target(name: "CXKCP", condition: .when(platforms: nonDarwinPlatforms)),
                 .target(name: "CXKCPShims", condition: .when(platforms: nonDarwinPlatforms)),
@@ -164,7 +155,6 @@ let package = Package(
             name: "CryptoExtras",
             dependencies: [
                 "CCryptoBoringSSL",
-                "CCryptoBoringSSLShims",
                 "CryptoBoringWrapper",
                 "Crypto",
                 .product(name: "SwiftASN1", package: "swift-asn1"),
@@ -186,7 +176,6 @@ let package = Package(
             name: "CryptoBoringWrapper",
             dependencies: [
                 "CCryptoBoringSSL",
-                "CCryptoBoringSSLShims",
             ],
             exclude: privacyManifestExclude + [
                 "CMakeLists.txt"

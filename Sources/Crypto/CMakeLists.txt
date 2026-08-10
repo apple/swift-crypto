@@ -117,7 +117,6 @@ target_compile_definitions(Crypto PRIVATE
 
 target_include_directories(Crypto PRIVATE
   $<TARGET_PROPERTY:CCryptoBoringSSL,INCLUDE_DIRECTORIES>
-  $<TARGET_PROPERTY:CCryptoBoringSSLShims,INCLUDE_DIRECTORIES>
   $<TARGET_PROPERTY:CryptoBoringWrapper,INCLUDE_DIRECTORIES>
   $<TARGET_PROPERTY:CXKCP,INCLUDE_DIRECTORIES>
   $<TARGET_PROPERTY:CXKCPShims,INCLUDE_DIRECTORIES>)
@@ -125,7 +124,6 @@ target_link_libraries(Crypto PUBLIC
   $<$<NOT:$<PLATFORM_ID:Darwin>>:dispatch>
   $<$<NOT:$<PLATFORM_ID:Darwin>>:Foundation>
   CCryptoBoringSSL
-  CCryptoBoringSSLShims
   CryptoBoringWrapper
   CXKCP
   CXKCPShims)

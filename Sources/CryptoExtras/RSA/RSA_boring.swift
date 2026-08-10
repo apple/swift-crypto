@@ -18,10 +18,8 @@ import CryptoBoringWrapper
 // NOTE: This file is unconditionally compiled because RSABSSA is implemented using BoringSSL on all platforms.
 #if hasFeature(SourceWarningControl)
 @diagnose(ImplementationOnlyDeprecated, as: ignored) @_implementationOnly import CCryptoBoringSSL
-@diagnose(ImplementationOnlyDeprecated, as: ignored) @_implementationOnly import CCryptoBoringSSLShims
 #else
 @_implementationOnly import CCryptoBoringSSL
-@_implementationOnly import CCryptoBoringSSLShims
 #endif
 
 #if canImport(FoundationEssentials)
@@ -376,7 +374,7 @@ extension BoringSSLRSAPublicKey {
                 let rc: CInt = digest.withUnsafeBytes { digestPtr in
                     switch padding.backing {
                     case .pkcs1v1_5:
-                        return CCryptoBoringSSLShims_RSA_verify(
+                        return CCryptoBoringSSL_RSA_verify(
                             hashDigestType.nid,
                             digestPtr.baseAddress,
                             digestPtr.count,
@@ -385,7 +383,7 @@ extension BoringSSLRSAPublicKey {
                             rsaPublicKey
                         )
                     case .pss:
-                        return CCryptoBoringSSLShims_RSA_verify_pss_mgf1(
+                        return CCryptoBoringSSL_RSA_verify_pss_mgf1(
                             rsaPublicKey,
                             digestPtr.baseAddress,
                             digestPtr.count,
@@ -396,7 +394,7 @@ extension BoringSSLRSAPublicKey {
                             signaturePtr.count
                         )
                     case .pssZero:
-                        return CCryptoBoringSSLShims_RSA_verify_pss_mgf1(
+                        return CCryptoBoringSSL_RSA_verify_pss_mgf1(
                             rsaPublicKey,
                             digestPtr.baseAddress,
                             digestPtr.count,
@@ -448,7 +446,7 @@ extension BoringSSLRSAPublicKey {
                     }
 
                     var writtenLength = bufferPtr.count
-                    let rc = CCryptoBoringSSLShims_EVP_PKEY_encrypt(
+                    let rc = CCryptoBoringSSL_EVP_PKEY_encrypt(
                         ctx,
                         bufferPtr.baseAddress,
                         &writtenLength,
@@ -863,10 +861,10 @@ extension BoringSSLRSAPrivateKey {
                     switch padding.backing {
                     case .pkcs1v1_5:
                         var writtenLength = CUnsignedInt(0)
-                        let rc = CCryptoBoringSSLShims_RSA_sign(
+                        let rc = CCryptoBoringSSL_RSA_sign(
                             hashDigestType.nid,
                             digestPtr.baseAddress,
-                            CUnsignedInt(digestPtr.count),
+                            digestPtr.count,
                             bufferPtr.baseAddress,
                             &writtenLength,
                             rsaPrivateKey
@@ -874,7 +872,7 @@ extension BoringSSLRSAPrivateKey {
                         outputLength = Int(writtenLength)
                         return rc
                     case .pss:
-                        return CCryptoBoringSSLShims_RSA_sign_pss_mgf1(
+                        return CCryptoBoringSSL_RSA_sign_pss_mgf1(
                             rsaPrivateKey,
                             &outputLength,
                             bufferPtr.baseAddress,
@@ -886,7 +884,7 @@ extension BoringSSLRSAPrivateKey {
                             CInt(hashDigestType.digestLength)
                         )
                     case .pssZero:
-                        return CCryptoBoringSSLShims_RSA_sign_pss_mgf1(
+                        return CCryptoBoringSSL_RSA_sign_pss_mgf1(
                             rsaPrivateKey,
                             &outputLength,
                             bufferPtr.baseAddress,
@@ -943,7 +941,7 @@ extension BoringSSLRSAPrivateKey {
 
                     var writtenLength = bufferPtr.count
 
-                    let rc = CCryptoBoringSSLShims_EVP_PKEY_decrypt(
+                    let rc = CCryptoBoringSSL_EVP_PKEY_decrypt(
                         ctx,
                         bufferPtr.baseAddress,
                         &writtenLength,

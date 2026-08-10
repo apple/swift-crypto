@@ -16,10 +16,8 @@
 #else
 #if hasFeature(SourceWarningControl)
 @diagnose(ImplementationOnlyDeprecated, as: ignored) @_implementationOnly import CCryptoBoringSSL
-@diagnose(ImplementationOnlyDeprecated, as: ignored) @_implementationOnly import CCryptoBoringSSLShims
 #else
 @_implementationOnly import CCryptoBoringSSL
-@_implementationOnly import CCryptoBoringSSLShims
 #endif
 import CryptoBoringWrapper
 #if canImport(FoundationEssentials)
@@ -335,7 +333,7 @@ class BoringSSLECPrivateKeyWrapper<Curve: OpenSSLSupportedNISTCurve>: @unchecked
     func sign<D: Digest>(digest: D) throws -> ECDSASignature {
         let optionalRawSignature: UnsafeMutablePointer<ECDSA_SIG>? = digest.withUnsafeBytes {
             digestPtr in
-            CCryptoBoringSSLShims_ECDSA_do_sign(digestPtr.baseAddress, digestPtr.count, self.key)
+            CCryptoBoringSSL_ECDSA_do_sign(digestPtr.baseAddress, digestPtr.count, self.key)
         }
         guard let rawSignature = optionalRawSignature else {
             throw CryptoKitError.internalBoringSSLError()
@@ -575,7 +573,7 @@ class BoringSSLECPublicKeyWrapper<Curve: OpenSSLSupportedNISTCurve>: @unchecked 
     func isValidSignature<D: Digest>(_ signature: ECDSASignature, for digest: D) -> Bool {
         let rc: CInt = signature.withUnsafeSignaturePointer { signaturePointer in
             digest.withUnsafeBytes { digestPointer in
-                CCryptoBoringSSLShims_ECDSA_do_verify(
+                CCryptoBoringSSL_ECDSA_do_verify(
                     digestPointer.baseAddress,
                     digestPointer.count,
                     signaturePointer,

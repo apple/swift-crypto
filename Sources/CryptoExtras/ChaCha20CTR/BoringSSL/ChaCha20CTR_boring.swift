@@ -17,10 +17,8 @@ import CryptoBoringWrapper
 
 #if hasFeature(SourceWarningControl)
 @diagnose(ImplementationOnlyDeprecated, as: ignored) @_implementationOnly import CCryptoBoringSSL
-@diagnose(ImplementationOnlyDeprecated, as: ignored) @_implementationOnly import CCryptoBoringSSLShims
 #else
 @_implementationOnly import CCryptoBoringSSL
-@_implementationOnly import CCryptoBoringSSLShims
 #endif
 
 #if canImport(FoundationEssentials)
@@ -72,22 +70,15 @@ enum OpenSSLChaCha20CTRImpl {
         key.withUnsafeBytes { keyPtr in
             nonce.withUnsafeBytes { noncePtr in
                 message.withUnsafeBytes { plaintextPtr in
-                    // We bind all three pointers here. These binds are not technically safe, but because we
-                    // know the pointers don't persist they can't violate the aliasing rules. We really
-                    // want a "with memory rebound" function but we don't have it yet.
-                    let keyBytes = keyPtr.bindMemory(to: UInt8.self)
-                    let nonceBytes = noncePtr.bindMemory(to: UInt8.self)
-                    let plaintext = plaintextPtr.bindMemory(to: UInt8.self)
-
-                    var ciphertext = Data(repeating: 0, count: plaintext.count)
+                    var ciphertext = Data(repeating: 0, count: plaintextPtr.count)
 
                     ciphertext.withUnsafeMutableBytes { ciphertext in
                         CCryptoBoringSSL_CRYPTO_chacha_20(
                             ciphertext.baseAddress,
-                            plaintext.baseAddress,
-                            plaintext.count,
-                            keyBytes.baseAddress,
-                            nonceBytes.baseAddress,
+                            plaintextPtr.baseAddress,
+                            plaintextPtr.count,
+                            keyPtr.baseAddress,
+                            noncePtr.baseAddress,
                             counter
                         )
                     }

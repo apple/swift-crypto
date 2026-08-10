@@ -16,10 +16,8 @@
 #else
 #if hasFeature(SourceWarningControl)
 @diagnose(ImplementationOnlyDeprecated, as: ignored) @_implementationOnly import CCryptoBoringSSL
-@diagnose(ImplementationOnlyDeprecated, as: ignored) @_implementationOnly import CCryptoBoringSSLShims
 #else
 @_implementationOnly import CCryptoBoringSSL
-@_implementationOnly import CCryptoBoringSSLShims
 #endif
 import CryptoBoringWrapper
 #if canImport(FoundationEssentials)
@@ -36,7 +34,7 @@ class ECDSASignature {
     init<ContiguousBuffer: ContiguousBytes>(contiguousDERBytes derBytes: ContiguousBuffer) throws {
         self._baseSig = try derBytes.withUnsafeBytes { bytesPtr in
             guard
-                let sig = CCryptoBoringSSLShims_ECDSA_SIG_from_bytes(bytesPtr.baseAddress, bytesPtr.count)
+                let sig = CCryptoBoringSSL_ECDSA_SIG_from_bytes(bytesPtr.baseAddress, bytesPtr.count)
             else {
                 throw CryptoKitError.internalBoringSSLError()
             }

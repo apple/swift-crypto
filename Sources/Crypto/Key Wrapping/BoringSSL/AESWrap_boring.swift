@@ -33,12 +33,8 @@ enum BoringSSLAESWRAPImpl {
 
         let rc = try key.withUnsafeAESKEY(mode: .encrypting) { aesKey in
             output.withUnsafeMutableBytes { outputPtr -> CInt in
-                // Memory bind is safe: we cannot alias the pointer here.
-                let outputPtr = outputPtr.bindMemory(to: UInt8.self)
-                return keyToWrap.withUnsafeBytes { keyToWrapPtr -> CInt in
-                    // Memory bind is safe: we cannot alias the pointer here.
-                    let keyToWrapPtr = keyToWrapPtr.bindMemory(to: UInt8.self)
-                    return CCryptoBoringSSL_AES_wrap_key(
+                keyToWrap.withUnsafeBytes { keyToWrapPtr -> CInt in
+                    CCryptoBoringSSL_AES_wrap_key(
                         aesKey,
                         nil,
                         outputPtr.baseAddress,
@@ -78,8 +74,6 @@ enum BoringSSLAESWRAPImpl {
     ) throws -> SymmetricKey {
         let unwrapped = try contiguousWrappedKey.withUnsafeBytes { inPtr in
             try [UInt8](unsafeUninitializedCapacity: inPtr.count) { outputPtr, count in
-                // Bind is safe: we cannot violate the aliasing rules here as we never call to arbitrary code.
-                let inPtr = inPtr.bindMemory(to: UInt8.self)
                 let rc = try key.withUnsafeAESKEY(mode: .decrypting) { aesKey in
                     CCryptoBoringSSL_AES_unwrap_key(
                         aesKey,
@@ -117,8 +111,6 @@ extension SymmetricKey {
         _ body: (UnsafePointer<AES_KEY>) throws -> ResultType
     ) throws -> ResultType {
         try self.withUnsafeBytes { bytesPointer in
-            // Bind is safe: cannot alias the pointer here.
-            let bytesPointer = bytesPointer.bindMemory(to: UInt8.self)
 
             var aesKey = AES_KEY()
             let bitsInKey = UInt32(bytesPointer.count * 8)

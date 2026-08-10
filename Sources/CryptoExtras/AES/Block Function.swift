@@ -15,10 +15,8 @@
 import Crypto
 #if hasFeature(SourceWarningControl)
 @diagnose(ImplementationOnlyDeprecated, as: ignored) @_implementationOnly import CCryptoBoringSSL
-@diagnose(ImplementationOnlyDeprecated, as: ignored) @_implementationOnly import CCryptoBoringSSLShims
 #else
 @_implementationOnly import CCryptoBoringSSL
-@_implementationOnly import CCryptoBoringSSLShims
 #endif
 import CryptoBoringWrapper
 #if canImport(FoundationEssentials)
@@ -99,24 +97,18 @@ extension AES {
         precondition(payload.count == Int(Self.blockSize))
 
         key.withUnsafeBytes { keyPtr in
-            // We bind both pointers here. These binds are not technically safe, but because we
-            // know the pointers don't persist they can't violate the aliasing rules. We really
-            // want a "with memory rebound" function but we don't have it yet.
-            let keyBytes = keyPtr.bindMemory(to: UInt8.self)
-            let blockBytes = payload.bindMemory(to: UInt8.self)
-
             var key = AES_KEY()
 
             if permutation == .forward {
-                let rc = CCryptoBoringSSL_AES_set_encrypt_key(keyBytes.baseAddress, UInt32(keyBytes.count * 8), &key)
+                let rc = CCryptoBoringSSL_AES_set_encrypt_key(keyPtr.baseAddress, UInt32(keyPtr.count * 8), &key)
                 precondition(rc == 0)
 
-                CCryptoBoringSSL_AES_encrypt(blockBytes.baseAddress, blockBytes.baseAddress, &key)
+                CCryptoBoringSSL_AES_encrypt(payload.baseAddress, payload.baseAddress, &key)
             } else {
-                let rc = CCryptoBoringSSL_AES_set_decrypt_key(keyBytes.baseAddress, UInt32(keyBytes.count * 8), &key)
+                let rc = CCryptoBoringSSL_AES_set_decrypt_key(keyPtr.baseAddress, UInt32(keyPtr.count * 8), &key)
                 precondition(rc == 0)
 
-                CCryptoBoringSSL_AES_decrypt(blockBytes.baseAddress, blockBytes.baseAddress, &key)
+                CCryptoBoringSSL_AES_decrypt(payload.baseAddress, payload.baseAddress, &key)
             }
         }
     }
