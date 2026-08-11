@@ -78,3 +78,15 @@ jobs:
   static-sdk:
     name: Static SDK
     uses: apple/swift-nio/.github/workflows/static_sdk.yml@main
+
+  more-tests:
+    name: Swiftlang Workflows
+    uses: swiftlang/github-workflows/.github/workflows/swift_package_test.yml@0.0.13
+    with:
+      enable_macos_checks: true
+      enable_macos_swiftly_checks: true
+      enable_linux_static_sdk_build: true
+      enable_wasm_sdk_build: true
+      enable_android_sdk_build: true
+      enable_android_sdk_checks: true
+      enable_freebsd_checks: true
