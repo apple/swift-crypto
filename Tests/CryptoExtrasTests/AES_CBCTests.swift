@@ -163,6 +163,85 @@ final class CBCTests: XCTestCase {
         }
     }
 
+    func testDecryptRejectsPaddingLengthGreaterThanBlockSize() throws {
+        // A plaintext whose final block claims a PKCS#7 pad length of 17 (0x11)
+        // is invalid for a 16-byte block: the maximum valid PKCS#7 pad is one
+        // full block (16). Correct unpadding must reject it. Regression guard:
+        // the previous `trimPadding` accepted any pad length up to 255 and
+        // scanned across blocks, so it wrongly stripped 17 bytes here.
+        let key = SymmetricKey(data: try Data(hexString: "b6fc08df9b778d11850356b8bfc9561a"))
+        let iv = try AES._CBC.IV(ivBytes: Array(hexString: "00000000000000000000000000000000"))
+
+        // 32-byte (block-multiple) plaintext ending in 17 bytes of 0x11.
+        var plaintext = Data(repeating: 0xAB, count: 15)
+        plaintext.append(Data(repeating: 0x11, count: 17))
+        precondition(plaintext.count == 32)
+
+        let ciphertext = try AES._CBC.encrypt(plaintext, using: key, iv: iv, noPadding: true)
+
+        XCTAssertThrowsError(
+            try AES._CBC.decrypt(ciphertext, using: key, iv: iv, noPadding: false)
+        ) { error in
+            guard let error = error as? CryptoKitError, case .incorrectParameterSize = error else {
+                XCTFail("Unexpected error: \(error)")
+                return
+            }
+        }
+    }
+
+    func testUnpadAcceptsAllValidPaddingLengths() throws {
+        let key = SymmetricKey(data: try Data(hexString: "b6fc08df9b778d11850356b8bfc9561a"))
+        let iv = try AES._CBC.IV(ivBytes: Array(hexString: "00000000000000000000000000000000"))
+
+        // For every valid PKCS#7 pad length (1...16), round-trip a message that
+        // pads to exactly that length and assert exact recovery.
+        for padLength in 1...16 {
+            let messageLength = 32 - padLength  // pads to 32 bytes (two blocks)
+            let message = Data((0..<messageLength).map { UInt8(truncatingIfNeeded: $0) })
+
+            let ciphertext = try AES._CBC.encrypt(message, using: key, iv: iv, noPadding: false)
+            let decrypted = try AES._CBC.decrypt(ciphertext, using: key, iv: iv, noPadding: false)
+            XCTAssertEqual(decrypted, message, "round-trip failed for pad length \(padLength)")
+        }
+    }
+
+    func testUnpadRejectsCorruptedPaddingByte() throws {
+        let key = SymmetricKey(data: try Data(hexString: "b6fc08df9b778d11850356b8bfc9561a"))
+        let iv = try AES._CBC.IV(ivBytes: Array(hexString: "00000000000000000000000000000000"))
+
+        // Build a validly-padded block-multiple plaintext, then corrupt each
+        // padding byte except the last (which encodes the claimed length). The
+        // constant-time scan must reject a mismatch at any position.
+        for padLength in 2...16 {
+            var padded = Data((0..<(32 - padLength)).map { UInt8(truncatingIfNeeded: $0) })
+            padded.append(Data(repeating: UInt8(padLength), count: padLength))
+            precondition(padded.count == 32)
+
+            for position in (32 - padLength)..<31 {
+                var corrupted = padded
+                corrupted[position] = UInt8(padLength) ^ 0xFF  // guaranteed != padLength
+                let ciphertext = try AES._CBC.encrypt(corrupted, using: key, iv: iv, noPadding: true)
+
+                XCTAssertThrowsError(
+                    try AES._CBC.decrypt(ciphertext, using: key, iv: iv, noPadding: false),
+                    "corruption at pad length \(padLength), position \(position) was not rejected"
+                )
+            }
+        }
+    }
+
+    func testUnpadRejectsZeroPaddingLength() throws {
+        let key = SymmetricKey(data: try Data(hexString: "b6fc08df9b778d11850356b8bfc9561a"))
+        let iv = try AES._CBC.IV(ivBytes: Array(hexString: "00000000000000000000000000000000"))
+
+        // A final byte of 0x00 claims a pad length of zero, which is invalid PKCS#7.
+        var padded = Data((0..<31).map { UInt8(truncatingIfNeeded: $0) })
+        padded.append(0x00)
+        let ciphertext = try AES._CBC.encrypt(padded, using: key, iv: iv, noPadding: true)
+
+        XCTAssertThrowsError(try AES._CBC.decrypt(ciphertext, using: key, iv: iv, noPadding: false))
+    }
+
     func testToDataConversion() throws {
         let randomBytes = (0..<16).map { _ in UInt8.random(in: UInt8.min...UInt8.max) }
         let dataIn = Data(randomBytes)
