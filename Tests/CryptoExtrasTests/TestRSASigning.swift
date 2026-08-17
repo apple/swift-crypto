@@ -910,6 +910,23 @@ final class TestRSASigning: XCTestCase {
 
         return pemLines.joined(separator: "\n")
     }
+
+    func test_invalidDERPublicKeyThrowsWithoutDoubleFree() throws {
+        // SEQUENCE { INTEGER 0, INTEGER 0 }
+        let badBase64 = "MAYCAQACAQ=="
+        let badDER = Array(Data(base64Encoded: badBase64)!)
+        XCTAssertThrowsError(try BoringSSLRSAPublicKey(derRepresentation: badDER))
+    }
+
+    func test_invalidPEMPublicKeyThrowsWithoutDoubleFree() throws {
+        // SEQUENCE { INTEGER 0, INTEGER 0 }
+        let badPEM = """
+            -----BEGIN PUBLIC KEY-----
+            MAYCAQACAQ==
+            -----END PUBLIC KEY-----
+            """
+        XCTAssertThrowsError(try BoringSSLRSAPublicKey(pemRepresentation: badPEM))
+    }
 }
 
 

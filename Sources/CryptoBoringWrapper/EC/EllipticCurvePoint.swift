@@ -14,8 +14,13 @@
 @_implementationOnly import CCryptoBoringSSL
 @_implementationOnly import CCryptoBoringSSLShims
 
+#if canImport(FoundationEssentials)
+import protocol FoundationEssentials.ContiguousBytes
+import struct FoundationEssentials.Data
+#else
 import protocol Foundation.ContiguousBytes
 import struct Foundation.Data
+#endif
 
 /// A wrapper around BoringSSL's EC_POINT with some lifetime management and value semantics.
 @usableFromInline
