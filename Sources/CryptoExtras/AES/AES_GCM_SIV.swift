@@ -63,7 +63,6 @@ extension AES.GCM {
         /// - Parameters:
         ///   - sealedBox: The sealed box to authenticate and decrypt
         ///   - key: An encryption key of 128 or 256 bits
-        ///   - nonce: An Nonce for AES-GCM-SIV encryption. The nonce must be unique for every use of the key to seal data. It can be safely generated with AES.GCM.Nonce().
         ///   - authenticatedData: Data that was authenticated as part of the seal
         /// - Returns: The ciphertext if opening was successful
         /// - Throws: CipherError errors. If the authentication of the sealed box failed, incorrectTag is thrown.
@@ -77,7 +76,6 @@ extension AES.GCM {
         /// - Parameters:
         ///   - sealedBox: The sealed box to authenticate and decrypt
         ///   - key: An encryption key of 128 or 256 bits
-        ///   - nonce: An Nonce for AES-GCM-SIV encryption. The nonce must be unique for every use of the key to seal data. It can be safely generated with AES.GCM.Nonce().
         /// - Returns: The ciphertext if opening was successful
         /// - Throws: CipherError errors. If the authentication of the sealed box failed, incorrectTag is thrown.
         public static func open(_ sealedBox: SealedBox, using key: SymmetricKey) throws -> Data {
