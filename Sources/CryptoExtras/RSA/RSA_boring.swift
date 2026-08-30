@@ -260,7 +260,6 @@ extension BoringSSLRSAPublicKey {
             }
         }
 
-
         fileprivate convenience init<Bytes: DataProtocol>(derRepresentation: Bytes) throws {
             if derRepresentation.regions.count == 1 {
                 try self.init(contiguousDerRepresentation: derRepresentation.regions.first!)
