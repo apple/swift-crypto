@@ -117,8 +117,14 @@ extension _RSA.Signing {
         }
 
         /// Construct an RSA public key with the specified parameters.
+        ///
+        /// This constructor supports key sizes of 2048 bits or more. Users should validate that key sizes are appropriate
+        /// for their use-case.
         public init(n: some ContiguousBytes, e: some ContiguousBytes) throws {
             self.backing = try BackingPublicKey(n: n, e: e)
+            guard self.keySizeInBits >= 2048 else {
+                throw CryptoKitError.incorrectParameterSize
+            }
         }
 
         public var pkcs1DERRepresentation: Data {
@@ -248,8 +254,14 @@ extension _RSA.Signing {
         }
 
         /// Construct an RSA private key with the specified parameters.
+        ///
+        /// This constructor supports key sizes of 2048 bits or more. Users should validate that key sizes are appropriate
+        /// for their use-case.
         public init(n: some ContiguousBytes, e: some ContiguousBytes, d: some ContiguousBytes, p: some ContiguousBytes, q: some ContiguousBytes) throws {
             self.backing = try BackingPrivateKey(n: n, e: e, d: d, p: p, q: q)
+            guard self.keySizeInBits >= 2048 else {
+                throw CryptoKitError.incorrectParameterSize
+            }
         }
 
         /// Randomly generate a new RSA private key of a given size.
@@ -574,8 +586,14 @@ extension _RSA.Encryption {
         }
 
         /// Construct an RSA public key with the specified parameters.
+        ///
+        /// This constructor supports key sizes of 2048 bits or more. Users should validate that key sizes are appropriate
+        /// for their use-case.
         public init(n: some ContiguousBytes, e: some ContiguousBytes) throws {
             self.backing = try BackingPublicKey(n: n, e: e)
+            guard self.keySizeInBits >= 2048 else {
+                throw CryptoKitError.incorrectParameterSize
+            }
         }
 
         public var pkcs1DERRepresentation: Data { self.backing.pkcs1DERRepresentation }
@@ -641,8 +659,14 @@ extension _RSA.Encryption {
 
 
         /// Construct an RSA private key with the specified parameters.
+        ///
+        /// This constructor supports key sizes of 2048 bits or more. Users should validate that key sizes are appropriate
+        /// for their use-case.
         public init(n: some ContiguousBytes, e: some ContiguousBytes, d: some ContiguousBytes, p: some ContiguousBytes, q: some ContiguousBytes) throws {
             self.backing = try BackingPrivateKey(n: n, e: e, d: d, p: p, q: q)
+            guard self.keySizeInBits >= 2048 else {
+                throw CryptoKitError.incorrectParameterSize
+            }
         }
 
         /// Randomly generate a new RSA private key of a given size.

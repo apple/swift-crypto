@@ -111,6 +111,13 @@ final class TestRSAEncryption: XCTestCase {
             n: bytesValues.randomElement()!,
             e: bytesValues.randomElement()!
         )
+        // Modulus of a 512-bit key: `openssl rsa -in key.pem -noout -modulus`.
+        let _512BitModulus =
+            "e24c4c2c70e673315c2420b0e211542bbccf5b79f2ce6bdaa4aac29650bd064b"
+            + "955ae1613a449c7143e906d7f251e49356771d9d6f8f15bcf4044f87de1c1bed"
+        XCTAssertThrowsError(
+            try _RSA.Encryption.PublicKey(n: Data(hexString: _512BitModulus), e: Data(hexString: "010001"))
+        )
     }
 
     func testConstructAndUseKeyFromRSANumbersWhileRecoveringPrimes() throws {
