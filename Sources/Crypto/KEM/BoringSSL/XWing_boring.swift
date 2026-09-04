@@ -176,7 +176,11 @@ extension OpenSSLXWingPrivateKeyImpl {
 
             try seedRepresentation.withUnsafeBytes { privateKeyBytes in
                 guard privateKeyBytes.count == Int(XWING_PRIVATE_KEY_BYTES) else {
-                    throw CryptoKitError.incorrectKeySize
+                    if publicKeyHash != nil {
+                        throw CryptoKitError.incorrectParameterSize
+                    } else {
+                        throw CryptoKitError.incorrectKeySize
+                    }
                 }
 
                 var cbs = CBS()
