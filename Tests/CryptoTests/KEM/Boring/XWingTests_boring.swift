@@ -80,8 +80,33 @@ extension XWingTests {
             try XWingMLKEM768X25519.PrivateKey(integrityCheckedRepresentation: Data(repeating: 0, count: 128)),
             error: CryptoKitError.incorrectParameterSize
         )
+
+        // Validate that seedRepresentation with incorrect byte counts also fails with incorrectParameterSize
+        XCTAssertThrowsError(
+            try XWingMLKEM768X25519.PrivateKey(seedRepresentation: Data(), publicKey: nil),
+            error: CryptoKitError.incorrectParameterSize
+        )
+        XCTAssertThrowsError(
+            try XWingMLKEM768X25519.PrivateKey(seedRepresentation: Data(repeating: 0, count: 31), publicKey: nil),
+            error: CryptoKitError.incorrectParameterSize
+        )
+        XCTAssertThrowsError(
+            try XWingMLKEM768X25519.PrivateKey(seedRepresentation: Data(repeating: 0, count: 33), publicKey: nil),
+            error: CryptoKitError.incorrectParameterSize
+        )
+        let dummy = try XWingMLKEM768X25519.PrivateKey()
+        XCTAssertThrowsError(
+            try XWingMLKEM768X25519.PrivateKey(seedRepresentation: Data(), publicKey: dummy.publicKey),
+            error: CryptoKitError.incorrectParameterSize
+        )
+        XCTAssertThrowsError(
+            try XWingMLKEM768X25519.PrivateKey(
+                seedRepresentation: Data(repeating: 0, count: 31),
+                publicKey: dummy.publicKey
+            ),
+            error: CryptoKitError.incorrectParameterSize
+        )
     }
 }
 
 #endif  // CRYPTO_IN_SWIFTPM
-
