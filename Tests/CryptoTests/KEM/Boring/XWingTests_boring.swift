@@ -12,6 +12,14 @@
 //
 //===----------------------------------------------------------------------===//
 
+import XCTest
+
+#if canImport(FoundationEssentials)
+import FoundationEssentials
+#else
+import Foundation
+#endif
+
 #if CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
 // Skip tests that require @testable imports of CryptoKit.
 #else
@@ -46,6 +54,58 @@ extension XWingMLKEM768X25519.PublicKey {
         }
 
         return try self.impl.encapsulateWithOptionalEntropy(entropy: seed)
+    }
+}
+
+extension XWingTests {
+    func testIntegrityCheckedRepresentationLengthValidation() throws {
+        // Validate that representations with incorrect byte counts fail fast with incorrectParameterSize
+        XCTAssertThrowsError(
+            try XWingMLKEM768X25519.PrivateKey(integrityCheckedRepresentation: Data()),
+            error: CryptoKitError.incorrectParameterSize
+        )
+        XCTAssertThrowsError(
+            try XWingMLKEM768X25519.PrivateKey(integrityCheckedRepresentation: Data(repeating: 0, count: 32)),
+            error: CryptoKitError.incorrectParameterSize
+        )
+        XCTAssertThrowsError(
+            try XWingMLKEM768X25519.PrivateKey(integrityCheckedRepresentation: Data(repeating: 0, count: 63)),
+            error: CryptoKitError.incorrectParameterSize
+        )
+        XCTAssertThrowsError(
+            try XWingMLKEM768X25519.PrivateKey(integrityCheckedRepresentation: Data(repeating: 0, count: 65)),
+            error: CryptoKitError.incorrectParameterSize
+        )
+        XCTAssertThrowsError(
+            try XWingMLKEM768X25519.PrivateKey(integrityCheckedRepresentation: Data(repeating: 0, count: 128)),
+            error: CryptoKitError.incorrectParameterSize
+        )
+
+        // Validate that seedRepresentation with incorrect byte counts also fails with incorrectParameterSize
+        XCTAssertThrowsError(
+            try XWingMLKEM768X25519.PrivateKey(seedRepresentation: Data(), publicKey: nil),
+            error: CryptoKitError.incorrectParameterSize
+        )
+        XCTAssertThrowsError(
+            try XWingMLKEM768X25519.PrivateKey(seedRepresentation: Data(repeating: 0, count: 31), publicKey: nil),
+            error: CryptoKitError.incorrectParameterSize
+        )
+        XCTAssertThrowsError(
+            try XWingMLKEM768X25519.PrivateKey(seedRepresentation: Data(repeating: 0, count: 33), publicKey: nil),
+            error: CryptoKitError.incorrectParameterSize
+        )
+        let dummy = try XWingMLKEM768X25519.PrivateKey()
+        XCTAssertThrowsError(
+            try XWingMLKEM768X25519.PrivateKey(seedRepresentation: Data(), publicKey: dummy.publicKey),
+            error: CryptoKitError.incorrectParameterSize
+        )
+        XCTAssertThrowsError(
+            try XWingMLKEM768X25519.PrivateKey(
+                seedRepresentation: Data(repeating: 0, count: 31),
+                publicKey: dummy.publicKey
+            ),
+            error: CryptoKitError.incorrectParameterSize
+        )
     }
 }
 
