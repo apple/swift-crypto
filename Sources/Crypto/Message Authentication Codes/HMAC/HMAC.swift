@@ -82,41 +82,28 @@ public struct HMAC<H: HashFunction>: MACAlgorithm, Sendable {
         #if os(iOS) && (arch(arm) || arch(i386))
         fatalError("Unsupported architecture")
         #else
-        var K: SymmetricKey
-        if key.byteCount == H.blockByteCount {
-            K = key
-        } else if key.byteCount > H.blockByteCount {
-            var array = Array(repeating: UInt8(0), count: H.blockByteCount)
-            
-            K = key.withUnsafeBytes { (keyBytes)  in
-                let hash = H.hash(bufferPointer: keyBytes)
-                
-                return SymmetricKey(data: hash.withUnsafeBytes({ (hashBytes) in
-                    memcpy(&array, hashBytes.baseAddress!, hashBytes.count)
-                    return array
-                }))
-            }
-        } else {
-            var keyArray = Array(repeating: UInt8(0), count: H.blockByteCount)
-            key.withUnsafeBytes { keyArray.replaceSubrange(0..<$0.count, with: $0) }
-            K = SymmetricKey(data: keyArray)
-        }
-        
         self.innerHasher = H()
-        let innerKey = K.withUnsafeBytes {
-            return $0.map({ (keyByte) in
-                keyByte ^ 0x36
-            })
-        }
-        innerHasher.update(data: innerKey)
-        
         self.outerHasher = H()
-        let outerKey = K.withUnsafeBytes {
-            return $0.map({ (keyByte) in
-                keyByte ^ 0x5c
-            })
+        let blockSize = H.blockByteCount
+
+        withUnsafeTemporaryAllocation(of: UInt8.self, capacity: blockSize) { padded in
+            padded.initialize(repeating: 0)
+
+            key.withUnsafeBytes { keyBytes in
+                if keyBytes.count > blockSize {
+                    let hash = H.hash(bufferPointer: keyBytes)
+                    hash.withUnsafeBytes { UnsafeMutableRawBufferPointer(padded).copyBytes(from: $0) }
+                } else {
+                    UnsafeMutableRawBufferPointer(padded).copyMemory(from: keyBytes)
+                }
+            }
+
+            for i in 0..<blockSize { padded[i] ^= 0x36 }
+            self.innerHasher.update(bufferPointer: UnsafeRawBufferPointer(padded))
+            for i in 0..<blockSize { padded[i] ^= 0x36 ^ 0x5c }
+            self.outerHasher.update(bufferPointer: UnsafeRawBufferPointer(padded))
+            padded.update(repeating: 0)
         }
-        outerHasher.update(data: outerKey)
         #endif
     }
     
