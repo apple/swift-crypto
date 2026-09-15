@@ -161,7 +161,7 @@ struct OpenSSLGroupScalar<C: OpenSSLSupportedNISTCurve>: GroupScalar, CustomStri
 
     /// Deserializes a scalar from data.
     /// - Parameters:
-    ///   - data: The serialized scalar
+    ///   - bytes: The serialized scalar
     ///   - reductionIsModOrder: Resulting number is taken "mod q" (characteristic) by default. Override by setting true if "mod p" (order) is desired.
     /// - Returns: The deserialized scalar
     init(bytes: Data, reductionIsModOrder: Bool = false) throws {

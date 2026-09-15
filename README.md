@@ -31,10 +31,11 @@ When building Swift Crypto for use on an Apple platform where CryptoKit is alrea
 When building Swift Crypto for use on other platforms, Swift Crypto builds substantially more code. In particular, we build:
 
 1. A vendored copy of BoringSSL's libcrypto.
-2. The common API of Swift Crypto and CryptoKit.
-3. The backing implementation of this common API, which calls into BoringSSL.
+2. A vendored copy of XKCP's libXKCP.
+3. The common API of Swift Crypto and CryptoKit.
+4. The backing implementation of this common API, which calls into BoringSSL or XKCP.
 
-The API code, and some cryptographic primitives which are directly implemented in Swift, are exactly the same for both Apple CryptoKit and Swift Crypto. The backing BoringSSL-based implementation is unique to Swift Crypto. In addition, there is another product, `CryptoExtras`, which provides additional functionality that is not offered in CryptoKit, which contains cryptographic APIS predominantly useful in the server ecosystem. **Note**: if you depend on CryptoExtras you'll bundle the BoringSSL implementation of the library in your application, no matter the platform.
+The API code, and some cryptographic primitives which are directly implemented in Swift, are exactly the same for both Apple CryptoKit and Swift Crypto. The BoringSSL/XKCP backing implementation is unique to Swift Crypto. In addition, there is another product, `CryptoExtras`, which provides additional functionality that is not offered in CryptoKit, which contains cryptographic APIs predominantly useful in the server ecosystem. **Note**: if you depend on CryptoExtras you'll bundle the BoringSSL/XKCP implementation of the library in your application, no matter the platform.
 
 ## Evolution
 
@@ -48,11 +49,11 @@ Note that Swift Crypto does not intend to support all possible cryptographic pri
 
 ### Code Organisation
 
-Files in this repository are divided into two groups, based on whether they have a name that ends in `_boring` or are in a `BoringSSL` directory, or if they are not.
+Files in this repository are divided into two groups, based on whether they have a name that ends in `_boring`/`_xkcp` or are in a `BoringSSL`/`XKCP` directory, or if they are not.
 
-Files that meet the above criteria are specific to the Swift Crypto implementation. Changes to these files can be made fairly easily, so long as they meet the criteria below. If your file needs to `import CCryptoBoringSSL` or access a BoringSSL API, it needs to be marked this way.
+Files that meet the above criteria are specific to the Swift Crypto implementation. Changes to these files can be made fairly easily, so long as they meet the criteria below. If your file needs to `import CCryptoBoringSSL` or `import CXKCP` or access a BoringSSL or XKCP API, it needs to be marked this way.
 
-Files that do not have the `_boring` suffix are part of the public API of CryptoKit. Changing these requires passing a higher bar, as any change in these files must be accompanied by a change in CryptoKit itself.
+Files that do not have the `_boring` or `_xkcp` suffix are part of the public API of CryptoKit. Changing these requires passing a higher bar, as any change in these files must be accompanied by a change in CryptoKit itself.
 
 ## Contributing
 
@@ -150,3 +151,7 @@ To do so, please use the following dependency in your `Package.swift`:
 
 Swift Crypto normally defers to the OS implementation of CryptoKit on macOS. Naturally, this makes developing Swift Crypto on macOS tricky. To get Swift Crypto to build the open source implementation on macOS, in `Package.swift`, use a Linux container. A Dev Container config is provided in the repo to make this easier.
 
+
+## Acknowledgements
+
+This project contains source code from the BoringSSL and XKCP projects.

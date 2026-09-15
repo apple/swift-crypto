@@ -361,8 +361,10 @@ final class TestRSASigning: XCTestCase {
         try XCTAssertThrowsError((_RSA.Signing.PrivateKey(keySize: .init(bitCount: 1024)), 1024))
     }
 
-    func testRejectSmallKeys() throws {
-        let smallRSAPrivateKeyPEM = """
+    // The default initializers require a modulus of at least 2048 bits.
+    func testRejectKeysBelow2048BitMinimum() throws {
+        // Equivalent key: `openssl genrsa -traditional 512`, converted to the encodings below.
+        let _512BitRSAPrivateKeyPEM = """
         -----BEGIN RSA PRIVATE KEY-----
         MIIBPAIBAAJBAOJMTCxw5nMxXCQgsOIRVCu8z1t58s5r2qSqwpZQvQZLlVrhYTpE
         nHFD6QbX8lHkk1Z3HZ1vjxW89ARPh94cG+0CAwEAAQJBAMdmOVyTYswvuyPuVk3s
@@ -374,14 +376,14 @@ final class TestRSASigning: XCTestCase {
         -----END RSA PRIVATE KEY-----
         """
 
-        let smallRSAPublicKeyPEM = """
+        let _512BitRSAPublicKeyPEM = """
         -----BEGIN PUBLIC KEY-----
         MFwwDQYJKoZIhvcNAQEBBQADSwAwSAJBAOJMTCxw5nMxXCQgsOIRVCu8z1t58s5r
         2qSqwpZQvQZLlVrhYTpEnHFD6QbX8lHkk1Z3HZ1vjxW89ARPh94cG+0CAwEAAQ==
         -----END PUBLIC KEY-----
         """
 
-        let smallRSAPrivateKeyPKCS8PEM = """
+        let _512BitRSAPrivateKeyPKCS8PEM = """
         -----BEGIN PRIVATE KEY-----
         MIIBVgIBADANBgkqhkiG9w0BAQEFAASCAUAwggE8AgEAAkEA4kxMLHDmczFcJCCw
         4hFUK7zPW3nyzmvapKrCllC9BkuVWuFhOkSccUPpBtfyUeSTVncdnW+PFbz0BE+H
@@ -394,7 +396,7 @@ final class TestRSASigning: XCTestCase {
         -----END PRIVATE KEY-----
         """
 
-        let smallRSAPrivateKeyDER = Data(base64Encoded:
+        let _512BitRSAPrivateKeyDER = Data(base64Encoded:
             "MIIBPAIBAAJBAOJMTCxw5nMxXCQgsOIRVCu8z1t58s5r2qSqwpZQvQZLlVr" +
             "hYTpEnHFD6QbX8lHkk1Z3HZ1vjxW89ARPh94cG+0CAwEAAQJBAMdmOVyTYs" +
             "wvuyPuVk3svQEJDqFpFATFTlP4TxuKKvTmbdQuVCorMmLLKThDI3pDNWKuA" +
@@ -405,7 +407,7 @@ final class TestRSASigning: XCTestCase {
             "7MWbrFpUouirbQ="
         )!
 
-        let smallRSAPrivateKeyPKCS8DER = Data(base64Encoded:
+        let _512BitRSAPrivateKeyPKCS8DER = Data(base64Encoded:
             "MIIBVgIBADANBgkqhkiG9w0BAQEFAASCAUAwggE8AgEAAkEA4kxMLHDmczF" +
             "cJCCw4hFUK7zPW3nyzmvapKrCllC9BkuVWuFhOkSccUPpBtfyUeSTVncdnW" +
             "+PFbz0BE+H3hwb7QIDAQABAkEAx2Y5XJNizC+7I+5WTey9AQkOoWkUBMVOU" +
@@ -416,18 +418,282 @@ final class TestRSASigning: XCTestCase {
             "w8CIQCNHhOCOnp3lmwZQr0gcaw1Y/XJKtqDsxZusWlSi6KttA=="
         )!
 
-        let smallRSAPublicKeyDER = Data(base64Encoded:
+        let _512BitRSAPublicKeyDER = Data(base64Encoded:
             "MFwwDQYJKoZIhvcNAQEBBQADSwAwSAJBAOJMTCxw5nMxXCQgsOIRVCu8z1t" +
             "58s5r2qSqwpZQvQZLlVrhYTpEnHFD6QbX8lHkk1Z3HZ1vjxW89ARPh94cG+" +
             "0CAwEAAQ=="
         )!
 
-        XCTAssertThrowsError(try _RSA.Signing.PrivateKey(pemRepresentation: smallRSAPrivateKeyPEM))
-        XCTAssertThrowsError(try _RSA.Signing.PrivateKey(pemRepresentation: smallRSAPrivateKeyPKCS8PEM))
-        XCTAssertThrowsError(try _RSA.Signing.PrivateKey(derRepresentation: smallRSAPrivateKeyDER))
-        XCTAssertThrowsError(try _RSA.Signing.PrivateKey(derRepresentation: smallRSAPrivateKeyPKCS8DER))
-        XCTAssertThrowsError(try _RSA.Signing.PublicKey(pemRepresentation: smallRSAPublicKeyPEM))
-        XCTAssertThrowsError(try _RSA.Signing.PublicKey(derRepresentation: smallRSAPublicKeyDER))
+        XCTAssertThrowsError(try _RSA.Signing.PrivateKey(pemRepresentation: _512BitRSAPrivateKeyPEM))
+        XCTAssertThrowsError(try _RSA.Signing.PrivateKey(pemRepresentation: _512BitRSAPrivateKeyPKCS8PEM))
+        XCTAssertThrowsError(try _RSA.Signing.PrivateKey(derRepresentation: _512BitRSAPrivateKeyDER))
+        XCTAssertThrowsError(try _RSA.Signing.PrivateKey(derRepresentation: _512BitRSAPrivateKeyPKCS8DER))
+        XCTAssertThrowsError(try _RSA.Signing.PublicKey(pemRepresentation: _512BitRSAPublicKeyPEM))
+        XCTAssertThrowsError(try _RSA.Signing.PublicKey(derRepresentation: _512BitRSAPublicKeyDER))
+
+        // Generated via `openssl genrsa -traditional 2047`, then converted to the encodings below.
+        let _2047BitRSAPrivateKeyPEM = """
+        -----BEGIN RSA PRIVATE KEY-----
+        MIIEoAIBAAKCAQBXog86uwpuCobeXXokHAePMu15O2Cwfvwx7/EzZl6jY70ConNX
+        mzR5U39kQQpFa0dxRQdgUA8YpU5/8aILp3Yv0S2BssiuqdL5IkzdBzLNRhSQabuM
+        +vyCQjImHF/bA28+5DKJ9uzIhywA9JS2o/4TtE6mLqWbFAY+dM716llarKJgzLh/
+        Vg0mH6H5vDoo4D6z+M2jQRiUbV+yIiiaY8/SMyLltsZeEl/hx/NyACPSUAClVlsj
+        vRRZzQl8oDybMVvUAbrIwR+ZVQltdqVgx5zVf8G3BHi7lUdyqxIt0QWQRBTTd1tY
+        sSOKmVhYB+DvPv2IJKGXqKo+XKQBLmm9UIuxAgMBAAECggEAN/6hZJGnNHEdhHCO
+        XwxZ+DI+czxxp9U8KFx87q72wcg1Ob27nbraaLvlppW4jmriF4pYED6XptPZuP8Y
+        4AF9D0jFnx4yBQkWeYJlQsYau/ePpEcrRAYL2t+ZU6jFxxgGuVTuxiE1Y1ybzXB6
+        pclbzBNmPeGIh/LfmoDgzVmVBs6FhBrl8z+eWciISgskTaESkboiV+HAzDBJ23gP
+        LD0fjk69Dw75MS7QHBYm5jDIpXFvh+nPJOfwIAuaEQ9ZaF3Uh8zjBOyhtOSO9cdV
+        wXME4sIvA7IqlGoacxUtjyoWarPqk/V4UWl7/Q8gZlRagqjaJ+DqpqrD6UFCxwvw
+        KCyJ0QKBgQDTV7joBHuuw/RuDe8VwxUuRJTIcdrn6g2Kn3CxV9YLJhxr1doEmw3Y
+        DASY7zddkgJjssbkub5FhySAlqOIz5ok62erHMsyC90VXqWDC1uFHW6EQh/N/S/A
+        vgEuyIJ/dtxXYLFyozm0Az98A37nGGTSt9tphKsTPiHS1jOB3f9DbwKBgGomcW7T
+        Slq0+VSGniD+ciB71UMrW9FcF9qsnTPXQGZV4JqpLvE/tEq7uyr/Dp6l3mstVmtL
+        tBjkPef32oz3JXo32IWS37VZlu+3I2v7VQThFLnc3F0KUcZmH1Uy1my8itjP6jIf
+        wNwiUObilCubgiGEVxfMb0G7juMETZYyuRLfAoGAVwIFcRfvZ4rrBagc5yOyg6Le
+        cgtVqSbVvl1Xwts7lslw6ABZyo2fTHPeLKxHafFjpHIEqkPCDtPNdlcOKpP1jP+R
+        ZYPsL8VslpCpqWKyogH07uReParfzwUqbX1FJH7lxd9cDqseZXr01vSFeVS0pX/m
+        B/IDkF+DA08GU4/2uGcCgYAV1CP9e1vN/WtMc4ZvGIQVpAF+F5uBGSQapuaI85nd
+        sYlHpMTvfX8w4xwhQmQaQdfUSHV+CQpXGBCW9EQwOt6tHHDdPw/b9jlwwEN7gCrC
+        nxqpAf8a7vVUDEojNhocMEWJQnBRsG/zlOb4I93+fbMr+1ABp9u1M8G1c3wVCAdB
+        FwKBgF8sJlG58EKSfdvhVNDRq4hC/yjcI6987rg2fmeX9QUYiwReniaesEoBdeHz
+        OYWR3DtC5SNiDKuj7QmnRvNcbFwBz5dGOdiXytRtLkpwDArY/hV/hqeSH1nHU0fp
+        LUScnTZr95HkLFIle1JCFXw0viGHKEBkdFvcuXIFON9KNTA/
+        -----END RSA PRIVATE KEY-----
+        """
+
+        let _2047BitRSAPublicKeyPEM = """
+        -----BEGIN PUBLIC KEY-----
+        MIIBITANBgkqhkiG9w0BAQEFAAOCAQ4AMIIBCQKCAQBXog86uwpuCobeXXokHAeP
+        Mu15O2Cwfvwx7/EzZl6jY70ConNXmzR5U39kQQpFa0dxRQdgUA8YpU5/8aILp3Yv
+        0S2BssiuqdL5IkzdBzLNRhSQabuM+vyCQjImHF/bA28+5DKJ9uzIhywA9JS2o/4T
+        tE6mLqWbFAY+dM716llarKJgzLh/Vg0mH6H5vDoo4D6z+M2jQRiUbV+yIiiaY8/S
+        MyLltsZeEl/hx/NyACPSUAClVlsjvRRZzQl8oDybMVvUAbrIwR+ZVQltdqVgx5zV
+        f8G3BHi7lUdyqxIt0QWQRBTTd1tYsSOKmVhYB+DvPv2IJKGXqKo+XKQBLmm9UIux
+        AgMBAAE=
+        -----END PUBLIC KEY-----
+        """
+
+        let _2047BitRSAPrivateKeyPKCS8PEM = """
+        -----BEGIN PRIVATE KEY-----
+        MIIEugIBADANBgkqhkiG9w0BAQEFAASCBKQwggSgAgEAAoIBAFeiDzq7Cm4Kht5d
+        eiQcB48y7Xk7YLB+/DHv8TNmXqNjvQKic1ebNHlTf2RBCkVrR3FFB2BQDxilTn/x
+        ogundi/RLYGyyK6p0vkiTN0HMs1GFJBpu4z6/IJCMiYcX9sDbz7kMon27MiHLAD0
+        lLaj/hO0TqYupZsUBj50zvXqWVqsomDMuH9WDSYfofm8OijgPrP4zaNBGJRtX7Ii
+        KJpjz9IzIuW2xl4SX+HH83IAI9JQAKVWWyO9FFnNCXygPJsxW9QBusjBH5lVCW12
+        pWDHnNV/wbcEeLuVR3KrEi3RBZBEFNN3W1ixI4qZWFgH4O8+/YgkoZeoqj5cpAEu
+        ab1Qi7ECAwEAAQKCAQA3/qFkkac0cR2EcI5fDFn4Mj5zPHGn1TwoXHzurvbByDU5
+        vbudutpou+WmlbiOauIXilgQPpem09m4/xjgAX0PSMWfHjIFCRZ5gmVCxhq794+k
+        RytEBgva35lTqMXHGAa5VO7GITVjXJvNcHqlyVvME2Y94YiH8t+agODNWZUGzoWE
+        GuXzP55ZyIhKCyRNoRKRuiJX4cDMMEnbeA8sPR+OTr0PDvkxLtAcFibmMMilcW+H
+        6c8k5/AgC5oRD1loXdSHzOME7KG05I71x1XBcwTiwi8DsiqUahpzFS2PKhZqs+qT
+        9XhRaXv9DyBmVFqCqNon4OqmqsPpQULHC/AoLInRAoGBANNXuOgEe67D9G4N7xXD
+        FS5ElMhx2ufqDYqfcLFX1gsmHGvV2gSbDdgMBJjvN12SAmOyxuS5vkWHJICWo4jP
+        miTrZ6scyzIL3RVepYMLW4UdboRCH839L8C+AS7Ign923FdgsXKjObQDP3wDfucY
+        ZNK322mEqxM+IdLWM4Hd/0NvAoGAaiZxbtNKWrT5VIaeIP5yIHvVQytb0VwX2qyd
+        M9dAZlXgmqku8T+0Sru7Kv8OnqXeay1Wa0u0GOQ95/fajPclejfYhZLftVmW77cj
+        a/tVBOEUudzcXQpRxmYfVTLWbLyK2M/qMh/A3CJQ5uKUK5uCIYRXF8xvQbuO4wRN
+        ljK5Et8CgYBXAgVxF+9niusFqBznI7KDot5yC1WpJtW+XVfC2zuWyXDoAFnKjZ9M
+        c94srEdp8WOkcgSqQ8IO0812Vw4qk/WM/5Flg+wvxWyWkKmpYrKiAfTu5F49qt/P
+        BSptfUUkfuXF31wOqx5levTW9IV5VLSlf+YH8gOQX4MDTwZTj/a4ZwKBgBXUI/17
+        W839a0xzhm8YhBWkAX4Xm4EZJBqm5ojzmd2xiUekxO99fzDjHCFCZBpB19RIdX4J
+        ClcYEJb0RDA63q0ccN0/D9v2OXDAQ3uAKsKfGqkB/xru9VQMSiM2GhwwRYlCcFGw
+        b/OU5vgj3f59syv7UAGn27UzwbVzfBUIB0EXAoGAXywmUbnwQpJ92+FU0NGriEL/
+        KNwjr3zuuDZ+Z5f1BRiLBF6eJp6wSgF14fM5hZHcO0LlI2IMq6PtCadG81xsXAHP
+        l0Y52JfK1G0uSnAMCtj+FX+Gp5IfWcdTR+ktRJydNmv3keQsUiV7UkIVfDS+IYco
+        QGR0W9y5cgU430o1MD8=
+        -----END PRIVATE KEY-----
+        """
+
+        let _2047BitRSAPrivateKeyDER = Data(base64Encoded:
+            "MIIEoAIBAAKCAQBXog86uwpuCobeXXokHAePMu15O2Cwfvwx7/EzZl6jY70" +
+            "ConNXmzR5U39kQQpFa0dxRQdgUA8YpU5/8aILp3Yv0S2BssiuqdL5IkzdBz" +
+            "LNRhSQabuM+vyCQjImHF/bA28+5DKJ9uzIhywA9JS2o/4TtE6mLqWbFAY+d" +
+            "M716llarKJgzLh/Vg0mH6H5vDoo4D6z+M2jQRiUbV+yIiiaY8/SMyLltsZe" +
+            "El/hx/NyACPSUAClVlsjvRRZzQl8oDybMVvUAbrIwR+ZVQltdqVgx5zVf8G" +
+            "3BHi7lUdyqxIt0QWQRBTTd1tYsSOKmVhYB+DvPv2IJKGXqKo+XKQBLmm9UI" +
+            "uxAgMBAAECggEAN/6hZJGnNHEdhHCOXwxZ+DI+czxxp9U8KFx87q72wcg1O" +
+            "b27nbraaLvlppW4jmriF4pYED6XptPZuP8Y4AF9D0jFnx4yBQkWeYJlQsYa" +
+            "u/ePpEcrRAYL2t+ZU6jFxxgGuVTuxiE1Y1ybzXB6pclbzBNmPeGIh/LfmoD" +
+            "gzVmVBs6FhBrl8z+eWciISgskTaESkboiV+HAzDBJ23gPLD0fjk69Dw75MS" +
+            "7QHBYm5jDIpXFvh+nPJOfwIAuaEQ9ZaF3Uh8zjBOyhtOSO9cdVwXME4sIvA" +
+            "7IqlGoacxUtjyoWarPqk/V4UWl7/Q8gZlRagqjaJ+DqpqrD6UFCxwvwKCyJ" +
+            "0QKBgQDTV7joBHuuw/RuDe8VwxUuRJTIcdrn6g2Kn3CxV9YLJhxr1doEmw3" +
+            "YDASY7zddkgJjssbkub5FhySAlqOIz5ok62erHMsyC90VXqWDC1uFHW6EQh" +
+            "/N/S/AvgEuyIJ/dtxXYLFyozm0Az98A37nGGTSt9tphKsTPiHS1jOB3f9Db" +
+            "wKBgGomcW7TSlq0+VSGniD+ciB71UMrW9FcF9qsnTPXQGZV4JqpLvE/tEq7" +
+            "uyr/Dp6l3mstVmtLtBjkPef32oz3JXo32IWS37VZlu+3I2v7VQThFLnc3F0" +
+            "KUcZmH1Uy1my8itjP6jIfwNwiUObilCubgiGEVxfMb0G7juMETZYyuRLfAo" +
+            "GAVwIFcRfvZ4rrBagc5yOyg6LecgtVqSbVvl1Xwts7lslw6ABZyo2fTHPeL" +
+            "KxHafFjpHIEqkPCDtPNdlcOKpP1jP+RZYPsL8VslpCpqWKyogH07uReParf" +
+            "zwUqbX1FJH7lxd9cDqseZXr01vSFeVS0pX/mB/IDkF+DA08GU4/2uGcCgYA" +
+            "V1CP9e1vN/WtMc4ZvGIQVpAF+F5uBGSQapuaI85ndsYlHpMTvfX8w4xwhQm" +
+            "QaQdfUSHV+CQpXGBCW9EQwOt6tHHDdPw/b9jlwwEN7gCrCnxqpAf8a7vVUD" +
+            "EojNhocMEWJQnBRsG/zlOb4I93+fbMr+1ABp9u1M8G1c3wVCAdBFwKBgF8s" +
+            "JlG58EKSfdvhVNDRq4hC/yjcI6987rg2fmeX9QUYiwReniaesEoBdeHzOYW" +
+            "R3DtC5SNiDKuj7QmnRvNcbFwBz5dGOdiXytRtLkpwDArY/hV/hqeSH1nHU0" +
+            "fpLUScnTZr95HkLFIle1JCFXw0viGHKEBkdFvcuXIFON9KNTA/"
+        )!
+
+        let _2047BitRSAPrivateKeyPKCS8DER = Data(base64Encoded:
+            "MIIEugIBADANBgkqhkiG9w0BAQEFAASCBKQwggSgAgEAAoIBAFeiDzq7Cm4" +
+            "Kht5deiQcB48y7Xk7YLB+/DHv8TNmXqNjvQKic1ebNHlTf2RBCkVrR3FFB2" +
+            "BQDxilTn/xogundi/RLYGyyK6p0vkiTN0HMs1GFJBpu4z6/IJCMiYcX9sDb" +
+            "z7kMon27MiHLAD0lLaj/hO0TqYupZsUBj50zvXqWVqsomDMuH9WDSYfofm8" +
+            "OijgPrP4zaNBGJRtX7IiKJpjz9IzIuW2xl4SX+HH83IAI9JQAKVWWyO9FFn" +
+            "NCXygPJsxW9QBusjBH5lVCW12pWDHnNV/wbcEeLuVR3KrEi3RBZBEFNN3W1" +
+            "ixI4qZWFgH4O8+/YgkoZeoqj5cpAEuab1Qi7ECAwEAAQKCAQA3/qFkkac0c" +
+            "R2EcI5fDFn4Mj5zPHGn1TwoXHzurvbByDU5vbudutpou+WmlbiOauIXilgQ" +
+            "Ppem09m4/xjgAX0PSMWfHjIFCRZ5gmVCxhq794+kRytEBgva35lTqMXHGAa" +
+            "5VO7GITVjXJvNcHqlyVvME2Y94YiH8t+agODNWZUGzoWEGuXzP55ZyIhKCy" +
+            "RNoRKRuiJX4cDMMEnbeA8sPR+OTr0PDvkxLtAcFibmMMilcW+H6c8k5/AgC" +
+            "5oRD1loXdSHzOME7KG05I71x1XBcwTiwi8DsiqUahpzFS2PKhZqs+qT9XhR" +
+            "aXv9DyBmVFqCqNon4OqmqsPpQULHC/AoLInRAoGBANNXuOgEe67D9G4N7xX" +
+            "DFS5ElMhx2ufqDYqfcLFX1gsmHGvV2gSbDdgMBJjvN12SAmOyxuS5vkWHJI" +
+            "CWo4jPmiTrZ6scyzIL3RVepYMLW4UdboRCH839L8C+AS7Ign923FdgsXKjO" +
+            "bQDP3wDfucYZNK322mEqxM+IdLWM4Hd/0NvAoGAaiZxbtNKWrT5VIaeIP5y" +
+            "IHvVQytb0VwX2qydM9dAZlXgmqku8T+0Sru7Kv8OnqXeay1Wa0u0GOQ95/f" +
+            "ajPclejfYhZLftVmW77cja/tVBOEUudzcXQpRxmYfVTLWbLyK2M/qMh/A3C" +
+            "JQ5uKUK5uCIYRXF8xvQbuO4wRNljK5Et8CgYBXAgVxF+9niusFqBznI7KDo" +
+            "t5yC1WpJtW+XVfC2zuWyXDoAFnKjZ9Mc94srEdp8WOkcgSqQ8IO0812Vw4q" +
+            "k/WM/5Flg+wvxWyWkKmpYrKiAfTu5F49qt/PBSptfUUkfuXF31wOqx5levT" +
+            "W9IV5VLSlf+YH8gOQX4MDTwZTj/a4ZwKBgBXUI/17W839a0xzhm8YhBWkAX" +
+            "4Xm4EZJBqm5ojzmd2xiUekxO99fzDjHCFCZBpB19RIdX4JClcYEJb0RDA63" +
+            "q0ccN0/D9v2OXDAQ3uAKsKfGqkB/xru9VQMSiM2GhwwRYlCcFGwb/OU5vgj" +
+            "3f59syv7UAGn27UzwbVzfBUIB0EXAoGAXywmUbnwQpJ92+FU0NGriEL/KNw" +
+            "jr3zuuDZ+Z5f1BRiLBF6eJp6wSgF14fM5hZHcO0LlI2IMq6PtCadG81xsXA" +
+            "HPl0Y52JfK1G0uSnAMCtj+FX+Gp5IfWcdTR+ktRJydNmv3keQsUiV7UkIVf" +
+            "DS+IYcoQGR0W9y5cgU430o1MD8="
+        )!
+
+        let _2047BitRSAPublicKeyDER = Data(base64Encoded:
+            "MIIBITANBgkqhkiG9w0BAQEFAAOCAQ4AMIIBCQKCAQBXog86uwpuCobeXXo" +
+            "kHAePMu15O2Cwfvwx7/EzZl6jY70ConNXmzR5U39kQQpFa0dxRQdgUA8YpU" +
+            "5/8aILp3Yv0S2BssiuqdL5IkzdBzLNRhSQabuM+vyCQjImHF/bA28+5DKJ9" +
+            "uzIhywA9JS2o/4TtE6mLqWbFAY+dM716llarKJgzLh/Vg0mH6H5vDoo4D6z" +
+            "+M2jQRiUbV+yIiiaY8/SMyLltsZeEl/hx/NyACPSUAClVlsjvRRZzQl8oDy" +
+            "bMVvUAbrIwR+ZVQltdqVgx5zVf8G3BHi7lUdyqxIt0QWQRBTTd1tYsSOKmV" +
+            "hYB+DvPv2IJKGXqKo+XKQBLmm9UIuxAgMBAAE="
+        )!
+
+        XCTAssertThrowsError(try _RSA.Signing.PrivateKey(pemRepresentation: _2047BitRSAPrivateKeyPEM))
+        XCTAssertThrowsError(try _RSA.Signing.PrivateKey(pemRepresentation: _2047BitRSAPrivateKeyPKCS8PEM))
+        XCTAssertThrowsError(try _RSA.Signing.PrivateKey(derRepresentation: _2047BitRSAPrivateKeyDER))
+        XCTAssertThrowsError(try _RSA.Signing.PrivateKey(derRepresentation: _2047BitRSAPrivateKeyPKCS8DER))
+        XCTAssertThrowsError(try _RSA.Signing.PublicKey(pemRepresentation: _2047BitRSAPublicKeyPEM))
+        XCTAssertThrowsError(try _RSA.Signing.PublicKey(derRepresentation: _2047BitRSAPublicKeyDER))
+    }
+
+    // The unsafe initializers require a modulus of at least 1024 bits. 1017 bits occupies 128 bytes,
+    // the same as 1024.
+    func testRejectKeysBelow1024BitMinimum() throws {
+        // Generated via `openssl genrsa -traditional 1017`, then converted to the encodings below.
+        let _1017BitRSAPrivateKeyPEM = """
+        -----BEGIN RSA PRIVATE KEY-----
+        MIICWAIBAAKBgAFVByFodT87fB0oWSEkwybEeqayqUavihFHLu3Ss/XuUxVosi5z
+        lnzxbta17k8WXJYXa7OZC4jicxQer5xrZr9Op1k99zlJUbMtznl+BiSRKoAOjmsQ
+        mLPU5er1hF1MnHUJsS1SgoTbR0CLPFNh4ai7WtOY6bWv/k9B03xNPeRVAgMBAAEC
+        gYAAhvHcYWZL0DELpKSoPdDPLV5PSlE7fEjJD37dcsvtXBIaXaRsRybcZ/jxE2qq
+        dvHKHphqp/vtfZYF9yKMZd9xcsxceGTRWR9kxQdKe6r9y1gzF1piRAyU4UcyjzFc
+        h4w4psX3AqqN4qpQJgYUZamSRnnoJ3Vq7u/oR3W0P+PL3QJAGTnDt6UAHahmdryj
+        KMFyQan+GU/eo6KDD84blk1L8axsEHtKUvtVBOWPRaR2WJI+q26adZbVvp707brW
+        8sa+9wJADYTjZOw5A2C+mXlbBwV78cLrXwsZ/+5zrlGH5dMuDYbuJH3InXK/SguL
+        f/OqQmrtUwSmL5QfQ//QPbUpsioIEwJABg1h8/HWsUbyLpLb4q9nJnIO0SvkkwYu
+        w+ADpnAtRHLGCr5J+tbqcx5Q3biz3FRaTO9gh84EwpOI2HD3mZAtyQJABk3sRQor
+        5DlfaO7A1ltmW23MmXvx2fn3FFmNCE4c8c30jCvkPBhgwET1/utAgMygc9B9Nz7Z
+        /bn0AHLVSPJ05QJAFJqFaLd6j9v/WK7noJk0f7lWTZnfeRkZPxJh4AobfnGKV1yO
+        +mB6mLJo/StOBrM82IdCBXTHRYYS2zUCCoJG1Q==
+        -----END RSA PRIVATE KEY-----
+        """
+
+        let _1017BitRSAPublicKeyPEM = """
+        -----BEGIN PUBLIC KEY-----
+        MIGeMA0GCSqGSIb3DQEBAQUAA4GMADCBiAKBgAFVByFodT87fB0oWSEkwybEeqay
+        qUavihFHLu3Ss/XuUxVosi5zlnzxbta17k8WXJYXa7OZC4jicxQer5xrZr9Op1k9
+        9zlJUbMtznl+BiSRKoAOjmsQmLPU5er1hF1MnHUJsS1SgoTbR0CLPFNh4ai7WtOY
+        6bWv/k9B03xNPeRVAgMBAAE=
+        -----END PUBLIC KEY-----
+        """
+
+        let _1017BitRSAPrivateKeyPKCS8PEM = """
+        -----BEGIN PRIVATE KEY-----
+        MIICcgIBADANBgkqhkiG9w0BAQEFAASCAlwwggJYAgEAAoGAAVUHIWh1Pzt8HShZ
+        ISTDJsR6prKpRq+KEUcu7dKz9e5TFWiyLnOWfPFu1rXuTxZclhdrs5kLiOJzFB6v
+        nGtmv06nWT33OUlRsy3OeX4GJJEqgA6OaxCYs9Tl6vWEXUycdQmxLVKChNtHQIs8
+        U2HhqLta05jpta/+T0HTfE095FUCAwEAAQKBgACG8dxhZkvQMQukpKg90M8tXk9K
+        UTt8SMkPft1yy+1cEhpdpGxHJtxn+PETaqp28coemGqn++19lgX3Ioxl33FyzFx4
+        ZNFZH2TFB0p7qv3LWDMXWmJEDJThRzKPMVyHjDimxfcCqo3iqlAmBhRlqZJGeegn
+        dWru7+hHdbQ/48vdAkAZOcO3pQAdqGZ2vKMowXJBqf4ZT96jooMPzhuWTUvxrGwQ
+        e0pS+1UE5Y9FpHZYkj6rbpp1ltW+nvTtutbyxr73AkANhONk7DkDYL6ZeVsHBXvx
+        wutfCxn/7nOuUYfl0y4Nhu4kfcidcr9KC4t/86pCau1TBKYvlB9D/9A9tSmyKggT
+        AkAGDWHz8daxRvIuktvir2cmcg7RK+STBi7D4AOmcC1EcsYKvkn61upzHlDduLPc
+        VFpM72CHzgTCk4jYcPeZkC3JAkAGTexFCivkOV9o7sDWW2ZbbcyZe/HZ+fcUWY0I
+        ThzxzfSMK+Q8GGDARPX+60CAzKBz0H03Ptn9ufQActVI8nTlAkAUmoVot3qP2/9Y
+        ruegmTR/uVZNmd95GRk/EmHgCht+cYpXXI76YHqYsmj9K04GszzYh0IFdMdFhhLb
+        NQIKgkbV
+        -----END PRIVATE KEY-----
+        """
+
+        let _1017BitRSAPrivateKeyDER = Data(base64Encoded:
+            "MIICWAIBAAKBgAFVByFodT87fB0oWSEkwybEeqayqUavihFHLu3Ss/XuUxV" +
+            "osi5zlnzxbta17k8WXJYXa7OZC4jicxQer5xrZr9Op1k99zlJUbMtznl+Bi" +
+            "SRKoAOjmsQmLPU5er1hF1MnHUJsS1SgoTbR0CLPFNh4ai7WtOY6bWv/k9B0" +
+            "3xNPeRVAgMBAAECgYAAhvHcYWZL0DELpKSoPdDPLV5PSlE7fEjJD37dcsvt" +
+            "XBIaXaRsRybcZ/jxE2qqdvHKHphqp/vtfZYF9yKMZd9xcsxceGTRWR9kxQd" +
+            "Ke6r9y1gzF1piRAyU4UcyjzFch4w4psX3AqqN4qpQJgYUZamSRnnoJ3Vq7u" +
+            "/oR3W0P+PL3QJAGTnDt6UAHahmdryjKMFyQan+GU/eo6KDD84blk1L8axsE" +
+            "HtKUvtVBOWPRaR2WJI+q26adZbVvp707brW8sa+9wJADYTjZOw5A2C+mXlb" +
+            "BwV78cLrXwsZ/+5zrlGH5dMuDYbuJH3InXK/SguLf/OqQmrtUwSmL5QfQ//" +
+            "QPbUpsioIEwJABg1h8/HWsUbyLpLb4q9nJnIO0SvkkwYuw+ADpnAtRHLGCr" +
+            "5J+tbqcx5Q3biz3FRaTO9gh84EwpOI2HD3mZAtyQJABk3sRQor5DlfaO7A1" +
+            "ltmW23MmXvx2fn3FFmNCE4c8c30jCvkPBhgwET1/utAgMygc9B9Nz7Z/bn0" +
+            "AHLVSPJ05QJAFJqFaLd6j9v/WK7noJk0f7lWTZnfeRkZPxJh4AobfnGKV1y" +
+            "O+mB6mLJo/StOBrM82IdCBXTHRYYS2zUCCoJG1Q=="
+        )!
+
+        let _1017BitRSAPrivateKeyPKCS8DER = Data(base64Encoded:
+            "MIICcgIBADANBgkqhkiG9w0BAQEFAASCAlwwggJYAgEAAoGAAVUHIWh1Pzt" +
+            "8HShZISTDJsR6prKpRq+KEUcu7dKz9e5TFWiyLnOWfPFu1rXuTxZclhdrs5" +
+            "kLiOJzFB6vnGtmv06nWT33OUlRsy3OeX4GJJEqgA6OaxCYs9Tl6vWEXUycd" +
+            "QmxLVKChNtHQIs8U2HhqLta05jpta/+T0HTfE095FUCAwEAAQKBgACG8dxh" +
+            "ZkvQMQukpKg90M8tXk9KUTt8SMkPft1yy+1cEhpdpGxHJtxn+PETaqp28co" +
+            "emGqn++19lgX3Ioxl33FyzFx4ZNFZH2TFB0p7qv3LWDMXWmJEDJThRzKPMV" +
+            "yHjDimxfcCqo3iqlAmBhRlqZJGeegndWru7+hHdbQ/48vdAkAZOcO3pQAdq" +
+            "GZ2vKMowXJBqf4ZT96jooMPzhuWTUvxrGwQe0pS+1UE5Y9FpHZYkj6rbpp1" +
+            "ltW+nvTtutbyxr73AkANhONk7DkDYL6ZeVsHBXvxwutfCxn/7nOuUYfl0y4" +
+            "Nhu4kfcidcr9KC4t/86pCau1TBKYvlB9D/9A9tSmyKggTAkAGDWHz8daxRv" +
+            "Iuktvir2cmcg7RK+STBi7D4AOmcC1EcsYKvkn61upzHlDduLPcVFpM72CHz" +
+            "gTCk4jYcPeZkC3JAkAGTexFCivkOV9o7sDWW2ZbbcyZe/HZ+fcUWY0IThzx" +
+            "zfSMK+Q8GGDARPX+60CAzKBz0H03Ptn9ufQActVI8nTlAkAUmoVot3qP2/9" +
+            "YruegmTR/uVZNmd95GRk/EmHgCht+cYpXXI76YHqYsmj9K04GszzYh0IFdM" +
+            "dFhhLbNQIKgkbV"
+        )!
+
+        let _1017BitRSAPublicKeyDER = Data(base64Encoded:
+            "MIGeMA0GCSqGSIb3DQEBAQUAA4GMADCBiAKBgAFVByFodT87fB0oWSEkwyb" +
+            "EeqayqUavihFHLu3Ss/XuUxVosi5zlnzxbta17k8WXJYXa7OZC4jicxQer5" +
+            "xrZr9Op1k99zlJUbMtznl+BiSRKoAOjmsQmLPU5er1hF1MnHUJsS1SgoTbR" +
+            "0CLPFNh4ai7WtOY6bWv/k9B03xNPeRVAgMBAAE="
+        )!
+
+        XCTAssertThrowsError(
+            try _RSA.Signing.PrivateKey(unsafePEMRepresentation: _1017BitRSAPrivateKeyPEM)
+        )
+        XCTAssertThrowsError(
+            try _RSA.Signing.PrivateKey(unsafePEMRepresentation: _1017BitRSAPrivateKeyPKCS8PEM)
+        )
+        XCTAssertThrowsError(
+            try _RSA.Signing.PrivateKey(unsafeDERRepresentation: _1017BitRSAPrivateKeyDER)
+        )
+        XCTAssertThrowsError(
+            try _RSA.Signing.PrivateKey(unsafeDERRepresentation: _1017BitRSAPrivateKeyPKCS8DER)
+        )
+        XCTAssertThrowsError(
+            try _RSA.Signing.PublicKey(unsafePEMRepresentation: _1017BitRSAPublicKeyPEM)
+        )
+        XCTAssertThrowsError(
+            try _RSA.Signing.PublicKey(unsafeDERRepresentation: _1017BitRSAPublicKeyDER)
+        )
     }
 
     func testHandlingNonStandardKeys() throws {
@@ -575,12 +841,12 @@ final class TestRSASigning: XCTestCase {
             "En7fZhCeZeNBjNTuKXj3JqdP3wIDAQAB"
         )!
 
-        XCTAssertEqual(try _RSA.Signing.PrivateKey(pemRepresentation: awkwardRSAPrivateKeyPEM).keySizeInBits, 2056)
-        XCTAssertEqual(try _RSA.Signing.PrivateKey(pemRepresentation: awkwardRSAPrivateKeyPKCS8PEM).keySizeInBits, 2056)
-        XCTAssertEqual(try _RSA.Signing.PrivateKey(derRepresentation: awkwardRSAPrivateKeyDER).keySizeInBits, 2056)
-        XCTAssertEqual(try _RSA.Signing.PrivateKey(derRepresentation: awkwardRSAPrivateKeyPKCS8DER).keySizeInBits, 2056)
-        XCTAssertEqual(try _RSA.Signing.PublicKey(pemRepresentation: awkwardRSAPublicKeyPEM).keySizeInBits, 2056)
-        XCTAssertEqual(try _RSA.Signing.PublicKey(derRepresentation: awkwardRSAPublicKeyDER).keySizeInBits, 2056)
+        XCTAssertEqual(try _RSA.Signing.PrivateKey(pemRepresentation: awkwardRSAPrivateKeyPEM).keySizeInBits, 2050)
+        XCTAssertEqual(try _RSA.Signing.PrivateKey(pemRepresentation: awkwardRSAPrivateKeyPKCS8PEM).keySizeInBits, 2050)
+        XCTAssertEqual(try _RSA.Signing.PrivateKey(derRepresentation: awkwardRSAPrivateKeyDER).keySizeInBits, 2050)
+        XCTAssertEqual(try _RSA.Signing.PrivateKey(derRepresentation: awkwardRSAPrivateKeyPKCS8DER).keySizeInBits, 2050)
+        XCTAssertEqual(try _RSA.Signing.PublicKey(pemRepresentation: awkwardRSAPublicKeyPEM).keySizeInBits, 2050)
+        XCTAssertEqual(try _RSA.Signing.PublicKey(derRepresentation: awkwardRSAPublicKeyDER).keySizeInBits, 2050)
     }
 
     func testMangledPKCS8DERKey() throws {
@@ -770,6 +1036,13 @@ final class TestRSASigning: XCTestCase {
             n: bytesValues.randomElement()!,
             e: bytesValues.randomElement()!
         )
+        // Modulus of the 512-bit key above: `openssl rsa -in key.pem -noout -modulus`.
+        let _512BitModulus =
+            "e24c4c2c70e673315c2420b0e211542bbccf5b79f2ce6bdaa4aac29650bd064b"
+            + "955ae1613a449c7143e906d7f251e49356771d9d6f8f15bcf4044f87de1c1bed"
+        XCTAssertThrowsError(
+            try _RSA.Signing.PublicKey(n: Data(hexString: _512BitModulus), e: Data(hexString: "010001"))
+        )
     }
 
     func testConstructAndUseKeyFromRSANumbersWhileRecoveringPrimes() throws {
@@ -909,6 +1182,23 @@ final class TestRSASigning: XCTestCase {
         pemLines.append("-----END \(discriminator)-----")
 
         return pemLines.joined(separator: "\n")
+    }
+
+    func test_invalidDERPublicKeyThrowsWithoutDoubleFree() throws {
+        // SEQUENCE { INTEGER 0, INTEGER 0 }
+        let badBase64 = "MAYCAQACAQ=="
+        let badDER = Array(Data(base64Encoded: badBase64)!)
+        XCTAssertThrowsError(try BoringSSLRSAPublicKey(derRepresentation: badDER))
+    }
+
+    func test_invalidPEMPublicKeyThrowsWithoutDoubleFree() throws {
+        // SEQUENCE { INTEGER 0, INTEGER 0 }
+        let badPEM = """
+            -----BEGIN PUBLIC KEY-----
+            MAYCAQACAQ==
+            -----END PUBLIC KEY-----
+            """
+        XCTAssertThrowsError(try BoringSSLRSAPublicKey(pemRepresentation: badPEM))
     }
 }
 

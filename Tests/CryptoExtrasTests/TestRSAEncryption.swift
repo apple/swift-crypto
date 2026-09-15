@@ -111,6 +111,13 @@ final class TestRSAEncryption: XCTestCase {
             n: bytesValues.randomElement()!,
             e: bytesValues.randomElement()!
         )
+        // Modulus of a 512-bit key: `openssl rsa -in key.pem -noout -modulus`.
+        let _512BitModulus =
+            "e24c4c2c70e673315c2420b0e211542bbccf5b79f2ce6bdaa4aac29650bd064b"
+            + "955ae1613a449c7143e906d7f251e49356771d9d6f8f15bcf4044f87de1c1bed"
+        XCTAssertThrowsError(
+            try _RSA.Encryption.PublicKey(n: Data(hexString: _512BitModulus), e: Data(hexString: "010001"))
+        )
     }
 
     func testConstructAndUseKeyFromRSANumbersWhileRecoveringPrimes() throws {
@@ -168,6 +175,77 @@ final class TestRSAEncryption: XCTestCase {
         let pubKey2048 = try _RSA.Encryption.PublicKey(pemRepresentation: pemRepresentation2048)
         XCTAssertEqual(214, pubKey2048.maximumEncryptSize(with: .PKCS1_OAEP))
         XCTAssertEqual(190, pubKey2048.maximumEncryptSize(with: .PKCS1_OAEP_SHA256))
+    }
+
+    // The encryption key initializers require the modulus bit length to be a multiple of 8.
+    func testRejectKeysWithNonByteAlignedModulus() throws {
+        // Equivalent key: `openssl genrsa -traditional 2050`, converted to the encodings below.
+        let _2050BitRSAPrivateKeyPEM = """
+            -----BEGIN RSA PRIVATE KEY-----
+            MIIEpAIBAAKCAQECxVSlteS7/eN5dXzn+RdyApV8JJILQaXaZOgxl/FELWhXq4lY
+            Uk6+0keFtdLvSsdsBAZlq7VT8vHyfxqhcpb0RkjThWfVhR2BjzO8TNLA+mlKGKZJ
+            foTE3r7o99Ev4X+H4QxCyAC8oyAKy1lyDA4wT7OFBBXtXJmeQ/PbYCuMMyqrCWUg
+            VL48rK150QxHQ0U9XsGCnF70X/PMPebKY60OS36pTYhmi77h0maiY4yW2kHNfgeG
+            Mbc3XQ19Sr42f5zKe0AIQfzK91v6M5PaEIpJAfm+JPDNWf2+RKEVa93gNiuTZ2+p
+            gUjf7ut8mY5MEn7fZhCeZeNBjNTuKXj3JqdP3wIDAQABAoIBAQC252vPakq7XeOc
+            0vdx+ISye99GAs6aP+z/pgvbtR+yYbxxg/ndR2bXDBBDYT/I1YFZzFh9HUWnWJIC
+            CljlFl2onfDE7pBVQdV9moaMfK+8Ilgz4PUEhbHKCgpClJM3H05nTmUN83qwyXtf
+            EhJhX2s/sfezpP/Op+HyfbfspW4CZrrJmv1zfqIjDiV7LMaoDDU+UDHexcgwoXCa
+            HKC/U7RcbNYE3hOg/Fjx+nevprXthhf8mpnkAzTcpXsMcATuvh7sSqdFnHkF9egw
+            CBnlx+iH9J/6Q3VwoZgwggi9S6qT5yrS0/JVWVic4KaiE81dDr+KLmXIpOFRNuYf
+            8sP79cfRAoGBAcwBZ+XfX5H8Ii7tSjCJWJ+sw6cevH4YQhYWDEgodsmzj2hDRoRj
+            EaGdATP5dry7RWePTuhN0KlvMYX/xI2kvoRrK6sR4bad0V2J8lKBFxAil55w531L
+            wZUAhxzAChWZ6uRMR694yati/8wIG+BMdwBPA+00+pMH2Kd9HGN8xoBHAoGBAYrA
+            0sfOCNqvkf7OsoiShjSdeTYkTqjHrVR7m6DJg2FUL6E9VnaSLG0esnAYGAozKfFl
+            rQz7gEGckMG2dILOAY9z3wv4ltX12RxmAJMHoO/ENDVxiqSKC7utiKzcii9qy626
+            RIuAvOwSOeU25VVTOzOm35wabuLAThMYBqdYl9epAoGAYsWKgZlM9BOnY1wgKfvT
+            w7Vc7W10G78psYRabsQBfZ3IlSKc6aA8EO+daoOOM0gixvHGh6rtuvPdNmCM270c
+            C2LXpYvZY1TPt73/Aiglw5kp5SNpEUZK8quCV3IEuE6sWQjn+418AAjp0+2Jzsec
+            ZbyRo0VU6G0u4AfFKLeKB9ECgYAURk8NIBHoWXggJDGbPhtSfHwLQdYgaREH88lM
+            es0apJ5Fo8bbFCrf9+GmTDZ/35zZ3yUCM7CkrgvpRxu41CfUXFkqXjwxBQ1/neWN
+            p6imZ+dej1RVmxl7LDCG4FTglpWbeKOonpYVceIzWZxxw3KY9ospk1n6n3HjHSrK
+            UYyK8QKBgQDWsxq+0VhPgMRDUKg2p1gdnluX9I5lmZVwy1No6QfChJUo/RCRYcIe
+            jLXlpoAW9UUR5JCx3/hKyKvbl34J/LV3Tc/63vHxOGnh8eAySyCcpFJFmyciIZdY
+            iRLB6wzq+zLIZkK7+5TdHCZ9jIi5oKyk2YDT6LSTUnuG9DlGpcSmqA==
+            -----END RSA PRIVATE KEY-----
+            """
+
+        let _2050BitRSAPublicKeyPEM = """
+            -----BEGIN PUBLIC KEY-----
+            MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQECxVSlteS7/eN5dXzn+Rdy
+            ApV8JJILQaXaZOgxl/FELWhXq4lYUk6+0keFtdLvSsdsBAZlq7VT8vHyfxqhcpb0
+            RkjThWfVhR2BjzO8TNLA+mlKGKZJfoTE3r7o99Ev4X+H4QxCyAC8oyAKy1lyDA4w
+            T7OFBBXtXJmeQ/PbYCuMMyqrCWUgVL48rK150QxHQ0U9XsGCnF70X/PMPebKY60O
+            S36pTYhmi77h0maiY4yW2kHNfgeGMbc3XQ19Sr42f5zKe0AIQfzK91v6M5PaEIpJ
+            Afm+JPDNWf2+RKEVa93gNiuTZ2+pgUjf7ut8mY5MEn7fZhCeZeNBjNTuKXj3JqdP
+            3wIDAQAB
+            -----END PUBLIC KEY-----
+            """
+
+        XCTAssertThrowsError(try _RSA.Encryption.PrivateKey(pemRepresentation: _2050BitRSAPrivateKeyPEM))
+        XCTAssertThrowsError(try _RSA.Encryption.PrivateKey(unsafePEMRepresentation: _2050BitRSAPrivateKeyPEM))
+        XCTAssertThrowsError(try _RSA.Encryption.PublicKey(pemRepresentation: _2050BitRSAPublicKeyPEM))
+        XCTAssertThrowsError(try _RSA.Encryption.PublicKey(unsafePEMRepresentation: _2050BitRSAPublicKeyPEM))
+    }
+
+    // The raw number encryption key initializers do not require the key  modulus bit length to be a multiple of 8.
+    func testMaximumEncryptSizeWithNonByteAlignedModulus() throws {
+        // Modulus of a 2050-bit key: `openssl rsa -in key.pem -noout -modulus`.
+        let _2050BitModulus = Data(
+            base64Encoded:
+                "AsVUpbXku/3jeXV85/kXcgKVfCSSC0Gl2mToMZfxRC1oV6uJWFJOvtJHhbX" +
+                "S70rHbAQGZau1U/Lx8n8aoXKW9EZI04Vn1YUdgY8zvEzSwPppShimSX6ExN" +
+                "6+6PfRL+F/h+EMQsgAvKMgCstZcgwOME+zhQQV7VyZnkPz22ArjDMqqwllI" +
+                "FS+PKytedEMR0NFPV7Bgpxe9F/zzD3mymOtDkt+qU2IZou+4dJmomOMltpB" +
+                "zX4HhjG3N10NfUq+Nn+cyntACEH8yvdb+jOT2hCKSQH5viTwzVn9vkShFWv" +
+                "d4DYrk2dvqYFI3+7rfJmOTBJ+32YQnmXjQYzU7il49yanT98="
+        )!
+        let publicExponent = Data(base64Encoded: "AQAB")!
+
+        let publicKey = try _RSA.Encryption.PublicKey(n: _2050BitModulus, e: publicExponent)
+        XCTAssertEqual(2050, publicKey.keySizeInBits)
+        XCTAssertEqual(215, publicKey.maximumEncryptSize(with: .PKCS1_OAEP))
+        XCTAssertEqual(191, publicKey.maximumEncryptSize(with: .PKCS1_OAEP_SHA256))
     }
 
     func testPKCS1() throws {
