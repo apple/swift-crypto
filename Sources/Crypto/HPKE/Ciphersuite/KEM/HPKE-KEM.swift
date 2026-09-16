@@ -11,30 +11,28 @@
 // SPDX-License-Identifier: Apache-2.0
 //
 //===----------------------------------------------------------------------===//
-#if CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
+
+#if canImport(CryptoKit)
 @_exported import CryptoKit
-#else
-#if CRYPTOKIT_NO_ACCESS_TO_FOUNDATION
-import SwiftSystem
 #else
 #if canImport(FoundationEssentials)
 import FoundationEssentials
 #else
 import Foundation
 #endif
-#endif
 
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension HPKE {
 	/// The key encapsulation mechanisms to use in HPKE.
     ///
     /// The module-lattice key encapsulation mechanism (ML-KEM) is designed to offer increased security in situations
     /// where an adversary uses a quantum computer.
-    @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
+    @nonexhaustive
     public enum KEM: CaseIterable, Hashable, Sendable {
         public static var allCases: [HPKE.KEM] {
             var cases = [KEM.P256_HKDF_SHA256, KEM.P384_HKDF_SHA384, KEM.P521_HKDF_SHA512, KEM.Curve25519_HKDF_SHA256]
-            cases.append(KEM.XWingMLKEM768X25519)
+            if #available(iOS 19.0, macOS 16.0, watchOS 12.0, tvOS 19.0, macCatalyst 19.0, *) {
+                cases.append(KEM.XWingMLKEM768X25519)
+            }
             return cases
         }
 
@@ -55,8 +53,7 @@ extension HPKE {
         case XWingMLKEM768X25519
 
         /// Return the KEM algorithm identifier as defined in section 7.1 of [RFC 9180](https://www.ietf.org/rfc/rfc9180.pdf).
-        @_spi(HPKEAlgID)
-        public var value: UInt16 {
+        internal var value: UInt16 {
             switch self {
             case .P256_HKDF_SHA256:          return 0x0010
             case .P384_HKDF_SHA384:          return 0x0011
@@ -91,8 +88,7 @@ extension HPKE {
         }
         
         /// Return the size of the encapsulation in bytes
-        @_spi(HPKEAlgID)
-        public var nEnc: UInt16 {
+        internal var nEnc: UInt16 {
             switch self {
             case .P256_HKDF_SHA256:          return 65
             case .P384_HKDF_SHA384:          return 97
@@ -104,4 +100,4 @@ extension HPKE {
     }
 }
 
-#endif // Linux or !SwiftPM
+#endif // canImport(CryptoKit)

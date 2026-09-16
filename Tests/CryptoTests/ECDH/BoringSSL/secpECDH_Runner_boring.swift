@@ -13,21 +13,16 @@
 //===----------------------------------------------------------------------===//
 import XCTest
 
+#if canImport(CryptoKit)
+// Skip tests that require @testable imports of CryptoKit.
+#else
 #if canImport(FoundationEssentials)
 import FoundationEssentials
 #else
 import Foundation
 #endif
-
-#if CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
-// Skip tests that require @testable imports of CryptoKit.
-#else
-#if !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
-@testable import CryptoKit
-#else
 @_implementationOnly import CCryptoBoringSSL
 @testable import Crypto
-#endif
 
 extension NISTECDHTests {
     func testGroupOpenSSL<
@@ -185,4 +180,4 @@ extension NISTECPublicKey {
     }
 }
 
-#endif  // CRYPTO_IN_SWIFTPM
+#endif  // canImport(CryptoKit)

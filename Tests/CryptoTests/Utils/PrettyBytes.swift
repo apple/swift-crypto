@@ -11,14 +11,11 @@
 // SPDX-License-Identifier: Apache-2.0
 //
 //===----------------------------------------------------------------------===//
-#if CRYPTOKIT_NO_ACCESS_TO_FOUNDATION
-import SwiftSystem
-#else
+
 #if canImport(FoundationEssentials)
 import FoundationEssentials
 #else
 import Foundation
-#endif
 #endif
 
 enum ByteHexEncodingErrors: Error {
@@ -70,7 +67,6 @@ extension RangeReplaceableCollection where Element == UInt8 {
     }
 }
 
-#if !CRYPTOKIT_NO_ACCESS_TO_FOUNDATION
 extension Data {
     init(hexString: String) throws {
         self.init()
@@ -109,4 +105,3 @@ extension Array where Element == UInt8 {
     }
 
 }
-#endif

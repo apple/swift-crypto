@@ -65,6 +65,8 @@ Sources/Crypto/Signatures/ECDSA.swift
 Sources/Crypto/Signatures/Ed25519.swift
 Sources/Crypto/Signatures/MLDSA.swift
 Sources/Crypto/Signatures/Signature.swift
+Sources/Crypto/Util/ArraySpanHelpers.swift
+Sources/Crypto/Util/Data+ArraySpan.swift
 Sources/Crypto/Util/PrettyBytes.swift
 Sources/Crypto/Util/SafeCompare.swift
 Sources/Crypto/Util/SecureBytes.swift
@@ -136,6 +138,7 @@ Tests/CryptoTests/Signatures/ECDSA/RawECDSASignaturesTests.swift
 Tests/CryptoTests/Signatures/EdDSA/Ed25519-Runner.swift
 Tests/CryptoTests/Signatures/MLDSA/MLDSAKeyGenTests.swift
 Tests/CryptoTests/Signatures/MLDSA/MLDSATests.swift
+Tests/CryptoTests/SymmetricKeyTests/SymmetricKeyTests.swift
 Tests/CryptoTests/Utils/PrettyBytes.swift
 Tests/CryptoTests/Utils/RFCVector.swift
 Tests/CryptoTests/Utils/SplitData.swift

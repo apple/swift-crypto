@@ -18,18 +18,17 @@ add_library(CryptoBoringWrapper STATIC
   "EC/EllipticCurve.swift"
   "EC/EllipticCurvePoint.swift"
   "Util/ArbitraryPrecisionInteger.swift"
+  "Util/Data+Span.swift"
   "Util/FiniteFieldArithmeticContext.swift"
   "Util/RandomBytes.swift"
 )
 
 target_include_directories(CryptoBoringWrapper PUBLIC
-  $<TARGET_PROPERTY:CCryptoBoringSSL,INCLUDE_DIRECTORIES>
-  $<TARGET_PROPERTY:CCryptoBoringSSLShims,INCLUDE_DIRECTORIES>)
+  $<TARGET_PROPERTY:CCryptoBoringSSL,INCLUDE_DIRECTORIES>)
 
 target_link_libraries(CryptoBoringWrapper PUBLIC
   $<$<NOT:$<PLATFORM_ID:Darwin>>:Foundation>
-  CCryptoBoringSSL
-  CCryptoBoringSSLShims)
+  CCryptoBoringSSL)
 
 target_compile_options(CryptoBoringWrapper PRIVATE ${SWIFT_CRYPTO_COMPILE_OPTIONS})
 

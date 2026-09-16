@@ -29,7 +29,7 @@ final class ThreadSpecificVariable<Value: AnyObject> {
     // the actual type in there is `Box<(ThreadSpecificVariable<T>, T)>` but we can't use that as C functions can't capture (even types)
     private typealias BoxedType = Box<(AnyObject, AnyObject)>
 
-    private class Key {
+    private final class Key {
         private var underlyingKey: ThreadOpsSystem.ThreadSpecificKey
 
         internal init(destructor: @escaping ThreadOpsSystem.ThreadSpecificKeyDestructor) {

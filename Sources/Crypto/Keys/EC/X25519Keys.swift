@@ -11,42 +11,31 @@
 // SPDX-License-Identifier: Apache-2.0
 //
 //===----------------------------------------------------------------------===//
-#if CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
+
+#if canImport(CryptoKit)
 @_exported import CryptoKit
-#else
-#if CRYPTOKIT_NO_ACCESS_TO_FOUNDATION
-public import SwiftSystem
 #else
 #if canImport(FoundationEssentials)
 public import FoundationEssentials
 #else
 public import Foundation
 #endif
-#endif
 
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension Curve25519.KeyAgreement {
     static var keyByteCount: Int {
         return 32
     }
 }
 
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension Curve25519 {
     /// A mechanism used to create a shared secret between two users by
     /// performing X25519 key agreement.
-    @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
+    @nonexhaustive
     public enum KeyAgreement: Sendable {
-        #if (!CRYPTO_IN_SWIFTPM_FORCE_BUILD_API) || CRYPTOKIT_NO_ACCESS_TO_FOUNDATION
-        typealias Curve25519PrivateKeyImpl = Curve25519.KeyAgreement.CoreCryptoCurve25519PrivateKeyImpl
-        typealias Curve25519PublicKeyImpl = Curve25519.KeyAgreement.CoreCryptoCurve25519PublicKeyImpl
-        #else
         typealias Curve25519PrivateKeyImpl = Curve25519.KeyAgreement.OpenSSLCurve25519PrivateKeyImpl
         typealias Curve25519PublicKeyImpl = Curve25519.KeyAgreement.OpenSSLCurve25519PublicKeyImpl
-        #endif
 
         /// A Curve25519 public key used for key agreement.
-        @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
         public struct PublicKey: ECPublicKey, Sendable {
             fileprivate var baseKey: Curve25519PublicKeyImpl
 
@@ -86,7 +75,6 @@ extension Curve25519 {
         }
 
         /// A Curve25519 private key used for key agreement.
-        @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
         public struct PrivateKey: DiffieHellmanKeyAgreement, Sendable {
             fileprivate var baseKey: Curve25519PrivateKeyImpl
 
@@ -135,4 +123,4 @@ extension Curve25519 {
         }
     }
 }
-#endif // Linux or !SwiftPM
+#endif // canImport(CryptoKit)

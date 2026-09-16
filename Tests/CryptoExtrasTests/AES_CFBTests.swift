@@ -45,7 +45,7 @@ final class AES_CFBTests: XCTestCase {
 
     func testVector(_ vector: TestVector) throws {
         let (contiguousPlaintextData, discontiguousPlaintextData) = vector.plaintext.asDataProtocols()
-        for plaintextData in [contiguousPlaintextData as DataProtocol, discontiguousPlaintextData as DataProtocol] {
+        for plaintextData in [contiguousPlaintextData as (any DataProtocol), discontiguousPlaintextData as (any DataProtocol)] {
             let key = SymmetricKey(data: Data(vector.key))
             let iv = try AES._CFB.IV(ivBytes: vector.iv)
             let ciphertext = try AES._CFB.encrypt(plaintextData, using: key, iv: iv)

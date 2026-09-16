@@ -13,14 +13,10 @@
 //===----------------------------------------------------------------------===//
 import XCTest
 
-#if CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
+#if canImport(CryptoKit)
 // Skip tests that require @testable imports of CryptoKit.
 #else
-#if !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
-@testable import CryptoKit
-#else
 @testable import Crypto
-#endif
 
 extension DERTests {
     func openSSLCoordinateSizeForCurve<Curve: OpenSSLSupportedNISTCurve>(_: Curve.Type) -> Int {
@@ -28,4 +24,4 @@ extension DERTests {
     }
 }
 
-#endif  // CRYPTO_IN_SWIFTPM
+#endif  // canImport(CryptoKit)

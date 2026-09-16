@@ -55,3 +55,4 @@ jobs:
     with:
       runner_pool: nightly
       build_scheme: swift-crypto-Package
+      swift_6_1_enabled: false

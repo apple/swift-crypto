@@ -12,14 +12,10 @@
 //
 //===----------------------------------------------------------------------===//
 
-#if CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
+#if canImport(CryptoKit)
 // Skip tests that require @testable imports of CryptoKit.
 #else
-#if !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
-@testable import CryptoKit
-#else
 @testable import Crypto
-#endif
 
 extension XWingMLKEM768X25519.PrivateKey {
     static func generateWithRng(rngState: SequenceDrbg) throws -> Self {
@@ -49,4 +45,4 @@ extension XWingMLKEM768X25519.PublicKey {
     }
 }
 
-#endif  // CRYPTO_IN_SWIFTPM
+#endif  // canImport(CryptoKit)

@@ -11,21 +11,17 @@
 // SPDX-License-Identifier: Apache-2.0
 //
 //===----------------------------------------------------------------------===//
-#if CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
+
+#if canImport(CryptoKit)
 @_exported import CryptoKit
 #else
 
-#if CRYPTOKIT_NO_ACCESS_TO_FOUNDATION
-import SwiftSystem
-#else
 #if canImport(FoundationEssentials)
 import FoundationEssentials
 #else
 import Foundation
 #endif
-#endif
 
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension ASN1 {
     /// An ASN1 ANY represents...well, anything.
     ///
@@ -34,7 +30,6 @@ extension ASN1 {
     ///
     /// The only things we allow users to do with ASN.1 ANYs is to try to decode them as something else,
     /// to create them from something else, or to serialize them.
-    @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
     struct ASN1Any: ASN1Parseable, ASN1Serializable, Hashable {
         fileprivate var serializedBytes: ArraySlice<UInt8>
 
@@ -66,18 +61,16 @@ extension ASN1 {
     }
 }
 
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension ASN1Parseable {
     init(asn1Any: ASN1.ASN1Any) throws(CryptoKitMetaError) {
         try self.init(asn1Encoded: asn1Any.serializedBytes)
     }
 }
 
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension ASN1ImplicitlyTaggable {
     init(asn1Any: ASN1.ASN1Any, withIdentifier identifier: ASN1.ASN1Identifier) throws(CryptoKitMetaError) {
         try self.init(asn1Encoded: asn1Any.serializedBytes, withIdentifier: identifier)
     }
 }
 
-#endif // Linux or !SwiftPM
+#endif // canImport(CryptoKit)

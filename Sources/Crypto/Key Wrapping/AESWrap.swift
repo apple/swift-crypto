@@ -11,33 +11,23 @@
 // SPDX-License-Identifier: Apache-2.0
 //
 //===----------------------------------------------------------------------===//
-#if CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
+
+#if canImport(CryptoKit)
 @_exported import CryptoKit
 #else
 
-#if CRYPTOKIT_NO_ACCESS_TO_FOUNDATION
-public import SwiftSystem
-#else
 #if canImport(FoundationEssentials)
 public import FoundationEssentials
 #else
 public import Foundation
 #endif
-#endif
 
-#if (!CRYPTO_IN_SWIFTPM_FORCE_BUILD_API) || CRYPTOKIT_NO_ACCESS_TO_FOUNDATION
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
-typealias AESWRAPImpl = CoreCryptoAESWRAPImpl
-#else
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 typealias AESWRAPImpl = BoringSSLAESWRAPImpl
-#endif
 
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension AES {
     /// An implementation of AES Key Wrapping in accordance with the IETF RFC
     /// 3394 specification.
-    @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
+    @nonexhaustive
     public enum KeyWrap: Sendable {
         /// Wraps a key using the AES wrap algorithm.
         ///
@@ -70,4 +60,4 @@ extension AES {
     }
 }
 
-#endif // Linux or !SwiftPM
+#endif // canImport(CryptoKit)

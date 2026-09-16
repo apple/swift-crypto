@@ -11,6 +11,7 @@
 // SPDX-License-Identifier: Apache-2.0
 //
 //===----------------------------------------------------------------------===//
+
 #if canImport(FoundationEssentials)
 import FoundationEssentials
 #else
@@ -18,15 +19,10 @@ import Foundation
 #endif
 import XCTest
 
-#if CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
+#if canImport(CryptoKit)
 // Skip tests that require @testable imports of CryptoKit.
 #else
-#if !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
-@testable @_spi(HPKEAlgID) import CryptoKit
-@testable import CryptoKit
-#else
-@testable @_spi(HPKEAlgID) import Crypto
-#endif
+@testable import Crypto
 
 class HPKETests: XCTestCase {
     func testCases() throws {
@@ -43,7 +39,7 @@ class HPKETests: XCTestCase {
             try testCiphersuite(ciphersuite)
         }
     }
-
+    
     func testMismatchedKEM() {
         let skR = P256.KeyAgreement.PrivateKey()
         XCTAssertThrowsError(try HPKE.Sender(recipientKey: skR.publicKey, ciphersuite: .P384_SHA384_AES_GCM_256, info: Data()))
@@ -176,4 +172,4 @@ class HPKETests: XCTestCase {
     }
 }
 
-#endif // CRYPTO_IN_SWIFTPM
+#endif // canImport(CryptoKit)

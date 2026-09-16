@@ -11,11 +11,14 @@
 // SPDX-License-Identifier: Apache-2.0
 //
 //===----------------------------------------------------------------------===//
-#if CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
+#if canImport(CryptoKit)
 @_exported import CryptoKit
 #else
+#if hasFeature(SourceWarningControl)
+@diagnose(ImplementationOnlyDeprecated, as: ignored) @_implementationOnly import CCryptoBoringSSL
+#else
 @_implementationOnly import CCryptoBoringSSL
-@_implementationOnly import CCryptoBoringSSLShims
+#endif
 import CryptoBoringWrapper
 #if canImport(FoundationEssentials)
 import FoundationEssentials
@@ -72,6 +75,10 @@ struct OpenSSLNISTCurvePrivateKeyImpl<Curve: OpenSSLSupportedNISTCurve>: Sendabl
 
     init<Bytes: ContiguousBytes>(data: Bytes) throws {
         self.key = try BoringSSLECPrivateKeyWrapper(rawRepresentation: data)
+    }
+
+    init(seed: Data, compactRepresentable: Bool) throws {
+        fatalError("unimplemented on this platform")
     }
 
     func publicKey() -> OpenSSLNISTCurvePublicKeyImpl<Curve> {
@@ -139,7 +146,7 @@ struct OpenSSLNISTCurvePublicKeyImpl<Curve: OpenSSLSupportedNISTCurve>: Sendable
 /// allows some helper operations.
 @usableFromInline
 @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
-class BoringSSLECPrivateKeyWrapper<Curve: OpenSSLSupportedNISTCurve>: @unchecked Sendable {
+final class BoringSSLECPrivateKeyWrapper<Curve: OpenSSLSupportedNISTCurve>: @unchecked Sendable {
     @usableFromInline
     let key: OpaquePointer
 
@@ -326,7 +333,7 @@ class BoringSSLECPrivateKeyWrapper<Curve: OpenSSLSupportedNISTCurve>: @unchecked
     func sign<D: Digest>(digest: D) throws -> ECDSASignature {
         let optionalRawSignature: UnsafeMutablePointer<ECDSA_SIG>? = digest.withUnsafeBytes {
             digestPtr in
-            CCryptoBoringSSLShims_ECDSA_do_sign(digestPtr.baseAddress, digestPtr.count, self.key)
+            CCryptoBoringSSL_ECDSA_do_sign(digestPtr.baseAddress, digestPtr.count, self.key)
         }
         guard let rawSignature = optionalRawSignature else {
             throw CryptoKitError.internalBoringSSLError()
@@ -344,7 +351,7 @@ class BoringSSLECPrivateKeyWrapper<Curve: OpenSSLSupportedNISTCurve>: @unchecked
 /// allows some helper operations.
 @usableFromInline
 @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
-class BoringSSLECPublicKeyWrapper<Curve: OpenSSLSupportedNISTCurve>: @unchecked Sendable {
+final class BoringSSLECPublicKeyWrapper<Curve: OpenSSLSupportedNISTCurve>: @unchecked Sendable {
     @usableFromInline
     let key: OpaquePointer
 
@@ -566,7 +573,7 @@ class BoringSSLECPublicKeyWrapper<Curve: OpenSSLSupportedNISTCurve>: @unchecked 
     func isValidSignature<D: Digest>(_ signature: ECDSASignature, for digest: D) -> Bool {
         let rc: CInt = signature.withUnsafeSignaturePointer { signaturePointer in
             digest.withUnsafeBytes { digestPointer in
-                CCryptoBoringSSLShims_ECDSA_do_verify(
+                CCryptoBoringSSL_ECDSA_do_verify(
                     digestPointer.baseAddress,
                     digestPointer.count,
                     signaturePointer,
@@ -697,4 +704,4 @@ func _isCompactRepresentable(
     // The point is compact representable if y is less than or equal to newY.
     return y <= newY
 }
-#endif  // CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
+#endif  // canImport(CryptoKit)

@@ -11,25 +11,20 @@
 // SPDX-License-Identifier: Apache-2.0
 //
 //===----------------------------------------------------------------------===//
-#if CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
+
+#if canImport(CryptoKit)
 @_exported import CryptoKit
 #else
 
-#if CRYPTOKIT_NO_ACCESS_TO_FOUNDATION
-import SwiftSystem
-#else
 #if canImport(FoundationEssentials)
 import FoundationEssentials
 #else
 import Foundation
 #endif
-#endif
 
-
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension HPKE {
     /// The authenticated encryption with associated data (AEAD) algorithms to use in HPKE.
-    @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
+    @nonexhaustive
     public enum AEAD: CaseIterable, Hashable, Sendable {
 		/// An Advanced Encryption Standard cipher in Galois/Counter Mode with a key length of 128 bits.
         case AES_GCM_128
@@ -43,8 +38,7 @@ extension HPKE {
         case exportOnly
         
         /// Return the AEAD algorithm identifier as defined in section 7.3 of [RFC 9180](https://www.ietf.org/rfc/rfc9180.pdf).
-        @_spi(HPKEAlgID)
-        public var value: UInt16 {
+        internal var value: UInt16 {
             switch self {
             case .AES_GCM_128: return 0x0001
             case .AES_GCM_256: return 0x0002
@@ -58,8 +52,7 @@ extension HPKE {
         }
         
         /// Return the AEAD key size in bytes
-        @_spi(HPKEAlgID)
-        public var keyByteCount: Int {
+        internal var keyByteCount: Int {
             switch self {
             case .AES_GCM_128:
                 return 16
@@ -73,8 +66,7 @@ extension HPKE {
         }
         
         /// Return the AEAD nonce size in bytes
-        @_spi(HPKEAlgID)
-        public var nonceByteCount: Int {
+        internal var nonceByteCount: Int {
             switch self {
             case .AES_GCM_128, .AES_GCM_256, .chaChaPoly:
                 return 12
@@ -84,8 +76,7 @@ extension HPKE {
         }
         
         /// Return the AEAD tag size in bytes
-        @_spi(HPKEAlgID)
-        public var tagByteCount: Int {
+        internal var tagByteCount: Int {
             switch self {
             case .AES_GCM_128, .AES_GCM_256, .chaChaPoly:
                 return 16
@@ -98,8 +89,7 @@ extension HPKE {
             return I2OSP(value: Int(self.value), outputByteCount: 2)
         }
         
-        @_spi(MLS)
-        public func seal<D: DataProtocol, AD: DataProtocol>(_ message: D, authenticating aad: AD, nonce: Data, using key: SymmetricKey) throws -> Data {
+        internal func seal<D: DataProtocol, AD: DataProtocol>(_ message: D, authenticating aad: AD, nonce: Data, using key: SymmetricKey) throws -> Data {
             switch self {
             case .chaChaPoly:
                 return try ChaChaPoly.seal(message, using: key, nonce: ChaChaPoly.Nonce(data: nonce), authenticating: aad).combined.dropFirst(nonce.count)
@@ -108,8 +98,7 @@ extension HPKE {
             }
         }
         
-        @_spi(MLS)
-        public func open<C: DataProtocol, AD: DataProtocol>(_ ct: C, nonce: Data, authenticating aad: AD, using key: SymmetricKey) throws -> Data {
+        internal func open<C: DataProtocol, AD: DataProtocol>(_ ct: C, nonce: Data, authenticating aad: AD, using key: SymmetricKey) throws -> Data {
             guard ct.count >= self.tagByteCount else {
                 throw HPKE.Errors.expectedPSK
             }
@@ -132,4 +121,4 @@ extension HPKE {
     }
 }
 
-#endif // Linux or !SwiftPM
+#endif // canImport(CryptoKit)

@@ -11,20 +11,12 @@
 // SPDX-License-Identifier: Apache-2.0
 //
 //===----------------------------------------------------------------------===//
-#if canImport(FoundationEssentials)
-import FoundationEssentials
-#else
-import Foundation
-#endif
 import XCTest
 
-#if CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
-import Crypto
-#elseif !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
-import CryptoKit
+#if canImport(CryptoKit)
+// Skip tests that require @testable imports of CryptoKit.
 #else
-import Crypto
-#endif
+@testable import Crypto
 
 struct AEADTestGroup: Codable {
     let ivSize: Int
@@ -44,7 +36,6 @@ struct AESGCMTestVector: Codable {
     let result: String
 }
 
-@available(iOS 17.4, macOS 14.4, watchOS 10.4, tvOS 17.4, macCatalyst 17.4, *)
 class AESGCMTests: XCTestCase {
     func testPropertiesStayTheSameAfterFailedOpening() throws {
         let message = Data("this is a message".utf8)
@@ -94,6 +85,51 @@ class AESGCMTests: XCTestCase {
 
         XCTAssertEqual(recoveredPlaintext, plaintext)
         XCTAssertEqual(recoveredPlaintextWithoutAAD, plaintext)
+        XCTAssertEqual(recoveredPlaintext.startIndex, 0)
+        XCTAssertEqual(recoveredPlaintextWithoutAAD.startIndex, 0)
+    }
+
+    func testEncryptDecryptSpan() throws {
+        let plaintext: [UInt8] = Array("Some Super Secret Message".utf8)
+
+        let key = SymmetricKey(size: .bits256)
+        let nonce = AES.GCM.Nonce()
+
+        var ciphertext = plaintext
+        var ciphertextTag: [16 of UInt8] = .init(repeating: 0)
+
+        try orFail {
+            var ciphertextSpan = ciphertext.mutableSpan
+            var ciphertextRawSpan = ciphertextSpan.mutableBytes
+            var tagSpan = ciphertextTag.mutableSpan
+
+            try tagSpan.withUnsafeMutableBytes { (tagBytesBuffer) throws(CryptoKitMetaError) in
+                var outputTagBytes = OutputRawSpan(buffer: tagBytesBuffer, initializedCount: 0)
+                try AES.GCM
+                    .seal(inPlace: &ciphertextRawSpan, using: key, nonce: nonce, authenticating: [UInt8]().span.bytes, tag: &outputTagBytes)
+                _ = outputTagBytes.finalize(for: tagBytesBuffer)
+            }
+
+        }
+
+        // Make sure we actually ended up with different contents.
+        XCTAssertNotEqual(ciphertext, plaintext)
+
+        do {
+            var ciphertextSpan = ciphertext.mutableSpan
+            var ciphertextRawSpan = ciphertextSpan.mutableBytes
+            try orFail {
+                try AES.GCM
+                    .open(
+                        inPlace: &ciphertextRawSpan,
+                        using: key,
+                        nonce: nonce,
+                        tag: ciphertextTag.span.bytes
+                    )
+            }
+        }
+
+        XCTAssertEqual(ciphertext, plaintext)
     }
 
     func testExtractingBytesFromNonce() throws {
@@ -115,7 +151,7 @@ class AESGCMTests: XCTestCase {
         let ciphertext = Array("This pretty clearly isn't ciphertext, but sure why not".utf8)
         let (contiguousCiphertext, discontiguousCiphertext) = ciphertext.asDataProtocols()
 
-        let contiguousSB = try orFail { try AES.GCM.SealedBox(combined: contiguousCiphertext) }
+        let contiguousSB = try orFail { AES.GCM.SealedBox(combined: contiguousCiphertext) }
         let discontiguousSB = try orFail { try AES.GCM.SealedBox(combined: discontiguousCiphertext) }
         XCTAssertEqual(contiguousSB.combined, discontiguousSB.combined)
         XCTAssertEqual(Array(contiguousSB.nonce), Array(discontiguousSB.nonce))
@@ -247,3 +283,4 @@ class AESGCMTests: XCTestCase {
         }
     }
 }
+#endif

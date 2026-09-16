@@ -11,15 +11,14 @@
 // SPDX-License-Identifier: Apache-2.0
 //
 //===----------------------------------------------------------------------===//
+
 import XCTest
 
-#if CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
-import Crypto
-#elseif !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
-import CryptoKit
+import XCTest
+#if canImport(CryptoKit)
+// Skip tests that require @testable imports of CryptoKit.
 #else
-import Crypto
-#endif
+@testable import Crypto
 
 struct Ed25519TestGroup: Codable {
     let tests: [Ed25519TestVector]
@@ -57,9 +56,7 @@ class Ed25519Tests: XCTestCase {
 
         let signatureOnContiguous = try orFail { try privateKey.signature(for: someContiguousData) }
         let signatureOnDiscontiguous = try orFail { try privateKey.signature(for: someDiscontiguousData) }
-        #if !canImport(Darwin)
         XCTAssertEqual(signatureOnContiguous, signatureOnDiscontiguous)
-        #endif
 
         // This tests the 4 combinations.
         let (contiguousSignature, discontiguousSignature) = Array(signatureOnContiguous).asDataProtocols()
@@ -140,3 +137,5 @@ class Ed25519Tests: XCTestCase {
         }
     }
 }
+
+#endif

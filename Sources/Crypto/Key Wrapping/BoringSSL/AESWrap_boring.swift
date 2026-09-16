@@ -11,10 +11,14 @@
 // SPDX-License-Identifier: Apache-2.0
 //
 //===----------------------------------------------------------------------===//
-#if CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
+#if canImport(CryptoKit)
 @_exported import CryptoKit
 #else
+#if hasFeature(SourceWarningControl)
+@diagnose(ImplementationOnlyDeprecated, as: ignored) @_implementationOnly import CCryptoBoringSSL
+#else
 @_implementationOnly import CCryptoBoringSSL
+#endif
 #if canImport(FoundationEssentials)
 import FoundationEssentials
 #else
@@ -29,12 +33,8 @@ enum BoringSSLAESWRAPImpl {
 
         let rc = try key.withUnsafeAESKEY(mode: .encrypting) { aesKey in
             output.withUnsafeMutableBytes { outputPtr -> CInt in
-                // Memory bind is safe: we cannot alias the pointer here.
-                let outputPtr = outputPtr.bindMemory(to: UInt8.self)
-                return keyToWrap.withUnsafeBytes { keyToWrapPtr -> CInt in
-                    // Memory bind is safe: we cannot alias the pointer here.
-                    let keyToWrapPtr = keyToWrapPtr.bindMemory(to: UInt8.self)
-                    return CCryptoBoringSSL_AES_wrap_key(
+                keyToWrap.withUnsafeBytes { keyToWrapPtr -> CInt in
+                    CCryptoBoringSSL_AES_wrap_key(
                         aesKey,
                         nil,
                         outputPtr.baseAddress,
@@ -74,8 +74,6 @@ enum BoringSSLAESWRAPImpl {
     ) throws -> SymmetricKey {
         let unwrapped = try contiguousWrappedKey.withUnsafeBytes { inPtr in
             try [UInt8](unsafeUninitializedCapacity: inPtr.count) { outputPtr, count in
-                // Bind is safe: we cannot violate the aliasing rules here as we never call to arbitrary code.
-                let inPtr = inPtr.bindMemory(to: UInt8.self)
                 let rc = try key.withUnsafeAESKEY(mode: .decrypting) { aesKey in
                     CCryptoBoringSSL_AES_unwrap_key(
                         aesKey,
@@ -113,8 +111,6 @@ extension SymmetricKey {
         _ body: (UnsafePointer<AES_KEY>) throws -> ResultType
     ) throws -> ResultType {
         try self.withUnsafeBytes { bytesPointer in
-            // Bind is safe: cannot alias the pointer here.
-            let bytesPointer = bytesPointer.bindMemory(to: UInt8.self)
 
             var aesKey = AES_KEY()
             let bitsInKey = UInt32(bytesPointer.count * 8)
@@ -146,4 +142,4 @@ extension SymmetricKey {
     }
 }
 
-#endif  // CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
+#endif  // canImport(CryptoKit)

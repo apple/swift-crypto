@@ -11,23 +11,18 @@
 // SPDX-License-Identifier: Apache-2.0
 //
 //===----------------------------------------------------------------------===//
-#if CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
+
+#if canImport(CryptoKit)
 @_exported import CryptoKit
 #else
 
-#if CRYPTOKIT_NO_ACCESS_TO_FOUNDATION
-import SwiftSystem
-#else
 #if canImport(FoundationEssentials)
 import FoundationEssentials
 #else
 import Foundation
 #endif
-#endif
 
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension ASN1 {
-    @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
     struct SubjectPublicKeyInfo: ASN1ImplicitlyTaggable {
         static var defaultIdentifier: ASN1.ASN1Identifier {
             .sequence
@@ -70,7 +65,6 @@ extension ASN1 {
         }
     }
 
-    @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
     struct RFC5480AlgorithmIdentifier: ASN1ImplicitlyTaggable, Hashable {
         static var defaultIdentifier: ASN1.ASN1Identifier {
             .sequence
@@ -121,7 +115,6 @@ extension ASN1 {
 }
 
 // MARK: Algorithm Identifier Statics
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension ASN1.RFC5480AlgorithmIdentifier {
     static let ecdsaP256 = ASN1.RFC5480AlgorithmIdentifier(algorithm: .AlgorithmIdentifier.idEcPublicKey,
                                                            parameters: try! .init(erasing: ASN1.ASN1ObjectIdentifier.NamedCurves.secp256r1))
@@ -133,4 +126,4 @@ extension ASN1.RFC5480AlgorithmIdentifier {
                                                            parameters: try! .init(erasing: ASN1.ASN1ObjectIdentifier.NamedCurves.secp521r1))
 }
 
-#endif // Linux or !SwiftPM
+#endif // canImport(CryptoKit)

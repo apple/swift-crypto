@@ -18,21 +18,12 @@ import FoundationEssentials
 import Foundation
 #endif
 
-#if canImport(Darwin) && !CRYPTO_IN_SWIFTPM
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
-typealias SupportedCurveDetailsImpl = CorecryptoSupportedNISTCurve
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
-typealias GroupImpl = CoreCryptoGroup
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
-typealias HashToCurveImpl = CoreCryptoHashToCurve
-#else
 @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 typealias SupportedCurveDetailsImpl = OpenSSLSupportedNISTCurve
 @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 typealias GroupImpl = OpenSSLGroup
 @available(macOS 10.15, iOS 13.2, tvOS 13.2, watchOS 6.1, macCatalyst 13.2, visionOS 1.2, *)
 typealias HashToCurveImpl = OpenSSLHashToCurve
-#endif
 
 /// A prime-order group
 @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)

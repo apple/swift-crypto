@@ -11,23 +11,18 @@
 // SPDX-License-Identifier: Apache-2.0
 //
 //===----------------------------------------------------------------------===//
-#if CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
+
+#if canImport(CryptoKit)
 @_exported import CryptoKit
 #else
 
-#if CRYPTOKIT_NO_ACCESS_TO_FOUNDATION
-import SwiftSystem
-#else
 #if canImport(FoundationEssentials)
 import FoundationEssentials
 #else
 import Foundation
 #endif
-#endif
 
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension ASN1 {
-    @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
     struct GeneralizedTime: ASN1ImplicitlyTaggable, Hashable {
         static var defaultIdentifier: ASN1.ASN1Identifier {
             .generalizedTime
@@ -180,7 +175,6 @@ extension ASN1 {
     }
 }
 
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension ASN1.GeneralizedTime {
     fileprivate static func parseDateBytes(_ bytes: ArraySlice<UInt8>) throws(CryptoKitMetaError) -> ASN1.GeneralizedTime {
         var bytes = bytes
@@ -263,7 +257,6 @@ extension ASN1.GeneralizedTime {
     }
 }
 
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension ArraySlice where Element == UInt8 {
     fileprivate mutating func readFourDigitDecimalInteger() -> Int? {
         guard let first = self.readTwoDigitDecimalInteger(),
@@ -329,7 +322,6 @@ extension ArraySlice where Element == UInt8 {
     }
 }
 
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension Array where Element == UInt8 {
     fileprivate mutating func append(_ generalizedTime: ASN1.GeneralizedTime) {
         self.appendFourDigitDecimal(generalizedTime.year)
@@ -401,7 +393,6 @@ extension Array where Element == UInt8 {
     }
 }
 
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension Int {
     fileprivate init?(fromDecimalASCII ascii: UInt8) {
         let asciiZero = UInt8(48 /* "0" */)
@@ -418,4 +409,4 @@ extension Int {
     }
 }
 
-#endif // Linux or !SwiftPM
+#endif // canImport(CryptoKit)

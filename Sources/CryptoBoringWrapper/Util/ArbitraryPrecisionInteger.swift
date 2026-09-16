@@ -11,11 +11,13 @@
 // SPDX-License-Identifier: Apache-2.0
 //
 //===----------------------------------------------------------------------===//
-#if CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
-@_exported import CryptoKit
+
+#if hasFeature(SourceWarningControl)
+@diagnose(ImplementationOnlyDeprecated, as: ignored) @_implementationOnly import CCryptoBoringSSL
 #else
 @_implementationOnly import CCryptoBoringSSL
-@_implementationOnly import CCryptoBoringSSLShims
+#endif
+
 #if canImport(FoundationEssentials)
 import FoundationEssentials
 #else
@@ -119,7 +121,7 @@ extension ArbitraryPrecisionInteger.BackingStorage {
         self.init()
 
         let rc: UnsafeMutablePointer<BIGNUM>? = bytes.withUnsafeBytes { bytesPointer in
-            CCryptoBoringSSLShims_BN_bin2bn(
+            CCryptoBoringSSL_BN_bin2bn(
                 bytesPointer.baseAddress,
                 bytesPointer.count,
                 &self._backing
@@ -455,7 +457,8 @@ extension ArbitraryPrecisionInteger {
                         if nonNegative {
                             CCryptoBoringSSL_BN_nnmod(resultPtr, selfPtr, modPtr, bnCtx)
                         } else {
-                            CCryptoBoringSSLShims_BN_mod(resultPtr, selfPtr, modPtr, bnCtx)
+                            // BN_mod is a C macro for BN_div with a nil quotient; call that directly.
+                            CCryptoBoringSSL_BN_div(nil, resultPtr, selfPtr, modPtr, bnCtx)
                         }
                     }
                 }
@@ -714,7 +717,7 @@ extension Data {
             assert(bytesPtr.count == byteCount)
 
             return integer.withUnsafeBignumPointer { bnPtr in
-                CCryptoBoringSSLShims_BN_bn2bin(bnPtr, bytesPtr.baseAddress!)
+                CCryptoBoringSSL_BN_bn2bin(bnPtr, bytesPtr.baseAddress!)
             }
         }
 
@@ -771,4 +774,3 @@ extension ArbitraryPrecisionInteger: CustomDebugStringConvertible {
         )
     }
 }
-#endif  // CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API

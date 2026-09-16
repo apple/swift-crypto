@@ -11,7 +11,12 @@
 // SPDX-License-Identifier: Apache-2.0
 //
 //===----------------------------------------------------------------------===//
-#if CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
+
+#if canImport(CryptoKit)
+@_exported import CryptoKit
+#else
+
+#if canImport(CryptoKit)
 @_exported import CryptoKit
 #else
 
@@ -21,26 +26,15 @@ import FoundationEssentials
 import Foundation
 #endif
 
-#if (!CRYPTO_IN_SWIFTPM_FORCE_BUILD_API) || CRYPTOKIT_NO_ACCESS_TO_FOUNDATION
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
-typealias XWingPublicKeyImpl = CoreCryptoXWingPublicKeyImpl
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
-typealias XWingPrivateKeyImpl = CoreCryptoXWingPrivateKeyImpl
-#else
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 typealias XWingPublicKeyImpl = OpenSSLXWingPublicKeyImpl
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 typealias XWingPrivateKeyImpl = OpenSSLXWingPrivateKeyImpl
-#endif
 
 /// The X-Wing (ML-KEM768 with X25519) Key Encapsulation Mechanism, defined in
 /// https://datatracker.ietf.org/doc/html/draft-connolly-cfrg-xwing-kem-06
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
+@nonexhaustive
 public enum XWingMLKEM768X25519: Sendable {}
 
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension XWingMLKEM768X25519 {
-    @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
     public struct PublicKey: KEMPublicKey {
         var impl: XWingPublicKeyImpl
 
@@ -63,9 +57,8 @@ extension XWingMLKEM768X25519 {
         }
     }
 
-    @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
     public struct PrivateKey: KEMPrivateKey {
-        private var impl: XWingPrivateKeyImpl
+        var impl: XWingPrivateKeyImpl
 
         public var seedRepresentation: Data {
             get {
@@ -101,9 +94,49 @@ extension XWingMLKEM768X25519 {
             }
         }
     }
+    
+    /// A one-time-use private key to decapsulate a shared secret with the X-Wing key encapsulation mechanism.
+    ///
+    /// The associated decapsulation function can be multiple times faster than the one implemented for PrivateKey,
+    /// but this private key can only be used to decapsulate a shared secret once.
+    public struct OneTimePrivateKey: KEMOneTimePrivateKey, ~Copyable {
+        private var impl: XWingPrivateKeyImpl
+
+        internal init(impl: XWingPrivateKeyImpl) {
+            self.impl = impl
+        }
+
+        /// Creates a one-time-use private key that reuses the key material of an existing private key.
+        ///
+        /// This is used by the tests to check that the one-time decapsulation function is consistent with the regular one.
+        internal init(reusingForTestingOnly privateKey: XWingMLKEM768X25519.PrivateKey) {
+            self.impl = privateKey.impl
+        }
+
+        /// Generates a new, random one-time-use private key.
+        public static func generate() throws -> XWingMLKEM768X25519.OneTimePrivateKey {
+            let impl = try XWingPrivateKeyImpl.generate()
+            return OneTimePrivateKey(impl: impl)
+        }
+
+        /// Decapsulate a shared secret.
+        ///
+        /// - Parameters:
+        ///   - encapsulated: An encapsulated shared secret, that you get by calling ``XWingMLKEM768X25519/PublicKey/encapsulate()`` on the corresponding public key.
+        /// - Returns: The shared secret.
+        public consuming func decapsulate(_ encapsulated: Data) throws -> SymmetricKey {
+            return try impl.decapsulate(encapsulated)
+        }
+
+        /// The corresponding public key.
+        public var publicKey: XWingMLKEM768X25519.PublicKey {
+            get {
+                XWingMLKEM768X25519.PublicKey(impl: self.impl.publicKey)
+            }
+        }
+    }
 }
 
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension XWingMLKEM768X25519.PrivateKey: HPKEKEMPrivateKeyGeneration {
     public init() throws {
         self = try Self.generate()
@@ -121,13 +154,18 @@ extension XWingMLKEM768X25519.PrivateKey: HPKEKEMPrivateKeyGeneration {
     public init<D: DataProtocol>(integrityCheckedRepresentation: D) throws {
         let seed = integrityCheckedRepresentation.dropLast(32) // sizeof(SHA3-256 digest)
         let publicKeyHashBytes = integrityCheckedRepresentation.dropFirst(32)
-        let publicKeyHash = SHA3_256Digest(bytes: [UInt8](publicKeyHashBytes))
+        let publicKeyHash = SHA3_256Digest { output in
+            for region in publicKeyHashBytes.regions {
+                region.withUnsafeBytes {
+                    output.append(contentsOf: $0.bytes)
+                }
+            }
+        }
 
         self = try XWingMLKEM768X25519.PrivateKey.init(seedRepresentation: seed, publicKeyHash: publicKeyHash)
     }
 }
 
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension XWingMLKEM768X25519.PublicKey: HPKEKEMPublicKey {
     /// The type of the ephemeral private key associated with this public key.
     public typealias EphemeralPrivateKey = XWingMLKEM768X25519.PrivateKey
@@ -169,4 +207,5 @@ extension XWingMLKEM768X25519.PublicKey: HPKEKEMPublicKey {
     /// The type of the ephemeral private key associated with this public key.
     public typealias HPKEEphemeralPrivateKey = XWingMLKEM768X25519.PrivateKey
 }
-#endif // Linux or !SwiftPM
+#endif
+#endif // canImport(CryptoKit)

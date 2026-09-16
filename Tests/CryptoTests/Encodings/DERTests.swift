@@ -11,16 +11,13 @@
 // SPDX-License-Identifier: Apache-2.0
 //
 //===----------------------------------------------------------------------===//
+
 import XCTest
 
-#if CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
+#if canImport(CryptoKit)
 // Skip tests that require @testable imports of CryptoKit.
 #else
-#if !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
-@testable import CryptoKit
-#else
 @testable import Crypto
-#endif
 
 class DERTests: XCTestCase {
     func testEncodeDecodeECDSASignature() throws {
@@ -41,15 +38,11 @@ class DERTests: XCTestCase {
     }
 
     func coordinateSizeForCurve<Curve: SupportedCurveDetailsImpl>(_ curve: Curve.Type) -> Int {
-        #if !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
-        return self.coreCryptoCoordinateSizeForCurve(curve)
-        #else
         return self.openSSLCoordinateSizeForCurve(curve)
-        #endif
     }
 
     func randomBytes(count: Int) -> [UInt8] {
-        #if canImport(Darwin) || os(Linux) || os(Android) || os(Windows) || os(FreeBSD)
+        #if os(Linux) || os(Android) || os(Windows)
         var rng = SystemRandomNumberGenerator()
         return (0..<count).map { _ in rng.next() }
         #else
@@ -57,4 +50,4 @@ class DERTests: XCTestCase {
         #endif
     }
 }
-#endif // CRYPTO_IN_SWIFTPM
+#endif // canImport(CryptoKit)

@@ -11,23 +11,18 @@
 // SPDX-License-Identifier: Apache-2.0
 //
 //===----------------------------------------------------------------------===//
+
 #if canImport(FoundationEssentials)
 import FoundationEssentials
 #else
 import Foundation
 #endif
 import XCTest
-
-#if CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
+#if canImport(CryptoKit)
 // Skip tests that require @testable imports of CryptoKit.
 #else
-#if !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
-@testable @_spi(HPKEAlgID) import CryptoKit
-#else
-@testable @_spi(HPKEAlgID) import Crypto
-#endif
+@testable import Crypto
 
-// Curve448 is not supported on our platforms
 let unsupportedKEMs: [UInt16] = [0x0021]
 
 struct HPKETestEncryption: Codable {
@@ -68,11 +63,7 @@ struct HPKETestVector: Codable {
 class HPKETestVectors: XCTestCase {
     
     func testVectors() throws {
-        #if !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
-        let bundle = Bundle(for: type(of: self))
-        #else
         let bundle = Bundle.module
-        #endif
         let fileURL = bundle.url(forResource: "hpke-test-vectors", withExtension: "json")!
         let data = try orFail { try Data(contentsOf: fileURL) }
         let decoder = JSONDecoder()
@@ -200,4 +191,4 @@ private func aeadFromValue(value: UInt16) -> HPKE.AEAD? {
     return aeadValues.first
 }
 
-#endif // CRYPTO_IN_SWIFTPM
+#endif // canImport(CryptoKit)

@@ -11,10 +11,14 @@
 // SPDX-License-Identifier: Apache-2.0
 //
 //===----------------------------------------------------------------------===//
-#if CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
+#if canImport(CryptoKit)
 @_exported import CryptoKit
 #else
+#if hasFeature(SourceWarningControl)
+@diagnose(ImplementationOnlyDeprecated, as: ignored) @_implementationOnly import CCryptoBoringSSL
+#else
 @_implementationOnly import CCryptoBoringSSL
+#endif
 import CryptoBoringWrapper
 #if canImport(FoundationEssentials)
 import FoundationEssentials
@@ -64,17 +68,6 @@ extension Data {
 }
 
 @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
-extension P256.Signing.ECDSASignature {
-    init<D: DataProtocol>(openSSLDERSignature derRepresentation: D) throws {
-        self.rawRepresentation = try Data(derSignature: derRepresentation, over: P256.self)
-    }
-
-    var openSSLDERRepresentation: Data {
-        try! ECDSASignature(rawRepresentation: self.rawRepresentation).derBytes
-    }
-}
-
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension P256.Signing.PrivateKey {
     func openSSLSignature<D: Digest>(for digest: D) throws -> P256.Signing.ECDSASignature {
         let baseSignature = try self.impl.key.sign(digest: digest)
@@ -97,17 +90,6 @@ extension P256.Signing.PublicKey {
         }
 
         return self.impl.key.isValidSignature(baseSignature, for: digest)
-    }
-}
-
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
-extension P384.Signing.ECDSASignature {
-    init<D: DataProtocol>(openSSLDERSignature derRepresentation: D) throws {
-        self.rawRepresentation = try Data(derSignature: derRepresentation, over: P384.self)
-    }
-
-    var openSSLDERRepresentation: Data {
-        try! ECDSASignature(rawRepresentation: self.rawRepresentation).derBytes
     }
 }
 
@@ -138,17 +120,6 @@ extension P384.Signing.PublicKey {
 }
 
 @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
-extension P521.Signing.ECDSASignature {
-    init<D: DataProtocol>(openSSLDERSignature derRepresentation: D) throws {
-        self.rawRepresentation = try Data(derSignature: derRepresentation, over: P521.self)
-    }
-
-    var openSSLDERRepresentation: Data {
-        try! ECDSASignature(rawRepresentation: self.rawRepresentation).derBytes
-    }
-}
-
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension P521.Signing.PrivateKey {
     func openSSLSignature<D: Digest>(for digest: D) throws -> P521.Signing.ECDSASignature {
         let baseSignature = try self.impl.key.sign(digest: digest)
@@ -173,4 +144,4 @@ extension P521.Signing.PublicKey {
         return self.impl.key.isValidSignature(baseSignature, for: digest)
     }
 }
-#endif  // CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
+#endif  // canImport(CryptoKit)

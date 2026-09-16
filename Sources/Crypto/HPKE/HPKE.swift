@@ -11,17 +11,14 @@
 // SPDX-License-Identifier: Apache-2.0
 //
 //===----------------------------------------------------------------------===//
-#if CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
+
+#if canImport(CryptoKit)
 @_exported import CryptoKit
-#else
-#if CRYPTOKIT_NO_ACCESS_TO_FOUNDATION
-import SwiftSystem
 #else
 #if canImport(FoundationEssentials)
 public import FoundationEssentials
 #else
 public import Foundation
-#endif
 #endif
 
 /// A container for hybrid public key encryption (HPKE) operations.
@@ -53,10 +50,9 @@ public import Foundation
 ///
 /// ### Handling errors
 ///  - ``Errors``
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
+@nonexhaustive
 public enum HPKE: Sendable {}
 
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension HPKE {
     /// Static constant used to store the fixed-string label for the HPKE export API
     /// See: https://datatracker.ietf.org/doc/html/rfc9180#name-secret-export
@@ -70,7 +66,6 @@ extension HPKE {
     /// in turn to retrieve its ciphertext. The recipient of the messages needs to process them in the
     /// same order as the `Sender`, using the same encryption mode, cipher suite, and key schedule information
     ///  (`info`), as well as the `Sender`'s ``encapsulatedKey``.
-    @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
     public struct Sender: Sendable {
         private var context: Context
         /// The encapsulated symmetric key that the recipient uses to decrypt messages.
@@ -225,7 +220,6 @@ extension HPKE {
     /// same order as the `Sender`, using the same cipher suite, encryption mode, and key schedule information
     /// (`info` data).
     /// Use a separate `Recipient` instance for each stream of messages.
-    @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
     public struct Recipient: Sendable {
         
         private var context: Context
@@ -364,4 +358,4 @@ extension HPKE {
     }
 }
 
-#endif // Linux or !SwiftPM
+#endif // canImport(CryptoKit)

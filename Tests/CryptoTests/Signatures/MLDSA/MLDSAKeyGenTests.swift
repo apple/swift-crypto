@@ -11,23 +11,16 @@
 // SPDX-License-Identifier: Apache-2.0
 //
 //===----------------------------------------------------------------------===//
+
 import XCTest
-#if CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
+#if canImport(CryptoKit)
 // Skip tests that require @testable imports of CryptoKit.
 #else
-#if !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
-@testable import CryptoKit
-#else
 @testable import Crypto
-#endif
 
 final class MLDSAKeyGenTests: XCTestCase {
     func processKeyGenKATFile(filename: String) throws -> [MLDSAKeyGenKAT] {
-        #if CRYPTO_IN_SWIFTPM
         let bundle = Bundle.module
-        #else
-        let bundle = Bundle(for: type(of: self))
-        #endif
         let fileURL = bundle.url(forResource: filename, withExtension: "json")
         let json = try Data(contentsOf: fileURL!)
         let stringInput = String(data: json, encoding: .ascii)!
@@ -97,4 +90,4 @@ struct MLDSAKeyGenKAT {
     }
 }
 
-#endif // CRYPTO_IN_SWIFTPM
+#endif // canImport(CryptoKit)

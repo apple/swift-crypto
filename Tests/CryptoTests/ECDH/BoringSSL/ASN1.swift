@@ -13,21 +13,16 @@
 //===----------------------------------------------------------------------===//
 import XCTest
 
+#if canImport(CryptoKit)
+// Skip tests that require @testable imports of CryptoKit.
+#else
 #if canImport(FoundationEssentials)
 import FoundationEssentials
 #else
 import Foundation
 #endif
-
-#if CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
-// Skip tests that require @testable imports of CryptoKit.
-#else
-#if !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
-@testable import CryptoKit
-#else
 @_implementationOnly import CCryptoBoringSSL
 @testable import Crypto
-#endif
 
 // This module implements "just enough" ASN.1. Specifically, we implement exactly enough ASN.1 DER parsing to handle
 // taking the Wycheproof input of EC public keys and to turn them into the x963 representation of the key. This is not
@@ -342,4 +337,4 @@ extension UInt {
     }
 }
 
-#endif  // CRYPTO_IN_SWIFTPM
+#endif  // canImport(CryptoKit)

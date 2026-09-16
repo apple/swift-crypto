@@ -11,11 +11,14 @@
 // SPDX-License-Identifier: Apache-2.0
 //
 //===----------------------------------------------------------------------===//
-#if CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
+#if canImport(CryptoKit)
 @_exported import CryptoKit
 #else
+#if hasFeature(SourceWarningControl)
+@diagnose(ImplementationOnlyDeprecated, as: ignored) @_implementationOnly import CCryptoBoringSSL
+#else
 @_implementationOnly import CCryptoBoringSSL
-@_implementationOnly import CCryptoBoringSSLShims
+#endif
 #if canImport(FoundationEssentials)
 import FoundationEssentials
 #else
@@ -41,7 +44,7 @@ extension Curve25519.Signing {
                 privateKeyBytes in
                 privateKeyBytes = 64
                 publicKey.withUnsafeMutableBytes { publicKeyPtr in
-                    CCryptoBoringSSLShims_ED25519_keypair(
+                    CCryptoBoringSSL_ED25519_keypair(
                         publicKeyPtr.baseAddress,
                         privateKeyPtr.baseAddress
                     )
@@ -75,7 +78,7 @@ extension Curve25519.Signing {
                     privateKeyBytes in
                     privateKeyBytes = 64
                     publicKey.withUnsafeMutableBytes { publicKeyPtr in
-                        CCryptoBoringSSLShims_ED25519_keypair_from_seed(
+                        CCryptoBoringSSL_ED25519_keypair_from_seed(
                             publicKeyPtr.baseAddress,
                             privateKeyPtr.baseAddress,
                             seedPtr.baseAddress
@@ -123,4 +126,4 @@ extension Curve25519.Signing {
         }
     }
 }
-#endif  // CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
+#endif  // canImport(CryptoKit)

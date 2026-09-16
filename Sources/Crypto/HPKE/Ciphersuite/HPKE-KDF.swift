@@ -11,24 +11,20 @@
 // SPDX-License-Identifier: Apache-2.0
 //
 //===----------------------------------------------------------------------===//
-#if CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
+
+#if canImport(CryptoKit)
 @_exported import CryptoKit
 #else
 
-#if CRYPTOKIT_NO_ACCESS_TO_FOUNDATION
-import SwiftSystem
-#else
 #if canImport(FoundationEssentials)
 import FoundationEssentials
 #else
 import Foundation
 #endif
-#endif
 
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension HPKE {
     /// The key derivation functions to use in HPKE.
-    @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
+    @nonexhaustive
     public enum KDF: CaseIterable, Hashable, Sendable {
 		/// An HMAC-based key derivation function that uses SHA-2 hashing with a 256-bit digest.
         case HKDF_SHA256
@@ -38,8 +34,7 @@ extension HPKE {
         case HKDF_SHA512
 
         /// Return the KDF algorithm identifier as defined in section 7.2 of [RFC 9180](https://www.ietf.org/rfc/rfc9180.pdf).
-        @_spi(HPKEAlgID)
-        public var value: UInt16 {
+        internal var value: UInt16 {
             switch self {
             case .HKDF_SHA256: return 0x0001
             case .HKDF_SHA384: return 0x0002
@@ -73,8 +68,7 @@ extension HPKE {
 		///  - ikm: The initial key material the derivation function uses to derive a key.
 		///
 		/// - Returns: A pseudorandom, cryptographically strong key in the form of a hashed authentication code.
-        @_spi(MLS)
-        public func extract<S: DataProtocol>(salt: S, ikm: SymmetricKey) -> SymmetricKey {
+        internal func extract<S: DataProtocol>(salt: S, ikm: SymmetricKey) -> SymmetricKey {
             switch self {
             case .HKDF_SHA256:
                 return SymmetricKey(data: HKDF<SHA256>.extract(inputKeyMaterial: ikm, salt: salt))
@@ -96,8 +90,7 @@ extension HPKE {
 		///  - outputByteCount: The length in bytes of the resulting symmetric key.
 		///
 		/// - Returns: The derived symmetric key.
-        @_spi(MLS)
-        public func expand(prk: SymmetricKey, info: Data, outputByteCount: Int) -> SymmetricKey {
+        internal func expand(prk: SymmetricKey, info: Data, outputByteCount: Int) -> SymmetricKey {
             switch self {
             case .HKDF_SHA256:
                 return SymmetricKey(data: HKDF<SHA256>.expand(pseudoRandomKey: prk, info: info, outputByteCount: outputByteCount))
@@ -110,4 +103,4 @@ extension HPKE {
     }
 }
 
-#endif // Linux or !SwiftPM
+#endif // canImport(CryptoKit)
