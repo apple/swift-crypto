@@ -18,6 +18,7 @@ add_library(CryptoExtras
   "AES/AES_CTR.swift"
   "AES/AES_GCM_SIV.swift"
   "AES/Block Function.swift"
+  "AES/BoringSSL/AES_CBC_boring.swift"
   "AES/BoringSSL/AES_CFB_boring.swift"
   "AES/BoringSSL/AES_CTR_boring.swift"
   "AES/BoringSSL/AES_GCM_SIV_boring.swift"

@@ -105,9 +105,15 @@ extension _RSA.BlindSigning {
         }
 
         /// Construct a RSA public key with the specified parameters.
+        ///
+        /// This constructor supports key sizes of 2048 bits or more. Users should validate that key sizes are appropriate
+        /// for their use-case.
         public init(n: some ContiguousBytes, e: some ContiguousBytes, parameters: Parameters) throws {
             self.backing = try BackingPublicKey(n: n, e: e)
             self.parameters = parameters
+            guard self.keySizeInBits >= 2048 else {
+                throw CryptoKitError.incorrectParameterSize
+            }
         }
 
         public var pkcs1DERRepresentation: Data {
@@ -206,9 +212,15 @@ extension _RSA.BlindSigning {
         }
 
         /// Construct an RSA private key with the specified parameters.
+        ///
+        /// This constructor supports key sizes of 2048 bits or more. Users should validate that key sizes are appropriate
+        /// for their use-case.
         public init(n: some ContiguousBytes, e: some ContiguousBytes, d: some ContiguousBytes, p: some ContiguousBytes, q: some ContiguousBytes, parameters: Parameters) throws {
             self.backing = try BackingPrivateKey(n: n, e: e, d: d, p: p, q: q)
             self.parameters = parameters
+            guard self.keySizeInBits >= 2048 else {
+                throw CryptoKitError.incorrectParameterSize
+            }
         }
 
         /// Randomly generate a new RSA private key of a given size.

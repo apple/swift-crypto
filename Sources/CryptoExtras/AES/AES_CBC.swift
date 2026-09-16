@@ -25,19 +25,6 @@ extension AES {
     /// suite.
     @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
     public enum _CBC {
-        private static var blockSize: Int { 16 }
-
-        private static func encryptBlockInPlace(
-            _ plaintext: inout Block,
-            priorCiphertextBlock: Block,
-            using key: SymmetricKey
-        ) throws {
-            assert([128, 192, 256].contains(key.bitCount))
-
-            plaintext ^= priorCiphertextBlock
-            try AES.permute(&plaintext, key: key)
-        }
-
         /// Encrypts data using AES-CBC.
         ///
         /// - Parameters:
@@ -60,44 +47,7 @@ extension AES {
         ///
         /// - Note: If `noPadding` is set to `true`, `plainText` has to be a multiple of the blockSize (16 bytes). Otherwise an error will be thrown.
         public static func encrypt<Plaintext: DataProtocol>(_ plaintext: Plaintext, using key: SymmetricKey, iv: AES._CBC.IV, noPadding: Bool) throws -> Data {
-            guard [128, 192, 256].contains(key.bitCount) else {
-                throw CryptoKitError.incorrectKeySize
-            }
-
-            let requiresFullPaddingBlock = (plaintext.count % AES._CBC.blockSize) == 0
-
-            if noPadding && !requiresFullPaddingBlock {
-                throw CryptoKitError.incorrectParameterSize
-            }
-
-            var ciphertext = Data()
-            ciphertext.reserveCapacity(plaintext.count + Self.blockSize)  // Room for padding.
-
-            var previousBlock = Block(iv)
-            var plaintext = plaintext[...]
-
-            while plaintext.count > 0 {
-                var block = Block(blockBytes: plaintext.prefix(Self.blockSize))
-                try Self.encryptBlockInPlace(&block, priorCiphertextBlock: previousBlock, using: key)
-                ciphertext.append(contentsOf: block)
-                previousBlock = block
-                plaintext = plaintext.dropFirst(Self.blockSize)
-            }
-
-            if requiresFullPaddingBlock && !noPadding {
-                var block = Block.paddingBlock
-                try Self.encryptBlockInPlace(&block, priorCiphertextBlock: previousBlock, using: key)
-                ciphertext.append(contentsOf: block)
-            }
-
-            return ciphertext
-        }
-
-        private static func decryptBlockInPlace(_ ciphertext: inout Block, priorCiphertextBlock: Block, using key: SymmetricKey) throws {
-            assert([128, 192, 256].contains(key.bitCount))
-
-            try AES.inversePermute(&ciphertext, key: key)
-            ciphertext ^= priorCiphertextBlock
+            try OpenSSLAESCBCImpl.encrypt(plaintext, using: key, iv: iv, noPadding: noPadding)
         }
 
         /// Decrypts data using AES-CBC.
@@ -120,29 +70,7 @@ extension AES {
         ///   - noPadding: If this is set to `true`, padding won't be removed.
         /// - Returns: The decrypted message.
         public static func decrypt<Ciphertext: DataProtocol>(_ ciphertext: Ciphertext, using key: SymmetricKey, iv: AES._CBC.IV, noPadding: Bool) throws -> Data {
-            guard [128, 192, 256].contains(key.bitCount) else {
-                throw CryptoKitError.incorrectKeySize
-            }
-
-            var plaintext = Data()
-            plaintext.reserveCapacity(ciphertext.count)
-
-            var previousBlock = Block(iv)
-            var ciphertext = ciphertext[...]
-
-            while ciphertext.count > 0 {
-                let ctBlock = Block(blockBytes: ciphertext.prefix(Self.blockSize))
-                var block = ctBlock
-                try Self.decryptBlockInPlace(&block, priorCiphertextBlock: previousBlock, using: key)
-                plaintext.append(contentsOf: block)
-                previousBlock = ctBlock
-                ciphertext = ciphertext.dropFirst(Self.blockSize)
-            }
-
-            if !noPadding {
-                try plaintext.trimPadding()
-            }
-            return plaintext
+            try OpenSSLAESCBCImpl.decrypt(ciphertext, using: key, iv: iv, noPadding: noPadding)
         }
     }
 }
@@ -194,7 +122,7 @@ extension AES._CBC {
                 0, 0, 0, 0, 0, 0, 0, 0
             )
 
-            withUnsafeMutableBytes(of: &self.ivBytes) { bytesPtr in
+            Swift.withUnsafeMutableBytes(of: &self.ivBytes) { bytesPtr in
                 bytesPtr.copyBytes(from: ivBytes)
             }
         }
@@ -205,24 +133,10 @@ extension AES._CBC {
                 Array(unsafeRawBufferPointer).makeIterator()
             }
         }
-    }
-}
 
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
-extension Data {
-    fileprivate mutating func trimPadding() throws {
-        guard let paddingBytes = self.last else {
-            // Degenerate case, empty string. This is forbidden:
-            // we must always pad.
-            throw CryptoKitError.incorrectParameterSize
+        mutating func withUnsafeMutableBytes<ReturnType>(_ body: (UnsafeMutableRawBufferPointer) throws -> ReturnType) rethrows -> ReturnType {
+            return try Swift.withUnsafeMutableBytes(of: &self.ivBytes, body)
         }
 
-        guard paddingBytes > 0 &&
-              self.count >= paddingBytes &&
-              self.suffix(Int(paddingBytes)).allSatisfy({ $0 == paddingBytes }) else {
-            throw CryptoKitError.incorrectParameterSize
-        }
-
-        self = self.dropLast(Int(paddingBytes))
     }
 }
