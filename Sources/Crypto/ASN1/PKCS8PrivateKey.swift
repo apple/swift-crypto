@@ -11,20 +11,16 @@
 // SPDX-License-Identifier: Apache-2.0
 //
 //===----------------------------------------------------------------------===//
-#if CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
+
+#if canImport(CryptoKit)
 @_exported import CryptoKit
-#else
-#if CRYPTOKIT_NO_ACCESS_TO_FOUNDATION
-import SwiftSystem
 #else
 #if canImport(FoundationEssentials)
 import FoundationEssentials
 #else
 import Foundation
 #endif
-#endif
 
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension ASN1 {
     // A PKCS#8 private key is one of two formats, depending on the version:
     //
@@ -48,7 +44,6 @@ extension ASN1 {
     //
     // The private key octet string contains (surprise!) a SEC1-encoded private key! So we recursively invoke the
     // ASN.1 parser and go again.
-    @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
     struct PKCS8PrivateKey: ASN1ImplicitlyTaggable {
         static var defaultIdentifier: ASN1.ASN1Identifier {
             return .sequence
@@ -110,4 +105,4 @@ extension ASN1 {
     }
 }
 
-#endif // Linux or !SwiftPM
+#endif // canImport(CryptoKit)

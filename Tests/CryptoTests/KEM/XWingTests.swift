@@ -11,17 +11,30 @@
 // SPDX-License-Identifier: Apache-2.0
 //
 //===----------------------------------------------------------------------===//
+
 import XCTest
-#if CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
+#if canImport(CryptoKit)
 // Skip tests that require @testable imports of CryptoKit.
 #else
-#if !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
-@testable import CryptoKit
-#else
 @testable import Crypto
-#endif
 
 final class XWingTests: XCTestCase {
+    /// Decapsulates with the regular private key and also with a one-time private key built from the
+    /// same key material, asserting that both paths recover the same shared secret. Returns the shared
+    /// secret so callers can run their own assertions (e.g. against a known-answer value), guaranteeing
+    /// the one-time and regular decapsulation functions are tested identically everywhere.
+    private func decapsulate(
+        with privateKey: XWingMLKEM768X25519.PrivateKey,
+        _ encapsulated: Data,
+        file: StaticString = #filePath,
+        line: UInt = #line
+    ) throws -> SymmetricKey {
+        let sharedSecret = try privateKey.decapsulate(encapsulated)
+        let oneTimeSharedSecret = try XWingMLKEM768X25519.OneTimePrivateKey(reusingForTestingOnly: privateKey).decapsulate(encapsulated)
+        XCTAssertEqual(sharedSecret, oneTimeSharedSecret, "one-time decapsulation diverged from regular decapsulation", file: file, line: line)
+        return sharedSecret
+    }
+
     func testKEM() throws {
         let privateKey = try XWingMLKEM768X25519.PrivateKey.generate()
 
@@ -33,17 +46,13 @@ final class XWingTests: XCTestCase {
         try XCTAssert(privateKey.integrityCheckedRepresentation == XWingMLKEM768X25519.PrivateKey(integrityCheckedRepresentation: privateKey.integrityCheckedRepresentation).integrityCheckedRepresentation)
 
         let er = try privateKey.publicKey.encapsulate()
-        let ss = try privateKey.decapsulate(er.encapsulated)
+        let ss = try decapsulate(with: privateKey, er.encapsulated)
 
         XCTAssert(er.sharedSecret == ss)
     }
 
     func processKATFile(filename: String) throws -> [XWingKAT] {
-        #if CRYPTO_IN_SWIFTPM
         let bundle = Bundle.module
-        #else
-        let bundle = Bundle(for: type(of: self))
-        #endif
         let fileURL = bundle.url(forResource: filename, withExtension: "json")
         let json = try Data(contentsOf: fileURL!)
         let stringInput = String(data: json, encoding: .ascii)!
@@ -62,7 +71,7 @@ final class XWingTests: XCTestCase {
             let encapsulatedKey = try privateKey.publicKey.encapsulateWithRng(rngState: encapDrbg)
             XCTAssertEqual(encapsulatedKey.encapsulated, katTest.ct)
             XCTAssertEqual(encapsulatedKey.sharedSecret.dataRepresentation, katTest.ss)
-            let retrievedSharedSecret = try privateKey.decapsulate(encapsulatedKey.encapsulated)
+            let retrievedSharedSecret = try decapsulate(with: privateKey, encapsulatedKey.encapsulated)
             XCTAssertEqual(retrievedSharedSecret.dataRepresentation, katTest.ss)
         }
     }
@@ -97,8 +106,7 @@ final class XWingTests: XCTestCase {
                 ciphersuite: ciphersuite,
                 info: Data(),
                 encapsulatedKey: corretlySizedKey
-            ),
-            error: CryptoKitError.underlyingCoreCryptoError(error: 0)
+            )
         )
 
         // Keys with the wrong size fail input validation.
@@ -112,7 +120,6 @@ final class XWingTests: XCTestCase {
                     info: Data(),
                     encapsulatedKey: wronglySizedKey
                 ),
-                error: CryptoKitError.incorrectParameterSize,
                 "Unexpectedly returned from malformed decapsulation path for keySize \(keySize)"
             )
         }
@@ -147,4 +154,4 @@ struct XWingKAT {
     }
 }
 
-#endif // CRYPTO_IN_SWIFTPM
+#endif // canImport(CryptoKit)

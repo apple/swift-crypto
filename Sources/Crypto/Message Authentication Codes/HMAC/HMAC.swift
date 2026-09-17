@@ -11,30 +11,14 @@
 // SPDX-License-Identifier: Apache-2.0
 //
 //===----------------------------------------------------------------------===//
-#if CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
+
+#if canImport(CryptoKit)
 @_exported import CryptoKit
 #else
-#if CRYPTOKIT_NO_ACCESS_TO_FOUNDATION
-public import SwiftSystem
-#else
 #if canImport(FoundationEssentials)
-#if os(Windows)
-import ucrt
-#elseif canImport(Darwin)
-import Darwin
-#elseif canImport(Glibc)
-import Glibc
-#elseif canImport(Musl)
-import Musl
-#elseif canImport(Android)
-import Android
-#elseif canImport(WASILibc)
-import WASILibc
-#endif
 public import FoundationEssentials
 #else
 public import Foundation
-#endif
 #endif
 
 /// A hash-based message authentication algorithm.
@@ -50,7 +34,6 @@ public import Foundation
 /// need to encrypt the data as well as authenticate it, use a cipher like
 /// ``AES`` or ``ChaChaPoly`` to put the data into a sealed box (an instance of
 /// ``AES/GCM/SealedBox`` or ``ChaChaPoly/SealedBox``).
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 public struct HMAC<H: HashFunction>: MACAlgorithm, Sendable {
     /// An alias for the symmetric key type used to compute or verify a message
     /// authentication code.
@@ -120,6 +103,19 @@ public struct HMAC<H: HashFunction>: MACAlgorithm, Sendable {
         return authenticator.finalize()
     }
     
+    /// Computes a message authentication code for the given data.
+    ///
+    /// - Parameters:
+    ///   - data: The data for which to compute the authentication code.
+    ///   - key: The symmetric key used to secure the computation.
+    ///
+    /// - Returns: The message authentication code.
+    public static func authenticationCode(for data: RawSpan, using key: SymmetricKey) -> MAC {
+        var authenticator = Self(key: key)
+        authenticator.update(bytes: data)
+        return authenticator.finalize()
+    }
+    
     /// Returns a Boolean value indicating whether the given message
     /// authentication code is valid for a block of data.
     ///
@@ -164,6 +160,10 @@ public struct HMAC<H: HashFunction>: MACAlgorithm, Sendable {
         }
     }
     
+    public mutating func update(bytes: RawSpan) {
+        innerHasher.update(bytes: bytes)
+    }
+    
     /// Finalizes the message authentication computation and returns the
     /// computed code.
     ///
@@ -198,10 +198,18 @@ public struct HMAC<H: HashFunction>: MACAlgorithm, Sendable {
         let computedMac = authenticator.finalize()
         return safeCompare(authenticationCodeBytes, computedMac)
     }
+    
+    private static func isValidAuthenticationCode<C: ContiguousBytes>(authenticationCodeBytes: C,
+                                                                      authenticatedData: UnsafeRawBufferPointer,
+                                                                      key: SymmetricKey) -> Bool {
+        var authenticator = Self(key: key)
+        authenticator.update(bufferPointer: authenticatedData)
+        let computedMac = authenticator.finalize()
+        return safeCompare(authenticationCodeBytes, computedMac)
+    }
 }
 
 /// A hash-based message authentication code.
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 public struct HashedAuthenticationCode<H: HashFunction>: MessageAuthenticationCode, Sendable {
     let digest: H.Digest
     
@@ -235,4 +243,4 @@ public struct HashedAuthenticationCode<H: HashFunction>: MessageAuthenticationCo
     }
     #endif
 }
-#endif // Linux or !SwiftPM
+#endif // canImport(CryptoKit)

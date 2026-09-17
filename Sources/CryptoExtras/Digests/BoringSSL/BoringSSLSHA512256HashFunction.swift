@@ -12,8 +12,9 @@
 //
 //===----------------------------------------------------------------------===//
 
-@_implementationOnly import CCryptoBoringSSL
 import Crypto
+
+@_implementationOnly import CCryptoBoringSSL
 
 struct BoringSSLSHA512256HashFunction {
     static var digestSize: Int {

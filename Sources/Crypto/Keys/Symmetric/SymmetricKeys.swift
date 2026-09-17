@@ -11,18 +11,15 @@
 // SPDX-License-Identifier: Apache-2.0
 //
 //===----------------------------------------------------------------------===//
-#if CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
+
+#if canImport(CryptoKit)
 @_exported import CryptoKit
 #else
 
-#if CRYPTOKIT_NO_ACCESS_TO_FOUNDATION
-import SwiftSystem
-#else
 #if canImport(FoundationEssentials)
 public import FoundationEssentials
 #else
 public import Foundation
-#endif
 #endif
 
 /// The sizes that a symmetric cryptographic key can take.
@@ -32,7 +29,6 @@ public import Foundation
 /// standard key sizes, like ``bits128``, ``bits192``, or ``bits256``. When you
 /// need a key with a non-standard length, use the ``init(bitCount:)``
 /// initializer to create a `SymmetricKeySize` instance with a custom bit count.
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 public struct SymmetricKeySize: Sendable {
     /// The number of bits in the key.
     public let bitCount: Int
@@ -73,7 +69,6 @@ public struct SymmetricKeySize: Sendable {
 /// symmetric key to compute a message authentication code like ``HMAC``, or to
 /// open and close a sealed box (``ChaChaPoly/SealedBox`` or
 /// ``AES/GCM/SealedBox``) using a cipher like ``ChaChaPoly`` or ``AES``.
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 public struct SymmetricKey: ContiguousBytes, Sendable {
     let sb: SecureBytes
 
@@ -95,12 +90,46 @@ public struct SymmetricKey: ContiguousBytes, Sendable {
     }
     #endif
 
+    /// Access the raw bytes of the key.
+    public var bytes: RawSpan {
+        sb.bytes
+    }
+
     /// Creates a key from the given data.
     ///
     /// - Parameters:
     ///   - data: The contiguous bytes from which to create the key.
     public init<D: ContiguousBytes>(data: D) {
         self.init(key: SecureBytes(bytes: data))
+    }
+
+    /// Creates a key from the given data.
+    ///
+    /// - Parameters:
+    ///   - bytes: The span of bytes from which to create the key.
+    ///
+    /// Note: historical version of init(copying:) below, SPI only.
+    @inlinable
+    internal init(bytes: RawSpan) {
+        self = bytes.withUnsafeBytes { SymmetricKey(data: $0) }
+    }
+
+    /// Creates a key from the given data.
+    ///
+    /// - Parameters:
+    ///   - bytes: The span of bytes from which to create the key.
+    @inlinable
+    public init(copying bytes: RawSpan) {
+        self = bytes.withUnsafeBytes { SymmetricKey(data: $0) }
+    }
+
+    /// Creates a key from the given data, zeroing out the bytes afterward.
+    ///
+    /// - Parameters:
+    ///   - byte: The span of bytes from which to create the key.
+    public init(copyingWithZeroing bytes: inout MutableRawSpan) {
+        self = bytes.withUnsafeBytes { SymmetricKey(data: $0) }
+        bytes.withUnsafeMutableBytes { $0.zeroize() }
     }
 
     /// Generates a new random key of the given size.
@@ -124,6 +153,25 @@ public struct SymmetricKey: ContiguousBytes, Sendable {
     }
     #endif
 
+    /// Create a symmetric key with a closure that will initialize the memory.
+    internal init<E: Error>(capacity: Int, initializingWith callback: (inout OutputRawSpan) throws(E) -> Void) throws(E) {
+        self.init(key: try SecureBytes(capacity: capacity, initializingWith: callback))
+    }
+
+    /// Creates a new key of the given size where the key contents are initialized via a callback.
+    ///
+    /// - Parameters:
+    ///   - size: The size of the key to generate. You can use one of the standard
+    /// sizes, like ``SymmetricKeySize/bits256``, or you can create a key of
+    /// custom length by initializing a ``SymmetricKeySize`` instance with a
+    /// non-standard value.
+    ///   - callback: A callback that will be invoked to initialize the contents
+    /// of the key. It must initialize the full set of size.bitCount / 8 bytes
+    /// in the provided output span.
+    public init<E: Error>(size: SymmetricKeySize, initializingWith callback: (inout OutputRawSpan) throws(E) -> Void) throws(E) {
+        try self.init(capacity: Int(size.bitCount / 8), initializingWith: callback)
+    }
+
     // Fast-path alias for cases whe know we have a SecureBytes object.
     internal init(data: SecureBytes) {
         self.init(key: data)
@@ -145,11 +193,10 @@ public struct SymmetricKey: ContiguousBytes, Sendable {
     }
 }
 
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension SymmetricKey: Equatable {
     public static func == (lhs: Self, rhs: Self) -> Bool {
         return safeCompare(lhs, rhs)
     }
 }
 
-#endif // Linux or !SwiftPM
+#endif // canImport(CryptoKit)

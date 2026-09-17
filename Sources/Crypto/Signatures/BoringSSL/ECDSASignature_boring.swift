@@ -11,11 +11,14 @@
 // SPDX-License-Identifier: Apache-2.0
 //
 //===----------------------------------------------------------------------===//
-#if CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
+#if canImport(CryptoKit)
 @_exported import CryptoKit
 #else
+#if hasFeature(SourceWarningControl)
+@diagnose(ImplementationOnlyDeprecated, as: ignored) @_implementationOnly import CCryptoBoringSSL
+#else
 @_implementationOnly import CCryptoBoringSSL
-@_implementationOnly import CCryptoBoringSSLShims
+#endif
 import CryptoBoringWrapper
 #if canImport(FoundationEssentials)
 import FoundationEssentials
@@ -25,13 +28,13 @@ import Foundation
 
 /// A wrapper around BoringSSL's ECDSA_SIG with some lifetime management.
 @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
-class ECDSASignature {
+final class ECDSASignature {
     private var _baseSig: UnsafeMutablePointer<ECDSA_SIG>
 
     init<ContiguousBuffer: ContiguousBytes>(contiguousDERBytes derBytes: ContiguousBuffer) throws {
         self._baseSig = try derBytes.withUnsafeBytes { bytesPtr in
             guard
-                let sig = CCryptoBoringSSLShims_ECDSA_SIG_from_bytes(bytesPtr.baseAddress, bytesPtr.count)
+                let sig = CCryptoBoringSSL_ECDSA_SIG_from_bytes(bytesPtr.baseAddress, bytesPtr.count)
             else {
                 throw CryptoKitError.internalBoringSSLError()
             }
@@ -96,21 +99,6 @@ class ECDSASignature {
         )
     }
 
-    @usableFromInline
-    var derBytes: Data {
-        var dataPtr: UnsafeMutablePointer<UInt8>?
-        var length = 0
-        guard CCryptoBoringSSL_ECDSA_SIG_to_bytes(&dataPtr, &length, self._baseSig) == 1 else {
-            fatalError("Unable to marshal signature to DER")
-        }
-        defer {
-            // We must free this pointer.
-            CCryptoBoringSSL_OPENSSL_free(dataPtr)
-        }
-
-        return Data(UnsafeBufferPointer(start: dataPtr, count: length))
-    }
-
     func withUnsafeSignaturePointer<T>(
         _ body: (UnsafeMutablePointer<ECDSA_SIG>) throws -> T
     )
@@ -119,4 +107,4 @@ class ECDSASignature {
         try body(self._baseSig)
     }
 }
-#endif  // CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
+#endif  // canImport(CryptoKit)

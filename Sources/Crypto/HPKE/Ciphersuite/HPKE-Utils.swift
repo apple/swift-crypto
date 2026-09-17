@@ -11,13 +11,11 @@
 // SPDX-License-Identifier: Apache-2.0
 //
 //===----------------------------------------------------------------------===//
-#if CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
+
+#if canImport(CryptoKit)
 @_exported import CryptoKit
 #else
 
-#if CRYPTOKIT_NO_ACCESS_TO_FOUNDATION
-import SwiftSystem
-#else
 #if canImport(FoundationEssentials)
 #if os(Windows)
 import ucrt
@@ -36,25 +34,16 @@ import FoundationEssentials
 #else
 import Foundation
 #endif
-#endif
 
 
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 internal func I2OSP(value: Int, outputByteCount: Int) -> Data {
     precondition(outputByteCount > 0, "Cannot I2OSP with no output length.")
     precondition(value >= 0, "I2OSP requires a non-null value.")
     
-    #if !CRYPTOKIT_NO_ACCESS_TO_FOUNDATION
-    @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
     let requiredBytes = Int(ceil(log2(Double(max(value, 1) + 1)) / 8))
-    #else
-    @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
-    let requiredBytes = Int((log2_bridge(Double(max(value, 1) + 1)) / 8).rounded(.up))
-    #endif
     
     precondition(outputByteCount >= requiredBytes)
     
-    @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
     var data = Data(repeating: 0, count: outputByteCount)
     
     for i in (outputByteCount - requiredBytes)...(outputByteCount - 1) {
@@ -64,4 +53,4 @@ internal func I2OSP(value: Int, outputByteCount: Int) -> Data {
     return data
 }
 
-#endif // Linux or !SwiftPM
+#endif // canImport(CryptoKit)

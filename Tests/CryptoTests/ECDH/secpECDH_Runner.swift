@@ -11,6 +11,7 @@
 // SPDX-License-Identifier: Apache-2.0
 //
 //===----------------------------------------------------------------------===//
+
 #if canImport(FoundationEssentials)
 import FoundationEssentials
 #else
@@ -18,14 +19,10 @@ import Foundation
 #endif
 import XCTest
 
-#if CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
+#if canImport(CryptoKit)
 // Skip tests that require @testable imports of CryptoKit.
 #else
-#if !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
-@testable import CryptoKit
-#else
 @testable import Crypto
-#endif
 
 enum ECDHTestErrors: Error {
     case PublicKeyFailure
@@ -113,19 +110,11 @@ class NISTECDHTests: XCTestCase {
     }
     
     func testGroup<PrivKey: NISTECPrivateKey & DiffieHellmanKeyAgreement, Curve: SupportedCurveDetailsImpl>(group: ECDHTestGroup, privateKeys: PrivKey.Type, onCurve curve: Curve.Type) {
-        #if !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
-        self.testGroupCC(group: group, privateKeys: privateKeys, onCurve: curve)
-        #else
         self.testGroupOpenSSL(group: group, privateKeys: privateKeys, onCurve: curve)
-        #endif
     }
 
     func testGroupPoint<PrivKey: NISTECPrivateKey & DiffieHellmanKeyAgreement, Curve: SupportedCurveDetailsImpl>(group: ECDHTestGroup, privateKeys: PrivKey.Type, onCurve curve: Curve.Type) {
-        #if !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
-        self.testGroupPointCC(group: group, privateKeys: privateKeys, onCurve: curve)
-        #else
         self.testGroupPointOpenSSL(group: group, privateKeys: privateKeys, onCurve: curve)
-        #endif
     }
 }
-#endif // CRYPTO_IN_SWIFTPM
+#endif // canImport(CryptoKit)

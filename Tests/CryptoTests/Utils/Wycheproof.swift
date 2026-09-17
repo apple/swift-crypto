@@ -11,6 +11,7 @@
 // SPDX-License-Identifier: Apache-2.0
 //
 //===----------------------------------------------------------------------===//
+
 import XCTest
 
 struct WycheproofTest<T: Codable>: Codable {
@@ -21,14 +22,11 @@ struct WycheproofTest<T: Codable>: Codable {
 
 extension XCTestCase {
     func wycheproofTest<T: Codable>(bundleType: AnyObject, jsonName: String, file: StaticString = #filePath, line: UInt = #line, testFunction: (T) throws -> Void) throws {
-        #if !CRYPTO_IN_SWIFTPM
-        let bundle = Bundle(for: type(of: bundleType))
-        let fileURL = bundle.url(forResource: jsonName, withExtension: "json")
-        #else
         var fileURL = URL(fileURLWithPath: "\(#filePath)")
         for _ in 0..<3 {
             fileURL.deleteLastPathComponent()
         }
+        #if compiler(>=6.0)
         if #available(macOS 13, iOS 16, watchOS 9, tvOS 16, visionOS 1, macCatalyst 16, *) {
             fileURL.append(path: "Test Vectors", directoryHint: .isDirectory)
             fileURL.append(path: "\(jsonName).json", directoryHint: .notDirectory)
@@ -36,6 +34,9 @@ extension XCTestCase {
             fileURL = fileURL.appendingPathComponent("Test Vectors", isDirectory: true)
             fileURL = fileURL.appendingPathComponent("\(jsonName).json", isDirectory: false)
         }
+        #else
+        fileURL = fileURL.appendingPathComponent("Test Vectors", isDirectory: true)
+        fileURL = fileURL.appendingPathComponent("\(jsonName).json", isDirectory: false)
         #endif
 
         let data = try orFail(file: file, line: line) { try Data(contentsOf: unwrap(fileURL, file: file, line: line)) }

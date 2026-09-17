@@ -11,15 +11,12 @@
 // SPDX-License-Identifier: Apache-2.0
 //
 //===----------------------------------------------------------------------===//
+
 import XCTest
-#if CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
+#if canImport(CryptoKit)
 // Skip tests that require @testable imports of CryptoKit.
 #else
-#if !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
-@testable import CryptoKit
-#else
 @testable import Crypto
-#endif
 
 final class MLDSATests: XCTestCase {
     func testMLDSA65() throws {
@@ -81,4 +78,4 @@ final class MLDSATests: XCTestCase {
     }
 }
 
-#endif // CRYPTO_IN_SWIFTPM
+#endif // canImport(CryptoKit)

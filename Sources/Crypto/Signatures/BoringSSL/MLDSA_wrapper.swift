@@ -12,10 +12,14 @@
 //
 //===----------------------------------------------------------------------===//
 
-#if CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
+#if canImport(CryptoKit)
 @_exported import CryptoKit
 #else
+#if hasFeature(SourceWarningControl)
+@diagnose(ImplementationOnlyDeprecated, as: ignored) @_implementationOnly import CCryptoBoringSSL
+#else
 @_implementationOnly import CCryptoBoringSSL
+#endif
 #if canImport(FoundationEssentials)
 import FoundationEssentials
 #else
@@ -171,4 +175,4 @@ struct OpenSSLMLDSAPublicKeyImpl<Parameters: BoringSSLBackedMLDSAParameters> {
     }
 }
 
-#endif  // CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
+#endif  // canImport(CryptoKit)

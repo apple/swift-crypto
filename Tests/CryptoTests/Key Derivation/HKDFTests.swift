@@ -11,16 +11,13 @@
 // SPDX-License-Identifier: Apache-2.0
 //
 //===----------------------------------------------------------------------===//
+
 import XCTest
 
-#if CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
+#if canImport(CryptoKit)
 // Skip tests that require @testable imports of CryptoKit.
 #else
-#if !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
-@testable import CryptoKit
-#else
 @testable import Crypto
-#endif
 
 // Test Vectors are coming from https://tools.ietf.org/html/rfc5869
 class HKDFTests: XCTestCase {
@@ -144,4 +141,4 @@ class HKDFTests: XCTestCase {
     }
 }
 
-#endif // CRYPTO_IN_SWIFTPM
+#endif // canImport(CryptoKit)

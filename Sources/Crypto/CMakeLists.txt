@@ -97,12 +97,15 @@ add_library(Crypto
   "Signatures/Ed25519.swift"
   "Signatures/MLDSA.swift"
   "Signatures/Signature.swift"
+  "Util/ArraySpanHelpers.swift"
   "Util/BoringSSL/CryptoKitErrors_boring.swift"
+  "Util/BoringSSL/InlineArray+withBytes_boring.swift"
   "Util/BoringSSL/Optional+withUnsafeBytes_boring.swift"
   "Util/BoringSSL/RNG_boring.swift"
   "Util/BoringSSL/SafeCompare_boring.swift"
   "Util/BoringSSL/Zeroization_boring.swift"
   "Util/BoringSSL/_CryptoModuleAnchor.swift"
+  "Util/Data+ArraySpan.swift"
   "Util/PrettyBytes.swift"
   "Util/SafeCompare.swift"
   "Util/SecureBytes.swift"
@@ -112,14 +115,8 @@ add_library(Crypto
 target_compile_definitions(Crypto PRIVATE
   "$<$<COMPILE_LANGUAGE:Swift>:CRYPTO_IN_SWIFTPM>")
 
-if(NOT CMAKE_SYSTEM_NAME STREQUAL "Darwin")
-  target_compile_definitions(Crypto PRIVATE
-    "$<$<COMPILE_LANGUAGE:Swift>:CRYPTO_IN_SWIFTPM_FORCE_BUILD_API>")
-endif()
-
 target_include_directories(Crypto PRIVATE
   $<TARGET_PROPERTY:CCryptoBoringSSL,INCLUDE_DIRECTORIES>
-  $<TARGET_PROPERTY:CCryptoBoringSSLShims,INCLUDE_DIRECTORIES>
   $<TARGET_PROPERTY:CryptoBoringWrapper,INCLUDE_DIRECTORIES>
   $<TARGET_PROPERTY:CXKCP,INCLUDE_DIRECTORIES>
   $<TARGET_PROPERTY:CXKCPShims,INCLUDE_DIRECTORIES>)
@@ -127,7 +124,6 @@ target_link_libraries(Crypto PUBLIC
   $<$<NOT:$<PLATFORM_ID:Darwin>>:dispatch>
   $<$<NOT:$<PLATFORM_ID:Darwin>>:Foundation>
   CCryptoBoringSSL
-  CCryptoBoringSSLShims
   CryptoBoringWrapper
   CXKCP
   CXKCPShims)

@@ -11,7 +11,8 @@
 // SPDX-License-Identifier: Apache-2.0
 //
 //===----------------------------------------------------------------------===//
-#if CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
+
+#if canImport(CryptoKit)
 @_exported import CryptoKit
 #else
 // MARK: - Generated file, do NOT edit
@@ -22,18 +23,18 @@
 
 // MARK: - SHA256Digest + DigestPrivate
 /// The output of a Secure Hashing Algorithm 2 (SHA-2) hash with a 256-bit digest.
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 public struct SHA256Digest: DigestPrivate {
     let bytes: (UInt64, UInt64, UInt64, UInt64)
     
-    init?(bufferPointer: UnsafeRawBufferPointer) {
-        guard bufferPointer.count == 32 else {
-            return nil
-        }
-
+    init?(initializingWith body: (inout OutputRawSpan) -> ()) {
         var bytes = (UInt64(0), UInt64(0), UInt64(0), UInt64(0))
-        withUnsafeMutableBytes(of: &bytes) { targetPtr in
-            targetPtr.copyMemory(from: bufferPointer)
+        let initialized = withUnsafeMutableBytes(of: &bytes) { targetPtr in
+            var output = OutputRawSpan(buffer: targetPtr, initializedCount: 0)
+            body(&output)
+            return output.finalize(for: targetPtr)
+        }
+        guard initialized == 32 else {
+            return nil
         }
         self.bytes = bytes
     }
@@ -105,18 +106,18 @@ public struct SHA256Digest: DigestPrivate {
 
 // MARK: - SHA384Digest + DigestPrivate
 /// The output of a Secure Hashing Algorithm 2 (SHA-2) hash with a 384-bit digest.
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 public struct SHA384Digest: DigestPrivate {
     let bytes: (UInt64, UInt64, UInt64, UInt64, UInt64, UInt64)
     
-    init?(bufferPointer: UnsafeRawBufferPointer) {
-        guard bufferPointer.count == 48 else {
-            return nil
-        }
-
+    init?(initializingWith body: (inout OutputRawSpan) -> ()) {
         var bytes = (UInt64(0), UInt64(0), UInt64(0), UInt64(0), UInt64(0), UInt64(0))
-        withUnsafeMutableBytes(of: &bytes) { targetPtr in
-            targetPtr.copyMemory(from: bufferPointer)
+        let initialized = withUnsafeMutableBytes(of: &bytes) { targetPtr in
+            var output = OutputRawSpan(buffer: targetPtr, initializedCount: 0)
+            body(&output)
+            return output.finalize(for: targetPtr)
+        }
+        guard initialized == 48 else {
+            return nil
         }
         self.bytes = bytes
     }
@@ -190,18 +191,18 @@ public struct SHA384Digest: DigestPrivate {
 
 // MARK: - SHA512Digest + DigestPrivate
 /// The output of a Secure Hashing Algorithm 2 (SHA-2) hash with a 512-bit digest.
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 public struct SHA512Digest: DigestPrivate {
     let bytes: (UInt64, UInt64, UInt64, UInt64, UInt64, UInt64, UInt64, UInt64)
     
-    init?(bufferPointer: UnsafeRawBufferPointer) {
-        guard bufferPointer.count == 64 else {
-            return nil
-        }
-
+    init?(initializingWith body: (inout OutputRawSpan) -> ()) {
         var bytes = (UInt64(0), UInt64(0), UInt64(0), UInt64(0), UInt64(0), UInt64(0), UInt64(0), UInt64(0))
-        withUnsafeMutableBytes(of: &bytes) { targetPtr in
-            targetPtr.copyMemory(from: bufferPointer)
+        let initialized = withUnsafeMutableBytes(of: &bytes) { targetPtr in
+            var output = OutputRawSpan(buffer: targetPtr, initializedCount: 0)
+            body(&output)
+            return output.finalize(for: targetPtr)
+        }
+        guard initialized == 64 else {
+            return nil
         }
         self.bytes = bytes
     }
@@ -274,22 +275,21 @@ public struct SHA512Digest: DigestPrivate {
     }
 }
 
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension Insecure {
 // MARK: - SHA1Digest + DigestPrivate
 /// The output of a SHA1 hash.
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 public struct SHA1Digest: DigestPrivate {
     let bytes: (UInt64, UInt64, UInt64)
     
-    init?(bufferPointer: UnsafeRawBufferPointer) {
-        guard bufferPointer.count == 20 else {
-            return nil
-        }
-
+    init?(initializingWith body: (inout OutputRawSpan) -> ()) {
         var bytes = (UInt64(0), UInt64(0), UInt64(0))
-        withUnsafeMutableBytes(of: &bytes) { targetPtr in
-            targetPtr.copyMemory(from: bufferPointer)
+        let initialized = withUnsafeMutableBytes(of: &bytes) { targetPtr in
+            var output = OutputRawSpan(buffer: targetPtr, initializedCount: 0)
+            body(&output)
+            return output.finalize(for: targetPtr)
+        }
+        guard initialized == 20 else {
+            return nil
         }
         self.bytes = bytes
     }
@@ -357,22 +357,21 @@ public struct SHA1Digest: DigestPrivate {
     }
 }
 }
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension Insecure {
 // MARK: - MD5Digest + DigestPrivate
 /// The output of a MD5 hash.
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 public struct MD5Digest: DigestPrivate {
     let bytes: (UInt64, UInt64)
     
-    init?(bufferPointer: UnsafeRawBufferPointer) {
-        guard bufferPointer.count == 16 else {
-            return nil
-        }
-
+    init?(initializingWith body: (inout OutputRawSpan) -> ()) {
         var bytes = (UInt64(0), UInt64(0))
-        withUnsafeMutableBytes(of: &bytes) { targetPtr in
-            targetPtr.copyMemory(from: bufferPointer)
+        let initialized = withUnsafeMutableBytes(of: &bytes) { targetPtr in
+            var output = OutputRawSpan(buffer: targetPtr, initializedCount: 0)
+            body(&output)
+            return output.finalize(for: targetPtr)
+        }
+        guard initialized == 16 else {
+            return nil
         }
         self.bytes = bytes
     }
@@ -445,18 +444,18 @@ public struct MD5Digest: DigestPrivate {
 
 // MARK: - SHA3_256Digest + DigestPrivate
 /// The output of a Secure Hashing Algorithm 3 (SHA-2) hash with a 256-bit digest.
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 public struct SHA3_256Digest: DigestPrivate {
     let bytes: (UInt64, UInt64, UInt64, UInt64)
 
-    init?(bufferPointer: UnsafeRawBufferPointer) {
-        guard bufferPointer.count == 32 else {
-            return nil
-        }
-
+    init?(initializingWith body: (inout OutputRawSpan) -> ()) {
         var bytes = (UInt64(0), UInt64(0), UInt64(0), UInt64(0))
-        withUnsafeMutableBytes(of: &bytes) { targetPtr in
-            targetPtr.copyMemory(from: bufferPointer)
+        let initialized = withUnsafeMutableBytes(of: &bytes) { targetPtr in
+            var output = OutputRawSpan(buffer: targetPtr, initializedCount: 0)
+            body(&output)
+            return output.finalize(for: targetPtr)
+        }
+        guard initialized == 32 else {
+            return nil
         }
         self.bytes = bytes
     }
@@ -526,18 +525,18 @@ public struct SHA3_256Digest: DigestPrivate {
 }
 // MARK: - SHA3_384Digest + DigestPrivate
 /// The output of a Secure Hashing Algorithm 3 (SHA-2) hash with a 384-bit digest.
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 public struct SHA3_384Digest: DigestPrivate {
     let bytes: (UInt64, UInt64, UInt64, UInt64, UInt64, UInt64)
 
-    init?(bufferPointer: UnsafeRawBufferPointer) {
-        guard bufferPointer.count == 48 else {
-            return nil
-        }
-
+    init?(initializingWith body: (inout OutputRawSpan) -> ()) {
         var bytes = (UInt64(0), UInt64(0), UInt64(0), UInt64(0), UInt64(0), UInt64(0))
-        withUnsafeMutableBytes(of: &bytes) { targetPtr in
-            targetPtr.copyMemory(from: bufferPointer)
+        let initialized = withUnsafeMutableBytes(of: &bytes) { targetPtr in
+            var output = OutputRawSpan(buffer: targetPtr, initializedCount: 0)
+            body(&output)
+            return output.finalize(for: targetPtr)
+        }
+        guard initialized == 48 else {
+            return nil
         }
         self.bytes = bytes
     }
@@ -609,18 +608,18 @@ public struct SHA3_384Digest: DigestPrivate {
 }
 // MARK: - SHA3_512Digest + DigestPrivate
 /// The output of a Secure Hashing Algorithm 3 (SHA-2) hash with a 512-bit digest.
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 public struct SHA3_512Digest: DigestPrivate {
     let bytes: (UInt64, UInt64, UInt64, UInt64, UInt64, UInt64, UInt64, UInt64)
 
-    init?(bufferPointer: UnsafeRawBufferPointer) {
-        guard bufferPointer.count == 64 else {
-            return nil
-        }
-
+    init?(initializingWith body: (inout OutputRawSpan) -> ()) {
         var bytes = (UInt64(0), UInt64(0), UInt64(0), UInt64(0), UInt64(0), UInt64(0), UInt64(0), UInt64(0))
-        withUnsafeMutableBytes(of: &bytes) { targetPtr in
-            targetPtr.copyMemory(from: bufferPointer)
+        let initialized = withUnsafeMutableBytes(of: &bytes) { targetPtr in
+            var output = OutputRawSpan(buffer: targetPtr, initializedCount: 0)
+            body(&output)
+            return output.finalize(for: targetPtr)
+        }
+        guard initialized == 64 else {
+            return nil
         }
         self.bytes = bytes
     }
@@ -693,4 +692,4 @@ public struct SHA3_512Digest: DigestPrivate {
     }
 }
 #endif // !CRYPTOKIT_IN_SEP
-#endif // Linux or !SwiftPM
+#endif // canImport(CryptoKit)

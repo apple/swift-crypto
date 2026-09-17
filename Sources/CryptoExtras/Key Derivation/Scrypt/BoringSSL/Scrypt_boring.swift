@@ -12,9 +12,13 @@
 //
 //===----------------------------------------------------------------------===//
 
-@_implementationOnly import CCryptoBoringSSL
-@_implementationOnly import CCryptoBoringSSLShims
 import Crypto
+
+#if hasFeature(SourceWarningControl)
+@diagnose(ImplementationOnlyDeprecated, as: ignored) @_implementationOnly import CCryptoBoringSSL
+#else
+@_implementationOnly import CCryptoBoringSSL
+#endif
 
 #if canImport(FoundationEssentials)
 #if os(Windows)

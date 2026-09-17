@@ -11,6 +11,7 @@
 // SPDX-License-Identifier: Apache-2.0
 //
 //===----------------------------------------------------------------------===//
+
 #if canImport(FoundationEssentials)
 import FoundationEssentials
 #else
@@ -18,14 +19,10 @@ import Foundation
 #endif
 import XCTest
 
-#if CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
+#if canImport(CryptoKit)
 // Skip tests that require @testable imports of CryptoKit.
 #else
-#if !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
-@testable import CryptoKit
-#else
 @testable import Crypto
-#endif
 
 struct ECDSATestGroup: Codable {
     let tests: [SignatureTestVector]
@@ -390,4 +387,4 @@ class SignatureTests: XCTestCase {
     }
     
 }
-#endif // CRYPTO_IN_SWIFTPM
+#endif // canImport(CryptoKit)

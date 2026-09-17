@@ -11,7 +11,8 @@
 // SPDX-License-Identifier: Apache-2.0
 //
 //===----------------------------------------------------------------------===//
-#if CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
+
+#if canImport(CryptoKit)
 @_exported import CryptoKit
 #else
 /// An implementation of Secure Hashing Algorithm 2 (SHA-2) hashing with a
@@ -26,7 +27,6 @@
 /// in memory, you can compute the digest iteratively by creating a new hash
 /// instance, calling the ``update(data:)`` method repeatedly with blocks of
 /// data, and then calling the ``finalize()`` method to get the result.
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 public typealias SHA2_256 = SHA256
 
 /// An implementation of Secure Hashing Algorithm 2 (SHA-2) hashing with a
@@ -41,7 +41,6 @@ public typealias SHA2_256 = SHA256
 /// in memory, you can compute the digest iteratively by creating a new hash
 /// instance, calling the ``update(data:)`` method repeatedly with blocks of
 /// data, and then calling the ``finalize()`` method to get the result.
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 public struct SHA256: HashFunctionImplementationDetails, Sendable {
     /// The number of bytes that represents the hash function’s internal state.
     public static let blockByteCount: Int = 64
@@ -113,7 +112,6 @@ public struct SHA256: HashFunctionImplementationDetails, Sendable {
 /// in memory, you can compute the digest iteratively by creating a new hash
 /// instance, calling the ``update(data:)`` method repeatedly with blocks of
 /// data, and then calling the ``finalize()`` method to get the result.
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 public typealias SHA2_384 = SHA384
 
 /// An implementation of Secure Hashing Algorithm 2 (SHA-2) hashing with a
@@ -128,7 +126,6 @@ public typealias SHA2_384 = SHA384
 /// in memory, you can compute the digest iteratively by creating a new hash
 /// instance, calling the ``update(data:)`` method repeatedly with blocks of
 /// data, and then calling the ``finalize()`` method to get the result.
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 public struct SHA384: HashFunctionImplementationDetails, Sendable {
     /// The number of bytes that represents the hash function’s internal state.
     public static let blockByteCount: Int = 128
@@ -201,7 +198,6 @@ public struct SHA384: HashFunctionImplementationDetails, Sendable {
 /// in memory, you can compute the digest iteratively by creating a new hash
 /// instance, calling the ``update(data:)`` method repeatedly with blocks of
 /// data, and then calling the ``finalize()`` method to get the result.
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 public typealias SHA2_512 = SHA512
 
 /// An implementation of Secure Hashing Algorithm 2 (SHA-2) hashing with a
@@ -216,7 +212,6 @@ public typealias SHA2_512 = SHA512
 /// in memory, you can compute the digest iteratively by creating a new hash
 /// instance, calling the ``update(data:)`` method repeatedly with blocks of
 /// data, and then calling the ``finalize()`` method to get the result.
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 public struct SHA512: HashFunctionImplementationDetails, Sendable {
     /// The number of bytes that represents the hash function’s internal state.
     public static let blockByteCount: Int = 128
@@ -276,4 +271,4 @@ public struct SHA512: HashFunctionImplementationDetails, Sendable {
         return impl.finalize()
     }
 }
-#endif // Linux or !SwiftPM
+#endif // canImport(CryptoKit)

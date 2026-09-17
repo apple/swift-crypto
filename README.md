@@ -7,9 +7,9 @@ Swift Crypto is an open-source implementation of a substantial portion of the AP
 Swift Crypto is available as a Swift Package Manager package. To use it, add the following dependency in your `Package.swift`:
 
 ```swift
-// swift-crypto 1.x, 2.x, 3.x, and 4.x are almost API compatible, so most clients
+// swift-crypto 1.x, 2.x, 3.x, 4.x, and 5.x are almost API compatible, so most clients
 // should allow any of them
-.package(url: "https://github.com/apple/swift-crypto.git", "1.0.0" ..< "5.0.0"),
+.package(url: "https://github.com/apple/swift-crypto.git", "1.0.0" ..< "6.0.0"),
 ```
 
 and to your target, add `Crypto` to your dependencies. You can then `import Crypto` to get access to Swift Crypto's functionality.
@@ -28,7 +28,7 @@ Swift Crypto compiles in two distinct modes depending on the platform for which 
 
 When building Swift Crypto for use on an Apple platform where CryptoKit is already available, Swift Crypto compiles its entire API surface down to nothing and simply re-exports the API of CryptoKit. This means that when using Apple platforms Swift Crypto simply delegates all work to the core implementation of CryptoKit, as though Swift Crypto was not even there.
 
-When building Swift Crypto for use on Linux or Windows, Swift Crypto builds substantially more code. In particular, we build:
+When building Swift Crypto for use on other platforms, Swift Crypto builds substantially more code. In particular, we build:
 
 1. A vendored copy of BoringSSL's libcrypto.
 2. A vendored copy of XKCP's libXKCP.
@@ -109,7 +109,7 @@ If you believe you have identified a vulnerability in Swift Crypto, please [repo
 
 ### Swift versions
 
-The most recent versions of Swift Crypto support Swift 6 and newer. The minimum Swift version supported by Swift Crypto releases are detailed below:
+The most recent versions of Swift Crypto support Swift 6.2 and newer. The minimum Swift version supported by Swift Crypto releases are detailed below:
 
 Swift Crypto        | Minimum Swift Version
 --------------------|----------------------
@@ -121,7 +121,9 @@ Swift Crypto        | Minimum Swift Version
 `3.3.0  ..< 3.8.0`  | 5.8
 `3.9.0  ..< 3.13.0` | 5.9
 `3.13.0 ..< 4.0.0`  | 5.10
-`4.0.0 ...`         | 6.0 
+`4.0.0  ..< 4.4.0`  | 6.0
+`4.4.0  ..< 5.0.0`  | 6.1
+`5.0.0 ...`         | 6.2
 
 ### Compatibility
 
@@ -137,15 +139,17 @@ Swift Crypto 3.0.0 was released in September 2023. Again the only breaking chang
 
 Swift Crypto 4.0.0 was released in September 2025. Again the only breaking change was the addition of new cases in the `CryptoError` enumeration, so most users can safely depend on the 1.0.0, 2.0.0, 3.0.0, or 4.0.0 series of releases. Note that in this release `_CryptoExtras` was renamed to `CryptoExtras`. The old products and targets have been kept around for compatibility reasons, but users depending only on new code should use `CryptoExtras` not `_CryptoExtras`.
 
+Swift Crypto 5.0.0 was released in September 2026. Because this version is only supported on Swift versions that support extensible enums, this release has mechanically marked all non-frozen public enums in CryptoKit as `@nonexhaustive`, which should mitigate the need for any future major releases of Swift Crypto. Most users will be able to depend on the 1.0.0, 2.0.0, 3.0.0, 4.0.0 or 5.0.0 series of releases.
+
 To do so, please use the following dependency in your `Package.swift`:
 
 ```swift
-.package(url: "https://github.com/apple/swift-crypto.git", "1.0.0" ..< "5.0.0"),
+.package(url: "https://github.com/apple/swift-crypto.git", "1.0.0" ..< "6.0.0"),
 ```
 
 ### Developing Swift Crypto on macOS
 
-Swift Crypto normally defers to the OS implementation of CryptoKit on macOS. Naturally, this makes developing Swift Crypto on macOS tricky. To get Swift Crypto to build the open source implementation on macOS, in `Package.swift`, change `let development = false` to `let development = true`, as this will force Swift Crypto to build its public API.
+Swift Crypto normally defers to the OS implementation of CryptoKit on macOS. Naturally, this makes developing Swift Crypto on macOS tricky. To get Swift Crypto to build the open source implementation on macOS, in `Package.swift`, use a Linux container. A Dev Container config is provided in the repo to make this easier.
 
 
 ## Acknowledgements

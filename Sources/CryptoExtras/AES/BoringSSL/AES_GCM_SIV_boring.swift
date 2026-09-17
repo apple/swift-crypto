@@ -14,10 +14,14 @@
 
 // This is a copy ChaChaPoly_boring just with a different set aes algos
 
-@_implementationOnly import CCryptoBoringSSL
-@_implementationOnly import CCryptoBoringSSLShims
 import Crypto
 import CryptoBoringWrapper
+
+#if hasFeature(SourceWarningControl)
+@diagnose(ImplementationOnlyDeprecated, as: ignored) @_implementationOnly import CCryptoBoringSSL
+#else
+@_implementationOnly import CCryptoBoringSSL
+#endif
 
 #if canImport(FoundationEssentials)
 import FoundationEssentials
@@ -33,7 +37,7 @@ extension BoringSSLAEAD {
         key: SymmetricKey,
         nonce: Nonce,
         authenticatedData: AuthenticatedData
-    ) throws -> (ciphertext: Data, tag: Data) {
+    ) throws -> Data {
         do {
             let context = try AEADContext(cipher: self, key: key)
             return try context.seal(message: message, nonce: nonce, authenticatedData: authenticatedData)
@@ -75,17 +79,16 @@ enum OpenSSLAESGCMSIVImpl {
 
         let aead = try Self._backingAEAD(key: key)
 
-        let ciphertext: Data
-        let tag: Data
+        let combined: Data
         if let ad = authenticatedData {
-            (ciphertext, tag) = try aead.seal(
+            combined = try aead.seal(
                 message: message,
                 key: key,
                 nonce: nonce,
                 authenticatedData: ad
             )
         } else {
-            (ciphertext, tag) = try aead.seal(
+            combined = try aead.seal(
                 message: message,
                 key: key,
                 nonce: nonce,
@@ -93,7 +96,7 @@ enum OpenSSLAESGCMSIVImpl {
             )
         }
 
-        return try AES.GCM._SIV.SealedBox(nonce: nonce, ciphertext: ciphertext, tag: tag)
+        return AES.GCM._SIV.SealedBox(combined: combined, nonceByteCount: nonce.bytes.count)
     }
 
     @inlinable

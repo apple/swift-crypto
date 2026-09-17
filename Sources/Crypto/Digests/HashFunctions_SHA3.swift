@@ -11,7 +11,8 @@
 // SPDX-License-Identifier: Apache-2.0
 //
 //===----------------------------------------------------------------------===//
-#if CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
+
+#if canImport(CryptoKit)
 @_exported import CryptoKit
 #else
 #if !CRYPTOKIT_IN_SEP
@@ -26,7 +27,6 @@
 /// applications can compute the digest iteratively by creating a new hash
 /// instance, calling the ``update(data:)`` method repeatedly with blocks of
 /// data, and then calling the ``finalize()`` method to get the result.
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 public struct SHA3_256: HashFunctionImplementationDetails, Sendable {
     /// The number of bytes that represents the hash function’s internal state.
     public static let blockByteCount: Int = 136
@@ -97,7 +97,6 @@ public struct SHA3_256: HashFunctionImplementationDetails, Sendable {
 /// applications can compute the digest iteratively by creating a new hash
 /// instance, calling the ``update(data:)`` method repeatedly with blocks of
 /// data, and then calling the ``finalize()`` method to get the result.
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 public struct SHA3_384: HashFunctionImplementationDetails, Sendable {
     /// The number of bytes that represents the hash function’s internal state.
     public static let blockByteCount: Int = 104
@@ -168,7 +167,6 @@ public struct SHA3_384: HashFunctionImplementationDetails, Sendable {
 /// applications can compute the digest iteratively by creating a new hash
 /// instance, calling the ``update(data:)`` method repeatedly with blocks of
 /// data, and then calling the ``finalize()`` method to get the result.
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 public struct SHA3_512: HashFunctionImplementationDetails, Sendable {
     /// The number of bytes that represents the hash function’s internal state.
     public static let blockByteCount: Int = 72
@@ -228,4 +226,4 @@ public struct SHA3_512: HashFunctionImplementationDetails, Sendable {
     }
 }
 #endif // !CRYPTOKIT_IN_SEP
-#endif // Linux or !SwiftPM
+#endif // canImport(CryptoKit)

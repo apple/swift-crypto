@@ -11,22 +11,17 @@
 // SPDX-License-Identifier: Apache-2.0
 //
 //===----------------------------------------------------------------------===//
-#if CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
+
+#if canImport(CryptoKit)
 @_exported import CryptoKit
 #else
 
-#if CRYPTOKIT_NO_ACCESS_TO_FOUNDATION
-import SwiftSystem
-#else
 #if canImport(FoundationEssentials)
 import FoundationEssentials
 #else
 import Foundation
 #endif
-#endif
 
-
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension HPKE {
 	/// Cipher suites to use in hybrid public key encryption (HPKE).
     ///
@@ -34,7 +29,6 @@ extension HPKE {
     /// and decrypting messages, the key derivation function (KDF) for deriving the shared key, and the key encapsulation
     /// mechanism (KEM) for sharing the symmetric key. The sender and recipient of encrypted messages need to use the
     /// same cipher suite.
-    @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
     public struct Ciphersuite: Sendable {
 		/// A cipher suite for HPKE that uses NIST P-256 elliptic curve key agreement, SHA-2 key derivation
         /// with a 256-bit digest, and the Advanced Encryption Standard cipher in Galois/Counter Mode with a key length of 256 bits.
@@ -83,4 +77,4 @@ extension HPKE {
     }
 }
 
-#endif // Linux or !SwiftPM
+#endif // canImport(CryptoKit)

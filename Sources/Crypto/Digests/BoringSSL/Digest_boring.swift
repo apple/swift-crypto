@@ -11,10 +11,14 @@
 // SPDX-License-Identifier: Apache-2.0
 //
 //===----------------------------------------------------------------------===//
-#if CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
+#if canImport(CryptoKit)
 @_exported import CryptoKit
 #else
+#if hasFeature(SourceWarningControl)
+@diagnose(ImplementationOnlyDeprecated, as: ignored) @_implementationOnly import CCryptoBoringSSL
+#else
 @_implementationOnly import CCryptoBoringSSL
+#endif
 
 @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 protocol HashFunctionImplementationDetails: HashFunction where Digest: DigestPrivate {}
@@ -202,7 +206,7 @@ private final class DigestContext<H: BoringSSLBackedHashFunction> {
                 preconditionFailure("Unable to finalize digest state")
             }
             // We force unwrap here because if the digest size is wrong it's an internal error.
-            return H.Digest(bufferPointer: UnsafeRawBufferPointer(digestPointer))!
+            return H.Digest(copying: digestPointer.bytes)!
         }
     }
 
@@ -210,4 +214,4 @@ private final class DigestContext<H: BoringSSLBackedHashFunction> {
         withUnsafeMutablePointer(to: &self.context) { $0.zeroize() }
     }
 }
-#endif  // CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
+#endif  // canImport(CryptoKit)

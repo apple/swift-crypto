@@ -11,25 +11,20 @@
 // SPDX-License-Identifier: Apache-2.0
 //
 //===----------------------------------------------------------------------===//
-#if CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
+
+#if canImport(CryptoKit)
 @_exported import CryptoKit
-#else
-#if CRYPTOKIT_NO_ACCESS_TO_FOUNDATION
-import SwiftSystem
 #else
 #if canImport(FoundationEssentials)
 import FoundationEssentials
 #else
 import Foundation
 #endif
-#endif
 
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 protocol Zeroization {
     mutating func zeroize()
 }
 
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension UnsafeMutablePointer: Zeroization {
     /// Zeroizes the pointee
     func zeroize() {
@@ -38,14 +33,12 @@ extension UnsafeMutablePointer: Zeroization {
     }
 }
 
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension UnsafeMutableRawBufferPointer: Zeroization {
     func zeroize() {
         memset_s(self.baseAddress!, self.count, 0, self.count)
     }
 }
 
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension Array: Zeroization where Element == UInt8 {
     /// Zeroizes the array
     mutating func zeroize() {
@@ -53,7 +46,6 @@ extension Array: Zeroization where Element == UInt8 {
     }
 }
 
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension Data: Zeroization {
     internal mutating func zeroize() {
         _ = self.withUnsafeMutableBytes {
@@ -62,4 +54,4 @@ extension Data: Zeroization {
     }
 }
 
-#endif // Linux or !SwiftPM
+#endif // canImport(CryptoKit)

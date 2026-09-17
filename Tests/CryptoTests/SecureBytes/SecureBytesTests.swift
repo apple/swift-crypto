@@ -11,16 +11,13 @@
 // SPDX-License-Identifier: Apache-2.0
 //
 //===----------------------------------------------------------------------===//
+
 import XCTest
 
-#if CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
+#if canImport(CryptoKit)
 // Skip tests that require @testable imports of CryptoKit.
 #else
-#if !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
-@testable import CryptoKit
-#else
 @testable import Crypto
-#endif
 
 final class SecureBytesTests: XCTestCase {
     func testBasicSoundness() {
@@ -148,6 +145,8 @@ final class SecureBytesTests: XCTestCase {
         base.withUnsafeBytes { XCTAssertEqual($0.count, 10) }
         base.withUnsafeMutableBytes { XCTAssertEqual($0.count, 10) }
         base.backing._withVeryUnsafeMutableBytes { XCTAssertGreaterThanOrEqual($0.count, 16) }
+        XCTAssertEqual(base.bytes.byteCount, 10)
+        XCTAssertEqual(base.mutableBytes.byteCount, 10)
     }
 
     func testTheresOnlyOneRegion() {
@@ -179,7 +178,7 @@ final class SecureBytesTests: XCTestCase {
         var base = SecureBytes(repeating: 0, count: 10)
         let copy = base
 
-        base.append("Hello, world".utf8)
+        base.append(Array("Hello, world".utf8).span.bytes)
 
         XCTAssertEqual(base.count, 22)
         XCTAssertEqual(copy.count, 10)
@@ -202,7 +201,7 @@ final class SecureBytesTests: XCTestCase {
         let copy = Data(base)
         XCTAssertEqual(base.count, copy.count)
 
-        base.append("Hello, world".utf8)
+        base.append(Array("Hello, world".utf8).span.bytes)
 
         XCTAssertEqual(base.count, 22)
         XCTAssertEqual(copy.count, 10)
@@ -213,11 +212,11 @@ final class SecureBytesTests: XCTestCase {
         let copy = Data(base.prefix(5))
         XCTAssertEqual(Array(copy), [0, 1, 2, 3, 4])
 
-        base.append("Hello, world".utf8)
+        base.append(Array("Hello, world".utf8).span.bytes)
 
         XCTAssertEqual(base.count, 22)
         XCTAssertEqual(Array(copy), [0, 1, 2, 3, 4])
     }
 }
 
-#endif // CRYPTO_IN_SWIFTPM
+#endif // canImport(CryptoKit)

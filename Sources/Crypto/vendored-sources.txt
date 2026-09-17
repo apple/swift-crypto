@@ -1,0 +1,143 @@
+Sources/Crypto/AEADs/AES/GCM/AES-GCM.swift
+Sources/Crypto/AEADs/ChachaPoly/ChaChaPoly.swift
+Sources/Crypto/AEADs/Cipher.swift
+Sources/Crypto/AEADs/Nonces.swift.gyb
+Sources/Crypto/ASN1/ASN1.swift
+Sources/Crypto/ASN1/Basic ASN1 Types/ASN1Any.swift
+Sources/Crypto/ASN1/Basic ASN1 Types/ASN1BitString.swift
+Sources/Crypto/ASN1/Basic ASN1 Types/ASN1Boolean.swift
+Sources/Crypto/ASN1/Basic ASN1 Types/ASN1Identifier.swift
+Sources/Crypto/ASN1/Basic ASN1 Types/ASN1Integer.swift
+Sources/Crypto/ASN1/Basic ASN1 Types/ASN1Null.swift
+Sources/Crypto/ASN1/Basic ASN1 Types/ASN1OctetString.swift
+Sources/Crypto/ASN1/Basic ASN1 Types/ASN1Strings.swift
+Sources/Crypto/ASN1/Basic ASN1 Types/ArraySliceBigint.swift
+Sources/Crypto/ASN1/Basic ASN1 Types/GeneralizedTime.swift
+Sources/Crypto/ASN1/Basic ASN1 Types/ObjectIdentifier.swift
+Sources/Crypto/ASN1/ECDSASignature.swift
+Sources/Crypto/ASN1/PEMDocument.swift
+Sources/Crypto/ASN1/PKCS8PrivateKey.swift
+Sources/Crypto/ASN1/SEC1PrivateKey.swift
+Sources/Crypto/ASN1/SubjectPublicKeyInfo.swift
+Sources/Crypto/CryptoKitErrors.swift
+Sources/Crypto/Digests/Digest.swift
+Sources/Crypto/Digests/Digests.swift.gyb
+Sources/Crypto/Digests/HashFunctions.swift
+Sources/Crypto/Digests/HashFunctions_SHA2.swift
+Sources/Crypto/Digests/HashFunctions_SHA3.swift
+Sources/Crypto/HPKE/Ciphersuite/HPKE-AEAD.swift
+Sources/Crypto/HPKE/Ciphersuite/HPKE-Ciphersuite.swift
+Sources/Crypto/HPKE/Ciphersuite/HPKE-KDF.swift
+Sources/Crypto/HPKE/Ciphersuite/HPKE-KexKeyDerivation.swift
+Sources/Crypto/HPKE/Ciphersuite/HPKE-LabeledExtract.swift
+Sources/Crypto/HPKE/Ciphersuite/HPKE-Utils.swift
+Sources/Crypto/HPKE/Ciphersuite/KEM/Conformances/DHKEM.swift
+Sources/Crypto/HPKE/Ciphersuite/KEM/Conformances/HPKE-KEM-Curve25519.swift
+Sources/Crypto/HPKE/Ciphersuite/KEM/Conformances/HPKE-NIST-EC-KEMs.swift
+Sources/Crypto/HPKE/Ciphersuite/KEM/HPKE-KEM.swift
+Sources/Crypto/HPKE/HPKE-Errors.swift
+Sources/Crypto/HPKE/HPKE.swift
+Sources/Crypto/HPKE/Key Schedule/HPKE-Context.swift
+Sources/Crypto/HPKE/Key Schedule/HPKE-KeySchedule.swift
+Sources/Crypto/HPKE/Modes/HPKE-Modes.swift
+Sources/Crypto/Insecure/Insecure.swift
+Sources/Crypto/Insecure/Insecure_HashFunctions.swift
+Sources/Crypto/KEM/KEM-Errors.swift
+Sources/Crypto/KEM/KEM.swift
+Sources/Crypto/KEM/MLKEM.swift.gyb
+Sources/Crypto/KEM/XWing.swift
+Sources/Crypto/Key Agreement/DH.swift
+Sources/Crypto/Key Agreement/ECDH.swift.gyb
+Sources/Crypto/Key Derivation/ANSIx963.swift
+Sources/Crypto/Key Derivation/HKDF.swift
+Sources/Crypto/Key Wrapping/AESWrap.swift
+Sources/Crypto/Keys/EC/Curve25519.swift
+Sources/Crypto/Keys/EC/Ed25519Keys.swift
+Sources/Crypto/Keys/EC/NISTCurvesKeys.swift
+Sources/Crypto/Keys/EC/X25519Keys.swift
+Sources/Crypto/Keys/Symmetric/SymmetricKeys.swift
+Sources/Crypto/Message Authentication Codes/HMAC/HMAC.swift
+Sources/Crypto/Message Authentication Codes/MACFunctions.swift
+Sources/Crypto/Message Authentication Codes/MessageAuthenticationCode.swift
+Sources/Crypto/PRF/AES.swift
+Sources/Crypto/Signatures/ECDSA.swift.gyb
+Sources/Crypto/Signatures/Ed25519.swift
+Sources/Crypto/Signatures/MLDSA.swift.gyb
+Sources/Crypto/Signatures/Signature.swift
+Sources/Crypto/Util/ArraySpanHelpers.swift
+Sources/Crypto/Util/Data+ArraySpan.swift
+Sources/Crypto/Util/PrettyBytes.swift
+Sources/Crypto/Util/SafeCompare.swift
+Sources/Crypto/Util/SecureBytes.swift
+Sources/Crypto/Util/Zeroization.swift
+Tests/CryptoTests/HPKE/HPKETests-TestVectors.swift
+Tests/CryptoTests/HPKE/HPKETests.swift
+Tests/CryptoTests/HPKE/hpke-test-vectors.json
+Tests/CryptoTests/ASN1/ASN1Tests.swift
+Tests/CryptoTests/ASN1/GeneralizedTimeTests.swift
+Tests/CryptoTests/Authenticated Encryption/AES-GCM-Runner.swift
+Tests/CryptoTests/Authenticated Encryption/ChaChaPoly-Runner.swift
+Tests/CryptoTests/Digests/DigestsTests.swift
+Tests/CryptoTests/ECDH/X25519-Runner.swift
+Tests/CryptoTests/ECDH/secpECDH_Runner.swift
+Tests/CryptoTests/Encodings/DERTests.swift
+Tests/CryptoTests/Encodings/ECKeyEncodingsTests.swift
+Tests/CryptoTests/KEM/MLKEM1024KAT.json
+Tests/CryptoTests/KEM/MLKEM1024_BSSLKAT.json
+Tests/CryptoTests/KEM/MLKEM768KAT.json
+Tests/CryptoTests/KEM/MLKEM768_BSSLKAT.json
+Tests/CryptoTests/KEM/MLKEMKeyGenTests.swift
+Tests/CryptoTests/KEM/MLKEMTests.swift
+Tests/CryptoTests/KEM/XWingTests.swift
+Tests/CryptoTests/KEM/test-vectors.json
+Tests/CryptoTests/Key Derivation/HKDFTests.swift
+Tests/CryptoTests/Key Derivation/SharedSecretTests.swift
+Tests/CryptoTests/Key Derivation/X963KDFTests.swift
+Tests/CryptoTests/Key Wrapping/KeyWrapping.swift
+Tests/CryptoTests/MAC/HMACTests.swift
+Tests/CryptoTests/SecureBytes/SecureBytesTests.swift
+Tests/CryptoTests/Signatures/ECDSA/ECDSASignatureTests.swift
+Tests/CryptoTests/Signatures/ECDSA/RawECDSASignaturesTests.swift
+Tests/CryptoTests/Signatures/EdDSA/Ed25519-Runner.swift
+Tests/CryptoTests/Signatures/MLDSA/MLDSA65_KeyGen_KAT.json
+Tests/CryptoTests/Signatures/MLDSA/MLDSA87_KeyGen_KAT.json
+Tests/CryptoTests/Signatures/MLDSA/MLDSAKeyGenTests.swift
+Tests/CryptoTests/Signatures/MLDSA/MLDSATests.swift
+Tests/CryptoTests/SymmetricKeyTests/SymmetricKeyTests.swift
+Tests/Test Vectors/aes_gcm_test.json
+Tests/Test Vectors/ansx963_2001_sha1.txt
+Tests/Test Vectors/ansx963_2001_sha256.txt
+Tests/Test Vectors/ansx963_2001_sha384.txt
+Tests/Test Vectors/ansx963_2001_sha512.txt
+Tests/Test Vectors/chacha20_poly1305_test.json
+Tests/Test Vectors/ecdh_secp256r1_ecpoint_test.json
+Tests/Test Vectors/ecdh_secp256r1_test.json
+Tests/Test Vectors/ecdh_secp384r1_ecpoint_test.json
+Tests/Test Vectors/ecdh_secp384r1_test.json
+Tests/Test Vectors/ecdh_secp521r1_ecpoint_test.json
+Tests/Test Vectors/ecdh_secp521r1_test.json
+Tests/Test Vectors/ecdsa_secp256r1_sha256_p1363_test.json
+Tests/Test Vectors/ecdsa_secp256r1_sha256_test.json
+Tests/Test Vectors/ecdsa_secp256r1_sha512_p1363_test.json
+Tests/Test Vectors/ecdsa_secp256r1_sha512_test.json
+Tests/Test Vectors/ecdsa_secp384r1_sha384_p1363_test.json
+Tests/Test Vectors/ecdsa_secp384r1_sha384_test.json
+Tests/Test Vectors/ecdsa_secp384r1_sha512_p1363_test.json
+Tests/Test Vectors/ecdsa_secp384r1_sha512_test.json
+Tests/Test Vectors/ecdsa_secp521r1_sha512_p1363_test.json
+Tests/Test Vectors/ecdsa_secp521r1_sha512_test.json
+Tests/Test Vectors/ed25519_test.json
+Tests/Test Vectors/rfc-5869-HKDF-SHA1.txt
+Tests/Test Vectors/rfc-5869-HKDF-SHA256.txt
+Tests/Test Vectors/x25519_test.json
+Tests/CryptoTests/Utils/RFCVector.swift
+Tests/CryptoTests/Utils/SplitData.swift
+Tests/CryptoTests/Utils/Wycheproof.swift
+Tests/CryptoTests/Utils/XCTestUtils.swift
+Sources/Crypto/AEADs/Nonces.swift
+Sources/Crypto/Digests/Digests.swift
+Sources/Crypto/KEM/MLKEM.swift
+Sources/Crypto/Key Agreement/ECDH.swift
+Sources/Crypto/Signatures/ECDSA.swift
+Sources/Crypto/Signatures/MLDSA.swift
+Tests/CryptoTests/Utils/PrettyBytes.swift

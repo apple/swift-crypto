@@ -1,4 +1,4 @@
-// swift-tools-version:6.1
+// swift-tools-version:6.2
 //===----------------------------------------------------------------------===//
 //
 // This source file is part of the SwiftCrypto open source project
@@ -26,52 +26,28 @@ import PackageDescription
 
 import class Foundation.ProcessInfo
 
-// To develop this on Apple platforms, set this to true
-let development = false
+// NOTE: To develop the the non-Darwin Crypto target on macOS, use a Dev Container.
+let nonDarwinPlatforms: [Platform] = [
+    .linux,
+    .android,
+    .windows,
+    .wasi,
+    .openbsd,
+    // The SwiftPM Platform symbol is not yet public but the underlying platform name is set.
+    // -- https://github.com/swiftlang/swift-package-manager/blob/swift-6.2.3-RELEASE/Sources/PackageDescription/SupportedPlatforms.swift#L75
+    .custom("freebsd"),
+]
 
-// Ideally, we should use `.when(platforms:)` to set `swiftSettings` and
-// `dependencies` like on other platforms. However, `Platform.freebsd` is not
-// yet available, and therefore we guard the settings behind this boolean.
-#if os(FreeBSD)
-let isFreeBSD = true
-#else
-let isFreeBSD = false
+var swiftSettings: [SwiftSetting] = [
+    .define("CRYPTO_IN_SWIFTPM"),
+    .enableExperimentalFeature("Lifetimes"),
+    .enableExperimentalFeature("SourceWarningControl"),
+]
+
+// Only enable CheckImplementationOnly on 6.4 -- 6.3 has the feature, but produces many false positives.
+#if compiler(>=6.4)
+swiftSettings.append(.enableExperimentalFeature("CheckImplementationOnly"))
 #endif
-
-let swiftSettings: [SwiftSetting]
-let dependencies: [Target.Dependency]
-if development || isFreeBSD {
-    swiftSettings = [
-        .define("CRYPTO_IN_SWIFTPM"),
-        .define("CRYPTO_IN_SWIFTPM_FORCE_BUILD_API"),
-    ]
-    dependencies = [
-        "CCryptoBoringSSL",
-        "CCryptoBoringSSLShims",
-        "CryptoBoringWrapper",
-        "CXKCP",
-        "CXKCPShims",
-    ]
-} else {
-    let platforms: [Platform] = [
-        Platform.linux,
-        Platform.android,
-        Platform.windows,
-        Platform.wasi,
-        Platform.openbsd,
-    ]
-    swiftSettings = [
-        .define("CRYPTO_IN_SWIFTPM"),
-        .define("CRYPTO_IN_SWIFTPM_FORCE_BUILD_API", .when(platforms: platforms)),
-    ]
-    dependencies = [
-        .target(name: "CCryptoBoringSSL", condition: .when(platforms: platforms)),
-        .target(name: "CCryptoBoringSSLShims", condition: .when(platforms: platforms)),
-        .target(name: "CryptoBoringWrapper", condition: .when(platforms: platforms)),
-        .target(name: "CXKCP", condition: .when(platforms: platforms)),
-        .target(name: "CXKCPShims", condition: .when(platforms: platforms)),
-    ]
-}
 
 // This doesn't work when cross-compiling: the privacy manifest will be included in the Bundle and
 // Foundation will be linked. This is, however, strictly better than unconditionally adding the
@@ -128,6 +104,10 @@ let package = Package(
                     .when(platforms: [Platform.wasi])
                 ),
                 .define("OPENSSL_NO_ASM", .when(platforms: [Platform.wasi])),
+                // BoringSSL is vendored verbatim; we don't fix its warnings. Xcode enables
+                // -Wshorten-64-to-32 by default (SwiftPM does not), which produces dozens
+                // of warnings. Silence that group here.
+                .disableWarning("shorten-64-to-32"),
             ]
         ),
         .target(
@@ -143,15 +123,8 @@ let package = Package(
                 .headerSearchPath("low/KeccakP-1600"),
                 .headerSearchPath("low/common"),
                 .headerSearchPath("common"),
+                .disableWarning("macro-redefined"),
             ]
-        ),
-        .target(
-            name: "CCryptoBoringSSLShims",
-            dependencies: ["CCryptoBoringSSL"],
-            exclude: privacyManifestExclude + [
-                "CMakeLists.txt"
-            ],
-            resources: privacyManifestResource
         ),
         .target(
             name: "CXKCPShims",
@@ -163,16 +136,16 @@ let package = Package(
         ),
         .target(
             name: "Crypto",
-            dependencies: dependencies,
+            dependencies: [
+                .target(name: "CCryptoBoringSSL", condition: .when(platforms: nonDarwinPlatforms)),
+                .target(name: "CryptoBoringWrapper", condition: .when(platforms: nonDarwinPlatforms)),
+                .target(name: "CXKCP", condition: .when(platforms: nonDarwinPlatforms)),
+                .target(name: "CXKCPShims", condition: .when(platforms: nonDarwinPlatforms)),
+            ],
             exclude: privacyManifestExclude + [
+                "vendored-sources.txt",
                 "CMakeLists.txt",
-                "AEADs/Nonces.swift.gyb",
-                "Digests/Digests.swift.gyb",
-                "Key Agreement/ECDH.swift.gyb",
-                "Signatures/ECDSA.swift.gyb",
-                "Signatures/MLDSA.swift.gyb",
                 "Signatures/BoringSSL/MLDSA_boring.swift.gyb",
-                "KEM/MLKEM.swift.gyb",
                 "KEM/BoringSSL/MLKEM_boring.swift.gyb",
             ],
             resources: privacyManifestResource,
@@ -182,7 +155,6 @@ let package = Package(
             name: "CryptoExtras",
             dependencies: [
                 "CCryptoBoringSSL",
-                "CCryptoBoringSSLShims",
                 "CryptoBoringWrapper",
                 "Crypto",
                 .product(name: "SwiftASN1", package: "swift-asn1"),
@@ -204,12 +176,12 @@ let package = Package(
             name: "CryptoBoringWrapper",
             dependencies: [
                 "CCryptoBoringSSL",
-                "CCryptoBoringSSLShims",
             ],
             exclude: privacyManifestExclude + [
                 "CMakeLists.txt"
             ],
-            resources: privacyManifestResource
+            resources: privacyManifestResource,
+            swiftSettings: swiftSettings
         ),
         .executableTarget(name: "crypto-shasum", dependencies: ["Crypto"]),
         .testTarget(

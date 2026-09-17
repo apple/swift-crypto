@@ -11,29 +11,17 @@
 // SPDX-License-Identifier: Apache-2.0
 //
 //===----------------------------------------------------------------------===//
-#if CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
+
+#if canImport(CryptoKit)
 @_exported import CryptoKit
 #else
-#if (!CRYPTO_IN_SWIFTPM_FORCE_BUILD_API) || CRYPTOKIT_NO_ACCESS_TO_FOUNDATION
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
-typealias DigestImpl = CoreCryptoDigestImpl
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
-typealias DigestImplSHA3 = CoreCryptoDigestImpl
-#else
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 typealias DigestImpl = OpenSSLDigestImpl
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 typealias DigestImplSHA3 = XKCPDigestImpl
-#endif
 
-#if CRYPTOKIT_NO_ACCESS_TO_FOUNDATION
-public import SwiftSystem
-#else
 #if canImport(FoundationEssentials)
 public import FoundationEssentials
 #else
 public import Foundation
-#endif
 #endif
 
 /// A type that performs cryptographically secure hashing.
@@ -55,16 +43,10 @@ public import Foundation
 /// incorporate a secret cryptographic key into the digest computation. Only a
 /// user that has the key can generate a valid MAC.
 @preconcurrency
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 public protocol HashFunction: Sendable {
     /// The number of bytes that represents the hash function’s internal state.
     static var blockByteCount: Int { get }
-    #if (!CRYPTO_IN_SWIFTPM_FORCE_BUILD_API) || CRYPTOKIT_NO_ACCESS_TO_FOUNDATION
-    /// The type of the digest returned by the hash function.
-    associatedtype Digest: CryptoKit.Digest
-    #else
     associatedtype Digest: Crypto.Digest
-    #endif
 
     /// Creates a hash function.
     ///
@@ -110,7 +92,15 @@ public protocol HashFunction: Sendable {
     func finalize() -> Digest
 }
 
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
+extension HashFunction {
+    @inlinable
+    public mutating func update(bytes: RawSpan) {
+        bytes.withUnsafeBytes {
+            self.update(bufferPointer: $0)
+        }
+    }
+}
+
 extension HashFunction {
     /// Computes a digest of the buffer.
     ///
@@ -121,6 +111,18 @@ extension HashFunction {
     static func hash(bufferPointer: UnsafeRawBufferPointer) -> Digest {
         var hasher = Self()
         hasher.update(bufferPointer: bufferPointer)
+        return hasher.finalize()
+    }
+
+    /// Computes a digest of a span of bytes.
+    ///
+    /// - Parameters:
+    ///   - bytes: The bytes to be hashed.
+    /// - Returns: The computed digest.
+    @inlinable
+    public static func hash(bytes: RawSpan) -> Digest {
+        var hasher = Self()
+        hasher.update(bytes: bytes)
         return hasher.finalize()
     }
     
@@ -171,4 +173,4 @@ extension HashFunction {
         }
     }
 }
-#endif // Linux or !SwiftPM
+#endif // canImport(CryptoKit)

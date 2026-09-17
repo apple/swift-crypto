@@ -11,23 +11,19 @@
 // SPDX-License-Identifier: Apache-2.0
 //
 //===----------------------------------------------------------------------===//
-#if CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
+
+#if canImport(CryptoKit)
 @_exported import CryptoKit
-#else
-#if CRYPTOKIT_NO_ACCESS_TO_FOUNDATION
-public import SwiftSystem
 #else
 #if canImport(FoundationEssentials)
 public import FoundationEssentials
 #else
 public import Foundation
 #endif
-#endif
 
 #if hasFeature(Embedded)
 /// A type that represents a message authentication code.
 @preconcurrency
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 public protocol MessageAuthenticationCode: Hashable, ContiguousBytes, Sendable, Sequence where Element == UInt8 {
     /// The number of bytes in the message authentication code.
     var byteCount: Int { get }
@@ -35,14 +31,12 @@ public protocol MessageAuthenticationCode: Hashable, ContiguousBytes, Sendable, 
 #else
 /// A type that represents a message authentication code.
 @preconcurrency
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 public protocol MessageAuthenticationCode: Hashable, ContiguousBytes, Sendable, CustomStringConvertible, Sequence where Element == UInt8 {
     /// The number of bytes in the message authentication code.
     var byteCount: Int { get }
 }
 #endif
 
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension MessageAuthenticationCode {
     /// Returns a Boolean value indicating whether two message authentication
     /// codes are equal.
@@ -77,7 +71,7 @@ extension MessageAuthenticationCode {
     
     public func makeIterator() -> Array<UInt8>.Iterator {
         self.withUnsafeBytes({ (buffPtr) in
-            return Array(buffPtr.bindMemory(to: UInt8.self)).makeIterator()
+            return Array(buffPtr).makeIterator()
         })
     }
     
@@ -87,4 +81,4 @@ extension MessageAuthenticationCode {
     }
 #endif
 }
-#endif // Linux or !SwiftPM
+#endif // canImport(CryptoKit)

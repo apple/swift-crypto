@@ -37,6 +37,7 @@ set(CMAKE_Swift_MODULE_DIRECTORY ${CMAKE_BINARY_DIR}/swift)
 
 set(SWIFT_CRYPTO_COMPILE_OPTIONS
     -package-name com.apple.swift-crypto
+    -enable-experimental-feature Lifetimes
 )
 
 option(BUILD_SHARED_LIBS "Build shared libraries by default" YES)
