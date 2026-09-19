@@ -85,7 +85,7 @@ public struct HMAC<H: HashFunction>: MACAlgorithm, Sendable {
             self.innerHasher.update(bufferPointer: UnsafeRawBufferPointer(padded))
             for i in 0..<blockSize { padded[i] ^= 0x36 ^ 0x5c }
             self.outerHasher.update(bufferPointer: UnsafeRawBufferPointer(padded))
-            padded.update(repeating: 0)
+            UnsafeMutableRawBufferPointer(padded).zeroize()
         }
         #endif
     }
