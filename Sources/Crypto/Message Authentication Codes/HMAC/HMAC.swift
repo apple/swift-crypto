@@ -65,34 +65,28 @@ public struct HMAC<H: HashFunction>: MACAlgorithm, Sendable {
         #if os(iOS) && (arch(arm) || arch(i386))
         fatalError("Unsupported architecture")
         #else
-        var innerKey = SecureBytes(capacity: H.blockByteCount) { keyOutput in
-            if key.byteCount <= keyOutput.freeCapacity {
-                keyOutput.append(contentsOf: key.bytes)
-            } else if key.byteCount > H.blockByteCount {
-                let hash = H.hash(bytes: key.bytes)
-                hash.withUnsafeBytes {
-                    keyOutput.append(contentsOf: $0.bytes)
+        self.innerHasher = H()
+        self.outerHasher = H()
+        let blockSize = H.blockByteCount
+
+        withUnsafeTemporaryAllocation(of: UInt8.self, capacity: blockSize) { padded in
+            padded.initialize(repeating: 0)
+
+            key.withUnsafeBytes { keyBytes in
+                if keyBytes.count > blockSize {
+                    let hash = H.hash(bufferPointer: keyBytes)
+                    hash.withUnsafeBytes { UnsafeMutableRawBufferPointer(padded).copyBytes(from: $0) }
+                } else {
+                    UnsafeMutableRawBufferPointer(padded).copyMemory(from: keyBytes)
                 }
             }
-            keyOutput.append(repeating: 0, count: keyOutput.freeCapacity, as: UInt8.self)
+
+            for i in 0..<blockSize { padded[i] ^= 0x36 }
+            self.innerHasher.update(bufferPointer: UnsafeRawBufferPointer(padded))
+            for i in 0..<blockSize { padded[i] ^= 0x36 ^ 0x5c }
+            self.outerHasher.update(bufferPointer: UnsafeRawBufferPointer(padded))
+            UnsafeMutableRawBufferPointer(padded).zeroize()
         }
-        var outerKey = innerKey
-        
-        self.innerHasher = H()
-        innerKey.withUnsafeMutableBytes {
-            for i in 0 ..< $0.count {
-                $0[i] ^= 0x36
-            }
-        }
-        innerHasher.update(bytes: innerKey.bytes)
-        
-        self.outerHasher = H()
-        outerKey.withUnsafeMutableBytes {
-            for i in 0 ..< $0.count {
-                $0[i] ^= 0x5c
-            }
-        }
-        outerHasher.update(data: outerKey)
         #endif
     }
     
