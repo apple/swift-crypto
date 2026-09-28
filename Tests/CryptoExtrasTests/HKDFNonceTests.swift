@@ -13,9 +13,11 @@
 //===----------------------------------------------------------------------===//
 
 import Crypto
-@testable import CryptoExtras
 import XCTest
 
+@testable import CryptoExtras
+
+@available(iOS 14.0, macOS 11.0, watchOS 7.0, tvOS 14.0, *)
 final class HKDFNonceTests: XCTestCase {
     func testHKDFDeriveAESGCMNonce() throws {
         let ikm = SymmetricKey(size: .bits256)

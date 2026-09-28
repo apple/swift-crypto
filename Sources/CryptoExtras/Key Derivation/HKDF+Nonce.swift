@@ -13,13 +13,14 @@
 //===----------------------------------------------------------------------===//
 
 import Crypto
+
 #if canImport(FoundationEssentials)
 import FoundationEssentials
 #else
 import Foundation
 #endif
 
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
+@available(macOS 11.0, iOS 14.0, watchOS 7.0, tvOS 14.0, *)
 extension HKDF {
     /// Derives an AES-GCM nonce from key material using HKDF key derivation.
     ///
@@ -38,7 +39,7 @@ extension HKDF {
             inputKeyMaterial: inputKeyMaterial,
             salt: salt,
             info: info,
-            outputByteCount: AES.GCM.defaultNonceByteCount
+            outputByteCount: 12
         )
         return try derived.withUnsafeBytes { try AES.GCM.Nonce(data: $0) }
     }
@@ -66,7 +67,7 @@ extension HKDF {
     }
 }
 
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
+@available(macOS 11.0, iOS 14.0, watchOS 7.0, tvOS 14.0, *)
 extension SharedSecret {
     /// Derives an AES-GCM nonce from the shared secret using HKDF.
     ///
@@ -85,7 +86,7 @@ extension SharedSecret {
             using: hashFunction,
             salt: salt,
             sharedInfo: sharedInfo,
-            outputByteCount: AES.GCM.defaultNonceByteCount
+            outputByteCount: 12
         )
         return try key.withUnsafeBytes { try AES.GCM.Nonce(data: $0) }
     }

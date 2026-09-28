@@ -46,6 +46,7 @@ add_library(CryptoExtras
   "ECToolbox/BoringSSL/ECToolbox_boring.swift"
   "ECToolbox/ECToolbox.swift"
   "H2G/HashToField.swift"
+  "Key Derivation/HKDF+Nonce.swift"
   "Key Derivation/KDF.swift"
   "Key Derivation/PBKDF2/BoringSSL/PBKDF2_boring.swift"
   "Key Derivation/PBKDF2/BoringSSL/PBKDF2_commoncrypto.swift"
