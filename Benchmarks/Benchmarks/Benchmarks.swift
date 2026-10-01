@@ -21,7 +21,7 @@ import FoundationEssentials
 import Foundation
 #endif
 
-let benchmarks = {
+let benchmarks: @Sendable () -> Void = {
     let defaultMetrics: [BenchmarkMetric] = [.mallocCountTotal, .cpuTotal]
 
     Benchmark(
