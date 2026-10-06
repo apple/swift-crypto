@@ -684,7 +684,7 @@ func readRawPublicNumbers(
 /// In a number of places we need to know if an EC key is compact representable. This function implements that check.
 ///
 /// The check is defined in https://tools.ietf.org/id/draft-jivsov-ecc-compact-05.html#rfc.section.4.2.1. Specifically, a
-/// point is compact representable if its y coordinate is the smaller of min(y, p-y) where p is the order of the prime field.
+/// point is compact representable if its y coordinate is the smaller of min(y, p-y) where p is the prime of the base field.
 @usableFromInline
 @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 func _isCompactRepresentable(
@@ -699,7 +699,7 @@ func _isCompactRepresentable(
     @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
     let context = try! FiniteFieldArithmeticContext(fieldSize: p)
     @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
-    let newY = try! context.subtract(y, from: group.order)
+    let newY = try! context.subtract(y, from: p)
 
     // The point is compact representable if y is less than or equal to newY.
     return y <= newY
