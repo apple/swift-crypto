@@ -79,4 +79,21 @@ final class VOPRFPublicAPITests: XCTestCase {
         // [Server] Compute the PRF for the input, without blinding or proof generation.
         let _: Data = try privateKey.evaluate(input)
     }
+
+    func testBlindedElementRejectsUncompressedOPRFRepresentation() throws {
+        /// Check we only accept compressed encoded elements, as per RFC 9497:
+        ///
+        /// > SerializeElement(A): Implemented using the compressed Elliptic-Curve-Point-to-Octet-String method...
+        /// >
+        /// > DeserializeElement(buf): Implemented by attempting to deserialize a 49-byte array to a public key
+        ///                            using the compressed Octet-String-to-Elliptic-Curve-Point method...
+        ///
+        /// - See: https://www.rfc-editor.org/rfc/rfc9497.html#name-oprfp-384-sha-384
+        let publicKey = P384._VOPRF.PrivateKey().publicKey
+        let blindedElement = try publicKey.blind(Data("This is some input data".utf8)).blindedElement
+        let compressed = blindedElement.oprfRepresentation
+        let uncompressed = try P384.Signing.PublicKey(compressedRepresentation: compressed).x963Representation
+
+        XCTAssertThrowsError(try P384._VOPRF.BlindedElement(oprfRepresentation: uncompressed))
+    }
 }
