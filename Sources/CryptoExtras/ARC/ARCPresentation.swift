@@ -108,8 +108,8 @@ extension ARC {
             let T = H2G.hashToGroup(presentationContext, domainSeparationString: Data(("HashToGroup-" + ciphersuite.domain + "Tag").utf8))
 
             // Recompute m1Tag = H2G(presentationContext) - nonce * tag
-            var m1Tag = T
-            for _ in 0..<nonce { m1Tag = m1Tag - self.tag }
+            let nonceScalar = try Group.Scalar(bytes: I2OSP(value: nonce, outputByteCount: ciphersuite.scalarByteCount), reductionIsModOrder: true)
+            let m1Tag = T - nonceScalar * self.tag
 
             // Create a verifier, and allocate variables for the constrained scalars.
             var verifier = Verifier<H2G>(label: ciphersuite.domain + ciphersuite.domain + "CredentialPresentation")

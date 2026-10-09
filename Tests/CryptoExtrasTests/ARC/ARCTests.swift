@@ -158,6 +158,61 @@ class ARCTests: XCTestCase {
 //        try endToEndWorkflow(CurveType: P521.self)
     }
 
+    func testVerifyCostIsIndependentOfTheNonce() async throws {
+        let ciphersuite = ARC.Ciphersuite(HashToCurveImpl<P256>.self)
+        let (generatorG, generatorH) = ARC.getGenerators(suite: ciphersuite)
+        let x0 = GroupImpl<P256>.Scalar.random
+        let x1 = GroupImpl<P256>.Scalar.random
+        let x2 = GroupImpl<P256>.Scalar.random
+        let x0Blinding = GroupImpl<P256>.Scalar.random
+        let serverPrivateKey = ARC.ServerPrivateKey(x0: x0, x1: x1, x2: x2, x0Blinding: x0Blinding)
+        let server = ARC.Server(ciphersuite: ciphersuite, x0: x0, x1: x1, x2: x2, x0Blinding: x0Blinding)
+        let requestContext = Data("test request context".utf8)
+        let precredential = try ARC.Precredential(
+            ciphersuite: ciphersuite,
+            m1: GroupImpl<P256>.Scalar.random,
+            requestContext: requestContext,
+            r1: GroupImpl<P256>.Scalar.random,
+            r2: GroupImpl<P256>.Scalar.random,
+            serverPublicKey: server.serverPublicKey
+        )
+        let credential = try precredential.makeCredential(
+            credentialResponse: try server.respond(credentialRequest: precredential.credentialRequest)
+        )
+
+        // The nonce comes from the client, so presentation verification cost must not scale with nonce.
+        // This test uses such a large nonce that the test would hit the timeout if verification was correlated.
+        let nonce = 1 << 62
+        let presentationContext = Data("0123456789".utf8)
+        let presentation = try ARC.Presentation(
+            credential: credential,
+            presentationContext: presentationContext,
+            nonce: nonce,
+            generatorG: generatorG,
+            generatorH: generatorH
+        )
+
+        let verificationResult: LockedBox<Bool?> = .init(initialValue: nil)
+        let finished = expectation(description: "verification finished")
+        let thread = Thread {
+            let result = try? presentation.verify(
+                serverPrivateKey: serverPrivateKey,
+                X1: x1 * generatorH,
+                m2: precredential.clientSecrets.m2,
+                presentationContext: presentationContext,
+                presentationLimit: Int.max,
+                nonce: nonce,
+                generatorG: generatorG,
+                generatorH: generatorH,
+                ciphersuite: ciphersuite)
+            verificationResult.withLockedValue { $0 = result }
+            finished.fulfill()
+        }
+        thread.start()
+        await fulfillment(of: [finished], timeout: 10)
+        XCTAssertEqual(verificationResult.withLockedValue { $0 }, true)
+    }
+
     func testPresentationState() throws {
         let context1 = Data("context1".utf8)
         let context2 = Data("context2".utf8)
