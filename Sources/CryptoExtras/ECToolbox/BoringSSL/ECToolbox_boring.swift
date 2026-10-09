@@ -276,6 +276,9 @@ extension OpenSSLCurvePoint {
 @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension OpenSSLCurvePoint: OPRFGroupElement {
     init(oprfRepresentation data: Data) throws {
+        guard data.count == C.compressedx962PointByteCount else {
+            throw CryptoKitError.incorrectParameterSize
+        }
         let point = try EllipticCurvePoint(x962Representation: data, on: C.group, context: C.__ffac)
         self.init(ecPoint: point)
     }
