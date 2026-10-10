@@ -30,15 +30,21 @@ extension HKDF {
     ///   - info: The shared information to use for key derivation.
     /// - Returns: A derived `AES.GCM.Nonce`.
     /// - Throws: `CryptoKitError` if the derived bytes cannot form a valid nonce.
-    public static func deriveAESGCMNonce<Salt: DataProtocol, Info: DataProtocol>(
+    public static func _deriveAESGCMNonce<Salt: DataProtocol, Info: DataProtocol>(
         inputKeyMaterial: SymmetricKey,
         salt: Salt,
-        info: Info
+        info: Info,
+        sequenceNumber: UInt64 = 0
     ) throws -> AES.GCM.Nonce {
+        var prefixedInfo = Data("SwiftCrypto.HKDF.AES-GCM-Nonce\0".utf8)
+        var seq = sequenceNumber.bigEndian
+        Swift.withUnsafeBytes(of: &seq) { prefixedInfo.append(contentsOf: $0) }
+        prefixedInfo.append(contentsOf: info)
+
         let derived = deriveKey(
             inputKeyMaterial: inputKeyMaterial,
             salt: salt,
-            info: info,
+            info: prefixedInfo,
             outputByteCount: 12
         )
         return try derived.withUnsafeBytes { try AES.GCM.Nonce(data: $0) }
@@ -50,17 +56,24 @@ extension HKDF {
     ///   - inputKeyMaterial: The main symmetric key used as input key material.
     ///   - salt: The salt to use for key derivation.
     ///   - info: The shared information to use for key derivation.
+    ///   - sequenceNumber: A sequence number to guarantee unique nonces per message/record under the same key.
     /// - Returns: A derived `ChaChaPoly.Nonce`.
     /// - Throws: `CryptoKitError` if the derived bytes cannot form a valid nonce.
-    public static func deriveChaChaPolyNonce<Salt: DataProtocol, Info: DataProtocol>(
+    public static func _deriveChaChaPolyNonce<Salt: DataProtocol, Info: DataProtocol>(
         inputKeyMaterial: SymmetricKey,
         salt: Salt,
-        info: Info
+        info: Info,
+        sequenceNumber: UInt64 = 0
     ) throws -> ChaChaPoly.Nonce {
+        var prefixedInfo = Data("SwiftCrypto.HKDF.ChaChaPoly-Nonce\0".utf8)
+        var seq = sequenceNumber.bigEndian
+        Swift.withUnsafeBytes(of: &seq) { prefixedInfo.append(contentsOf: $0) }
+        prefixedInfo.append(contentsOf: info)
+
         let derived = deriveKey(
             inputKeyMaterial: inputKeyMaterial,
             salt: salt,
-            info: info,
+            info: prefixedInfo,
             outputByteCount: 12
         )
         return try derived.withUnsafeBytes { try ChaChaPoly.Nonce(data: $0) }
@@ -75,17 +88,24 @@ extension SharedSecret {
     ///   - hashFunction: The hash function to use for HKDF derivation.
     ///   - salt: The salt to use for key derivation.
     ///   - sharedInfo: The shared context information to use for key derivation.
+    ///   - sequenceNumber: A sequence number to guarantee unique nonces per message/record under the same key.
     /// - Returns: A derived `AES.GCM.Nonce`.
     /// - Throws: `CryptoKitError` if the derived bytes cannot form a valid nonce.
-    public func hkdfDerivedAESGCMNonce<H: HashFunction, Salt: DataProtocol, Info: DataProtocol>(
+    public func _hkdfDerivedAESGCMNonce<H: HashFunction, Salt: DataProtocol, Info: DataProtocol>(
         using hashFunction: H.Type,
         salt: Salt,
-        sharedInfo: Info
+        sharedInfo: Info,
+        sequenceNumber: UInt64 = 0
     ) throws -> AES.GCM.Nonce {
+        var prefixedInfo = Data("SwiftCrypto.HKDF.AES-GCM-Nonce\0".utf8)
+        var seq = sequenceNumber.bigEndian
+        Swift.withUnsafeBytes(of: &seq) { prefixedInfo.append(contentsOf: $0) }
+        prefixedInfo.append(contentsOf: sharedInfo)
+
         let key = hkdfDerivedSymmetricKey(
             using: hashFunction,
             salt: salt,
-            sharedInfo: sharedInfo,
+            sharedInfo: prefixedInfo,
             outputByteCount: 12
         )
         return try key.withUnsafeBytes { try AES.GCM.Nonce(data: $0) }
@@ -97,17 +117,24 @@ extension SharedSecret {
     ///   - hashFunction: The hash function to use for HKDF derivation.
     ///   - salt: The salt to use for key derivation.
     ///   - sharedInfo: The shared context information to use for key derivation.
+    ///   - sequenceNumber: A sequence number to guarantee unique nonces per message/record under the same key.
     /// - Returns: A derived `ChaChaPoly.Nonce`.
     /// - Throws: `CryptoKitError` if the derived bytes cannot form a valid nonce.
-    public func hkdfDerivedChaChaPolyNonce<H: HashFunction, Salt: DataProtocol, Info: DataProtocol>(
+    public func _hkdfDerivedChaChaPolyNonce<H: HashFunction, Salt: DataProtocol, Info: DataProtocol>(
         using hashFunction: H.Type,
         salt: Salt,
-        sharedInfo: Info
+        sharedInfo: Info,
+        sequenceNumber: UInt64 = 0
     ) throws -> ChaChaPoly.Nonce {
+        var prefixedInfo = Data("SwiftCrypto.HKDF.ChaChaPoly-Nonce\0".utf8)
+        var seq = sequenceNumber.bigEndian
+        Swift.withUnsafeBytes(of: &seq) { prefixedInfo.append(contentsOf: $0) }
+        prefixedInfo.append(contentsOf: sharedInfo)
+
         let key = hkdfDerivedSymmetricKey(
             using: hashFunction,
             salt: salt,
-            sharedInfo: sharedInfo,
+            sharedInfo: prefixedInfo,
             outputByteCount: 12
         )
         return try key.withUnsafeBytes { try ChaChaPoly.Nonce(data: $0) }

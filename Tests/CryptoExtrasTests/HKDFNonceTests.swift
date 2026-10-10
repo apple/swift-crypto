@@ -24,10 +24,11 @@ final class HKDFNonceTests: XCTestCase {
         let salt = "test-salt".data(using: .utf8)!
         let info = "test-info".data(using: .utf8)!
 
-        let nonce = try HKDF<SHA256>.deriveAESGCMNonce(
+        let nonce = try HKDF<SHA256>._deriveAESGCMNonce(
             inputKeyMaterial: ikm,
             salt: salt,
-            info: info
+            info: info,
+            sequenceNumber: 0
         )
 
         // Verify nonce is exactly 12 bytes
@@ -35,15 +36,37 @@ final class HKDFNonceTests: XCTestCase {
         nonce.withUnsafeBytes { byteCount = $0.count }
         XCTAssertEqual(byteCount, 12)
 
-        // Verify repeatability with same inputs
-        let nonce2 = try HKDF<SHA256>.deriveAESGCMNonce(
+        // Verify repeatability with same inputs and sequence number
+        let nonce2 = try HKDF<SHA256>._deriveAESGCMNonce(
             inputKeyMaterial: ikm,
             salt: salt,
-            info: info
+            info: info,
+            sequenceNumber: 0
         )
         let bytes1 = nonce.withUnsafeBytes { Data($0) }
         let bytes2 = nonce2.withUnsafeBytes { Data($0) }
         XCTAssertEqual(bytes1, bytes2)
+
+        // Verify different sequence numbers yield different nonces (nonce uniqueness)
+        let nonceSeq1 = try HKDF<SHA256>._deriveAESGCMNonce(
+            inputKeyMaterial: ikm,
+            salt: salt,
+            info: info,
+            sequenceNumber: 1
+        )
+        let bytesSeq1 = nonceSeq1.withUnsafeBytes { Data($0) }
+        XCTAssertNotEqual(bytes1, bytesSeq1)
+
+        // Verify domain separation: a 32-byte key derived with the exact same PRK and info
+        // does NOT have its first 12 bytes match the derived nonce
+        let derivedKey = HKDF<SHA256>.deriveKey(
+            inputKeyMaterial: ikm,
+            salt: salt,
+            info: info,
+            outputByteCount: 32
+        )
+        let keyFirst12Bytes = derivedKey.withUnsafeBytes { Data($0.prefix(12)) }
+        XCTAssertNotEqual(bytes1, keyFirst12Bytes, "Domain separation must prevent key prefix leakage")
 
         // Verify seal works with derived nonce
         let message = "Secret Message".data(using: .utf8)!
@@ -58,15 +81,27 @@ final class HKDFNonceTests: XCTestCase {
         let salt = "test-salt".data(using: .utf8)!
         let info = "test-info".data(using: .utf8)!
 
-        let nonce = try HKDF<SHA256>.deriveChaChaPolyNonce(
+        let nonce = try HKDF<SHA256>._deriveChaChaPolyNonce(
             inputKeyMaterial: ikm,
             salt: salt,
-            info: info
+            info: info,
+            sequenceNumber: 0
         )
 
         var byteCount = 0
         nonce.withUnsafeBytes { byteCount = $0.count }
         XCTAssertEqual(byteCount, 12)
+
+        // Verify different sequence numbers yield different nonces
+        let nonceSeq1 = try HKDF<SHA256>._deriveChaChaPolyNonce(
+            inputKeyMaterial: ikm,
+            salt: salt,
+            info: info,
+            sequenceNumber: 1
+        )
+        let bytes0 = nonce.withUnsafeBytes { Data($0) }
+        let bytes1 = nonceSeq1.withUnsafeBytes { Data($0) }
+        XCTAssertNotEqual(bytes0, bytes1)
 
         // Verify seal works with derived nonce
         let message = "Secret Message".data(using: .utf8)!
@@ -86,30 +121,44 @@ final class HKDFNonceTests: XCTestCase {
         let salt = "ecdh-salt".data(using: .utf8)!
         let info = "ecdh-nonce-info".data(using: .utf8)!
 
-        let nonceAlice = try sharedSecretAlice.hkdfDerivedAESGCMNonce(
+        let nonceAlice = try sharedSecretAlice._hkdfDerivedAESGCMNonce(
             using: SHA256.self,
             salt: salt,
-            sharedInfo: info
+            sharedInfo: info,
+            sequenceNumber: 0
         )
-        let nonceBob = try sharedSecretBob.hkdfDerivedAESGCMNonce(
+        let nonceBob = try sharedSecretBob._hkdfDerivedAESGCMNonce(
             using: SHA256.self,
             salt: salt,
-            sharedInfo: info
+            sharedInfo: info,
+            sequenceNumber: 0
         )
 
         let bytesAlice = nonceAlice.withUnsafeBytes { Data($0) }
         let bytesBob = nonceBob.withUnsafeBytes { Data($0) }
         XCTAssertEqual(bytesAlice, bytesBob)
 
-        let chaChaAlice = try sharedSecretAlice.hkdfDerivedChaChaPolyNonce(
+        // Verify sequence number uniqueness on SharedSecret
+        let nonceAliceSeq1 = try sharedSecretAlice._hkdfDerivedAESGCMNonce(
             using: SHA256.self,
             salt: salt,
-            sharedInfo: info
+            sharedInfo: info,
+            sequenceNumber: 1
         )
-        let chaChaBob = try sharedSecretBob.hkdfDerivedChaChaPolyNonce(
+        let bytesAliceSeq1 = nonceAliceSeq1.withUnsafeBytes { Data($0) }
+        XCTAssertNotEqual(bytesAlice, bytesAliceSeq1)
+
+        let chaChaAlice = try sharedSecretAlice._hkdfDerivedChaChaPolyNonce(
             using: SHA256.self,
             salt: salt,
-            sharedInfo: info
+            sharedInfo: info,
+            sequenceNumber: 0
+        )
+        let chaChaBob = try sharedSecretBob._hkdfDerivedChaChaPolyNonce(
+            using: SHA256.self,
+            salt: salt,
+            sharedInfo: info,
+            sequenceNumber: 0
         )
         let chaChaBytesAlice = chaChaAlice.withUnsafeBytes { Data($0) }
         let chaChaBytesBob = chaChaBob.withUnsafeBytes { Data($0) }
