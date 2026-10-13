@@ -52,6 +52,8 @@
 #define OPENSSL_32_BIT
 #elif defined(__asmjs__)
 #define OPENSSL_32_BIT
+#elif defined(__powerpc64__) && defined(__LITTLE_ENDIAN__)
+#define OPENSSL_64_BIT
 #elif defined(__myriad2__)
 #define OPENSSL_32_BIT
 #else

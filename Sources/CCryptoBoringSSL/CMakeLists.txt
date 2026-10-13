@@ -360,6 +360,8 @@ elseif(CMAKE_SYSTEM_NAME MATCHES "Windows" AND CMAKE_SYSTEM_PROCESSOR MATCHES "A
     gen/bcm/vpaes-armv8-win.S
     gen/crypto/chacha-armv8-win.S
     gen/crypto/chacha20_poly1305_armv8-win.S)
+elseif(CMAKE_SYSTEM_PROCESSOR MATCHES "powerpc64le|ppc64le")
+  target_sources(CCryptoBoringSSL PRIVATE)
 else()
    message(FATAL_ERROR "platform sources are not defined here for ${CMAKE_SYSTEM_NAME} on ${CMAKE_SYSTEM_PROCESSOR}")
 endif()

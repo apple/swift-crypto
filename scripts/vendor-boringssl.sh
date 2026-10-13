@@ -289,6 +289,15 @@ echo "DISABLING assembly on x86 Windows"
 
 )
 
+echo "ADDING little-endian 64-bit PowerPC as a target CPU"
+(
+    # BoringSSL has no PowerPC assembly, so no OPENSSL_<arch> macro is defined
+    # and every assembly path stays compiled out; only the word size is needed.
+    cd "$DSTROOT"
+    $sed -i "/^#elif defined(__myriad2__)/i#elif defined(__powerpc64__) \&\& defined(__LITTLE_ENDIAN__)\n#define OPENSSL_64_BIT" "include/openssl/target.h"
+    grep -q "__powerpc64__" "include/openssl/target.h" || { echo "failed to patch target.h"; exit 1; }
+)
+
 # Unfortunately, this patch for an upstream bug which incorrectly leaves C symbol using C++ mangling must be
 # applied before we mangle symbols, so we can't place it with the others below.
 echo "PATCHING BoringSSL (early)"
