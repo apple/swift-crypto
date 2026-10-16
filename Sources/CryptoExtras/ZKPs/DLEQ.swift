@@ -39,7 +39,7 @@ struct DLEQ<H2G: HashToGroup> {
     static func composites(k: GE.Scalar? = nil, B: GE, dst: Data, CDs: [(C: GE, D: GE)], v8CompatibilityMode: Bool) throws -> (M: GE, Z: GE) {
         let seedDST = "Seed-".data(using: .utf8)! + dst
         
-        let Bm = B.oprfRepresentation
+        let Bm = try B.serialize()
         
         let h1Input = I2OSP(value: Bm.count, outputByteCount: 2) + Bm
         + I2OSP(value: seedDST.count, outputByteCount: 2) + seedDST
@@ -53,8 +53,8 @@ struct DLEQ<H2G: HashToGroup> {
             let Ci = pair.C
             let Di = pair.D
 
-            let Cim = Ci.oprfRepresentation
-            let Dim = Di.oprfRepresentation
+            let Cim = try Ci.serialize()
+            let Dim = try Di.serialize()
             
             var h2input = I2OSP(value: seed.count, outputByteCount: 2) + seed
             + I2OSP(value: i, outputByteCount: 2)
@@ -91,11 +91,11 @@ struct DLEQ<H2G: HashToGroup> {
     }
     
     static func composeChallenge(dst: Data, B: GE, M: GE, Z: GE, T2: GE, T3: GE, v8CompatibilityMode: Bool) throws -> GE.Scalar {
-        let Bm = B.oprfRepresentation
-        let A0 = M.oprfRepresentation
-        let A1 = Z.oprfRepresentation
-        let A2 = T2.oprfRepresentation
-        let A3 = T3.oprfRepresentation
+        let Bm = try B.serialize()
+        let A0 = try M.serialize()
+        let A1 = try Z.serialize()
+        let A2 = try T2.serialize()
+        let A3 = try T3.serialize()
         
         var h2Input = I2OSP(value: Bm.count, outputByteCount: 2) + Bm +
         I2OSP(value: A0.count, outputByteCount: 2) + A0 +

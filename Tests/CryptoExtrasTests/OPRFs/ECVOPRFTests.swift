@@ -284,4 +284,18 @@ class ECVOPRFTests: XCTestCase {
 
         XCTAssert(try DLEQ<HashToCurveImpl<P256>>.verifyProof(A: A, B: B, CDs: CDs, proof: proof, dst: Data(), v8CompatibilityMode: false))
     }
+
+    /// A proof with s = -c*k makes the recomputed T2 the identity, which must throw rather than trap.
+    func testDLEQVerifyThrowsWhenCommitmentIsIdentity() throws {
+        let k = GroupImpl<P384>.Scalar.random
+        let A = GroupImpl<P384>.Element.generator
+        let B = k * A
+        let C = GroupImpl<P384>.Element.random
+        let CDs = [(C: C, D: k * C)]
+
+        let c = GroupImpl<P384>.Scalar.random
+        let proof = DLEQProof(c: c, s: -(c * k))
+
+        XCTAssertThrowsError(try DLEQ<HashToCurveImpl<P384>>.verifyProof(A: A, B: B, CDs: CDs, proof: proof, dst: Data(), v8CompatibilityMode: false))
+    }
 }
