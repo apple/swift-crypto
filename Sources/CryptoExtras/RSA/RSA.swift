@@ -835,19 +835,22 @@ extension _RSA {
     ) throws -> (p: ArbitraryPrecisionInteger, q: ArbitraryPrecisionInteger) {
         // This is based on the proof of fact 1 in https://www.ams.org/notices/199902/boneh.pdf
         let k = (d * e) - 1
-        let t = k.trailingZeroBitCount
-        let r = k >> t
 
-        guard k.isEven else {
+        // k == 0 (that is, e * d == 1) gives r == 0 below, for which every base is trivial.
+        guard k > 0, k.isEven else {
             throw CryptoKitError.incorrectParameterSize
         }
 
+        let t = k.trailingZeroBitCount
+        let r = k >> t
+
         var y: ArbitraryPrecisionInteger = 0
-        var i = 1
 
         let context = try FiniteFieldArithmeticContext(fieldSize: n)
 
-        while i <= 100 {
+        // Every attempt must count towards the limit, including those where g^r is trivially
+        // 1 or n - 1. Inputs for which that holds for every base would otherwise never return.
+        for _ in 0..<100 {
             let g = try ArbitraryPrecisionInteger.random(inclusiveMin: 2, exclusiveMax: n)
             y = try context.pow(g, r)
 
@@ -876,8 +879,6 @@ extension _RSA {
 
                 return (p, q)
             }
-
-            i &+= 1
         }
 
         throw CryptoKitError.incorrectParameterSize

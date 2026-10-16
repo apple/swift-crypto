@@ -1062,6 +1062,34 @@ final class TestRSASigning: XCTestCase {
         }
     }
 
+    func testConstructKeyFromRSANumbersWithDegenerateExponentsThrows() throws {
+        // e * d == 1 makes g^(e * d - 1) == 1 for every base, so prime recovery can never
+        // make progress. This must throw rather than retry forever.
+        var n = [UInt8](repeating: 0xA7, count: 256)
+        n[255] = 0x01
+
+        XCTAssertThrowsError(
+            try _RSA.Signing.PrivateKey._createFromNumbers(n: n, e: [1] as [UInt8], d: [1] as [UInt8])
+        )
+        XCTAssertThrowsError(
+            try _RSA.Encryption.PrivateKey._createFromNumbers(n: n, e: [1] as [UInt8], d: [1] as [UInt8])
+        )
+        XCTAssertThrowsError(
+            try _RSA.BlindSigning.PrivateKey<SHA384>._createFromNumbers(
+                n: n, e: [1] as [UInt8], d: [1] as [UInt8], parameters: .RSABSSA_SHA384_PSS_Randomized
+            )
+        )
+    }
+
+    func testExtractPrimeFactorsGivesUpWhenEveryBaseIsTrivial() throws {
+        // n = 7 is prime and 3 mod 4, and e * d - 1 == n - 1, so by Euler's criterion
+        // g^((n - 1) / 2) is 1 or n - 1 for every base g. The attempt limit must still apply.
+        XCTAssertThrowsError(try _RSA.extractPrimeFactors(n: 7, e: 7, d: 1))
+
+        // e * d == 1 gives an exponent of 0, so g^0 == 1 for every base.
+        XCTAssertThrowsError(try _RSA.extractPrimeFactors(n: 3233, e: 1, d: 1))
+    }
+
     func testGetKeyPrimitives() throws {
         for testVector in RFC9474TestVector.allValues {
             let n = try Data(hexString: testVector.n)
