@@ -1082,12 +1082,43 @@ final class TestRSASigning: XCTestCase {
     }
 
     func testExtractPrimeFactorsGivesUpWhenEveryBaseIsTrivial() throws {
-        // n = 7 is prime and 3 mod 4, and e * d - 1 == n - 1, so by Euler's criterion
-        // g^((n - 1) / 2) is 1 or n - 1 for every base g. The attempt limit must still apply.
-        XCTAssertThrowsError(try _RSA.extractPrimeFactors(n: 7, e: 7, d: 1))
+        // n = 7 is prime and e * d - 1 == 24 == 2^3 * 3, so g^3 is 1 or n - 1 for every base g
+        // (the only cubic residues mod 7). The attempt limit must still apply.
+        XCTAssertThrowsError(try _RSA.extractPrimeFactors(n: 7, e: 5, d: 5))
 
         // e * d == 1 gives an exponent of 0, so g^0 == 1 for every base.
         XCTAssertThrowsError(try _RSA.extractPrimeFactors(n: 3233, e: 1, d: 1))
+    }
+
+    func testExtractPrimeFactorsRejectsOversizedNumbers() throws {
+        // d == 2753 is valid for n == 3233, e == 17. Adding lambda(n) == 780 keeps the numbers
+        // consistent, so only the range check rejects d >= n.
+        XCTAssertNoThrow(try _RSA.extractPrimeFactors(n: 3233, e: 17, d: 2753))
+        XCTAssertThrowsError(try _RSA.extractPrimeFactors(n: 3233, e: 17, d: 2753 + 780))
+        XCTAssertThrowsError(try _RSA.extractPrimeFactors(n: 3233, e: 17 + 780 * 5, d: 2753))
+
+        // e * d - 1 == 2^9992, so without the range check the squaring loop runs 9991 times
+        // per attempt.
+        var n = [UInt8](repeating: 0xA7, count: 256)
+        n[255] = 0x01
+        var d = [UInt8](repeating: 0, count: 1250)
+        d[0] = 0x01
+        d[1249] = 0x01
+        XCTAssertThrowsError(try _RSA.Signing.PrivateKey._createFromNumbers(n: n, e: [1] as [UInt8], d: d))
+
+        // A modulus over 8192 bits with d < n would otherwise make each attempt arbitrarily slow.
+        var bigN = [UInt8](repeating: 0xA7, count: 1025)
+        bigN[1024] = 0x01
+        var bigD = [UInt8](repeating: 0, count: 1025)
+        bigD[1] = 0x01
+        bigD[1024] = 0x01
+        XCTAssertThrowsError(try _RSA.Signing.PrivateKey._createFromNumbers(n: bigN, e: [1] as [UInt8], d: bigD))
+    }
+
+    func testExtractPrimeFactorsRejectsInconsistentNumbers() throws {
+        // 17 * 2755 - 1 is even but not a multiple of lambda(3233) == 780, so g^k != 1 and no attempt
+        // can succeed. This must throw on the first full attempt rather than retry 100 times.
+        XCTAssertThrowsError(try _RSA.extractPrimeFactors(n: 3233, e: 17, d: 2755))
     }
 
     func testGetKeyPrimitives() throws {
