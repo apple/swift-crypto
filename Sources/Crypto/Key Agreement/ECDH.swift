@@ -189,6 +189,9 @@ extension P256 {
                     self = try .init(rawRepresentation: parsed.privateKey)
                 case "PRIVATE KEY":
                     let parsed = try ASN1.PKCS8PrivateKey(asn1Encoded: Array(pem.derBytes))
+                    guard parsed.algorithm == .ecdsaP256 else {
+                        throw CryptoKitASN1Error.invalidASN1Object
+                    }
                     self = try .init(rawRepresentation: parsed.privateKey.privateKey)
                 default:
                     throw CryptoKitASN1Error.invalidPEMDocument
@@ -209,6 +212,9 @@ extension P256 {
 
                 do {
                     let key = try ASN1.PKCS8PrivateKey(asn1Encoded: bytes)
+                    guard key.algorithm == .ecdsaP256 else {
+                        throw CryptoKitASN1Error.invalidASN1Object
+                    }
                     self = try .init(rawRepresentation: key.privateKey.privateKey)
                 } catch {
                     let key = try ASN1.SEC1PrivateKey(asn1Encoded: bytes)
@@ -413,6 +419,9 @@ extension P256 {
                     self = try .init(rawRepresentation: parsed.privateKey)
                 case "PRIVATE KEY":
                     let parsed = try ASN1.PKCS8PrivateKey(asn1Encoded: Array(pem.derBytes))
+                    guard parsed.algorithm == .ecdsaP256 else {
+                        throw CryptoKitASN1Error.invalidASN1Object
+                    }
                     self = try .init(rawRepresentation: parsed.privateKey.privateKey)
                 default:
                     throw CryptoKitASN1Error.invalidPEMDocument
@@ -433,6 +442,9 @@ extension P256 {
 
                 do {
                     let key = try ASN1.PKCS8PrivateKey(asn1Encoded: bytes)
+                    guard key.algorithm == .ecdsaP256 else {
+                        throw CryptoKitASN1Error.invalidASN1Object
+                    }
                     self = try .init(rawRepresentation: key.privateKey.privateKey)
                 } catch {
                     let key = try ASN1.SEC1PrivateKey(asn1Encoded: bytes)
@@ -636,6 +648,9 @@ extension P384 {
                     self = try .init(rawRepresentation: parsed.privateKey)
                 case "PRIVATE KEY":
                     let parsed = try ASN1.PKCS8PrivateKey(asn1Encoded: Array(pem.derBytes))
+                    guard parsed.algorithm == .ecdsaP384 else {
+                        throw CryptoKitASN1Error.invalidASN1Object
+                    }
                     self = try .init(rawRepresentation: parsed.privateKey.privateKey)
                 default:
                     throw CryptoKitASN1Error.invalidPEMDocument
@@ -656,6 +671,9 @@ extension P384 {
 
                 do {
                     let key = try ASN1.PKCS8PrivateKey(asn1Encoded: bytes)
+                    guard key.algorithm == .ecdsaP384 else {
+                        throw CryptoKitASN1Error.invalidASN1Object
+                    }
                     self = try .init(rawRepresentation: key.privateKey.privateKey)
                 } catch {
                     let key = try ASN1.SEC1PrivateKey(asn1Encoded: bytes)
@@ -860,6 +878,9 @@ extension P384 {
                     self = try .init(rawRepresentation: parsed.privateKey)
                 case "PRIVATE KEY":
                     let parsed = try ASN1.PKCS8PrivateKey(asn1Encoded: Array(pem.derBytes))
+                    guard parsed.algorithm == .ecdsaP384 else {
+                        throw CryptoKitASN1Error.invalidASN1Object
+                    }
                     self = try .init(rawRepresentation: parsed.privateKey.privateKey)
                 default:
                     throw CryptoKitASN1Error.invalidPEMDocument
@@ -880,6 +901,9 @@ extension P384 {
 
                 do {
                     let key = try ASN1.PKCS8PrivateKey(asn1Encoded: bytes)
+                    guard key.algorithm == .ecdsaP384 else {
+                        throw CryptoKitASN1Error.invalidASN1Object
+                    }
                     self = try .init(rawRepresentation: key.privateKey.privateKey)
                 } catch {
                     let key = try ASN1.SEC1PrivateKey(asn1Encoded: bytes)
@@ -1083,6 +1107,9 @@ extension P521 {
                     self = try .init(rawRepresentation: parsed.privateKey)
                 case "PRIVATE KEY":
                     let parsed = try ASN1.PKCS8PrivateKey(asn1Encoded: Array(pem.derBytes))
+                    guard parsed.algorithm == .ecdsaP521 else {
+                        throw CryptoKitASN1Error.invalidASN1Object
+                    }
                     self = try .init(rawRepresentation: parsed.privateKey.privateKey)
                 default:
                     throw CryptoKitASN1Error.invalidPEMDocument
@@ -1103,6 +1130,9 @@ extension P521 {
 
                 do {
                     let key = try ASN1.PKCS8PrivateKey(asn1Encoded: bytes)
+                    guard key.algorithm == .ecdsaP521 else {
+                        throw CryptoKitASN1Error.invalidASN1Object
+                    }
                     self = try .init(rawRepresentation: key.privateKey.privateKey)
                 } catch {
                     let key = try ASN1.SEC1PrivateKey(asn1Encoded: bytes)
@@ -1307,6 +1337,9 @@ extension P521 {
                     self = try .init(rawRepresentation: parsed.privateKey)
                 case "PRIVATE KEY":
                     let parsed = try ASN1.PKCS8PrivateKey(asn1Encoded: Array(pem.derBytes))
+                    guard parsed.algorithm == .ecdsaP521 else {
+                        throw CryptoKitASN1Error.invalidASN1Object
+                    }
                     self = try .init(rawRepresentation: parsed.privateKey.privateKey)
                 default:
                     throw CryptoKitASN1Error.invalidPEMDocument
@@ -1327,6 +1360,9 @@ extension P521 {
 
                 do {
                     let key = try ASN1.PKCS8PrivateKey(asn1Encoded: bytes)
+                    guard key.algorithm == .ecdsaP521 else {
+                        throw CryptoKitASN1Error.invalidASN1Object
+                    }
                     self = try .init(rawRepresentation: key.privateKey.privateKey)
                 } catch {
                     let key = try ASN1.SEC1PrivateKey(asn1Encoded: bytes)
