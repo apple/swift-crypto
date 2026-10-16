@@ -38,6 +38,8 @@ extension OPRF {
 protocol OPRFGroupElement: GroupElement {
     init(oprfRepresentation: Data) throws
     var oprfRepresentation: Data { get }
+    /// Serializes the element, throwing for the identity element, which has no encoding.
+    func serialize() throws -> Data
 }
 
 @available(macOS 10.15, iOS 13.2, tvOS 13.2, watchOS 6.1, macCatalyst 13.2, visionOS 1.2, *)

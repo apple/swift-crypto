@@ -48,13 +48,13 @@ struct Proof<H2G: HashToGroup> {
 
         // Pass the public points into the transcript.
         for point in points {
-            let serializedPoint = point.oprfRepresentation
+            let serializedPoint = try point.serialize()
             challengeInput.append(I2OSP(value: serializedPoint.count, outputByteCount: 2) + serializedPoint)
         }
 
         // Pass the computed blinded points into the transcript.
         for point in blindedPoints {
-            let serializedPoint = point.oprfRepresentation
+            let serializedPoint = try point.serialize()
             challengeInput.append(I2OSP(value: serializedPoint.count, outputByteCount: 2) + serializedPoint)
         }
 

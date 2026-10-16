@@ -62,6 +62,21 @@ class ZKPToolboxTests: XCTestCase {
         try DL1Workflow(CurveType: P521.self)
     }
 
+    /// A proof whose response is -challenge*x makes the recomputed blinded point the identity, which must throw rather than trap.
+    func testVerifyThrowsWhenBlindedPointIsIdentity() throws {
+        let scalar = Group.Scalar.random
+        let result = scalar * Group.Element.generator
+        let challenge = Group.Scalar.random
+        let proof = Proof<H2G>(challenge: challenge, responses: [-(challenge * scalar)])
+
+        var verifier = Verifier<H2G>(label: "DL1Test")
+        let scalarVar = verifier.appendScalar(label: "scalar")
+        let pointVar = verifier.appendPoint(label: "point", assignment: Group.Element.generator)
+        let resultVar = verifier.appendPoint(label: "result", assignment: result)
+        verifier.constrain(result: resultVar, linearCombination: [(scalarVar, pointVar)])
+        XCTAssertThrowsError(try verifier.verify(proof: proof))
+    }
+
     /// Allocate group element variables and define the constraints for a DLEQ proof:
     /// result1 = scalar * point1 and result2 = scalar * point2
     /// such that log_point1(result1)==log_point2(result2), for a secret scalar.
