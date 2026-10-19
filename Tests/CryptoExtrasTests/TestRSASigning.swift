@@ -1116,9 +1116,14 @@ final class TestRSASigning: XCTestCase {
     }
 
     func testExtractPrimeFactorsRejectsInconsistentNumbers() throws {
-        // 17 * 2755 - 1 is even but not a multiple of lambda(3233) == 780, so g^k != 1 and no attempt
-        // can succeed. This must throw on the first full attempt rather than retry 100 times.
-        XCTAssertThrowsError(try _RSA.extractPrimeFactors(n: 3233, e: 17, d: 2755))
+        for testVector in RFC9474TestVector.allValues {
+            let n = try ArbitraryPrecisionInteger(bytes: Data(hexString: testVector.n))
+            let e = try ArbitraryPrecisionInteger(bytes: Data(hexString: testVector.e))
+            let d = try ArbitraryPrecisionInteger(bytes: Data(hexString: testVector.d))
+
+            // Using d = d + 2 means d is still even but no longer a multiple of lambda(n).
+            XCTAssertThrowsError(try _RSA.extractPrimeFactors(n: n, e: e, d: d + 2))
+        }
     }
 
     func testGetKeyPrimitives() throws {

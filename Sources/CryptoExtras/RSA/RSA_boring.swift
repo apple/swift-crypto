@@ -1131,3 +1131,8 @@ enum BlindSigningHelpers {
         }
     }
 }
+
+@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
+extension _RSA {
+    static let maximumModulusBitCount = Int(OPENSSL_RSA_MAX_MODULUS_BITS)
+}

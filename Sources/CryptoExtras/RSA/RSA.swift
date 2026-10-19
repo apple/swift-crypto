@@ -835,9 +835,9 @@ extension _RSA {
     ) throws -> (p: ArbitraryPrecisionInteger, q: ArbitraryPrecisionInteger) {
         // This is based on the proof of fact 1 in https://www.ams.org/notices/199902/boneh.pdf
 
-        // Valid keys have e < n and d < n, and BoringSSL rejects moduli over 8192 bits. Larger
+        // Valid keys have e < n, and BoringSSL rejects d >= n and moduli over its maximum. Larger
         // values let the caller pick the cost of the exponentiations and squaring loop below.
-        guard n.byteCount <= 8192 / 8, e < n, d < n else {
+        guard n.byteCount <= _RSA.maximumModulusBitCount / 8, e < n, d < n else {
             throw CryptoKitError.incorrectParameterSize
         }
 
@@ -859,6 +859,12 @@ extension _RSA {
         // 1 or n - 1. Inputs for which that holds for every base would otherwise never return.
         for _ in 0..<100 {
             let g = try ArbitraryPrecisionInteger.random(inclusiveMin: 2, exclusiveMax: n)
+
+            // The check at the end of this attempt only holds for bases coprime to n.
+            guard try ArbitraryPrecisionInteger.gcd(g, n) == 1 else {
+                continue
+            }
+
             y = try context.pow(g, r)
 
             guard y != 1, y != n - 1 else {
