@@ -96,4 +96,21 @@ final class VOPRFPublicAPITests: XCTestCase {
 
         XCTAssertThrowsError(try P384._VOPRF.BlindedElement(oprfRepresentation: uncompressed))
     }
+
+    func testInputLongerThanRFC9497LimitThrows() throws {
+        let privateKey = P384._VOPRF.PrivateKey()
+        let publicKey = privateKey.publicKey
+
+        // RFC 9497 caps inputs at 2^16 - 1 bytes, the most the two-byte length prefix in the framing can encode.
+        let maximumInput = Data(repeating: 0x41, count: 0xFFFF)
+        let blindedInput = try publicKey.blind(maximumInput)
+        let blindEvaluation = try privateKey.evaluate(blindedInput.blindedElement)
+        XCTAssertNoThrow(try publicKey.finalize(blindedInput, using: blindEvaluation))
+        XCTAssertNoThrow(try privateKey.evaluate(maximumInput))
+
+        // Oversized inputs are rejected where they enter, so finalize can never be given one.
+        let oversizedInput = Data(repeating: 0x41, count: 0x1_0000)
+        XCTAssertThrowsError(try publicKey.blind(oversizedInput))
+        XCTAssertThrowsError(try privateKey.evaluate(oversizedInput))
+    }
 }
