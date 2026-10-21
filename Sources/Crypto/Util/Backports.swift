@@ -33,13 +33,13 @@ extension MutableRawSpan {
     #if swift(>=6.3)
     subscript(_ byteOffset: Int) -> UInt8 {
         get { unsafeLoad(fromByteOffset: byteOffset, as: UInt8.self) }
-        set { storeBytes( of: newValue, toByteOffset: byteOffset, as: UInt8.self) }
+        set { storeBytes(of: newValue, toByteOffset: byteOffset, as: UInt8.self) }
     }
     #elseif swift(<6.3)
     subscript(_ byteOffset: Int) -> UInt8 {
         get { unsafeLoad(fromByteOffset: byteOffset, as: UInt8.self) }
         @_lifetime(&self)
-        set { storeBytes( of: newValue, toByteOffset: byteOffset, as: UInt8.self) }
+        set { storeBytes(of: newValue, toByteOffset: byteOffset, as: UInt8.self) }
     }
     #endif
 }
