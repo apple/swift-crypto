@@ -54,23 +54,23 @@ extension Data: Zeroization {
     }
 }
 
-func withUnsafeTemporaryZeroingAllocation<R, E: Error>(
+func withUnsafeTemporaryZeroingAllocation<R>(
     byteCount: Int,
     alignment: Int,
-    _ body: (UnsafeMutableRawBufferPointer) throws(E) -> R
-) throws(E) -> R {
-    try withUnsafeTemporaryAllocation(byteCount: byteCount, alignment: alignment) { buffer throws(E) -> R in
+    _ body: (UnsafeMutableRawBufferPointer) throws -> R
+) rethrows -> R {
+    try withUnsafeTemporaryAllocation(byteCount: byteCount, alignment: alignment) { buffer in
         defer { buffer.zeroize() }
         return try body(buffer)
     }
 }
 
-func withTemporaryZeroingAllocation<R, E: Error>(
+func withTemporaryZeroingAllocation<R>(
     byteCount: Int,
     alignment: Int,
-    _ body: (inout OutputRawSpan) throws(E) -> R
-) throws(E) -> R {
-    try withUnsafeTemporaryZeroingAllocation(byteCount: byteCount, alignment: alignment) { buffer throws(E) -> R in
+    _ body: (inout OutputRawSpan) throws -> R
+) rethrows -> R {
+    try withUnsafeTemporaryZeroingAllocation(byteCount: byteCount, alignment: alignment) { buffer in
         var output = OutputRawSpan(buffer: buffer, initializedCount: 0)
         return try body(&output)
     }
