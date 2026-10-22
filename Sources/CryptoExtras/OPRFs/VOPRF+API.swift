@@ -35,6 +35,9 @@ extension P384 {
 
         static var ciphersuite: Ciphersuite { Ciphersuite(H2G.self) }
 
+        /// The maximum length, in bytes, of an input, imposed by the two-byte length prefix in the RFC 9497 framing.
+        static let maximumInputByteCount = 0xFFFF
+
         /// A P-384 public key used to blind inputs and finalize blinded elements.
         public struct PublicKey {
             fileprivate typealias BackingPublicKey = P384.Signing.PublicKey
@@ -367,6 +370,9 @@ extension P384._VOPRF {
 @available(iOS 16.0, macOS 13.0, watchOS 9.0, tvOS 16.0, macCatalyst 16.0, visionOS 2.0, *)
 extension P384._VOPRF.PublicKey {
     internal func blind<D: DataProtocol>(_ input: D, with fixedBlind: P384._VOPRF.H2G.G.Scalar) throws -> P384._VOPRF.BlindedInput {
+        guard input.count <= P384._VOPRF.maximumInputByteCount else {
+            throw CryptoKitError.incorrectParameterSize
+        }
         let input = Data(input)
         let (blind, blindedElement) = Self.client.blindMessage(input, blind: fixedBlind)
         return P384._VOPRF.BlindedInput(
@@ -436,6 +442,9 @@ extension P384._VOPRF.PrivateKey {
     ///
     /// - Seealso: [RFC 9497: VOPRF Protocol - Evaluate]( https://cfrg.github.io/draft-irtf-cfrg-voprf/draft-irtf-cfrg-voprf.html#section-3.3.2-7).
     public func evaluate<D: DataProtocol>(_ input: D) throws -> Data {
+        guard input.count <= P384._VOPRF.maximumInputByteCount else {
+            throw CryptoKitError.incorrectParameterSize
+        }
         let inputElement = P384._VOPRF.H2G.hashToGroup(
             Data(input),
             domainSeparationString: Self.hashToGroupDST

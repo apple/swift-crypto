@@ -54,4 +54,26 @@ extension Data: Zeroization {
     }
 }
 
+func withUnsafeTemporaryZeroingAllocation<R>(
+    byteCount: Int,
+    alignment: Int,
+    _ body: (UnsafeMutableRawBufferPointer) throws -> R
+) rethrows -> R {
+    try withUnsafeTemporaryAllocation(byteCount: byteCount, alignment: alignment) { buffer in
+        defer { buffer.zeroize() }
+        return try body(buffer)
+    }
+}
+
+func withTemporaryZeroingAllocation<R>(
+    byteCount: Int,
+    alignment: Int,
+    _ body: (inout OutputRawSpan) throws -> R
+) rethrows -> R {
+    try withUnsafeTemporaryZeroingAllocation(byteCount: byteCount, alignment: alignment) { buffer in
+        var output = OutputRawSpan(buffer: buffer, initializedCount: 0)
+        return try body(&output)
+    }
+}
+
 #endif // canImport(CryptoKit)

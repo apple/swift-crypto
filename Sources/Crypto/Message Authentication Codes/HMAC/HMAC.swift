@@ -65,34 +65,24 @@ public struct HMAC<H: HashFunction>: MACAlgorithm, Sendable {
         #if os(iOS) && (arch(arm) || arch(i386))
         fatalError("Unsupported architecture")
         #else
-        var innerKey = SecureBytes(capacity: H.blockByteCount) { keyOutput in
-            if key.byteCount <= keyOutput.freeCapacity {
-                keyOutput.append(contentsOf: key.bytes)
-            } else if key.byteCount > H.blockByteCount {
-                let hash = H.hash(bytes: key.bytes)
-                hash.withUnsafeBytes {
-                    keyOutput.append(contentsOf: $0.bytes)
-                }
-            }
-            keyOutput.append(repeating: 0, count: keyOutput.freeCapacity, as: UInt8.self)
-        }
-        var outerKey = innerKey
-        
+        // HMAC(K, m) = H((K0 ^ opad) || H((K0 ^ ipad) || m)), where K0 is the
+        // key normalized to the hash block size (RFC 2104).
         self.innerHasher = H()
-        innerKey.withUnsafeMutableBytes {
-            for i in 0 ..< $0.count {
-                $0[i] ^= 0x36
-            }
-        }
-        innerHasher.update(bytes: innerKey.bytes)
-        
         self.outerHasher = H()
-        outerKey.withUnsafeMutableBytes {
-            for i in 0 ..< $0.count {
-                $0[i] ^= 0x5c
+        withTemporaryZeroingAllocation(byteCount: H.blockByteCount, alignment: 1) { keyBlock in
+            if key.byteCount <= keyBlock.freeCapacity {
+                keyBlock.append(contentsOf: key.bytes)
+            } else if key.byteCount > H.blockByteCount {
+                H.hash(bytes: key.bytes).withBytes { keyBlock.append(contentsOf: $0) }
             }
+            keyBlock.append(repeating: 0, count: keyBlock.freeCapacity, as: UInt8.self)
+
+            var k0 = keyBlock.mutableBytes
+            for i in 0 ..< k0.byteCount { k0[i] ^= 0x36 }  // apply ipad
+            self.innerHasher.update(bytes: k0.bytes)
+            for i in 0 ..< k0.byteCount { k0[i] ^= 0x36 ^ 0x5c }  // undo ipad, apply opad
+            self.outerHasher.update(bytes: k0.bytes)
         }
-        outerHasher.update(data: outerKey)
         #endif
     }
     
