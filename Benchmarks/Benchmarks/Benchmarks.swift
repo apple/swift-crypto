@@ -21,7 +21,7 @@ import FoundationEssentials
 import Foundation
 #endif
 
-let benchmarks = {
+let benchmarks: @Sendable () -> Void = {
     let defaultMetrics: [BenchmarkMetric] = [.mallocCountTotal, .cpuTotal]
 
     Benchmark(
@@ -206,6 +206,52 @@ let benchmarks = {
         for _ in benchmark.scaledIterations {
             let (key1, key2) = (P521.KeyAgreement.PrivateKey(), P521.KeyAgreement.PrivateKey())
             blackHole(try key1.sharedSecretFromKeyAgreement(with: key2.publicKey))
+        }
+    }
+
+    Benchmark(
+        "hmac-sha256-authenticate",
+        configuration: Benchmark.Configuration(
+            metrics: defaultMetrics,
+            scalingFactor: .mega,
+            maxDuration: .seconds(10_000_000),
+            maxIterations: 5
+        )
+    ) { benchmark in
+        let key = SymmetricKey(size: .bits256)
+        let message = Data(repeating: 0x41, count: 1024)
+
+        benchmark.startMeasurement()
+
+        for _ in benchmark.scaledIterations {
+            blackHole(HMAC<SHA256>.authenticationCode(for: message, using: key))
+        }
+    }
+
+    Benchmark(
+        "hkdf-sha256-derive",
+        configuration: Benchmark.Configuration(
+            metrics: defaultMetrics,
+            scalingFactor: .kilo,
+            maxDuration: .seconds(10_000_000),
+            maxIterations: 10
+        )
+    ) { benchmark in
+        let inputKeyMaterial = SymmetricKey(size: .bits256)
+        let salt = Data("benchmark salt".utf8)
+        let info = Data("benchmark info".utf8)
+
+        benchmark.startMeasurement()
+
+        for _ in benchmark.scaledIterations {
+            blackHole(
+                HKDF<SHA256>.deriveKey(
+                    inputKeyMaterial: inputKeyMaterial,
+                    salt: salt,
+                    info: info,
+                    outputByteCount: 1024
+                )
+            )
         }
     }
 }
