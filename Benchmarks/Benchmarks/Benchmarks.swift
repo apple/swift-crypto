@@ -254,4 +254,99 @@ let benchmarks: @Sendable () -> Void = {
             )
         }
     }
+
+    Benchmark(
+        "aes-keywrap-unwrap",
+        configuration: Benchmark.Configuration(
+            metrics: defaultMetrics,
+            scalingFactor: .mega,
+            maxDuration: .seconds(10_000_000),
+            maxIterations: 5
+        )
+    ) { benchmark in
+        let kek = SymmetricKey(size: .bits256)
+        let wrapped = try AES.KeyWrap.wrap(SymmetricKey(size: .bits256), using: kek)
+
+        benchmark.startMeasurement()
+
+        for _ in benchmark.scaledIterations {
+            blackHole(try AES.KeyWrap.unwrap(wrapped, using: kek))
+        }
+    }
+
+    if #available(macOS 26.0, *) {
+        Benchmark(
+            "mlkem768-decapsulate",
+            configuration: Benchmark.Configuration(
+                metrics: defaultMetrics,
+                scalingFactor: .kilo,
+                maxDuration: .seconds(10_000_000),
+                maxIterations: 10
+            )
+        ) { benchmark in
+            let privateKey = try MLKEM768.PrivateKey()
+            let encapsulated = try privateKey.publicKey.encapsulate().encapsulated
+
+            benchmark.startMeasurement()
+
+            for _ in benchmark.scaledIterations {
+                blackHole(try privateKey.decapsulate(encapsulated))
+            }
+        }
+    }
+
+    Benchmark(
+        "pbkdf2-sha256-derive",
+        configuration: Benchmark.Configuration(
+            metrics: defaultMetrics,
+            scalingFactor: .kilo,
+            maxDuration: .seconds(10_000_000),
+            maxIterations: 10
+        )
+    ) { benchmark in
+        let password = Data("benchmark password".utf8)
+        let salt = Data("benchmark salt".utf8)
+
+        benchmark.startMeasurement()
+
+        for _ in benchmark.scaledIterations {
+            blackHole(
+                try KDF.Insecure.PBKDF2.deriveKey(
+                    from: password,
+                    salt: salt,
+                    using: .sha256,
+                    outputByteCount: 32,
+                    unsafeUncheckedRounds: 1_000
+                )
+            )
+        }
+    }
+
+    Benchmark(
+        "scrypt-derive",
+        configuration: Benchmark.Configuration(
+            metrics: defaultMetrics,
+            scalingFactor: .kilo,
+            maxDuration: .seconds(10_000_000),
+            maxIterations: 3
+        )
+    ) { benchmark in
+        let password = Data("benchmark password".utf8)
+        let salt = Data("benchmark salt".utf8)
+
+        benchmark.startMeasurement()
+
+        for _ in benchmark.scaledIterations {
+            blackHole(
+                try KDF.Scrypt.deriveKey(
+                    from: password,
+                    salt: salt,
+                    outputByteCount: 32,
+                    rounds: 1 << 10,
+                    blockSize: 8,
+                    parallelism: 1
+                )
+            )
+        }
+    }
 }

@@ -72,8 +72,8 @@ enum BoringSSLAESWRAPImpl {
         key: SymmetricKey,
         contiguousWrappedKey: WrappedKey
     ) throws -> SymmetricKey {
-        let unwrapped = try contiguousWrappedKey.withUnsafeBytes { inPtr in
-            try [UInt8](unsafeUninitializedCapacity: inPtr.count) { outputPtr, count in
+        try contiguousWrappedKey.withUnsafeBytes { inPtr in
+            try SymmetricKey(unsafeUninitializedCapacity: inPtr.count) { outputPtr, count in
                 let rc = try key.withUnsafeAESKEY(mode: .decrypting) { aesKey in
                     CCryptoBoringSSL_AES_unwrap_key(
                         aesKey,
@@ -93,8 +93,6 @@ enum BoringSSLAESWRAPImpl {
                 count = Int(rc)
             }
         }
-
-        return SymmetricKey(data: unwrapped)
     }
 }
 

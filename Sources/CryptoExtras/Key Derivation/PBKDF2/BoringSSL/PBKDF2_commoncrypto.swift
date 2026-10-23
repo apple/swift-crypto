@@ -39,8 +39,9 @@ internal struct CommonCryptoPBKDF2 {
         outputByteCount: Int,
         rounds: Int
     ) throws -> SymmetricKey {
-        // This should be SecureBytes, but we can't use that here.
+        // SecureBytes is internal to Crypto, so zero the buffer by hand once the key has been copied out.
         var derivedKeyData = Data(count: outputByteCount)
+        defer { derivedKeyData.withUnsafeMutableBytes { $0.zeroize() } }
 
         let derivationStatus = derivedKeyData.withUnsafeMutableBytes { derivedKeyBytes -> Int32 in
             let saltBytes: ContiguousBytes = salt.regions.count == 1 ? salt.regions.first! : Array(salt)

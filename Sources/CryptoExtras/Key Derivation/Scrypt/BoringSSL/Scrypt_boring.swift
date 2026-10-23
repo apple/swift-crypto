@@ -81,8 +81,9 @@ internal struct BoringSSLScrypt {
         parallelism: Int,
         maxMemory: Int? = nil
     ) throws -> SymmetricKey {
-        // This should be SecureBytes, but we can't use that here.
+        // SecureBytes is internal to Crypto, so zero the buffer by hand once the key has been copied out.
         var derivedKeyData = Data(count: outputByteCount)
+        defer { derivedKeyData.withUnsafeMutableBytes { $0.zeroize() } }
 
         // This computes the maximum amount of memory that will be used by the scrypt algorithm with an additional memory page to spare. This value will be used by the BoringSSL as the memory limit for the algorithm.
         // An additional memory page is added to the computed value (using POSIX specification) to ensure that the memory limit is not too tight.
