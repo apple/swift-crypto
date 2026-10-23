@@ -28,7 +28,7 @@ protocol Zeroization {
 extension UnsafeMutablePointer: Zeroization {
     /// Zeroizes the pointee
     func zeroize() {
-        let size = MemoryLayout.size(ofValue: Pointee.self)
+        let size = MemoryLayout<Pointee>.size
         memset_s(self, size, 0, size)
     }
 }

@@ -72,16 +72,3 @@ final class BoringSSLSHA512256Context {
         }
     }
 }
-
-extension UnsafeMutablePointer {
-    fileprivate func zeroize() {
-        let size = MemoryLayout.size(ofValue: Pointee.self)
-        memset_s(self, size, 0, size)
-    }
-}
-
-extension UnsafeMutableRawBufferPointer {
-    fileprivate func zeroize() {
-        memset_s(self.baseAddress!, self.count, 0, self.count)
-    }
-}

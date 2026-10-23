@@ -217,6 +217,12 @@ final class SecureBytesTests: XCTestCase {
         XCTAssertEqual(base.count, 22)
         XCTAssertEqual(Array(copy), [0, 1, 2, 3, 4])
     }
+
+    func testZeroizePointerToMultiWordValueClearsAllBytes() {
+        var value: (UInt64, UInt64, UInt64, UInt64) = (1, 2, 3, 4)
+        withUnsafeMutablePointer(to: &value) { $0.zeroize() }
+        XCTAssertEqual(withUnsafeBytes(of: value) { Array($0) }, Array(repeating: UInt8(0), count: 32))
+    }
 }
 
 #endif // canImport(CryptoKit)
