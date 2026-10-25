@@ -108,9 +108,9 @@ final class ARCAPITests: XCTestCase {
         var credential = try publicKey.finalize(credentialResponse, for: precredential)
 
         // [CHECK] Credential matches test vector.
-        XCTAssertEqual(credential.backing.U.oprfRepresentation.hexString, vector.Credential.U)
-        XCTAssertEqual(credential.backing.UPrime.oprfRepresentation.hexString, vector.Credential.U_prime)
-        XCTAssertEqual(credential.backing.X1.oprfRepresentation.hexString, vector.Credential.X1)
+        XCTAssertEqual(try credential.backing.U.oprfRepresentation.hexString, vector.Credential.U)
+        XCTAssertEqual(try credential.backing.UPrime.oprfRepresentation.hexString, vector.Credential.U_prime)
+        XCTAssertEqual(try credential.backing.X1.oprfRepresentation.hexString, vector.Credential.X1)
         XCTAssertEqual(credential.backing.m1.rawRepresentation.hexString, vector.Credential.m1)
 
         // [Client] Make a presentation from the credential for a presentation prefix.
@@ -135,10 +135,10 @@ final class ARCAPITests: XCTestCase {
         //       ARC specifically, is covered in the end-to-end tests in ARCPublicAPITests.
 
         // [CHECK]: Check presentation (excluding proof) matches test vector.
-        XCTAssertEqual(presentation.backing.U.oprfRepresentation.hexString, vector.Presentation1.U)
-        XCTAssertEqual(presentation.backing.UPrimeCommit.oprfRepresentation.hexString, vector.Presentation1.U_prime_commit)
-        XCTAssertEqual(presentation.backing.m1Commit.oprfRepresentation.hexString, vector.Presentation1.m1_commit)
-        XCTAssertEqual(presentation.backing.tag.oprfRepresentation.hexString, vector.Presentation1.tag)
+        XCTAssertEqual(try presentation.backing.U.oprfRepresentation.hexString, vector.Presentation1.U)
+        XCTAssertEqual(try presentation.backing.UPrimeCommit.oprfRepresentation.hexString, vector.Presentation1.U_prime_commit)
+        XCTAssertEqual(try presentation.backing.m1Commit.oprfRepresentation.hexString, vector.Presentation1.m1_commit)
+        XCTAssertEqual(try presentation.backing.tag.oprfRepresentation.hexString, vector.Presentation1.tag)
 
         // [CHECK]: Serialization of presentation (ecluding proof) matches spec.
         XCTAssertEqual(

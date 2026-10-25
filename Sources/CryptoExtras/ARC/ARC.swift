@@ -68,7 +68,8 @@ extension ARC {
         generatorG: H2G.G.Element, generatorH: H2G.G.Element
     ) {
         let generatorG = H2G.G.Element.generator
-        let generatorH = H2G.hashToGroup(generatorG.oprfRepresentation, domainSeparationString: Data(("HashToGroup-" + suite.domain + "generatorH").utf8))
+        // Force-try: the generator is never the identity.
+        let generatorH = H2G.hashToGroup(try! generatorG.oprfRepresentation, domainSeparationString: Data(("HashToGroup-" + suite.domain + "generatorH").utf8))
         return (generatorG, generatorH)
     }
 }

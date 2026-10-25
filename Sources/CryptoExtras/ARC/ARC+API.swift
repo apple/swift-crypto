@@ -151,9 +151,10 @@ extension P256._ARCV1 {
         public var rawRepresentation: Data {
             var result = Data(capacity: Self.serializedByteCount)
 
-            result.append(self.backing.X0.oprfRepresentation)
-            result.append(self.backing.X1.oprfRepresentation)
-            result.append(self.backing.X2.oprfRepresentation)
+            // Force-try: parsed or honestly generated points are never the identity.
+            result.append(try! self.backing.X0.oprfRepresentation)
+            result.append(try! self.backing.X1.oprfRepresentation)
+            result.append(try! self.backing.X2.oprfRepresentation)
             assert(result.count == Self.serializedByteCount)
 
             return result
@@ -177,7 +178,8 @@ extension P256._ARCV1 {
         }
 
         public var rawRepresentation: Data {
-            self.backing.serialize(ciphersuite: P256._ARCV1.ciphersuite)
+            // Force-try: parsed or honestly generated points are never the identity.
+            try! self.backing.serialize(ciphersuite: P256._ARCV1.ciphersuite)
         }
     }
 
@@ -212,7 +214,8 @@ extension P256._ARCV1 {
         }
 
         public var rawRepresentation: Data {
-            self.backing.serialize(ciphersuite: P256._ARCV1.ciphersuite)
+            // Force-try: parsed or honestly generated points are never the identity.
+            try! self.backing.serialize(ciphersuite: P256._ARCV1.ciphersuite)
         }
     }
 
@@ -243,7 +246,8 @@ extension P256._ARCV1 {
         }
 
         public var rawRepresentation: Data {
-            self.backing.serialize(ciphersuite: P256._ARCV1.ciphersuite)
+            // Force-try: parsed or honestly generated points are never the identity.
+            try! self.backing.serialize(ciphersuite: P256._ARCV1.ciphersuite)
         }
 
         public var tag: Data {
@@ -532,9 +536,10 @@ extension P384._ARCV1 {
         public var rawRepresentation: Data {
             var result = Data(capacity: Self.serializedByteCount)
 
-            result.append(self.backing.X0.oprfRepresentation)
-            result.append(self.backing.X1.oprfRepresentation)
-            result.append(self.backing.X2.oprfRepresentation)
+            // Force-try: parsed or honestly generated points are never the identity.
+            result.append(try! self.backing.X0.oprfRepresentation)
+            result.append(try! self.backing.X1.oprfRepresentation)
+            result.append(try! self.backing.X2.oprfRepresentation)
             assert(result.count == Self.serializedByteCount)
 
             return result
@@ -558,7 +563,8 @@ extension P384._ARCV1 {
         }
 
         public var rawRepresentation: Data {
-            self.backing.serialize(ciphersuite: P384._ARCV1.ciphersuite)
+            // Force-try: parsed or honestly generated points are never the identity.
+            try! self.backing.serialize(ciphersuite: P384._ARCV1.ciphersuite)
         }
     }
 
@@ -593,7 +599,8 @@ extension P384._ARCV1 {
         }
 
         public var rawRepresentation: Data {
-            self.backing.serialize(ciphersuite: P384._ARCV1.ciphersuite)
+            // Force-try: parsed or honestly generated points are never the identity.
+            try! self.backing.serialize(ciphersuite: P384._ARCV1.ciphersuite)
         }
     }
 
@@ -624,7 +631,8 @@ extension P384._ARCV1 {
         }
 
         public var rawRepresentation: Data {
-            self.backing.serialize(ciphersuite: P384._ARCV1.ciphersuite)
+            // Force-try: parsed or honestly generated points are never the identity.
+            try! self.backing.serialize(ciphersuite: P384._ARCV1.ciphersuite)
         }
 
         public var tag: Data {

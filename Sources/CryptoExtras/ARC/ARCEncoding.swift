@@ -30,10 +30,10 @@ extension ARC.CredentialRequest {
         return 2 * ciphersuite.pointByteCount + Self.getScalarCount() * ciphersuite.scalarByteCount
     }
 
-    func serialize(ciphersuite: ARC.Ciphersuite<H2G>) -> Data {
+    func serialize(ciphersuite: ARC.Ciphersuite<H2G>) throws -> Data {
         var result = Data(capacity: Self.getSerializedByteCount(ciphersuite))
-        result.append(self.m1Enc.oprfRepresentation)
-        result.append(self.m2Enc.oprfRepresentation)
+        result.append(try self.m1Enc.oprfRepresentation)
+        result.append(try self.m2Enc.oprfRepresentation)
         result.append(self.proof.serialize(ciphersuite: ciphersuite))
         return result
     }
@@ -60,15 +60,15 @@ extension ARC.CredentialResponse {
         return 6 * ciphersuite.pointByteCount + Self.getScalarCount() * ciphersuite.scalarByteCount
     }
 
-    func serialize(ciphersuite: ARC.Ciphersuite<H2G>) -> Data {
+    func serialize(ciphersuite: ARC.Ciphersuite<H2G>) throws -> Data {
         var result = Data(capacity: Self.getSerializedByteCount(ciphersuite))
 
-        result.append(self.U.oprfRepresentation)
-        result.append(self.encUPrime.oprfRepresentation)
-        result.append(self.X0Aux.oprfRepresentation)
-        result.append(self.X1Aux.oprfRepresentation)
-        result.append(self.X2Aux.oprfRepresentation)
-        result.append(self.HAux.oprfRepresentation)
+        result.append(try self.U.oprfRepresentation)
+        result.append(try self.encUPrime.oprfRepresentation)
+        result.append(try self.X0Aux.oprfRepresentation)
+        result.append(try self.X1Aux.oprfRepresentation)
+        result.append(try self.X2Aux.oprfRepresentation)
+        result.append(try self.HAux.oprfRepresentation)
         result.append(self.proof.serialize(ciphersuite: ciphersuite))
 
         return result
@@ -102,13 +102,13 @@ extension ARC.Presentation {
         return Self.getPointCount() * ciphersuite.pointByteCount + Self.getScalarCount() * ciphersuite.scalarByteCount
     }
 
-    func serialize(ciphersuite: ARC.Ciphersuite<H2G>) -> Data {
+    func serialize(ciphersuite: ARC.Ciphersuite<H2G>) throws -> Data {
         var result = Data(capacity: Self.getSerializedByteCount(ciphersuite))
 
-        result.append(self.U.oprfRepresentation)
-        result.append(self.UPrimeCommit.oprfRepresentation)
-        result.append(self.m1Commit.oprfRepresentation)
-        result.append(self.tag.oprfRepresentation)
+        result.append(try self.U.oprfRepresentation)
+        result.append(try self.UPrimeCommit.oprfRepresentation)
+        result.append(try self.m1Commit.oprfRepresentation)
+        result.append(try self.tag.oprfRepresentation)
         result.append(self.proof.serialize(ciphersuite: ciphersuite))
 
         return result
@@ -137,12 +137,12 @@ extension ARC.ServerPublicKey {
         return 3 * ciphersuite.pointByteCount
     }
 
-    func serialize(ciphersuite: ARC.Ciphersuite<H2G>) -> Data {
+    func serialize(ciphersuite: ARC.Ciphersuite<H2G>) throws -> Data {
         var result = Data(capacity: Self.getSerializedByteCount(ciphersuite))
 
-        result.append(self.X0.oprfRepresentation)
-        result.append(self.X1.oprfRepresentation)
-        result.append(self.X2.oprfRepresentation)
+        result.append(try self.X0.oprfRepresentation)
+        result.append(try self.X1.oprfRepresentation)
+        result.append(try self.X2.oprfRepresentation)
 
         return result
     }
@@ -214,11 +214,11 @@ extension ARC.Credential {
         var result = Data(capacity: Self.getSerializedByteCountExcludingPresentationState(ciphersuite) + presentationStateBytes.count)
 
         result.append(self.m1.rawRepresentation)
-        result.append(self.U.oprfRepresentation)
-        result.append(self.UPrime.oprfRepresentation)
-        result.append(self.X1.oprfRepresentation)
-        result.append(self.generatorG.oprfRepresentation)
-        result.append(self.generatorH.oprfRepresentation)
+        result.append(try self.U.oprfRepresentation)
+        result.append(try self.UPrime.oprfRepresentation)
+        result.append(try self.X1.oprfRepresentation)
+        result.append(try self.generatorG.oprfRepresentation)
+        result.append(try self.generatorH.oprfRepresentation)
         result.append(presentationStateBytes)
 
         return result

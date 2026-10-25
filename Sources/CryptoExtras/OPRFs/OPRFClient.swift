@@ -51,7 +51,7 @@ extension OPRF {
             let unblinded = unblind(blind: blind,
                                     evaluatedElement: evaluatedElement)
             
-            return Data(H2G.H.hash(data: composeFinalizeContext(message: message, info: info, unblindedElement: unblinded, ciphersuite: ciphersuite, mode: mode, v8CompatibilityMode: self.v8CompatibilityMode)))
+            return Data(H2G.H.hash(data: try composeFinalizeContext(message: message, info: info, unblindedElement: unblinded, ciphersuite: ciphersuite, mode: mode, v8CompatibilityMode: self.v8CompatibilityMode)))
         }
         
     }

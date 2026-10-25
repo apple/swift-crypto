@@ -22,13 +22,13 @@ class ARCEncodingTests: XCTestCase {
         let server = ARC.Server(ciphersuite: ciphersuite)
         let publicKey = server.serverPublicKey
 
-        let publicKeyData = publicKey.serialize(ciphersuite: ciphersuite)
+        let publicKeyData = try publicKey.serialize(ciphersuite: ciphersuite)
         let publicKey2 = try ARC.ServerPublicKey.deserialize(serverPublicKeyData: publicKeyData, ciphersuite: ciphersuite)
         XCTAssert(publicKey.X0 == publicKey2.X0)
         XCTAssert(publicKey.X1 == publicKey2.X1)
         XCTAssert(publicKey.X2 == publicKey2.X2)
 
-        let publicKeyData2 = publicKey2.serialize(ciphersuite: ciphersuite)
+        let publicKeyData2 = try publicKey2.serialize(ciphersuite: ciphersuite)
         XCTAssertEqual(publicKeyData, publicKeyData2)
     }
 
@@ -44,7 +44,7 @@ class ARCEncodingTests: XCTestCase {
         let precredential = try ARC.Precredential(ciphersuite: ciphersuite, requestContext: requestContext, serverPublicKey: server.serverPublicKey)
         let request = precredential.credentialRequest
 
-        let requestData = request.serialize(ciphersuite: ciphersuite)
+        let requestData = try request.serialize(ciphersuite: ciphersuite)
         let request2 = try ARC.CredentialRequest.deserialize(requestData: requestData, ciphersuite: ciphersuite)
         XCTAssert(request.m1Enc == request2.m1Enc)
         XCTAssert(request.m2Enc == request2.m2Enc)
@@ -53,7 +53,7 @@ class ARCEncodingTests: XCTestCase {
             XCTAssert(response == request2.proof.responses[index])
         }
 
-        let requestData2 = request2.serialize(ciphersuite: ciphersuite)
+        let requestData2 = try request2.serialize(ciphersuite: ciphersuite)
         XCTAssertEqual(requestData, requestData2)
     }
 
@@ -70,7 +70,7 @@ class ARCEncodingTests: XCTestCase {
         let request = precredential.credentialRequest
         let response = try server.respond(credentialRequest: request)
 
-        let responseData = response.serialize(ciphersuite: ciphersuite)
+        let responseData = try response.serialize(ciphersuite: ciphersuite)
         let response2 = try ARC.CredentialResponse.deserialize(responseData: responseData, ciphersuite: ciphersuite)
         XCTAssert(response.U == response2.U)
         XCTAssert(response.encUPrime == response2.encUPrime)
@@ -83,7 +83,7 @@ class ARCEncodingTests: XCTestCase {
             XCTAssert(response == response2.proof.responses[index])
         }
 
-        let responseData2 = response2.serialize(ciphersuite: ciphersuite)
+        let responseData2 = try response2.serialize(ciphersuite: ciphersuite)
         XCTAssertEqual(responseData, responseData2)
     }
 
@@ -133,7 +133,7 @@ class ARCEncodingTests: XCTestCase {
         var credential = try precredential.makeCredential(credentialResponse: response)
         let (presentation, _) = try credential.makePresentation(presentationContext: Data("test presentation context".utf8), presentationLimit: 1)
 
-        let presentationData = presentation.serialize(ciphersuite: ciphersuite)
+        let presentationData = try presentation.serialize(ciphersuite: ciphersuite)
         let presentation2 = try ARC.Presentation.deserialize(presentationData: presentationData, ciphersuite: ciphersuite)
         XCTAssert(presentation.U == presentation2.U)
         XCTAssert(presentation.UPrimeCommit == presentation2.UPrimeCommit)
@@ -144,7 +144,7 @@ class ARCEncodingTests: XCTestCase {
             XCTAssert(response == presentation2.proof.responses[index])
         }
 
-        let presentationData2 = presentation2.serialize(ciphersuite: ciphersuite)
+        let presentationData2 = try presentation2.serialize(ciphersuite: ciphersuite)
         XCTAssertEqual(presentationData, presentationData2)
     }
 

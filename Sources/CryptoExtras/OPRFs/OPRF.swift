@@ -37,7 +37,8 @@ extension OPRF {
 @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 protocol OPRFGroupElement: GroupElement {
     init(oprfRepresentation: Data) throws
-    var oprfRepresentation: Data { get }
+    /// Throws for the identity element, which has no encoding.
+    var oprfRepresentation: Data { get throws }
 }
 
 @available(macOS 10.15, iOS 13.2, tvOS 13.2, watchOS 6.1, macCatalyst 13.2, visionOS 1.2, *)
@@ -112,12 +113,13 @@ extension OPRF {
                                                                   unblindedElement: H2G.G.Element,
                                                                   ciphersuite: Ciphersuite<H2G>,
                                                                   mode: Mode,
-                                                                  v8CompatibilityMode: Bool) -> Data {
+                                                                  v8CompatibilityMode: Bool) throws -> Data {
+        let unblindedElementBytes = try unblindedElement.oprfRepresentation
         if v8CompatibilityMode {
             let finalizeCTX = "Finalize-".data(using: .utf8)! + setupContext(mode: mode, suite: ciphersuite, v8CompatibilityMode: v8CompatibilityMode)
             let hashInput = I2OSP(value: message.count, outputByteCount: 2) + message
             + I2OSP(value: info?.count ?? 0, outputByteCount: 2) + (info ?? Data())
-            + I2OSP(value: unblindedElement.oprfRepresentation.count, outputByteCount: 2) + unblindedElement.oprfRepresentation
+            + I2OSP(value: unblindedElementBytes.count, outputByteCount: 2) + unblindedElementBytes
             + I2OSP(value: finalizeCTX.count, outputByteCount: 2) + finalizeCTX
             
             return hashInput
@@ -128,7 +130,7 @@ extension OPRF {
                 hashInput = hashInput + I2OSP(value: info!.count, outputByteCount: 2) + info!
             }
             
-            hashInput = hashInput + I2OSP(value: unblindedElement.oprfRepresentation.count, outputByteCount: 2) + unblindedElement.oprfRepresentation + Data("Finalize".utf8)
+            hashInput = hashInput + I2OSP(value: unblindedElementBytes.count, outputByteCount: 2) + unblindedElementBytes + Data("Finalize".utf8)
             return hashInput
         }
     }

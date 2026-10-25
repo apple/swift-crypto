@@ -224,9 +224,9 @@ class ARCTestVectors: XCTestCase {
         // Initialize server
         let ciphersuite = ARC.Ciphersuite(HashToCurveImpl<Curve>.self)
         let server = ARC.Server(ciphersuite: ciphersuite, x0: x0, x1: x1, x2: x2, x0Blinding: xb)
-        XCTAssertEqual(server.serverPublicKey.X0.oprfRepresentation.hexString, tv.ServerKey.X0)
-        XCTAssertEqual(server.serverPublicKey.X1.oprfRepresentation.hexString, tv.ServerKey.X1)
-        XCTAssertEqual(server.serverPublicKey.X2.oprfRepresentation.hexString, tv.ServerKey.X2)
+        XCTAssertEqual(try server.serverPublicKey.X0.oprfRepresentation.hexString, tv.ServerKey.X0)
+        XCTAssertEqual(try server.serverPublicKey.X1.oprfRepresentation.hexString, tv.ServerKey.X1)
+        XCTAssertEqual(try server.serverPublicKey.X2.oprfRepresentation.hexString, tv.ServerKey.X2)
 
         // Initialize precredential, make a credential request
         let requestContext = try Data(hexString: tv.CredentialRequest.request_context)
@@ -235,8 +235,8 @@ class ARCTestVectors: XCTestCase {
         let r1 = try scalarFromString(CurveType: Curve.self, value: tv.CredentialRequest.r1)
         let r2 = try scalarFromString(CurveType: Curve.self, value: tv.CredentialRequest.r2)
         let precredential = try ARC.Precredential(ciphersuite: ciphersuite, m1: m1, requestContext: requestContext, r1: r1, r2: r2, serverPublicKey: server.serverPublicKey)
-        XCTAssertEqual(precredential.credentialRequest.m1Enc.oprfRepresentation.hexString, tv.CredentialRequest.m1_enc)
-        XCTAssertEqual(precredential.credentialRequest.m2Enc.oprfRepresentation.hexString, tv.CredentialRequest.m2_enc)
+        XCTAssertEqual(try precredential.credentialRequest.m1Enc.oprfRepresentation.hexString, tv.CredentialRequest.m1_enc)
+        XCTAssertEqual(try precredential.credentialRequest.m2Enc.oprfRepresentation.hexString, tv.CredentialRequest.m2_enc)
         XCTAssertEqual(precredential.clientSecrets.m2.rawRepresentation.hexString, tv.CredentialRequest.m2)
 
         // Verify request proof, by creating a new request with the
@@ -248,12 +248,12 @@ class ARCTestVectors: XCTestCase {
         // Make a credential response, passing in randomness b
         let b = try scalarFromString(CurveType: Curve.self, value: tv.CredentialResponse.b)
         let response = try server.respond(credentialRequest: precredential.credentialRequest, b: b)
-        XCTAssertEqual(response.HAux.oprfRepresentation.hexString, tv.CredentialResponse.H_aux)
-        XCTAssertEqual(response.U.oprfRepresentation.hexString, tv.CredentialResponse.U)
-        XCTAssertEqual(response.X0Aux.oprfRepresentation.hexString, tv.CredentialResponse.X0_aux)
-        XCTAssertEqual(response.X1Aux.oprfRepresentation.hexString, tv.CredentialResponse.X1_aux)
-        XCTAssertEqual(response.X2Aux.oprfRepresentation.hexString, tv.CredentialResponse.X2_aux)
-        XCTAssertEqual(response.encUPrime.oprfRepresentation.hexString, tv.CredentialResponse.enc_U_prime)
+        XCTAssertEqual(try response.HAux.oprfRepresentation.hexString, tv.CredentialResponse.H_aux)
+        XCTAssertEqual(try response.U.oprfRepresentation.hexString, tv.CredentialResponse.U)
+        XCTAssertEqual(try response.X0Aux.oprfRepresentation.hexString, tv.CredentialResponse.X0_aux)
+        XCTAssertEqual(try response.X1Aux.oprfRepresentation.hexString, tv.CredentialResponse.X1_aux)
+        XCTAssertEqual(try response.X2Aux.oprfRepresentation.hexString, tv.CredentialResponse.X2_aux)
+        XCTAssertEqual(try response.encUPrime.oprfRepresentation.hexString, tv.CredentialResponse.enc_U_prime)
 
         // Verify response proof, by creating a new response with the
         // tv.CredentialResponse.proof scalars and verifying it.
@@ -263,9 +263,9 @@ class ARCTestVectors: XCTestCase {
 
         // Make a credential from the response
         var credential = try precredential.makeCredential(credentialResponse: response)
-        XCTAssertEqual(credential.U.oprfRepresentation.hexString, tv.Credential.U)
-        XCTAssertEqual(credential.UPrime.oprfRepresentation.hexString, tv.Credential.U_prime)
-        XCTAssertEqual(credential.X1.oprfRepresentation.hexString, tv.Credential.X1)
+        XCTAssertEqual(try credential.U.oprfRepresentation.hexString, tv.Credential.U)
+        XCTAssertEqual(try credential.UPrime.oprfRepresentation.hexString, tv.Credential.U_prime)
+        XCTAssertEqual(try credential.X1.oprfRepresentation.hexString, tv.Credential.X1)
         XCTAssertEqual(credential.m1.rawRepresentation.hexString, tv.Credential.m1)
 
         // Make a first presentation from the credential, passing in randomness a, r, z
@@ -276,10 +276,10 @@ class ARCTestVectors: XCTestCase {
         let nonce_1 = Int(tv.Presentation1.nonce.replacingOccurrences(of: "0x", with: ""), radix: 16)!
         let (presentation1, nonce_1_returned) = try credential.makePresentation(presentationContext: presentationContext1, presentationLimit: 2, a: a_1, r: r_1, z: z_1, optionalNonce: nonce_1)
         XCTAssertEqual(nonce_1, nonce_1_returned)
-        XCTAssertEqual(presentation1.U.oprfRepresentation.hexString, tv.Presentation1.U)
-        XCTAssertEqual(presentation1.UPrimeCommit.oprfRepresentation.hexString, tv.Presentation1.U_prime_commit)
-        XCTAssertEqual(presentation1.m1Commit.oprfRepresentation.hexString, tv.Presentation1.m1_commit)
-        XCTAssertEqual(presentation1.tag.oprfRepresentation.hexString, tv.Presentation1.tag)
+        XCTAssertEqual(try presentation1.U.oprfRepresentation.hexString, tv.Presentation1.U)
+        XCTAssertEqual(try presentation1.UPrimeCommit.oprfRepresentation.hexString, tv.Presentation1.U_prime_commit)
+        XCTAssertEqual(try presentation1.m1Commit.oprfRepresentation.hexString, tv.Presentation1.m1_commit)
+        XCTAssertEqual(try presentation1.tag.oprfRepresentation.hexString, tv.Presentation1.tag)
 
         // Verify presentation1 proof, by creating a new presentation with the
         // tv.Presentation1.proof scalars and verifying it.
@@ -295,10 +295,10 @@ class ARCTestVectors: XCTestCase {
         let nonce_2 = Int(tv.Presentation2.nonce.replacingOccurrences(of: "0x", with: ""), radix: 16)!
         let (presentation2, nonce_2_returned) = try credential.makePresentation(presentationContext: presentationContext1, presentationLimit: 2, a: a_2, r: r_2, z: z_2, optionalNonce: nonce_2)
         XCTAssertEqual(nonce_2, nonce_2_returned)
-        XCTAssertEqual(presentation2.U.oprfRepresentation.hexString, tv.Presentation2.U)
-        XCTAssertEqual(presentation2.UPrimeCommit.oprfRepresentation.hexString, tv.Presentation2.U_prime_commit)
-        XCTAssertEqual(presentation2.m1Commit.oprfRepresentation.hexString, tv.Presentation2.m1_commit)
-        XCTAssertEqual(presentation2.tag.oprfRepresentation.hexString, tv.Presentation2.tag)
+        XCTAssertEqual(try presentation2.U.oprfRepresentation.hexString, tv.Presentation2.U)
+        XCTAssertEqual(try presentation2.UPrimeCommit.oprfRepresentation.hexString, tv.Presentation2.U_prime_commit)
+        XCTAssertEqual(try presentation2.m1Commit.oprfRepresentation.hexString, tv.Presentation2.m1_commit)
+        XCTAssertEqual(try presentation2.tag.oprfRepresentation.hexString, tv.Presentation2.tag)
 
         // Verify presentation2 proof, by creating a new presentation with the
         // tv.Presentation2.proof scalars and verifying it.
