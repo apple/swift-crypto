@@ -283,7 +283,9 @@ extension OpenSSLCurvePoint: OPRFGroupElement {
         self.init(ecPoint: point)
     }
 
-    var oprfRepresentation: Data { self.compressedRepresentation }
+    var oprfRepresentation: Data {
+        get throws { try self.ecPoint.x962Representation(compressed: true, on: C.group, context: C.__ffac) }
+    }
 }
 
 @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)

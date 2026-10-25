@@ -109,7 +109,7 @@ extension OPRF {
             let t: H2G.G.Element = H2G.hashToGroup(msg, domainSeparationString: dst)
             let (issuedElement, _): (H2G.G.Element, DLEQProof<H2G.G.Element.Scalar>?) = try evaluate(blindedElement: t, info: info)
             
-            return output == Data(H2G.H.hash(data: composeFinalizeContext(message: msg, info: info, unblindedElement: issuedElement, ciphersuite: ciphersuite, mode: mode, v8CompatibilityMode: v8CompatibilityMode)))
+            return output == Data(H2G.H.hash(data: try composeFinalizeContext(message: msg, info: info, unblindedElement: issuedElement, ciphersuite: ciphersuite, mode: mode, v8CompatibilityMode: v8CompatibilityMode)))
         }
     }
 }
