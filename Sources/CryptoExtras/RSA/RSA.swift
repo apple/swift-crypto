@@ -530,7 +530,7 @@ extension _RSA.Signing {
 extension _RSA.Encryption {
     /// Identical to ``_RSA/Signing/PublicKey``.
     @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
-    public struct PublicKey {
+    public struct PublicKey: Sendable {
         public struct Primitives: Sendable, Hashable {
             public var modulus: Data
             public var publicExponent: Data
@@ -612,7 +612,7 @@ extension _RSA.Encryption {
     
     /// Identical to ``_RSA/Signing/PrivateKey``.
     @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
-    public struct PrivateKey {
+    public struct PrivateKey: Sendable {
         private var backing: BackingPrivateKey
 
         /// Construct an RSA private key from a PEM representation.
