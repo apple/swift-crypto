@@ -33,7 +33,6 @@ import Foundation
 @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension MLKEM768 {
     /// A ML-KEM-768 private key.
-    @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
     struct InternalPrivateKey: @unchecked Sendable, KEMPrivateKey {
         private var backing: Backing
 
@@ -150,14 +149,14 @@ extension MLKEM768 {
                     throw CryptoKitError.incorrectParameterSize
                 }
 
-                var symmetricKeyData = Data(repeating: 0, count: MLKEM.sharedSecretByteCount)
-
-                let rc: CInt = symmetricKeyData.withUnsafeMutableBytes { symmetricKeyDataPtr in
+                return try SymmetricKey(unsafeUninitializedCapacity: MLKEM.sharedSecretByteCount) {
+                    symmetricKeyDataPtr,
+                    count in
                     let bytes: ContiguousBytes =
                         encapsulated.regions.count == 1
                         ? encapsulated.regions.first!
                         : Array(encapsulated)
-                    return bytes.withUnsafeBytes { encapsulatedPtr in
+                    let rc: CInt = bytes.withUnsafeBytes { encapsulatedPtr in
                         CCryptoBoringSSL_MLKEM768_decap(
                             symmetricKeyDataPtr.baseAddress,
                             encapsulatedPtr.baseAddress,
@@ -165,13 +164,13 @@ extension MLKEM768 {
                             &self.key
                         )
                     }
-                }
 
-                guard rc == 1 else {
-                    throw CryptoKitError.internalBoringSSLError()
-                }
+                    guard rc == 1 else {
+                        throw CryptoKitError.internalBoringSSLError()
+                    }
 
-                return SymmetricKey(data: symmetricKeyData)
+                    count = MLKEM.sharedSecretByteCount
+                }
             }
         }
     }
@@ -180,7 +179,6 @@ extension MLKEM768 {
 @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension MLKEM768 {
     /// A ML-KEM-768 public key.
-    @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
     struct InternalPublicKey: @unchecked Sendable, KEMPublicKey {
         private var backing: Backing
 
@@ -302,7 +300,6 @@ extension MLKEM768 {
 @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension MLKEM1024 {
     /// A ML-KEM-1024 private key.
-    @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
     struct InternalPrivateKey: @unchecked Sendable, KEMPrivateKey {
         private var backing: Backing
 
@@ -419,14 +416,14 @@ extension MLKEM1024 {
                     throw CryptoKitError.incorrectParameterSize
                 }
 
-                var symmetricKeyData = Data(repeating: 0, count: MLKEM.sharedSecretByteCount)
-
-                let rc: CInt = symmetricKeyData.withUnsafeMutableBytes { symmetricKeyDataPtr in
+                return try SymmetricKey(unsafeUninitializedCapacity: MLKEM.sharedSecretByteCount) {
+                    symmetricKeyDataPtr,
+                    count in
                     let bytes: ContiguousBytes =
                         encapsulated.regions.count == 1
                         ? encapsulated.regions.first!
                         : Array(encapsulated)
-                    return bytes.withUnsafeBytes { encapsulatedPtr in
+                    let rc: CInt = bytes.withUnsafeBytes { encapsulatedPtr in
                         CCryptoBoringSSL_MLKEM1024_decap(
                             symmetricKeyDataPtr.baseAddress,
                             encapsulatedPtr.baseAddress,
@@ -434,13 +431,13 @@ extension MLKEM1024 {
                             &self.key
                         )
                     }
-                }
 
-                guard rc == 1 else {
-                    throw CryptoKitError.internalBoringSSLError()
-                }
+                    guard rc == 1 else {
+                        throw CryptoKitError.internalBoringSSLError()
+                    }
 
-                return SymmetricKey(data: symmetricKeyData)
+                    count = MLKEM.sharedSecretByteCount
+                }
             }
         }
     }
@@ -449,7 +446,6 @@ extension MLKEM1024 {
 @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension MLKEM1024 {
     /// A ML-KEM-1024 public key.
-    @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
     struct InternalPublicKey: @unchecked Sendable, KEMPublicKey {
         private var backing: Backing
 
@@ -568,7 +564,6 @@ extension MLKEM1024 {
     private static let ciphertextByteCount = Int(MLKEM1024_CIPHERTEXT_BYTES)
 }
 
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 enum MLKEM {
     /// The size of the seed in bytes.
     static let seedByteCount = 64

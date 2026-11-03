@@ -248,6 +248,13 @@ final class TestRSAEncryption: XCTestCase {
         XCTAssertEqual(191, publicKey.maximumEncryptSize(with: .PKCS1_OAEP_SHA256))
     }
 
+    func testKeysAreSendable() {
+        func assertSendable<T: Sendable>(_: T.Type) {}
+
+        assertSendable(_RSA.Encryption.PublicKey.self)
+        assertSendable(_RSA.Encryption.PrivateKey.self)
+    }
+
     func testPKCS1() throws {
         let pubKeyPEM = """
             -----BEGIN RSA PUBLIC KEY-----

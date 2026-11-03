@@ -219,6 +219,43 @@ class ASN1Tests: XCTestCase {
         XCTAssertEqual(serializer.serializedBytes, decodedPrivateKey)
     }
 
+    func testPKCS8PrivateKeyWithMismatchedCurveIsRejected() throws {
+        func pkcs8(_ algorithm: ASN1.RFC5480AlgorithmIdentifier, _ privateKey: Data, _ publicKey: Data) throws -> (der: Data, pem: String) {
+            let pkey = ASN1.PKCS8PrivateKey(algorithm: algorithm, privateKey: Array(privateKey), publicKey: Array(publicKey))
+            var serializer = ASN1.Serializer()
+            try serializer.serialize(pkey)
+            let der = Data(serializer.serializedBytes)
+            return (der, ASN1.PEMDocument(type: "PRIVATE KEY", derBytes: der).pemString)
+        }
+
+        let p256 = P256.Signing.PrivateKey()
+        let p384 = P384.Signing.PrivateKey()
+        let p521 = P521.Signing.PrivateKey()
+
+        let p256InP384 = try pkcs8(.ecdsaP384, p256.rawRepresentation, p256.publicKey.x963Representation)
+        XCTAssertThrowsError(try P256.Signing.PrivateKey(derRepresentation: p256InP384.der))
+        XCTAssertThrowsError(try P256.Signing.PrivateKey(pemRepresentation: p256InP384.pem))
+        XCTAssertThrowsError(try P256.KeyAgreement.PrivateKey(derRepresentation: p256InP384.der))
+        XCTAssertThrowsError(try P256.KeyAgreement.PrivateKey(pemRepresentation: p256InP384.pem))
+
+        let p384InP521 = try pkcs8(.ecdsaP521, p384.rawRepresentation, p384.publicKey.x963Representation)
+        XCTAssertThrowsError(try P384.Signing.PrivateKey(derRepresentation: p384InP521.der))
+        XCTAssertThrowsError(try P384.Signing.PrivateKey(pemRepresentation: p384InP521.pem))
+        XCTAssertThrowsError(try P384.KeyAgreement.PrivateKey(derRepresentation: p384InP521.der))
+        XCTAssertThrowsError(try P384.KeyAgreement.PrivateKey(pemRepresentation: p384InP521.pem))
+
+        let p521InP256 = try pkcs8(.ecdsaP256, p521.rawRepresentation, p521.publicKey.x963Representation)
+        XCTAssertThrowsError(try P521.Signing.PrivateKey(derRepresentation: p521InP256.der))
+        XCTAssertThrowsError(try P521.Signing.PrivateKey(pemRepresentation: p521InP256.pem))
+        XCTAssertThrowsError(try P521.KeyAgreement.PrivateKey(derRepresentation: p521InP256.der))
+        XCTAssertThrowsError(try P521.KeyAgreement.PrivateKey(pemRepresentation: p521InP256.pem))
+
+        // The correctly labelled encodings still load.
+        let p256InP256 = try pkcs8(.ecdsaP256, p256.rawRepresentation, p256.publicKey.x963Representation)
+        XCTAssertEqual(try P256.Signing.PrivateKey(derRepresentation: p256InP256.der).rawRepresentation, p256.rawRepresentation)
+        XCTAssertEqual(try P256.KeyAgreement.PrivateKey(pemRepresentation: p256InP256.pem).rawRepresentation, p256.rawRepresentation)
+    }
+
     func testRejectDripFedASN1SPKIP256() throws {
         // This test drip-feeds an ASN.1 P256 SPKI block. It should never parse correctly until we feed the entire block.
         let encodedSPKI = "MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAE2adMrdG7aUfZH57aeKFFM01dPnkxC18ScRb4Z6poMBgJtYlVtd9ly63URv57ZW0Ncs1LiZB7WATb3svu+1c7HQ=="

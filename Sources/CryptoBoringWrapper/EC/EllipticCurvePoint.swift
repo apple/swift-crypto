@@ -77,10 +77,6 @@ package struct EllipticCurvePoint: @unchecked Sendable {
         try self.multiply(by: rhs, on: group, context: context)
     }
 
-    // This enhancement can only be present on 6.1 or later because of the
-    // absence of https://github.com/swiftlang/swift/pull/76186 in older
-    // compilers.
-    #if compiler(>=6.1)
     @usableFromInline
     package consuming func multiplying(
         by rhs: ArbitraryPrecisionInteger,
@@ -90,18 +86,6 @@ package struct EllipticCurvePoint: @unchecked Sendable {
         try self.multiply(by: rhs, on: group, context: context)
         return self
     }
-    #else
-    @usableFromInline
-    package func multiplying(
-        by rhs: ArbitraryPrecisionInteger,
-        on group: BoringSSLEllipticCurveGroup,
-        context: FiniteFieldArithmeticContext? = nil
-    ) throws -> EllipticCurvePoint {
-        var `self` = self
-        try self.multiply(by: rhs, on: group, context: context)
-        return self
-    }
-    #endif
 
     @usableFromInline
     package static func multiplying(
@@ -134,10 +118,6 @@ package struct EllipticCurvePoint: @unchecked Sendable {
         try self.add(rhs, on: group, context: context)
     }
 
-    // This enhancement can only be present on 6.1 or later because of the
-    // absence of https://github.com/swiftlang/swift/pull/76186 in older
-    // compilers.
-    #if compiler(>=6.1)
     @usableFromInline
     package consuming func adding(
         _ rhs: consuming EllipticCurvePoint,
@@ -147,23 +127,7 @@ package struct EllipticCurvePoint: @unchecked Sendable {
         try self.add(rhs, on: group, context: context)
         return self
     }
-    #else
-    @usableFromInline
-    package func adding(
-        _ rhs: consuming EllipticCurvePoint,
-        on group: BoringSSLEllipticCurveGroup,
-        context: FiniteFieldArithmeticContext? = nil
-    ) throws -> EllipticCurvePoint {
-        var `self` = self
-        try self.add(rhs, on: group, context: context)
-        return self
-    }
-    #endif
 
-    // This enhancement can only be present on 6.1 or later because of the
-    // absence of https://github.com/swiftlang/swift/pull/76186 in older
-    // compilers.
-    #if compiler(>=6.1)
     @usableFromInline
     package static func adding(
         _ lhs: consuming EllipticCurvePoint,
@@ -174,19 +138,6 @@ package struct EllipticCurvePoint: @unchecked Sendable {
         try lhs.add(rhs, on: group, context: context)
         return lhs
     }
-    #else
-    @usableFromInline
-    package static func adding(
-        _ lhs: EllipticCurvePoint,
-        _ rhs: EllipticCurvePoint,
-        on group: BoringSSLEllipticCurveGroup,
-        context: FiniteFieldArithmeticContext? = nil
-    ) throws -> EllipticCurvePoint {
-        var lhs = lhs
-        try lhs.add(rhs, on: group, context: context)
-        return lhs
-    }
-    #endif
 
     @usableFromInline
     package mutating func invert(
@@ -207,10 +158,6 @@ package struct EllipticCurvePoint: @unchecked Sendable {
         try self.invert(on: group, context: context)
     }
 
-    // This enhancement can only be present on 6.1 or later because of the
-    // absence of https://github.com/swiftlang/swift/pull/76186 in older
-    // compilers.
-    #if compiler(>=6.1)
     @usableFromInline
     package consuming func inverting(
         on group: BoringSSLEllipticCurveGroup,
@@ -219,22 +166,7 @@ package struct EllipticCurvePoint: @unchecked Sendable {
         try self.invert(on: group, context: context)
         return self
     }
-    #else
-    @usableFromInline
-    package func inverting(
-        on group: BoringSSLEllipticCurveGroup,
-        context: FiniteFieldArithmeticContext? = nil
-    ) throws -> EllipticCurvePoint {
-        var `self` = self
-        try self.invert(on: group, context: context)
-        return self
-    }
-    #endif
 
-    // This enhancement can only be present on 6.1 or later because of the
-    // absence of https://github.com/swiftlang/swift/pull/76186 in older
-    // compilers.
-    #if compiler(>=6.1)
     @usableFromInline
     package static func inverting(
         _ point: consuming EllipticCurvePoint,
@@ -244,18 +176,6 @@ package struct EllipticCurvePoint: @unchecked Sendable {
         try point.invert(on: group, context: context)
         return point
     }
-    #else
-    @usableFromInline
-    package static func inverting(
-        _ point: EllipticCurvePoint,
-        on group: BoringSSLEllipticCurveGroup,
-        context: FiniteFieldArithmeticContext? = nil
-    ) throws -> EllipticCurvePoint {
-        var point = point
-        try point.invert(on: group, context: context)
-        return point
-    }
-    #endif
 
     @usableFromInline
     package mutating func subtract(
@@ -278,10 +198,6 @@ package struct EllipticCurvePoint: @unchecked Sendable {
         try self.subtract(rhs, on: group, context: context)
     }
 
-    // This enhancement can only be present on 6.1 or later because of the
-    // absence of https://github.com/swiftlang/swift/pull/76186 in older
-    // compilers.
-    #if compiler(>=6.1)
     @usableFromInline
     package consuming func subtracting(
         _ rhs: consuming EllipticCurvePoint,
@@ -291,23 +207,7 @@ package struct EllipticCurvePoint: @unchecked Sendable {
         try self.subtract(rhs, on: group, context: context)
         return self
     }
-    #else
-    @usableFromInline
-    package func subtracting(
-        _ rhs: EllipticCurvePoint,
-        on group: BoringSSLEllipticCurveGroup,
-        context: FiniteFieldArithmeticContext? = nil
-    ) throws -> EllipticCurvePoint {
-        var `self` = self
-        try self.subtract(rhs, on: group, context: context)
-        return self
-    }
-    #endif
 
-    // This enhancement can only be present on 6.1 or later because of the
-    // absence of https://github.com/swiftlang/swift/pull/76186 in older
-    // compilers.
-    #if compiler(>=6.1)
     @usableFromInline
     package static func subtracting(
         _ rhs: consuming EllipticCurvePoint,
@@ -318,19 +218,6 @@ package struct EllipticCurvePoint: @unchecked Sendable {
         try lhs.subtract(rhs, on: group, context: context)
         return lhs
     }
-    #else
-    @usableFromInline
-    package static func subtracting(
-        _ rhs: EllipticCurvePoint,
-        from lhs: EllipticCurvePoint,
-        on group: BoringSSLEllipticCurveGroup,
-        context: FiniteFieldArithmeticContext? = nil
-    ) throws -> EllipticCurvePoint {
-        var lhs = lhs
-        try lhs.subtract(rhs, on: group, context: context)
-        return lhs
-    }
-    #endif
 
     @usableFromInline
     package init<MessageBytes: ContiguousBytes, DSTBytes: ContiguousBytes>(

@@ -78,6 +78,7 @@ add_library(CryptoExtras
   "Util/ThreadSpecific/ThreadPosix.swift"
   "Util/ThreadSpecific/ThreadSpecific.swift"
   "Util/ThreadSpecific/ThreadWindows.swift"
+  "Util/Zeroization.swift"
   "ZKPs/DLEQ.swift"
   "ZKPs/Prover.swift"
   "ZKPs/Verifier.swift"

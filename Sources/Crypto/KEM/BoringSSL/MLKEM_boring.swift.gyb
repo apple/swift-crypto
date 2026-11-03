@@ -153,14 +153,14 @@ extension MLKEM${parameter_set} {
                     throw CryptoKitError.incorrectParameterSize
                 }
 
-                var symmetricKeyData = Data(repeating: 0, count: MLKEM.sharedSecretByteCount)
-
-                let rc: CInt = symmetricKeyData.withUnsafeMutableBytes { symmetricKeyDataPtr in
+                return try SymmetricKey(unsafeUninitializedCapacity: MLKEM.sharedSecretByteCount) {
+                    symmetricKeyDataPtr,
+                    count in
                     let bytes: ContiguousBytes =
                         encapsulated.regions.count == 1
                         ? encapsulated.regions.first!
                         : Array(encapsulated)
-                    return bytes.withUnsafeBytes { encapsulatedPtr in
+                    let rc: CInt = bytes.withUnsafeBytes { encapsulatedPtr in
                         CCryptoBoringSSL_MLKEM${parameter_set}_decap(
                             symmetricKeyDataPtr.baseAddress,
                             encapsulatedPtr.baseAddress,
@@ -168,13 +168,13 @@ extension MLKEM${parameter_set} {
                             &self.key
                         )
                     }
-                }
 
-                guard rc == 1 else {
-                    throw CryptoKitError.internalBoringSSLError()
-                }
+                    guard rc == 1 else {
+                        throw CryptoKitError.internalBoringSSLError()
+                    }
 
-                return SymmetricKey(data: symmetricKeyData)
+                    count = MLKEM.sharedSecretByteCount
+                }
             }
         }
     }
