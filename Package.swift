@@ -49,9 +49,8 @@ var swiftSettings: [SwiftSetting] = [
 swiftSettings.append(.enableExperimentalFeature("CheckImplementationOnly"))
 #endif
 
-// This doesn't work when cross-compiling: the privacy manifest will be included in the Bundle and
-// Foundation will be linked. This is, however, strictly better than unconditionally adding the
-// resource.
+// A resource makes SwiftPM generate a `Bundle.module` accessor that imports Foundation, not just FoundationEssentials.
+// `canImport(Darwin)` checks the host, not the target, so cross-compiling from Darwin still adds the resource.
 #if canImport(Darwin)
 let privacyManifestExclude: [String] = []
 let privacyManifestResource: [PackageDescription.Resource] = [.copy("PrivacyInfo.xcprivacy")]
