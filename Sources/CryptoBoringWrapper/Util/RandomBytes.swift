@@ -47,7 +47,7 @@ extension UnsafeMutableRawBufferPointer {
 
 @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension OutputRawSpan {
-    #if swift(<6.3)
+    #if compiler(<6.3)
     @_lifetime(self: copy self)
     #endif
     package mutating func appendingRandomBytes(count: Int) {

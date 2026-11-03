@@ -153,7 +153,7 @@ extension BoringSSLAEAD.AEADContext {
 
     /// Lowest level seal operation that calls into BoringSSL directly and
     /// operates on already-allocated memory.
-    #if swift(<6.3)
+    #if compiler(<6.3)
     @_lifetime(tag: copy tag)
     #endif
     public func seal(
@@ -303,7 +303,7 @@ extension BoringSSLAEAD.AEADContext {
     }
 
     /// Lowest level call into BoringSSL that decrypts in place.
-    #if swift(<6.3)
+    #if compiler(<6.3)
     @_lifetime(message: copy message)
     #endif
     public func open(
