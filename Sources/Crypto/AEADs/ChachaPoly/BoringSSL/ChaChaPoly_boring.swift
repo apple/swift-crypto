@@ -48,7 +48,7 @@ extension BoringSSLAEAD {
     }
 
     /// Seal a given message in place
-    #if swift(<6.3)
+    #if compiler(<6.3)
     @_lifetime(message: copy message)
     #endif
     func seal(
@@ -93,7 +93,7 @@ extension BoringSSLAEAD {
     }
 
     /// Open a given message in place.
-    #if swift(<6.3)
+    #if compiler(<6.3)
     @_lifetime(message: copy message)
     #endif
     public func open(
@@ -150,7 +150,7 @@ enum OpenSSLChaChaPolyImpl {
         return ChaChaPoly.SealedBox(combined: combined, nonceByteCount: nonce.count)
     }
 
-    #if swift(<6.3)
+    #if compiler(<6.3)
     @_lifetime(message: copy message)
     #endif
     static func encrypt(
@@ -211,7 +211,7 @@ enum OpenSSLChaChaPolyImpl {
         }
     }
 
-    #if swift(<6.3)
+    #if compiler(<6.3)
     @_lifetime(message: copy message)
     #endif
     static func decrypt(

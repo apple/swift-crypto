@@ -59,7 +59,7 @@ enum OpenSSLAESGCMImpl {
         return AES.GCM.SealedBox(combined: combined, nonceByteCount: nonce.count)
     }
 
-    #if swift(<6.3)
+    #if compiler(<6.3)
     @_lifetime(message: copy message)
     #endif
     @inlinable
@@ -119,7 +119,7 @@ enum OpenSSLAESGCMImpl {
     }
 
     /// Open a given message in place.
-    #if swift(<6.3)
+    #if compiler(<6.3)
     @_lifetime(message: copy message)
     #endif
     @inlinable

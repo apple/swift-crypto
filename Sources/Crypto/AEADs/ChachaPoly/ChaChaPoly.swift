@@ -70,7 +70,7 @@ public enum ChaChaPoly: Cipher, Sendable {
     ///   - nonce: The nonce the sealing process requires.
     ///   - authenticatedData: Additional data to be authenticated.
     ///   - tag: Will be updated with the 16-byte authentication tag.
-    #if swift(<6.3)
+    #if compiler(<6.3)
     @_lifetime(message: copy message)
     #endif
     public static func seal(
@@ -124,7 +124,7 @@ public enum ChaChaPoly: Cipher, Sendable {
     ///   - authenticatedData: Additional data that was authenticated.
     ///
     /// The call throws an error if decryption or authentication fail.
-    #if swift(<6.3)
+    #if compiler(<6.3)
     @_lifetime(message: copy message)
     #endif
     public static func open(
