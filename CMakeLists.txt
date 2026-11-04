@@ -12,7 +12,7 @@
 ##
 ##===----------------------------------------------------------------------===##
 
-cmake_minimum_required(VERSION 3.15.1)
+cmake_minimum_required(VERSION 3.16)
 
 if(POLICY CMP0157)
   cmake_policy(SET CMP0157 NEW)
@@ -25,13 +25,8 @@ list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake/modules)
 
 include(SwiftSupport)
 
-if(CMAKE_VERSION VERSION_LESS 3.16 AND CMAKE_SYSTEM_NAME STREQUAL Windows)
-  set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
-  set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
-else()
-  set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
-  set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
-endif()
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 set(CMAKE_Swift_MODULE_DIRECTORY ${CMAKE_BINARY_DIR}/swift)
 
@@ -78,6 +73,9 @@ if(NOT SwiftASN1_FOUND)
     GIT_TAG 1.3.1)
   FetchContent_MakeAvailable(ASN1)
 endif()
+
+# Set after vending swift-asn1 so its targets keep their own language mode.
+set(CMAKE_Swift_LANGUAGE_VERSION 6)
 
 add_subdirectory(Sources)
 add_subdirectory(cmake/modules)
