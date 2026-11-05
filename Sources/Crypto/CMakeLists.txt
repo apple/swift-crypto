@@ -98,7 +98,7 @@ add_library(Crypto
   "Signatures/MLDSA.swift"
   "Signatures/Signature.swift"
   "Util/ArraySpanHelpers.swift"
-  "Util/Backports.swift"
+  "Util/BoringSSL/Backports_boring.swift"
   "Util/BoringSSL/CryptoKitErrors_boring.swift"
   "Util/BoringSSL/InlineArray+withBytes_boring.swift"
   "Util/BoringSSL/Optional+withUnsafeBytes_boring.swift"
