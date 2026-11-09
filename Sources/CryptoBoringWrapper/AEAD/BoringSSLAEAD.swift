@@ -152,7 +152,7 @@ extension BoringSSLAEAD.AEADContext {
     }
 
     /// Lowest level seal operation that calls into BoringSSL directly and
-    /// operates on already-allocated memory.
+    /// operates in-place on already-allocated memory.
     #if compiler(<6.3)
     @_lifetime(tag: copy tag)
     #endif
@@ -162,43 +162,123 @@ extension BoringSSLAEAD.AEADContext {
         authenticatedData: RawSpan,
         tag: inout OutputRawSpan
     ) throws {
-        let tagByteCount = CCryptoBoringSSL_EVP_AEAD_max_overhead(self.context.aead)
-        precondition(tag.freeCapacity >= tagByteCount)
-        var actualTagSize = tagByteCount
+        // BoringSSL writes up to (EVP_AEAD_max_overhead + extra_in_len) bytes. We use zero extra_in_len.
+        let maxTagByteCount = CCryptoBoringSSL_EVP_AEAD_max_overhead(self.context.aead)
+        precondition(tag.freeCapacity >= maxTagByteCount)
 
-        let rc = withUnsafeMutablePointer(to: &self.context) { contextPointer in
-            message.withUnsafeMutableBytes { messageBuffer in
-                tag.withUnsafeMutableBytes { tagBuffer, tagInitializedCount in
-                    defer {
-                        tagInitializedCount += actualTagSize
-                    }
-
-                    return authenticatedData.withUnsafeBytes { authenticatedDataBuffer in
-                        nonce.withUnsafeBytes { nonceBuffer in
-                            CCryptoBoringSSL_EVP_AEAD_CTX_seal_scatter(
-                                contextPointer,
-                                messageBuffer.baseAddress,
-                                tagBuffer.baseAddress! + tagInitializedCount,
-                                &actualTagSize,
-                                tagBuffer.count - tagInitializedCount,
-                                nonceBuffer.baseAddress,
-                                nonceBuffer.count,
-                                messageBuffer.baseAddress,
-                                messageBuffer.count,
-                                nil,
-                                0,
-                                authenticatedDataBuffer.baseAddress,
-                                authenticatedDataBuffer.count
-                            )
+        try withUnsafeMutablePointer(to: &self.context) { contextPointer in
+            try message.withUnsafeMutableBytes { messageBuffer in
+                try tag.withUnsafeMutableBytes { tagBuffer, tagInitializedCount in
+                    // BoringSSL returns the size of the tag it wrote.
+                    var actualTagByteCount = maxTagByteCount
+                    defer { tagInitializedCount += actualTagByteCount }
+                    // BoringSSL guarantees to fill out with in_len bytes, even on error.
+                    try authenticatedData.withUnsafeBytes { authenticatedDataBuffer in
+                        try nonce.withUnsafeBytes { nonceBuffer in
+                            guard
+                                CCryptoBoringSSL_EVP_AEAD_CTX_seal_scatter(
+                                    contextPointer,
+                                    messageBuffer.baseAddress,
+                                    tagBuffer.baseAddress! + tagInitializedCount,
+                                    &actualTagByteCount,
+                                    tagBuffer.count - tagInitializedCount,
+                                    nonceBuffer.baseAddress,
+                                    nonceBuffer.count,
+                                    messageBuffer.baseAddress,
+                                    messageBuffer.count,
+                                    nil,
+                                    0,
+                                    authenticatedDataBuffer.baseAddress,
+                                    authenticatedDataBuffer.count
+                                ) == 1
+                            else {
+                                throw CryptoBoringWrapperError.internalBoringSSLError()
+                            }
                         }
-
                     }
                 }
             }
         }
+    }
 
-        guard rc == 1 else {
-            throw CryptoBoringWrapperError.internalBoringSSLError()
+    /// Lowest level seal operation that calls into BoringSSL directly and
+    /// operates on already-allocated memory to input and output buffers.
+    #if compiler(<6.3)
+    @_lifetime(tag: copy tag)
+    @_lifetime(output: copy output)
+    #endif
+    public func seal(
+        message: RawSpan,
+        output: inout OutputRawSpan,
+        nonce: RawSpan,
+        authenticatedData: RawSpan,
+        tag: inout OutputRawSpan,
+    ) throws {
+        // BoringSSL writes up to (EVP_AEAD_max_overhead + extra_in_len) bytes. We use zero extra_in_len.
+        let maxTagByteCount = CCryptoBoringSSL_EVP_AEAD_max_overhead(self.context.aead)
+        precondition(tag.freeCapacity >= maxTagByteCount)
+        precondition(output.freeCapacity >= message.byteCount)
+
+        try withUnsafeMutablePointer(to: &self.context) { contextPointer in
+            try message.withUnsafeBytes { messageBuffer in
+                try tag.withUnsafeMutableBytes { tagBuffer, tagInitializedCount in
+                    // BoringSSL returns the size of the tag it wrote.
+                    var actualTagByteCount = maxTagByteCount
+
+                    try output.withUnsafeMutableBytes { outputBuffer, outputInitializedCount in
+                        try authenticatedData.withUnsafeBytes { authenticatedDataBuffer in
+                            try nonce.withUnsafeBytes { nonceBuffer in
+                                guard
+                                    CCryptoBoringSSL_EVP_AEAD_CTX_seal_scatter(
+                                        contextPointer,
+                                        outputBuffer.baseAddress?.advanced(by: outputInitializedCount),
+                                        tagBuffer.baseAddress! + tagInitializedCount,
+                                        &actualTagByteCount,
+                                        tagBuffer.count - tagInitializedCount,
+                                        nonceBuffer.baseAddress,
+                                        nonceBuffer.count,
+                                        messageBuffer.baseAddress,
+                                        messageBuffer.count,
+                                        nil,
+                                        0,
+                                        authenticatedDataBuffer.baseAddress,
+                                        authenticatedDataBuffer.count
+                                    ) == 1
+                                else {
+                                    throw CryptoBoringWrapperError.internalBoringSSLError()
+                                }
+                            }
+                        }
+                        // BoringSSL writes zeros on error; count only on success so a throw leaves output unchanged.
+                        outputInitializedCount += messageBuffer.count
+                    }
+                    tagInitializedCount += actualTagByteCount
+                }
+            }
+        }
+    }
+
+    // TODO: Do we need this one or not?
+    #if compiler(<6.3)
+    @_lifetime(tag: copy tag)
+    @_lifetime(output: copy output)
+    #endif
+    public func seal(
+        message: RawSpan,
+        output: inout MutableRawSpan,
+        nonce: RawSpan,
+        authenticatedData: RawSpan,
+        tag: inout OutputRawSpan,
+    ) throws {
+        try output.withUnsafeMutableBytes { outputBuffer in
+            var outputSpan = OutputRawSpan(buffer: outputBuffer, initializedCount: 0)
+            try self.seal(
+                message: message,
+                output: &outputSpan,
+                nonce: nonce,
+                authenticatedData: authenticatedData,
+                tag: &tag
+            )
         }
     }
 
@@ -337,6 +417,52 @@ extension BoringSSLAEAD.AEADContext {
 
         guard rc == 1 else {
             throw CryptoBoringWrapperError.internalBoringSSLError()
+        }
+    }
+
+    /// Lowest level open operation that calls into BoringSSL directly and
+    /// operates on already-allocated memory to input and output buffers.
+    #if compiler(<6.3)
+    @_lifetime(output: copy output)
+    #endif
+    public func open(
+        message: RawSpan,
+        output: inout OutputRawSpan,
+        nonce: RawSpan,
+        tag: RawSpan,
+        authenticatedData: RawSpan
+    ) throws {
+        precondition(output.freeCapacity >= message.byteCount)
+
+        try withUnsafePointer(to: &self.context) { contextPointer in
+            try message.withUnsafeBytes { messageBuffer in
+                try output.withUnsafeMutableBytes { outputBuffer, outputInitializedCount in
+                    try nonce.withUnsafeBytes { nonceBuffer in
+                        try tag.withUnsafeBytes { tagBuffer in
+                            try authenticatedData.withUnsafeBytes { authenticatedDataBuffer in
+                                guard
+                                    CCryptoBoringSSL_EVP_AEAD_CTX_open_gather(
+                                        contextPointer,
+                                        outputBuffer.baseAddress?.advanced(by: outputInitializedCount),
+                                        nonceBuffer.baseAddress,
+                                        nonceBuffer.count,
+                                        messageBuffer.baseAddress,
+                                        messageBuffer.count,
+                                        tagBuffer.baseAddress,
+                                        tagBuffer.count,
+                                        authenticatedDataBuffer.baseAddress,
+                                        authenticatedDataBuffer.count
+                                    ) == 1
+                                else {
+                                    throw CryptoBoringWrapperError.internalBoringSSLError()
+                                }
+                            }
+                        }
+                    }
+                    // BoringSSL writes zeros on error; count only on success so a throw leaves output unchanged.
+                    outputInitializedCount += messageBuffer.count
+                }
+            }
         }
     }
 
