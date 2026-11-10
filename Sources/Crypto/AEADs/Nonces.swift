@@ -35,7 +35,18 @@ extension AES.GCM {
     /// that nonces are unique per call to encryption APIs in order to protect the
     /// integrity of the encryption.
     public struct Nonce: ContiguousBytes, Sequence, Sendable {
-        typealias Storage = ContiguousArray<UInt8>
+
+        enum Storage: Sendable {
+            case inline([12 of UInt8])
+            case contiguousArray(ContiguousArray<UInt8>)
+
+            var count: Int {
+                switch self {
+                case .inline: return AES.GCM.defaultNonceByteCount
+                case .contiguousArray(let arr): return arr.count
+                }
+            }
+        }
 
         let storage: Storage
 
@@ -59,7 +70,11 @@ extension AES.GCM {
                 throw error(CryptoKitError.incorrectParameterSize)
             }
 
-            self.storage = Storage(copying: data)
+            if data.byteCount == AES.GCM.defaultNonceByteCount {
+                self.storage = .inline(InlineArray(copying: data))
+            } else {
+                self.storage = .contiguousArray(ContiguousArray(copying: data))
+            }
         }
 
         /// Creates a nonce from the given data.
@@ -75,7 +90,11 @@ extension AES.GCM {
                 throw error(CryptoKitError.incorrectParameterSize)
             }
 
-            self.storage = Storage(copying: bytes)
+            if bytes.byteCount == AES.GCM.defaultNonceByteCount {
+                self.storage = .inline(InlineArray(copying: bytes))
+            } else {
+                self.storage = .contiguousArray(ContiguousArray(copying: bytes))
+            }
         }
 
         /// Creates a nonce from the given data.
@@ -91,7 +110,13 @@ extension AES.GCM {
                 throw error(CryptoKitError.incorrectParameterSize)
             }
 
-            self.storage = Storage(data)
+            if data.count == AES.GCM.defaultNonceByteCount {
+                var iter = data.makeIterator()
+                // Data was verified to be present above with data.count
+                self.storage = .inline(InlineArray { _ in iter.next()! })
+            } else {
+                self.storage = .contiguousArray(ContiguousArray(data))
+            }
         }
 
         /// Calls the given closure with a pointer to the underlying bytes of the array’s
@@ -107,18 +132,33 @@ extension AES.GCM {
         /// - Returns: The return value, if any, of the body closure parameter.
 #if !hasFeature(Embedded)
         public func withUnsafeBytes<R>(_ body: (UnsafeRawBufferPointer) throws -> R) rethrows -> R {
-            return try self.bytes.withUnsafeBytes(body)
+            switch storage {
+            case .inline(let arr):
+                return try arr.span.bytes.withUnsafeBytes(body)
+            case .contiguousArray(let arr):
+                return try arr.withUnsafeBytes(body)
+            }
         }
 #else
         public func withUnsafeBytes<R, E: Error>(_ body: (UnsafeRawBufferPointer) throws(E) -> R) throws(E) -> R {
-            return try self.bytes.withUnsafeBytes(body)
+            switch storage {
+            case .inline(let arr):
+                return try arr.span.bytes.withUnsafeBytes(body)
+            case .contiguousArray(let arr):
+                return try arr.withUnsafeBytes(body)
+            }
         }
 #endif
 
         /// The bytes stored in the nonce.
         public var bytes: RawSpan {
-            get {
-                storage.span.bytes
+            _read {
+                switch storage {
+                case .inline(let arr):
+                    yield arr.span.bytes
+                case .contiguousArray(let arr):
+                    yield arr.span.bytes
+                }
             }
         }
 
@@ -134,14 +174,11 @@ extension AES.GCM {
 
         /// Storage for a new, random nonce.
         static var randomNonceStorage: Storage {
-            var data = Storage(repeating: 0, count: AES.GCM.defaultNonceByteCount)
-            assert(data.count == AES.GCM.defaultNonceByteCount)
-
+            var data: [12 of UInt8] = InlineArray(repeating: 0)
             var mutableSpan = data.mutableSpan
             var mutableBytes = mutableSpan.mutableBytes
             initializeRandomNonce(into: &mutableBytes)
-
-            return data
+            return .inline(data)
         }
 
         /// Initialize the given mutable span with random bytes.
@@ -159,7 +196,18 @@ extension ChaChaPoly {
     /// that nonces are unique per call to encryption APIs in order to protect the
     /// integrity of the encryption.
     public struct Nonce: ContiguousBytes, Sequence, Sendable {
-        typealias Storage = [12 of UInt8]
+
+        enum Storage: Sendable {
+            case inline([12 of UInt8])
+            case contiguousArray(ContiguousArray<UInt8>)
+
+            var count: Int {
+                switch self {
+                case .inline: return ChaChaPoly.nonceByteCount
+                case .contiguousArray(let arr): return arr.count
+                }
+            }
+        }
 
         let storage: Storage
 
@@ -183,7 +231,11 @@ extension ChaChaPoly {
                 throw error(CryptoKitError.incorrectParameterSize)
             }
 
-            self.storage = Storage(copying: data)
+            if data.byteCount == ChaChaPoly.nonceByteCount {
+                self.storage = .inline(InlineArray(copying: data))
+            } else {
+                self.storage = .contiguousArray(ContiguousArray(copying: data))
+            }
         }
 
         /// Creates a nonce from the given data.
@@ -199,7 +251,11 @@ extension ChaChaPoly {
                 throw error(CryptoKitError.incorrectParameterSize)
             }
 
-            self.storage = Storage(copying: bytes)
+            if bytes.byteCount == ChaChaPoly.nonceByteCount {
+                self.storage = .inline(InlineArray(copying: bytes))
+            } else {
+                self.storage = .contiguousArray(ContiguousArray(copying: bytes))
+            }
         }
 
         /// Creates a nonce from the given data.
@@ -215,7 +271,13 @@ extension ChaChaPoly {
                 throw error(CryptoKitError.incorrectParameterSize)
             }
 
-            self.storage = Storage(copying: data)
+            if data.count == ChaChaPoly.nonceByteCount {
+                var iter = data.makeIterator()
+                // Data was verified to be present above with data.count
+                self.storage = .inline(InlineArray { _ in iter.next()! })
+            } else {
+                self.storage = .contiguousArray(ContiguousArray(data))
+            }
         }
 
         /// Calls the given closure with a pointer to the underlying bytes of the array’s
@@ -231,18 +293,33 @@ extension ChaChaPoly {
         /// - Returns: The return value, if any, of the body closure parameter.
 #if !hasFeature(Embedded)
         public func withUnsafeBytes<R>(_ body: (UnsafeRawBufferPointer) throws -> R) rethrows -> R {
-            return try self.bytes.withUnsafeBytes(body)
+            switch storage {
+            case .inline(let arr):
+                return try arr.span.bytes.withUnsafeBytes(body)
+            case .contiguousArray(let arr):
+                return try arr.withUnsafeBytes(body)
+            }
         }
 #else
         public func withUnsafeBytes<R, E: Error>(_ body: (UnsafeRawBufferPointer) throws(E) -> R) throws(E) -> R {
-            return try self.bytes.withUnsafeBytes(body)
+            switch storage {
+            case .inline(let arr):
+                return try arr.span.bytes.withUnsafeBytes(body)
+            case .contiguousArray(let arr):
+                return try arr.withUnsafeBytes(body)
+            }
         }
 #endif
 
         /// The bytes stored in the nonce.
         public var bytes: RawSpan {
-            get {
-                storage.span.bytes
+            _read {
+                switch storage {
+                case .inline(let arr):
+                    yield arr.span.bytes
+                case .contiguousArray(let arr):
+                    yield arr.span.bytes
+                }
             }
         }
 
@@ -258,13 +335,11 @@ extension ChaChaPoly {
 
         /// Storage for a new, random nonce.
         static var randomNonceStorage: Storage {
-            var data = Storage(repeating: 0)
-
+            var data: [12 of UInt8] = InlineArray(repeating: 0)
             var mutableSpan = data.mutableSpan
             var mutableBytes = mutableSpan.mutableBytes
             initializeRandomNonce(into: &mutableBytes)
-
-            return data
+            return .inline(data)
         }
 
         /// Initialize the given mutable span with random bytes.
