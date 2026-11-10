@@ -249,7 +249,12 @@ extension AES.GCM {
             let nonceByteCount = nonce.storage.count
             var combinedRepresentation = Data()
             combinedRepresentation.reserveCapacity(nonceByteCount + ciphertext.count + tag.count)
-            combinedRepresentation.append(contentsOf: nonce.storage)
+            switch nonce.storage {
+            case .contiguousArray(let nonce):
+                combinedRepresentation.append(contentsOf: nonce)
+            case .inline(let nonce):
+                combinedRepresentation.append(contentsOf: nonce.span.bytes)
+            }
             combinedRepresentation.append(contentsOf: ciphertext)
             combinedRepresentation.append(contentsOf: tag)
 

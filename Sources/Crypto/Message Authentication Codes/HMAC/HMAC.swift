@@ -67,12 +67,18 @@ public struct HMAC<H: HashFunction>: MACAlgorithm, Sendable {
         #else
         // HMAC(K, m) = H((K0 ^ opad) || H((K0 ^ ipad) || m)), where K0 is the
         // key normalized to the hash block size (RFC 2104).
+        //
+        // We seed the inner and outer hashers with their padded keys up front,
+        // so that `update` and `finalize` only need to process the message.
+        //
+        // K0 is built once in a scoped allocation and XORed in place to form
+        // each pad, so neither pad is heap allocated.
         self.innerHasher = H()
         self.outerHasher = H()
         withTemporaryZeroingAllocation(byteCount: H.blockByteCount, alignment: 1) { keyBlock in
-            if key.byteCount <= keyBlock.freeCapacity {
+            if key.byteCount <= H.blockByteCount {
                 keyBlock.append(contentsOf: key.bytes)
-            } else if key.byteCount > H.blockByteCount {
+            } else {
                 H.hash(bytes: key.bytes).withBytes { keyBlock.append(contentsOf: $0) }
             }
             keyBlock.append(repeating: 0, count: keyBlock.freeCapacity, as: UInt8.self)
