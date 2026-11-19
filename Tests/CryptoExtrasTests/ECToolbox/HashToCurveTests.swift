@@ -56,7 +56,7 @@ class HashToCurveTests: XCTestCase {
 
             let point = h2c.hashToGroup(msg, domainSeparationString: Data(dst.utf8))
 
-            XCTAssert(point.oprfRepresentation.hexString.dropFirst(2) == vector.P.x.dropFirst(2))
+            XCTAssert(try point.oprfRepresentation.hexString.dropFirst(2) == vector.P.x.dropFirst(2))
         }
     }
 

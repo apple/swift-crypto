@@ -118,7 +118,10 @@ extension P384 {
             public var pemRepresentation: String { self.backingKey.pemRepresentation }
 
             /// An RFC 9497 OPRF representation of the public key.
-            public var oprfRepresentation: Data { self.backingPoint.oprfRepresentation }
+            public var oprfRepresentation: Data {
+                // Force-try: parsed or honestly generated points are never the identity.
+                try! self.backingPoint.oprfRepresentation
+            }
         }
 
         /// A P-384 public key used to evaluate blinded inputs.
@@ -239,7 +242,10 @@ extension P384._VOPRF {
         }
 
         /// The OPRF representation of the blinded element.
-        public var oprfRepresentation: Data { self.backing.oprfRepresentation }
+        public var oprfRepresentation: Data {
+            // Force-try: parsed or honestly generated points are never the identity.
+            try! self.backing.oprfRepresentation
+        }
     }
 
     /// A blinded element and its blind for unblinding.
@@ -270,7 +276,10 @@ extension P384._VOPRF {
         }
 
         /// The OPRF representation of the evaluated element to be sent to the client.
-        public var oprfRepresentation: Data { self.backing.oprfRepresentation }
+        public var oprfRepresentation: Data {
+            // Force-try: parsed or honestly generated points are never the identity.
+            try! self.backing.oprfRepresentation
+        }
     }
 
     /// A proof that the evaluated element was computed using the agreed key pair.
@@ -450,7 +459,7 @@ extension P384._VOPRF.PrivateKey {
             domainSeparationString: Self.hashToGroupDST
         )
         let evaluatedElement = self.backingScalar * inputElement
-        let finalizeContext = OPRF.composeFinalizeContext(
+        let finalizeContext = try OPRF.composeFinalizeContext(
             message: Data(input),
             info: nil,
             unblindedElement: evaluatedElement,

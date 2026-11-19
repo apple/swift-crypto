@@ -83,7 +83,7 @@ class ECVOPRFTests: XCTestCase {
             let (blind, blindedElement) = client.blindMessage(input, blind: blindTestVector)
 
             XCTAssert(blindTestVector == blind)
-            XCTAssert(blindedElement.oprfRepresentation.hexString == vector.BlindedElement)
+            XCTAssert(try blindedElement.oprfRepresentation.hexString == vector.BlindedElement)
 
             let server = OPRF.Server(mode: .base, ciphersuite: ciphersuite, privateKey: privateKey, v8CompatibilityMode: v8DraftCompatible)
 
@@ -123,7 +123,7 @@ class ECVOPRFTests: XCTestCase {
             let (blind, blindedElement) = client.blindMessage(input, blind: blindTestVector)
 
             XCTAssert(blindTestVector == blind)
-            XCTAssert(blindedElement.oprfRepresentation.hexString == vector.BlindedElement)
+            XCTAssert(try blindedElement.oprfRepresentation.hexString == vector.BlindedElement)
 
             let server = try! OPRF.VerifiableServer(ciphersuite: ciphersuite, privateKey: privateKey, v8CompatibilityMode: v8DraftCompatible, mode: mode)
             let proofBlind = try GroupImpl<G>.Scalar(bytes: Data(hexString: vector.Proof!.r))
@@ -283,5 +283,19 @@ class ECVOPRFTests: XCTestCase {
         let proof = try DLEQ<HashToCurveImpl<P256>>.proveEquivalenceBetween(k: k, A: A, B: B, CDs: CDs, dst: Data(), proofScalar: .random, v8CompatibilityMode: false)
 
         XCTAssert(try DLEQ<HashToCurveImpl<P256>>.verifyProof(A: A, B: B, CDs: CDs, proof: proof, dst: Data(), v8CompatibilityMode: false))
+    }
+
+    /// A proof with s = -c*k makes the recomputed T2 the identity, which must throw rather than trap.
+    func testDLEQVerifyThrowsWhenCommitmentIsIdentity() throws {
+        let k = GroupImpl<P384>.Scalar.random
+        let A = GroupImpl<P384>.Element.generator
+        let B = k * A
+        let C = GroupImpl<P384>.Element.random
+        let CDs = [(C: C, D: k * C)]
+
+        let c = GroupImpl<P384>.Scalar.random
+        let proof = DLEQProof(c: c, s: -(c * k))
+
+        XCTAssertThrowsError(try DLEQ<HashToCurveImpl<P384>>.verifyProof(A: A, B: B, CDs: CDs, proof: proof, dst: Data(), v8CompatibilityMode: false))
     }
 }
