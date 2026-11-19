@@ -121,10 +121,10 @@ extension Curve25519.KeyAgreement {
         ) throws
             -> SharedSecret
         {
-            let sharedSecret = SecureBytes(
+            let sharedSecret = try SecureBytes(
                 unsafeUninitializedCapacity: Curve25519.KeyAgreement.keySizeBytes
             ) { secretPointer, secretSize in
-                self.key.withUnsafeBytes { privateKeyPointer in
+                try self.key.withUnsafeBytes { privateKeyPointer in
                     // We precondition on all of these sizes because bounds checking is cool.
                     // These are fatal instead of guards because we allocated the secret (so it must be right),
                     // we either allocated the private key or validated it on construction (so it must be right),
@@ -133,16 +133,17 @@ extension Curve25519.KeyAgreement {
                     precondition(privateKeyPointer.count == Curve25519.KeyAgreement.keySizeBytes)
                     precondition(publicKeyShare.keyBytes.count == Curve25519.KeyAgreement.keySizeBytes)
 
-                    // We don't check the return code here. This return code only validates that the generated secret is not the weak all-zero
-                    // secret (it is not possible for BoringSSL's X25519 implementation to fail, which is nice). There is currently what I would
-                    // politely describe as a "lack of consensus" as to whether crypto libraries should reject this secret. CryptoKit on Apple
-                    // platforms currently does not, so for the sake of conformance with our peer implementation I will also refuse to check it.
-                    // We may elect to revisit this decision if the security best-practice thinking changes.
-                    CCryptoBoringSSL_X25519(
-                        secretPointer.baseAddress,
-                        privateKeyPointer.baseAddress,
-                        publicKeyShare.keyBytes
-                    )
+                    // BoringSSL returns 0 when the peer's public key has low order, which makes the shared secret
+                    // the weak all-zero value. CryptoKit rejects that key agreement, so we do too.
+                    guard
+                        CCryptoBoringSSL_X25519(
+                            secretPointer.baseAddress,
+                            privateKeyPointer.baseAddress,
+                            publicKeyShare.keyBytes
+                        ) == 1
+                    else {
+                        throw CryptoKitError.internalBoringSSLError()
+                    }
                 }
 
                 secretSize = Curve25519.KeyAgreement.keySizeBytes  // We always use all of it.
