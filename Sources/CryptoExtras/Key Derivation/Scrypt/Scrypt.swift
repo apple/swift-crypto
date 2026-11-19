@@ -35,10 +35,16 @@ extension KDF {
         ///    - rounds: The number of rounds which should be used to perform key derivation. Must be a power of 2 less than `2^(128 * blockSize / 8)`.
         ///    - blockSize: The block size to use for key derivation.
         ///    - parallelism: The parallelism factor to use for key derivation. Must be a positive integer less than or equal to `((2^32 - 1) * 32) / (128 * blockSize)`.
-        ///    - maxMemory: The maximum amount of memory allowed to use for key derivation. If not provided, the default value is computed for the provided parameters.
+        ///    - maxMemory: The maximum amount of memory allowed to use for key derivation. Must be positive. If not provided, the default value is computed for the provided parameters.
         /// - Returns: The derived symmetric key.
         public static func deriveKey<Passphrase: DataProtocol, Salt: DataProtocol>(from password: Passphrase, salt: Salt, outputByteCount: Int, rounds: Int, blockSize: Int, parallelism: Int, maxMemory: Int? = nil) throws -> SymmetricKey {
-            return try BackingScrypt.deriveKey(from: password, salt: salt, outputByteCount: outputByteCount, rounds: rounds, blockSize: blockSize, parallelism: parallelism)
+            guard rounds > 0, blockSize > 0, parallelism > 0, outputByteCount >= 0 else {
+                throw CryptoKitError.incorrectParameterSize
+            }
+            if let maxMemory, maxMemory <= 0 {
+                throw CryptoKitError.incorrectParameterSize
+            }
+            return try BackingScrypt.deriveKey(from: password, salt: salt, outputByteCount: outputByteCount, rounds: rounds, blockSize: blockSize, parallelism: parallelism, maxMemory: maxMemory)
         }
     }
 }

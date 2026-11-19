@@ -84,4 +84,70 @@ class ScryptTests: XCTestCase {
             try orFail { try self.testRFCVector(vector) }
         }
     }
+
+    func testDeriveKeyWithMaxMemoryBelowRequirementThrows() throws {
+        let password = Array("password".utf8)
+        let salt = Array("salt".utf8)
+
+        // These parameters need 128 * blockSize * (rounds + parallelism + 1) bytes, just over 1 MiB.
+        // BoringSSL reads a limit of zero as "use the default limit", and a negative limit as a huge size_t.
+        for maxMemory in [1024, 0, -1] {
+            XCTAssertThrowsError(
+                try KDF.Scrypt.deriveKey(
+                    from: password,
+                    salt: salt,
+                    outputByteCount: 32,
+                    rounds: 1024,
+                    blockSize: 8,
+                    parallelism: 1,
+                    maxMemory: maxMemory
+                )
+            )
+        }
+
+        let bounded = try KDF.Scrypt.deriveKey(
+            from: password,
+            salt: salt,
+            outputByteCount: 32,
+            rounds: 1024,
+            blockSize: 8,
+            parallelism: 1,
+            maxMemory: 2 << 20
+        )
+        let unbounded = try KDF.Scrypt.deriveKey(
+            from: password,
+            salt: salt,
+            outputByteCount: 32,
+            rounds: 1024,
+            blockSize: 8,
+            parallelism: 1
+        )
+        XCTAssertEqual(bounded, unbounded)
+    }
+
+    func testDeriveKeyWithOutOfRangeParametersThrows() throws {
+        let password = Array("password".utf8)
+        let salt = Array("salt".utf8)
+
+        for (rounds, blockSize, parallelism, outputByteCount) in [
+            // Negative values reach UInt64 conversions and Data(count:), both of which trap.
+            (-1, 8, 1, 32),
+            (1024, -1, 1, 32),
+            (1024, 8, -1, 32),
+            (1024, 8, 1, -1),
+            // 128 * blockSize * rounds * parallelism overflows Int.
+            (1 << 32, 1 << 30, 1, 32),
+        ] {
+            XCTAssertThrowsError(
+                try KDF.Scrypt.deriveKey(
+                    from: password,
+                    salt: salt,
+                    outputByteCount: outputByteCount,
+                    rounds: rounds,
+                    blockSize: blockSize,
+                    parallelism: parallelism
+                )
+            )
+        }
+    }
 }

@@ -85,9 +85,21 @@ internal struct BoringSSLScrypt {
         var derivedKeyData = Data(count: outputByteCount)
         defer { derivedKeyData.withUnsafeMutableBytes { $0.zeroize() } }
 
-        // This computes the maximum amount of memory that will be used by the scrypt algorithm with an additional memory page to spare. This value will be used by the BoringSSL as the memory limit for the algorithm.
-        // An additional memory page is added to the computed value (using POSIX specification) to ensure that the memory limit is not too tight.
-        let maxMemory = maxMemory ?? (128 * rounds * blockSize * parallelism + getPageSize())
+        let memoryLimit: Int
+        if let maxMemory {
+            memoryLimit = maxMemory
+        } else {
+            // This computes the maximum amount of memory that will be used by the scrypt algorithm with an additional memory page to spare. This value will be used by the BoringSSL as the memory limit for the algorithm.
+            // An additional memory page is added to the computed value (using POSIX specification) to ensure that the memory limit is not too tight.
+            let (blockBytes, blockBytesOverflowed) = 128.multipliedReportingOverflow(by: blockSize)
+            let (laneBytes, laneBytesOverflowed) = blockBytes.multipliedReportingOverflow(by: rounds)
+            let (stateBytes, stateBytesOverflowed) = laneBytes.multipliedReportingOverflow(by: parallelism)
+            let (computedLimit, computedLimitOverflowed) = stateBytes.addingReportingOverflow(getPageSize())
+            guard !blockBytesOverflowed, !laneBytesOverflowed, !stateBytesOverflowed, !computedLimitOverflowed else {
+                throw CryptoKitError.incorrectParameterSize
+            }
+            memoryLimit = computedLimit
+        }
 
         let result = derivedKeyData.withUnsafeMutableBytes { derivedKeyBytes -> Int32 in
             let saltBytes: ContiguousBytes = salt.regions.count == 1 ? salt.regions.first! : Array(salt)
@@ -103,7 +115,7 @@ internal struct BoringSSLScrypt {
                         UInt64(rounds),
                         UInt64(blockSize),
                         UInt64(parallelism),
-                        maxMemory,
+                        memoryLimit,
                         derivedKeyBytes.baseAddress!,
                         derivedKeyBytes.count
                     )
