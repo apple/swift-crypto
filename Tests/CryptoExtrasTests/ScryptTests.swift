@@ -125,6 +125,20 @@ class ScryptTests: XCTestCase {
         XCTAssertEqual(bounded, unbounded)
     }
 
+    func testDeriveKeyWithDefaultMaxMemoryAndBlockSizeAboveRoundsSucceeds() throws {
+        // Needs 128 * 1024 * (2 + 1 + 1) bytes, more than 128 * blockSize * rounds * parallelism.
+        XCTAssertNoThrow(
+            try KDF.Scrypt.deriveKey(
+                from: [UInt8](),
+                salt: [UInt8](),
+                outputByteCount: 32,
+                rounds: 2,
+                blockSize: 1024,
+                parallelism: 1
+            )
+        )
+    }
+
     func testDeriveKeyWithOutOfRangeParametersThrows() throws {
         let password = Array("password".utf8)
         let salt = Array("salt".utf8)
@@ -135,8 +149,9 @@ class ScryptTests: XCTestCase {
             (1024, -1, 1, 32),
             (1024, 8, -1, 32),
             (1024, 8, 1, -1),
-            // 128 * blockSize * rounds * parallelism overflows Int.
+            // 128 * blockSize * (rounds + parallelism + 1) overflows Int.
             (1 << 32, 1 << 30, 1, 32),
+            (1024, 8, .max, 32),
         ] {
             XCTAssertThrowsError(
                 try KDF.Scrypt.deriveKey(
