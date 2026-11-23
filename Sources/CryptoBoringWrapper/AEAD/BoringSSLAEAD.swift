@@ -258,30 +258,6 @@ extension BoringSSLAEAD.AEADContext {
         }
     }
 
-    // TODO: Do we need this one or not?
-    #if compiler(<6.3)
-    @_lifetime(tag: copy tag)
-    @_lifetime(output: copy output)
-    #endif
-    public func seal(
-        message: RawSpan,
-        output: inout MutableRawSpan,
-        nonce: RawSpan,
-        authenticatedData: RawSpan,
-        tag: inout OutputRawSpan,
-    ) throws {
-        try output.withUnsafeMutableBytes { outputBuffer in
-            var outputSpan = OutputRawSpan(buffer: outputBuffer, initializedCount: 0)
-            try self.seal(
-                message: message,
-                output: &outputSpan,
-                nonce: nonce,
-                authenticatedData: authenticatedData,
-                tag: &tag
-            )
-        }
-    }
-
     /// The unsafe base call: not inlinable so that it can touch private variables.
     @usableFromInline
     func _sealContiguous(
