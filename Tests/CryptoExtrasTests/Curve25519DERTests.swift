@@ -89,4 +89,14 @@ final class Curve25519DERTests: XCTestCase {
         let key = try Curve25519.KeyAgreement.PrivateKey(derRepresentation: derBytes)
         XCTAssertEqual(key.rawRepresentation.count, 32)
     }
+
+    func testPrivateKeyWithMismatchedAlgorithmThrows() throws {
+        let signingKey = Curve25519.Signing.PrivateKey()
+        let keyAgreementKey = Curve25519.KeyAgreement.PrivateKey()
+
+        XCTAssertThrowsError(try Curve25519.Signing.PrivateKey(derRepresentation: keyAgreementKey.derRepresentation))
+        XCTAssertThrowsError(try Curve25519.Signing.PrivateKey(pemRepresentation: keyAgreementKey.pemRepresentation))
+        XCTAssertThrowsError(try Curve25519.KeyAgreement.PrivateKey(derRepresentation: signingKey.derRepresentation))
+        XCTAssertThrowsError(try Curve25519.KeyAgreement.PrivateKey(pemRepresentation: signingKey.pemRepresentation))
+    }
 }

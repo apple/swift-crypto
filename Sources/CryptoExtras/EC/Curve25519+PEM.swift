@@ -56,6 +56,9 @@ extension Curve25519.Signing.PrivateKey {
     public init<Bytes: RandomAccessCollection>(derRepresentation: Bytes) throws where Bytes.Element == UInt8 {
         let bytes = Array(derRepresentation)
         let key = try ASN1.PKCS8PrivateKey(derEncoded: bytes)
+        guard key.algorithm == .ed25519 else {
+            throw CryptoKitASN1Error.invalidASN1Object
+        }
         self = try .init(rawRepresentation: key.privateKey.bytes)
     }
 }
@@ -138,6 +141,9 @@ extension Curve25519.KeyAgreement.PrivateKey {
     public init<Bytes: RandomAccessCollection>(derRepresentation: Bytes) throws where Bytes.Element == UInt8 {
         let bytes = Array(derRepresentation)
         let key = try ASN1.PKCS8PrivateKey(derEncoded: bytes)
+        guard key.algorithm == .x25519 else {
+            throw CryptoKitASN1Error.invalidASN1Object
+        }
         self = try .init(rawRepresentation: key.privateKey.bytes)
     }
 }
